@@ -97,8 +97,8 @@ modesGrid.RowHeight = {30, 30, 80, '1x'};
 modesGrid.Padding = [12 12 12 12];
 
 A0Check = uicheckbox(modesGrid, 'Text', 'A0', 'Value', true);
-S0Check = uicheckbox(modesGrid, 'Text', 'S0 (scaffolded)', 'Value', false);
-uilabel(modesGrid, 'Text', 'S0 is currently scaffolded only until the symmetric residual is implemented.', ...
+S0Check = uicheckbox(modesGrid, 'Text', 'S0', 'Value', false);
+uilabel(modesGrid, 'Text', 'S0 is solved using the symmetric Rayleigh-Lamb residual.', ...
     'WordWrap', 'on', 'FontAngle', 'italic');
 
 % Plot tab
@@ -183,9 +183,6 @@ updateMaterialInputState();
             updatePlot(lastResults);
             updateLabels(lastResults);
 
-            if options.computeS0
-                statusLabel.Text = sprintf('%s\nNote: S0 is scaffolded only and will be NaN until symmetric residual is implemented.', statusLabel.Text);
-            end
         catch ME
             statusLabel.Text = ['Error: ', ME.message];
             uialert(fig, ME.message, 'Compute error');

@@ -25,6 +25,7 @@ end
 candidateIdx = findLocalMinima(RGridValid);
 bestCp = nan;
 bestR = inf;
+scoreBest = inf;
 
 for idx = candidateIdx(:).'
     CpLeft = CpGridValid(max(idx - 2, 1));
@@ -35,9 +36,13 @@ for idx = candidateIdx(:).'
     try
         CpCandidate = fminbnd(obj, CpLeft, CpRight);
         RCandidate = obj(CpCandidate);
-        if CpCandidate > CpMinAbs && RCandidate < bestR
-            bestCp = CpCandidate;
-            bestR = RCandidate;
+        if CpCandidate > CpMinAbs
+            score = localScore(CpCandidate, RCandidate, options);
+            if score < scoreBest
+                bestCp = CpCandidate;
+                bestR = RCandidate;
+                scoreBest = score;
+            end
         end
     catch
     end
@@ -58,6 +63,7 @@ for i = 2:numel(frequency)
     searchFactors = [0.75, 1.25; 0.50, 1.60; 0.30, 2.20; 0.10, 4.00];
     bestCp = nan;
     bestR = inf;
+    scoreBest = inf;
 
     for s = 1:size(searchFactors, 1)
         CpLow = max(CpGlobalMin, searchFactors(s, 1) * CpPrev);
@@ -83,9 +89,13 @@ for i = 2:numel(frequency)
                 CpCandidate = fminbnd(obj, CpLeft, CpRight);
                 RCandidate = obj(CpCandidate);
                 relJump = abs(CpCandidate - CpPrev) / max(CpPrev, eps);
-                if CpCandidate > CpMinAbs && relJump < options.jumpTol && RCandidate < bestR
-                    bestCp = CpCandidate;
-                    bestR = RCandidate;
+                if CpCandidate > CpMinAbs && relJump < options.jumpTol
+                    score = localScore(CpCandidate, RCandidate, options);
+                    if score < scoreBest
+                        bestCp = CpCandidate;
+                        bestR = RCandidate;
+                        scoreBest = score;
+                    end
                 end
             catch
             end
@@ -98,6 +108,14 @@ for i = 2:numel(frequency)
 
     Cp(i) = bestCp;
     residual(i) = bestR;
+end
+end
+
+function score = localScore(CpCandidate, RCandidate, options)
+score = RCandidate;
+if isfield(options, 'initialCpGuess') && isfinite(options.initialCpGuess) && options.initialCpGuess > 0
+    rel = abs(CpCandidate - options.initialCpGuess) / options.initialCpGuess;
+    score = RCandidate * (1 + 0.2 * rel);
 end
 end
 
