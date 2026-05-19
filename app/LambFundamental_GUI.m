@@ -2,10 +2,10 @@ function LambFundamental_GUI
 % Simplified GUI shell for fundamental Lamb modes (Cp only).
 
 fig = uifigure('Name', 'Fundamental Lamb Modes (A0/S0)', 'Position', [120 120 1000 620]);
-grid = uigridlayout(fig, [1 2]);
-grid.ColumnWidth = {320, '1x'};
+mainLayout = uigridlayout(fig, [1 2]);
+mainLayout.ColumnWidth = {320, '1x'};
 
-left = uipanel(grid, 'Title', 'Inputs'); left.Layout.Column = 1;
+left = uipanel(mainLayout, 'Title', 'Inputs'); left.Layout.Column = 1;
 lg = uigridlayout(left, [16 2]); lg.RowHeight = repmat({28}, 1, 16); lg.ColumnWidth = {155, '1x'};
 
 uilabel(lg,'Text','Model'); model = uidropdown(lg,'Items',{'YoungPoissonFixedCL','LameParameters'},'Value','YoungPoissonFixedCL');
@@ -25,7 +25,9 @@ uilabel(lg,'Text','Compute A0'); a0 = uicheckbox(lg,'Value',true);
 uilabel(lg,'Text','Compute S0'); s0 = uicheckbox(lg,'Value',false);
 runBtn = uibutton(lg,'Text','Compute and Plot','ButtonPushedFcn',@onRun); runBtn.Layout.Column=[1 2];
 
-ax = uiaxes(grid); ax.Layout.Column = 2; grid(ax,'on'); ylabel(ax,'Cp [m/s]');
+ax = uiaxes(mainLayout); ax.Layout.Column = 2;
+grid(ax,'on');
+ylabel(ax,'Cp [m/s]');
 
     function onRun(~,~)
         params = struct('modelType', string(model.Value), 'rho', rho.Value, ...
