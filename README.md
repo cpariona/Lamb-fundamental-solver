@@ -36,6 +36,28 @@ startup
 LambFundamental_GUI
 ```
 
+## Defaults and robustness presets
+
+Default physical and frequency parameters are centralized in:
+
+```matlab
+core/defaultParams.m
+```
+
+Default numerical options and robustness presets are centralized in:
+
+```matlab
+core/defaultOptions.m
+```
+
+Available robustness presets:
+
+- `Fast`: fewer scan points and faster calculations.
+- `Balanced`: default setting for routine exploration.
+- `Robust`: more scan points and wider search windows for difficult cases.
+
+The GUI exposes these presets in the `Numerical` tab.
+
 ## Manual validation examples
 
 Run these from the repository root:
@@ -44,9 +66,12 @@ Run these from the repository root:
 examples/run_default_A0
 examples/run_default_A0_S0
 examples/check_default_outputs
+examples/sweep_thickness_A0_S0
 ```
 
 `check_default_outputs` prints valid point counts, Cp ranges, residuals, and finite `kThickness` counts for the default configuration.
+
+`sweep_thickness_A0_S0` computes A0 and experimental S0 over multiple total thickness values and plots the corresponding Cp curves.
 
 ## Current limitations
 
