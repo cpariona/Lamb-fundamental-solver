@@ -1,6 +1,9 @@
 function results = computeFundamentalLambModes(params, options)
 % Compute fundamental A0/S0 branches using independent continuation solves.
 
+validateParams(params);
+validateOptions(options);
+
 material = computeMaterial(params);
 geometry = computeGeometry(params);
 frequency = buildFrequencyVector(params);
