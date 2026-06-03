@@ -28,4 +28,29 @@ end
 if options.residualTolerance <= 0
     error('residualTolerance must be positive.');
 end
+
+if isfield(options, 'searchFactors')
+    if size(options.searchFactors, 2) ~= 2 || any(options.searchFactors(:) <= 0)
+        error('searchFactors must be an n-by-2 matrix with positive values.');
+    end
+    if any(options.searchFactors(:, 2) <= options.searchFactors(:, 1))
+        error('Each searchFactors upper bound must be larger than the lower bound.');
+    end
+end
+
+if isfield(options, 'minCpAbsolute') && options.minCpAbsolute <= 0
+    error('minCpAbsolute must be positive.');
+end
+
+if isfield(options, 'minCpRelativeToCT') && options.minCpRelativeToCT <= 0
+    error('minCpRelativeToCT must be positive.');
+end
+
+if isfield(options, 'maxCpFactorCT') && options.maxCpFactorCT <= 0
+    error('maxCpFactorCT must be positive.');
+end
+
+if isfield(options, 'minCpGlobalMax') && options.minCpGlobalMax <= 0
+    error('minCpGlobalMax must be positive.');
+end
 end
