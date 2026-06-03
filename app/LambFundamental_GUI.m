@@ -2,24 +2,8 @@ function LambFundamental_GUI
 % GUI shell for fundamental Lamb modes (Cp only) using modular backend.
 
 %% Default values
-defaults = struct();
-defaults.modelType = "YoungPoissonFixedCL";
-defaults.rho = 1070;
-defaults.E = 475e3;          % Pa
-defaults.nu = 0.4999;
-defaults.CL = 1500;
-defaults.lambda = 2.40e9;    % Pa
-defaults.mu = 158e3;         % Pa
-defaults.thickness = 0.50e-3; % m
-defaults.fmin = 10;
-defaults.fmax = 8000;
-defaults.numFrequencyPoints = 250;
-defaults.frequencySpacing = "logspace";
-defaults.gridPointsInitial = 3000;
-defaults.gridPointsTracking = 600;
-defaults.jumpTol = 0.35;
-defaults.residualTolerance = 1e-5;
-
+defaults = defaultParams();
+defaultSolverOptions = defaultOptions("Balanced");
 lastResults = [];
 
 %% Main layout
@@ -69,7 +53,6 @@ lambdaField = uieditfield(matGrid, 'numeric', 'Value', defaults.lambda/1e6, 'Lim
 muLabel = uilabel(matGrid, 'Text', 'mu [kPa]');
 muField = uieditfield(matGrid, 'numeric', 'Value', defaults.mu/1e3, 'Limits', [0 Inf]);
 
-% fillers
 uilabel(matGrid, 'Text', ''); uilabel(matGrid, 'Text', '');
 
 % Geometry/Frequency tab
@@ -96,8 +79,8 @@ modesGrid = uigridlayout(tabModes, [4 1]);
 modesGrid.RowHeight = {30, 30, 80, '1x'};
 modesGrid.Padding = [12 12 12 12];
 
-A0Check = uicheckbox(modesGrid, 'Text', 'A0', 'Value', true);
-S0Check = uicheckbox(modesGrid, 'Text', 'S0 experimental', 'Value', false);
+A0Check = uicheckbox(modesGrid, 'Text', 'A0', 'Value', defaultSolverOptions.computeA0);
+S0Check = uicheckbox(modesGrid, 'Text', 'S0 experimental', 'Value', defaultSolverOptions.computeS0);
 uilabel(modesGrid, 'Text', 'S0 uses the symmetric Rayleigh-Lamb residual, but it has not been benchmarked yet.', ...
     'WordWrap', 'on', 'FontAngle', 'italic');
 
@@ -118,6 +101,22 @@ uilabel(plotGrid, 'Text', 'x min'); xMinField = uieditfield(plotGrid, 'numeric',
 uilabel(plotGrid, 'Text', 'x max'); xMaxField = uieditfield(plotGrid, 'numeric', 'Value', 0);
 uilabel(plotGrid, 'Text', 'y min'); yMinField = uieditfield(plotGrid, 'numeric', 'Value', 0);
 uilabel(plotGrid, 'Text', 'y max'); yMaxField = uieditfield(plotGrid, 'numeric', 'Value', 0);
+
+% Numerical tab
+tabNumerical = uitab(tabs, 'Title', 'Numerical');
+numGrid = uigridlayout(tabNumerical, [5 2]);
+numGrid.ColumnWidth = {150, '1x'};
+numGrid.RowHeight = {30, 30, 70, 30, '1x'};
+numGrid.Padding = [12 12 12 12];
+
+uilabel(numGrid, 'Text', 'robustness');
+robustnessDropDown = uidropdown(numGrid, 'Items', {'Fast', 'Balanced', 'Robust'}, 'Value', 'Balanced');
+uilabel(numGrid, 'Text', 'preset effect');
+uilabel(numGrid, 'Text', 'Fast uses fewer scan points. Robust uses more points and wider search windows.', ...
+    'WordWrap', 'on');
+uilabel(numGrid, 'Text', 'advanced settings');
+uilabel(numGrid, 'Text', 'Hidden for now; edit defaultOptions.m for detailed numerical tuning.', ...
+    'WordWrap', 'on', 'FontAngle', 'italic');
 
 %% Run / Export fixed section
 actionPanel = uipanel(leftLayout, 'Title', 'Run / Export');
@@ -157,36 +156,35 @@ updateMaterialInputState();
         try
             statusLabel.Text = 'Computing...'; drawnow;
 
-            params = struct();
-            params.modelType = string(modelDropDown.Value);
-            params.rho = rhoField.Value;
-            params.E = EField.Value * 1e3;
-            params.nu = nuField.Value;
-            params.CL = CLField.Value;
-            params.lambda = lambdaField.Value * 1e6;
-            params.mu = muField.Value * 1e3;
-            params.thickness = thicknessField.Value * 1e-3;
-            params.fmin = fminField.Value;
-            params.fmax = fmaxField.Value;
-            params.numFrequencyPoints = round(nfField.Value);
-            params.frequencySpacing = string(spacingDropDown.Value);
-
-            options = struct();
+            params = readParamsFromGui();
+            options = defaultOptions(string(robustnessDropDown.Value));
             options.computeA0 = logical(A0Check.Value);
             options.computeS0 = logical(S0Check.Value);
-            options.gridPointsInitial = defaults.gridPointsInitial;
-            options.gridPointsTracking = defaults.gridPointsTracking;
-            options.jumpTol = defaults.jumpTol;
-            options.residualTolerance = defaults.residualTolerance;
 
             lastResults = computeFundamentalLambModes(params, options);
             updatePlot(lastResults);
-            updateLabels(lastResults);
+            updateLabels(lastResults, options);
 
         catch ME
             statusLabel.Text = ['Error: ', ME.message];
             uialert(fig, ME.message, 'Compute error');
         end
+    end
+
+    function params = readParamsFromGui()
+        params = defaultParams();
+        params.modelType = string(modelDropDown.Value);
+        params.rho = rhoField.Value;
+        params.E = EField.Value * 1e3;
+        params.nu = nuField.Value;
+        params.CL = CLField.Value;
+        params.lambda = lambdaField.Value * 1e6;
+        params.mu = muField.Value * 1e3;
+        params.thickness = thicknessField.Value * 1e-3;
+        params.fmin = fminField.Value;
+        params.fmax = fmaxField.Value;
+        params.numFrequencyPoints = round(nfField.Value);
+        params.frequencySpacing = string(spacingDropDown.Value);
     end
 
     function updatePlot(results)
@@ -226,7 +224,7 @@ updateMaterialInputState();
         hold(axCp, 'off');
     end
 
-    function updateLabels(results)
+    function updateLabels(results, options)
         m = results.material;
         thickness = results.geometry.thickness;
         halfThickness = thickness / 2;
@@ -237,7 +235,7 @@ updateMaterialInputState();
             'thickness = %.6g m, halfThickness = %.6g m'], ...
             m.E / 1e3, m.nu, m.lambda / 1e6, m.mu / 1e3, m.CL, m.CT, thickness, halfThickness);
 
-        txt = {};
+        txt = {sprintf('Robustness: %s', string(options.robustness))};
         if isfield(results.modes, 'A0')
             a0 = results.modes.A0;
             txt{end+1} = sprintf('A0 valid points: %d/%d', sum(a0.valid), numel(a0.valid)); %#ok<AGROW>
