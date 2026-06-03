@@ -1,17 +1,18 @@
 function [Cp, residual] = solveFundamentalBranch(frequency, residualFcn, options)
 % Continuation solver for a single fundamental branch.
 
-CpMinAbs = 1e-4;
-CpMin = max(CpMinAbs, 0.001 * options.CT);
+CpMinAbs = getOption(options, 'minCpAbsolute', 1e-4);
+CpMin = max(CpMinAbs, getOption(options, 'minCpRelativeToCT', 1e-3) * options.CT);
 CpGlobalMin = CpMin;
-CpGlobalMax = max(20 * options.CT, 1.0);
+CpGlobalMax = max(getOption(options, 'maxCpFactorCT', 20) * options.CT, getOption(options, 'minCpGlobalMax', 1.0));
 
 Cp = nan(size(frequency));
 residual = nan(size(frequency));
 
-% Initial broad scan
+% Initial broad scan, optionally narrowed by branch-specific physics.
 f0 = frequency(1);
-CpGrid = linspace(CpGlobalMin, CpGlobalMax, options.gridPointsInitial);
+[CpInitialMin, CpInitialMax] = initialSearchLimits(CpGlobalMin, CpGlobalMax, options);
+CpGrid = linspace(CpInitialMin, CpInitialMax, options.gridPointsInitial);
 RGrid = arrayfun(@(x) residualFcn(x, f0), CpGrid);
 
 valid = isfinite(RGrid) & CpGrid > CpMinAbs;
@@ -37,7 +38,7 @@ for idx = candidateIdx(:).'
         CpCandidate = fminbnd(obj, CpLeft, CpRight);
         RCandidate = obj(CpCandidate);
         if CpCandidate > CpMinAbs
-            score = localScore(CpCandidate, RCandidate, options);
+            score = localScore(CpCandidate, RCandidate, options, getInitialTarget(options));
             if score < scoreBest
                 bestCp = CpCandidate;
                 bestR = RCandidate;
@@ -60,14 +61,15 @@ for i = 2:numel(frequency)
     CpPrev = Cp(i - 1);
     if isnan(CpPrev), break; end
 
-    searchFactors = [0.75, 1.25; 0.50, 1.60; 0.30, 2.20; 0.10, 4.00];
+    CpPred = predictNextCp(Cp, frequency, i);
+    searchFactors = getOption(options, 'searchFactors', [0.75, 1.25; 0.50, 1.60; 0.30, 2.20; 0.10, 4.00]);
     bestCp = nan;
     bestR = inf;
     scoreBest = inf;
 
     for s = 1:size(searchFactors, 1)
-        CpLow = max(CpGlobalMin, searchFactors(s, 1) * CpPrev);
-        CpHigh = min(CpGlobalMax, searchFactors(s, 2) * CpPrev);
+        CpLow = max(CpGlobalMin, searchFactors(s, 1) * CpPred);
+        CpHigh = min(CpGlobalMax, searchFactors(s, 2) * CpPred);
         if CpHigh <= CpLow, continue; end
 
         CpGrid = linspace(CpLow, CpHigh, options.gridPointsTracking);
@@ -90,7 +92,7 @@ for i = 2:numel(frequency)
                 RCandidate = obj(CpCandidate);
                 relJump = abs(CpCandidate - CpPrev) / max(CpPrev, eps);
                 if CpCandidate > CpMinAbs && relJump < options.jumpTol
-                    score = localScore(CpCandidate, RCandidate, options);
+                    score = localScore(CpCandidate, RCandidate, options, CpPred);
                     if score < scoreBest
                         bestCp = CpCandidate;
                         bestR = RCandidate;
@@ -111,11 +113,58 @@ for i = 2:numel(frequency)
 end
 end
 
-function score = localScore(CpCandidate, RCandidate, options)
-score = RCandidate;
+function [CpMin, CpMax] = initialSearchLimits(CpGlobalMin, CpGlobalMax, options)
+CpMin = CpGlobalMin;
+CpMax = CpGlobalMax;
+if isfield(options, 'initialSearchRange') && numel(options.initialSearchRange) == 2 && ...
+        all(isfinite(options.initialSearchRange)) && options.initialSearchRange(2) > options.initialSearchRange(1)
+    CpMin = max(CpGlobalMin, options.initialSearchRange(1));
+    CpMax = min(CpGlobalMax, options.initialSearchRange(2));
+    if CpMax <= CpMin
+        CpMin = CpGlobalMin;
+        CpMax = CpGlobalMax;
+    end
+end
+end
+
+function target = getInitialTarget(options)
+target = nan;
 if isfield(options, 'initialCpGuess') && isfinite(options.initialCpGuess) && options.initialCpGuess > 0
-    rel = abs(CpCandidate - options.initialCpGuess) / options.initialCpGuess;
-    score = RCandidate * (1 + 0.2 * rel);
+    target = options.initialCpGuess;
+end
+end
+
+function CpPred = predictNextCp(Cp, frequency, idx)
+CpPred = Cp(idx - 1);
+if idx >= 3 && isfinite(Cp(idx - 2)) && isfinite(Cp(idx - 1))
+    dfPrev = frequency(idx - 1) - frequency(idx - 2);
+    dfNow = frequency(idx) - frequency(idx - 1);
+    if dfPrev > 0 && dfNow > 0
+        slope = (Cp(idx - 1) - Cp(idx - 2)) / dfPrev;
+        candidate = Cp(idx - 1) + slope * dfNow;
+        if isfinite(candidate) && candidate > 0
+            CpPred = candidate;
+        end
+    end
+end
+end
+
+function score = localScore(CpCandidate, RCandidate, options, targetCp)
+score = RCandidate;
+if nargin >= 4 && isfinite(targetCp) && targetCp > 0
+    rel = abs(CpCandidate - targetCp) / targetCp;
+    score = score * (1 + getOption(options, 'predictionWeight', 0.50) * rel);
+end
+if isfield(options, 'preferLowestCp') && options.preferLowestCp
+    score = score * (1 + 0.01 * CpCandidate / max(options.CT, eps));
+end
+end
+
+function value = getOption(options, fieldName, defaultValue)
+if isfield(options, fieldName)
+    value = options.(fieldName);
+else
+    value = defaultValue;
 end
 end
 
