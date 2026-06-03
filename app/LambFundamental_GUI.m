@@ -97,8 +97,8 @@ modesGrid.RowHeight = {30, 30, 80, '1x'};
 modesGrid.Padding = [12 12 12 12];
 
 A0Check = uicheckbox(modesGrid, 'Text', 'A0', 'Value', true);
-S0Check = uicheckbox(modesGrid, 'Text', 'S0', 'Value', false);
-uilabel(modesGrid, 'Text', 'S0 is solved using the symmetric Rayleigh-Lamb residual.', ...
+S0Check = uicheckbox(modesGrid, 'Text', 'S0 experimental', 'Value', false);
+uilabel(modesGrid, 'Text', 'S0 uses the symmetric Rayleigh-Lamb residual, but it has not been benchmarked yet.', ...
     'WordWrap', 'on', 'FontAngle', 'italic');
 
 % Plot tab
@@ -203,7 +203,7 @@ updateMaterialInputState();
             mode = results.modes.S0;
             if any(isfinite(mode.Cp))
                 xS0 = getModeX(mode, results.grid, xSel);
-                plot(axCp, xS0, mode.Cp, '--', 'LineWidth', 1.5, 'DisplayName', 'S0');
+                plot(axCp, xS0, mode.Cp, '--', 'LineWidth', 1.5, 'DisplayName', 'S0 experimental');
             end
         end
 
@@ -247,9 +247,9 @@ updateMaterialInputState();
         end
         if isfield(results.modes, 'S0')
             s0 = results.modes.S0;
-            txt{end+1} = sprintf('S0 valid points: %d/%d', sum(s0.valid), numel(s0.valid)); %#ok<AGROW>
+            txt{end+1} = sprintf('S0 experimental valid points: %d/%d', sum(s0.valid), numel(s0.valid)); %#ok<AGROW>
             if any(isfinite(s0.residual))
-                txt{end+1} = sprintf('S0 max residual: %.3e', max(s0.residual(isfinite(s0.residual)))); %#ok<AGROW>
+                txt{end+1} = sprintf('S0 experimental max residual: %.3e', max(s0.residual(isfinite(s0.residual)))); %#ok<AGROW>
             end
         end
         if isempty(txt)
@@ -308,7 +308,7 @@ switch xSel
     case "angularFrequency"
         lbl = 'angularFrequency [rad/s]';
     case "wavenumber"
-        lbl = 'wavenumber k [rad/m]';
+        lbl = 'wavenumber k [1/m]';
     case "kThickness"
         lbl = 'kThickness = k · thickness [-]';
     otherwise
