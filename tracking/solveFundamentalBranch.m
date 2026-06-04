@@ -38,7 +38,7 @@ for idx = candidateIdx(:).'
         CpCandidate = fminbnd(obj, CpLeft, CpRight);
         RCandidate = obj(CpCandidate);
         if CpCandidate > CpMinAbs
-            score = localScore(CpCandidate, RCandidate, options, getInitialTarget(options));
+            score = localScore(CpCandidate, RCandidate, options, getInitialTarget(options), nan);
             if score < scoreBest
                 bestCp = CpCandidate;
                 bestR = RCandidate;
@@ -91,8 +91,9 @@ for i = 2:numel(frequency)
                 CpCandidate = fminbnd(obj, CpLeft, CpRight);
                 RCandidate = obj(CpCandidate);
                 relJump = abs(CpCandidate - CpPrev) / max(CpPrev, eps);
-                if CpCandidate > CpMinAbs && relJump < options.jumpTol
-                    score = localScore(CpCandidate, RCandidate, options, CpPred);
+                relPrediction = abs(CpCandidate - CpPred) / max(CpPred, eps);
+                if CpCandidate > CpMinAbs && relJump < options.jumpTol && relPrediction <= getOption(options, 'maxPredictionRelativeError', inf)
+                    score = localScore(CpCandidate, RCandidate, options, CpPred, CpPrev);
                     if score < scoreBest
                         bestCp = CpCandidate;
                         bestR = RCandidate;
@@ -108,9 +109,16 @@ for i = 2:numel(frequency)
         end
     end
 
+    if isnan(bestCp)
+        bestCp = CpPred;
+        bestR = residualFcn(bestCp, fi);
+    end
+
     Cp(i) = bestCp;
     residual(i) = bestR;
 end
+
+[Cp, residual] = suppressIsolatedSpikes(Cp, residual, options);
 end
 
 function [CpMin, CpMax] = initialSearchLimits(CpGlobalMin, CpGlobalMax, options)
@@ -149,14 +157,46 @@ if idx >= 3 && isfinite(Cp(idx - 2)) && isfinite(Cp(idx - 1))
 end
 end
 
-function score = localScore(CpCandidate, RCandidate, options, targetCp)
+function score = localScore(CpCandidate, RCandidate, options, targetCp, previousCp)
 score = RCandidate;
 if nargin >= 4 && isfinite(targetCp) && targetCp > 0
     rel = abs(CpCandidate - targetCp) / targetCp;
     score = score * (1 + getOption(options, 'predictionWeight', 0.50) * rel);
 end
+if nargin >= 5 && isfinite(previousCp) && previousCp > 0
+    relPrev = abs(CpCandidate - previousCp) / previousCp;
+    score = score * (1 + getOption(options, 'preferPreviousRootWeight', 0.50) * relPrev);
+end
 if isfield(options, 'preferLowestCp') && options.preferLowestCp
     score = score * (1 + 0.01 * CpCandidate / max(options.CT, eps));
+end
+end
+
+function [CpOut, residualOut] = suppressIsolatedSpikes(Cp, residual, options)
+CpOut = Cp;
+residualOut = residual;
+threshold = getOption(options, 'maxSinglePointSpikeRelative', inf);
+if ~isfinite(threshold)
+    return;
+end
+
+for i = 2:numel(Cp)-1
+    if ~isfinite(Cp(i-1)) || ~isfinite(Cp(i)) || ~isfinite(Cp(i+1))
+        continue;
+    end
+    neighborMean = 0.5 * (Cp(i-1) + Cp(i+1));
+    if neighborMean <= 0
+        continue;
+    end
+    relSpike = abs(Cp(i) - neighborMean) / neighborMean;
+    neighborSlopeSign = sign(Cp(i+1) - Cp(i-1));
+    spikeSignLeft = sign(Cp(i) - Cp(i-1));
+    spikeSignRight = sign(Cp(i) - Cp(i+1));
+    isPeakOrDip = spikeSignLeft == spikeSignRight && spikeSignLeft ~= 0;
+    if relSpike > threshold && isPeakOrDip && abs(neighborSlopeSign) <= 1
+        CpOut(i) = neighborMean;
+        residualOut(i) = max(residual(i-1), residual(i+1));
+    end
 end
 end
 
