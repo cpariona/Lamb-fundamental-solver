@@ -2,9 +2,9 @@ function h = createSetupTab(tabs, params0, opts0, callbacks)
 % Build Setup tab controls. These fields change the numerical solution.
 
 tab = uitab(tabs, 'Title', 'Setup');
-g = uigridlayout(tab, [18 2]);
+g = uigridlayout(tab, [21 2]);
 g.ColumnWidth = {175, '1x'};
-g.RowHeight = repmat({26}, 1, 18);
+g.RowHeight = repmat({26}, 1, 21);
 g.Padding = [12 10 12 10];
 g.RowSpacing = 4;
 
@@ -57,6 +57,17 @@ h.fmax = uieditfield(g, 'numeric', 'Value', params0.fmax, 'Limits', [eps Inf], .
 spacingNote = uilabel(g, 'Text', 'Frequency grid: automatic internal hybrid spacing.', ...
     'WordWrap', 'on', 'FontAngle', 'italic');
 spacingNote.Layout.Column = [1 2];
+
+uilabel(g, 'Text', 'mRLFE fluid loading', 'FontWeight', 'bold');
+uilabel(g, 'Text', '');
+
+uilabel(g, 'Text', 'fluid density [kg/m^3]');
+h.mrlfeFluidDensity = uieditfield(g, 'numeric', 'Value', 1000, 'Limits', [0 Inf], ...
+    'ValueChangedFcn', callbacks.markDirty);
+
+uilabel(g, 'Text', 'fluid sound speed [m/s]');
+h.mrlfeFluidSoundSpeed = uieditfield(g, 'numeric', 'Value', 1500, 'Limits', [0 Inf], ...
+    'ValueChangedFcn', callbacks.markDirty);
 
 uilabel(g, 'Text', 'Modes / models to compute', 'FontWeight', 'bold');
 uilabel(g, 'Text', '');
