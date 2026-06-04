@@ -6,6 +6,7 @@ Current scope:
 
 - A0 phase velocity calculation using the antisymmetric Rayleigh-Lamb residual.
 - Experimental S0 phase velocity calculation using the symmetric Rayleigh-Lamb residual.
+- Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
 - GUI plotting of Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
 - Export of `LambResults`, `A0_table`, and, when available, `S0_table` to the MATLAB workspace.
 
@@ -56,7 +57,15 @@ Available robustness presets:
 - `Balanced`: default setting for routine exploration.
 - `Robust`: more scan points and wider search windows for difficult cases.
 
-The GUI exposes these presets in the `Numerical` tab.
+The GUI exposes these presets in the `Advanced` tab.
+
+## Frequency grid and tracking notes
+
+The GUI uses an automatic internal hybrid frequency grid. The grid combines logarithmic sampling at low frequency with linear sampling at higher frequency, so the user only needs to specify `fmin` and `fmax`.
+
+At very high frequencies, the Rayleigh-Lamb residual contains many nearby roots and singular features. The current A0/S0 continuation solver is designed for robust fundamental-mode tracking in low-to-mid frequency ranges, but isolated branch-switching artifacts can still occur at high frequency. High-frequency A0/S0 curves should therefore be interpreted with additional care and may require benchmark validation before quantitative use.
+
+When plotting against `wavenumber` or `kThickness`, different modes may end at different horizontal values because `k = omega / Cp` is mode-dependent. This does not mean that a branch was truncated in frequency.
 
 ## Manual validation examples
 
@@ -76,6 +85,7 @@ examples/sweep_thickness_A0_S0
 ## Current limitations
 
 - S0 is implemented but should be treated as experimental until benchmarked against a trusted reference.
+- High-frequency fundamental-branch tracking can show branch-switching artifacts in difficult ranges.
 - Group velocity is not implemented yet.
 - Modal structure and displacement animations are not implemented yet.
 - Higher modes such as A1 and S1 are not implemented yet.
