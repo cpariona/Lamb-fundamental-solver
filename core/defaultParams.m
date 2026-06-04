@@ -12,6 +12,6 @@ params.mu = 158e3;
 params.thickness = 0.50e-3;
 params.fmin = 10;
 params.fmax = 8000;
-params.numFrequencyPoints = 250;
+params.numFrequencyPoints = "auto";
 params.frequencySpacing = "hybrid";
 end
