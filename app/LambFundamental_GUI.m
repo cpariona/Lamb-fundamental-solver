@@ -114,7 +114,7 @@ updateAxisFieldState();
         params.thickness = setup.thickness.Value * 1e-3;
         params.fmin = setup.fmin.Value;
         params.fmax = setup.fmax.Value;
-        params.numFrequencyPoints = round(setup.N.Value);
+        params.numFrequencyPoints = "auto";
         params.frequencySpacing = "hybrid";
     end
 
@@ -200,6 +200,7 @@ updateAxisFieldState();
             'thickness = %.6g m, halfThickness = %.6g m'], ...
             m.E/1e3, m.nu, m.lambda/1e6, m.mu/1e3, m.CL, m.CT, thickness, halfThickness);
         txt = {sprintf('Robustness: %s', string(lastOptions.robustness))};
+        txt{end+1} = sprintf('Internal frequency points: %d', numel(lastResults.grid.frequency)); %#ok<AGROW>
         if inputsAreDirty, txt{end+1} = 'Inputs changed after this solution. Press Compute selected modes to update.'; end %#ok<AGROW>
         if isfield(lastResults.modes,'A0')
             a0 = lastResults.modes.A0;
