@@ -11,14 +11,14 @@ colors.S0 = [1.0000 0.0000 0.0000];
 colors.MRLFEA0 = [0.0000 0.4470 0.7410];
 colors.MRLFES0 = [1.0000 0.0000 0.0000];
 
-fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[100 100 1360 760]);
+fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[100 100 1360 820]);
 root = uigridlayout(fig,[1 2]);
 root.ColumnWidth = {430,'1x'};
 
 left = uipanel(root,'Title','Controls');
 left.Layout.Column = 1;
 leftGrid = uigridlayout(left,[2 1]);
-leftGrid.RowHeight = {'1x',220};
+leftGrid.RowHeight = {'1x',310};
 leftGrid.Padding = [5 5 5 5];
 leftGrid.RowSpacing = 8;
 
@@ -37,15 +37,16 @@ setup = createSetupTab(tabs, params0, opts0, callbacks);
 plotControls = createPlotTab(tabs, callbacks);
 advanced = createAdvancedTab(tabs, callbacks);
 
-runPanel = uipanel(leftGrid,'Title','Run / Export');
+runPanel = uipanel(leftGrid,'Title','Run / Export / Status');
 runPanel.Layout.Row = 2;
-rg = uigridlayout(runPanel,[5 1]);
-rg.RowHeight = {34,34,90,'1x',44};
+rg = uigridlayout(runPanel,[4 1]);
+rg.RowHeight = {34,34,82,'1x'};
 rg.Padding = [10 10 10 10];
+rg.RowSpacing = 8;
 uibutton(rg,'Text','Compute selected modes','ButtonPushedFcn',@(~,~)onCompute());
 uibutton(rg,'Text','Export results','ButtonPushedFcn',@(~,~)onExport());
 materialInfo = uilabel(rg,'Text','Material info will appear here.','WordWrap','on');
-statusLabel = uilabel(rg,'Text','Ready.','WordWrap','on');
+statusLabel = uilabel(rg,'Text','Status: Ready.','WordWrap','on','VerticalAlignment','top');
 
 ax = uiaxes(root);
 ax.Layout.Column = 2;
@@ -78,15 +79,15 @@ updateAxisFieldState();
     function markDirty()
         inputsAreDirty = true;
         if isempty(lastResults)
-            statusLabel.Text = 'Ready. Press Compute selected modes.';
+            statusLabel.Text = 'Status: Ready. Press Compute selected modes.';
         else
-            statusLabel.Text = 'Inputs changed. Press Compute selected modes to update the solution.';
+            statusLabel.Text = 'Status: Inputs changed. Press Compute selected modes to update the solution.';
         end
     end
 
     function onCompute()
         try
-            statusLabel.Text = 'Computing...'; drawnow;
+            statusLabel.Text = 'Status: Computing...'; drawnow;
             params = readParamsFromGui();
             options = defaultOptions(string(advanced.robustness.Value));
             options.computeA0 = logical(setup.computeA0.Value);
@@ -107,7 +108,7 @@ updateAxisFieldState();
             updatePlot();
             updateLabels();
         catch ME
-            statusLabel.Text = ['Error: ', ME.message];
+            statusLabel.Text = ['Status: Error: ', ME.message];
             uialert(fig, ME.message, 'Compute error');
         end
     end
@@ -232,7 +233,7 @@ updateAxisFieldState();
             'CL = %.4f m/s, CT = %.4f m/s\n', ...
             'thickness = %.6g m, halfThickness = %.6g m'], ...
             m.E/1e3, m.nu, m.lambda/1e6, m.mu/1e3, m.CL, m.CT, thickness, halfThickness);
-        txt = {sprintf('Robustness: %s', string(lastOptions.robustness))};
+        txt = {sprintf('Status: Robustness: %s', string(lastOptions.robustness))};
         txt{end+1} = sprintf('Internal frequency points: %d', numel(lastResults.grid.frequency)); %#ok<AGROW>
         if inputsAreDirty, txt{end+1} = 'Inputs changed after this solution. Press Compute selected modes to update.'; end %#ok<AGROW>
         if isfield(lastResults.modes,'A0')
@@ -280,7 +281,7 @@ updateAxisFieldState();
             MRLFEResults = lastResults.models.mRLFE; %#ok<NASGU>
             assignin('base', 'MRLFEResults', MRLFEResults);
         end
-        statusLabel.Text = 'Exported LambResults, available mode tables, ApproximationResults, and MRLFEResults to workspace.';
+        statusLabel.Text = 'Status: Exported LambResults, available mode tables, ApproximationResults, and MRLFEResults to workspace.';
     end
 end
 
