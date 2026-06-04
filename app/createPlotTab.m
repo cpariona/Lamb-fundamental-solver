@@ -2,9 +2,9 @@ function h = createPlotTab(tabs, callbacks)
 % Build Plot tab controls. These fields only refresh visualization.
 
 tab = uitab(tabs, 'Title', 'Plot');
-g = uigridlayout(tab, [12 2]);
+g = uigridlayout(tab, [13 2]);
 g.ColumnWidth = {160, '1x'};
-g.RowHeight = repmat({30}, 1, 12);
+g.RowHeight = [repmat({30}, 1, 12), {70}];
 g.Padding = [12 12 12 12];
 g.RowSpacing = 6;
 
@@ -46,4 +46,7 @@ resetButton.Layout.Column = [1 2];
 
 useButton = uibutton(g, 'Text', 'Use current view as manual axes', 'ButtonPushedFcn', callbacks.useCurrentAxes);
 useButton.Layout.Column = [1 2];
+
+note = uilabel(g, 'Text', 'Note: when x-axis is wavenumber or kThickness, each mode can end at a different x-value because k = omega/Cp is mode-dependent. This does not mean the branch was truncated in frequency.', 'WordWrap', 'on', 'FontAngle', 'italic');
+note.Layout.Column = [1 2];
 end
