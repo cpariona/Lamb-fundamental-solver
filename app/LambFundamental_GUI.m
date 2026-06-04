@@ -41,14 +41,15 @@ modelControls.panel.Layout.Row = 2;
 
 runPanel = uipanel(leftGrid,'Title','Run / Export / Status');
 runPanel.Layout.Row = 3;
-rg = uigridlayout(runPanel,[4 1]);
-rg.RowHeight = {34,34,76,'1x'};
-rg.Padding = [10 10 10 10];
-rg.RowSpacing = 8;
+rg = uigridlayout(runPanel,[5 1]);
+rg.RowHeight = {30,30,58,58,30};
+rg.Padding = [8 8 8 8];
+rg.RowSpacing = 6;
 uibutton(rg,'Text','Compute selected modes','ButtonPushedFcn',@(~,~)onCompute());
 uibutton(rg,'Text','Export results','ButtonPushedFcn',@(~,~)onExport());
-materialInfo = uilabel(rg,'Text','Material info will appear here.','WordWrap','on');
-statusLabel = uilabel(rg,'Text','Status: Ready.','WordWrap','on','VerticalAlignment','top');
+materialInfo = uilabel(rg,'Text','Material info will appear here.','WordWrap','on','FontSize',9,'VerticalAlignment','top');
+statusLabel = uilabel(rg,'Text','Status: ready.','WordWrap','on','FontSize',9,'VerticalAlignment','top');
+uibutton(rg,'Text','Show diagnostics','ButtonPushedFcn',@(~,~)onShowDiagnostics());
 
 ax = uiaxes(root);
 ax.Layout.Column = 2;
@@ -81,15 +82,15 @@ updateAxisFieldState();
     function markDirty()
         inputsAreDirty = true;
         if isempty(lastResults)
-            statusLabel.Text = 'Status: Ready. Press Compute selected modes.';
+            statusLabel.Text = 'Status: ready. Press Compute.';
         else
-            statusLabel.Text = 'Status: Inputs changed. Press Compute selected modes to update the solution.';
+            statusLabel.Text = 'Status: inputs changed. Press Compute to update.';
         end
     end
 
     function onCompute()
         try
-            statusLabel.Text = 'Status: Computing...'; drawnow;
+            statusLabel.Text = 'Status: computing...'; drawnow;
             params = readParamsFromGui();
             options = defaultOptions(string(advanced.robustness.Value));
             options.computeA0 = logical(modelControls.rl.computeA0.Value);
@@ -110,7 +111,7 @@ updateAxisFieldState();
             updatePlot();
             updateLabels();
         catch ME
-            statusLabel.Text = ['Status: Error: ', ME.message];
+            statusLabel.Text = ['Status: error: ', ME.message];
             uialert(fig, ME.message, 'Compute error');
         end
     end
@@ -230,35 +231,91 @@ updateAxisFieldState();
     function updateLabels()
         if isempty(lastResults) || isempty(lastOptions), return; end
         m = lastResults.material; thickness = lastResults.geometry.thickness; halfThickness = thickness/2;
-        materialInfo.Text = sprintf(['E = %.4g kPa, nu = %.6f\n', ...
-            'lambda = %.4g MPa, mu = %.4g kPa\n', ...
-            'CL = %.4f m/s, CT = %.4f m/s\n', ...
-            'thickness = %.6g m, halfThickness = %.6g m'], ...
-            m.E/1e3, m.nu, m.lambda/1e6, m.mu/1e3, m.CL, m.CT, thickness, halfThickness);
-        txt = {sprintf('Status: Robustness: %s', string(lastOptions.robustness))};
-        txt{end+1} = sprintf('Internal frequency points: %d', numel(lastResults.grid.frequency)); %#ok<AGROW>
-        if inputsAreDirty, txt{end+1} = 'Inputs changed after this solution. Press Compute selected modes to update.'; end %#ok<AGROW>
+        materialInfo.Text = sprintf('E %.4g kPa | nu %.5f\nCL %.2f m/s | CT %.2f m/s\nthick %.4g m | half %.4g m', ...
+            m.E/1e3, m.nu, m.CL, m.CT, thickness, halfThickness);
+
+        statusParts = {sprintf('%s | N=%d', string(lastOptions.robustness), numel(lastResults.grid.frequency))};
         if isfield(lastResults.modes,'A0')
             a0 = lastResults.modes.A0;
-            txt{end+1} = sprintf('A0 valid points: %d/%d', sum(a0.valid), numel(a0.valid)); %#ok<AGROW>
-            if any(isfinite(a0.residual)), txt{end+1} = sprintf('A0 max residual: %.3e', max(a0.residual(isfinite(a0.residual)))); end %#ok<AGROW>
+            statusParts{end+1} = sprintf('A0 %d/%d, R %.1e', sum(a0.valid), numel(a0.valid), maxFinite(a0.residual)); %#ok<AGROW>
         end
         if isfield(lastResults.modes,'S0')
             s0 = lastResults.modes.S0;
-            txt{end+1} = sprintf('S0 experimental valid points: %d/%d', sum(s0.valid), numel(s0.valid)); %#ok<AGROW>
-            if any(isfinite(s0.residual)), txt{end+1} = sprintf('S0 experimental max residual: %.3e', max(s0.residual(isfinite(s0.residual)))); end %#ok<AGROW>
+            statusParts{end+1} = sprintf('S0 %d/%d, R %.1e', sum(s0.valid), numel(s0.valid), maxFinite(s0.residual)); %#ok<AGROW>
         end
         if isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE')
             d = lastResults.models.mRLFE.diagnostics;
-            txt{end+1} = sprintf('mRLFE prototype computed in %.2f s.', d.elapsedSeconds); %#ok<AGROW>
+            statusParts{end+1} = sprintf('mRLFE %.1fs', d.elapsedSeconds); %#ok<AGROW>
+            if isfield(d.summary, 'A0Like')
+                item = d.summary.A0Like;
+                statusParts{end+1} = sprintf('A0L %d/%d, R %.1e', item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
+            end
+            if isfield(d.summary, 'S0Like')
+                item = d.summary.S0Like;
+                statusParts{end+1} = sprintf('S0L %d/%d, R %.1e', item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
+            end
+        end
+        if inputsAreDirty
+            statusParts{end+1} = 'inputs changed'; %#ok<AGROW>
+        end
+        statusLabel.Text = strjoin(statusParts, newline);
+    end
+
+    function onShowDiagnostics()
+        if isempty(lastResults) || isempty(lastOptions)
+            uialert(fig, 'No diagnostics are available yet.', 'Diagnostics');
+            return;
+        end
+        dfig = uifigure('Name','Solver diagnostics','Position',[180 180 560 520]);
+        dg = uigridlayout(dfig, [1 1]);
+        dg.Padding = [10 10 10 10];
+        uitextarea(dg, 'Value', buildDiagnosticsText(), 'Editable', 'off', 'FontName', 'Consolas', 'FontSize', 11);
+    end
+
+    function txt = buildDiagnosticsText()
+        lines = {};
+        m = lastResults.material;
+        lines{end+1} = 'Material'; %#ok<AGROW>
+        lines{end+1} = sprintf('  E        = %.6g Pa', m.E); %#ok<AGROW>
+        lines{end+1} = sprintf('  nu       = %.6g', m.nu); %#ok<AGROW>
+        lines{end+1} = sprintf('  lambda   = %.6g Pa', m.lambda); %#ok<AGROW>
+        lines{end+1} = sprintf('  mu       = %.6g Pa', m.mu); %#ok<AGROW>
+        lines{end+1} = sprintf('  CL       = %.6g m/s', m.CL); %#ok<AGROW>
+        lines{end+1} = sprintf('  CT       = %.6g m/s', m.CT); %#ok<AGROW>
+        lines{end+1} = ''; %#ok<AGROW>
+        lines{end+1} = 'Grid'; %#ok<AGROW>
+        lines{end+1} = sprintf('  frequency points = %d', numel(lastResults.grid.frequency)); %#ok<AGROW>
+        lines{end+1} = sprintf('  fmin/fmax        = %.6g / %.6g Hz', min(lastResults.grid.frequency), max(lastResults.grid.frequency)); %#ok<AGROW>
+        lines{end+1} = ''; %#ok<AGROW>
+        if isfield(lastResults.modes,'A0')
+            lines = appendModeDiagnostics(lines, 'A0', lastResults.modes.A0);
+        end
+        if isfield(lastResults.modes,'S0')
+            lines = appendModeDiagnostics(lines, 'S0', lastResults.modes.S0);
+        end
+        if isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE')
+            lines{end+1} = 'mRLFE'; %#ok<AGROW>
+            d = lastResults.models.mRLFE.diagnostics;
+            lines{end+1} = sprintf('  elapsed = %.3f s', d.elapsedSeconds); %#ok<AGROW>
             branchNames = fieldnames(d.summary);
             for i = 1:numel(branchNames)
                 item = d.summary.(branchNames{i});
-                txt{end+1} = sprintf('%s: %d/%d valid, max residual %.3e', ...
-                    branchNames{i}, item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
+                lines{end+1} = sprintf('  %s: %d/%d valid, Cp %.6g..%.6g m/s, max R %.3e', ...
+                    branchNames{i}, item.validPoints, item.totalPoints, item.minCp, item.maxCp, item.maxResidual); %#ok<AGROW>
             end
         end
-        statusLabel.Text = strjoin(txt,newline);
+        txt = lines(:);
+    end
+
+    function lines = appendModeDiagnostics(lines, name, mode)
+        validCp = mode.valid & isfinite(mode.Cp);
+        lines{end+1} = name; %#ok<AGROW>
+        lines{end+1} = sprintf('  valid    = %d / %d', sum(mode.valid), numel(mode.valid)); %#ok<AGROW>
+        if any(validCp)
+            lines{end+1} = sprintf('  Cp range = %.6g .. %.6g m/s', min(mode.Cp(validCp)), max(mode.Cp(validCp))); %#ok<AGROW>
+        end
+        lines{end+1} = sprintf('  max R    = %.3e', maxFinite(mode.residual)); %#ok<AGROW>
+        lines{end+1} = ''; %#ok<AGROW>
     end
 
     function onExport()
@@ -283,7 +340,7 @@ updateAxisFieldState();
             MRLFEResults = lastResults.models.mRLFE; %#ok<NASGU>
             assignin('base', 'MRLFEResults', MRLFEResults);
         end
-        statusLabel.Text = 'Status: Exported LambResults, available mode tables, ApproximationResults, and MRLFEResults to workspace.';
+        statusLabel.Text = 'Status: exported to workspace.';
     end
 end
 
@@ -324,4 +381,13 @@ end
 function out = modeToTable(mode)
 out = table(mode.frequency(:), mode.omega(:), mode.Cp(:), mode.k(:), mode.kThickness(:), mode.residual(:), mode.valid(:), ...
     'VariableNames', {'Frequency_Hz','Omega_rad_s','Cp','k','kThickness','Residual','Valid'});
+end
+
+function value = maxFinite(x)
+mask = isfinite(x);
+if any(mask)
+    value = max(x(mask));
+else
+    value = nan;
+end
 end
