@@ -2,9 +2,9 @@ function h = createSetupTab(tabs, params0, callbacks)
 % Build general Setup tab controls shared by all models.
 
 tab = uitab(tabs, 'Title', 'Setup');
-g = uigridlayout(tab, [14 2]);
+g = uigridlayout(tab, [13 2]);
 g.ColumnWidth = {175, '1x'};
-g.RowHeight = repmat({26}, 1, 14);
+g.RowHeight = repmat({26}, 1, 13);
 g.Padding = [12 10 12 10];
 g.RowSpacing = 4;
 
@@ -54,11 +54,7 @@ uilabel(g, 'Text', 'fmax [Hz]');
 h.fmax = uieditfield(g, 'numeric', 'Value', params0.fmax, 'Limits', [eps Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 
-spacingNote = uilabel(g, 'Text', 'Frequency grid: automatic internal hybrid spacing.', ...
-    'WordWrap', 'on', 'FontAngle', 'italic');
-spacingNote.Layout.Column = [1 2];
-
-note = uilabel(g, 'Text', 'Setup contains global parameters shared by all models. Model-specific controls are below.', ...
-    'WordWrap', 'on', 'FontAngle', 'italic');
+note = uilabel(g, 'Text', 'Auto hybrid frequency grid. Model-specific controls are below.', ...
+    'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 10);
 note.Layout.Column = [1 2];
 end
