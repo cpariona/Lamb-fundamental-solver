@@ -44,9 +44,29 @@ if options.computeS0
     results.modes.S0 = packModeResults("S0", branchSpecS.family, frequency, omega, CpS0, kS0, geometry.thickness, residualS0);
 end
 
+computeRealK = isfield(options, 'computeMRLFERealK') && options.computeMRLFERealK;
+computeComplexK = isfield(options, 'computeMRLFEComplexK') && options.computeMRLFEComplexK;
 if isfield(options, 'computeMRLFE') && options.computeMRLFE
+    computeRealK = true;
+end
+
+if computeRealK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
-    results.models.mRLFE = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+    mrlfeParams.solveComplexK = false;
+    results.models.mRLFERealK = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+end
+
+if computeComplexK
+    mrlfeParams = buildMRLFEParamsFromOptions(options);
+    mrlfeParams.solveComplexK = true;
+    results.models.mRLFEComplexK = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+end
+
+% Backward-compatible alias for scripts expecting results.models.mRLFE.
+if isfield(results.models, 'mRLFERealK')
+    results.models.mRLFE = results.models.mRLFERealK;
+elseif isfield(results.models, 'mRLFEComplexK')
+    results.models.mRLFE = results.models.mRLFEComplexK;
 end
 end
 
