@@ -12,6 +12,7 @@ robustness = string(robustness);
 options = struct();
 options.computeA0 = true;
 options.computeS0 = false;
+options.computeMRLFE = false;
 options.robustness = robustness;
 options.residualTolerance = 1e-5;
 options.minCpAbsolute = 1e-4;
@@ -23,6 +24,8 @@ options.predictionWeight = 2.0;
 options.maxPredictionRelativeError = 0.18;
 options.maxSinglePointSpikeRelative = 0.25;
 options.preferPreviousRootWeight = 0.50;
+options.mrlfeResidualTolerance = 1e-4;
+options.mrlfeSearchFactors = [0.80, 1.25; 0.60, 1.60; 0.35, 2.50];
 
 switch robustness
     case "Fast"
@@ -30,18 +33,21 @@ switch robustness
         options.gridPointsTracking = 300;
         options.jumpTol = 0.35;
         options.searchFactors = [0.80, 1.25; 0.65, 1.45; 0.45, 1.80; 0.25, 2.50];
+        options.mrlfeGridPoints = 220;
 
     case "Balanced"
         options.gridPointsInitial = 3000;
         options.gridPointsTracking = 700;
         options.jumpTol = 0.25;
         options.searchFactors = [0.85, 1.18; 0.70, 1.35; 0.50, 1.65; 0.30, 2.20];
+        options.mrlfeGridPoints = 450;
 
     case "Robust"
         options.gridPointsInitial = 6000;
         options.gridPointsTracking = 1400;
         options.jumpTol = 0.30;
         options.searchFactors = [0.90, 1.12; 0.75, 1.25; 0.60, 1.45; 0.40, 1.80; 0.25, 2.40];
+        options.mrlfeGridPoints = 800;
 
     otherwise
         error('Unknown robustness preset. Use Fast, Balanced, or Robust.');
