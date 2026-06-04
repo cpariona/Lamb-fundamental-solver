@@ -13,5 +13,5 @@ params.thickness = 0.50e-3;
 params.fmin = 10;
 params.fmax = 8000;
 params.numFrequencyPoints = 250;
-params.frequencySpacing = "logspace";
+params.frequencySpacing = "hybrid";
 end
