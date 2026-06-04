@@ -97,6 +97,7 @@ updateAxisFieldState();
                 options.computeS0 = true;
                 setup.computeA0.Value = true;
                 setup.computeS0.Value = true;
+                options.mrlfeParams = readMRLFEParamsFromGui();
             end
             lastResults = computeFundamentalLambModes(params, options);
             lastOptions = options;
@@ -125,6 +126,12 @@ updateAxisFieldState();
         params.fmax = setup.fmax.Value;
         params.numFrequencyPoints = "auto";
         params.frequencySpacing = "hybrid";
+    end
+
+    function mrlfeParams = readMRLFEParamsFromGui()
+        mrlfeParams = defaultMRLFEParams();
+        mrlfeParams.fluidDensity = setup.mrlfeFluidDensity.Value;
+        mrlfeParams.fluidSoundSpeed = setup.mrlfeFluidSoundSpeed.Value;
     end
 
     function refreshPlotOnly()
@@ -239,7 +246,14 @@ updateAxisFieldState();
             if any(isfinite(s0.residual)), txt{end+1} = sprintf('S0 experimental max residual: %.3e', max(s0.residual(isfinite(s0.residual)))); end %#ok<AGROW>
         end
         if isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE')
-            txt{end+1} = 'mRLFE prototype computed.'; %#ok<AGROW>
+            d = lastResults.models.mRLFE.diagnostics;
+            txt{end+1} = sprintf('mRLFE prototype computed in %.2f s.', d.elapsedSeconds); %#ok<AGROW>
+            branchNames = fieldnames(d.summary);
+            for i = 1:numel(branchNames)
+                item = d.summary.(branchNames{i});
+                txt{end+1} = sprintf('%s: %d/%d valid, max residual %.3e', ...
+                    branchNames{i}, item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
+            end
         end
         statusLabel.Text = strjoin(txt,newline);
     end
