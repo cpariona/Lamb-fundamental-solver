@@ -169,6 +169,16 @@ updateAxisFieldState();
             plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '-', 'LineWidth', 2, 'Color', colors.S0, 'DisplayName', 'S0 experimental');
             plotCount = plotCount + 1;
         end
+        if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
+            mode = lastResults.approximations.A0ThinPlate;
+            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '--', 'LineWidth', 1.5, 'Color', colors.A0, 'DisplayName', 'A0 thin plate');
+            plotCount = plotCount + 1;
+        end
+        if plotControls.showS0Ext.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'S0Extensional')
+            mode = lastResults.approximations.S0Extensional;
+            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '--', 'LineWidth', 1.5, 'Color', colors.S0, 'DisplayName', 'S0 extensional');
+            plotCount = plotCount + 1;
+        end
         xlabel(ax, getXLabel(xSel)); ylabel(ax, 'Phase velocity Cp [m/s]');
         title(ax, 'Fundamental Lamb modes (Cp)'); grid(ax,'on');
         if plotCount > 0, legend(ax,'Location','best'); else, legend(ax,'off'); end
@@ -218,7 +228,11 @@ updateAxisFieldState();
             S0_table = modeToTable(lastResults.modes.S0); %#ok<NASGU>
             assignin('base','S0_table',S0_table);
         end
-        statusLabel.Text = 'Exported LambResults and available mode tables to workspace.';
+        if isfield(lastResults, 'approximations')
+            ApproximationResults = lastResults.approximations; %#ok<NASGU>
+            assignin('base', 'ApproximationResults', ApproximationResults);
+        end
+        statusLabel.Text = 'Exported LambResults, available mode tables, and ApproximationResults to workspace.';
     end
 end
 
