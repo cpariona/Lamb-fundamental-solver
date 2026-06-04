@@ -2,9 +2,9 @@ function h = createPlotTab(tabs, callbacks)
 % Build Plot tab controls. These fields only refresh visualization.
 
 tab = uitab(tabs, 'Title', 'Plot');
-g = uigridlayout(tab, [13 2]);
+g = uigridlayout(tab, [16 2]);
 g.ColumnWidth = {160, '1x'};
-g.RowHeight = [repmat({30}, 1, 12), {70}];
+g.RowHeight = [repmat({30}, 1, 15), {70}];
 g.Padding = [12 12 12 12];
 g.RowSpacing = 6;
 
@@ -16,6 +16,15 @@ h.showA0.Layout.Column = [1 2];
 
 h.showS0 = uicheckbox(g, 'Text', 'Show S0 experimental', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.showS0.Layout.Column = [1 2];
+
+uilabel(g, 'Text', 'Approximations', 'FontWeight', 'bold');
+uilabel(g, 'Text', '');
+
+h.showA0Thin = uicheckbox(g, 'Text', 'Show A0 thin-plate', 'Value', false, 'ValueChangedFcn', callbacks.refreshPlotOnly);
+h.showA0Thin.Layout.Column = [1 2];
+
+h.showS0Ext = uicheckbox(g, 'Text', 'Show S0 extensional', 'Value', false, 'ValueChangedFcn', callbacks.refreshPlotOnly);
+h.showS0Ext.Layout.Column = [1 2];
 
 uilabel(g, 'Text', 'Axes', 'FontWeight', 'bold');
 uilabel(g, 'Text', '');
