@@ -115,7 +115,7 @@ updateAxisFieldState();
         params.fmin = setup.fmin.Value;
         params.fmax = setup.fmax.Value;
         params.numFrequencyPoints = round(setup.N.Value);
-        params.frequencySpacing = string(setup.spacing.Value);
+        params.frequencySpacing = "hybrid";
     end
 
     function refreshPlotOnly()
