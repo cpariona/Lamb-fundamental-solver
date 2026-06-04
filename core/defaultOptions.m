@@ -26,6 +26,10 @@ options.maxSinglePointSpikeRelative = 0.25;
 options.preferPreviousRootWeight = 0.50;
 options.mrlfeResidualTolerance = 1e-4;
 options.mrlfeSearchFactors = [0.80, 1.25; 0.60, 1.60; 0.35, 2.50];
+options.mrlfeComplexMaxIter = 120;
+options.mrlfeComplexMaxFunEvals = 260;
+options.mrlfeComplexTolX = 1e-7;
+options.mrlfeComplexTolFun = 1e-9;
 
 switch robustness
     case "Fast"
@@ -34,6 +38,8 @@ switch robustness
         options.jumpTol = 0.35;
         options.searchFactors = [0.80, 1.25; 0.65, 1.45; 0.45, 1.80; 0.25, 2.50];
         options.mrlfeGridPoints = 220;
+        options.mrlfeComplexMaxIter = 70;
+        options.mrlfeComplexMaxFunEvals = 150;
 
     case "Balanced"
         options.gridPointsInitial = 3000;
@@ -48,6 +54,8 @@ switch robustness
         options.jumpTol = 0.30;
         options.searchFactors = [0.90, 1.12; 0.75, 1.25; 0.60, 1.45; 0.40, 1.80; 0.25, 2.40];
         options.mrlfeGridPoints = 800;
+        options.mrlfeComplexMaxIter = 180;
+        options.mrlfeComplexMaxFunEvals = 420;
 
     otherwise
         error('Unknown robustness preset. Use Fast, Balanced, or Robust.');
