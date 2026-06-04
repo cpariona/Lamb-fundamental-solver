@@ -18,6 +18,7 @@ results.grid.frequency = frequency;
 results.grid.omega = omega;
 results.modes = struct();
 results.approximations = computeAnalyticalApproximations(frequency, material, results.geometry);
+results.models = struct();
 
 if options.computeA0
     geometryForSpec = geometry;
@@ -42,6 +43,11 @@ if options.computeS0
 
     results.modes.S0 = packModeResults("S0", branchSpecS.family, frequency, omega, CpS0, kS0, geometry.thickness, residualS0);
 end
+
+if isfield(options, 'computeMRLFE') && options.computeMRLFE
+    mrlfeParams = defaultMRLFEParams();
+    results.models.mRLFE = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+end
 end
 
 function solverOptions = buildSolverOptions(options, material)
@@ -53,7 +59,8 @@ solverOptions.jumpTol = options.jumpTol;
 solverOptions.residualTolerance = options.residualTolerance;
 
 optionalFields = {'searchFactors', 'minCpAbsolute', 'minCpRelativeToCT', ...
-    'maxCpFactorCT', 'minCpGlobalMax', 'initialGuessWeight', 'predictionWeight'};
+    'maxCpFactorCT', 'minCpGlobalMax', 'initialGuessWeight', 'predictionWeight', ...
+    'maxPredictionRelativeError', 'maxSinglePointSpikeRelative', 'preferPreviousRootWeight'};
 for i = 1:numel(optionalFields)
     fieldName = optionalFields{i};
     if isfield(options, fieldName)
