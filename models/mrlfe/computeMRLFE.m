@@ -1,18 +1,25 @@
 function mrlfeResults = computeMRLFE(frequency, material, geometry, rlModes, mrlfeParams, options)
-% Compute real-k elastic mRLFE fundamental-like branches.
+% Compute mRLFE fundamental-like branches.
 %
-% This prototype uses Rayleigh-Lamb A0/S0 branches as seeds and tracks the
-% corresponding mRLFE minima of sigma_min(M)/sigma_max(M) in real k.
+% The model uses Rayleigh-Lamb A0/S0 branches as seeds and tracks the
+% corresponding minima of sigma_min(M)/sigma_max(M).
 
 if nargin < 6
     options = struct();
 end
 
 timerStart = tic;
+solveComplexK = isfield(mrlfeParams, 'solveComplexK') && mrlfeParams.solveComplexK;
 
 mrlfeResults = struct();
 mrlfeResults.modelName = "mRLFE";
-mrlfeResults.description = "Real-k elastic modified Rayleigh-Lamb fluid-loaded prototype.";
+if solveComplexK
+    mrlfeResults.variant = "complex-k";
+    mrlfeResults.description = "Complex-k modified Rayleigh-Lamb fluid-loaded prototype.";
+else
+    mrlfeResults.variant = "real-k";
+    mrlfeResults.description = "Real-k elastic modified Rayleigh-Lamb fluid-loaded prototype.";
+end
 mrlfeResults.parameters = mrlfeParams;
 mrlfeResults.branches = struct();
 
@@ -30,6 +37,7 @@ end
 function diagnostics = buildMRLFEDiagnostics(mrlfeResults, elapsedSeconds)
 diagnostics = struct();
 diagnostics.elapsedSeconds = elapsedSeconds;
+diagnostics.variant = mrlfeResults.variant;
 diagnostics.branchNames = string(fieldnames(mrlfeResults.branches));
 diagnostics.summary = struct();
 
@@ -39,6 +47,7 @@ for i = 1:numel(branchNames)
     branch = mrlfeResults.branches.(name);
     finiteResidual = isfinite(branch.residual);
     validCp = branch.valid & isfinite(branch.Cp);
+    validAttenuation = branch.valid & isfinite(branch.attenuation);
 
     item = struct();
     item.validPoints = sum(branch.valid);
@@ -56,6 +65,13 @@ for i = 1:numel(branchNames)
     else
         item.minCp = nan;
         item.maxCp = nan;
+    end
+    if any(validAttenuation)
+        item.minAttenuation = min(branch.attenuation(validAttenuation));
+        item.maxAttenuation = max(branch.attenuation(validAttenuation));
+    else
+        item.minAttenuation = nan;
+        item.maxAttenuation = nan;
     end
     diagnostics.summary.(name) = item;
 end
