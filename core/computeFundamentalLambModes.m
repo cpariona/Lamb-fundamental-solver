@@ -45,8 +45,19 @@ if options.computeS0
 end
 
 if isfield(options, 'computeMRLFE') && options.computeMRLFE
-    mrlfeParams = defaultMRLFEParams();
+    mrlfeParams = buildMRLFEParamsFromOptions(options);
     results.models.mRLFE = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+end
+end
+
+function mrlfeParams = buildMRLFEParamsFromOptions(options)
+mrlfeParams = defaultMRLFEParams();
+if isfield(options, 'mrlfeParams')
+    userParams = options.mrlfeParams;
+    names = fieldnames(userParams);
+    for i = 1:numel(names)
+        mrlfeParams.(names{i}) = userParams.(names{i});
+    end
 end
 end
 
