@@ -2,9 +2,9 @@ function h = createSetupTab(tabs, params0, opts0, callbacks)
 % Build Setup tab controls. These fields change the numerical solution.
 
 tab = uitab(tabs, 'Title', 'Setup');
-g = uigridlayout(tab, [18 2]);
+g = uigridlayout(tab, [17 2]);
 g.ColumnWidth = {175, '1x'};
-g.RowHeight = repmat({26}, 1, 18);
+g.RowHeight = repmat({26}, 1, 17);
 g.Padding = [12 10 12 10];
 g.RowSpacing = 4;
 
@@ -54,11 +54,7 @@ uilabel(g, 'Text', 'fmax [Hz]');
 h.fmax = uieditfield(g, 'numeric', 'Value', params0.fmax, 'Limits', [eps Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 
-uilabel(g, 'Text', 'N frequency points');
-h.N = uieditfield(g, 'numeric', 'Value', params0.numFrequencyPoints, ...
-    'RoundFractionalValues', 'on', 'Limits', [10 50000], 'ValueChangedFcn', callbacks.markDirty);
-
-spacingNote = uilabel(g, 'Text', 'Frequency grid: hybrid internal spacing.', ...
+spacingNote = uilabel(g, 'Text', 'Frequency grid: automatic internal hybrid spacing.', ...
     'WordWrap', 'on', 'FontAngle', 'italic');
 spacingNote.Layout.Column = [1 2];
 
