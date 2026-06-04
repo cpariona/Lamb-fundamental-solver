@@ -17,6 +17,7 @@ results.geometry = rmfield(geometry, 'halfThickness');
 results.grid.frequency = frequency;
 results.grid.omega = omega;
 results.modes = struct();
+results.approximations = computeAnalyticalApproximations(frequency, material, results.geometry);
 
 if options.computeA0
     geometryForSpec = geometry;
