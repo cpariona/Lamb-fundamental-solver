@@ -7,6 +7,7 @@ Current scope:
 - A0 phase velocity calculation using the antisymmetric Rayleigh-Lamb residual.
 - Experimental S0 phase velocity calculation using the symmetric Rayleigh-Lamb residual.
 - Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
+- Real-k elastic mRLFE prototype seeded from Rayleigh-Lamb A0/S0 branches.
 - GUI plotting of Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
 - Export of `LambResults`, `A0_table`, and, when available, `S0_table` to the MATLAB workspace.
 
@@ -67,6 +68,18 @@ At very high frequencies, the Rayleigh-Lamb residual contains many nearby roots 
 
 When plotting against `wavenumber` or `kThickness`, different modes may end at different horizontal values because `k = omega / Cp` is mode-dependent. This does not mean that a branch was truncated in frequency.
 
+## mRLFE prototype
+
+The mRLFE implementation is currently a first plotting prototype:
+
+- It uses the modified Rayleigh-Lamb fluid-loaded 5-by-5 matrix.
+- It solves a real-wavenumber elastic version of the model.
+- It uses the normalized singular-value residual `sigma_min(M) / sigma_max(M)` instead of `det(M)` for better numerical scaling.
+- It uses the Rayleigh-Lamb A0/S0 branches as seeds.
+- It reports only fundamental-like branches: `A0Like` and `S0Like`.
+
+The current mRLFE prototype does not yet solve the full complex-k viscoelastic problem and does not yet report attenuation. Viscosity parameters and complex-k continuation are reserved for a later implementation step.
+
 ## Manual validation examples
 
 Run these from the repository root:
@@ -76,15 +89,19 @@ examples/run_default_A0
 examples/run_default_A0_S0
 examples/check_default_outputs
 examples/sweep_thickness_A0_S0
+examples/run_mrlfe_prototype
 ```
 
 `check_default_outputs` prints valid point counts, Cp ranges, residuals, and finite `kThickness` counts for the default configuration.
 
 `sweep_thickness_A0_S0` computes A0 and experimental S0 over multiple total thickness values and plots the corresponding Cp curves.
 
+`run_mrlfe_prototype` computes Rayleigh-Lamb A0/S0 and the real-k elastic mRLFE A0-like/S0-like prototype branches over a moderate frequency range.
+
 ## Current limitations
 
 - S0 is implemented but should be treated as experimental until benchmarked against a trusted reference.
+- mRLFE is currently a real-k elastic plotting prototype, not the final complex-k viscoelastic Han-style fitting solver.
 - High-frequency fundamental-branch tracking can show branch-switching artifacts in difficult ranges.
 - Group velocity is not implemented yet.
 - Modal structure and displacement animations are not implemented yet.
