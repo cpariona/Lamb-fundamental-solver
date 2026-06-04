@@ -5,6 +5,11 @@ function LambFundamental_GUI
 defaults = defaultParams();
 defaultSolverOptions = defaultOptions("Balanced");
 lastResults = [];
+lastOptions = [];
+inputsAreDirty = false;
+
+colors.A0 = [0.0000, 0.4470, 0.7410];
+colors.S0 = [1.0000, 0.0000, 0.0000];
 
 %% Main layout
 fig = uifigure('Name', 'Fundamental Lamb Wave Phase Velocity Calculator', ...
@@ -33,25 +38,31 @@ matGrid.Padding = [12 12 12 12];
 
 uilabel(matGrid, 'Text', 'Input model');
 modelDropDown = uidropdown(matGrid, 'Items', {'YoungPoissonFixedCL', 'LameParameters'}, ...
-    'Value', char(defaults.modelType), 'ValueChangedFcn', @(~,~)updateMaterialInputState());
+    'Value', char(defaults.modelType), 'ValueChangedFcn', @(~,~)onMaterialModelChanged());
 
 uilabel(matGrid, 'Text', 'rho [kg/m^3]');
-rhoField = uieditfield(matGrid, 'numeric', 'Value', defaults.rho, 'Limits', [0 Inf]);
+rhoField = uieditfield(matGrid, 'numeric', 'Value', defaults.rho, 'Limits', [0 Inf], ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
 
 ELabel = uilabel(matGrid, 'Text', 'E [kPa]');
-EField = uieditfield(matGrid, 'numeric', 'Value', defaults.E/1e3, 'Limits', [0 Inf]);
+EField = uieditfield(matGrid, 'numeric', 'Value', defaults.E/1e3, 'Limits', [0 Inf], ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
 
 nuLabel = uilabel(matGrid, 'Text', 'nu [-]');
-nuField = uieditfield(matGrid, 'numeric', 'Value', defaults.nu, 'Limits', [0 0.5]);
+nuField = uieditfield(matGrid, 'numeric', 'Value', defaults.nu, 'Limits', [0 0.5], ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
 
 CLLabel = uilabel(matGrid, 'Text', 'CL [m/s]');
-CLField = uieditfield(matGrid, 'numeric', 'Value', defaults.CL, 'Limits', [0 Inf]);
+CLField = uieditfield(matGrid, 'numeric', 'Value', defaults.CL, 'Limits', [0 Inf], ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
 
 lambdaLabel = uilabel(matGrid, 'Text', 'lambda [MPa]');
-lambdaField = uieditfield(matGrid, 'numeric', 'Value', defaults.lambda/1e6, 'Limits', [0 Inf]);
+lambdaField = uieditfield(matGrid, 'numeric', 'Value', defaults.lambda/1e6, 'Limits', [0 Inf], ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
 
 muLabel = uilabel(matGrid, 'Text', 'mu [kPa]');
-muField = uieditfield(matGrid, 'numeric', 'Value', defaults.mu/1e3, 'Limits', [0 Inf]);
+muField = uieditfield(matGrid, 'numeric', 'Value', defaults.mu/1e3, 'Limits', [0 Inf], ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
 
 uilabel(matGrid, 'Text', ''); uilabel(matGrid, 'Text', '');
 
@@ -63,44 +74,66 @@ geoGrid.RowHeight = repmat({32}, 1, 6);
 geoGrid.Padding = [12 12 12 12];
 
 uilabel(geoGrid, 'Text', 'thickness [mm]');
-thicknessField = uieditfield(geoGrid, 'numeric', 'Value', defaults.thickness*1e3, 'Limits', [0 Inf]);
+thicknessField = uieditfield(geoGrid, 'numeric', 'Value', defaults.thickness*1e3, 'Limits', [0 Inf], ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
 uilabel(geoGrid, 'Text', 'fmin [Hz]');
-fminField = uieditfield(geoGrid, 'numeric', 'Value', defaults.fmin, 'Limits', [eps Inf]);
+fminField = uieditfield(geoGrid, 'numeric', 'Value', defaults.fmin, 'Limits', [eps Inf], ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
 uilabel(geoGrid, 'Text', 'fmax [Hz]');
-fmaxField = uieditfield(geoGrid, 'numeric', 'Value', defaults.fmax, 'Limits', [eps Inf]);
+fmaxField = uieditfield(geoGrid, 'numeric', 'Value', defaults.fmax, 'Limits', [eps Inf], ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
 uilabel(geoGrid, 'Text', 'N frequency points');
-nfField = uieditfield(geoGrid, 'numeric', 'Value', defaults.numFrequencyPoints, 'RoundFractionalValues', 'on', 'Limits', [10 50000]);
+nfField = uieditfield(geoGrid, 'numeric', 'Value', defaults.numFrequencyPoints, ...
+    'RoundFractionalValues', 'on', 'Limits', [10 50000], 'ValueChangedFcn', @(~,~)markInputsDirty());
 uilabel(geoGrid, 'Text', 'frequency spacing');
-spacingDropDown = uidropdown(geoGrid, 'Items', {'logspace', 'linspace'}, 'Value', char(defaults.frequencySpacing));
+spacingDropDown = uidropdown(geoGrid, 'Items', {'logspace', 'linspace'}, ...
+    'Value', char(defaults.frequencySpacing), 'ValueChangedFcn', @(~,~)markInputsDirty());
 
 % Modes tab
 tabModes = uitab(tabs, 'Title', 'Modes');
-modesGrid = uigridlayout(tabModes, [4 1]);
-modesGrid.RowHeight = {30, 30, 80, '1x'};
+modesGrid = uigridlayout(tabModes, [8 1]);
+modesGrid.RowHeight = {24, 30, 30, 20, 24, 30, 30, '1x'};
 modesGrid.Padding = [12 12 12 12];
 
-A0Check = uicheckbox(modesGrid, 'Text', 'A0', 'Value', defaultSolverOptions.computeA0);
-S0Check = uicheckbox(modesGrid, 'Text', 'S0 experimental', 'Value', defaultSolverOptions.computeS0);
-uilabel(modesGrid, 'Text', 'S0 uses the symmetric Rayleigh-Lamb residual, but it has not been benchmarked yet.', ...
+uilabel(modesGrid, 'Text', 'Modes to compute', 'FontWeight', 'bold');
+A0Check = uicheckbox(modesGrid, 'Text', 'A0', 'Value', defaultSolverOptions.computeA0, ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
+S0Check = uicheckbox(modesGrid, 'Text', 'S0 experimental', 'Value', defaultSolverOptions.computeS0, ...
+    'ValueChangedFcn', @(~,~)markInputsDirty());
+uilabel(modesGrid, 'Text', '');
+uilabel(modesGrid, 'Text', 'Modes to display', 'FontWeight', 'bold');
+A0DisplayCheck = uicheckbox(modesGrid, 'Text', 'Show A0', 'Value', true, ...
+    'ValueChangedFcn', @(~,~)refreshPlotOnly());
+S0DisplayCheck = uicheckbox(modesGrid, 'Text', 'Show S0 experimental', 'Value', true, ...
+    'ValueChangedFcn', @(~,~)refreshPlotOnly());
+uilabel(modesGrid, 'Text', 'Display controls only affect the current plot. Recompute after changing material, geometry, frequency, compute modes, or robustness.', ...
     'WordWrap', 'on', 'FontAngle', 'italic');
 
 % Plot tab
 tabPlot = uitab(tabs, 'Title', 'Plot');
-plotGrid = uigridlayout(tabPlot, [8 2]);
+plotGrid = uigridlayout(tabPlot, [9 2]);
 plotGrid.ColumnWidth = {150, '1x'};
-plotGrid.RowHeight = repmat({30}, 1, 8);
+plotGrid.RowHeight = repmat({30}, 1, 9);
 plotGrid.Padding = [12 12 12 12];
 
 uilabel(plotGrid, 'Text', 'x-axis');
-xAxisDropDown = uidropdown(plotGrid, 'Items', {'frequency', 'angularFrequency', 'wavenumber', 'kThickness'}, 'Value', 'frequency');
+xAxisDropDown = uidropdown(plotGrid, 'Items', {'frequency', 'angularFrequency', 'wavenumber', 'kThickness'}, ...
+    'Value', 'frequency', 'ValueChangedFcn', @(~,~)refreshPlotOnly());
 uilabel(plotGrid, 'Text', 'y-axis');
 uilabel(plotGrid, 'Text', 'Cp');
-autoAxesCheck = uicheckbox(plotGrid, 'Text', 'auto axes', 'Value', true);
+autoAxesCheck = uicheckbox(plotGrid, 'Text', 'auto axes', 'Value', true, ...
+    'ValueChangedFcn', @(~,~)onAutoAxesChanged());
 autoAxesCheck.Layout.Column = [1 2];
-uilabel(plotGrid, 'Text', 'x min'); xMinField = uieditfield(plotGrid, 'numeric', 'Value', 0);
-uilabel(plotGrid, 'Text', 'x max'); xMaxField = uieditfield(plotGrid, 'numeric', 'Value', 0);
-uilabel(plotGrid, 'Text', 'y min'); yMinField = uieditfield(plotGrid, 'numeric', 'Value', 0);
-uilabel(plotGrid, 'Text', 'y max'); yMaxField = uieditfield(plotGrid, 'numeric', 'Value', 0);
+uilabel(plotGrid, 'Text', 'x min');
+xMinField = uieditfield(plotGrid, 'numeric', 'Value', 0, 'ValueChangedFcn', @(~,~)refreshPlotOnly());
+uilabel(plotGrid, 'Text', 'x max');
+xMaxField = uieditfield(plotGrid, 'numeric', 'Value', 0, 'ValueChangedFcn', @(~,~)refreshPlotOnly());
+uilabel(plotGrid, 'Text', 'y min');
+yMinField = uieditfield(plotGrid, 'numeric', 'Value', 0, 'ValueChangedFcn', @(~,~)refreshPlotOnly());
+uilabel(plotGrid, 'Text', 'y max');
+yMaxField = uieditfield(plotGrid, 'numeric', 'Value', 0, 'ValueChangedFcn', @(~,~)refreshPlotOnly());
+resetAxesButton = uibutton(plotGrid, 'Text', 'Reset axes to computed range', 'ButtonPushedFcn', @(~,~)resetAxes());
+resetAxesButton.Layout.Column = [1 2];
 
 % Numerical tab
 tabNumerical = uitab(tabs, 'Title', 'Numerical');
@@ -110,7 +143,8 @@ numGrid.RowHeight = {30, 30, 70, 30, '1x'};
 numGrid.Padding = [12 12 12 12];
 
 uilabel(numGrid, 'Text', 'robustness');
-robustnessDropDown = uidropdown(numGrid, 'Items', {'Fast', 'Balanced', 'Robust'}, 'Value', 'Balanced');
+robustnessDropDown = uidropdown(numGrid, 'Items', {'Fast', 'Balanced', 'Robust'}, ...
+    'Value', 'Balanced', 'ValueChangedFcn', @(~,~)markInputsDirty());
 uilabel(numGrid, 'Text', 'preset effect');
 uilabel(numGrid, 'Text', 'Fast uses fewer scan points. Robust uses more points and wider search windows.', ...
     'WordWrap', 'on');
@@ -139,6 +173,12 @@ ylabel(axCp, 'Phase velocity Cp [m/s]');
 title(axCp, 'Fundamental Lamb modes (Cp)');
 
 updateMaterialInputState();
+updateAxisFieldState();
+
+    function onMaterialModelChanged()
+        updateMaterialInputState();
+        markInputsDirty();
+    end
 
     function updateMaterialInputState()
         modelType = string(modelDropDown.Value);
@@ -152,6 +192,15 @@ updateMaterialInputState();
         muLabel.Enable = onOff(~ypOn); muField.Enable = onOff(~ypOn);
     end
 
+    function markInputsDirty()
+        inputsAreDirty = true;
+        if isempty(lastResults)
+            statusLabel.Text = 'Ready. Press Compute selected modes.';
+        else
+            statusLabel.Text = 'Inputs changed. Press Compute selected modes to update the solution.';
+        end
+    end
+
     function onCompute()
         try
             statusLabel.Text = 'Computing...'; drawnow;
@@ -162,6 +211,12 @@ updateMaterialInputState();
             options.computeS0 = logical(S0Check.Value);
 
             lastResults = computeFundamentalLambModes(params, options);
+            lastOptions = options;
+            inputsAreDirty = false;
+
+            A0DisplayCheck.Value = isfield(lastResults.modes, 'A0');
+            S0DisplayCheck.Value = isfield(lastResults.modes, 'S0') && any(isfinite(lastResults.modes.S0.Cp));
+
             updatePlot(lastResults);
             updateLabels(lastResults, options);
 
@@ -187,28 +242,65 @@ updateMaterialInputState();
         params.frequencySpacing = string(spacingDropDown.Value);
     end
 
+    function refreshPlotOnly()
+        updateAxisFieldState();
+        if isempty(lastResults)
+            xlabel(axCp, getXLabel(string(xAxisDropDown.Value)));
+            return;
+        end
+        updatePlot(lastResults);
+    end
+
+    function onAutoAxesChanged()
+        updateAxisFieldState();
+        refreshPlotOnly();
+    end
+
+    function resetAxes()
+        autoAxesCheck.Value = true;
+        updateAxisFieldState();
+        refreshPlotOnly();
+    end
+
+    function updateAxisFieldState()
+        manualOn = ~autoAxesCheck.Value;
+        xMinField.Enable = onOff(manualOn);
+        xMaxField.Enable = onOff(manualOn);
+        yMinField.Enable = onOff(manualOn);
+        yMaxField.Enable = onOff(manualOn);
+    end
+
     function updatePlot(results)
         cla(axCp); hold(axCp, 'on');
         xSel = string(xAxisDropDown.Value);
+        plotCount = 0;
 
-        if isfield(results.modes, 'A0')
+        if A0DisplayCheck.Value && isfield(results.modes, 'A0')
             mode = results.modes.A0;
             xA0 = getModeX(mode, results.grid, xSel);
-            plot(axCp, xA0, mode.Cp, 'LineWidth', 2, 'DisplayName', 'A0');
+            plot(axCp, xA0, mode.Cp, '-', 'LineWidth', 2, 'Color', colors.A0, 'DisplayName', 'A0');
+            plotCount = plotCount + 1;
         end
 
-        if isfield(results.modes, 'S0')
+        if S0DisplayCheck.Value && isfield(results.modes, 'S0')
             mode = results.modes.S0;
             if any(isfinite(mode.Cp))
                 xS0 = getModeX(mode, results.grid, xSel);
-                plot(axCp, xS0, mode.Cp, '--', 'LineWidth', 1.5, 'DisplayName', 'S0 experimental');
+                plot(axCp, xS0, mode.Cp, '-', 'LineWidth', 2, 'Color', colors.S0, 'DisplayName', 'S0 experimental');
+                plotCount = plotCount + 1;
             end
         end
 
         xlabel(axCp, getXLabel(xSel));
         ylabel(axCp, 'Phase velocity Cp [m/s]');
-        legend(axCp, 'Location', 'best');
+        title(axCp, 'Fundamental Lamb modes (Cp)');
         grid(axCp, 'on');
+
+        if plotCount > 0
+            legend(axCp, 'Location', 'best');
+        else
+            legend(axCp, 'off');
+        end
 
         if autoAxesCheck.Value
             xlim(axCp, 'auto');
@@ -236,6 +328,9 @@ updateMaterialInputState();
             m.E / 1e3, m.nu, m.lambda / 1e6, m.mu / 1e3, m.CL, m.CT, thickness, halfThickness);
 
         txt = {sprintf('Robustness: %s', string(options.robustness))};
+        if inputsAreDirty
+            txt{end+1} = 'Inputs changed after this solution.'; %#ok<AGROW>
+        end
         if isfield(results.modes, 'A0')
             a0 = results.modes.A0;
             txt{end+1} = sprintf('A0 valid points: %d/%d', sum(a0.valid), numel(a0.valid)); %#ok<AGROW>
