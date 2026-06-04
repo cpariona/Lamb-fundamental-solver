@@ -2,9 +2,9 @@ function h = createSetupTab(tabs, params0, opts0, callbacks)
 % Build Setup tab controls. These fields change the numerical solution.
 
 tab = uitab(tabs, 'Title', 'Setup');
-g = uigridlayout(tab, [17 2]);
+g = uigridlayout(tab, [18 2]);
 g.ColumnWidth = {175, '1x'};
-g.RowHeight = repmat({26}, 1, 17);
+g.RowHeight = repmat({26}, 1, 18);
 g.Padding = [12 10 12 10];
 g.RowSpacing = 4;
 
@@ -58,7 +58,7 @@ spacingNote = uilabel(g, 'Text', 'Frequency grid: automatic internal hybrid spac
     'WordWrap', 'on', 'FontAngle', 'italic');
 spacingNote.Layout.Column = [1 2];
 
-uilabel(g, 'Text', 'Modes to compute', 'FontWeight', 'bold');
+uilabel(g, 'Text', 'Modes / models to compute', 'FontWeight', 'bold');
 uilabel(g, 'Text', '');
 
 h.computeA0 = uicheckbox(g, 'Text', 'A0', 'Value', opts0.computeA0, ...
@@ -69,7 +69,11 @@ h.computeS0 = uicheckbox(g, 'Text', 'S0 experimental', 'Value', opts0.computeS0,
     'ValueChangedFcn', callbacks.markDirty);
 h.computeS0.Layout.Column = [1 2];
 
-note = uilabel(g, 'Text', 'Changes in this tab require Compute selected modes.', ...
+h.computeMRLFE = uicheckbox(g, 'Text', 'mRLFE real-k prototype', 'Value', false, ...
+    'ValueChangedFcn', callbacks.markDirty);
+h.computeMRLFE.Layout.Column = [1 2];
+
+note = uilabel(g, 'Text', 'Changes in this tab require Compute selected modes. mRLFE currently needs A0/S0 seeds and computes A0-like/S0-like branches only.', ...
     'WordWrap', 'on', 'FontAngle', 'italic');
 note.Layout.Column = [1 2];
 end
