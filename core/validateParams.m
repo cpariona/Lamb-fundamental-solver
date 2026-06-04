@@ -2,7 +2,7 @@ function validateParams(params)
 % Validate physical and frequency parameters before running the solver.
 
 requiredFields = {'modelType', 'rho', 'thickness', 'fmin', 'fmax', ...
-    'numFrequencyPoints', 'frequencySpacing'};
+    'numFrequencyPoints'};
 for i = 1:numel(requiredFields)
     if ~isfield(params, requiredFields{i})
         error('Missing required parameter field: %s.', requiredFields{i});
@@ -29,9 +29,14 @@ if params.numFrequencyPoints < 10
     error('numFrequencyPoints must be at least 10.');
 end
 
-spacing = lower(string(params.frequencySpacing));
-if spacing ~= "logspace" && spacing ~= "linspace"
-    error('frequencySpacing must be either logspace or linspace.');
+if isfield(params, 'frequencySpacing')
+    spacing = lower(string(params.frequencySpacing));
+else
+    spacing = "hybrid";
+end
+
+if spacing ~= "hybrid" && spacing ~= "logspace" && spacing ~= "linspace"
+    error('frequencySpacing must be hybrid, logspace, or linspace.');
 end
 
 modelType = string(params.modelType);
