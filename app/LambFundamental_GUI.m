@@ -17,13 +17,13 @@ root.ColumnWidth = {430,'1x'};
 
 left = uipanel(root,'Title','Controls');
 left.Layout.Column = 1;
-leftGrid = uigridlayout(left,[2 1]);
-leftGrid.RowHeight = {'1x',310};
+leftGrid = uigridlayout(left,[3 1]);
+leftGrid.RowHeight = {'1x',185,260};
 leftGrid.Padding = [5 5 5 5];
 leftGrid.RowSpacing = 8;
 
-tabs = uitabgroup(leftGrid);
-tabs.Layout.Row = 1;
+globalTabs = uitabgroup(leftGrid);
+globalTabs.Layout.Row = 1;
 
 callbacks = struct();
 callbacks.markDirty = @(~,~)markDirty();
@@ -33,14 +33,16 @@ callbacks.onAutoAxesChanged = @(~,~)onAutoAxesChanged();
 callbacks.resetAxes = @(~,~)resetAxes();
 callbacks.useCurrentAxes = @(~,~)useCurrentAxes();
 
-setup = createSetupTab(tabs, params0, opts0, callbacks);
-plotControls = createPlotTab(tabs, callbacks);
-advanced = createAdvancedTab(tabs, callbacks);
+setup = createSetupTab(globalTabs, params0, callbacks);
+plotControls = createPlotTab(globalTabs, callbacks);
+advanced = createAdvancedTab(globalTabs, callbacks);
+modelControls = createModelTabs(leftGrid, opts0, callbacks);
+modelControls.panel.Layout.Row = 2;
 
 runPanel = uipanel(leftGrid,'Title','Run / Export / Status');
-runPanel.Layout.Row = 2;
+runPanel.Layout.Row = 3;
 rg = uigridlayout(runPanel,[4 1]);
-rg.RowHeight = {34,34,82,'1x'};
+rg.RowHeight = {34,34,76,'1x'};
 rg.Padding = [10 10 10 10];
 rg.RowSpacing = 8;
 uibutton(rg,'Text','Compute selected modes','ButtonPushedFcn',@(~,~)onCompute());
@@ -90,14 +92,14 @@ updateAxisFieldState();
             statusLabel.Text = 'Status: Computing...'; drawnow;
             params = readParamsFromGui();
             options = defaultOptions(string(advanced.robustness.Value));
-            options.computeA0 = logical(setup.computeA0.Value);
-            options.computeS0 = logical(setup.computeS0.Value);
-            options.computeMRLFE = logical(setup.computeMRLFE.Value);
+            options.computeA0 = logical(modelControls.rl.computeA0.Value);
+            options.computeS0 = logical(modelControls.rl.computeS0.Value);
+            options.computeMRLFE = logical(modelControls.mrlfe.compute.Value);
             if options.computeMRLFE
                 options.computeA0 = true;
                 options.computeS0 = true;
-                setup.computeA0.Value = true;
-                setup.computeS0.Value = true;
+                modelControls.rl.computeA0.Value = true;
+                modelControls.rl.computeS0.Value = true;
                 options.mrlfeParams = readMRLFEParamsFromGui();
             end
             lastResults = computeFundamentalLambModes(params, options);
@@ -131,8 +133,8 @@ updateAxisFieldState();
 
     function mrlfeParams = readMRLFEParamsFromGui()
         mrlfeParams = defaultMRLFEParams();
-        mrlfeParams.fluidDensity = setup.mrlfeFluidDensity.Value;
-        mrlfeParams.fluidSoundSpeed = setup.mrlfeFluidSoundSpeed.Value;
+        mrlfeParams.fluidDensity = modelControls.mrlfe.fluidDensity.Value;
+        mrlfeParams.fluidSoundSpeed = modelControls.mrlfe.fluidSoundSpeed.Value;
     end
 
     function refreshPlotOnly()
