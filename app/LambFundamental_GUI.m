@@ -8,6 +8,8 @@ lastOptions = [];
 inputsAreDirty = false;
 colors.A0 = [0.0000 0.4470 0.7410];
 colors.S0 = [1.0000 0.0000 0.0000];
+colors.MRLFEA0 = [0.0000 0.4470 0.7410];
+colors.MRLFES0 = [1.0000 0.0000 0.0000];
 
 fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[100 100 1360 760]);
 root = uigridlayout(fig,[1 2]);
@@ -89,6 +91,13 @@ updateAxisFieldState();
             options = defaultOptions(string(advanced.robustness.Value));
             options.computeA0 = logical(setup.computeA0.Value);
             options.computeS0 = logical(setup.computeS0.Value);
+            options.computeMRLFE = logical(setup.computeMRLFE.Value);
+            if options.computeMRLFE
+                options.computeA0 = true;
+                options.computeS0 = true;
+                setup.computeA0.Value = true;
+                setup.computeS0.Value = true;
+            end
             lastResults = computeFundamentalLambModes(params, options);
             lastOptions = options;
             inputsAreDirty = false;
@@ -169,6 +178,16 @@ updateAxisFieldState();
             plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '-', 'LineWidth', 2, 'Color', colors.S0, 'DisplayName', 'S0 experimental');
             plotCount = plotCount + 1;
         end
+        if plotControls.showMRLFEA0.Value && hasMRLFEBranch('A0Like')
+            mode = lastResults.models.mRLFE.branches.A0Like;
+            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, ':', 'LineWidth', 2.2, 'Color', colors.MRLFEA0, 'DisplayName', 'mRLFE A0-like');
+            plotCount = plotCount + 1;
+        end
+        if plotControls.showMRLFES0.Value && hasMRLFEBranch('S0Like')
+            mode = lastResults.models.mRLFE.branches.S0Like;
+            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, ':', 'LineWidth', 2.2, 'Color', colors.MRLFES0, 'DisplayName', 'mRLFE S0-like');
+            plotCount = plotCount + 1;
+        end
         if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
             mode = lastResults.approximations.A0ThinPlate;
             plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '--', 'LineWidth', 1.5, 'Color', colors.A0, 'DisplayName', 'A0 thin plate');
@@ -189,6 +208,13 @@ updateAxisFieldState();
             if plotControls.ymax.Value > plotControls.ymin.Value, ylim(ax,[plotControls.ymin.Value plotControls.ymax.Value]); end
         end
         hold(ax,'off');
+    end
+
+    function tf = hasMRLFEBranch(branchName)
+        tf = isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE') && ...
+            isfield(lastResults.models.mRLFE, 'branches') && ...
+            isfield(lastResults.models.mRLFE.branches, branchName) && ...
+            any(isfinite(lastResults.models.mRLFE.branches.(branchName).Cp));
     end
 
     function updateLabels()
@@ -212,6 +238,9 @@ updateAxisFieldState();
             txt{end+1} = sprintf('S0 experimental valid points: %d/%d', sum(s0.valid), numel(s0.valid)); %#ok<AGROW>
             if any(isfinite(s0.residual)), txt{end+1} = sprintf('S0 experimental max residual: %.3e', max(s0.residual(isfinite(s0.residual)))); end %#ok<AGROW>
         end
+        if isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE')
+            txt{end+1} = 'mRLFE prototype computed.'; %#ok<AGROW>
+        end
         statusLabel.Text = strjoin(txt,newline);
     end
 
@@ -233,7 +262,11 @@ updateAxisFieldState();
             ApproximationResults = lastResults.approximations; %#ok<NASGU>
             assignin('base', 'ApproximationResults', ApproximationResults);
         end
-        statusLabel.Text = 'Exported LambResults, available mode tables, and ApproximationResults to workspace.';
+        if isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE')
+            MRLFEResults = lastResults.models.mRLFE; %#ok<NASGU>
+            assignin('base', 'MRLFEResults', MRLFEResults);
+        end
+        statusLabel.Text = 'Exported LambResults, available mode tables, ApproximationResults, and MRLFEResults to workspace.';
     end
 end
 
