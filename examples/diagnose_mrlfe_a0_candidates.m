@@ -1,6 +1,11 @@
 % Compact A0-like candidate-branch diagnostic for mRLFE Han real-k.
-% Use this script instead of the heavier residual diagnostic when checking
-% whether lower A0-like residual minima form continuous candidate branches.
+% Use this script when checking whether lower A0-like residual minima form
+% continuous candidate branches.
+%
+% Important diagnostic choice:
+%   Only true local minima are accepted as candidates.
+%   No fallback to the global/interior minimum is used, because that can
+%   incorrectly create artificial branches at the lower Cp boundary.
 
 startup();
 
@@ -14,9 +19,9 @@ etaSValues = [0, 0.5, 1.0];
 CpScan = linspace(0.5, 30, 2500);
 fMap = linspace(500, 30000, 70);
 maxCandidates = 4;
-minCandidateCp = 1.5;
-edgeGuardPoints = 6;
-maxRelJump = 0.35;
+minCandidateCp = 2.0;
+edgeGuardPoints = 10;
+maxRelJump = 0.60;
 
 material = computeMaterial(params);
 geometryFull = computeGeometry(params);
@@ -28,6 +33,8 @@ branchRows = [];
 fprintf('\nCompact A0-like candidate branch diagnostic\n');
 fprintf('------------------------------------------\n');
 fprintf('Cp scan %.3g to %.3g m/s, %d points\n', min(CpScan), max(CpScan), numel(CpScan));
+fprintf('Candidate filter: local minima only, Cp >= %.3g m/s, edge guard = %d samples, max branch jump = %.2f\n', ...
+    minCandidateCp, edgeGuardPoints, maxRelJump);
 
 for iEta = 1:numel(etaSValues)
     etaS = etaSValues(iEta);
@@ -70,7 +77,7 @@ for iEta = 1:numel(etaSValues)
     end
     hold off;
 
-    fprintf('etaS = %.3g Pa*s: extracted %d raw candidates\n', etaS, sum(isfinite(candidateCp(:))));
+    fprintf('etaS = %.3g Pa*s: extracted %d local-minimum candidates\n', etaS, sum(isfinite(candidateCp(:))));
 end
 
 if isempty(allRows)
@@ -116,9 +123,6 @@ for i = max(2, firstAllowed):min(numel(residual)-1, lastAllowed)
         idx(end+1) = i; %#ok<AGROW>
     end
 end
-if isempty(idx)
-    idx = interiorMinIndex(CpScan, residual, minCandidateCp, edgeGuardPoints);
-end
 idx = unique(round(idx(isfinite(idx) & idx >= 1 & idx <= numel(residual))));
 if isempty(idx)
     candidates.cp = [];
@@ -130,21 +134,6 @@ idx = idx(order);
 idx = idx(1:min(maxCandidates, numel(idx)));
 candidates.cp = CpScan(idx);
 candidates.residual = residual(idx);
-end
-
-function idx = interiorMinIndex(CpScan, residual, minCandidateCp, edgeGuardPoints)
-valid = isfinite(residual) & CpScan >= minCandidateCp;
-if edgeGuardPoints > 0 && numel(valid) > 2*edgeGuardPoints
-    valid(1:edgeGuardPoints) = false;
-    valid(end-edgeGuardPoints+1:end) = false;
-end
-if ~any(valid)
-    idx = [];
-    return;
-end
-allIdx = find(valid);
-[~, local] = min(residual(valid));
-idx = allIdx(local);
 end
 
 function tracked = trackCandidateBranches(candidateCp, candidateResidual, maxRelJump)
