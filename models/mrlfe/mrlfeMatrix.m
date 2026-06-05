@@ -1,23 +1,34 @@
 function M = mrlfeMatrix(k, omega, material, geometry, mrlfeParams)
 % Build the 5-by-5 modified Rayleigh-Lamb fluid-loaded matrix.
 %
-% The implementation follows the legacy Han-style mRLFE formulation:
+% The implementation follows the Han-style mRLFE formulation:
 % unknowns are [A, B, C, D, AF]. The input k can be real or complex.
 %
 % Convention:
 %   geometry.thickness is the total layer thickness.
 %   d = geometry.thickness / 2 is the half-thickness used by the mRLFE matrix.
+%
+% Han-style viscoelasticity:
+%   lambda is real by default.
+%   muStar = mu + 1i*omega*etaS.
+% A complex lambda can still be enabled internally for future formulations by
+% setting mrlfeParams.useComplexLambda = true and mrlfeParams.etaL > 0.
 
 rhoS = material.rho;
 rhoF = mrlfeParams.fluidDensity;
 cF = mrlfeParams.fluidSoundSpeed;
 d = geometry.thickness / 2;
 
-lambdaStar = material.lambda + 1i * omega * getFieldOrDefault(mrlfeParams, 'etaL', 0);
+useComplexLambda = getFieldOrDefault(mrlfeParams, 'useComplexLambda', false);
+if useComplexLambda
+    lambdaValue = material.lambda + 1i * omega * getFieldOrDefault(mrlfeParams, 'etaL', 0);
+else
+    lambdaValue = material.lambda;
+end
 muStar = material.mu + 1i * omega * getFieldOrDefault(mrlfeParams, 'etaS', 0);
 
 alphaF = stableSqrt(k.^2 - (omega / cF).^2);
-alpha = stableSqrt(k.^2 - rhoS * omega.^2 ./ (lambdaStar + 2 * muStar));
+alpha = stableSqrt(k.^2 - rhoS * omega.^2 ./ (lambdaValue + 2 * muStar));
 beta = stableSqrt(k.^2 - rhoS * omega.^2 ./ muStar);
 
 k2 = k.^2;
