@@ -1,8 +1,8 @@
-function mrlfeResults = computeMRLFE(frequency, material, geometry, rlModes, mrlfeParams, options)
+function mrlfeResults = computeMRLFE(frequency, material, geometry, seedModes, mrlfeParams, options)
 % Compute mRLFE fundamental-like branches.
 %
-% The model uses Rayleigh-Lamb A0/S0 branches as seeds and tracks the
-% corresponding minima of sigma_min(M)/sigma_max(M).
+% The model can use either Rayleigh-Lamb A0/S0 branches or previously
+% computed mRLFE A0Like/S0Like branches as seeds.
 
 if nargin < 6
     options = struct();
@@ -23,15 +23,35 @@ end
 mrlfeResults.parameters = mrlfeParams;
 mrlfeResults.branches = struct();
 
-if isfield(rlModes, 'A0')
-    mrlfeResults.branches.A0Like = solveMRLFEBranch("A0Like", rlModes.A0, material, geometry, mrlfeParams, options);
+seedA0 = getSeedMode(seedModes, "A0");
+if ~isempty(seedA0)
+    mrlfeResults.branches.A0Like = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, options);
 end
 
-if isfield(rlModes, 'S0')
-    mrlfeResults.branches.S0Like = solveMRLFEBranch("S0Like", rlModes.S0, material, geometry, mrlfeParams, options);
+seedS0 = getSeedMode(seedModes, "S0");
+if ~isempty(seedS0)
+    mrlfeResults.branches.S0Like = solveMRLFEBranch("S0Like", seedS0, material, geometry, mrlfeParams, options);
 end
 
 mrlfeResults.diagnostics = buildMRLFEDiagnostics(mrlfeResults, toc(timerStart));
+end
+
+function seedMode = getSeedMode(seedModes, familyName)
+seedMode = [];
+switch string(familyName)
+    case "A0"
+        if isfield(seedModes, 'A0Like')
+            seedMode = seedModes.A0Like;
+        elseif isfield(seedModes, 'A0')
+            seedMode = seedModes.A0;
+        end
+    case "S0"
+        if isfield(seedModes, 'S0Like')
+            seedMode = seedModes.S0Like;
+        elseif isfield(seedModes, 'S0')
+            seedMode = seedModes.S0;
+        end
+end
 end
 
 function diagnostics = buildMRLFEDiagnostics(mrlfeResults, elapsedSeconds)
