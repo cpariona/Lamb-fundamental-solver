@@ -2,7 +2,7 @@ function branch = solveMRLFEBranch(name, seedMode, material, geometry, mrlfePara
 % Track one mRLFE fundamental-like branch.
 %
 % The branch is seeded from either a Rayleigh-Lamb mode or a real-k mRLFE
-% mode and refined by minimizing sigma_min(M)/sigma_max(M).
+% reference mode and refined by minimizing sigma_min(M)/sigma_max(M).
 
 frequency = seedMode.frequency;
 omega = seedMode.omega;
@@ -12,6 +12,7 @@ else
     seedK = real(seedMode.k);
 end
 solveComplexK = isfield(mrlfeParams, 'solveComplexK') && mrlfeParams.solveComplexK;
+anchorToSeed = isfield(options, 'mrlfeRealKAnchorToSeed') && options.mrlfeRealKAnchorToSeed;
 
 k = nan(size(frequency));
 residual = nan(size(frequency));
@@ -23,7 +24,9 @@ for i = 1:numel(frequency)
         continue;
     end
 
-    if i >= 2 && isfinite(real(k(i-1))) && real(k(i-1)) > 0
+    if anchorToSeed && ~solveComplexK
+        kPred = seedK(i);
+    elseif i >= 2 && isfinite(real(k(i-1))) && real(k(i-1)) > 0
         kPred = predictMRLFEK(k, frequency, i);
     else
         kPred = seedK(i);
@@ -68,8 +71,10 @@ branch.validAttenuation = validAttenuation;
 branch.valid = validCp;
 if solveComplexK
     branch.note = "mRLFE complex-k prototype seeded from real-k reference when available.";
+elseif anchorToSeed
+    branch.note = "mRLFE real-k branch anchored to seed reference.";
 else
-    branch.note = "mRLFE real-k elastic prototype seeded from Rayleigh-Lamb branch.";
+    branch.note = "mRLFE real-k branch seeded from previous frequency continuation.";
 end
 end
 
@@ -82,8 +87,8 @@ if solveComplexK
     maxRelCp = getOption(options, 'mrlfeComplexMaxRelativeCpDrift', 0.30);
 else
     cpResidualTol = getOption(options, 'mrlfeResidualTolerance', 1e-4);
-    maxRelK = inf;
-    maxRelCp = inf;
+    maxRelK = getOption(options, 'mrlfeRealKValidationMaxRelativeKDrift', inf);
+    maxRelCp = getOption(options, 'mrlfeRealKValidationMaxRelativeCpDrift', inf);
 end
 
 relK = abs(kReal - seedK) ./ max(seedK, eps);
