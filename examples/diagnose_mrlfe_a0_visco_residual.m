@@ -1,7 +1,8 @@
 % Diagnose A0-like mRLFE Han real-k residual under shear viscosity.
 % This script plots the real-k residual landscape versus trial Cp for several
-% frequencies and etaS values. It is meant to identify whether A0 tracking
-% shows branch switching or valley weakening at high frequency.
+% frequencies and etaS values. It also extracts multiple local minima in the
+% residual landscape to distinguish true candidate branches from branch
+% switching artifacts.
 %
 % Model used here:
 %   lambda real
@@ -15,17 +16,18 @@ startup();
 params = defaultParams();
 params.fmin = 500;
 params.fmax = 30000;
-params.numFrequencyPoints = 160;
+params.numFrequencyPoints = 120;
 params.frequencySpacing = "hybrid";
 
 % Frequencies selected to inspect the A0-like residual landscape.
-frequenciesToInspect = [2000, 8000, 16000, 30000]; % [Hz]
+frequenciesToInspect = [8000, 16000, 24000, 30000]; % [Hz]
 
-% Viscosities to inspect.
-etaSValues = [0, 0.1, 0.3, 0.5, 0.7, 1.0]; % [Pa*s]
+% Reduced diagnostic set. Add intermediate etaS values only when needed.
+etaSValues = [0, 0.5, 1.0]; % [Pa*s]
 
-% Cp scan range for A0-like. Expand if the minimum is near an edge.
-CpScan = linspace(0.5, 30, 6000); % [m/s]
+% Cp scan range for A0-like. Expand if a candidate minimum is near an edge.
+CpScan = linspace(0.5, 30, 3500); % [m/s]
+maxCandidatesToReport = 4;
 
 optionsBase = defaultOptions("Fast");
 optionsBase.computeA0 = true;
@@ -37,10 +39,12 @@ geometryFull = computeGeometry(params);
 geometry = rmfield(geometryFull, 'halfThickness');
 
 resultsByEtaS = cell(size(etaSValues));
+candidateRows = [];
 
 fprintf('\nA0-like mRLFE Han real-k residual diagnostic\n');
 fprintf('--------------------------------------------\n');
 fprintf('Cp scan range: %.3g to %.3g m/s (%d samples)\n', min(CpScan), max(CpScan), numel(CpScan));
+fprintf('Candidate minima reported per curve: %d\n', maxCandidatesToReport);
 
 for iEta = 1:numel(etaSValues)
     options = optionsBase;
@@ -63,14 +67,15 @@ for iEta = 1:numel(etaSValues)
     end
 end
 
-% One figure per frequency. Each figure overlays residual curves for etaS.
+% One figure per frequency. Each figure overlays residual curves for etaS and
+% marks the tracked point plus the strongest local minima candidates.
 for iFreq = 1:numel(frequenciesToInspect)
     f = frequenciesToInspect(iFreq);
     omega = 2*pi*f;
 
     figure;
     hold on;
-    minTable = zeros(numel(etaSValues), 4); % etaS, CpMin, residualMin, trackedCp
+    minTable = zeros(numel(etaSValues), 4); % etaS, global CpMin, min residual, trackedCp
 
     for iEta = 1:numel(etaSValues)
         etaS = etaSValues(iEta);
@@ -84,6 +89,13 @@ for iFreq = 1:numel(frequenciesToInspect)
         residual = computeResidualVsCp(CpScan, omega, material, geometry, mrlfeParams);
         semilogy(CpScan, residual, 'LineWidth', 1.3, ...
             'DisplayName', sprintf('etaS = %.3g Pa*s', etaS));
+
+        candidates = findResidualCandidates(CpScan, residual, maxCandidatesToReport);
+        for c = 1:numel(candidates.cp)
+            candidateRows = [candidateRows; makeCandidateRow(f, etaS, c, candidates.cp(c), candidates.residual(c))]; %#ok<AGROW>
+            semilogy(candidates.cp(c), candidates.residual(c), 'x', 'MarkerSize', 7, ...
+                'HandleVisibility', 'off');
+        end
 
         [resMin, idxMin] = min(residual);
         cpMin = CpScan(idxMin);
@@ -100,7 +112,7 @@ for iFreq = 1:numel(frequenciesToInspect)
     grid on;
     xlabel('Trial phase velocity Cp [m/s]');
     ylabel('mRLFE residual sigma_{min}(M)/sigma_{max}(M)');
-    title(sprintf('A0-like residual landscape at f = %.0f Hz', f));
+    title(sprintf('A0-like residual candidates at f = %.0f Hz', f));
     legend('Location', 'best');
     hold off;
 
@@ -112,10 +124,12 @@ for iFreq = 1:numel(frequenciesToInspect)
     end
 end
 
-% Residual heatmaps for selected etaS values.
-etaSMapValues = [0, 0.5, 1.0];
-fMap = linspace(500, 30000, 120);
-CpMap = linspace(0.5, 30, 1200);
+% Residual heatmaps for selected etaS values. Candidate-minimum curves are
+% overlaid to reveal whether a lower A0-like candidate forms a continuous
+% branch or is only an isolated artifact.
+etaSMapValues = etaSValues;
+fMap = linspace(500, 30000, 85);
+CpMap = linspace(0.5, 30, 800);
 
 for iEta = 1:numel(etaSMapValues)
     etaS = etaSMapValues(iEta);
@@ -127,8 +141,11 @@ for iEta = 1:numel(etaSMapValues)
     mrlfeParams.useComplexLambda = false;
 
     Rmap = nan(numel(CpMap), numel(fMap));
+    candidateCp = nan(maxCandidatesToReport, numel(fMap));
     for j = 1:numel(fMap)
         Rmap(:,j) = computeResidualVsCp(CpMap, 2*pi*fMap(j), material, geometry, mrlfeParams).';
+        candidates = findResidualCandidates(CpMap, Rmap(:,j).', maxCandidatesToReport);
+        candidateCp(1:numel(candidates.cp), j) = candidates.cp(:);
     end
 
     figure;
@@ -137,21 +154,33 @@ for iEta = 1:numel(etaSMapValues)
     colorbar;
     xlabel('frequency [Hz]');
     ylabel('Trial phase velocity Cp [m/s]');
-    title(sprintf('log10 residual map: A0-like, etaS = %.3g Pa*s', etaS));
+    title(sprintf('log10 residual map: A0-like candidates, etaS = %.3g Pa*s', etaS));
     hold on;
+    for c = 1:size(candidateCp,1)
+        plot(fMap, candidateCp(c,:), 'k.', 'MarkerSize', 4, 'DisplayName', sprintf('candidate %d', c));
+    end
     idx = find(abs(etaSValues - etaS) < 1e-12, 1);
     if ~isempty(idx)
         branch = resultsByEtaS{idx}.models.mRLFEHanViscoRealK.branches.A0Like;
         valid = getValidCp(branch);
-        plot(branch.frequency(valid), branch.Cp(valid), 'w.', 'MarkerSize', 8, 'DisplayName', 'tracked valid Cp');
+        cpPlot = branch.Cp;
+        cpPlot(~valid) = nan;
+        plot(branch.frequency, cpPlot, 'w.', 'MarkerSize', 8, 'DisplayName', 'tracked valid Cp');
     end
     hold off;
+end
+
+if isempty(candidateRows)
+    A0CandidateMinimaTable = table();
+else
+    A0CandidateMinimaTable = struct2table(candidateRows);
 end
 
 assignin('base', 'mRLFEA0ResidualDiagnosticResults', resultsByEtaS);
 assignin('base', 'mRLFEA0ResidualDiagnosticEtaS', etaSValues);
 assignin('base', 'mRLFEA0ResidualDiagnosticCpScan', CpScan);
-fprintf('\nExported A0 diagnostic variables to workspace.\n');
+assignin('base', 'mRLFEA0CandidateMinimaTable', A0CandidateMinimaTable);
+fprintf('\nExported A0 diagnostic variables and mRLFEA0CandidateMinimaTable to workspace.\n');
 
 function residual = computeResidualVsCp(CpScan, omega, material, geometry, mrlfeParams)
 residual = nan(size(CpScan));
@@ -180,6 +209,33 @@ if sum(valid) < 2
     return;
 end
 trackedCp = interp1(branch.frequency(valid), branch.Cp(valid), frequency, 'linear', nan);
+end
+
+function candidates = findResidualCandidates(CpScan, residual, maxCandidates)
+localIdx = [];
+for i = 2:numel(residual)-1
+    if isfinite(residual(i)) && residual(i) < residual(i-1) && residual(i) < residual(i+1)
+        localIdx(end+1) = i; %#ok<AGROW>
+    end
+end
+if isempty(localIdx)
+    [~, idx] = min(residual);
+    localIdx = idx;
+end
+[~, order] = sort(residual(localIdx), 'ascend');
+localIdx = localIdx(order);
+localIdx = localIdx(1:min(maxCandidates, numel(localIdx)));
+candidates.cp = CpScan(localIdx);
+candidates.residual = residual(localIdx);
+end
+
+function row = makeCandidateRow(frequency, etaS, rank, cp, residual)
+row = struct();
+row.Frequency_Hz = frequency;
+row.EtaS_Pa_s = etaS;
+row.CandidateRank = rank;
+row.Cp = cp;
+row.Residual = residual;
 end
 
 function valid = getValidCp(branch)
