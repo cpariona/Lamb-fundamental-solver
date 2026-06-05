@@ -7,9 +7,10 @@ Current scope:
 - A0 phase velocity calculation using the antisymmetric Rayleigh-Lamb residual.
 - Experimental S0 phase velocity calculation using the symmetric Rayleigh-Lamb residual.
 - Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
-- Real-k elastic mRLFE prototype seeded from Rayleigh-Lamb A0/S0 branches.
-- Complex-k mRLFE prototype for spatial attenuation exploration.
-- GUI plotting of Cp or spatial attenuation versus frequency, angular frequency, wavenumber, or `kThickness`.
+- mRLFE elastic real-k dispersion for fluid-loaded layers.
+- mRLFE Han-style viscoelastic real-k dispersion with real lambda and complex shear modulus.
+- Experimental complex-k mRLFE path kept internally for spatial attenuation exploration.
+- GUI plotting of phase velocity Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
 - Export of `LambResults`, `A0_table`, and, when available, `S0_table` to the MATLAB workspace.
 
 ## Naming convention
@@ -69,31 +70,50 @@ At very high frequencies, the Rayleigh-Lamb residual contains many nearby roots 
 
 When plotting against `wavenumber` or `kThickness`, different modes may end at different horizontal values because `k = omega / Cp` is mode-dependent. This does not mean that a branch was truncated in frequency.
 
-## mRLFE prototype
+## mRLFE dispersion models
 
-The mRLFE implementation is currently a staged prototype:
+The main GUI now focuses on phase-velocity dispersion, not attenuation.
 
-- It uses the modified Rayleigh-Lamb fluid-loaded 5-by-5 matrix.
-- The real-k variant solves an elastic real-wavenumber version of the model.
-- The complex-k variant solves for `k = kReal + 1i*kImag` to estimate spatial attenuation.
-- It uses the normalized singular-value residual `sigma_min(M) / sigma_max(M)` instead of `det(M)` for better numerical scaling.
-- It uses the Rayleigh-Lamb A0/S0 branches, and for complex-k uses the real-k mRLFE branch as a physical reference.
-- It reports only fundamental-like branches: `A0Like` and `S0Like`.
+The implemented mRLFE paths are:
 
-Solid viscosity is introduced through complex Lamé parameters, not by assigning viscosity directly to `k`:
+- `mRLFEElasticRealK`: elastic, fluid-loaded, real-k dispersion.
+- `mRLFEHanViscoRealK`: Han-style viscoelastic, fluid-loaded, real-k dispersion.
+- `mRLFEComplexK`: experimental internal path for spatial attenuation; not part of the main GUI workflow.
+
+All mRLFE variants use the modified Rayleigh-Lamb fluid-loaded 5-by-5 matrix and the normalized singular-value residual:
 
 ```matlab
-muStar     = mu     + 1i * omega * etaS;
-lambdaStar = lambda + 1i * omega * etaL;
+sigma_min(M) / sigma_max(M)
 ```
 
-The complex wavenumber is a consequence of solving the dispersive problem with complex material parameters and fluid loading. The plotted spatial attenuation is:
+instead of `det(M)` for better numerical scaling.
+
+For the Han-style viscoelastic real-k model, lambda is real and shear viscosity enters only through the complex shear modulus:
+
+```matlab
+lambdaValue = lambda;
+muStar = mu + 1i * omega * etaS;
+```
+
+A complex lambda is disabled by default and kept only as an internal future extension using `mrlfeParams.useComplexLambda = true`.
+
+## Attenuation terminology
+
+Use these terms consistently:
+
+- `solid shear viscosity etaS`: material Kelvin-Voigt shear viscosity. It modifies the material shear modulus through `muStar = mu + 1i*omega*etaS`.
+- `viscoelastic material damping`: energy loss inside the solid caused by complex material moduli.
+- `spatial attenuation Im(k)`: decay of the guided-wave amplitude along propagation, obtained only when solving a complex wavenumber `k = kReal + 1i*kImag`.
+- `fluid loading`: change in dispersion caused by the acoustic fluid boundary condition. This can change phase velocity even in a real-k calculation.
+- `leaky/radiation attenuation`: possible spatial attenuation due to energy radiated into the surrounding fluid. This requires a validated complex-k formulation and is not currently used for fitting.
+
+The complex-k prototype reports:
 
 ```matlab
 attenuation = imag(k);
 ```
 
-This is the guided-mode spatial attenuation `Im(k)` in `[1/m]`; it is not the material viscosity itself and should not be interpreted as water viscosity. Modeling viscous losses in the fluid would require a separate fluid-loss formulation.
+but this attenuation is not yet validated for quantitative use.
 
 ## Manual validation examples
 
@@ -107,17 +127,20 @@ examples/sweep_thickness_A0_S0
 examples/run_mrlfe_prototype
 examples/run_mrlfe_complexk_prototype
 examples/sweep_mrlfe_viscosity
+examples/sweep_mrlfe_shear_viscosity_phase_velocity
 ```
 
 `check_default_outputs` prints valid point counts, Cp ranges, residuals, and finite `kThickness` counts for the default configuration.
 
 `sweep_thickness_A0_S0` computes A0 and experimental S0 over multiple total thickness values and plots the corresponding Cp curves.
 
-`run_mrlfe_prototype` computes Rayleigh-Lamb A0/S0 and the real-k elastic mRLFE A0-like/S0-like prototype branches over a moderate frequency range.
+`run_mrlfe_prototype` computes Rayleigh-Lamb A0/S0 and the elastic real-k mRLFE A0-like/S0-like prototype branches over a moderate frequency range.
 
-`run_mrlfe_complexk_prototype` computes the complex-k mRLFE prototype and reports Cp and spatial attenuation.
+`run_mrlfe_complexk_prototype` computes the experimental complex-k mRLFE prototype and reports Cp and spatial attenuation.
 
-`sweep_mrlfe_viscosity` sweeps solid shear viscosity and plots Cp and spatial attenuation for the mRLFE complex-k prototype.
+`sweep_mrlfe_viscosity` sweeps solid shear viscosity in the experimental complex-k path. This is kept for advanced diagnostics only.
+
+`sweep_mrlfe_shear_viscosity_phase_velocity` sweeps solid shear viscosity in the Han-style real-k model and plots only Cp dispersion curves.
 
 ## Current limitations
 
