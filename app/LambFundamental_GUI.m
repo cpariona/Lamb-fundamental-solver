@@ -8,8 +8,8 @@ lastOptions = [];
 inputsAreDirty = false;
 colors.A0 = [0.0000 0.4470 0.7410];
 colors.S0 = [1.0000 0.0000 0.0000];
-colors.MRLFEA0 = [0.0000 0.4470 0.7410];
-colors.MRLFES0 = [1.0000 0.0000 0.0000];
+colors.HanA0 = [0.0000 0.4470 0.7410];
+colors.HanS0 = [1.0000 0.0000 0.0000];
 
 fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[100 100 1360 820]);
 root = uigridlayout(fig,[1 2]);
@@ -96,8 +96,9 @@ updateAxisFieldState();
             options.computeA0 = logical(modelControls.rl.computeA0.Value);
             options.computeS0 = logical(modelControls.rl.computeS0.Value);
             options.computeMRLFERealK = logical(modelControls.mrlfe.computeRealK.Value);
-            options.computeMRLFEComplexK = logical(modelControls.mrlfe.computeComplexK.Value);
-            if options.computeMRLFERealK || options.computeMRLFEComplexK
+            options.computeMRLFEHanViscoRealK = logical(modelControls.mrlfe.computeHanViscoRealK.Value);
+            options.computeMRLFEComplexK = false;
+            if options.computeMRLFERealK || options.computeMRLFEHanViscoRealK
                 options.computeA0 = true;
                 options.computeS0 = true;
                 modelControls.rl.computeA0.Value = true;
@@ -137,15 +138,16 @@ updateAxisFieldState();
         mrlfeParams = defaultMRLFEParams();
         mrlfeParams.fluidDensity = modelControls.mrlfe.fluidDensity.Value;
         mrlfeParams.fluidSoundSpeed = modelControls.mrlfe.fluidSoundSpeed.Value;
-        mrlfeParams.etaL = modelControls.mrlfe.etaL.Value;
         mrlfeParams.etaS = modelControls.mrlfe.etaS.Value;
+        mrlfeParams.etaL = 0;
+        mrlfeParams.useComplexLambda = false;
     end
 
     function refreshPlotOnly()
         updateAxisFieldState();
         if isempty(lastResults)
             xlabel(ax, getXLabel(string(plotControls.xaxis.Value)));
-            ylabel(ax, getYLabel(string(plotControls.yaxis.Value)));
+            ylabel(ax, 'Phase velocity Cp [m/s]');
             return;
         end
         updatePlot();
@@ -182,42 +184,37 @@ updateAxisFieldState();
     function updatePlot()
         cla(ax); hold(ax,'on');
         xSel = string(plotControls.xaxis.Value);
-        ySel = string(plotControls.yaxis.Value);
         plotCount = 0;
-        if ySel == "Cp"
-            if plotControls.showA0.Value && isfield(lastResults.modes,'A0')
-                mode = lastResults.modes.A0;
-                plot(ax, getModeX(mode,lastResults.grid,xSel), getModeY(mode,ySel), '-', 'LineWidth', 2, 'Color', colors.A0, 'DisplayName', 'A0');
-                plotCount = plotCount + 1;
-            end
-            if plotControls.showS0.Value && isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp))
-                mode = lastResults.modes.S0;
-                plot(ax, getModeX(mode,lastResults.grid,xSel), getModeY(mode,ySel), '-', 'LineWidth', 2, 'Color', colors.S0, 'DisplayName', 'S0 experimental');
-                plotCount = plotCount + 1;
-            end
+        if plotControls.showA0.Value && isfield(lastResults.modes,'A0')
+            mode = lastResults.modes.A0;
+            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '-', 'LineWidth', 2, 'Color', colors.A0, 'DisplayName', 'A0');
+            plotCount = plotCount + 1;
+        end
+        if plotControls.showS0.Value && isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp))
+            mode = lastResults.modes.S0;
+            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '-', 'LineWidth', 2, 'Color', colors.S0, 'DisplayName', 'S0 experimental');
+            plotCount = plotCount + 1;
         end
         if plotControls.showMRLFEA0.Value
-            plotCount = plotCount + plotMRLFEBranch('mRLFERealK', 'A0Like', ':', 'mRLFE real-k A0-like', colors.MRLFEA0, xSel, ySel);
-            plotCount = plotCount + plotMRLFEBranch('mRLFEComplexK', 'A0Like', '-.', 'mRLFE complex-k A0-like', colors.MRLFEA0, xSel, ySel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFEElasticRealK', 'A0Like', ':', 'mRLFE elastic A0-like', colors.HanA0, xSel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFEHanViscoRealK', 'A0Like', '-.', 'mRLFE Han visco A0-like', colors.HanA0, xSel);
         end
         if plotControls.showMRLFES0.Value
-            plotCount = plotCount + plotMRLFEBranch('mRLFERealK', 'S0Like', ':', 'mRLFE real-k S0-like', colors.MRLFES0, xSel, ySel);
-            plotCount = plotCount + plotMRLFEBranch('mRLFEComplexK', 'S0Like', '-.', 'mRLFE complex-k S0-like', colors.MRLFES0, xSel, ySel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFEElasticRealK', 'S0Like', ':', 'mRLFE elastic S0-like', colors.HanS0, xSel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFEHanViscoRealK', 'S0Like', '-.', 'mRLFE Han visco S0-like', colors.HanS0, xSel);
         end
-        if ySel == "Cp"
-            if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
-                mode = lastResults.approximations.A0ThinPlate;
-                plot(ax, getModeX(mode,lastResults.grid,xSel), getModeY(mode,ySel), '--', 'LineWidth', 1.5, 'Color', colors.A0, 'DisplayName', 'A0 thin plate');
-                plotCount = plotCount + 1;
-            end
-            if plotControls.showS0Ext.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'S0Extensional')
-                mode = lastResults.approximations.S0Extensional;
-                plot(ax, getModeX(mode,lastResults.grid,xSel), getModeY(mode,ySel), '--', 'LineWidth', 1.5, 'Color', colors.S0, 'DisplayName', 'S0 extensional');
-                plotCount = plotCount + 1;
-            end
+        if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
+            mode = lastResults.approximations.A0ThinPlate;
+            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '--', 'LineWidth', 1.5, 'Color', colors.A0, 'DisplayName', 'A0 thin plate');
+            plotCount = plotCount + 1;
         end
-        xlabel(ax, getXLabel(xSel)); ylabel(ax, getYLabel(ySel));
-        title(ax, ['Fundamental Lamb modes (', char(ySel), ')']); grid(ax,'on');
+        if plotControls.showS0Ext.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'S0Extensional')
+            mode = lastResults.approximations.S0Extensional;
+            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '--', 'LineWidth', 1.5, 'Color', colors.S0, 'DisplayName', 'S0 extensional');
+            plotCount = plotCount + 1;
+        end
+        xlabel(ax, getXLabel(xSel)); ylabel(ax, 'Phase velocity Cp [m/s]');
+        title(ax, 'Fundamental Lamb modes (Cp)'); grid(ax,'on');
         if plotCount > 0, legend(ax,'Location','best'); else, legend(ax,'off'); end
         if plotControls.autoAxes.Value
             xlim(ax,'auto'); ylim(ax,'auto');
@@ -228,27 +225,21 @@ updateAxisFieldState();
         hold(ax,'off');
     end
 
-    function didPlot = plotMRLFEBranch(modelName, branchName, lineStyle, displayName, colorValue, xSel, ySel)
+    function didPlot = plotMRLFEBranch(modelName, branchName, lineStyle, displayName, colorValue, xSel)
         didPlot = 0;
-        if hasMRLFEBranch(modelName, branchName)
+        if isfield(lastResults, 'models') && isfield(lastResults.models, modelName) && ...
+                isfield(lastResults.models.(modelName).branches, branchName)
             mode = lastResults.models.(modelName).branches.(branchName);
-            y = getModeY(mode, ySel);
+            validMask = getModePlotMask(mode);
             x = getModeX(mode,lastResults.grid,xSel);
-            validMask = getModePlotMask(mode, ySel);
-            y(~validMask) = nan;
+            y = mode.Cp;
             x(~validMask) = nan;
+            y(~validMask) = nan;
             if any(isfinite(y))
                 plot(ax, x, y, lineStyle, 'LineWidth', 2.0, 'Color', colorValue, 'DisplayName', displayName);
                 didPlot = 1;
             end
         end
-    end
-
-    function tf = hasMRLFEBranch(modelName, branchName)
-        tf = isfield(lastResults, 'models') && isfield(lastResults.models, modelName) && ...
-            isfield(lastResults.models.(modelName), 'branches') && ...
-            isfield(lastResults.models.(modelName).branches, branchName) && ...
-            any(isfinite(lastResults.models.(modelName).branches.(branchName).Cp));
     end
 
     function updateLabels()
@@ -266,8 +257,8 @@ updateAxisFieldState();
             s0 = lastResults.modes.S0;
             statusParts{end+1} = sprintf('S0 %d/%d, R %.1e', sum(s0.valid), numel(s0.valid), maxFinite(s0.residual)); %#ok<AGROW>
         end
-        statusParts = appendMRLFEStatus(statusParts, 'mRLFERealK', 'mRLFE-R');
-        statusParts = appendMRLFEStatus(statusParts, 'mRLFEComplexK', 'mRLFE-C');
+        statusParts = appendMRLFEStatus(statusParts, 'mRLFEElasticRealK', 'mRLFE-elastic');
+        statusParts = appendMRLFEStatus(statusParts, 'mRLFEHanViscoRealK', 'mRLFE-Han-visco');
         if inputsAreDirty
             statusParts{end+1} = 'inputs changed'; %#ok<AGROW>
         end
@@ -280,11 +271,11 @@ updateAxisFieldState();
             statusParts{end+1} = sprintf('%s %.1fs', label, d.elapsedSeconds); %#ok<AGROW>
             if isfield(d.summary, 'A0Like')
                 item = d.summary.A0Like;
-                statusParts{end+1} = sprintf('%s A0L Cp %d/%d, Att %d/%d', label, item.validCpPoints, item.totalPoints, item.validAttenuationPoints, item.totalPoints); %#ok<AGROW>
+                statusParts{end+1} = sprintf('%s A0L Cp %d/%d', label, item.validCpPoints, item.totalPoints); %#ok<AGROW>
             end
             if isfield(d.summary, 'S0Like')
                 item = d.summary.S0Like;
-                statusParts{end+1} = sprintf('%s S0L Cp %d/%d, Att %d/%d', label, item.validCpPoints, item.totalPoints, item.validAttenuationPoints, item.totalPoints); %#ok<AGROW>
+                statusParts{end+1} = sprintf('%s S0L Cp %d/%d', label, item.validCpPoints, item.totalPoints); %#ok<AGROW>
             end
         end
     end
@@ -315,14 +306,10 @@ updateAxisFieldState();
         lines{end+1} = sprintf('  frequency points = %d', numel(lastResults.grid.frequency)); %#ok<AGROW>
         lines{end+1} = sprintf('  fmin/fmax        = %.6g / %.6g Hz', min(lastResults.grid.frequency), max(lastResults.grid.frequency)); %#ok<AGROW>
         lines{end+1} = ''; %#ok<AGROW>
-        if isfield(lastResults.modes,'A0')
-            lines = appendModeDiagnostics(lines, 'A0', lastResults.modes.A0);
-        end
-        if isfield(lastResults.modes,'S0')
-            lines = appendModeDiagnostics(lines, 'S0', lastResults.modes.S0);
-        end
-        lines = appendMRLFEDiagnostics(lines, 'mRLFERealK');
-        lines = appendMRLFEDiagnostics(lines, 'mRLFEComplexK');
+        if isfield(lastResults.modes,'A0'), lines = appendModeDiagnostics(lines, 'A0', lastResults.modes.A0); end
+        if isfield(lastResults.modes,'S0'), lines = appendModeDiagnostics(lines, 'S0', lastResults.modes.S0); end
+        lines = appendMRLFEDiagnostics(lines, 'mRLFEElasticRealK');
+        lines = appendMRLFEDiagnostics(lines, 'mRLFEHanViscoRealK');
         txt = lines(:);
     end
 
@@ -335,10 +322,8 @@ updateAxisFieldState();
             branchNames = fieldnames(d.summary);
             for i = 1:numel(branchNames)
                 item = d.summary.(branchNames{i});
-                lines{end+1} = sprintf('  %s: Cp valid %d/%d, Cp %.6g..%.6g m/s', ...
-                    branchNames{i}, item.validCpPoints, item.totalPoints, item.minCp, item.maxCp); %#ok<AGROW>
-                lines{end+1} = sprintf('       Att valid %d/%d, alpha %.6g..%.6g 1/m, max R %.3e', ...
-                    item.validAttenuationPoints, item.totalPoints, item.minAttenuation, item.maxAttenuation, item.maxResidual); %#ok<AGROW>
+                lines{end+1} = sprintf('  %s: Cp valid %d/%d, Cp %.6g..%.6g m/s, max R %.3e', ...
+                    branchNames{i}, item.validCpPoints, item.totalPoints, item.minCp, item.maxCp, item.maxResidual); %#ok<AGROW>
             end
             lines{end+1} = ''; %#ok<AGROW>
         end
@@ -361,31 +346,13 @@ updateAxisFieldState();
         end
         LambResults = lastResults; %#ok<NASGU>
         assignin('base','LambResults',LambResults);
-        if isfield(lastResults.modes,'A0')
-            A0_table = modeToTable(lastResults.modes.A0); %#ok<NASGU>
-            assignin('base','A0_table',A0_table);
-        end
-        if isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp))
-            S0_table = modeToTable(lastResults.modes.S0); %#ok<NASGU>
-            assignin('base','S0_table',S0_table);
-        end
-        if isfield(lastResults, 'approximations')
-            ApproximationResults = lastResults.approximations; %#ok<NASGU>
-            assignin('base', 'ApproximationResults', ApproximationResults);
-        end
+        if isfield(lastResults.modes,'A0'), assignin('base','A0_table',modeToTable(lastResults.modes.A0)); end
+        if isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp)), assignin('base','S0_table',modeToTable(lastResults.modes.S0)); end
+        if isfield(lastResults, 'approximations'), assignin('base', 'ApproximationResults', lastResults.approximations); end
         if isfield(lastResults, 'models')
-            if isfield(lastResults.models, 'mRLFERealK')
-                MRLFERealKResults = lastResults.models.mRLFERealK; %#ok<NASGU>
-                assignin('base', 'MRLFERealKResults', MRLFERealKResults);
-            end
-            if isfield(lastResults.models, 'mRLFEComplexK')
-                MRLFEComplexKResults = lastResults.models.mRLFEComplexK; %#ok<NASGU>
-                assignin('base', 'MRLFEComplexKResults', MRLFEComplexKResults);
-            end
-            if isfield(lastResults.models, 'mRLFE')
-                MRLFEResults = lastResults.models.mRLFE; %#ok<NASGU>
-                assignin('base', 'MRLFEResults', MRLFEResults);
-            end
+            if isfield(lastResults.models, 'mRLFEElasticRealK'), assignin('base', 'MRLFEElasticRealKResults', lastResults.models.mRLFEElasticRealK); end
+            if isfield(lastResults.models, 'mRLFEHanViscoRealK'), assignin('base', 'MRLFEHanViscoRealKResults', lastResults.models.mRLFEHanViscoRealK); end
+            if isfield(lastResults.models, 'mRLFE'), assignin('base', 'MRLFEResults', lastResults.models.mRLFE); end
         end
         statusLabel.Text = 'Status: exported to workspace.';
     end
@@ -410,41 +377,15 @@ switch xSel
 end
 end
 
-function y = getModeY(mode, ySel)
-switch ySel
-    case "Cp"
-        y = mode.Cp;
-    case "attenuation"
-        if isfield(mode, 'attenuation')
-            y = mode.attenuation;
-        else
-            y = nan(size(mode.Cp));
-        end
-    otherwise
-        y = mode.Cp;
+function mask = getModePlotMask(mode)
+if isfield(mode, 'validCp')
+    mask = mode.validCp;
+elseif isfield(mode, 'valid')
+    mask = mode.valid;
+else
+    mask = isfinite(mode.Cp);
 end
-end
-
-function mask = getModePlotMask(mode, ySel)
-switch ySel
-    case "Cp"
-        if isfield(mode, 'validCp')
-            mask = mode.validCp;
-        elseif isfield(mode, 'valid')
-            mask = mode.valid;
-        else
-            mask = isfinite(mode.Cp);
-        end
-    case "attenuation"
-        if isfield(mode, 'validAttenuation')
-            mask = mode.validAttenuation;
-        else
-            mask = false(size(mode.Cp));
-        end
-    otherwise
-        mask = isfinite(mode.Cp);
-end
-mask = mask & isfinite(getModeY(mode, ySel));
+mask = mask & isfinite(mode.Cp);
 end
 
 function lbl = getXLabel(xSel)
@@ -462,43 +403,15 @@ switch xSel
 end
 end
 
-function lbl = getYLabel(ySel)
-switch ySel
-    case "Cp"
-        lbl = 'Phase velocity Cp [m/s]';
-    case "attenuation"
-        lbl = 'Spatial attenuation Im(k) [1/m]';
-    otherwise
-        lbl = 'Phase velocity Cp [m/s]';
-end
-end
-
 function out = modeToTable(mode)
-baseVars = {mode.frequency(:), mode.omega(:), mode.Cp(:), mode.k(:), mode.kThickness(:), mode.residual(:), mode.valid(:)};
-baseNames = {'Frequency_Hz','Omega_rad_s','Cp','k','kThickness','Residual','Valid'};
-if isfield(mode, 'kReal')
-    baseVars{end+1} = mode.kReal(:); baseNames{end+1} = 'kReal'; %#ok<AGROW>
-end
-if isfield(mode, 'kImag')
-    baseVars{end+1} = mode.kImag(:); baseNames{end+1} = 'kImag'; %#ok<AGROW>
-end
-if isfield(mode, 'attenuation')
-    baseVars{end+1} = mode.attenuation(:); baseNames{end+1} = 'Attenuation'; %#ok<AGROW>
-end
-if isfield(mode, 'validCp')
-    baseVars{end+1} = mode.validCp(:); baseNames{end+1} = 'ValidCp'; %#ok<AGROW>
-end
-if isfield(mode, 'validAttenuation')
-    baseVars{end+1} = mode.validAttenuation(:); baseNames{end+1} = 'ValidAttenuation'; %#ok<AGROW>
-end
-out = table(baseVars{:}, 'VariableNames', baseNames);
+vars = {mode.frequency(:), mode.omega(:), mode.Cp(:), mode.k(:), mode.kThickness(:), mode.residual(:), mode.valid(:)};
+names = {'Frequency_Hz','Omega_rad_s','Cp','k','kThickness','Residual','Valid'};
+if isfield(mode, 'kReal'), vars{end+1} = mode.kReal(:); names{end+1} = 'kReal'; end %#ok<AGROW>
+if isfield(mode, 'validCp'), vars{end+1} = mode.validCp(:); names{end+1} = 'ValidCp'; end %#ok<AGROW>
+out = table(vars{:}, 'VariableNames', names);
 end
 
 function value = maxFinite(x)
 mask = isfinite(x);
-if any(mask)
-    value = max(x(mask));
-else
-    value = nan;
-end
+if any(mask), value = max(x(mask)); else, value = nan; end
 end
