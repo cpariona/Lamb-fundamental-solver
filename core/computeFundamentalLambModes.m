@@ -50,16 +50,22 @@ if isfield(options, 'computeMRLFE') && options.computeMRLFE
     computeRealK = true;
 end
 
-if computeRealK
+% Complex-k uses the real-k mRLFE branch as physical reference. Therefore,
+% compute real-k internally whenever complex-k is requested.
+realKNeededForComplexSeed = computeComplexK;
+if computeRealK || realKNeededForComplexSeed
     mrlfeParams = buildMRLFEParamsFromOptions(options);
     mrlfeParams.solveComplexK = false;
-    results.models.mRLFERealK = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+    realKResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+    if computeRealK
+        results.models.mRLFERealK = realKResult;
+    end
 end
 
 if computeComplexK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
     mrlfeParams.solveComplexK = true;
-    results.models.mRLFEComplexK = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+    results.models.mRLFEComplexK = computeMRLFE(frequency, material, results.geometry, realKResult.branches, mrlfeParams, options);
 end
 
 % Backward-compatible alias for scripts expecting results.models.mRLFE.
