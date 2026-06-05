@@ -51,14 +51,18 @@ if isfield(options, 'computeMRLFE') && options.computeMRLFE
     computeElasticRealK = true;
 end
 
-if computeElasticRealK
+elasticResult = [];
+if computeElasticRealK || computeHanViscoRealK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
     mrlfeParams.solveComplexK = false;
     mrlfeParams.etaS = 0;
     mrlfeParams.etaL = 0;
     mrlfeParams.useComplexLambda = false;
-    results.models.mRLFEElasticRealK = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
-    results.models.mRLFERealK = results.models.mRLFEElasticRealK;
+    elasticResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+    if computeElasticRealK
+        results.models.mRLFEElasticRealK = elasticResult;
+        results.models.mRLFERealK = results.models.mRLFEElasticRealK;
+    end
 end
 
 if computeHanViscoRealK
@@ -66,7 +70,17 @@ if computeHanViscoRealK
     mrlfeParams.solveComplexK = false;
     mrlfeParams.etaL = 0;
     mrlfeParams.useComplexLambda = false;
-    results.models.mRLFEHanViscoRealK = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+
+    hanOptions = options;
+    hanOptions.mrlfeRealKAnchorToSeed = true;
+    hanOptions.mrlfeRealKHardReferenceWindow = true;
+    hanOptions.mrlfeRealKReferenceWeight = 25.0;
+    hanOptions.mrlfeRealKMaxRelativeKDrift = 0.35;
+    hanOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.40;
+    hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.40;
+    hanOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
+
+    results.models.mRLFEHanViscoRealK = computeMRLFE(frequency, material, results.geometry, elasticResult.branches, mrlfeParams, hanOptions);
 end
 
 % Complex-k remains an experimental attenuation path. It is hidden from the
@@ -140,4 +154,12 @@ mode = struct( ...
     'kThickness', k * thickness, ...
     'residual', residual, ...
     'valid', isfinite(Cp));
+end
+
+function value = getOption(options, fieldName, defaultValue)
+if isfield(options, fieldName)
+    value = options.(fieldName);
+else
+    value = defaultValue;
+end
 end
