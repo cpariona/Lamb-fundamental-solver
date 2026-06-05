@@ -39,10 +39,12 @@ uilabel(g, 'Text', 'Axes', 'FontWeight', 'bold');
 uilabel(g, 'Text', '');
 
 uilabel(g, 'Text', 'x-axis');
-h.xaxis = uidropdown(g, 'Items', {'frequency', 'angularFrequency', 'wavenumber', 'kThickness'}, 'Value', 'frequency', 'ValueChangedFcn', callbacks.refreshPlotOnly);
+h.xaxis = uidropdown(g, 'Items', {'frequency', 'angularFrequency', 'wavenumber', 'kThickness'}, ...
+    'Value', 'frequency', 'ValueChangedFcn', callbacks.refreshPlotOnly);
 
 uilabel(g, 'Text', 'y-axis');
-uilabel(g, 'Text', 'Cp');
+h.yaxis = uidropdown(g, 'Items', {'Cp', 'attenuation'}, 'Value', 'Cp', ...
+    'ValueChangedFcn', callbacks.refreshPlotOnly);
 
 h.autoAxes = uicheckbox(g, 'Text', 'auto axes', 'Value', true, 'ValueChangedFcn', callbacks.onAutoAxesChanged);
 h.autoAxes.Layout.Column = [1 2];
@@ -65,6 +67,8 @@ resetButton.Layout.Column = [1 2];
 useButton = uibutton(g, 'Text', 'Use current view as manual axes', 'ButtonPushedFcn', callbacks.useCurrentAxes);
 useButton.Layout.Column = [1 2];
 
-note = uilabel(g, 'Text', 'Note: when x-axis is wavenumber or kThickness, each mode can end at a different x-value because k = omega/Cp is mode-dependent. This does not mean the branch was truncated in frequency.', 'WordWrap', 'on', 'FontAngle', 'italic');
+note = uilabel(g, 'Text', ['Note: attenuation is available for mRLFE branches only. ', ...
+    'When x-axis is wavenumber or kThickness, each mode can end at a different x-value because k = omega/Cp is mode-dependent.'], ...
+    'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 10);
 note.Layout.Column = [1 2];
 end
