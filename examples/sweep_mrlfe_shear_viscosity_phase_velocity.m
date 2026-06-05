@@ -45,8 +45,8 @@ figure;
 hold on;
 for i = 1:numel(etaSValues)
     branch = resultsByEtaS{i}.models.mRLFEHanViscoRealK.branches.A0Like;
-    valid = getValidCp(branch);
-    plot(branch.frequency(valid), branch.Cp(valid), 'LineWidth', 1.5, ...
+    [frequency, CpPlot] = branchPlotData(branch);
+    plot(frequency, CpPlot, 'LineWidth', 1.5, ...
         'DisplayName', sprintf('etaS = %.3g Pa*s', etaSValues(i)));
 end
 grid on;
@@ -60,8 +60,8 @@ figure;
 hold on;
 for i = 1:numel(etaSValues)
     branch = resultsByEtaS{i}.models.mRLFEHanViscoRealK.branches.S0Like;
-    valid = getValidCp(branch);
-    plot(branch.frequency(valid), branch.Cp(valid), 'LineWidth', 1.5, ...
+    [frequency, CpPlot] = branchPlotData(branch);
+    plot(frequency, CpPlot, 'LineWidth', 1.5, ...
         'DisplayName', sprintf('etaS = %.3g Pa*s', etaSValues(i)));
 end
 grid on;
@@ -89,6 +89,13 @@ end
 if any(isfinite(branch.residual))
     fprintf('  %s max residual: %.3e\n', branchName, max(branch.residual(isfinite(branch.residual))));
 end
+end
+
+function [frequency, CpPlot] = branchPlotData(branch)
+frequency = branch.frequency;
+valid = getValidCp(branch);
+CpPlot = branch.Cp;
+CpPlot(~valid) = nan;
 end
 
 function valid = getValidCp(branch)
