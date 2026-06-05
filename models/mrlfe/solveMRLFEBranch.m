@@ -1,16 +1,21 @@
 function branch = solveMRLFEBranch(name, seedMode, material, geometry, mrlfeParams, options)
 % Track one mRLFE fundamental-like branch.
 %
-% The branch is seeded from a Rayleigh-Lamb mode and refined by minimizing
-% the normalized singular-value residual sigma_min(M)/sigma_max(M).
+% The branch is seeded from either a Rayleigh-Lamb mode or a real-k mRLFE
+% mode and refined by minimizing sigma_min(M)/sigma_max(M).
 
 frequency = seedMode.frequency;
 omega = seedMode.omega;
-seedK = seedMode.k;
+if isfield(seedMode, 'kReal')
+    seedK = seedMode.kReal;
+else
+    seedK = real(seedMode.k);
+end
 solveComplexK = isfield(mrlfeParams, 'solveComplexK') && mrlfeParams.solveComplexK;
 
 k = nan(size(frequency));
 residual = nan(size(frequency));
+seedCp = omega ./ seedK;
 
 for i = 1:numel(frequency)
     if ~isfinite(seedK(i)) || seedK(i) <= 0
@@ -18,15 +23,18 @@ for i = 1:numel(frequency)
     end
 
     if i >= 2 && isfinite(real(k(i-1))) && real(k(i-1)) > 0
-        kSeed = predictMRLFEK(k, frequency, i);
+        kPred = predictMRLFEK(k, frequency, i);
     else
-        kSeed = seedK(i);
+        kPred = seedK(i);
     end
 
     if solveComplexK
-        [k(i), residual(i)] = refineMRLFEComplexKRoot(kSeed, omega(i), material, geometry, mrlfeParams, options);
+        physicalReference = struct();
+        physicalReference.k = seedK(i);
+        physicalReference.Cp = seedCp(i);
+        [k(i), residual(i)] = refineMRLFEComplexKRoot(kPred, omega(i), material, geometry, mrlfeParams, options, physicalReference);
     else
-        [k(i), residual(i)] = refineMRLFERealKRoot(real(kSeed), omega(i), material, geometry, mrlfeParams, options);
+        [k(i), residual(i)] = refineMRLFERealKRoot(real(kPred), omega(i), material, geometry, mrlfeParams, options);
     end
 end
 
@@ -46,9 +54,11 @@ branch.attenuation = kImag;
 branch.Cp = Cp;
 branch.kThickness = kReal * geometry.thickness;
 branch.residual = residual;
+branch.seedK = seedK;
+branch.seedCp = seedCp;
 branch.valid = isfinite(kReal) & kReal > 0 & isfinite(Cp);
 if solveComplexK
-    branch.note = "mRLFE complex-k prototype seeded from Rayleigh-Lamb branch.";
+    branch.note = "mRLFE complex-k prototype seeded from real-k reference when available.";
 else
     branch.note = "mRLFE real-k elastic prototype seeded from Rayleigh-Lamb branch.";
 end
