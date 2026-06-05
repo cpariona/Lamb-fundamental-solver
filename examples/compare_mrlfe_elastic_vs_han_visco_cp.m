@@ -129,12 +129,13 @@ function [shiftRows, summaryRow, sampleRows] = buildShiftTables(results, etaS, b
 elastic = results.models.mRLFEElasticRealK.branches.(branchName);
 visco = results.models.mRLFEHanViscoRealK.branches.(branchName);
 valid = getValidCp(elastic) & getValidCp(visco);
+valid = valid(:);
 
 frequency = elastic.frequency(:);
 CpElastic = elastic.Cp(:);
 CpVisco = visco.Cp(:);
 relativeShift = nan(size(frequency));
-relativeShift(valid(:)) = (CpVisco(valid(:)) - CpElastic(valid(:))) ./ CpElastic(valid(:));
+relativeShift(valid) = (CpVisco(valid) - CpElastic(valid)) ./ CpElastic(valid);
 plotShift = relativeShift;
 plotShift(abs(plotShift) > maxAbsShiftForPlot) = nan;
 
@@ -149,10 +150,11 @@ printSummary(summaryRow);
 sampleRows = repmat(makeSampleRow(etaS, branchName, nan, nan, nan, nan), numel(sampleFrequencies), 1);
 for k = 1:numel(sampleFrequencies)
     f = sampleFrequencies(k);
+    shiftValid = valid & isfinite(relativeShift(:));
     sampleRows(k) = makeSampleRow(etaS, branchName, f, ...
         interpValid(frequency, CpElastic, valid, f), ...
         interpValid(frequency, CpVisco, valid, f), ...
-        interpValid(frequency, relativeShift, valid & isfinite(relativeShift), f));
+        interpValid(frequency, relativeShift, shiftValid, f));
 end
 
 fprintf('  %s samples:\n', branchName);
@@ -164,7 +166,10 @@ end
 
 function value = interpValid(frequency, y, valid, f)
 value = nan;
-mask = valid(:) & isfinite(frequency(:)) & isfinite(y(:));
+frequency = frequency(:);
+y = y(:);
+valid = valid(:);
+mask = valid & isfinite(frequency) & isfinite(y);
 if sum(mask) < 2
     return;
 end
@@ -236,10 +241,13 @@ function plotRelativeShift(results, branchName, labelText, maxAbsShiftForPlot)
 elastic = results.models.mRLFEElasticRealK.branches.(branchName);
 visco = results.models.mRLFEHanViscoRealK.branches.(branchName);
 valid = getValidCp(elastic) & getValidCp(visco);
-y = nan(size(elastic.Cp));
-y(valid) = (visco.Cp(valid) - elastic.Cp(valid)) ./ elastic.Cp(valid);
+valid = valid(:);
+y = nan(size(elastic.Cp(:)));
+cpElastic = elastic.Cp(:);
+cpVisco = visco.Cp(:);
+y(valid) = (cpVisco(valid) - cpElastic(valid)) ./ cpElastic(valid);
 y(abs(y) > maxAbsShiftForPlot) = nan;
-plot(elastic.frequency, y, 'LineWidth', 1.6, 'DisplayName', labelText);
+plot(elastic.frequency(:), y, 'LineWidth', 1.6, 'DisplayName', labelText);
 end
 
 function valid = getValidCp(branch)
@@ -248,5 +256,5 @@ if isfield(branch, 'validCp')
 else
     valid = branch.valid;
 end
-valid = valid & isfinite(branch.Cp);
+valid = valid(:) & isfinite(branch.Cp(:));
 end
