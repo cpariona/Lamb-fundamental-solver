@@ -18,7 +18,7 @@ if solveComplexK
     mrlfeResults.description = "Complex-k modified Rayleigh-Lamb fluid-loaded prototype.";
 else
     mrlfeResults.variant = "real-k";
-    mrlfeResults.description = "Real-k elastic modified Rayleigh-Lamb fluid-loaded prototype.";
+    mrlfeResults.description = "Real-k modified Rayleigh-Lamb fluid-loaded prototype.";
 end
 mrlfeResults.parameters = mrlfeParams;
 mrlfeResults.branches = struct();
@@ -71,6 +71,21 @@ for i = 1:numel(branchNames)
     else
         validCp = branch.valid & isfinite(branch.Cp);
     end
+    if isfield(branch, 'validResidual')
+        validResidual = branch.validResidual & isfinite(branch.Cp);
+    else
+        validResidual = validCp;
+    end
+    if isfield(branch, 'validReference')
+        validReference = branch.validReference & isfinite(branch.Cp);
+    else
+        validReference = validCp;
+    end
+    if isfield(branch, 'validSmooth')
+        validSmooth = branch.validSmooth & isfinite(branch.Cp);
+    else
+        validSmooth = validCp;
+    end
     if isfield(branch, 'validAttenuation')
         validAttenuation = branch.validAttenuation & isfinite(branch.attenuation);
     else
@@ -80,8 +95,12 @@ for i = 1:numel(branchNames)
     item = struct();
     item.validPoints = sum(branch.valid);
     item.validCpPoints = sum(validCp);
+    item.validResidualPoints = sum(validResidual);
+    item.validReferencePoints = sum(validReference);
+    item.validSmoothPoints = sum(validSmooth);
     item.validAttenuationPoints = sum(validAttenuation);
     item.totalPoints = numel(branch.valid);
+    item.maxCpJumpRelative = maxRelativeJump(branch.Cp(validCp));
     if any(finiteResidual)
         item.maxResidual = max(branch.residual(finiteResidual));
         item.meanResidual = mean(branch.residual(finiteResidual));
@@ -104,5 +123,13 @@ for i = 1:numel(branchNames)
         item.maxAttenuation = nan;
     end
     diagnostics.summary.(name) = item;
+end
+end
+
+function value = maxRelativeJump(x)
+if numel(x) < 2
+    value = 0;
+else
+    value = max(abs(diff(x)) ./ max(abs(x(1:end-1)), eps));
 end
 end
