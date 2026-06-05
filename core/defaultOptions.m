@@ -30,6 +30,11 @@ options.mrlfeComplexMaxIter = 120;
 options.mrlfeComplexMaxFunEvals = 260;
 options.mrlfeComplexTolX = 1e-7;
 options.mrlfeComplexTolFun = 1e-9;
+options.mrlfeComplexPredictionWeight = 2.0;
+options.mrlfeComplexReferenceWeight = 12.0;
+options.mrlfeComplexReferenceCpWeight = 8.0;
+options.mrlfeComplexMaxRelativeKDrift = 0.25;
+options.mrlfeComplexMaxRelativeCpDrift = 0.30;
 
 switch robustness
     case "Fast"
