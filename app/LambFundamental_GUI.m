@@ -233,8 +233,12 @@ updateAxisFieldState();
         if hasMRLFEBranch(modelName, branchName)
             mode = lastResults.models.(modelName).branches.(branchName);
             y = getModeY(mode, ySel);
+            x = getModeX(mode,lastResults.grid,xSel);
+            validMask = getModePlotMask(mode, ySel);
+            y(~validMask) = nan;
+            x(~validMask) = nan;
             if any(isfinite(y))
-                plot(ax, getModeX(mode,lastResults.grid,xSel), y, lineStyle, 'LineWidth', 2.0, 'Color', colorValue, 'DisplayName', displayName);
+                plot(ax, x, y, lineStyle, 'LineWidth', 2.0, 'Color', colorValue, 'DisplayName', displayName);
                 didPlot = 1;
             end
         end
@@ -276,11 +280,11 @@ updateAxisFieldState();
             statusParts{end+1} = sprintf('%s %.1fs', label, d.elapsedSeconds); %#ok<AGROW>
             if isfield(d.summary, 'A0Like')
                 item = d.summary.A0Like;
-                statusParts{end+1} = sprintf('%s A0L %d/%d, R %.1e', label, item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
+                statusParts{end+1} = sprintf('%s A0L Cp %d/%d, Att %d/%d', label, item.validCpPoints, item.totalPoints, item.validAttenuationPoints, item.totalPoints); %#ok<AGROW>
             end
             if isfield(d.summary, 'S0Like')
                 item = d.summary.S0Like;
-                statusParts{end+1} = sprintf('%s S0L %d/%d, R %.1e', label, item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
+                statusParts{end+1} = sprintf('%s S0L Cp %d/%d, Att %d/%d', label, item.validCpPoints, item.totalPoints, item.validAttenuationPoints, item.totalPoints); %#ok<AGROW>
             end
         end
     end
@@ -331,9 +335,10 @@ updateAxisFieldState();
             branchNames = fieldnames(d.summary);
             for i = 1:numel(branchNames)
                 item = d.summary.(branchNames{i});
-                lines{end+1} = sprintf('  %s: %d/%d valid, Cp %.6g..%.6g m/s, alpha %.6g..%.6g 1/m, max R %.3e', ...
-                    branchNames{i}, item.validPoints, item.totalPoints, item.minCp, item.maxCp, ...
-                    item.minAttenuation, item.maxAttenuation, item.maxResidual); %#ok<AGROW>
+                lines{end+1} = sprintf('  %s: Cp valid %d/%d, Cp %.6g..%.6g m/s', ...
+                    branchNames{i}, item.validCpPoints, item.totalPoints, item.minCp, item.maxCp); %#ok<AGROW>
+                lines{end+1} = sprintf('       Att valid %d/%d, alpha %.6g..%.6g 1/m, max R %.3e', ...
+                    item.validAttenuationPoints, item.totalPoints, item.minAttenuation, item.maxAttenuation, item.maxResidual); %#ok<AGROW>
             end
             lines{end+1} = ''; %#ok<AGROW>
         end
@@ -420,6 +425,28 @@ switch ySel
 end
 end
 
+function mask = getModePlotMask(mode, ySel)
+switch ySel
+    case "Cp"
+        if isfield(mode, 'validCp')
+            mask = mode.validCp;
+        elseif isfield(mode, 'valid')
+            mask = mode.valid;
+        else
+            mask = isfinite(mode.Cp);
+        end
+    case "attenuation"
+        if isfield(mode, 'validAttenuation')
+            mask = mode.validAttenuation;
+        else
+            mask = false(size(mode.Cp));
+        end
+    otherwise
+        mask = isfinite(mode.Cp);
+end
+mask = mask & isfinite(getModeY(mode, ySel));
+end
+
 function lbl = getXLabel(xSel)
 switch xSel
     case "frequency"
@@ -440,15 +467,31 @@ switch ySel
     case "Cp"
         lbl = 'Phase velocity Cp [m/s]';
     case "attenuation"
-        lbl = 'Attenuation Im(k) [1/m]';
+        lbl = 'Spatial attenuation Im(k) [1/m]';
     otherwise
         lbl = 'Phase velocity Cp [m/s]';
 end
 end
 
 function out = modeToTable(mode)
-out = table(mode.frequency(:), mode.omega(:), mode.Cp(:), mode.k(:), mode.kThickness(:), mode.residual(:), mode.valid(:), ...
-    'VariableNames', {'Frequency_Hz','Omega_rad_s','Cp','k','kThickness','Residual','Valid'});
+baseVars = {mode.frequency(:), mode.omega(:), mode.Cp(:), mode.k(:), mode.kThickness(:), mode.residual(:), mode.valid(:)};
+baseNames = {'Frequency_Hz','Omega_rad_s','Cp','k','kThickness','Residual','Valid'};
+if isfield(mode, 'kReal')
+    baseVars{end+1} = mode.kReal(:); baseNames{end+1} = 'kReal'; %#ok<AGROW>
+end
+if isfield(mode, 'kImag')
+    baseVars{end+1} = mode.kImag(:); baseNames{end+1} = 'kImag'; %#ok<AGROW>
+end
+if isfield(mode, 'attenuation')
+    baseVars{end+1} = mode.attenuation(:); baseNames{end+1} = 'Attenuation'; %#ok<AGROW>
+end
+if isfield(mode, 'validCp')
+    baseVars{end+1} = mode.validCp(:); baseNames{end+1} = 'ValidCp'; %#ok<AGROW>
+end
+if isfield(mode, 'validAttenuation')
+    baseVars{end+1} = mode.validAttenuation(:); baseNames{end+1} = 'ValidAttenuation'; %#ok<AGROW>
+end
+out = table(baseVars{:}, 'VariableNames', baseNames);
 end
 
 function value = maxFinite(x)
