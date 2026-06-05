@@ -44,33 +44,49 @@ if options.computeS0
     results.modes.S0 = packModeResults("S0", branchSpecS.family, frequency, omega, CpS0, kS0, geometry.thickness, residualS0);
 end
 
-computeRealK = isfield(options, 'computeMRLFERealK') && options.computeMRLFERealK;
+computeElasticRealK = isfield(options, 'computeMRLFERealK') && options.computeMRLFERealK;
+computeHanViscoRealK = isfield(options, 'computeMRLFEHanViscoRealK') && options.computeMRLFEHanViscoRealK;
 computeComplexK = isfield(options, 'computeMRLFEComplexK') && options.computeMRLFEComplexK;
 if isfield(options, 'computeMRLFE') && options.computeMRLFE
-    computeRealK = true;
+    computeElasticRealK = true;
 end
 
-% Complex-k uses the real-k mRLFE branch as physical reference. Therefore,
-% compute real-k internally whenever complex-k is requested.
-realKNeededForComplexSeed = computeComplexK;
-if computeRealK || realKNeededForComplexSeed
+if computeElasticRealK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
     mrlfeParams.solveComplexK = false;
-    realKResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
-    if computeRealK
-        results.models.mRLFERealK = realKResult;
-    end
+    mrlfeParams.etaS = 0;
+    mrlfeParams.etaL = 0;
+    mrlfeParams.useComplexLambda = false;
+    results.models.mRLFEElasticRealK = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+    results.models.mRLFERealK = results.models.mRLFEElasticRealK;
 end
 
-if computeComplexK
+if computeHanViscoRealK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
+    mrlfeParams.solveComplexK = false;
+    mrlfeParams.etaL = 0;
+    mrlfeParams.useComplexLambda = false;
+    results.models.mRLFEHanViscoRealK = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+end
+
+% Complex-k remains an experimental attenuation path. It is hidden from the
+% main GUI, but kept available for advanced scripts.
+realKNeededForComplexSeed = computeComplexK;
+if realKNeededForComplexSeed
+    mrlfeParams = buildMRLFEParamsFromOptions(options);
+    mrlfeParams.solveComplexK = false;
+    mrlfeParams.etaL = 0;
+    mrlfeParams.useComplexLambda = false;
+    realKResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
     mrlfeParams.solveComplexK = true;
     results.models.mRLFEComplexK = computeMRLFE(frequency, material, results.geometry, realKResult.branches, mrlfeParams, options);
 end
 
 % Backward-compatible alias for scripts expecting results.models.mRLFE.
-if isfield(results.models, 'mRLFERealK')
-    results.models.mRLFE = results.models.mRLFERealK;
+if isfield(results.models, 'mRLFEElasticRealK')
+    results.models.mRLFE = results.models.mRLFEElasticRealK;
+elseif isfield(results.models, 'mRLFEHanViscoRealK')
+    results.models.mRLFE = results.models.mRLFEHanViscoRealK;
 elseif isfield(results.models, 'mRLFEComplexK')
     results.models.mRLFE = results.models.mRLFEComplexK;
 end
