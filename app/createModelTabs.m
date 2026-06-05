@@ -34,14 +34,14 @@ gM.RowHeight = {24, 24, 24, 26, 26, 26, 26, '1x'};
 gM.Padding = [10 8 10 8];
 gM.RowSpacing = 3;
 
-uilabel(gM, 'Text', 'Fluid-loaded model', 'FontWeight', 'bold', 'FontSize', 11);
+uilabel(gM, 'Text', 'Fluid-loaded layer model', 'FontWeight', 'bold', 'FontSize', 11);
 uilabel(gM, 'Text', '');
 
-h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'compute real-k prototype', 'Value', false, ...
+h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'compute real-k elastic prototype', 'Value', false, ...
     'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.computeRealK.Layout.Column = [1 2];
 
-h.mrlfe.computeComplexK = uicheckbox(gM, 'Text', 'compute complex-k prototype', 'Value', false, ...
+h.mrlfe.computeComplexK = uicheckbox(gM, 'Text', 'compute complex-k spatial attenuation prototype', 'Value', false, ...
     'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.computeComplexK.Layout.Column = [1 2];
 
@@ -53,15 +53,16 @@ uilabel(gM, 'Text', 'fluid sound speed [m/s]');
 h.mrlfe.fluidSoundSpeed = uieditfield(gM, 'numeric', 'Value', 1500, 'Limits', [0 Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 
-uilabel(gM, 'Text', 'etaL [Pa*s]');
+uilabel(gM, 'Text', 'solid etaL [Pa*s]');
 h.mrlfe.etaL = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 
-uilabel(gM, 'Text', 'etaS [Pa*s]');
+uilabel(gM, 'Text', 'solid etaS [Pa*s]');
 h.mrlfe.etaS = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 
-note = uilabel(gM, 'Text', 'Complex-k is a first prototype. It reports Cp from real(k) and attenuation from imag(k).', ...
+note = uilabel(gM, 'Text', ['Solid viscosity enters through complex Lame parameters. ', ...
+    'Complex-k is solved to obtain spatial attenuation Im(k).'], ...
     'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 10);
 note.Layout.Column = [1 2];
 
