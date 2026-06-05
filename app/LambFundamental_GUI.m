@@ -145,6 +145,7 @@ updateAxisFieldState();
         updateAxisFieldState();
         if isempty(lastResults)
             xlabel(ax, getXLabel(string(plotControls.xaxis.Value)));
+            ylabel(ax, getYLabel(string(plotControls.yaxis.Value)));
             return;
         end
         updatePlot();
@@ -181,37 +182,42 @@ updateAxisFieldState();
     function updatePlot()
         cla(ax); hold(ax,'on');
         xSel = string(plotControls.xaxis.Value);
+        ySel = string(plotControls.yaxis.Value);
         plotCount = 0;
-        if plotControls.showA0.Value && isfield(lastResults.modes,'A0')
-            mode = lastResults.modes.A0;
-            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '-', 'LineWidth', 2, 'Color', colors.A0, 'DisplayName', 'A0');
-            plotCount = plotCount + 1;
-        end
-        if plotControls.showS0.Value && isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp))
-            mode = lastResults.modes.S0;
-            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '-', 'LineWidth', 2, 'Color', colors.S0, 'DisplayName', 'S0 experimental');
-            plotCount = plotCount + 1;
+        if ySel == "Cp"
+            if plotControls.showA0.Value && isfield(lastResults.modes,'A0')
+                mode = lastResults.modes.A0;
+                plot(ax, getModeX(mode,lastResults.grid,xSel), getModeY(mode,ySel), '-', 'LineWidth', 2, 'Color', colors.A0, 'DisplayName', 'A0');
+                plotCount = plotCount + 1;
+            end
+            if plotControls.showS0.Value && isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp))
+                mode = lastResults.modes.S0;
+                plot(ax, getModeX(mode,lastResults.grid,xSel), getModeY(mode,ySel), '-', 'LineWidth', 2, 'Color', colors.S0, 'DisplayName', 'S0 experimental');
+                plotCount = plotCount + 1;
+            end
         end
         if plotControls.showMRLFEA0.Value
-            plotCount = plotCount + plotMRLFEBranch('mRLFERealK', 'A0Like', ':', 'mRLFE real-k A0-like', colors.MRLFEA0, xSel);
-            plotCount = plotCount + plotMRLFEBranch('mRLFEComplexK', 'A0Like', '-.', 'mRLFE complex-k A0-like', colors.MRLFEA0, xSel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFERealK', 'A0Like', ':', 'mRLFE real-k A0-like', colors.MRLFEA0, xSel, ySel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFEComplexK', 'A0Like', '-.', 'mRLFE complex-k A0-like', colors.MRLFEA0, xSel, ySel);
         end
         if plotControls.showMRLFES0.Value
-            plotCount = plotCount + plotMRLFEBranch('mRLFERealK', 'S0Like', ':', 'mRLFE real-k S0-like', colors.MRLFES0, xSel);
-            plotCount = plotCount + plotMRLFEBranch('mRLFEComplexK', 'S0Like', '-.', 'mRLFE complex-k S0-like', colors.MRLFES0, xSel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFERealK', 'S0Like', ':', 'mRLFE real-k S0-like', colors.MRLFES0, xSel, ySel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFEComplexK', 'S0Like', '-.', 'mRLFE complex-k S0-like', colors.MRLFES0, xSel, ySel);
         end
-        if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
-            mode = lastResults.approximations.A0ThinPlate;
-            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '--', 'LineWidth', 1.5, 'Color', colors.A0, 'DisplayName', 'A0 thin plate');
-            plotCount = plotCount + 1;
+        if ySel == "Cp"
+            if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
+                mode = lastResults.approximations.A0ThinPlate;
+                plot(ax, getModeX(mode,lastResults.grid,xSel), getModeY(mode,ySel), '--', 'LineWidth', 1.5, 'Color', colors.A0, 'DisplayName', 'A0 thin plate');
+                plotCount = plotCount + 1;
+            end
+            if plotControls.showS0Ext.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'S0Extensional')
+                mode = lastResults.approximations.S0Extensional;
+                plot(ax, getModeX(mode,lastResults.grid,xSel), getModeY(mode,ySel), '--', 'LineWidth', 1.5, 'Color', colors.S0, 'DisplayName', 'S0 extensional');
+                plotCount = plotCount + 1;
+            end
         end
-        if plotControls.showS0Ext.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'S0Extensional')
-            mode = lastResults.approximations.S0Extensional;
-            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '--', 'LineWidth', 1.5, 'Color', colors.S0, 'DisplayName', 'S0 extensional');
-            plotCount = plotCount + 1;
-        end
-        xlabel(ax, getXLabel(xSel)); ylabel(ax, 'Phase velocity Cp [m/s]');
-        title(ax, 'Fundamental Lamb modes (Cp)'); grid(ax,'on');
+        xlabel(ax, getXLabel(xSel)); ylabel(ax, getYLabel(ySel));
+        title(ax, ['Fundamental Lamb modes (', char(ySel), ')']); grid(ax,'on');
         if plotCount > 0, legend(ax,'Location','best'); else, legend(ax,'off'); end
         if plotControls.autoAxes.Value
             xlim(ax,'auto'); ylim(ax,'auto');
@@ -222,12 +228,15 @@ updateAxisFieldState();
         hold(ax,'off');
     end
 
-    function didPlot = plotMRLFEBranch(modelName, branchName, lineStyle, displayName, colorValue, xSel)
+    function didPlot = plotMRLFEBranch(modelName, branchName, lineStyle, displayName, colorValue, xSel, ySel)
         didPlot = 0;
         if hasMRLFEBranch(modelName, branchName)
             mode = lastResults.models.(modelName).branches.(branchName);
-            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, lineStyle, 'LineWidth', 2.0, 'Color', colorValue, 'DisplayName', displayName);
-            didPlot = 1;
+            y = getModeY(mode, ySel);
+            if any(isfinite(y))
+                plot(ax, getModeX(mode,lastResults.grid,xSel), y, lineStyle, 'LineWidth', 2.0, 'Color', colorValue, 'DisplayName', displayName);
+                didPlot = 1;
+            end
         end
     end
 
@@ -396,6 +405,21 @@ switch xSel
 end
 end
 
+function y = getModeY(mode, ySel)
+switch ySel
+    case "Cp"
+        y = mode.Cp;
+    case "attenuation"
+        if isfield(mode, 'attenuation')
+            y = mode.attenuation;
+        else
+            y = nan(size(mode.Cp));
+        end
+    otherwise
+        y = mode.Cp;
+end
+end
+
 function lbl = getXLabel(xSel)
 switch xSel
     case "frequency"
@@ -408,6 +432,17 @@ switch xSel
         lbl = 'kThickness = k * thickness [-]';
     otherwise
         lbl = 'frequency [Hz]';
+end
+end
+
+function lbl = getYLabel(ySel)
+switch ySel
+    case "Cp"
+        lbl = 'Phase velocity Cp [m/s]';
+    case "attenuation"
+        lbl = 'Attenuation Im(k) [1/m]';
+    otherwise
+        lbl = 'Phase velocity Cp [m/s]';
 end
 end
 
