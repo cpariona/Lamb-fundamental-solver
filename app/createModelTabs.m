@@ -28,22 +28,22 @@ uilabel(gRL, 'Text', 'mRLFE uses these Rayleigh-Lamb branches as seeds.', ...
 
 % mRLFE tab
 tabMRLFE = uitab(tg, 'Title', 'mRLFE');
-gM = uigridlayout(tabMRLFE, [8 2]);
+gM = uigridlayout(tabMRLFE, [7 2]);
 gM.ColumnWidth = {165, '1x'};
-gM.RowHeight = {24, 24, 24, 26, 26, 26, 26, '1x'};
+gM.RowHeight = {24, 24, 24, 26, 26, 26, '1x'};
 gM.Padding = [10 8 10 8];
 gM.RowSpacing = 3;
 
-uilabel(gM, 'Text', 'Fluid-loaded layer model', 'FontWeight', 'bold', 'FontSize', 11);
+uilabel(gM, 'Text', 'Fluid-loaded dispersion models', 'FontWeight', 'bold', 'FontSize', 11);
 uilabel(gM, 'Text', '');
 
-h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'compute real-k elastic prototype', 'Value', false, ...
+h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'compute elastic real-k dispersion', 'Value', false, ...
     'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.computeRealK.Layout.Column = [1 2];
 
-h.mrlfe.computeComplexK = uicheckbox(gM, 'Text', 'compute complex-k spatial attenuation prototype', 'Value', false, ...
+h.mrlfe.computeHanViscoRealK = uicheckbox(gM, 'Text', 'compute Han viscoelastic real-k dispersion', 'Value', false, ...
     'ValueChangedFcn', callbacks.markDirty);
-h.mrlfe.computeComplexK.Layout.Column = [1 2];
+h.mrlfe.computeHanViscoRealK.Layout.Column = [1 2];
 
 uilabel(gM, 'Text', 'fluid density [kg/m^3]');
 h.mrlfe.fluidDensity = uieditfield(gM, 'numeric', 'Value', 1000, 'Limits', [0 Inf], ...
@@ -53,18 +53,19 @@ uilabel(gM, 'Text', 'fluid sound speed [m/s]');
 h.mrlfe.fluidSoundSpeed = uieditfield(gM, 'numeric', 'Value', 1500, 'Limits', [0 Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 
-uilabel(gM, 'Text', 'solid etaL [Pa*s]');
-h.mrlfe.etaL = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], ...
-    'ValueChangedFcn', callbacks.markDirty);
-
-uilabel(gM, 'Text', 'solid etaS [Pa*s]');
+uilabel(gM, 'Text', 'solid shear viscosity etaS [Pa*s]');
 h.mrlfe.etaS = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 
-note = uilabel(gM, 'Text', ['Solid viscosity enters through complex Lame parameters. ', ...
-    'Complex-k is solved to obtain spatial attenuation Im(k).'], ...
+note = uilabel(gM, 'Text', ['Han viscoelastic real-k uses lambda real and mu* = mu + i omega etaS. ', ...
+    'Complex-k attenuation remains experimental and is hidden from the main GUI.'], ...
     'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 10);
 note.Layout.Column = [1 2];
+
+% Hidden advanced fields kept for internal/legacy compatibility.
+h.mrlfe.computeComplexK = struct('Value', false);
+h.mrlfe.etaL = struct('Value', 0);
+h.mrlfe.useComplexLambda = struct('Value', false);
 
 h.panel = panel;
 h.tabGroup = tg;
