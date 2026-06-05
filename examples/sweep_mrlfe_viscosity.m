@@ -1,4 +1,4 @@
-% Sweep mRLFE shear viscosity and plot Cp and attenuation.
+% Sweep mRLFE shear viscosity and plot Cp and spatial attenuation.
 % This example uses the complex-k prototype and fundamental-like branches.
 
 startup();
@@ -49,7 +49,9 @@ hold on;
 for i = 1:numel(etaSValues)
     branches = resultsByEtaS{i}.models.mRLFEComplexK.branches;
     if isfield(branches, 'A0Like')
-        plot(branches.A0Like.frequency, branches.A0Like.Cp, 'LineWidth', 1.5, ...
+        branch = branches.A0Like;
+        valid = getValidMask(branch, 'Cp');
+        plot(branch.frequency(valid), branch.Cp(valid), 'LineWidth', 1.5, ...
             'DisplayName', sprintf('etaS = %.3g Pa*s', etaSValues(i)));
     end
 end
@@ -60,20 +62,22 @@ title('mRLFE complex-k A0-like: Cp vs shear viscosity');
 legend('Location', 'best');
 hold off;
 
-% Attenuation plot: A0-like.
+% Spatial attenuation plot: A0-like.
 figure;
 hold on;
 for i = 1:numel(etaSValues)
     branches = resultsByEtaS{i}.models.mRLFEComplexK.branches;
     if isfield(branches, 'A0Like')
-        plot(branches.A0Like.frequency, branches.A0Like.attenuation, 'LineWidth', 1.5, ...
+        branch = branches.A0Like;
+        valid = getValidMask(branch, 'attenuation');
+        plot(branch.frequency(valid), branch.attenuation(valid), 'LineWidth', 1.5, ...
             'DisplayName', sprintf('etaS = %.3g Pa*s', etaSValues(i)));
     end
 end
 grid on;
 xlabel('frequency [Hz]');
-ylabel('Attenuation Im(k) [1/m]');
-title('mRLFE complex-k A0-like: attenuation vs shear viscosity');
+ylabel('Spatial attenuation Im(k) [1/m]');
+title('mRLFE complex-k A0-like: spatial attenuation vs shear viscosity');
 legend('Location', 'best');
 hold off;
 
@@ -83,7 +87,9 @@ hold on;
 for i = 1:numel(etaSValues)
     branches = resultsByEtaS{i}.models.mRLFEComplexK.branches;
     if isfield(branches, 'S0Like')
-        plot(branches.S0Like.frequency, branches.S0Like.Cp, 'LineWidth', 1.5, ...
+        branch = branches.S0Like;
+        valid = getValidMask(branch, 'Cp');
+        plot(branch.frequency(valid), branch.Cp(valid), 'LineWidth', 1.5, ...
             'DisplayName', sprintf('etaS = %.3g Pa*s', etaSValues(i)));
     end
 end
@@ -94,20 +100,22 @@ title('mRLFE complex-k S0-like: Cp vs shear viscosity');
 legend('Location', 'best');
 hold off;
 
-% Attenuation plot: S0-like.
+% Spatial attenuation plot: S0-like.
 figure;
 hold on;
 for i = 1:numel(etaSValues)
     branches = resultsByEtaS{i}.models.mRLFEComplexK.branches;
     if isfield(branches, 'S0Like')
-        plot(branches.S0Like.frequency, branches.S0Like.attenuation, 'LineWidth', 1.5, ...
+        branch = branches.S0Like;
+        valid = getValidMask(branch, 'attenuation');
+        plot(branch.frequency(valid), branch.attenuation(valid), 'LineWidth', 1.5, ...
             'DisplayName', sprintf('etaS = %.3g Pa*s', etaSValues(i)));
     end
 end
 grid on;
 xlabel('frequency [Hz]');
-ylabel('Attenuation Im(k) [1/m]');
-title('mRLFE complex-k S0-like: attenuation vs shear viscosity');
+ylabel('Spatial attenuation Im(k) [1/m]');
+title('mRLFE complex-k S0-like: spatial attenuation vs shear viscosity');
 legend('Location', 'best');
 hold off;
 
@@ -121,13 +129,38 @@ if ~isfield(branches, branchName)
     return;
 end
 branch = branches.(branchName);
-valid = branch.valid & isfinite(branch.Cp) & isfinite(branch.attenuation);
-fprintf('  %s valid: %d / %d\n', branchName, sum(valid), numel(branch.valid));
-if any(valid)
-    fprintf('  %s Cp: %.6g to %.6g m/s\n', branchName, min(branch.Cp(valid)), max(branch.Cp(valid)));
-    fprintf('  %s attenuation: %.6g to %.6g 1/m\n', branchName, min(branch.attenuation(valid)), max(branch.attenuation(valid)));
+validCp = getValidMask(branch, 'Cp');
+validAtt = getValidMask(branch, 'attenuation');
+fprintf('  %s Cp valid: %d / %d\n', branchName, sum(validCp), numel(branch.Cp));
+if any(validCp)
+    fprintf('  %s Cp: %.6g to %.6g m/s\n', branchName, min(branch.Cp(validCp)), max(branch.Cp(validCp)));
+end
+fprintf('  %s attenuation valid: %d / %d\n', branchName, sum(validAtt), numel(branch.Cp));
+if any(validAtt)
+    fprintf('  %s attenuation: %.6g to %.6g 1/m\n', branchName, min(branch.attenuation(validAtt)), max(branch.attenuation(validAtt)));
 end
 if any(isfinite(branch.residual))
     fprintf('  %s max residual: %.3e\n', branchName, max(branch.residual(isfinite(branch.residual))));
+end
+end
+
+function valid = getValidMask(branch, quantity)
+switch quantity
+    case 'Cp'
+        if isfield(branch, 'validCp')
+            valid = branch.validCp;
+        else
+            valid = branch.valid;
+        end
+        valid = valid & isfinite(branch.Cp);
+    case 'attenuation'
+        if isfield(branch, 'validAttenuation')
+            valid = branch.validAttenuation;
+        else
+            valid = false(size(branch.Cp));
+        end
+        valid = valid & isfinite(branch.attenuation);
+    otherwise
+        valid = false(size(branch.Cp));
 end
 end
