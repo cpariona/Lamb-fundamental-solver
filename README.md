@@ -8,7 +8,8 @@ Current scope:
 - Experimental S0 phase velocity calculation using the symmetric Rayleigh-Lamb residual.
 - Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
 - Real-k elastic mRLFE prototype seeded from Rayleigh-Lamb A0/S0 branches.
-- GUI plotting of Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
+- Complex-k mRLFE prototype for spatial attenuation exploration.
+- GUI plotting of Cp or spatial attenuation versus frequency, angular frequency, wavenumber, or `kThickness`.
 - Export of `LambResults`, `A0_table`, and, when available, `S0_table` to the MATLAB workspace.
 
 ## Naming convention
@@ -70,15 +71,29 @@ When plotting against `wavenumber` or `kThickness`, different modes may end at d
 
 ## mRLFE prototype
 
-The mRLFE implementation is currently a first plotting prototype:
+The mRLFE implementation is currently a staged prototype:
 
 - It uses the modified Rayleigh-Lamb fluid-loaded 5-by-5 matrix.
-- It solves a real-wavenumber elastic version of the model.
+- The real-k variant solves an elastic real-wavenumber version of the model.
+- The complex-k variant solves for `k = kReal + 1i*kImag` to estimate spatial attenuation.
 - It uses the normalized singular-value residual `sigma_min(M) / sigma_max(M)` instead of `det(M)` for better numerical scaling.
-- It uses the Rayleigh-Lamb A0/S0 branches as seeds.
+- It uses the Rayleigh-Lamb A0/S0 branches, and for complex-k uses the real-k mRLFE branch as a physical reference.
 - It reports only fundamental-like branches: `A0Like` and `S0Like`.
 
-The current mRLFE prototype does not yet solve the full complex-k viscoelastic problem and does not yet report attenuation. Viscosity parameters and complex-k continuation are reserved for a later implementation step.
+Solid viscosity is introduced through complex Lamé parameters, not by assigning viscosity directly to `k`:
+
+```matlab
+muStar     = mu     + 1i * omega * etaS;
+lambdaStar = lambda + 1i * omega * etaL;
+```
+
+The complex wavenumber is a consequence of solving the dispersive problem with complex material parameters and fluid loading. The plotted spatial attenuation is:
+
+```matlab
+attenuation = imag(k);
+```
+
+This is the guided-mode spatial attenuation `Im(k)` in `[1/m]`; it is not the material viscosity itself and should not be interpreted as water viscosity. Modeling viscous losses in the fluid would require a separate fluid-loss formulation.
 
 ## Manual validation examples
 
@@ -90,6 +105,8 @@ examples/run_default_A0_S0
 examples/check_default_outputs
 examples/sweep_thickness_A0_S0
 examples/run_mrlfe_prototype
+examples/run_mrlfe_complexk_prototype
+examples/sweep_mrlfe_viscosity
 ```
 
 `check_default_outputs` prints valid point counts, Cp ranges, residuals, and finite `kThickness` counts for the default configuration.
@@ -98,10 +115,14 @@ examples/run_mrlfe_prototype
 
 `run_mrlfe_prototype` computes Rayleigh-Lamb A0/S0 and the real-k elastic mRLFE A0-like/S0-like prototype branches over a moderate frequency range.
 
+`run_mrlfe_complexk_prototype` computes the complex-k mRLFE prototype and reports Cp and spatial attenuation.
+
+`sweep_mrlfe_viscosity` sweeps solid shear viscosity and plots Cp and spatial attenuation for the mRLFE complex-k prototype.
+
 ## Current limitations
 
 - S0 is implemented but should be treated as experimental until benchmarked against a trusted reference.
-- mRLFE is currently a real-k elastic plotting prototype, not the final complex-k viscoelastic Han-style fitting solver.
+- mRLFE complex-k is a prototype and attenuation is not yet validated for quantitative fitting.
 - High-frequency fundamental-branch tracking can show branch-switching artifacts in difficult ranges.
 - Group velocity is not implemented yet.
 - Modal structure and displacement animations are not implemented yet.
