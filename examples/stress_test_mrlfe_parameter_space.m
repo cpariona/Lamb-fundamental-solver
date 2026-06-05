@@ -1,21 +1,21 @@
 % Stress-test mRLFE elastic and Han viscoelastic real-k solvers.
-% This script scans a compact parameter grid to identify where A0-like and
-% S0-like tracking becomes unreliable at higher frequency, lower stiffness,
-% or higher shear viscosity.
+% This reduced diagnostic grid identifies where A0-like and S0-like tracking
+% becomes unreliable at higher frequency, lower stiffness, or higher shear
+% viscosity. Expand the parameter vectors manually for exhaustive studies.
 %
 % The purpose is not fitting. It is an automated diagnostic layer for solver
 % robustness and branch-switching detection.
 
 startup();
 
-EValues = [25e3, 50e3, 100e3, 250e3, 475e3];          % [Pa]
-etaSValues = [0, 0.1, 0.3, 0.5, 0.7, 1.0];           % [Pa*s]
-thicknessValues = [0.3e-3, 0.5e-3, 0.7e-3];          % [m]
-fmaxValues = [8000, 16000, 30000];                   % [Hz]
+EValues = [25e3, 100e3, 475e3];                  % [Pa]
+etaSValues = [0, 0.3, 1.0];                      % [Pa*s]
+thicknessValues = [0.5e-3];                      % [m]
+fmaxValues = [8000, 16000, 30000];               % [Hz]
 
 baseParams = defaultParams();
 baseParams.fmin = 500;
-baseParams.numFrequencyPoints = 120;
+baseParams.numFrequencyPoints = 110;
 baseParams.frequencySpacing = "hybrid";
 baseParams.nu = 0.4999;
 baseParams.rho = 1070;
@@ -74,12 +74,14 @@ end
 
 stressTable = struct2table(summary);
 assignin('base', 'mRLFEStressTestTable', stressTable);
+writetable(stressTable, 'mRLFE_stress_test_table.csv');
 
 fprintf('\nStress-test summary\n');
 fprintf('-------------------\n');
 fprintf('Cases with any warning flag: %d / %d\n', sum(stressTable.HasWarning), height(stressTable));
 fprintf('Worst A0 Han valid fraction: %.3g\n', min(stressTable.HanA0ValidFraction));
 fprintf('Worst S0 Han valid fraction: %.3g\n', min(stressTable.HanS0ValidFraction));
+fprintf('Wrote mRLFE_stress_test_table.csv in the current folder.\n');
 
 warningRows = stressTable(stressTable.HasWarning, :);
 if ~isempty(warningRows)
@@ -88,7 +90,7 @@ if ~isempty(warningRows)
 end
 
 figure;
-scatter(stressTable.E_kPa, stressTable.HanA0ValidFraction, 36, stressTable.Fmax_Hz, 'filled');
+scatter(stressTable.E_kPa, stressTable.HanA0ValidFraction, 60, stressTable.Fmax_Hz, 'filled');
 grid on;
 xlabel('E [kPa]');
 ylabel('Han A0-like valid fraction');
@@ -96,7 +98,7 @@ title('mRLFE Han A0-like robustness summary');
 colorbar;
 
 figure;
-scatter(stressTable.E_kPa, stressTable.HanS0ValidFraction, 36, stressTable.Fmax_Hz, 'filled');
+scatter(stressTable.E_kPa, stressTable.HanS0ValidFraction, 60, stressTable.Fmax_Hz, 'filled');
 grid on;
 xlabel('E [kPa]');
 ylabel('Han S0-like valid fraction');
