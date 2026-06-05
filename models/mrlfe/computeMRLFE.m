@@ -66,11 +66,21 @@ for i = 1:numel(branchNames)
     name = branchNames{i};
     branch = mrlfeResults.branches.(name);
     finiteResidual = isfinite(branch.residual);
-    validCp = branch.valid & isfinite(branch.Cp);
-    validAttenuation = branch.valid & isfinite(branch.attenuation);
+    if isfield(branch, 'validCp')
+        validCp = branch.validCp & isfinite(branch.Cp);
+    else
+        validCp = branch.valid & isfinite(branch.Cp);
+    end
+    if isfield(branch, 'validAttenuation')
+        validAttenuation = branch.validAttenuation & isfinite(branch.attenuation);
+    else
+        validAttenuation = branch.valid & isfinite(branch.attenuation);
+    end
 
     item = struct();
     item.validPoints = sum(branch.valid);
+    item.validCpPoints = sum(validCp);
+    item.validAttenuationPoints = sum(validAttenuation);
     item.totalPoints = numel(branch.valid);
     if any(finiteResidual)
         item.maxResidual = max(branch.residual(finiteResidual));
