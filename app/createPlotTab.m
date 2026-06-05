@@ -2,9 +2,9 @@ function h = createPlotTab(tabs, callbacks)
 % Build Plot tab controls. These fields only refresh visualization.
 
 tab = uitab(tabs, 'Title', 'Plot');
-g = uigridlayout(tab, [19 2]);
+g = uigridlayout(tab, [18 2]);
 g.ColumnWidth = {160, '1x'};
-g.RowHeight = [repmat({30}, 1, 18), {70}];
+g.RowHeight = [repmat({30}, 1, 17), {70}];
 g.Padding = [12 12 12 12];
 g.RowSpacing = 6;
 
@@ -17,7 +17,7 @@ h.showA0.Layout.Column = [1 2];
 h.showS0 = uicheckbox(g, 'Text', 'Show S0 experimental', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.showS0.Layout.Column = [1 2];
 
-uilabel(g, 'Text', 'mRLFE prototype', 'FontWeight', 'bold');
+uilabel(g, 'Text', 'mRLFE dispersion', 'FontWeight', 'bold');
 uilabel(g, 'Text', '');
 
 h.showMRLFEA0 = uicheckbox(g, 'Text', 'Show mRLFE A0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
@@ -42,12 +42,7 @@ uilabel(g, 'Text', 'x-axis');
 h.xaxis = uidropdown(g, 'Items', {'frequency', 'angularFrequency', 'wavenumber', 'kThickness'}, ...
     'Value', 'frequency', 'ValueChangedFcn', callbacks.refreshPlotOnly);
 
-uilabel(g, 'Text', 'y-axis');
-h.yaxis = uidropdown(g, ...
-    'Items', {'Cp', 'spatial attenuation Im(k)'}, ...
-    'ItemsData', {'Cp', 'attenuation'}, ...
-    'Value', 'Cp', ...
-    'ValueChangedFcn', callbacks.refreshPlotOnly);
+h.yaxis = struct('Value', 'Cp');
 
 h.autoAxes = uicheckbox(g, 'Text', 'auto axes', 'Value', true, 'ValueChangedFcn', callbacks.onAutoAxesChanged);
 h.autoAxes.Layout.Column = [1 2];
@@ -70,8 +65,8 @@ resetButton.Layout.Column = [1 2];
 useButton = uibutton(g, 'Text', 'Use current view as manual axes', 'ButtonPushedFcn', callbacks.useCurrentAxes);
 useButton.Layout.Column = [1 2];
 
-note = uilabel(g, 'Text', ['Spatial attenuation is Im(k) from complex-k mRLFE branches. ', ...
-    'It is not the material viscosity itself. When x-axis is wavenumber or kThickness, each mode can end at a different x-value.'], ...
+note = uilabel(g, 'Text', ['Main GUI focuses on phase-velocity dispersion Cp. ', ...
+    'Spatial attenuation Im(k) is kept as an experimental advanced path outside the main workflow.'], ...
     'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 10);
 note.Layout.Column = [1 2];
 end
