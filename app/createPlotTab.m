@@ -43,7 +43,7 @@ h.xaxis = uidropdown(g, 'Items', {'frequency', 'angularFrequency', 'wavenumber',
     'Value', 'frequency', 'ValueChangedFcn', callbacks.refreshPlotOnly);
 
 uilabel(g, 'Text', 'y-axis');
-h.yaxis = uidropdown(g, 'Items', {'Cp', 'attenuation'}, 'Value', 'Cp', ...
+h.yaxis = uidropdown(g, 'Items', {'Cp', 'spatial attenuation Im(k)'}, 'Value', 'Cp', ...
     'ValueChangedFcn', callbacks.refreshPlotOnly);
 
 h.autoAxes = uicheckbox(g, 'Text', 'auto axes', 'Value', true, 'ValueChangedFcn', callbacks.onAutoAxesChanged);
@@ -67,8 +67,8 @@ resetButton.Layout.Column = [1 2];
 useButton = uibutton(g, 'Text', 'Use current view as manual axes', 'ButtonPushedFcn', callbacks.useCurrentAxes);
 useButton.Layout.Column = [1 2];
 
-note = uilabel(g, 'Text', ['Note: attenuation is available for mRLFE branches only. ', ...
-    'When x-axis is wavenumber or kThickness, each mode can end at a different x-value because k = omega/Cp is mode-dependent.'], ...
+note = uilabel(g, 'Text', ['Spatial attenuation is Im(k) from complex-k mRLFE branches. ', ...
+    'It is not the material viscosity itself. When x-axis is wavenumber or kThickness, each mode can end at a different x-value.'], ...
     'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 10);
 note.Layout.Column = [1 2];
 end
