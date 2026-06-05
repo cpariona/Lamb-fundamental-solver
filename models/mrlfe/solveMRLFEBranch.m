@@ -49,7 +49,8 @@ kImag = imag(k);
 Cp = omega ./ kReal;
 kThickness = kReal * geometry.thickness;
 
-[validCp, validAttenuation] = computeBranchValidity(Cp, kReal, kImag, residual, seedCp, seedK, solveComplexK, options);
+[validResidual, validReference, validSmooth, validCp, validAttenuation] = ...
+    computeBranchValidity(Cp, kReal, kImag, residual, seedCp, seedK, solveComplexK, options);
 
 branch = struct();
 branch.name = name;
@@ -66,6 +67,9 @@ branch.residual = residual;
 branch.score = score;
 branch.seedK = seedK;
 branch.seedCp = seedCp;
+branch.validResidual = validResidual;
+branch.validReference = validReference;
+branch.validSmooth = validSmooth;
 branch.validCp = validCp;
 branch.validAttenuation = validAttenuation;
 branch.valid = validCp;
@@ -78,7 +82,7 @@ else
 end
 end
 
-function [validCp, validAttenuation] = computeBranchValidity(Cp, kReal, kImag, residual, seedCp, seedK, solveComplexK, options)
+function [validResidual, validReference, validSmooth, validCp, validAttenuation] = computeBranchValidity(Cp, kReal, kImag, residual, seedCp, seedK, solveComplexK, options)
 base = isfinite(kReal) & kReal > 0 & isfinite(Cp) & isfinite(residual);
 
 if solveComplexK
@@ -93,7 +97,10 @@ end
 
 relK = abs(kReal - seedK) ./ max(seedK, eps);
 relCp = abs(Cp - seedCp) ./ max(seedCp, eps);
-validCp = base & residual <= cpResidualTol & relK <= maxRelK & relCp <= maxRelCp;
+validResidual = base & residual <= cpResidualTol;
+validReference = base & relK <= maxRelK & relCp <= maxRelCp;
+validSmooth = computeSmoothMask(Cp, base, options);
+validCp = validResidual & validReference & validSmooth;
 
 if ~solveComplexK
     validAttenuation = false(size(validCp));
@@ -117,6 +124,43 @@ for i = 2:numel(validAttenuation)
     relJump = abs(kImag(i) - kImag(i-1)) / scale;
     if relJump > maxJumpRel
         validAttenuation(i) = false;
+    end
+end
+end
+
+function validSmooth = computeSmoothMask(Cp, base, options)
+validSmooth = base & isfinite(Cp);
+maxJump = getOption(options, 'mrlfeRealKMaxCpJumpRelative', inf);
+maxPredictionError = getOption(options, 'mrlfeRealKMaxCpPredictionError', inf);
+minPointsForPrediction = getOption(options, 'mrlfeRealKMinPointsForPrediction', 3);
+
+if ~isfinite(maxJump) && ~isfinite(maxPredictionError)
+    return;
+end
+
+for i = 2:numel(Cp)
+    if ~validSmooth(i) || ~validSmooth(i-1)
+        continue;
+    end
+    relJump = abs(Cp(i) - Cp(i-1)) / max(abs(Cp(i-1)), eps);
+    if isfinite(maxJump) && relJump > maxJump
+        validSmooth(i) = false;
+        continue;
+    end
+
+    if isfinite(maxPredictionError) && i >= minPointsForPrediction
+        previous = find(validSmooth(1:i-1));
+        if numel(previous) >= 2
+            p1 = previous(end-1);
+            p2 = previous(end);
+            step = i - p2;
+            prevStep = max(p2 - p1, 1);
+            cpPred = Cp(p2) + (Cp(p2) - Cp(p1)) * step / prevStep;
+            relPred = abs(Cp(i) - cpPred) / max(abs(cpPred), eps);
+            if relPred > maxPredictionError
+                validSmooth(i) = false;
+            end
+        end
     end
 end
 end
