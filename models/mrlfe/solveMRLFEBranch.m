@@ -15,6 +15,7 @@ solveComplexK = isfield(mrlfeParams, 'solveComplexK') && mrlfeParams.solveComple
 
 k = nan(size(frequency));
 residual = nan(size(frequency));
+score = nan(size(frequency));
 seedCp = omega ./ seedK;
 
 for i = 1:numel(frequency)
@@ -32,15 +33,20 @@ for i = 1:numel(frequency)
         physicalReference = struct();
         physicalReference.k = seedK(i);
         physicalReference.Cp = seedCp(i);
-        [k(i), residual(i)] = refineMRLFEComplexKRoot(kPred, omega(i), material, geometry, mrlfeParams, options, physicalReference);
+        physicalReference.kImagPred = max(imag(kPred), 0);
+        [k(i), residual(i), score(i)] = refineMRLFEComplexKRoot(kPred, omega(i), material, geometry, mrlfeParams, options, physicalReference);
     else
         [k(i), residual(i)] = refineMRLFERealKRoot(real(kPred), omega(i), material, geometry, mrlfeParams, options);
+        score(i) = residual(i);
     end
 end
 
 kReal = real(k);
 kImag = imag(k);
 Cp = omega ./ kReal;
+kThickness = kReal * geometry.thickness;
+
+[validCp, validAttenuation] = computeBranchValidity(Cp, kReal, kImag, residual, seedCp, seedK, solveComplexK, options);
 
 branch = struct();
 branch.name = name;
@@ -52,15 +58,61 @@ branch.kReal = kReal;
 branch.kImag = kImag;
 branch.attenuation = kImag;
 branch.Cp = Cp;
-branch.kThickness = kReal * geometry.thickness;
+branch.kThickness = kThickness;
 branch.residual = residual;
+branch.score = score;
 branch.seedK = seedK;
 branch.seedCp = seedCp;
-branch.valid = isfinite(kReal) & kReal > 0 & isfinite(Cp);
+branch.validCp = validCp;
+branch.validAttenuation = validAttenuation;
+branch.valid = validCp;
 if solveComplexK
     branch.note = "mRLFE complex-k prototype seeded from real-k reference when available.";
 else
     branch.note = "mRLFE real-k elastic prototype seeded from Rayleigh-Lamb branch.";
+end
+end
+
+function [validCp, validAttenuation] = computeBranchValidity(Cp, kReal, kImag, residual, seedCp, seedK, solveComplexK, options)
+base = isfinite(kReal) & kReal > 0 & isfinite(Cp) & isfinite(residual);
+
+if solveComplexK
+    cpResidualTol = getOption(options, 'mrlfeComplexCpResidualTolerance', 1e-4);
+    maxRelK = getOption(options, 'mrlfeComplexMaxRelativeKDrift', 0.25);
+    maxRelCp = getOption(options, 'mrlfeComplexMaxRelativeCpDrift', 0.30);
+else
+    cpResidualTol = getOption(options, 'mrlfeResidualTolerance', 1e-4);
+    maxRelK = inf;
+    maxRelCp = inf;
+end
+
+relK = abs(kReal - seedK) ./ max(seedK, eps);
+relCp = abs(Cp - seedCp) ./ max(seedCp, eps);
+validCp = base & residual <= cpResidualTol & relK <= maxRelK & relCp <= maxRelCp;
+
+if ~solveComplexK
+    validAttenuation = false(size(validCp));
+    return;
+end
+
+attResidualTol = getOption(options, 'mrlfeComplexAttenuationResidualTolerance', 1e-5);
+maxLossFactor = getOption(options, 'mrlfeComplexMaxLossFactor', 1e-2);
+maxJumpRel = getOption(options, 'mrlfeComplexMaxAttenuationJumpRelative', 5.0);
+maxJumpLoss = getOption(options, 'mrlfeComplexMaxAttenuationJumpLossFactor', 5e-3);
+
+lossFactor = kImag ./ max(kReal, eps);
+validAttenuation = validCp & isfinite(kImag) & kImag >= 0 & ...
+    residual <= attResidualTol & lossFactor <= maxLossFactor;
+
+for i = 2:numel(validAttenuation)
+    if ~validAttenuation(i) || ~isfinite(kImag(i-1)) || ~isfinite(kImag(i))
+        continue;
+    end
+    scale = max([abs(kImag(i-1)), maxJumpLoss * max(kReal(i), eps), eps]);
+    relJump = abs(kImag(i) - kImag(i-1)) / scale;
+    if relJump > maxJumpRel
+        validAttenuation(i) = false;
+    end
 end
 end
 
@@ -77,5 +129,13 @@ if idx >= 3 && isfinite(real(k(idx-2))) && isfinite(real(k(idx-1)))
             kPred = candidate;
         end
     end
+end
+end
+
+function value = getOption(options, fieldName, defaultValue)
+if isfield(options, fieldName)
+    value = options.(fieldName);
+else
+    value = defaultValue;
 end
 end
