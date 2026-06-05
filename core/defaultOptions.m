@@ -26,15 +26,27 @@ options.maxSinglePointSpikeRelative = 0.25;
 options.preferPreviousRootWeight = 0.50;
 options.mrlfeResidualTolerance = 1e-4;
 options.mrlfeSearchFactors = [0.80, 1.25; 0.60, 1.60; 0.35, 2.50];
+
+% Complex-k continuation and validation controls.
 options.mrlfeComplexMaxIter = 120;
 options.mrlfeComplexMaxFunEvals = 260;
 options.mrlfeComplexTolX = 1e-7;
 options.mrlfeComplexTolFun = 1e-9;
+options.mrlfeComplexResidualScale = 1e-8;
+options.mrlfeComplexResidualWeight = 1.0;
 options.mrlfeComplexPredictionWeight = 2.0;
 options.mrlfeComplexReferenceWeight = 12.0;
 options.mrlfeComplexReferenceCpWeight = 8.0;
+options.mrlfeComplexImagContinuityWeight = 4.0;
+options.mrlfeComplexLossPenaltyWeight = 100.0;
 options.mrlfeComplexMaxRelativeKDrift = 0.25;
 options.mrlfeComplexMaxRelativeCpDrift = 0.30;
+options.mrlfeComplexMaxLossFactor = 1e-2;
+options.mrlfeComplexImagScaleFraction = 1e-7;
+options.mrlfeComplexCpResidualTolerance = 1e-4;
+options.mrlfeComplexAttenuationResidualTolerance = 1e-5;
+options.mrlfeComplexMaxAttenuationJumpRelative = 5.0;
+options.mrlfeComplexMaxAttenuationJumpLossFactor = 5e-3;
 
 switch robustness
     case "Fast"
