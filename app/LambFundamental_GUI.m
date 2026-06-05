@@ -95,8 +95,9 @@ updateAxisFieldState();
             options = defaultOptions(string(advanced.robustness.Value));
             options.computeA0 = logical(modelControls.rl.computeA0.Value);
             options.computeS0 = logical(modelControls.rl.computeS0.Value);
-            options.computeMRLFE = logical(modelControls.mrlfe.compute.Value);
-            if options.computeMRLFE
+            options.computeMRLFERealK = logical(modelControls.mrlfe.computeRealK.Value);
+            options.computeMRLFEComplexK = logical(modelControls.mrlfe.computeComplexK.Value);
+            if options.computeMRLFERealK || options.computeMRLFEComplexK
                 options.computeA0 = true;
                 options.computeS0 = true;
                 modelControls.rl.computeA0.Value = true;
@@ -136,6 +137,8 @@ updateAxisFieldState();
         mrlfeParams = defaultMRLFEParams();
         mrlfeParams.fluidDensity = modelControls.mrlfe.fluidDensity.Value;
         mrlfeParams.fluidSoundSpeed = modelControls.mrlfe.fluidSoundSpeed.Value;
+        mrlfeParams.etaL = modelControls.mrlfe.etaL.Value;
+        mrlfeParams.etaS = modelControls.mrlfe.etaS.Value;
     end
 
     function refreshPlotOnly()
@@ -189,15 +192,13 @@ updateAxisFieldState();
             plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, '-', 'LineWidth', 2, 'Color', colors.S0, 'DisplayName', 'S0 experimental');
             plotCount = plotCount + 1;
         end
-        if plotControls.showMRLFEA0.Value && hasMRLFEBranch('A0Like')
-            mode = lastResults.models.mRLFE.branches.A0Like;
-            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, ':', 'LineWidth', 2.2, 'Color', colors.MRLFEA0, 'DisplayName', 'mRLFE A0-like');
-            plotCount = plotCount + 1;
+        if plotControls.showMRLFEA0.Value
+            plotCount = plotCount + plotMRLFEBranch('mRLFERealK', 'A0Like', ':', 'mRLFE real-k A0-like', colors.MRLFEA0, xSel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFEComplexK', 'A0Like', '-.', 'mRLFE complex-k A0-like', colors.MRLFEA0, xSel);
         end
-        if plotControls.showMRLFES0.Value && hasMRLFEBranch('S0Like')
-            mode = lastResults.models.mRLFE.branches.S0Like;
-            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, ':', 'LineWidth', 2.2, 'Color', colors.MRLFES0, 'DisplayName', 'mRLFE S0-like');
-            plotCount = plotCount + 1;
+        if plotControls.showMRLFES0.Value
+            plotCount = plotCount + plotMRLFEBranch('mRLFERealK', 'S0Like', ':', 'mRLFE real-k S0-like', colors.MRLFES0, xSel);
+            plotCount = plotCount + plotMRLFEBranch('mRLFEComplexK', 'S0Like', '-.', 'mRLFE complex-k S0-like', colors.MRLFES0, xSel);
         end
         if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
             mode = lastResults.approximations.A0ThinPlate;
@@ -221,11 +222,20 @@ updateAxisFieldState();
         hold(ax,'off');
     end
 
-    function tf = hasMRLFEBranch(branchName)
-        tf = isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE') && ...
-            isfield(lastResults.models.mRLFE, 'branches') && ...
-            isfield(lastResults.models.mRLFE.branches, branchName) && ...
-            any(isfinite(lastResults.models.mRLFE.branches.(branchName).Cp));
+    function didPlot = plotMRLFEBranch(modelName, branchName, lineStyle, displayName, colorValue, xSel)
+        didPlot = 0;
+        if hasMRLFEBranch(modelName, branchName)
+            mode = lastResults.models.(modelName).branches.(branchName);
+            plot(ax, getModeX(mode,lastResults.grid,xSel), mode.Cp, lineStyle, 'LineWidth', 2.0, 'Color', colorValue, 'DisplayName', displayName);
+            didPlot = 1;
+        end
+    end
+
+    function tf = hasMRLFEBranch(modelName, branchName)
+        tf = isfield(lastResults, 'models') && isfield(lastResults.models, modelName) && ...
+            isfield(lastResults.models.(modelName), 'branches') && ...
+            isfield(lastResults.models.(modelName).branches, branchName) && ...
+            any(isfinite(lastResults.models.(modelName).branches.(branchName).Cp));
     end
 
     function updateLabels()
@@ -243,22 +253,27 @@ updateAxisFieldState();
             s0 = lastResults.modes.S0;
             statusParts{end+1} = sprintf('S0 %d/%d, R %.1e', sum(s0.valid), numel(s0.valid), maxFinite(s0.residual)); %#ok<AGROW>
         end
-        if isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE')
-            d = lastResults.models.mRLFE.diagnostics;
-            statusParts{end+1} = sprintf('mRLFE %.1fs', d.elapsedSeconds); %#ok<AGROW>
-            if isfield(d.summary, 'A0Like')
-                item = d.summary.A0Like;
-                statusParts{end+1} = sprintf('A0L %d/%d, R %.1e', item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
-            end
-            if isfield(d.summary, 'S0Like')
-                item = d.summary.S0Like;
-                statusParts{end+1} = sprintf('S0L %d/%d, R %.1e', item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
-            end
-        end
+        statusParts = appendMRLFEStatus(statusParts, 'mRLFERealK', 'mRLFE-R');
+        statusParts = appendMRLFEStatus(statusParts, 'mRLFEComplexK', 'mRLFE-C');
         if inputsAreDirty
             statusParts{end+1} = 'inputs changed'; %#ok<AGROW>
         end
         statusLabel.Text = strjoin(statusParts, newline);
+    end
+
+    function statusParts = appendMRLFEStatus(statusParts, modelName, label)
+        if isfield(lastResults, 'models') && isfield(lastResults.models, modelName)
+            d = lastResults.models.(modelName).diagnostics;
+            statusParts{end+1} = sprintf('%s %.1fs', label, d.elapsedSeconds); %#ok<AGROW>
+            if isfield(d.summary, 'A0Like')
+                item = d.summary.A0Like;
+                statusParts{end+1} = sprintf('%s A0L %d/%d, R %.1e', label, item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
+            end
+            if isfield(d.summary, 'S0Like')
+                item = d.summary.S0Like;
+                statusParts{end+1} = sprintf('%s S0L %d/%d, R %.1e', label, item.validPoints, item.totalPoints, item.maxResidual); %#ok<AGROW>
+            end
+        end
     end
 
     function onShowDiagnostics()
@@ -266,7 +281,7 @@ updateAxisFieldState();
             uialert(fig, 'No diagnostics are available yet.', 'Diagnostics');
             return;
         end
-        dfig = uifigure('Name','Solver diagnostics','Position',[180 180 560 520]);
+        dfig = uifigure('Name','Solver diagnostics','Position',[180 180 620 560]);
         dg = uigridlayout(dfig, [1 1]);
         dg.Padding = [10 10 10 10];
         uitextarea(dg, 'Value', buildDiagnosticsText(), 'Editable', 'off', 'FontName', 'Consolas', 'FontSize', 11);
@@ -293,18 +308,26 @@ updateAxisFieldState();
         if isfield(lastResults.modes,'S0')
             lines = appendModeDiagnostics(lines, 'S0', lastResults.modes.S0);
         end
-        if isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE')
-            lines{end+1} = 'mRLFE'; %#ok<AGROW>
-            d = lastResults.models.mRLFE.diagnostics;
+        lines = appendMRLFEDiagnostics(lines, 'mRLFERealK');
+        lines = appendMRLFEDiagnostics(lines, 'mRLFEComplexK');
+        txt = lines(:);
+    end
+
+    function lines = appendMRLFEDiagnostics(lines, modelName)
+        if isfield(lastResults, 'models') && isfield(lastResults.models, modelName)
+            lines{end+1} = modelName; %#ok<AGROW>
+            d = lastResults.models.(modelName).diagnostics;
+            lines{end+1} = sprintf('  variant = %s', string(d.variant)); %#ok<AGROW>
             lines{end+1} = sprintf('  elapsed = %.3f s', d.elapsedSeconds); %#ok<AGROW>
             branchNames = fieldnames(d.summary);
             for i = 1:numel(branchNames)
                 item = d.summary.(branchNames{i});
-                lines{end+1} = sprintf('  %s: %d/%d valid, Cp %.6g..%.6g m/s, max R %.3e', ...
-                    branchNames{i}, item.validPoints, item.totalPoints, item.minCp, item.maxCp, item.maxResidual); %#ok<AGROW>
+                lines{end+1} = sprintf('  %s: %d/%d valid, Cp %.6g..%.6g m/s, alpha %.6g..%.6g 1/m, max R %.3e', ...
+                    branchNames{i}, item.validPoints, item.totalPoints, item.minCp, item.maxCp, ...
+                    item.minAttenuation, item.maxAttenuation, item.maxResidual); %#ok<AGROW>
             end
+            lines{end+1} = ''; %#ok<AGROW>
         end
-        txt = lines(:);
     end
 
     function lines = appendModeDiagnostics(lines, name, mode)
@@ -336,9 +359,19 @@ updateAxisFieldState();
             ApproximationResults = lastResults.approximations; %#ok<NASGU>
             assignin('base', 'ApproximationResults', ApproximationResults);
         end
-        if isfield(lastResults, 'models') && isfield(lastResults.models, 'mRLFE')
-            MRLFEResults = lastResults.models.mRLFE; %#ok<NASGU>
-            assignin('base', 'MRLFEResults', MRLFEResults);
+        if isfield(lastResults, 'models')
+            if isfield(lastResults.models, 'mRLFERealK')
+                MRLFERealKResults = lastResults.models.mRLFERealK; %#ok<NASGU>
+                assignin('base', 'MRLFERealKResults', MRLFERealKResults);
+            end
+            if isfield(lastResults.models, 'mRLFEComplexK')
+                MRLFEComplexKResults = lastResults.models.mRLFEComplexK; %#ok<NASGU>
+                assignin('base', 'MRLFEComplexKResults', MRLFEComplexKResults);
+            end
+            if isfield(lastResults.models, 'mRLFE')
+                MRLFEResults = lastResults.models.mRLFE; %#ok<NASGU>
+                assignin('base', 'MRLFEResults', MRLFEResults);
+            end
         end
         statusLabel.Text = 'Status: exported to workspace.';
     end
@@ -355,7 +388,7 @@ switch xSel
     case "angularFrequency"
         if isfield(mode,'omega'), x = mode.omega; else, x = gridData.omega; end
     case "wavenumber"
-        x = mode.k;
+        if isfield(mode, 'kReal'), x = mode.kReal; else, x = real(mode.k); end
     case "kThickness"
         x = mode.kThickness;
     otherwise
