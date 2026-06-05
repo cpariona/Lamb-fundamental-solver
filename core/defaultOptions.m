@@ -27,6 +27,16 @@ options.preferPreviousRootWeight = 0.50;
 options.mrlfeResidualTolerance = 1e-4;
 options.mrlfeSearchFactors = [0.80, 1.25; 0.60, 1.60; 0.35, 2.50];
 
+% Real-k mRLFE continuation and validation controls.
+options.mrlfeRealKReferenceWeight = 0.75;
+options.mrlfeRealKMaxRelativeKDrift = inf;
+options.mrlfeRealKHardReferenceWindow = false;
+options.mrlfeRealKValidationMaxRelativeKDrift = inf;
+options.mrlfeRealKValidationMaxRelativeCpDrift = inf;
+options.mrlfeRealKMaxCpJumpRelative = 0.22;
+options.mrlfeRealKMaxCpPredictionError = 0.18;
+options.mrlfeRealKMinPointsForPrediction = 3;
+
 % Complex-k continuation and validation controls.
 options.mrlfeComplexMaxIter = 120;
 options.mrlfeComplexMaxFunEvals = 260;
