@@ -8,7 +8,7 @@ Current scope:
 - Experimental S0 phase velocity calculation using the symmetric Rayleigh-Lamb residual.
 - Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
 - mRLFE elastic real-k dispersion for fluid-loaded layers, including a multicandidate dynamic-programming tracker for A0-like soft-material cases.
-- mRLFE Han-style viscoelastic real-k dispersion with real lambda and complex shear modulus.
+- mRLFE Han-style viscoelastic real-k dispersion with real lambda, complex shear modulus, and conservative modal-local Cp-window tracking.
 - Experimental complex-k mRLFE path kept internally for spatial attenuation exploration.
 - GUI plotting of phase velocity Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
 - Export of `LambResults`, `A0_table`, and, when available, `S0_table` to the MATLAB workspace.
@@ -72,15 +72,20 @@ options.mrlfeA0DPValidationMaxRelativeKDrift
 options.mrlfeA0DPValidationMaxRelativeCpDrift
 options.mrlfeA0DPValidationMaxCpJumpRelative
 options.mrlfeA0DPValidationMaxCpPredictionError
+options.mrlfeHanUseModalLocalTracker
+options.mrlfeHanA0ModalCpWindow
+options.mrlfeHanS0ModalCpWindow
 ```
 
 For the production elastic A0-like real-k path, the DP tracker is enabled internally by `computeFundamentalLambModes` through `makeElasticRealKOptions`.
+
+For the production Han viscoelastic real-k path, the modal-local tracker is enabled internally by `computeFundamentalLambModes` through `makeHanRealKOptions`.
 
 ## Frequency grid and tracking notes
 
 The GUI uses an automatic internal hybrid frequency grid. The grid combines logarithmic sampling at low frequency with linear sampling at higher frequency, so the user only needs to specify `fmin` and `fmax`.
 
-At high frequencies, the Rayleigh-Lamb and mRLFE residual landscapes can contain multiple nearby minima. The current elastic A0-like mRLFE solver uses a multicandidate dynamic-programming tracker to suppress branch switching in soft-material cases. Han-style viscoelastic real-k branches still use the modal/local tracker and remain under active diagnosis for high-viscosity, low-stiffness cases.
+At high frequencies, the Rayleigh-Lamb and mRLFE residual landscapes can contain multiple nearby minima. The current elastic A0-like mRLFE solver uses a multicandidate dynamic-programming tracker to suppress branch switching in soft-material cases. Han-style viscoelastic real-k branches use a modal-local tracker that extracts local minima, filters them by branch-specific Cp windows around the elastic reference branch, and cuts the branch when no mode-relevant local minimum remains.
 
 When plotting against `wavenumber` or `kThickness`, different modes may end at different horizontal values because `k = omega / Cp` is mode-dependent. This does not mean that a branch was truncated in frequency.
 
@@ -91,7 +96,7 @@ The main GUI now focuses on phase-velocity dispersion, not attenuation.
 The implemented mRLFE paths are:
 
 - `mRLFEElasticRealK`: elastic, fluid-loaded, real-k dispersion. A0-like uses a multicandidate dynamic-programming tracker; S0-like uses the real-k modal tracker.
-- `mRLFEHanViscoRealK`: Han-style viscoelastic, fluid-loaded, real-k dispersion. This path uses real lambda and complex shear modulus, and is still being diagnosed for high-viscosity validity limits.
+- `mRLFEHanViscoRealK`: Han-style viscoelastic, fluid-loaded, real-k dispersion. This path uses real lambda, complex shear modulus, and conservative modal-local Cp-window tracking.
 - `mRLFEComplexK`: experimental internal path for spatial attenuation; not part of the main GUI workflow.
 
 All mRLFE variants use the modified Rayleigh-Lamb fluid-loaded 5-by-5 matrix and the normalized singular-value residual:
@@ -126,6 +131,13 @@ This is more expensive than solving each model independently, but it is more rob
 For elastic A0-like mRLFE, the production solver now performs an additional preliminary local/modal A0-like solve and uses that branch only as a guide for the candidate scan range. The final A0-like branch is selected by `models/mrlfe/solveMRLFEBranchDP.m`, which extracts multiple local residual candidates at each frequency and chooses a globally smooth path using a dynamic-programming cost. The path cost penalizes residual, jump size, curvature, and distance from the modal reference.
 
 Real-k S0-like and Han viscoelastic branches use modal scoring. The score penalizes both the singular-value residual and the distance from the reference branch. This prevents the tracker from automatically jumping to a lower-residual valley that belongs to another modal family.
+
+For Han viscoelastic real-k, candidate roots are also filtered in phase-velocity space using branch-specific modal windows around the elastic real-k reference:
+
+```text
+A0-like: 0.35 to 2.50 times modal reference Cp
+S0-like: 0.70 to 1.40 times modal reference Cp
+```
 
 The current strategy is conservative: when a local residual minimum consistent with the modal reference is not found, the branch is cut instead of silently plotting the seed/reference curve as a solution.
 
@@ -173,7 +185,7 @@ nu = 0.4999
 CL = 1500 m/s
 ```
 
-With the current validity criteria, the maximum etaS values that reached 16 kHz without warnings were approximately:
+With the pre-modal-local validity criteria, the maximum etaS values that reached 16 kHz without warnings were approximately:
 
 ```text
 A0-like:
@@ -193,11 +205,11 @@ S0-like:
     E = 1500 kPa  -> etaS <= 0.7  Pa*s
 ```
 
-For fitting, use only points where the branch validity mask is true and avoid extrapolating across branch cuts. For higher etaS, lower E, or higher frequency, the Han real-k residual landscape can be dominated by a low-Cp edge valley. The physical branch should be identified only through mode-relevant local minima, not through the global residual minimum.
+These limits should be refreshed by re-running `examples/stress_test_mrlfe_han_visco_range.m` after any modal-local tracking change. For fitting, use only points where the branch validity mask is true and avoid extrapolating across branch cuts. For higher etaS, lower E, or higher frequency, the Han real-k residual landscape can be dominated by a low-Cp edge valley. The physical branch should be identified only through mode-relevant local minima, not through the global residual minimum.
 
 ## Branch-switching roadmap
 
-The elastic A0-like branch-switching problem in soft mRLFE cases has been addressed for the current 16 kHz test range by `solveMRLFEBranchDP.m` and the chained elastic workflow. The active branch-tracking roadmap now focuses on Han-style viscoelastic real-k cases:
+The elastic A0-like branch-switching problem in soft mRLFE cases has been addressed for the current 16 kHz test range by `solveMRLFEBranchDP.m` and the chained elastic workflow. The active branch-tracking roadmap now focuses on validating the Han-style viscoelastic real-k modal-local tracker:
 
 1. Ignore the global low-Cp edge valley when it is not mode-relevant.
 2. Extract local residual minima at every frequency.
@@ -208,7 +220,7 @@ The elastic A0-like branch-switching problem in soft mRLFE cases has been addres
 5. When no mode-relevant real-k minimum exists, cut the branch and report the real-k validity limit.
 6. Use complex-k diagnostics to test whether the missing real-k minimum corresponds to a regime where spatial attenuation is essential.
 
-The current conclusion is that Han viscoelastic real-k does not need the same global DP strategy used for elastic A0-like. It needs a modal-local tracker that rejects the low-Cp residual valley and cuts the branch when the mode-relevant local minimum disappears.
+The current conclusion is that Han viscoelastic real-k does not need the same global DP strategy used for elastic A0-like. It uses a modal-local tracker that rejects the low-Cp residual valley and cuts the branch when the mode-relevant local minimum disappears.
 
 ## mRLFE diagnostic workflow
 
@@ -346,6 +358,7 @@ Elastic mRLFE real-k:
     under the current default diagnostic geometry.
 
 Han viscoelastic mRLFE real-k:
+    Uses a conservative modal-local tracker with branch-specific Cp windows.
     Works for low etaS and/or higher stiffness.
     At higher etaS, lower E, or higher frequency, branches can terminate
     because the mode-relevant real-k local minimum disappears or becomes
@@ -364,12 +377,20 @@ models/mrlfe/solveMRLFEBranchDP.m
 
 models/mrlfe/computeMRLFE.m
     Elastic A0-like DP tracker is seeded by a preliminary real-k branch used only to guide candidate scan range.
+    Han real-k branches receive branch-specific modal Cp windows.
+
+models/mrlfe/refineMRLFERealKRoot.m
+    Added optional Cp-domain modal-window filtering of local residual minima.
+
+models/mrlfe/solveMRLFEBranch.m
+    Added conservative branch cutting when the modal-local tracker finds no mode-relevant real-k minimum.
 
 core/computeFundamentalLambModes.m
     Elastic real-k mRLFE enables A0 DP tracking internally.
+    Han real-k mRLFE enables modal-local tracking internally.
 
 core/defaultOptions.m
-    Added A0 DP tracker and DP-specific validation options.
+    Added A0 DP tracker, DP-specific validation options, and Han modal-local tracking options.
 
 examples/stress_test_mrlfe_han_visco_range.m
 examples/prototype_mrlfe_han_visco_a0_multicandidate_tracker.m
@@ -381,7 +402,7 @@ examples/diagnose_mrlfe_han_visco_residual_landscape.m
 Open problems:
 
 ```text
-1. Han viscoelastic real-k needs a modal-local tracker that filters local minima by branch-specific windows.
+1. Re-run and validate Han viscoelastic real-k stress tests after the modal-local tracker update.
 2. S0-like remains experimental and needs benchmarking against a trusted reference.
 3. Complex-k attenuation is not validated for quantitative fitting.
 4. The physical interpretation of high-viscosity real-k branch termination must be tested with complex-k diagnostics.
@@ -391,8 +412,8 @@ Open problems:
 Recommended next tasks:
 
 ```text
-1. Implement Han real-k modal-local tracking using branch-specific modal windows.
-2. Re-run stress_test_mrlfe_han_visco_range after the modal-local tracker is implemented.
+1. Re-run stress_test_mrlfe_han_visco_range and compare safe-frequency limits against the previous table.
+2. Re-run diagnose_mrlfe_han_visco_residual_landscape and confirm that branch cuts align with NumModalLocalMinima = 0.
 3. Add a focused complex-k diagnostic for cases where the Han real-k modal minimum disappears.
 4. Benchmark S0-like against a trusted Rayleigh-Lamb/fluid-loaded reference.
 5. Organize examples into stable validation scripts, demos, and diagnostics archive after the viscoelastic path is stabilized.
