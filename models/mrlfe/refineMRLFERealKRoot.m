@@ -5,6 +5,10 @@ function [bestK, bestResidual, bestScore] = refineMRLFERealKRoot(kSeed, omega, m
 % residual-driven or modal-tracking driven. Modal scoring penalizes distance
 % from the seed/predicted branch so the solver does not automatically switch
 % to a lower-residual valley that belongs to another modal family.
+%
+% If mrlfeRealKRequireLocalMinimum is true, this function does not fall back
+% to kSeed when no local residual minimum is found. It returns NaN/Inf so the
+% branch is cut instead of silently plotting the reference curve as a solution.
 
 searchFactors = getFieldOrDefault(options, 'mrlfeSearchFactors', [0.80 1.25; 0.60 1.60; 0.35 2.50]);
 gridPoints = getFieldOrDefault(options, 'mrlfeGridPoints', 500);
@@ -30,6 +34,7 @@ end
 bestK = nan;
 bestResidual = inf;
 bestScore = inf;
+foundCandidate = false;
 
 for s = 1:size(searchFactors, 1)
     kLow = max(eps, searchFactors(s,1) * kSeed);
@@ -74,6 +79,7 @@ for s = 1:size(searchFactors, 1)
             if isfinite(maxRelativeDrift) && relSeed > maxRelativeDrift
                 continue;
             end
+            foundCandidate = true;
             score = computeScore(rCandidate, relSeed, referenceWeight, predictionWeight, residualFloor, scoreMode);
             if score < bestScore
                 bestK = kCandidate;
@@ -90,6 +96,12 @@ for s = 1:size(searchFactors, 1)
 end
 
 if isnan(bestK)
+    if requireLocalMinimum && ~foundCandidate
+        bestK = nan;
+        bestResidual = inf;
+        bestScore = inf;
+        return;
+    end
     bestK = kSeed;
     bestResidual = mrlfeResidual(bestK, omega, material, geometry, mrlfeParams);
     relSeed = 0;
