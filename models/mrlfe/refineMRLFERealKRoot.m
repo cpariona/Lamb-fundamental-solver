@@ -9,6 +9,10 @@ function [bestK, bestResidual, bestScore] = refineMRLFERealKRoot(kSeed, omega, m
 % If mrlfeRealKRequireLocalMinimum is true, this function does not fall back
 % to kSeed when no local residual minimum is found. It returns NaN/Inf so the
 % branch is cut instead of silently plotting the reference curve as a solution.
+%
+% Optional Cp-domain modal windows can be enabled through
+% mrlfeRealKUseModalCpWindow.  This is intended for Han real-k tracking, where
+% the global residual minimum may sit on a non-modal low-Cp edge valley.
 
 searchFactors = getFieldOrDefault(options, 'mrlfeSearchFactors', [0.80 1.25; 0.60 1.60; 0.35 2.50]);
 gridPoints = getFieldOrDefault(options, 'mrlfeGridPoints', 500);
@@ -20,6 +24,9 @@ scoreMode = lower(string(getFieldOrDefault(options, 'mrlfeRealKScoreMode', "resi
 requireLocalMinimum = getFieldOrDefault(options, 'mrlfeRealKRequireLocalMinimum', false);
 maxRelativeDrift = getFieldOrDefault(options, 'mrlfeRealKMaxRelativeKDrift', inf);
 hardWindow = getFieldOrDefault(options, 'mrlfeRealKHardReferenceWindow', false);
+useModalCpWindow = getFieldOrDefault(options, 'mrlfeRealKUseModalCpWindow', false);
+modalCpLowerFactor = getFieldOrDefault(options, 'mrlfeRealKModalCpLowerFactor', 0.35);
+modalCpUpperFactor = getFieldOrDefault(options, 'mrlfeRealKModalCpUpperFactor', 2.50);
 
 if ~isfinite(predictionWeight)
     predictionWeight = 0;
@@ -31,6 +38,16 @@ if ~isfinite(residualFloor) || residualFloor <= 0
     residualFloor = 1e-14;
 end
 
+seedCp = omega / kSeed;
+if useModalCpWindow && (~isfinite(seedCp) || seedCp <= 0 || ...
+        ~isfinite(modalCpLowerFactor) || ~isfinite(modalCpUpperFactor) || ...
+        modalCpLowerFactor <= 0 || modalCpUpperFactor <= modalCpLowerFactor)
+    bestK = nan;
+    bestResidual = inf;
+    bestScore = inf;
+    return;
+end
+
 bestK = nan;
 bestResidual = inf;
 bestScore = inf;
@@ -39,6 +56,15 @@ foundCandidate = false;
 for s = 1:size(searchFactors, 1)
     kLow = max(eps, searchFactors(s,1) * kSeed);
     kHigh = max(kLow * 1.001, searchFactors(s,2) * kSeed);
+
+    if useModalCpWindow
+        cpLow = modalCpLowerFactor * seedCp;
+        cpHigh = modalCpUpperFactor * seedCp;
+        kFromCpHigh = omega / cpHigh;
+        kFromCpLow = omega / cpLow;
+        kLow = max(kLow, min(kFromCpHigh, kFromCpLow));
+        kHigh = min(kHigh, max(kFromCpHigh, kFromCpLow));
+    end
 
     if isfinite(maxRelativeDrift)
         refLow = max(eps, (1 - maxRelativeDrift) * kSeed);
@@ -50,6 +76,10 @@ for s = 1:size(searchFactors, 1)
         if kHigh <= kLow
             continue;
         end
+    end
+
+    if kHigh <= kLow
+        continue;
     end
 
     kGrid = linspace(kLow, kHigh, gridPoints);
@@ -73,6 +103,10 @@ for s = 1:size(searchFactors, 1)
             kCandidate = fminbnd(obj, kLeft, kRight);
             rCandidate = obj(kCandidate);
             if ~isfinite(rCandidate)
+                continue;
+            end
+            cpCandidate = omega / kCandidate;
+            if useModalCpWindow && ~isInsideModalCpWindow(cpCandidate, seedCp, modalCpLowerFactor, modalCpUpperFactor)
                 continue;
             end
             relSeed = abs(kCandidate - kSeed) / max(kSeed, eps);
@@ -107,6 +141,12 @@ if isnan(bestK)
     relSeed = 0;
     bestScore = computeScore(bestResidual, relSeed, referenceWeight, predictionWeight, residualFloor, scoreMode);
 end
+end
+
+function tf = isInsideModalCpWindow(cpCandidate, seedCp, lowerFactor, upperFactor)
+cpLow = lowerFactor * seedCp;
+cpHigh = upperFactor * seedCp;
+tf = isfinite(cpCandidate) && cpCandidate >= cpLow && cpCandidate <= cpHigh;
 end
 
 function score = computeScore(residual, relSeed, referenceWeight, predictionWeight, residualFloor, scoreMode)
