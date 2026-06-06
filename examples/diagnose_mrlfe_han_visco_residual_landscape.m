@@ -2,9 +2,9 @@
 %
 % Purpose:
 %   Determine why Han viscoelastic real-k branches stop returning finite Cp:
-%     A) a real-k minimum exists but the tracker misses it;
-%     B) the minimum lies outside the usual search range;
-%     C) the residual becomes monotonic/edge-dominated;
+%     A) a mode-relevant real-k minimum exists but the tracker misses it;
+%     B) a mode-relevant minimum disappears near the validity cut;
+%     C) the residual becomes dominated by a low-Cp singular/edge valley;
 %     D) real-k is no longer an adequate representation and complex-k is needed.
 %
 % Model:
@@ -18,7 +18,10 @@
 %   mRLFE_han_visco_residual_landscape_samples.csv
 %
 % Notes:
-%   This is a diagnostic script, not a production solver.
+%   This is a diagnostic script, not a production solver.  The global minimum
+%   of the singular-value residual can fall at unrealistically low Cp.  This
+%   diagnostic therefore reports both the global minimum and the best
+%   mode-relevant local minimum near the elastic/Han branch reference.
 
 startup();
 
@@ -45,6 +48,9 @@ CpMax = 90.0;
 edgeGuardPoints = 12;
 edgeFraction = 0.01;
 monotonicTolerance = 0.02;
+physicalCpFloor = 1.0;
+modalWindowLowerFactor = 0.35;
+modalWindowUpperFactor = 2.50;
 
 paramsBase = defaultParams();
 paramsBase.fmin = 500;
@@ -69,6 +75,8 @@ sampleRows = [];
 fprintf('\nHan viscoelastic real-k residual landscape diagnostic\n');
 fprintf('------------------------------------------------------\n');
 fprintf('Cp scan: %.4g to %.4g m/s, N = %d\n', CpMin, CpMax, CpScanPoints);
+fprintf('Physical Cp floor for interpretation: %.4g m/s\n', physicalCpFloor);
+fprintf('Modal window: %.3g to %.3g times modal reference Cp\n', modalWindowLowerFactor, modalWindowUpperFactor);
 fprintf('Frequency offsets around center: %s\n', mat2str(relativeFrequencyOffsets));
 
 for iCase = 1:numel(cases)
@@ -93,13 +101,14 @@ for iCase = 1:numel(cases)
     fprintf('\nCase %d/%d: %s, E = %.6g kPa, etaS = %.6g Pa*s, centerF = %.6g Hz\n', ...
         iCase, numel(cases), caseInfo.branch, caseInfo.E/1e3, caseInfo.etaS, caseInfo.centerF);
 
-    % Compute current tracked solution once for comparison.
     try
         results = computeFundamentalLambModes(params, options);
         currentBranch = results.models.mRLFEHanViscoRealK.branches.(caseInfo.branch);
+        elasticBranch = results.models.mRLFEElasticRealK.branches.(caseInfo.branch);
     catch ME
         warning('Failed to compute current solution for case %d: %s', iCase, ME.message);
         currentBranch = [];
+        elasticBranch = [];
     end
 
     frequenciesToScan = caseInfo.centerF * (1 + relativeFrequencyOffsets);
@@ -109,18 +118,21 @@ for iCase = 1:numel(cases)
         frequency = frequenciesToScan(j);
         omega = 2*pi*frequency;
         residual = computeResidualVsCp(CpScan, omega, material, geometryPublic, mrlfeParams);
-        landscape = analyzeResidualLandscape(CpScan, residual, edgeGuardPoints, edgeFraction, monotonicTolerance);
         currentCp = interpolateCurrentCp(currentBranch, frequency);
         currentValid = interpolateCurrentValid(currentBranch, frequency);
+        elasticCp = interpolateCurrentCp(elasticBranch, frequency);
+        modalReferenceCp = chooseModalReferenceCp(currentCp, elasticCp);
+        landscape = analyzeResidualLandscape(CpScan, residual, edgeGuardPoints, edgeFraction, monotonicTolerance, ...
+            modalReferenceCp, physicalCpFloor, modalWindowLowerFactor, modalWindowUpperFactor);
 
-        row = makeSummaryRow(caseInfo, material, frequency, landscape, currentCp, currentValid, CpMin, CpMax, CpScanPoints);
+        row = makeSummaryRow(caseInfo, material, frequency, landscape, currentCp, currentValid, elasticCp, CpMin, CpMax, CpScanPoints);
         summaryRows = [summaryRows; row]; %#ok<AGROW>
 
         sampleRows = appendSampleRows(sampleRows, caseInfo, material, frequency, CpScan, residual, landscape);
 
-        fprintf('  f = %.6g Hz: global Cp %.6g, residual %.3e, local minima %d, edge=%d, monotonic=%d, current Cp %.6g valid=%d\n', ...
-            frequency, landscape.GlobalMinCp, landscape.GlobalMinResidual, landscape.NumLocalMinima, ...
-            landscape.GlobalMinNearEdge, landscape.IsApproximatelyMonotonic, currentCp, currentValid);
+        fprintf('  f = %.6g Hz: global Cp %.6g, modal Cp %.6g, best modal Cp %.6g, local minima %d, modal minima %d, current Cp %.6g valid=%d, %s\n', ...
+            frequency, landscape.GlobalMinCp, landscape.ModalReferenceCp, landscape.BestModalLocalMinCp, ...
+            landscape.NumLocalMinima, landscape.NumModalLocalMinima, currentCp, currentValid, landscape.LikelyInterpretation);
     end
 end
 
@@ -136,7 +148,7 @@ assignin('base', 'mRLFEHanViscoResidualLandscapeSamples', mRLFEHanViscoResidualL
 fprintf('\nResidual landscape summary\n');
 fprintf('--------------------------\n');
 if ~isempty(mRLFEHanViscoResidualLandscapeSummary)
-    disp(mRLFEHanViscoResidualLandscapeSummary(:, {'Branch','E_kPa','EtaS_Pa_s','Frequency_Hz','CurrentCp','CurrentValid','GlobalMinCp','GlobalMinResidual','BestLocalMinCp','BestLocalMinResidual','NumLocalMinima','GlobalMinNearEdge','IsApproximatelyMonotonic','LikelyInterpretation'}));
+    disp(mRLFEHanViscoResidualLandscapeSummary(:, {'Branch','E_kPa','EtaS_Pa_s','Frequency_Hz','CurrentCp','CurrentValid','ElasticCp','GlobalMinCp','GlobalMinResidual','BestLocalMinCp','BestLocalMinResidual','BestModalLocalMinCp','BestModalLocalMinResidual','NumLocalMinima','NumModalLocalMinima','LowCpEdgeDominates','LikelyInterpretation'}));
 end
 fprintf('\nWrote:\n');
 fprintf('  mRLFE_han_visco_residual_landscape_summary.csv\n');
@@ -150,16 +162,33 @@ for i = 1:numel(CpScan)
 end
 end
 
-function landscape = analyzeResidualLandscape(CpScan, residual, edgeGuardPoints, edgeFraction, monotonicTolerance)
+function modalReferenceCp = chooseModalReferenceCp(currentCp, elasticCp)
+if isfinite(currentCp) && currentCp > 0
+    modalReferenceCp = currentCp;
+elseif isfinite(elasticCp) && elasticCp > 0
+    modalReferenceCp = elasticCp;
+else
+    modalReferenceCp = nan;
+end
+end
+
+function landscape = analyzeResidualLandscape(CpScan, residual, edgeGuardPoints, edgeFraction, monotonicTolerance, modalReferenceCp, physicalCpFloor, modalWindowLowerFactor, modalWindowUpperFactor)
 finiteMask = isfinite(residual);
 landscape = struct();
 landscape.GlobalMinCp = nan;
 landscape.GlobalMinResidual = nan;
 landscape.GlobalMinIndex = nan;
 landscape.GlobalMinNearEdge = false;
+landscape.LowCpEdgeDominates = false;
 landscape.BestLocalMinCp = nan;
 landscape.BestLocalMinResidual = nan;
+landscape.BestModalLocalMinCp = nan;
+landscape.BestModalLocalMinResidual = nan;
 landscape.NumLocalMinima = 0;
+landscape.NumModalLocalMinima = 0;
+landscape.ModalReferenceCp = modalReferenceCp;
+landscape.ModalWindowMinCp = nan;
+landscape.ModalWindowMaxCp = nan;
 landscape.IsApproximatelyMonotonic = false;
 landscape.LeftEdgeResidual = nan;
 landscape.RightEdgeResidual = nan;
@@ -186,6 +215,7 @@ landscape.ResidualDynamicRange = max(finiteResidual) / max(min(finiteResidual), 
 
 edgeCount = max(edgeGuardPoints, ceil(edgeFraction*numel(CpScan)));
 landscape.GlobalMinNearEdge = globalIdx <= edgeCount || globalIdx >= numel(CpScan)-edgeCount+1;
+landscape.LowCpEdgeDominates = landscape.GlobalMinNearEdge && globalCp <= max(physicalCpFloor, CpScan(1) + eps);
 
 localMinIdx = findLocalMinima(residual, edgeGuardPoints);
 landscape.NumLocalMinima = numel(localMinIdx);
@@ -194,6 +224,19 @@ if ~isempty(localMinIdx)
     bestIdx = localMinIdx(bestOrder);
     landscape.BestLocalMinCp = CpScan(bestIdx);
     landscape.BestLocalMinResidual = bestLocalResidual;
+end
+
+if isfinite(modalReferenceCp) && modalReferenceCp > 0
+    landscape.ModalWindowMinCp = max(physicalCpFloor, modalWindowLowerFactor * modalReferenceCp);
+    landscape.ModalWindowMaxCp = modalWindowUpperFactor * modalReferenceCp;
+    modalIdx = localMinIdx(CpScan(localMinIdx) >= landscape.ModalWindowMinCp & CpScan(localMinIdx) <= landscape.ModalWindowMaxCp);
+    landscape.NumModalLocalMinima = numel(modalIdx);
+    if ~isempty(modalIdx)
+        [bestModalResidual, bestOrder] = min(residual(modalIdx));
+        bestModalIdx = modalIdx(bestOrder);
+        landscape.BestModalLocalMinCp = CpScan(bestModalIdx);
+        landscape.BestModalLocalMinResidual = bestModalResidual;
+    end
 end
 
 landscape.IsApproximatelyMonotonic = isApproximatelyMonotonic(finiteResidual, monotonicTolerance);
@@ -227,14 +270,20 @@ end
 function text = classifyLandscape(landscape)
 if ~isfinite(landscape.GlobalMinResidual)
     text = "no finite residual";
+elseif landscape.LowCpEdgeDominates && landscape.NumModalLocalMinima > 0
+    text = "low-Cp edge valley dominates globally, but a mode-relevant local minimum exists";
+elseif landscape.LowCpEdgeDominates && landscape.NumModalLocalMinima == 0
+    text = "low-Cp edge valley dominates and no mode-relevant local minimum was found";
 elseif landscape.GlobalMinNearEdge && landscape.IsApproximatelyMonotonic
     text = "edge-dominated monotonic residual: expand Cp range or consider complex-k";
 elseif landscape.GlobalMinNearEdge
-    text = "minimum near Cp scan edge: expand Cp range";
+    text = "minimum near Cp scan edge";
+elseif landscape.NumModalLocalMinima > 0
+    text = "mode-relevant real-k local minimum exists";
+elseif landscape.NumLocalMinima > 0
+    text = "only off-reference real-k local minima exist";
 elseif landscape.NumLocalMinima == 0
     text = "no local minimum: real-k residual may be monotonic/flat";
-elseif landscape.NumLocalMinima >= 1
-    text = "real-k local minimum exists";
 else
     text = "undetermined";
 end
@@ -270,16 +319,18 @@ else
     valid = isfinite(branch.Cp(:));
 end
 f = branch.frequency(:);
+cp = branch.Cp(:);
 mask = isfinite(f);
 if ~any(mask)
     return;
 end
 [~, idx] = min(abs(f(mask) - frequency));
 validIdx = find(mask);
-currentValid = logical(valid(validIdx(idx)));
+nearest = validIdx(idx);
+currentValid = logical(valid(nearest)) && isfinite(cp(nearest));
 end
 
-function row = makeSummaryRow(caseInfo, material, frequency, landscape, currentCp, currentValid, CpMin, CpMax, CpScanPoints)
+function row = makeSummaryRow(caseInfo, material, frequency, landscape, currentCp, currentValid, elasticCp, CpMin, CpMax, CpScanPoints)
 row = struct();
 row.Branch = string(caseInfo.branch);
 row.E_kPa = caseInfo.E/1e3;
@@ -290,12 +341,20 @@ row.Frequency_Hz = frequency;
 row.CenterFrequency_Hz = caseInfo.centerF;
 row.CurrentCp = currentCp;
 row.CurrentValid = logical(currentValid);
+row.ElasticCp = elasticCp;
 row.GlobalMinCp = landscape.GlobalMinCp;
 row.GlobalMinResidual = landscape.GlobalMinResidual;
 row.GlobalMinNearEdge = logical(landscape.GlobalMinNearEdge);
+row.LowCpEdgeDominates = logical(landscape.LowCpEdgeDominates);
 row.BestLocalMinCp = landscape.BestLocalMinCp;
 row.BestLocalMinResidual = landscape.BestLocalMinResidual;
+row.BestModalLocalMinCp = landscape.BestModalLocalMinCp;
+row.BestModalLocalMinResidual = landscape.BestModalLocalMinResidual;
 row.NumLocalMinima = landscape.NumLocalMinima;
+row.NumModalLocalMinima = landscape.NumModalLocalMinima;
+row.ModalReferenceCp = landscape.ModalReferenceCp;
+row.ModalWindowMinCp = landscape.ModalWindowMinCp;
+row.ModalWindowMaxCp = landscape.ModalWindowMaxCp;
 row.IsApproximatelyMonotonic = logical(landscape.IsApproximatelyMonotonic);
 row.LeftEdgeResidual = landscape.LeftEdgeResidual;
 row.RightEdgeResidual = landscape.RightEdgeResidual;
@@ -326,6 +385,7 @@ for i = 1:numel(sampleIdx)
     row.Cp = CpScan(idx);
     row.Residual = residual(idx);
     row.IsGlobalMinimum = idx == landscape.GlobalMinIndex;
+    row.IsBestModalLocalMinimum = isfinite(landscape.BestModalLocalMinCp) && abs(CpScan(idx) - landscape.BestModalLocalMinCp) < 0.5*mean(diff(CpScan));
     rows = [rows; row]; %#ok<AGROW>
 end
 end
