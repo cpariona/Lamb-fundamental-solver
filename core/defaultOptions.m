@@ -59,6 +59,15 @@ options.mrlfeA0DPMaxJumpSoft = 0.30;
 options.mrlfeA0DPMissingPenalty = 20.0;
 options.mrlfeA0DPAllowMissing = true;
 
+% DP-specific validation gates. They are intentionally disabled by default
+% because the DP path cost already enforces modal continuity softly. Turning
+% these on is useful only for diagnostics, not for routine A0-like fitting.
+options.mrlfeA0DPValidationMaxRelativeKDrift = inf;
+options.mrlfeA0DPValidationMaxRelativeCpDrift = inf;
+options.mrlfeA0DPValidationMaxCpJumpRelative = inf;
+options.mrlfeA0DPValidationMaxCpPredictionError = inf;
+options.mrlfeA0DPValidationMinPointsForPrediction = 3;
+
 % Complex-k continuation and validation controls.
 options.mrlfeComplexMaxIter = 120;
 options.mrlfeComplexMaxFunEvals = 260;
