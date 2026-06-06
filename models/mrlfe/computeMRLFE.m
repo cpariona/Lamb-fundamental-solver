@@ -28,7 +28,14 @@ useA0DP = isfield(options, 'mrlfeA0UseDPTracker') && options.mrlfeA0UseDPTracker
 seedA0 = getSeedMode(seedModes, "A0");
 if ~isempty(seedA0)
     if useA0DP
-        mrlfeResults.branches.A0Like = solveMRLFEBranchDP("A0Like", seedA0, material, geometry, mrlfeParams, options);
+        % First compute the local/modal real-k branch.  The DP solver uses it
+        % only as an auxiliary candidate-scan guide, not as the final answer.
+        % This reproduces the successful prototype behavior where the scan
+        % range was built from both the Rayleigh-Lamb seed and the preliminary
+        % tracked branch.
+        preliminaryA0 = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, options);
+        mrlfeResults.branches.A0Like = solveMRLFEBranchDP("A0Like", seedA0, material, geometry, mrlfeParams, options, preliminaryA0);
+        mrlfeResults.branches.A0Like.preliminaryBranch = preliminaryA0;
     else
         mrlfeResults.branches.A0Like = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, options);
     end
