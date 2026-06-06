@@ -13,14 +13,26 @@ else
 end
 solveComplexK = isfield(mrlfeParams, 'solveComplexK') && mrlfeParams.solveComplexK;
 anchorToSeed = isfield(options, 'mrlfeRealKAnchorToSeed') && options.mrlfeRealKAnchorToSeed;
+stopAtFirstMissingModalMinimum = ~solveComplexK && ...
+    getOption(options, 'mrlfeRealKUseModalCpWindow', false) && ...
+    getOption(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', false);
 
 k = nan(size(frequency));
 residual = nan(size(frequency));
 score = nan(size(frequency));
 seedCp = omega ./ seedK;
+firstMissingModalMinimumIndex = nan;
 
 for i = 1:numel(frequency)
+    if stopAtFirstMissingModalMinimum && isfinite(firstMissingModalMinimumIndex)
+        break;
+    end
+
     if ~isfinite(seedK(i)) || seedK(i) <= 0
+        if stopAtFirstMissingModalMinimum
+            firstMissingModalMinimumIndex = i;
+            break;
+        end
         continue;
     end
 
@@ -39,8 +51,11 @@ for i = 1:numel(frequency)
         physicalReference.kImagPred = max(imag(kPred), 0);
         [k(i), residual(i), score(i)] = refineMRLFEComplexKRoot(kPred, omega(i), material, geometry, mrlfeParams, options, physicalReference);
     else
-        [k(i), residual(i)] = refineMRLFERealKRoot(real(kPred), omega(i), material, geometry, mrlfeParams, options);
-        score(i) = residual(i);
+        [k(i), residual(i), score(i)] = refineMRLFERealKRoot(real(kPred), omega(i), material, geometry, mrlfeParams, options);
+        if stopAtFirstMissingModalMinimum && (~isfinite(k(i)) || ~isfinite(residual(i)))
+            firstMissingModalMinimumIndex = i;
+            break;
+        end
     end
 end
 
@@ -73,8 +88,16 @@ branch.validSmooth = validSmooth;
 branch.validCp = validCp;
 branch.validAttenuation = validAttenuation;
 branch.valid = validCp;
+branch.firstMissingModalMinimumIndex = firstMissingModalMinimumIndex;
+if isfinite(firstMissingModalMinimumIndex)
+    branch.firstMissingModalMinimumFrequency = frequency(firstMissingModalMinimumIndex);
+else
+    branch.firstMissingModalMinimumFrequency = nan;
+end
 if solveComplexK
     branch.note = "mRLFE complex-k prototype seeded from real-k reference when available.";
+elseif stopAtFirstMissingModalMinimum
+    branch.note = "mRLFE real-k branch tracked with conservative modal-local Cp-window filtering.";
 elseif anchorToSeed
     branch.note = "mRLFE real-k branch anchored to seed reference.";
 else
