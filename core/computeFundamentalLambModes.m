@@ -131,20 +131,22 @@ elasticOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTol
 end
 
 function hanOptions = makeHanRealKOptions(options)
-% Han viscoelastic real-k is seeded from the elastic real-k result. It uses a
-% stricter modal score because viscosity can introduce strong competing
-% residual valleys at high frequency.
+% Han viscoelastic real-k is seeded from the elastic real-k result.  It uses a
+% conservative modal-local tracker because viscosity can introduce strong
+% competing residual valleys and low-Cp edge minima.
 hanOptions = options;
 hanOptions.mrlfeA0UseDPTracker = false;
 hanOptions.mrlfeRealKAnchorToSeed = true;
-hanOptions.mrlfeRealKHardReferenceWindow = true;
+hanOptions.mrlfeRealKHardReferenceWindow = false;
 hanOptions.mrlfeRealKScoreMode = "modal";
 hanOptions.mrlfeRealKRequireLocalMinimum = true;
+hanOptions.mrlfeRealKUseModalCpWindow = getOption(options, 'mrlfeHanUseModalLocalTracker', true);
+hanOptions.mrlfeRealKStopAtFirstMissingModalMinimum = getOption(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', true);
 hanOptions.mrlfeRealKReferenceWeight = 120.0;
 hanOptions.mrlfeRealKPredictionWeight = 6.0;
-hanOptions.mrlfeRealKMaxRelativeKDrift = 0.22;
-hanOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.30;
-hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.30;
+hanOptions.mrlfeRealKMaxRelativeKDrift = inf;
+hanOptions.mrlfeRealKValidationMaxRelativeKDrift = inf;
+hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = inf;
 hanOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
 end
 
