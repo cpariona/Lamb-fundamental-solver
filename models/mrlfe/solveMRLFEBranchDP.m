@@ -1,4 +1,4 @@
-function branch = solveMRLFEBranchDP(name, seedMode, material, geometry, mrlfeParams, options)
+function branch = solveMRLFEBranchDP(name, seedMode, material, geometry, mrlfeParams, options, guideBranch)
 % Track one real-k mRLFE branch using multiple local candidates and a global
 % dynamic-programming path selection.
 %
@@ -6,6 +6,15 @@ function branch = solveMRLFEBranchDP(name, seedMode, material, geometry, mrlfePa
 % It extracts several local residual minima at each frequency, then selects a
 % globally smooth branch. It avoids the pointwise branch switching observed
 % when only the lowest residual valley is selected.
+%
+% guideBranch is optional. When provided, it is used only to define a safer
+% Cp scan range. This reproduces the prototype behavior that used both the
+% Rayleigh-Lamb seed and a preliminary local/modal mRLFE branch to avoid
+% missing high-Cp A0-like candidate valleys.
+
+if nargin < 7
+    guideBranch = [];
+end
 
 frequency = seedMode.frequency(:);
 omega = seedMode.omega(:);
@@ -17,7 +26,7 @@ end
 seedCp = omega ./ seedK;
 
 tracker = buildTrackerOptions(options);
-[candidateCp, candidateResidual, candidateRank] = extractCandidates(seedMode, material, geometry, mrlfeParams, tracker);
+[candidateCp, candidateResidual, candidateRank] = extractCandidates(seedMode, guideBranch, material, geometry, mrlfeParams, tracker);
 path = trackCandidatesDP(candidateCp, candidateResidual, seedCp, tracker);
 
 Cp = path.Cp;
@@ -57,6 +66,7 @@ branch.candidateIndex = path.CandidateIndex;
 branch.candidateRank = getCandidateRanks(candidateRank, path.CandidateIndex);
 branch.dpPathCost = path.PathCost;
 branch.dpOptions = tracker;
+branch.usedGuideBranch = ~isempty(guideBranch);
 branch.note = "mRLFE real-k branch tracked with multicandidate dynamic programming.";
 end
 
@@ -79,7 +89,7 @@ tracker.missingPenalty = getOption(options, 'mrlfeA0DPMissingPenalty', 20.0);
 tracker.allowMissing = getOption(options, 'mrlfeA0DPAllowMissing', true);
 end
 
-function [candidateCp, candidateResidual, candidateRank] = extractCandidates(seedMode, material, geometry, mrlfeParams, tracker)
+function [candidateCp, candidateResidual, candidateRank] = extractCandidates(seedMode, guideBranch, material, geometry, mrlfeParams, tracker)
 frequency = seedMode.frequency(:);
 omega = seedMode.omega(:);
 seedCp = seedMode.Cp(:);
@@ -89,12 +99,25 @@ candidateResidual = nan(tracker.maxCandidates, numel(frequency));
 candidateRank = nan(tracker.maxCandidates, numel(frequency));
 
 validSeed = isfinite(seedCp) & seedCp > 0;
-if isempty(seedCp) || ~any(validSeed)
+validCpPool = seedCp(validSeed);
+if ~isempty(guideBranch) && isfield(guideBranch, 'Cp')
+    guideCp = guideBranch.Cp(:);
+    if isfield(guideBranch, 'validCp')
+        validGuide = guideBranch.validCp(:) & isfinite(guideCp) & guideCp > 0;
+    elseif isfield(guideBranch, 'valid')
+        validGuide = guideBranch.valid(:) & isfinite(guideCp) & guideCp > 0;
+    else
+        validGuide = isfinite(guideCp) & guideCp > 0;
+    end
+    validCpPool = [validCpPool; guideCp(validGuide)]; %#ok<AGROW>
+end
+
+if isempty(validCpPool)
     cpGlobalMin = tracker.cpMinFloor;
     cpGlobalMax = tracker.cpMaxCeiling;
 else
-    cpGlobalMin = max(tracker.cpMinFloor, min(seedCp(validSeed)) * tracker.cpMinFactor);
-    cpGlobalMax = min(tracker.cpMaxCeiling, max(seedCp(validSeed)) * tracker.cpMaxFactor);
+    cpGlobalMin = max(tracker.cpMinFloor, min(validCpPool) * tracker.cpMinFactor);
+    cpGlobalMax = min(tracker.cpMaxCeiling, max(validCpPool) * tracker.cpMaxFactor);
 end
 if cpGlobalMax <= cpGlobalMin
     cpGlobalMax = cpGlobalMin + 10;
