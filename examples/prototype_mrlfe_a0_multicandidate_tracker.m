@@ -22,7 +22,8 @@
 
 startup();
 
-EValues = [50e3, 75e3, 100e3, 150e3, 225e3]; % [Pa]
+EValues = [50e3, 75e3, 100e3, 150e3, 225e3, 300e3, 400e3, 500e3, ...
+           750e3, 1000e3, 1500e3]; % [Pa]
 
 paramsBase = defaultParams();
 paramsBase.fmin = 500;
@@ -107,9 +108,11 @@ for iE = 1:numel(EValues)
     pathRows = buildPathRows(params, material, frequency, seedBranch, currentBranch, candidateCp, candidateResidual, candidateRank, bestResidualPath, dpPath, tracker.largeJumpThreshold);
     allPathRows = [allPathRows; pathRows]; %#ok<AGROW>
 
-    summaryRows = [summaryRows; summarizePath(params, material, "CurrentSolver", frequency, currentBranch.Cp(:), currentBranch.residual(:), getValidCp(currentBranch), tracker.largeJumpThreshold)]; %#ok<AGROW>
-    summaryRows = [summaryRows; summarizePath(params, material, "BestResidual", frequency, bestResidualPath.Cp, bestResidualPath.Residual, isfinite(bestResidualPath.Cp), tracker.largeJumpThreshold)]; %#ok<AGROW>
-    summaryRows = [summaryRows; summarizePath(params, material, "DPMulticandidate", frequency, dpPath.Cp, dpPath.Residual, isfinite(dpPath.Cp), tracker.largeJumpThreshold)]; %#ok<AGROW>
+    currentCp = currentBranch.Cp(:);
+    currentValid = getValidCp(currentBranch);
+    summaryRows = [summaryRows; summarizePath(params, material, "CurrentSolver", frequency, currentCp, currentBranch.residual(:), currentValid, tracker.largeJumpThreshold, currentCp, currentValid)]; %#ok<AGROW>
+    summaryRows = [summaryRows; summarizePath(params, material, "BestResidual", frequency, bestResidualPath.Cp, bestResidualPath.Residual, isfinite(bestResidualPath.Cp), tracker.largeJumpThreshold, currentCp, currentValid)]; %#ok<AGROW>
+    summaryRows = [summaryRows; summarizePath(params, material, "DPMulticandidate", frequency, dpPath.Cp, dpPath.Residual, isfinite(dpPath.Cp), tracker.largeJumpThreshold, currentCp, currentValid)]; %#ok<AGROW>
 
     printCaseSummary(params, frequency, currentBranch, bestResidualPath, dpPath, tracker.largeJumpThreshold);
 
@@ -144,7 +147,7 @@ assignin('base', 'mRLFE_A0MulticandidateTrackerOptions', tracker);
 
 fprintf('\nA0 multimodal candidate summary\n');
 fprintf('-------------------------------\n');
-disp(mRLFE_A0MulticandidateSummary(:, {'PathName','E_kPa','ValidPoints','TotalPoints','SafeFmax_Hz','MaxRelativeCpJump','FirstLargeJumpRelative','MaxResidual'}));
+disp(mRLFE_A0MulticandidateSummary(:, {'PathName','E_kPa','ValidPoints','TotalPoints','SafeFmax_Hz','MaxRelativeCpJump','FirstLargeJumpRelative','MaxRelativeDifferenceVsCurrent','MeanRelativeDifferenceVsCurrent','MaxResidual'}));
 
 fprintf('\nWrote:\n');
 fprintf('  mRLFE_A0_multicandidate_path_table.csv\n');
@@ -259,14 +262,12 @@ for j = 2:numFreq
             if ~tracker.allowMissing
                 continue;
             end
-            cpNow = nan;
             unary = tracker.missingPenalty;
         else
-            cpNow = candidateCp(c,j);
-            if ~isfinite(cpNow)
+            if ~isfinite(candidateCp(c,j))
                 continue;
             end
-            unary = unaryCost(cpNow, candidateResidual(c,j), seedCp(j), tracker);
+            unary = unaryCost(candidateCp(c,j), candidateResidual(c,j), seedCp(j), tracker);
         end
 
         bestCost = inf;
@@ -342,12 +343,8 @@ if jump > tracker.maxJumpSoft
 end
 
 if j >= 3
-    % Add a light curvature penalty when the previous path has a finite
-    % candidate at j-2. This is local and approximate, but helps discourage
-    % zig-zag paths without making the prototype too complex.
     cpPrev2 = nan;
     if p <= size(candidateCp,1)
-        % choose the nearest finite candidate at j-2 to cpPrev as proxy
         prevCandidates = candidateCp(:,j-2);
         valid = isfinite(prevCandidates);
         if any(valid)
@@ -413,7 +410,7 @@ row.Residual = residual;
 row.RelativeSeedDistance = abs(cp - seedCp) / max(abs(seedCp), eps);
 end
 
-function row = summarizePath(params, material, pathName, frequency, cp, residual, valid, largeJumpThreshold)
+function row = summarizePath(params, material, pathName, frequency, cp, residual, valid, largeJumpThreshold, currentCp, currentValid)
 valid = valid(:) & isfinite(cp(:));
 row = struct();
 row.PathName = string(pathName);
@@ -433,6 +430,9 @@ row.MaxRelativeCpJump = nan;
 row.FirstLargeJumpRelative = nan;
 row.FrequencyBeforeFirstLargeJump_Hz = nan;
 row.FrequencyAfterFirstLargeJump_Hz = nan;
+row.MaxRelativeDifferenceVsCurrent = nan;
+row.MeanRelativeDifferenceVsCurrent = nan;
+row.CommonValidPointsVsCurrent = 0;
 if any(valid)
     fValid = frequency(valid);
     cpValid = cp(valid);
@@ -450,6 +450,15 @@ if any(valid)
     row.FrequencyBeforeFirstLargeJump_Hz = jumpInfo.FrequencyBeforeFirstLargeJump_Hz;
     row.FrequencyAfterFirstLargeJump_Hz = jumpInfo.FrequencyAfterFirstLargeJump_Hz;
     row.SafeFmax_Hz = jumpInfo.SafeFmax_Hz;
+end
+if nargin >= 9
+    diffMask = valid(:) & currentValid(:) & isfinite(cp(:)) & isfinite(currentCp(:)) & abs(currentCp(:)) > eps;
+    row.CommonValidPointsVsCurrent = sum(diffMask);
+    if any(diffMask)
+        relDiff = abs(cp(diffMask) - currentCp(diffMask)) ./ abs(currentCp(diffMask));
+        row.MaxRelativeDifferenceVsCurrent = max(relDiff);
+        row.MeanRelativeDifferenceVsCurrent = mean(relDiff);
+    end
 end
 end
 
@@ -484,15 +493,18 @@ end
 end
 
 function printCaseSummary(params, frequency, currentBranch, bestResidualPath, dpPath, largeJumpThreshold)
-currentSummary = summarizePath(params, computeMaterial(params), "CurrentSolver", frequency, currentBranch.Cp(:), currentBranch.residual(:), getValidCp(currentBranch), largeJumpThreshold);
-bestSummary = summarizePath(params, computeMaterial(params), "BestResidual", frequency, bestResidualPath.Cp, bestResidualPath.Residual, isfinite(bestResidualPath.Cp), largeJumpThreshold);
-dpSummary = summarizePath(params, computeMaterial(params), "DPMulticandidate", frequency, dpPath.Cp, dpPath.Residual, isfinite(dpPath.Cp), largeJumpThreshold);
+material = computeMaterial(params);
+currentCp = currentBranch.Cp(:);
+currentValid = getValidCp(currentBranch);
+currentSummary = summarizePath(params, material, "CurrentSolver", frequency, currentCp, currentBranch.residual(:), currentValid, largeJumpThreshold, currentCp, currentValid);
+bestSummary = summarizePath(params, material, "BestResidual", frequency, bestResidualPath.Cp, bestResidualPath.Residual, isfinite(bestResidualPath.Cp), largeJumpThreshold, currentCp, currentValid);
+dpSummary = summarizePath(params, material, "DPMulticandidate", frequency, dpPath.Cp, dpPath.Residual, isfinite(dpPath.Cp), largeJumpThreshold, currentCp, currentValid);
 fprintf('  Current solver: valid %d/%d, safe fmax %.6g Hz, max jump %.3g\n', ...
     currentSummary.ValidPoints, currentSummary.TotalPoints, currentSummary.SafeFmax_Hz, currentSummary.MaxRelativeCpJump);
-fprintf('  Best residual:  valid %d/%d, safe fmax %.6g Hz, max jump %.3g\n', ...
-    bestSummary.ValidPoints, bestSummary.TotalPoints, bestSummary.SafeFmax_Hz, bestSummary.MaxRelativeCpJump);
-fprintf('  DP multimodal:  valid %d/%d, safe fmax %.6g Hz, max jump %.3g\n', ...
-    dpSummary.ValidPoints, dpSummary.TotalPoints, dpSummary.SafeFmax_Hz, dpSummary.MaxRelativeCpJump);
+fprintf('  Best residual:  valid %d/%d, safe fmax %.6g Hz, max jump %.3g, max diff vs current %.3g\n', ...
+    bestSummary.ValidPoints, bestSummary.TotalPoints, bestSummary.SafeFmax_Hz, bestSummary.MaxRelativeCpJump, bestSummary.MaxRelativeDifferenceVsCurrent);
+fprintf('  DP multimodal:  valid %d/%d, safe fmax %.6g Hz, max jump %.3g, max diff vs current %.3g\n', ...
+    dpSummary.ValidPoints, dpSummary.TotalPoints, dpSummary.SafeFmax_Hz, dpSummary.MaxRelativeCpJump, dpSummary.MaxRelativeDifferenceVsCurrent);
 end
 
 function value = getValue(x, idx)
