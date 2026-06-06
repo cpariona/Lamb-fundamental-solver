@@ -29,6 +29,10 @@ options.mrlfeSearchFactors = [0.80, 1.25; 0.60, 1.60; 0.35, 2.50];
 
 % Real-k mRLFE continuation and validation controls.
 options.mrlfeRealKReferenceWeight = 0.75;
+options.mrlfeRealKPredictionWeight = 0.0;
+options.mrlfeRealKResidualFloor = 1e-14;
+options.mrlfeRealKScoreMode = "residual"; % "residual" or "modal"
+options.mrlfeRealKRequireLocalMinimum = false;
 options.mrlfeRealKMaxRelativeKDrift = inf;
 options.mrlfeRealKHardReferenceWindow = false;
 options.mrlfeRealKValidationMaxRelativeKDrift = inf;
