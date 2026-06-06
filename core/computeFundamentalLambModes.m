@@ -58,7 +58,9 @@ if computeElasticRealK || computeHanViscoRealK
     mrlfeParams.etaS = 0;
     mrlfeParams.etaL = 0;
     mrlfeParams.useComplexLambda = false;
-    elasticResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+
+    elasticOptions = makeElasticRealKOptions(options);
+    elasticResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, elasticOptions);
     if computeElasticRealK
         results.models.mRLFEElasticRealK = elasticResult;
         results.models.mRLFERealK = results.models.mRLFEElasticRealK;
@@ -71,18 +73,7 @@ if computeHanViscoRealK
     mrlfeParams.etaL = 0;
     mrlfeParams.useComplexLambda = false;
 
-    hanOptions = options;
-    hanOptions.mrlfeRealKAnchorToSeed = true;
-    hanOptions.mrlfeRealKHardReferenceWindow = true;
-    hanOptions.mrlfeRealKScoreMode = "modal";
-    hanOptions.mrlfeRealKRequireLocalMinimum = true;
-    hanOptions.mrlfeRealKReferenceWeight = 120.0;
-    hanOptions.mrlfeRealKPredictionWeight = 6.0;
-    hanOptions.mrlfeRealKMaxRelativeKDrift = 0.22;
-    hanOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.30;
-    hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.30;
-    hanOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
-
+    hanOptions = makeHanRealKOptions(options);
     results.models.mRLFEHanViscoRealK = computeMRLFE(frequency, material, results.geometry, elasticResult.branches, mrlfeParams, hanOptions);
 end
 
@@ -94,7 +85,7 @@ if realKNeededForComplexSeed
     mrlfeParams.solveComplexK = false;
     mrlfeParams.etaL = 0;
     mrlfeParams.useComplexLambda = false;
-    realKResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, options);
+    realKResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, makeElasticRealKOptions(options));
     mrlfeParams.solveComplexK = true;
     results.models.mRLFEComplexK = computeMRLFE(frequency, material, results.geometry, realKResult.branches, mrlfeParams, options);
 end
@@ -118,6 +109,40 @@ if isfield(options, 'mrlfeParams')
         mrlfeParams.(names{i}) = userParams.(names{i});
     end
 end
+end
+
+function elasticOptions = makeElasticRealKOptions(options)
+% Elastic fluid-loaded mRLFE is seeded from Rayleigh-Lamb A0/S0.  Modal
+% scoring prevents low-stiffness branches from switching to another residual
+% valley merely because it has a smaller singular-value residual.
+elasticOptions = options;
+elasticOptions.mrlfeRealKAnchorToSeed = true;
+elasticOptions.mrlfeRealKHardReferenceWindow = true;
+elasticOptions.mrlfeRealKScoreMode = "modal";
+elasticOptions.mrlfeRealKRequireLocalMinimum = true;
+elasticOptions.mrlfeRealKReferenceWeight = 80.0;
+elasticOptions.mrlfeRealKPredictionWeight = 4.0;
+elasticOptions.mrlfeRealKMaxRelativeKDrift = 0.30;
+elasticOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.35;
+elasticOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.35;
+elasticOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
+end
+
+function hanOptions = makeHanRealKOptions(options)
+% Han viscoelastic real-k is seeded from the elastic real-k result. It uses a
+% stricter modal score because viscosity can introduce strong competing
+% residual valleys at high frequency.
+hanOptions = options;
+hanOptions.mrlfeRealKAnchorToSeed = true;
+hanOptions.mrlfeRealKHardReferenceWindow = true;
+hanOptions.mrlfeRealKScoreMode = "modal";
+hanOptions.mrlfeRealKRequireLocalMinimum = true;
+hanOptions.mrlfeRealKReferenceWeight = 120.0;
+hanOptions.mrlfeRealKPredictionWeight = 6.0;
+hanOptions.mrlfeRealKMaxRelativeKDrift = 0.22;
+hanOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.30;
+hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.30;
+hanOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
 end
 
 function solverOptions = buildSolverOptions(options, material)
