@@ -41,6 +41,24 @@ options.mrlfeRealKMaxCpJumpRelative = 0.22;
 options.mrlfeRealKMaxCpPredictionError = 0.18;
 options.mrlfeRealKMinPointsForPrediction = 3;
 
+% Multicandidate dynamic-programming tracker for elastic A0-like mRLFE.
+% This is intended to suppress branch switching in soft A0-like cases.
+options.mrlfeA0UseDPTracker = false;
+options.mrlfeA0DPCandidates = 8;
+options.mrlfeA0DPCpScanPoints = 2200;
+options.mrlfeA0DPEdgeGuardPoints = 8;
+options.mrlfeA0DPCpMinFactor = 0.25;
+options.mrlfeA0DPCpMaxFactor = 2.20;
+options.mrlfeA0DPCpMinFloor = 0.25;
+options.mrlfeA0DPCpMaxCeiling = 80;
+options.mrlfeA0DPResidualWeight = 0.35;
+options.mrlfeA0DPJumpWeight = 18.0;
+options.mrlfeA0DPCurvatureWeight = 12.0;
+options.mrlfeA0DPSeedWeight = 0.20;
+options.mrlfeA0DPMaxJumpSoft = 0.30;
+options.mrlfeA0DPMissingPenalty = 20.0;
+options.mrlfeA0DPAllowMissing = true;
+
 % Complex-k continuation and validation controls.
 options.mrlfeComplexMaxIter = 120;
 options.mrlfeComplexMaxFunEvals = 260;
