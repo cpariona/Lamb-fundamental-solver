@@ -27,23 +27,25 @@ useA0DP = isfield(options, 'mrlfeA0UseDPTracker') && options.mrlfeA0UseDPTracker
 
 seedA0 = getSeedMode(seedModes, "A0");
 if ~isempty(seedA0)
+    branchOptions = applyBranchSpecificOptions("A0Like", options);
     if useA0DP
         % First compute the local/modal real-k branch.  The DP solver uses it
         % only as an auxiliary candidate-scan guide, not as the final answer.
         % This reproduces the successful prototype behavior where the scan
         % range was built from both the Rayleigh-Lamb seed and the preliminary
         % tracked branch.
-        preliminaryA0 = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, options);
-        mrlfeResults.branches.A0Like = solveMRLFEBranchDP("A0Like", seedA0, material, geometry, mrlfeParams, options, preliminaryA0);
+        preliminaryA0 = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, branchOptions);
+        mrlfeResults.branches.A0Like = solveMRLFEBranchDP("A0Like", seedA0, material, geometry, mrlfeParams, branchOptions, preliminaryA0);
         mrlfeResults.branches.A0Like.preliminaryBranch = preliminaryA0;
     else
-        mrlfeResults.branches.A0Like = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, options);
+        mrlfeResults.branches.A0Like = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, branchOptions);
     end
 end
 
 seedS0 = getSeedMode(seedModes, "S0");
 if ~isempty(seedS0)
-    mrlfeResults.branches.S0Like = solveMRLFEBranch("S0Like", seedS0, material, geometry, mrlfeParams, options);
+    branchOptions = applyBranchSpecificOptions("S0Like", options);
+    mrlfeResults.branches.S0Like = solveMRLFEBranch("S0Like", seedS0, material, geometry, mrlfeParams, branchOptions);
 end
 
 mrlfeResults.diagnostics = buildMRLFEDiagnostics(mrlfeResults, toc(timerStart));
@@ -64,6 +66,27 @@ switch string(familyName)
         elseif isfield(seedModes, 'S0')
             seedMode = seedModes.S0;
         end
+end
+end
+
+function branchOptions = applyBranchSpecificOptions(branchName, options)
+branchOptions = options;
+if ~(isfield(options, 'mrlfeRealKUseModalCpWindow') && options.mrlfeRealKUseModalCpWindow)
+    return;
+end
+
+switch string(branchName)
+    case "S0Like"
+        window = getOption(options, 'mrlfeHanS0ModalCpWindow', [0.70, 1.40]);
+    otherwise
+        window = getOption(options, 'mrlfeHanA0ModalCpWindow', [0.35, 2.50]);
+end
+
+if isnumeric(window) && numel(window) == 2 && all(isfinite(window)) && all(window > 0) && window(2) > window(1)
+    branchOptions.mrlfeRealKModalCpLowerFactor = window(1);
+    branchOptions.mrlfeRealKModalCpUpperFactor = window(2);
+else
+    error('Invalid Han modal Cp window for %s. Expected [lower, upper] with 0 < lower < upper.', branchName);
 end
 end
 
@@ -144,5 +167,13 @@ if numel(x) < 2
     value = 0;
 else
     value = max(abs(diff(x)) ./ max(abs(x(1:end-1)), eps));
+end
+end
+
+function value = getOption(options, fieldName, defaultValue)
+if isfield(options, fieldName)
+    value = options.(fieldName);
+else
+    value = defaultValue;
 end
 end
