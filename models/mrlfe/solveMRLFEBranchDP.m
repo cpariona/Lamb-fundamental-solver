@@ -266,8 +266,13 @@ end
 function [validResidual, validReference, validSmooth, validCp] = computeRealKValidity(Cp, kReal, residual, seedCp, seedK, options)
 base = isfinite(kReal) & kReal > 0 & isfinite(Cp) & isfinite(residual);
 cpResidualTol = getOption(options, 'mrlfeResidualTolerance', 1e-4);
-maxRelK = getOption(options, 'mrlfeRealKValidationMaxRelativeKDrift', inf);
-maxRelCp = getOption(options, 'mrlfeRealKValidationMaxRelativeCpDrift', inf);
+
+% DP already uses the seed branch as a soft path-cost term.  A hard seed
+% distance gate can falsely invalidate a smooth, continuous A0-like path in
+% soft-material cases and reintroduce apparent jumps through NaN gaps.
+maxRelK = getOption(options, 'mrlfeA0DPValidationMaxRelativeKDrift', inf);
+maxRelCp = getOption(options, 'mrlfeA0DPValidationMaxRelativeCpDrift', inf);
+
 relK = abs(kReal - seedK) ./ max(seedK, eps);
 relCp = abs(Cp - seedCp) ./ max(seedCp, eps);
 validResidual = base & residual <= cpResidualTol;
