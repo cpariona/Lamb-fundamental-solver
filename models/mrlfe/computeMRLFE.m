@@ -23,9 +23,15 @@ end
 mrlfeResults.parameters = mrlfeParams;
 mrlfeResults.branches = struct();
 
+useA0DP = isfield(options, 'mrlfeA0UseDPTracker') && options.mrlfeA0UseDPTracker && ~solveComplexK;
+
 seedA0 = getSeedMode(seedModes, "A0");
 if ~isempty(seedA0)
-    mrlfeResults.branches.A0Like = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, options);
+    if useA0DP
+        mrlfeResults.branches.A0Like = solveMRLFEBranchDP("A0Like", seedA0, material, geometry, mrlfeParams, options);
+    else
+        mrlfeResults.branches.A0Like = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, options);
+    end
 end
 
 seedS0 = getSeedMode(seedModes, "S0");
