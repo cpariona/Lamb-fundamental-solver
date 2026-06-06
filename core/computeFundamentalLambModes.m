@@ -74,10 +74,13 @@ if computeHanViscoRealK
     hanOptions = options;
     hanOptions.mrlfeRealKAnchorToSeed = true;
     hanOptions.mrlfeRealKHardReferenceWindow = true;
-    hanOptions.mrlfeRealKReferenceWeight = 25.0;
-    hanOptions.mrlfeRealKMaxRelativeKDrift = 0.35;
-    hanOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.40;
-    hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.40;
+    hanOptions.mrlfeRealKScoreMode = "modal";
+    hanOptions.mrlfeRealKRequireLocalMinimum = true;
+    hanOptions.mrlfeRealKReferenceWeight = 120.0;
+    hanOptions.mrlfeRealKPredictionWeight = 6.0;
+    hanOptions.mrlfeRealKMaxRelativeKDrift = 0.22;
+    hanOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.30;
+    hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.30;
     hanOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
 
     results.models.mRLFEHanViscoRealK = computeMRLFE(frequency, material, results.geometry, elasticResult.branches, mrlfeParams, hanOptions);
