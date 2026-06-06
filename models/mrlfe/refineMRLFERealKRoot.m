@@ -1,17 +1,31 @@
-function [bestK, bestResidual] = refineMRLFERealKRoot(kSeed, omega, material, geometry, mrlfeParams, options)
+function [bestK, bestResidual, bestScore] = refineMRLFERealKRoot(kSeed, omega, material, geometry, mrlfeParams, options)
 % Refine a real-k mRLFE root candidate around a predicted/reference wavenumber.
 %
-% For elastic real-k solves the default behavior remains broad and residual
-% driven. For Han viscoelastic real-k solves, options can enforce a local
-% branch window around the elastic reference to avoid switching to lower-Cp
-% residual minima that belong to another family.
+% The raw residual is sigma_min(M)/sigma_max(M). Candidate selection can be
+% residual-driven or modal-tracking driven. Modal scoring penalizes distance
+% from the seed/predicted branch so the solver does not automatically switch
+% to a lower-residual valley that belongs to another modal family.
 
 searchFactors = getFieldOrDefault(options, 'mrlfeSearchFactors', [0.80 1.25; 0.60 1.60; 0.35 2.50]);
 gridPoints = getFieldOrDefault(options, 'mrlfeGridPoints', 500);
 resTol = getFieldOrDefault(options, 'mrlfeResidualTolerance', 1e-4);
 referenceWeight = getFieldOrDefault(options, 'mrlfeRealKReferenceWeight', 0.75);
+predictionWeight = getFieldOrDefault(options, 'mrlfeRealKPredictionWeight', 0.0);
+residualFloor = getFieldOrDefault(options, 'mrlfeRealKResidualFloor', 1e-14);
+scoreMode = lower(string(getFieldOrDefault(options, 'mrlfeRealKScoreMode', "residual")));
+requireLocalMinimum = getFieldOrDefault(options, 'mrlfeRealKRequireLocalMinimum', false);
 maxRelativeDrift = getFieldOrDefault(options, 'mrlfeRealKMaxRelativeKDrift', inf);
 hardWindow = getFieldOrDefault(options, 'mrlfeRealKHardReferenceWindow', false);
+
+if ~isfinite(predictionWeight)
+    predictionWeight = 0;
+end
+if ~isfinite(referenceWeight)
+    referenceWeight = 0;
+end
+if ~isfinite(residualFloor) || residualFloor <= 0
+    residualFloor = 1e-14;
+end
 
 bestK = nan;
 bestResidual = inf;
@@ -42,7 +56,7 @@ for s = 1:size(searchFactors, 1)
         continue;
     end
 
-    candidates = findLocalMinima(rGrid);
+    candidates = findLocalMinima(rGrid, requireLocalMinimum);
     for idx = candidates(:).'
         kLeft = kGrid(max(1, idx-2));
         kRight = kGrid(min(numel(kGrid), idx+2));
@@ -53,11 +67,14 @@ for s = 1:size(searchFactors, 1)
         try
             kCandidate = fminbnd(obj, kLeft, kRight);
             rCandidate = obj(kCandidate);
+            if ~isfinite(rCandidate)
+                continue;
+            end
             relSeed = abs(kCandidate - kSeed) / max(kSeed, eps);
             if isfinite(maxRelativeDrift) && relSeed > maxRelativeDrift
                 continue;
             end
-            score = rCandidate * (1 + referenceWeight * relSeed.^2);
+            score = computeScore(rCandidate, relSeed, referenceWeight, predictionWeight, residualFloor, scoreMode);
             if score < bestScore
                 bestK = kCandidate;
                 bestResidual = rCandidate;
@@ -67,7 +84,7 @@ for s = 1:size(searchFactors, 1)
         end
     end
 
-    if isfinite(bestResidual) && bestResidual < resTol
+    if isfinite(bestResidual) && bestResidual < resTol && scoreMode == "residual"
         break;
     end
 end
@@ -75,10 +92,22 @@ end
 if isnan(bestK)
     bestK = kSeed;
     bestResidual = mrlfeResidual(bestK, omega, material, geometry, mrlfeParams);
+    relSeed = 0;
+    bestScore = computeScore(bestResidual, relSeed, referenceWeight, predictionWeight, residualFloor, scoreMode);
 end
 end
 
-function idx = findLocalMinima(y)
+function score = computeScore(residual, relSeed, referenceWeight, predictionWeight, residualFloor, scoreMode)
+penalty = referenceWeight * relSeed.^2 + predictionWeight * relSeed;
+switch scoreMode
+    case "modal"
+        score = log10(max(residual, residualFloor)) + penalty;
+    otherwise
+        score = residual * (1 + penalty);
+end
+end
+
+function idx = findLocalMinima(y, requireLocalMinimum)
 idx = [];
 if numel(y) < 3
     return;
@@ -88,7 +117,7 @@ for i = 2:numel(y)-1
         idx(end+1) = i; %#ok<AGROW>
     end
 end
-if isempty(idx)
+if isempty(idx) && ~requireLocalMinimum
     [~, idx] = min(y);
 end
 end
