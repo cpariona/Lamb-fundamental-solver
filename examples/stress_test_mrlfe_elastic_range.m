@@ -8,11 +8,14 @@
 %   - E is swept directly because the GUI/material input is E, nu, rho.
 %   - For nearly incompressible materials, mu ~= E/(2*(1+nu)) ~= E/3.
 %   - The upper bound 1500 kPa is included as an extended diagnostic range.
+%   - SafeFmax_Hz is defined as the frequency before the first valid Cp jump
+%     exceeding largeJumpThreshold.
 
 startup();
 
 EValues = [50e3, 75e3, 100e3, 150e3, 225e3, 300e3, 400e3, 500e3, ...
            750e3, 1000e3, 1500e3]; % [Pa]
+largeJumpThreshold = 0.15;
 
 paramsBase = defaultParams();
 paramsBase.fmin = 500;
@@ -38,6 +41,7 @@ fprintf('-----------------------------------\n');
 fprintf('Frequency range: %.0f to %.0f Hz\n', paramsBase.fmin, paramsBase.fmax);
 fprintf('Thickness: %.4g mm\n', paramsBase.thickness*1e3);
 fprintf('E values: %.3g to %.3g kPa (%d cases)\n', min(EValues)/1e3, max(EValues)/1e3, numel(EValues));
+fprintf('Large-jump threshold for safe fmax: %.3g\n', largeJumpThreshold);
 
 for iE = 1:numel(EValues)
     params = paramsBase;
@@ -51,8 +55,8 @@ for iE = 1:numel(EValues)
         results = computeFundamentalLambModes(params, optionsBase);
         resultsByE{iE} = results;
         branches = results.models.mRLFEElasticRealK.branches;
-        rowA0 = printBranchSummary(branches, 'A0Like', params, material);
-        rowS0 = printBranchSummary(branches, 'S0Like', params, material);
+        rowA0 = printBranchSummary(branches, 'A0Like', params, material, largeJumpThreshold);
+        rowS0 = printBranchSummary(branches, 'S0Like', params, material, largeJumpThreshold);
         summaryRows = [summaryRows; rowA0; rowS0]; %#ok<AGROW>
     catch ME
         fprintf('  ERROR: %s\n', ME.message);
@@ -71,11 +75,12 @@ writetable(mRLFEElasticRangeStabilitySummary, 'mRLFE_elastic_range_stability_sum
 assignin('base', 'mRLFEElasticRangeStabilityResults', resultsByE);
 assignin('base', 'mRLFEElasticRangeStabilitySummary', mRLFEElasticRangeStabilitySummary);
 assignin('base', 'mRLFEElasticRangeStabilityEValues', EValues);
+assignin('base', 'mRLFEElasticRangeStabilityLargeJumpThreshold', largeJumpThreshold);
 
 fprintf('\nElastic range stability summary\n');
 fprintf('-------------------------------\n');
 if ~isempty(mRLFEElasticRangeStabilitySummary)
-    disp(mRLFEElasticRangeStabilitySummary(:, {'Branch','E_kPa','Mu_kPa','ValidPoints','TotalPoints','ValidFmax_Hz','MaxResidual','MaxRelativeCpJump','HasWarning'}));
+    disp(mRLFEElasticRangeStabilitySummary(:, {'Branch','E_kPa','Mu_kPa','ValidPoints','TotalPoints','ValidFmax_Hz','SafeFmax_Hz','MaxResidual','MaxRelativeCpJump','FirstLargeJumpRelative','HasWarning'}));
 end
 fprintf('\nWrote mRLFE_elastic_range_stability_summary.csv\n');
 
@@ -114,8 +119,9 @@ title('mRLFE elastic real-k S0-like stability sweep');
 legend('Location', 'best');
 hold off;
 
-function row = printBranchSummary(branches, branchName, params, material)
+function row = printBranchSummary(branches, branchName, params, material, largeJumpThreshold)
 row = makeEmptyRow(branchName, params, material);
+row.LargeJumpThreshold = largeJumpThreshold;
 if ~isfield(branches, branchName)
     row.HasWarning = true;
     row.WarningText = "branch not available";
@@ -138,11 +144,29 @@ if any(valid)
     row.ValidFmax_Hz = max(fValid);
     row.FirstValidFrequency_Hz = fValid(1);
     row.LastValidFrequency_Hz = fValid(end);
-    row.MaxRelativeCpJump = maxRelativeJump(cpValid);
+    jumpInfo = computeJumpDiagnostics(branch, valid, largeJumpThreshold);
+    row.MaxRelativeCpJump = jumpInfo.MaxRelativeCpJump;
+    row.FrequencyBeforeMaxJump_Hz = jumpInfo.FrequencyBeforeMaxJump_Hz;
+    row.FrequencyAfterMaxJump_Hz = jumpInfo.FrequencyAfterMaxJump_Hz;
+    row.CpBeforeMaxJump = jumpInfo.CpBeforeMaxJump;
+    row.CpAfterMaxJump = jumpInfo.CpAfterMaxJump;
+    row.FirstLargeJumpRelative = jumpInfo.FirstLargeJumpRelative;
+    row.FrequencyBeforeFirstLargeJump_Hz = jumpInfo.FrequencyBeforeFirstLargeJump_Hz;
+    row.FrequencyAfterFirstLargeJump_Hz = jumpInfo.FrequencyAfterFirstLargeJump_Hz;
+    row.CpBeforeFirstLargeJump = jumpInfo.CpBeforeFirstLargeJump;
+    row.CpAfterFirstLargeJump = jumpInfo.CpAfterFirstLargeJump;
+    row.SafeFmax_Hz = jumpInfo.SafeFmax_Hz;
     fprintf('  %s Cp: %.6g to %.6g m/s\n', branchName, row.MinCp, row.MaxCp);
     fprintf('  %s valid frequency range: %.6g to %.6g Hz; last valid %.6g Hz\n', ...
         branchName, row.ValidFmin_Hz, row.ValidFmax_Hz, row.LastValidFrequency_Hz);
     fprintf('  %s max relative Cp jump: %.3g\n', branchName, row.MaxRelativeCpJump);
+    if isfinite(row.FirstLargeJumpRelative)
+        fprintf('  %s first jump > %.3g: %.3g at %.6g -> %.6g Hz; safe fmax %.6g Hz\n', ...
+            branchName, largeJumpThreshold, row.FirstLargeJumpRelative, ...
+            row.FrequencyBeforeFirstLargeJump_Hz, row.FrequencyAfterFirstLargeJump_Hz, row.SafeFmax_Hz);
+    else
+        fprintf('  %s safe fmax by jump threshold: %.6g Hz\n', branchName, row.SafeFmax_Hz);
+    end
 else
     row.HasWarning = true;
     row.WarningText = "no valid Cp points";
@@ -163,6 +187,9 @@ if isfinite(row.ValidFmax_Hz) && row.ValidFmax_Hz < params.fmax
 end
 if isfinite(row.MaxRelativeCpJump) && row.MaxRelativeCpJump > 0.20
     warnings(end+1) = "max Cp jump > 20%"; %#ok<AGROW>
+end
+if isfinite(row.FirstLargeJumpRelative)
+    warnings(end+1) = "contains jump above safe threshold"; %#ok<AGROW>
 end
 if isfinite(row.MaxResidual) && row.MaxResidual > 1e-3
     warnings(end+1) = "max residual > 1e-3"; %#ok<AGROW>
@@ -196,13 +223,72 @@ row.ValidFmin_Hz = nan;
 row.ValidFmax_Hz = nan;
 row.FirstValidFrequency_Hz = nan;
 row.LastValidFrequency_Hz = nan;
+row.SafeFmax_Hz = nan;
+row.LargeJumpThreshold = nan;
 row.MinCp = nan;
 row.MaxCp = nan;
 row.MaxResidual = nan;
 row.MaxRelativeCpJump = nan;
+row.FrequencyBeforeMaxJump_Hz = nan;
+row.FrequencyAfterMaxJump_Hz = nan;
+row.CpBeforeMaxJump = nan;
+row.CpAfterMaxJump = nan;
+row.FirstLargeJumpRelative = nan;
+row.FrequencyBeforeFirstLargeJump_Hz = nan;
+row.FrequencyAfterFirstLargeJump_Hz = nan;
+row.CpBeforeFirstLargeJump = nan;
+row.CpAfterFirstLargeJump = nan;
 row.HasWarning = false;
 row.WarningText = "";
 row.ErrorMessage = "";
+end
+
+function jumpInfo = computeJumpDiagnostics(branch, valid, largeJumpThreshold)
+f = branch.frequency(:);
+cp = branch.Cp(:);
+idx = find(valid(:) & isfinite(cp) & isfinite(f));
+
+jumpInfo = struct();
+jumpInfo.MaxRelativeCpJump = 0;
+jumpInfo.FrequencyBeforeMaxJump_Hz = nan;
+jumpInfo.FrequencyAfterMaxJump_Hz = nan;
+jumpInfo.CpBeforeMaxJump = nan;
+jumpInfo.CpAfterMaxJump = nan;
+jumpInfo.FirstLargeJumpRelative = nan;
+jumpInfo.FrequencyBeforeFirstLargeJump_Hz = nan;
+jumpInfo.FrequencyAfterFirstLargeJump_Hz = nan;
+jumpInfo.CpBeforeFirstLargeJump = nan;
+jumpInfo.CpAfterFirstLargeJump = nan;
+jumpInfo.SafeFmax_Hz = nan;
+
+if isempty(idx)
+    return;
+end
+jumpInfo.SafeFmax_Hz = f(idx(end));
+if numel(idx) < 2
+    return;
+end
+relJump = abs(diff(cp(idx))) ./ max(abs(cp(idx(1:end-1))), eps);
+[maxJump, maxLocalIdx] = max(relJump);
+jumpInfo.MaxRelativeCpJump = maxJump;
+iBeforeMax = idx(maxLocalIdx);
+iAfterMax = idx(maxLocalIdx+1);
+jumpInfo.FrequencyBeforeMaxJump_Hz = f(iBeforeMax);
+jumpInfo.FrequencyAfterMaxJump_Hz = f(iAfterMax);
+jumpInfo.CpBeforeMaxJump = cp(iBeforeMax);
+jumpInfo.CpAfterMaxJump = cp(iAfterMax);
+
+firstLargeLocalIdx = find(relJump > largeJumpThreshold, 1, 'first');
+if ~isempty(firstLargeLocalIdx)
+    iBefore = idx(firstLargeLocalIdx);
+    iAfter = idx(firstLargeLocalIdx+1);
+    jumpInfo.FirstLargeJumpRelative = relJump(firstLargeLocalIdx);
+    jumpInfo.FrequencyBeforeFirstLargeJump_Hz = f(iBefore);
+    jumpInfo.FrequencyAfterFirstLargeJump_Hz = f(iAfter);
+    jumpInfo.CpBeforeFirstLargeJump = cp(iBefore);
+    jumpInfo.CpAfterFirstLargeJump = cp(iAfter);
+    jumpInfo.SafeFmax_Hz = f(iBefore);
+end
 end
 
 function [frequency, CpPlot] = branchPlotData(branch)
@@ -219,12 +305,4 @@ else
     valid = branch.valid;
 end
 valid = valid & isfinite(branch.Cp);
-end
-
-function value = maxRelativeJump(x)
-if numel(x) < 2
-    value = 0;
-    return;
-end
-value = max(abs(diff(x)) ./ max(abs(x(1:end-1)), eps));
 end
