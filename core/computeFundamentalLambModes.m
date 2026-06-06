@@ -114,8 +114,10 @@ end
 function elasticOptions = makeElasticRealKOptions(options)
 % Elastic fluid-loaded mRLFE is seeded from Rayleigh-Lamb A0/S0.  Modal
 % scoring prevents low-stiffness branches from switching to another residual
-% valley merely because it has a smaller singular-value residual.
+% valley merely because it has a smaller singular-value residual. A0-like is
+% additionally tracked with a multicandidate DP path selector.
 elasticOptions = options;
+elasticOptions.mrlfeA0UseDPTracker = true;
 elasticOptions.mrlfeRealKAnchorToSeed = true;
 elasticOptions.mrlfeRealKHardReferenceWindow = true;
 elasticOptions.mrlfeRealKScoreMode = "modal";
@@ -133,6 +135,7 @@ function hanOptions = makeHanRealKOptions(options)
 % stricter modal score because viscosity can introduce strong competing
 % residual valleys at high frequency.
 hanOptions = options;
+hanOptions.mrlfeA0UseDPTracker = false;
 hanOptions.mrlfeRealKAnchorToSeed = true;
 hanOptions.mrlfeRealKHardReferenceWindow = true;
 hanOptions.mrlfeRealKScoreMode = "modal";
