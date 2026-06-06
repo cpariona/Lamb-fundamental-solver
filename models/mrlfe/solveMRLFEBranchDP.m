@@ -267,9 +267,10 @@ function [validResidual, validReference, validSmooth, validCp] = computeRealKVal
 base = isfinite(kReal) & kReal > 0 & isfinite(Cp) & isfinite(residual);
 cpResidualTol = getOption(options, 'mrlfeResidualTolerance', 1e-4);
 
-% DP already uses the seed branch as a soft path-cost term.  A hard seed
-% distance gate can falsely invalidate a smooth, continuous A0-like path in
-% soft-material cases and reintroduce apparent jumps through NaN gaps.
+% DP already uses the seed branch as a soft path-cost term. Hard reference
+% and smoothness gates must therefore be DP-specific; otherwise the generic
+% real-k validation can invalidate a continuous DP-selected path and recreate
+% apparent branch switches through gaps.
 maxRelK = getOption(options, 'mrlfeA0DPValidationMaxRelativeKDrift', inf);
 maxRelCp = getOption(options, 'mrlfeA0DPValidationMaxRelativeCpDrift', inf);
 
@@ -277,15 +278,15 @@ relK = abs(kReal - seedK) ./ max(seedK, eps);
 relCp = abs(Cp - seedCp) ./ max(seedCp, eps);
 validResidual = base & residual <= cpResidualTol;
 validReference = base & relK <= maxRelK & relCp <= maxRelCp;
-validSmooth = computeSmoothMask(Cp, base, options);
+validSmooth = computeDPSmoothMask(Cp, base, options);
 validCp = validResidual & validReference & validSmooth;
 end
 
-function validSmooth = computeSmoothMask(Cp, base, options)
+function validSmooth = computeDPSmoothMask(Cp, base, options)
 validSmooth = base & isfinite(Cp);
-maxJump = getOption(options, 'mrlfeRealKMaxCpJumpRelative', inf);
-maxPredictionError = getOption(options, 'mrlfeRealKMaxCpPredictionError', inf);
-minPointsForPrediction = getOption(options, 'mrlfeRealKMinPointsForPrediction', 3);
+maxJump = getOption(options, 'mrlfeA0DPValidationMaxCpJumpRelative', inf);
+maxPredictionError = getOption(options, 'mrlfeA0DPValidationMaxCpPredictionError', inf);
+minPointsForPrediction = getOption(options, 'mrlfeA0DPValidationMinPointsForPrediction', 3);
 if ~isfinite(maxJump) && ~isfinite(maxPredictionError)
     return;
 end
