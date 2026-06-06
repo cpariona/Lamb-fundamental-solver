@@ -49,8 +49,14 @@ edgeGuardPoints = 12;
 edgeFraction = 0.01;
 monotonicTolerance = 0.02;
 physicalCpFloor = 1.0;
-modalWindowLowerFactor = 0.35;
-modalWindowUpperFactor = 2.50;
+
+% Branch-specific modal windows. A0 can be broad because it is the low-speed
+% flexural-like branch. S0 needs a tighter window to avoid mislabeling A0-like
+% local minima as S0-relevant minima.
+modalWindowA0LowerFactor = 0.35;
+modalWindowA0UpperFactor = 2.50;
+modalWindowS0LowerFactor = 0.70;
+modalWindowS0UpperFactor = 1.40;
 
 paramsBase = defaultParams();
 paramsBase.fmin = 500;
@@ -76,7 +82,8 @@ fprintf('\nHan viscoelastic real-k residual landscape diagnostic\n');
 fprintf('------------------------------------------------------\n');
 fprintf('Cp scan: %.4g to %.4g m/s, N = %d\n', CpMin, CpMax, CpScanPoints);
 fprintf('Physical Cp floor for interpretation: %.4g m/s\n', physicalCpFloor);
-fprintf('Modal window: %.3g to %.3g times modal reference Cp\n', modalWindowLowerFactor, modalWindowUpperFactor);
+fprintf('A0 modal window: %.3g to %.3g times modal reference Cp\n', modalWindowA0LowerFactor, modalWindowA0UpperFactor);
+fprintf('S0 modal window: %.3g to %.3g times modal reference Cp\n', modalWindowS0LowerFactor, modalWindowS0UpperFactor);
 fprintf('Frequency offsets around center: %s\n', mat2str(relativeFrequencyOffsets));
 
 for iCase = 1:numel(cases)
@@ -86,6 +93,8 @@ for iCase = 1:numel(cases)
     material = computeMaterial(params);
     geometry = computeGeometry(params);
     geometryPublic = rmfield(geometry, 'halfThickness');
+    [modalWindowLowerFactor, modalWindowUpperFactor] = getModalWindowFactors(caseInfo.branch, ...
+        modalWindowA0LowerFactor, modalWindowA0UpperFactor, modalWindowS0LowerFactor, modalWindowS0UpperFactor);
 
     mrlfeParams = defaultMRLFEParams();
     mrlfeParams.fluidDensity = 1000;
@@ -100,6 +109,8 @@ for iCase = 1:numel(cases)
 
     fprintf('\nCase %d/%d: %s, E = %.6g kPa, etaS = %.6g Pa*s, centerF = %.6g Hz\n', ...
         iCase, numel(cases), caseInfo.branch, caseInfo.E/1e3, caseInfo.etaS, caseInfo.centerF);
+    fprintf('  Modal window for %s: %.3g to %.3g times modal reference Cp\n', ...
+        caseInfo.branch, modalWindowLowerFactor, modalWindowUpperFactor);
 
     try
         results = computeFundamentalLambModes(params, options);
@@ -125,12 +136,12 @@ for iCase = 1:numel(cases)
         landscape = analyzeResidualLandscape(CpScan, residual, edgeGuardPoints, edgeFraction, monotonicTolerance, ...
             modalReferenceCp, physicalCpFloor, modalWindowLowerFactor, modalWindowUpperFactor);
 
-        row = makeSummaryRow(caseInfo, material, frequency, landscape, currentCp, currentValid, elasticCp, CpMin, CpMax, CpScanPoints);
+        row = makeSummaryRow(caseInfo, material, frequency, landscape, currentCp, currentValid, elasticCp, CpMin, CpMax, CpScanPoints, modalWindowLowerFactor, modalWindowUpperFactor);
         summaryRows = [summaryRows; row]; %#ok<AGROW>
 
         sampleRows = appendSampleRows(sampleRows, caseInfo, material, frequency, CpScan, residual, landscape);
 
-        fprintf('  f = %.6g Hz: global Cp %.6g, modal Cp %.6g, best modal Cp %.6g, local minima %d, modal minima %d, current Cp %.6g valid=%d, %s\n', ...
+        fprintf('  f = %.6g Hz: global Cp %.6g, modal ref Cp %.6g, best modal Cp %.6g, local minima %d, modal minima %d, current Cp %.6g valid=%d, %s\n', ...
             frequency, landscape.GlobalMinCp, landscape.ModalReferenceCp, landscape.BestModalLocalMinCp, ...
             landscape.NumLocalMinima, landscape.NumModalLocalMinima, currentCp, currentValid, landscape.LikelyInterpretation);
     end
@@ -148,7 +159,7 @@ assignin('base', 'mRLFEHanViscoResidualLandscapeSamples', mRLFEHanViscoResidualL
 fprintf('\nResidual landscape summary\n');
 fprintf('--------------------------\n');
 if ~isempty(mRLFEHanViscoResidualLandscapeSummary)
-    disp(mRLFEHanViscoResidualLandscapeSummary(:, {'Branch','E_kPa','EtaS_Pa_s','Frequency_Hz','CurrentCp','CurrentValid','ElasticCp','GlobalMinCp','GlobalMinResidual','BestLocalMinCp','BestLocalMinResidual','BestModalLocalMinCp','BestModalLocalMinResidual','NumLocalMinima','NumModalLocalMinima','LowCpEdgeDominates','LikelyInterpretation'}));
+    disp(mRLFEHanViscoResidualLandscapeSummary(:, {'Branch','E_kPa','EtaS_Pa_s','Frequency_Hz','CurrentCp','CurrentValid','ElasticCp','GlobalMinCp','GlobalMinResidual','BestLocalMinCp','BestLocalMinResidual','BestModalLocalMinCp','BestModalLocalMinResidual','NumLocalMinima','NumModalLocalMinima','ModalWindowLowerFactor','ModalWindowUpperFactor','LowCpEdgeDominates','LikelyInterpretation'}));
 end
 fprintf('\nWrote:\n');
 fprintf('  mRLFE_han_visco_residual_landscape_summary.csv\n');
@@ -159,6 +170,17 @@ residual = nan(size(CpScan));
 for i = 1:numel(CpScan)
     k = omega / CpScan(i);
     residual(i) = mrlfeResidual(k, omega, material, geometry, mrlfeParams);
+end
+end
+
+function [lowerFactor, upperFactor] = getModalWindowFactors(branchName, a0Lower, a0Upper, s0Lower, s0Upper)
+switch string(branchName)
+    case "S0Like"
+        lowerFactor = s0Lower;
+        upperFactor = s0Upper;
+    otherwise
+        lowerFactor = a0Lower;
+        upperFactor = a0Upper;
 end
 end
 
@@ -330,7 +352,7 @@ nearest = validIdx(idx);
 currentValid = logical(valid(nearest)) && isfinite(cp(nearest));
 end
 
-function row = makeSummaryRow(caseInfo, material, frequency, landscape, currentCp, currentValid, elasticCp, CpMin, CpMax, CpScanPoints)
+function row = makeSummaryRow(caseInfo, material, frequency, landscape, currentCp, currentValid, elasticCp, CpMin, CpMax, CpScanPoints, modalWindowLowerFactor, modalWindowUpperFactor)
 row = struct();
 row.Branch = string(caseInfo.branch);
 row.E_kPa = caseInfo.E/1e3;
@@ -355,6 +377,8 @@ row.NumModalLocalMinima = landscape.NumModalLocalMinima;
 row.ModalReferenceCp = landscape.ModalReferenceCp;
 row.ModalWindowMinCp = landscape.ModalWindowMinCp;
 row.ModalWindowMaxCp = landscape.ModalWindowMaxCp;
+row.ModalWindowLowerFactor = modalWindowLowerFactor;
+row.ModalWindowUpperFactor = modalWindowUpperFactor;
 row.IsApproximatelyMonotonic = logical(landscape.IsApproximatelyMonotonic);
 row.LeftEdgeResidual = landscape.LeftEdgeResidual;
 row.RightEdgeResidual = landscape.RightEdgeResidual;
