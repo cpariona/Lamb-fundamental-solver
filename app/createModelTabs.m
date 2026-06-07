@@ -14,34 +14,34 @@ tg.Layout.Column = 1;
 % Rayleigh-Lamb tab
 tabRL = uitab(tg, 'Title', 'Rayleigh-Lamb');
 gRL = uigridlayout(tabRL, [4 1]);
-gRL.RowHeight = {24, 26, 26, '1x'};
-gRL.Padding = [10 8 10 8];
-gRL.RowSpacing = 3;
+gRL.RowHeight = {22, 24, 24, '1x'};
+gRL.Padding = [10 6 10 6];
+gRL.RowSpacing = 2;
 
-uilabel(gRL, 'Text', 'Fundamental modes to compute', 'FontWeight', 'bold', 'FontSize', 11);
+uilabel(gRL, 'Text', 'Fundamental modes', 'FontWeight', 'bold', 'FontSize', 11);
 h.rl.computeA0 = uicheckbox(gRL, 'Text', 'A0', 'Value', opts0.computeA0, ...
     'ValueChangedFcn', callbacks.markDirty);
 h.rl.computeS0 = uicheckbox(gRL, 'Text', 'S0 experimental', 'Value', opts0.computeS0, ...
     'ValueChangedFcn', callbacks.markDirty);
 uilabel(gRL, 'Text', 'mRLFE uses these Rayleigh-Lamb branches as seeds.', ...
-    'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 10);
+    'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 
 % mRLFE tab
 tabMRLFE = uitab(tg, 'Title', 'mRLFE');
 gM = uigridlayout(tabMRLFE, [7 2]);
-gM.ColumnWidth = {165, '1x'};
-gM.RowHeight = {24, 24, 24, 26, 26, 26, '1x'};
-gM.Padding = [10 8 10 8];
-gM.RowSpacing = 3;
+gM.ColumnWidth = {150, '1x'};
+gM.RowHeight = {22, 24, 24, 24, 24, 24, '1x'};
+gM.Padding = [10 6 10 6];
+gM.RowSpacing = 2;
 
-uilabel(gM, 'Text', 'Fluid-loaded dispersion models', 'FontWeight', 'bold', 'FontSize', 11);
+uilabel(gM, 'Text', 'Fluid-loaded models', 'FontWeight', 'bold', 'FontSize', 11);
 uilabel(gM, 'Text', '');
 
-h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'compute elastic real-k dispersion', 'Value', false, ...
+h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'Elastic real-k', 'Value', false, ...
     'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.computeRealK.Layout.Column = [1 2];
 
-h.mrlfe.computeHanViscoRealK = uicheckbox(gM, 'Text', 'compute Han viscoelastic real-k dispersion', 'Value', false, ...
+h.mrlfe.computeHanViscoRealK = uicheckbox(gM, 'Text', 'Han visco real-k', 'Value', false, ...
     'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.computeHanViscoRealK.Layout.Column = [1 2];
 
@@ -53,13 +53,12 @@ uilabel(gM, 'Text', 'fluid sound speed [m/s]');
 h.mrlfe.fluidSoundSpeed = uieditfield(gM, 'numeric', 'Value', 1500, 'Limits', [0 Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 
-uilabel(gM, 'Text', 'solid shear viscosity etaS [Pa*s]');
+uilabel(gM, 'Text', 'etaS [Pa*s]');
 h.mrlfe.etaS = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 
-note = uilabel(gM, 'Text', ['Han viscoelastic real-k uses lambda real and mu* = mu + i omega etaS. ', ...
-    'Complex-k attenuation remains experimental and is hidden from the main GUI.'], ...
-    'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 10);
+note = uilabel(gM, 'Text', 'Han: real lambda, mu* = mu + i omega etaS. Complex-k remains experimental.', ...
+    'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Column = [1 2];
 
 % Hidden advanced fields kept for internal/legacy compatibility.
