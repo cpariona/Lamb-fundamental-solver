@@ -44,12 +44,18 @@ options.mrlfeRealKUseModalCpWindow = false;
 options.mrlfeRealKModalCpLowerFactor = 0.35;
 options.mrlfeRealKModalCpUpperFactor = 2.50;
 options.mrlfeRealKStopAtFirstMissingModalMinimum = false;
+options.mrlfeRealKPreviousCpWeight = 0.0;
+options.mrlfeRealKPreviousKWeight = 0.0;
+options.mrlfeRealKPreviousCpMaxRelativeJump = inf;
 
 % Han-style viscoelastic real-k modal-local tracker controls.  These are
 % enabled internally only for mRLFEHanViscoRealK by computeFundamentalLambModes.
 options.mrlfeHanUseModalLocalTracker = true;
 options.mrlfeHanA0ModalCpWindow = [0.35, 2.50];
 options.mrlfeHanS0ModalCpWindow = [0.70, 1.40];
+options.mrlfeHanPreviousCpWeight = 80.0;
+options.mrlfeHanPreviousKWeight = 0.0;
+options.mrlfeHanPreviousCpMaxRelativeJump = inf;
 
 % Multicandidate dynamic-programming tracker for elastic A0-like mRLFE.
 % This is intended to suppress branch switching in soft A0-like cases.
