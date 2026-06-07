@@ -1,4 +1,4 @@
-function [bestK, bestResidual, bestScore] = refineMRLFERealKRoot(kSeed, omega, material, geometry, mrlfeParams, options)
+function [bestK, bestResidual, bestScore] = refineMRLFERealKRoot(kSeed, omega, material, geometry, mrlfeParams, options, trackingReference)
 % Refine a real-k mRLFE root candidate around a predicted/reference wavenumber.
 %
 % The raw residual is sigma_min(M)/sigma_max(M). Candidate selection can be
@@ -13,12 +13,24 @@ function [bestK, bestResidual, bestScore] = refineMRLFERealKRoot(kSeed, omega, m
 % Optional Cp-domain modal windows can be enabled through
 % mrlfeRealKUseModalCpWindow.  This is intended for Han real-k tracking, where
 % the global residual minimum may sit on a non-modal low-Cp edge valley.
+%
+% Optional previous-point continuity penalties select between multiple modal
+% local minima without forcing a solution when the modal minimum disappears.
+
+if nargin < 7 || isempty(trackingReference)
+    trackingReference = struct();
+end
 
 searchFactors = getFieldOrDefault(options, 'mrlfeSearchFactors', [0.80 1.25; 0.60 1.60; 0.35 2.50]);
 gridPoints = getFieldOrDefault(options, 'mrlfeGridPoints', 500);
 resTol = getFieldOrDefault(options, 'mrlfeResidualTolerance', 1e-4);
 referenceWeight = getFieldOrDefault(options, 'mrlfeRealKReferenceWeight', 0.75);
 predictionWeight = getFieldOrDefault(options, 'mrlfeRealKPredictionWeight', 0.0);
+previousCpWeight = getFieldOrDefault(options, 'mrlfeRealKPreviousCpWeight', 0.0);
+previousKWeight = getFieldOrDefault(options, 'mrlfeRealKPreviousKWeight', 0.0);
+previousCpMaxJump = getFieldOrDefault(options, 'mrlfeRealKPreviousCpMaxRelativeJump', inf);
+previousCp = getFieldOrDefault(trackingReference, 'previousCp', nan);
+previousK = getFieldOrDefault(trackingReference, 'previousK', nan);
 residualFloor = getFieldOrDefault(options, 'mrlfeRealKResidualFloor', 1e-14);
 scoreMode = lower(string(getFieldOrDefault(options, 'mrlfeRealKScoreMode', "residual")));
 requireLocalMinimum = getFieldOrDefault(options, 'mrlfeRealKRequireLocalMinimum', false);
@@ -33,6 +45,18 @@ if ~isfinite(predictionWeight)
 end
 if ~isfinite(referenceWeight)
     referenceWeight = 0;
+end
+if ~isfinite(previousCpWeight)
+    previousCpWeight = 0;
+end
+if ~isfinite(previousKWeight)
+    previousKWeight = 0;
+end
+if ~isfinite(previousCp) || previousCp <= 0
+    previousCpWeight = 0;
+end
+if ~isfinite(previousK) || previousK <= 0
+    previousKWeight = 0;
 end
 if ~isfinite(residualFloor) || residualFloor <= 0
     residualFloor = 1e-14;
@@ -109,12 +133,19 @@ for s = 1:size(searchFactors, 1)
             if useModalCpWindow && ~isInsideModalCpWindow(cpCandidate, seedCp, modalCpLowerFactor, modalCpUpperFactor)
                 continue;
             end
+            if isfinite(previousCpMaxJump) && previousCpWeight > 0
+                relPrevCp = abs(cpCandidate - previousCp) / max(previousCp, eps);
+                if relPrevCp > previousCpMaxJump
+                    continue;
+                end
+            end
             relSeed = abs(kCandidate - kSeed) / max(kSeed, eps);
             if isfinite(maxRelativeDrift) && relSeed > maxRelativeDrift
                 continue;
             end
             foundCandidate = true;
-            score = computeScore(rCandidate, relSeed, referenceWeight, predictionWeight, residualFloor, scoreMode);
+            score = computeScore(rCandidate, relSeed, kCandidate, cpCandidate, previousK, previousCp, ...
+                referenceWeight, predictionWeight, previousKWeight, previousCpWeight, residualFloor, scoreMode);
             if score < bestScore
                 bestK = kCandidate;
                 bestResidual = rCandidate;
@@ -139,7 +170,9 @@ if isnan(bestK)
     bestK = kSeed;
     bestResidual = mrlfeResidual(bestK, omega, material, geometry, mrlfeParams);
     relSeed = 0;
-    bestScore = computeScore(bestResidual, relSeed, referenceWeight, predictionWeight, residualFloor, scoreMode);
+    cpCandidate = omega / bestK;
+    bestScore = computeScore(bestResidual, relSeed, bestK, cpCandidate, previousK, previousCp, ...
+        referenceWeight, predictionWeight, previousKWeight, previousCpWeight, residualFloor, scoreMode);
 end
 end
 
@@ -149,8 +182,17 @@ cpHigh = upperFactor * seedCp;
 tf = isfinite(cpCandidate) && cpCandidate >= cpLow && cpCandidate <= cpHigh;
 end
 
-function score = computeScore(residual, relSeed, referenceWeight, predictionWeight, residualFloor, scoreMode)
+function score = computeScore(residual, relSeed, kCandidate, cpCandidate, previousK, previousCp, ...
+    referenceWeight, predictionWeight, previousKWeight, previousCpWeight, residualFloor, scoreMode)
 penalty = referenceWeight * relSeed.^2 + predictionWeight * relSeed;
+if previousCpWeight > 0 && isfinite(previousCp) && previousCp > 0 && isfinite(cpCandidate)
+    relPreviousCp = abs(cpCandidate - previousCp) / max(previousCp, eps);
+    penalty = penalty + previousCpWeight * relPreviousCp.^2;
+end
+if previousKWeight > 0 && isfinite(previousK) && previousK > 0 && isfinite(kCandidate)
+    relPreviousK = abs(kCandidate - previousK) / max(previousK, eps);
+    penalty = penalty + previousKWeight * relPreviousK.^2;
+end
 switch scoreMode
     case "modal"
         score = log10(max(residual, residualFloor)) + penalty;
