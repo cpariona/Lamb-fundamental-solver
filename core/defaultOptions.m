@@ -55,7 +55,7 @@ options.mrlfeHanA0ModalCpWindow = [0.35, 2.50];
 options.mrlfeHanS0ModalCpWindow = [0.70, 1.40];
 options.mrlfeHanPreviousCpWeight = 80.0;
 options.mrlfeHanPreviousKWeight = 0.0;
-options.mrlfeHanPreviousCpMaxRelativeJump = inf;
+options.mrlfeHanPreviousCpMaxRelativeJump = 0.18;
 
 % Multicandidate dynamic-programming tracker for elastic A0-like mRLFE.
 % This is intended to suppress branch switching in soft A0-like cases.
