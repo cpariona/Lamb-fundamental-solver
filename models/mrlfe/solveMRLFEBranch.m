@@ -16,6 +16,8 @@ anchorToSeed = isfield(options, 'mrlfeRealKAnchorToSeed') && options.mrlfeRealKA
 stopAtFirstMissingModalMinimum = ~solveComplexK && ...
     getOption(options, 'mrlfeRealKUseModalCpWindow', false) && ...
     getOption(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', false);
+usePreviousContinuity = ~solveComplexK && ...
+    (getOption(options, 'mrlfeRealKPreviousCpWeight', 0) > 0 || getOption(options, 'mrlfeRealKPreviousKWeight', 0) > 0);
 
 k = nan(size(frequency));
 residual = nan(size(frequency));
@@ -51,7 +53,8 @@ for i = 1:numel(frequency)
         physicalReference.kImagPred = max(imag(kPred), 0);
         [k(i), residual(i), score(i)] = refineMRLFEComplexKRoot(kPred, omega(i), material, geometry, mrlfeParams, options, physicalReference);
     else
-        [k(i), residual(i), score(i)] = refineMRLFERealKRoot(real(kPred), omega(i), material, geometry, mrlfeParams, options);
+        trackingReference = buildTrackingReference(k, omega, i, usePreviousContinuity);
+        [k(i), residual(i), score(i)] = refineMRLFERealKRoot(real(kPred), omega(i), material, geometry, mrlfeParams, options, trackingReference);
         if stopAtFirstMissingModalMinimum && (~isfinite(k(i)) || ~isfinite(residual(i)))
             firstMissingModalMinimumIndex = i;
             break;
@@ -97,12 +100,27 @@ end
 if solveComplexK
     branch.note = "mRLFE complex-k prototype seeded from real-k reference when available.";
 elseif stopAtFirstMissingModalMinimum
-    branch.note = "mRLFE real-k branch tracked with conservative modal-local Cp-window filtering.";
+    branch.note = "mRLFE real-k branch tracked with conservative modal-local Cp-window filtering and previous-point continuity.";
 elseif anchorToSeed
     branch.note = "mRLFE real-k branch anchored to seed reference.";
 else
     branch.note = "mRLFE real-k branch seeded from previous frequency continuation.";
 end
+end
+
+function trackingReference = buildTrackingReference(k, omega, idx, usePreviousContinuity)
+trackingReference = struct();
+trackingReference.previousK = nan;
+trackingReference.previousCp = nan;
+if ~usePreviousContinuity || idx < 2
+    return;
+end
+previous = find(isfinite(real(k(1:idx-1))) & real(k(1:idx-1)) > 0, 1, 'last');
+if isempty(previous)
+    return;
+end
+trackingReference.previousK = real(k(previous));
+trackingReference.previousCp = omega(previous) / real(k(previous));
 end
 
 function [validResidual, validReference, validSmooth, validCp, validAttenuation] = computeBranchValidity(Cp, kReal, kImag, residual, seedCp, seedK, solveComplexK, options)
