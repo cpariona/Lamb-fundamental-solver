@@ -11,14 +11,14 @@ colors.S0 = [1.0000 0.0000 0.0000];
 colors.HanA0 = [0.0000 0.4470 0.7410];
 colors.HanS0 = [1.0000 0.0000 0.0000];
 
-fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[100 100 1360 820]);
+fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[80 80 1460 860]);
 root = uigridlayout(fig,[1 2]);
-root.ColumnWidth = {430,'1x'};
+root.ColumnWidth = {500,'1x'};
 
 left = uipanel(root,'Title','Controls');
 left.Layout.Column = 1;
 leftGrid = uigridlayout(left,[3 1]);
-leftGrid.RowHeight = {'1x',185,260};
+leftGrid.RowHeight = {'1x',200,320};
 leftGrid.Padding = [5 5 5 5];
 leftGrid.RowSpacing = 8;
 
@@ -42,13 +42,13 @@ modelControls.panel.Layout.Row = 2;
 runPanel = uipanel(leftGrid,'Title','Run / Export / Status');
 runPanel.Layout.Row = 3;
 rg = uigridlayout(runPanel,[5 1]);
-rg.RowHeight = {30,30,58,58,30};
+rg.RowHeight = {30,30,52,'1x',30};
 rg.Padding = [8 8 8 8];
-rg.RowSpacing = 6;
+rg.RowSpacing = 5;
 uibutton(rg,'Text','Compute selected modes','ButtonPushedFcn',@(~,~)onCompute());
 uibutton(rg,'Text','Export results','ButtonPushedFcn',@(~,~)onExport());
 materialInfo = uilabel(rg,'Text','Material info will appear here.','WordWrap','on','FontSize',9,'VerticalAlignment','top');
-statusLabel = uilabel(rg,'Text','Status: ready.','WordWrap','on','FontSize',9,'VerticalAlignment','top');
+statusBox = uitextarea(rg,'Value',{'Status: ready.'},'Editable','off','FontName','Consolas','FontSize',9);
 uibutton(rg,'Text','Show diagnostics','ButtonPushedFcn',@(~,~)onShowDiagnostics());
 
 ax = uiaxes(root);
@@ -82,15 +82,15 @@ updateAxisFieldState();
     function markDirty()
         inputsAreDirty = true;
         if isempty(lastResults)
-            statusLabel.Text = 'Status: ready. Press Compute.';
+            setStatusText({'Status: ready. Press Compute.'});
         else
-            statusLabel.Text = 'Status: inputs changed. Press Compute to update.';
+            setStatusText({'Status: inputs changed. Press Compute to update.'});
         end
     end
 
     function onCompute()
         try
-            statusLabel.Text = 'Status: computing...'; drawnow;
+            setStatusText({'Status: computing...'}); drawnow;
             params = readParamsFromGui();
             options = defaultOptions(string(advanced.robustness.Value));
             options.computeA0 = logical(modelControls.rl.computeA0.Value);
@@ -113,7 +113,7 @@ updateAxisFieldState();
             updatePlot();
             updateLabels();
         catch ME
-            statusLabel.Text = ['Status: error: ', ME.message];
+            setStatusText({['Status: error: ', ME.message]});
             uialert(fig, ME.message, 'Compute error');
         end
     end
@@ -244,39 +244,68 @@ updateAxisFieldState();
 
     function updateLabels()
         if isempty(lastResults) || isempty(lastOptions), return; end
-        m = lastResults.material; thickness = lastResults.geometry.thickness; halfThickness = thickness/2;
-        materialInfo.Text = sprintf('E %.4g kPa | nu %.5f\nCL %.2f m/s | CT %.2f m/s\nthick %.4g m | half %.4g m', ...
+        m = lastResults.material;
+        thickness = lastResults.geometry.thickness;
+        halfThickness = thickness/2;
+        materialInfo.Text = sprintf('E %.4g kPa | nu %.5f | CL %.2f m/s | CT %.2f m/s\nthick %.4g m | half %.4g m', ...
             m.E/1e3, m.nu, m.CL, m.CT, thickness, halfThickness);
 
-        statusParts = {sprintf('%s | N=%d', string(lastOptions.robustness), numel(lastResults.grid.frequency))};
+        statusLines = {sprintf('%s | N=%d', string(lastOptions.robustness), numel(lastResults.grid.frequency))};
+        rlLine = buildRLStatusLine();
+        if strlength(rlLine) > 0
+            statusLines{end+1} = char(rlLine); %#ok<AGROW>
+        end
+        elasticLine = buildMRLFEStatusLine('mRLFEElasticRealK', 'elastic');
+        if strlength(elasticLine) > 0
+            statusLines{end+1} = char(elasticLine); %#ok<AGROW>
+        end
+        hanLine = buildMRLFEStatusLine('mRLFEHanViscoRealK', 'Han');
+        if strlength(hanLine) > 0
+            statusLines{end+1} = char(hanLine); %#ok<AGROW>
+        end
+        if inputsAreDirty
+            statusLines{end+1} = 'inputs changed'; %#ok<AGROW>
+        end
+        setStatusText(statusLines);
+    end
+
+    function line = buildRLStatusLine()
+        parts = strings(0);
         if isfield(lastResults.modes,'A0')
             a0 = lastResults.modes.A0;
-            statusParts{end+1} = sprintf('A0 %d/%d, R %.1e', sum(a0.valid), numel(a0.valid), maxFinite(a0.residual)); %#ok<AGROW>
+            parts(end+1) = sprintf('A0 %d/%d', sum(a0.valid), numel(a0.valid)); %#ok<AGROW>
         end
         if isfield(lastResults.modes,'S0')
             s0 = lastResults.modes.S0;
-            statusParts{end+1} = sprintf('S0 %d/%d, R %.1e', sum(s0.valid), numel(s0.valid), maxFinite(s0.residual)); %#ok<AGROW>
+            parts(end+1) = sprintf('S0 %d/%d', sum(s0.valid), numel(s0.valid)); %#ok<AGROW>
         end
-        statusParts = appendMRLFEStatus(statusParts, 'mRLFEElasticRealK', 'mRLFE-elastic');
-        statusParts = appendMRLFEStatus(statusParts, 'mRLFEHanViscoRealK', 'mRLFE-Han-visco');
-        if inputsAreDirty
-            statusParts{end+1} = 'inputs changed'; %#ok<AGROW>
-        end
-        statusLabel.Text = strjoin(statusParts, newline);
+        line = strjoin(parts, ' | ');
     end
 
-    function statusParts = appendMRLFEStatus(statusParts, modelName, label)
+    function line = buildMRLFEStatusLine(modelName, label)
+        line = "";
         if isfield(lastResults, 'models') && isfield(lastResults.models, modelName)
             d = lastResults.models.(modelName).diagnostics;
-            statusParts{end+1} = sprintf('%s %.1fs', label, d.elapsedSeconds); %#ok<AGROW>
+            parts = strings(0);
             if isfield(d.summary, 'A0Like')
                 item = d.summary.A0Like;
-                statusParts{end+1} = sprintf('%s A0L Cp %d/%d', label, item.validCpPoints, item.totalPoints); %#ok<AGROW>
+                parts(end+1) = sprintf('A0L %d/%d', item.validCpPoints, item.totalPoints); %#ok<AGROW>
             end
             if isfield(d.summary, 'S0Like')
                 item = d.summary.S0Like;
-                statusParts{end+1} = sprintf('%s S0L Cp %d/%d', label, item.validCpPoints, item.totalPoints); %#ok<AGROW>
+                parts(end+1) = sprintf('S0L %d/%d', item.validCpPoints, item.totalPoints); %#ok<AGROW>
             end
+            if ~isempty(parts)
+                line = sprintf('%s: %s | %.1fs', label, strjoin(parts, ', '), d.elapsedSeconds);
+            end
+        end
+    end
+
+    function setStatusText(lines)
+        if ischar(lines) || isstring(lines)
+            statusBox.Value = cellstr(lines);
+        else
+            statusBox.Value = lines;
         end
     end
 
@@ -285,7 +314,7 @@ updateAxisFieldState();
             uialert(fig, 'No diagnostics are available yet.', 'Diagnostics');
             return;
         end
-        dfig = uifigure('Name','Solver diagnostics','Position',[180 180 620 560]);
+        dfig = uifigure('Name','Solver diagnostics','Position',[180 180 680 600]);
         dg = uigridlayout(dfig, [1 1]);
         dg.Padding = [10 10 10 10];
         uitextarea(dg, 'Value', buildDiagnosticsText(), 'Editable', 'off', 'FontName', 'Consolas', 'FontSize', 11);
@@ -354,7 +383,7 @@ updateAxisFieldState();
             if isfield(lastResults.models, 'mRLFEHanViscoRealK'), assignin('base', 'MRLFEHanViscoRealKResults', lastResults.models.mRLFEHanViscoRealK); end
             if isfield(lastResults.models, 'mRLFE'), assignin('base', 'MRLFEResults', lastResults.models.mRLFE); end
         end
-        statusLabel.Text = 'Status: exported to workspace.';
+        setStatusText({'Status: exported to workspace.'});
     end
 end
 
