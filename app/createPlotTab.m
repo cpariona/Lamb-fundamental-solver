@@ -3,14 +3,15 @@ function h = createPlotTab(tabs, callbacks)
 
 tab = uitab(tabs, 'Title', 'Plot');
 g = uigridlayout(tab, [13 4]);
-g.ColumnWidth = {70, '1x', 70, '1x'};
-g.RowHeight = {22, 24, 22, 24, 22, 24, 22, 28, 24, 28, 28, 30, '1x'};
-g.Padding = [10 8 10 8];
-g.RowSpacing = 3;
+g.ColumnWidth = {75, '1x', 75, '1x'};
+g.RowHeight = {26, 26, 26, 26, 26, 26, 26, 30, 26, 30, 30, 32, '1x'};
+g.Padding = [12 10 12 10];
+g.RowSpacing = 4;
 g.ColumnSpacing = 6;
 
-uilabel(g, 'Text', 'Modes to display', 'FontWeight', 'bold');
-spanLastLabel(g, 1, 4);
+header = uilabel(g, 'Text', 'Modes', 'FontWeight', 'bold', 'VerticalAlignment', 'center');
+header.Layout.Row = 1;
+header.Layout.Column = [1 4];
 
 h.showA0 = uicheckbox(g, 'Text', 'Show A0', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.showA0.Layout.Row = 2;
@@ -20,8 +21,9 @@ h.showS0 = uicheckbox(g, 'Text', 'Show S0 experimental', 'Value', true, 'ValueCh
 h.showS0.Layout.Row = 2;
 h.showS0.Layout.Column = [3 4];
 
-uilabel(g, 'Text', 'mRLFE dispersion', 'FontWeight', 'bold');
-spanLastLabel(g, 3, 4);
+header = uilabel(g, 'Text', 'mRLFE dispersion', 'FontWeight', 'bold', 'VerticalAlignment', 'center');
+header.Layout.Row = 3;
+header.Layout.Column = [1 4];
 
 h.showMRLFEA0 = uicheckbox(g, 'Text', 'mRLFE A0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.showMRLFEA0.Layout.Row = 4;
@@ -31,8 +33,9 @@ h.showMRLFES0 = uicheckbox(g, 'Text', 'mRLFE S0-like', 'Value', true, 'ValueChan
 h.showMRLFES0.Layout.Row = 4;
 h.showMRLFES0.Layout.Column = [3 4];
 
-uilabel(g, 'Text', 'Approximations', 'FontWeight', 'bold');
-spanLastLabel(g, 5, 4);
+header = uilabel(g, 'Text', 'Approximations', 'FontWeight', 'bold', 'VerticalAlignment', 'center');
+header.Layout.Row = 5;
+header.Layout.Column = [1 4];
 
 h.showA0Thin = uicheckbox(g, 'Text', 'A0 thin-plate', 'Value', false, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.showA0Thin.Layout.Row = 6;
@@ -42,10 +45,11 @@ h.showS0Ext = uicheckbox(g, 'Text', 'S0 extensional', 'Value', false, 'ValueChan
 h.showS0Ext.Layout.Row = 6;
 h.showS0Ext.Layout.Column = [3 4];
 
-uilabel(g, 'Text', 'Axes', 'FontWeight', 'bold');
-spanLastLabel(g, 7, 4);
+header = uilabel(g, 'Text', 'Axes', 'FontWeight', 'bold', 'VerticalAlignment', 'center');
+header.Layout.Row = 7;
+header.Layout.Column = [1 4];
 
-lbl = uilabel(g, 'Text', 'x-axis');
+lbl = uilabel(g, 'Text', 'x-axis', 'VerticalAlignment', 'center');
 lbl.Layout.Row = 8;
 lbl.Layout.Column = 1;
 h.xaxis = uidropdown(g, 'Items', {'frequency', 'angularFrequency', 'wavenumber', 'kThickness'}, ...
@@ -59,28 +63,28 @@ h.autoAxes = uicheckbox(g, 'Text', 'auto axes', 'Value', true, 'ValueChangedFcn'
 h.autoAxes.Layout.Row = 9;
 h.autoAxes.Layout.Column = [1 2];
 
-lbl = uilabel(g, 'Text', 'x min');
+lbl = uilabel(g, 'Text', 'x min', 'VerticalAlignment', 'center');
 lbl.Layout.Row = 10;
 lbl.Layout.Column = 1;
 h.xmin = uieditfield(g, 'numeric', 'Value', 0, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.xmin.Layout.Row = 10;
 h.xmin.Layout.Column = 2;
 
-lbl = uilabel(g, 'Text', 'x max');
+lbl = uilabel(g, 'Text', 'x max', 'VerticalAlignment', 'center');
 lbl.Layout.Row = 10;
 lbl.Layout.Column = 3;
 h.xmax = uieditfield(g, 'numeric', 'Value', 0, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.xmax.Layout.Row = 10;
 h.xmax.Layout.Column = 4;
 
-lbl = uilabel(g, 'Text', 'y min');
+lbl = uilabel(g, 'Text', 'y min', 'VerticalAlignment', 'center');
 lbl.Layout.Row = 11;
 lbl.Layout.Column = 1;
 h.ymin = uieditfield(g, 'numeric', 'Value', 0, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.ymin.Layout.Row = 11;
 h.ymin.Layout.Column = 2;
 
-lbl = uilabel(g, 'Text', 'y max');
+lbl = uilabel(g, 'Text', 'y max', 'VerticalAlignment', 'center');
 lbl.Layout.Row = 11;
 lbl.Layout.Column = 3;
 h.ymax = uieditfield(g, 'numeric', 'Value', 0, 'ValueChangedFcn', callbacks.refreshPlotOnly);
@@ -96,14 +100,7 @@ useButton.Layout.Row = 12;
 useButton.Layout.Column = [3 4];
 
 note = uilabel(g, 'Text', 'Main GUI focuses on phase velocity Cp. Complex-k attenuation is kept outside the main workflow.', ...
-    'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+    'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9, 'VerticalAlignment', 'top');
 note.Layout.Row = 13;
 note.Layout.Column = [1 4];
-end
-
-function spanLastLabel(gridHandle, rowNumber, endColumn)
-children = gridHandle.Children;
-labelHandle = children(1);
-labelHandle.Layout.Row = rowNumber;
-labelHandle.Layout.Column = [1 endColumn];
 end
