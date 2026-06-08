@@ -27,6 +27,11 @@ options.preferPreviousRootWeight = 0.50;
 options.mrlfeResidualTolerance = 1e-4;
 options.mrlfeSearchFactors = [0.80, 1.25; 0.60, 1.60; 0.35, 2.50];
 
+% mRLFE branch selection. Defaults preserve the historical behavior of
+% computing both fundamental-like branches unless a caller restricts them.
+options.mrlfeComputeA0Like = true;
+options.mrlfeComputeS0Like = true;
+
 % Real-k mRLFE continuation and validation controls.
 options.mrlfeRealKReferenceWeight = 0.75;
 options.mrlfeRealKPredictionWeight = 0.0;
