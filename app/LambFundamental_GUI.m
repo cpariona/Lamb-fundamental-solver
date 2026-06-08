@@ -5,6 +5,8 @@ params0 = defaultParams();
 opts0 = defaultOptions("Balanced");
 lastResults = [];
 lastOptions = [];
+lastParams = [];
+lastComputeUsedCache = false;
 inputsAreDirty = false;
 colors.A0 = [0.0000 0.4470 0.7410];
 colors.S0 = [1.0000 0.0000 0.0000];
@@ -105,8 +107,17 @@ updateAxisFieldState();
                 modelControls.rl.computeS0.Value = true;
                 options.mrlfeParams = readMRLFEParamsFromGui();
             end
-            lastResults = computeFundamentalLambModes(params, options);
+
+            lastComputeUsedCache = false;
+            if canReuseElasticForHan(params, options)
+                lastResults = computeHanWithCachedElastic(lastResults, options);
+                lastComputeUsedCache = true;
+            else
+                lastResults = computeFundamentalLambModes(params, options);
+            end
+
             lastOptions = options;
+            lastParams = params;
             inputsAreDirty = false;
             plotControls.showA0.Value = isfield(lastResults.modes,'A0');
             plotControls.showS0.Value = isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp));
@@ -141,6 +152,119 @@ updateAxisFieldState();
         mrlfeParams.etaS = modelControls.mrlfe.etaS.Value;
         mrlfeParams.etaL = 0;
         mrlfeParams.useComplexLambda = false;
+    end
+
+    function tf = canReuseElasticForHan(params, options)
+        tf = false;
+        if isempty(lastResults) || isempty(lastOptions) || isempty(lastParams)
+            return;
+        end
+        if ~isfield(options, 'computeMRLFEHanViscoRealK') || ~options.computeMRLFEHanViscoRealK
+            return;
+        end
+        if ~isfield(lastResults, 'models') || ~isfield(lastResults.models, 'mRLFEElasticRealK')
+            return;
+        end
+        if ~isfield(lastResults.models.mRLFEElasticRealK, 'branches')
+            return;
+        end
+        if ~sameBaseInputs(params, lastParams, options, lastOptions)
+            return;
+        end
+        if ~sameElasticMRLFEInputs(options, lastOptions)
+            return;
+        end
+        tf = true;
+    end
+
+    function results = computeHanWithCachedElastic(cachedResults, options)
+        results = cachedResults;
+        elasticSeed = cachedResults.models.mRLFEElasticRealK;
+
+        mrlfeParams = readMRLFEParamsFromGui();
+        mrlfeParams.solveComplexK = false;
+        mrlfeParams.etaL = 0;
+        mrlfeParams.useComplexLambda = false;
+
+        hanOptions = makeHanRealKOptionsForGUI(options);
+        results.models.mRLFEHanViscoRealK = computeMRLFE(results.grid.frequency, results.material, ...
+            results.geometry, elasticSeed.branches, mrlfeParams, hanOptions);
+
+        if ~options.computeMRLFERealK && isfield(results.models, 'mRLFEElasticRealK')
+            results.models = rmfield(results.models, 'mRLFEElasticRealK');
+        end
+        if isfield(results.models, 'mRLFERealK')
+            results.models = rmfield(results.models, 'mRLFERealK');
+        end
+        if isfield(results.models, 'mRLFEElasticRealK')
+            results.models.mRLFE = results.models.mRLFEElasticRealK;
+            results.models.mRLFERealK = results.models.mRLFEElasticRealK;
+        elseif isfield(results.models, 'mRLFEHanViscoRealK')
+            results.models.mRLFE = results.models.mRLFEHanViscoRealK;
+        end
+    end
+
+    function hanOptions = makeHanRealKOptionsForGUI(options)
+        % Mirrors the Han real-k production options used internally by
+        % computeFundamentalLambModes. This keeps the cached GUI path on the
+        % same solver policy while avoiding a full elastic recompute.
+        hanOptions = options;
+        hanOptions.mrlfeA0UseDPTracker = false;
+        hanOptions.mrlfeRealKAnchorToSeed = true;
+        hanOptions.mrlfeRealKHardReferenceWindow = false;
+        hanOptions.mrlfeRealKScoreMode = "modal";
+        hanOptions.mrlfeRealKRequireLocalMinimum = true;
+        hanOptions.mrlfeRealKUseModalCpWindow = getOptionValue(options, 'mrlfeHanUseModalLocalTracker', true);
+        hanOptions.mrlfeRealKStopAtFirstMissingModalMinimum = getOptionValue(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', true);
+        hanOptions.mrlfeRealKReferenceWeight = 120.0;
+        hanOptions.mrlfeRealKPredictionWeight = 6.0;
+        hanOptions.mrlfeRealKPreviousCpWeight = getOptionValue(options, 'mrlfeHanPreviousCpWeight', 80.0);
+        hanOptions.mrlfeRealKPreviousKWeight = getOptionValue(options, 'mrlfeHanPreviousKWeight', 0.0);
+        hanOptions.mrlfeRealKPreviousCpMaxRelativeJump = getOptionValue(options, 'mrlfeHanPreviousCpMaxRelativeJump', inf);
+        hanOptions.mrlfeRealKMaxRelativeKDrift = inf;
+        hanOptions.mrlfeRealKValidationMaxRelativeKDrift = inf;
+        hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = inf;
+        hanOptions.mrlfeResidualTolerance = max(getOptionValue(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
+    end
+
+    function tf = sameBaseInputs(paramsA, paramsB, optionsA, optionsB)
+        tf = string(paramsA.modelType) == string(paramsB.modelType) && ...
+            sameNumber(paramsA.rho, paramsB.rho) && ...
+            sameNumber(paramsA.E, paramsB.E) && ...
+            sameNumber(paramsA.nu, paramsB.nu) && ...
+            sameNumber(paramsA.CL, paramsB.CL) && ...
+            sameNumber(paramsA.lambda, paramsB.lambda) && ...
+            sameNumber(paramsA.mu, paramsB.mu) && ...
+            sameNumber(paramsA.thickness, paramsB.thickness) && ...
+            sameNumber(paramsA.fmin, paramsB.fmin) && ...
+            sameNumber(paramsA.fmax, paramsB.fmax) && ...
+            string(paramsA.frequencySpacing) == string(paramsB.frequencySpacing) && ...
+            string(paramsA.numFrequencyPoints) == string(paramsB.numFrequencyPoints) && ...
+            string(optionsA.robustness) == string(optionsB.robustness);
+    end
+
+    function tf = sameElasticMRLFEInputs(optionsA, optionsB)
+        if ~isfield(optionsA, 'mrlfeParams') || ~isfield(optionsB, 'mrlfeParams')
+            tf = false;
+            return;
+        end
+        a = optionsA.mrlfeParams;
+        b = optionsB.mrlfeParams;
+        tf = sameNumber(a.fluidDensity, b.fluidDensity) && ...
+            sameNumber(a.fluidSoundSpeed, b.fluidSoundSpeed);
+    end
+
+    function tf = sameNumber(a, b)
+        scale = max([1, abs(double(a)), abs(double(b))]);
+        tf = isfinite(double(a)) && isfinite(double(b)) && abs(double(a) - double(b)) <= 1e-12 * scale;
+    end
+
+    function value = getOptionValue(optionsStruct, fieldName, defaultValue)
+        if isfield(optionsStruct, fieldName)
+            value = optionsStruct.(fieldName);
+        else
+            value = defaultValue;
+        end
     end
 
     function refreshPlotOnly()
@@ -251,6 +375,9 @@ updateAxisFieldState();
             m.E/1e3, m.nu, m.CL, m.CT, thickness, halfThickness);
 
         statusLines = {sprintf('%s | N=%d', string(lastOptions.robustness), numel(lastResults.grid.frequency))};
+        if lastComputeUsedCache
+            statusLines{end+1} = 'cache: reused A0/S0 + elastic mRLFE'; %#ok<AGROW>
+        end
         rlLine = buildRLStatusLine();
         if strlength(rlLine) > 0
             statusLines{end+1} = char(rlLine); %#ok<AGROW>
