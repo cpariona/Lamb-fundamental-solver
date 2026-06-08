@@ -2,7 +2,8 @@ function mrlfeResults = computeMRLFE(frequency, material, geometry, seedModes, m
 % Compute mRLFE fundamental-like branches.
 %
 % The model can use either Rayleigh-Lamb A0/S0 branches or previously
-% computed mRLFE A0Like/S0Like branches as seeds.
+% computed mRLFE A0Like/S0Like branches as seeds. Branch computation can be
+% restricted with options.mrlfeComputeA0Like and options.mrlfeComputeS0Like.
 
 if nargin < 6
     options = struct();
@@ -10,6 +11,8 @@ end
 
 timerStart = tic;
 solveComplexK = isfield(mrlfeParams, 'solveComplexK') && mrlfeParams.solveComplexK;
+computeA0Like = getOption(options, 'mrlfeComputeA0Like', true);
+computeS0Like = getOption(options, 'mrlfeComputeS0Like', true);
 
 mrlfeResults = struct();
 mrlfeResults.modelName = "mRLFE";
@@ -21,31 +24,36 @@ else
     mrlfeResults.description = "Real-k modified Rayleigh-Lamb fluid-loaded prototype.";
 end
 mrlfeResults.parameters = mrlfeParams;
+mrlfeResults.requestedBranches = struct('A0Like', logical(computeA0Like), 'S0Like', logical(computeS0Like));
 mrlfeResults.branches = struct();
 
 useA0DP = isfield(options, 'mrlfeA0UseDPTracker') && options.mrlfeA0UseDPTracker && ~solveComplexK;
 
-seedA0 = getSeedMode(seedModes, "A0");
-if ~isempty(seedA0)
-    branchOptions = applyBranchSpecificOptions("A0Like", options);
-    if useA0DP
-        % First compute the local/modal real-k branch.  The DP solver uses it
-        % only as an auxiliary candidate-scan guide, not as the final answer.
-        % This reproduces the successful prototype behavior where the scan
-        % range was built from both the Rayleigh-Lamb seed and the preliminary
-        % tracked branch.
-        preliminaryA0 = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, branchOptions);
-        mrlfeResults.branches.A0Like = solveMRLFEBranchDP("A0Like", seedA0, material, geometry, mrlfeParams, branchOptions, preliminaryA0);
-        mrlfeResults.branches.A0Like.preliminaryBranch = preliminaryA0;
-    else
-        mrlfeResults.branches.A0Like = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, branchOptions);
+if computeA0Like
+    seedA0 = getSeedMode(seedModes, "A0");
+    if ~isempty(seedA0)
+        branchOptions = applyBranchSpecificOptions("A0Like", options);
+        if useA0DP
+            % First compute the local/modal real-k branch.  The DP solver uses it
+            % only as an auxiliary candidate-scan guide, not as the final answer.
+            % This reproduces the successful prototype behavior where the scan
+            % range was built from both the Rayleigh-Lamb seed and the preliminary
+            % tracked branch.
+            preliminaryA0 = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, branchOptions);
+            mrlfeResults.branches.A0Like = solveMRLFEBranchDP("A0Like", seedA0, material, geometry, mrlfeParams, branchOptions, preliminaryA0);
+            mrlfeResults.branches.A0Like.preliminaryBranch = preliminaryA0;
+        else
+            mrlfeResults.branches.A0Like = solveMRLFEBranch("A0Like", seedA0, material, geometry, mrlfeParams, branchOptions);
+        end
     end
 end
 
-seedS0 = getSeedMode(seedModes, "S0");
-if ~isempty(seedS0)
-    branchOptions = applyBranchSpecificOptions("S0Like", options);
-    mrlfeResults.branches.S0Like = solveMRLFEBranch("S0Like", seedS0, material, geometry, mrlfeParams, branchOptions);
+if computeS0Like
+    seedS0 = getSeedMode(seedModes, "S0");
+    if ~isempty(seedS0)
+        branchOptions = applyBranchSpecificOptions("S0Like", options);
+        mrlfeResults.branches.S0Like = solveMRLFEBranch("S0Like", seedS0, material, geometry, mrlfeParams, branchOptions);
+    end
 end
 
 mrlfeResults.diagnostics = buildMRLFEDiagnostics(mrlfeResults, toc(timerStart));
