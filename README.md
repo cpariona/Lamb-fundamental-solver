@@ -4,14 +4,64 @@ MATLAB project for computing and plotting fundamental Lamb-wave phase velocity c
 
 Current scope:
 
-- A0 phase velocity calculation using the antisymmetric Rayleigh-Lamb residual.
-- Experimental S0 phase velocity calculation using the symmetric Rayleigh-Lamb residual.
+- Rayleigh-Lamb A0 phase velocity using the antisymmetric residual.
+- Experimental Rayleigh-Lamb S0 phase velocity using the symmetric residual.
 - Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
 - mRLFE elastic real-k dispersion for fluid-loaded layers, including a multicandidate dynamic-programming tracker for A0-like soft-material cases.
 - mRLFE Han-style viscoelastic real-k dispersion with real lambda, complex shear modulus, and conservative modal-local Cp-window tracking.
 - Experimental complex-k mRLFE path kept internally for spatial attenuation exploration.
 - GUI plotting of phase velocity Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
-- Export of `LambResults`, `A0_table`, and, when available, `S0_table` to the MATLAB workspace.
+
+## Repository structure
+
+```text
+app/                  Main MATLAB GUI and UI helper files.
+core/                 Solver orchestration, defaults, material/geometry builders, validation.
+equations/            Rayleigh-Lamb residual functions.
+tracking/             Generic Rayleigh-Lamb branch tracker.
+models/mrlfe/         Fluid-loaded mRLFE model, real-k/complex-k solvers, and trackers.
+examples/basic/       Lightweight examples and visual sweeps.
+examples/validation/  Maintained validation and stress-test scripts.
+examples/diagnostics/ Active diagnostic scripts for current solver questions.
+examples/archive/     Historical prototypes and development diagnostics.
+docs/                 Technical notes about validation status.
+```
+
+The legacy `GUI_current/` folder and `CONTEXT_FOR_CODEX.md` were removed after the current modular GUI and README became the source of truth.
+
+## Launching the GUI
+
+From the repository root, run:
+
+```matlab
+runApp
+```
+
+This calls `startup`, adds the active project folders to the MATLAB path, and launches the GUI.
+
+Alternatively:
+
+```matlab
+startup
+LambFundamental_GUI
+```
+
+## Path behavior
+
+`startup.m` adds only the active solver, GUI, model, and maintained example folders to the MATLAB path:
+
+```text
+app/
+core/
+equations/
+tracking/
+models/
+examples/basic/
+examples/validation/
+examples/diagnostics/
+```
+
+The archived examples are intentionally not added by default. They remain in `examples/archive/` for traceability, but are not part of the normal workflow.
 
 ## Naming convention
 
@@ -22,23 +72,6 @@ This project uses explicit thickness naming to avoid ambiguity with classical Ra
 - `kThickness`: dimensionless wavenumber, computed as `k * thickness`.
 
 Public GUI labels, exported tables, and result structures should use `thickness` and `kThickness`, not `h`, `kh`, or `kH`.
-
-## Launching the GUI
-
-From the repository root, run:
-
-```matlab
-runApp
-```
-
-This calls `startup`, adds the project folders to the MATLAB path, and launches the GUI.
-
-Alternatively:
-
-```matlab
-startup
-LambFundamental_GUI
-```
 
 ## Defaults and robustness presets
 
@@ -59,8 +92,6 @@ Available robustness presets:
 - `Fast`: fewer scan points and faster calculations.
 - `Balanced`: default setting for routine exploration.
 - `Robust`: more scan points and wider search windows for difficult cases.
-
-The GUI exposes these robustness presets in the `Advanced` tab.
 
 Important current mRLFE options include:
 
@@ -94,33 +125,6 @@ The GUI is implemented for the current phase-velocity workflow:
 The GUI intentionally does not expose the internal Han tracker tuning options. The branch-specific modal windows, previous-point continuity penalty, and hard Cp-jump cutoff are production defaults in `core/defaultOptions.m` and are applied internally by the backend.
 
 Complex-k attenuation remains hidden from the main GUI because it is still experimental and not validated for quantitative fitting.
-
-## mRLFE dispersion models
-
-The main GUI focuses on phase-velocity dispersion, not attenuation.
-
-The implemented mRLFE paths are:
-
-- `mRLFEElasticRealK`: elastic, fluid-loaded, real-k dispersion. A0-like uses a multicandidate dynamic-programming tracker; S0-like uses the real-k modal tracker.
-- `mRLFEHanViscoRealK`: Han-style viscoelastic, fluid-loaded, real-k dispersion. This path uses real lambda, complex shear modulus, branch-specific modal Cp windows, previous-point continuity scoring, and a hard local Cp-jump cutoff.
-- `mRLFEComplexK`: experimental internal path for spatial attenuation; not part of the main GUI workflow.
-
-All mRLFE variants use the modified Rayleigh-Lamb fluid-loaded 5-by-5 matrix and the normalized singular-value residual:
-
-```matlab
-sigma_min(M) / sigma_max(M)
-```
-
-instead of `det(M)` for better numerical scaling.
-
-For the Han-style viscoelastic real-k model, lambda is real and shear viscosity enters only through the complex shear modulus:
-
-```matlab
-lambdaValue = lambda;
-muStar = mu + 1i * omega * etaS;
-```
-
-A complex lambda is disabled by default and kept only as an internal future extension using `mrlfeParams.useComplexLambda = true`.
 
 ## mRLFE solver workflow
 
@@ -166,15 +170,7 @@ S0-like:
     E = 50 to 1500 kPa -> stable to 16 kHz.
 ```
 
-The previous A0-like soft-material branch-switching issue was resolved for this tested range by the integrated DP tracker. The validation used:
-
-```text
-f = 500 to 16000 Hz
-E = 50, 75, 100, 150, 225, 300, 400, 500, 750, 1000, 1500 kPa
-thickness = 0.5 mm
-nu = 0.4999
-CL = 1500 m/s
-```
+The previous A0-like soft-material branch-switching issue was resolved for this tested range by the integrated DP tracker.
 
 ### Han viscoelastic mRLFE real-k
 
@@ -210,88 +206,39 @@ S0-like:
 
 These limits are conservative real-k validity limits. For fitting, use only points where the branch validity mask is true and avoid extrapolating across branch cuts.
 
-## Branch-tracking status
+## Maintained examples
 
-The elastic A0-like branch-switching problem in soft mRLFE cases has been addressed for the current 16 kHz test range by `solveMRLFEBranchDP.m` and the chained elastic workflow.
+Run these from the repository root after `startup`.
 
-The Han-style viscoelastic real-k path is now stabilized as a conservative modal-local tracker:
-
-1. Ignore the global low-Cp edge valley when it is not mode-relevant.
-2. Extract local residual minima at every frequency.
-3. Filter local minima by branch-specific modal windows.
-4. Penalize jumps relative to the previous Han point.
-5. Reject candidates with relative Cp jumps larger than `0.18`.
-6. Continue Han real-k branches only while a mode-relevant continuous local minimum exists.
-7. When no such real-k minimum exists, cut the branch and report the real-k validity limit.
-
-The current conclusion is that Han viscoelastic real-k does not need the same global DP strategy used for elastic A0-like. It uses a modal-local tracker that rejects the low-Cp residual valley and cuts the branch when the mode-relevant continuous local minimum disappears.
-
-## mRLFE diagnostic workflow
-
-Use these diagnostics when extending the solver beyond the current safe range:
+Basic examples:
 
 ```matlab
-examples/check_default_outputs
-examples/run_mrlfe_prototype
-examples/stress_test_mrlfe_elastic_range
-examples/prototype_mrlfe_a0_multicandidate_tracker
-examples/stress_test_mrlfe_han_visco_range
-examples/prototype_mrlfe_han_visco_a0_multicandidate_tracker
-examples/diagnose_mrlfe_han_visco_validity_breakdown
-examples/diagnose_mrlfe_han_visco_residual_landscape
+examples/basic/run_default_A0
+examples/basic/run_default_A0_S0
+examples/basic/sweep_thickness_A0_S0
+examples/basic/run_mrlfe_prototype
+examples/basic/compare_mrlfe_elastic_vs_han_visco_cp
+examples/basic/sweep_mrlfe_shear_viscosity_phase_velocity
 ```
 
-`stress_test_mrlfe_elastic_range` validates the elastic real-k fitting range.
-
-`stress_test_mrlfe_han_visco_range` estimates the conservative safe frequency range for Han viscoelastic real-k fitting across stiffness and viscosity sweeps.
-
-`diagnose_mrlfe_han_visco_validity_breakdown` separates invalid points by residual, reference, smoothness, and non-finite Cp masks. After stabilization, Han real-k cuts are expected to appear primarily as non-finite Cp after the solver rejects non-continuous or non-modal candidates.
-
-`diagnose_mrlfe_han_visco_residual_landscape` distinguishes the global low-Cp residual valley from mode-relevant local minima using branch-specific modal windows.
-
-## Attenuation terminology
-
-Use these terms consistently:
-
-- `solid shear viscosity etaS`: material Kelvin-Voigt shear viscosity. It modifies the material shear modulus through `muStar = mu + 1i*omega*etaS`.
-- `viscoelastic material damping`: energy loss inside the solid caused by complex material moduli.
-- `spatial attenuation Im(k)`: decay of the guided-wave amplitude along propagation, obtained only when solving a complex wavenumber `k = kReal + 1i*kImag`.
-- `fluid loading`: change in dispersion caused by the acoustic fluid boundary condition. This can change phase velocity even in a real-k calculation.
-- `leaky/radiation attenuation`: possible spatial attenuation due to energy radiated into the surrounding fluid. This requires a validated complex-k formulation and is not currently used for fitting.
-
-The complex-k prototype reports:
+Validation scripts:
 
 ```matlab
-attenuation = imag(k);
+examples/validation/check_default_outputs
+examples/validation/stress_test_mrlfe_elastic_range
+examples/validation/stress_test_mrlfe_han_visco_range
 ```
 
-but this attenuation is not yet validated for quantitative use.
-
-## Manual validation examples
-
-Run these from the repository root:
+Active diagnostics:
 
 ```matlab
-examples/run_default_A0
-examples/run_default_A0_S0
-examples/check_default_outputs
-examples/sweep_thickness_A0_S0
-examples/run_mrlfe_prototype
-examples/run_mrlfe_complexk_prototype
-examples/sweep_mrlfe_viscosity
-examples/sweep_mrlfe_shear_viscosity_phase_velocity
-examples/compare_mrlfe_elastic_vs_han_visco_cp
-examples/stress_test_mrlfe_elastic_range
-examples/prototype_mrlfe_a0_multicandidate_tracker
-examples/stress_test_mrlfe_han_visco_range
-examples/prototype_mrlfe_han_visco_a0_multicandidate_tracker
-examples/diagnose_mrlfe_han_visco_validity_breakdown
-examples/diagnose_mrlfe_han_visco_residual_landscape
+examples/diagnostics/diagnose_mrlfe_han_visco_validity_breakdown
+examples/diagnostics/diagnose_mrlfe_han_visco_residual_landscape
 ```
+
+Historical prototypes and exploratory diagnostics are in `examples/archive/` and are not part of routine validation.
 
 ## Development status summary
-
-Current project state:
 
 ```text
 Elastic mRLFE real-k:
@@ -310,23 +257,7 @@ Complex-k mRLFE:
     where Han real-k no longer has a mode-relevant local minimum.
 ```
 
-Open problems:
-
-```text
-1. S0-like remains experimental and needs benchmarking against a trusted reference.
-2. Complex-k attenuation is not validated for quantitative fitting.
-3. The physical interpretation of high-viscosity real-k branch termination must be tested with complex-k diagnostics.
-4. The examples folder still contains historical diagnostics that should be reorganized after Han visco tracking is stabilized.
-```
-
-Recommended next tasks:
-
-```text
-1. Add a focused complex-k diagnostic for cases where the Han real-k modal minimum disappears.
-2. Benchmark S0-like against a trusted Rayleigh-Lamb/fluid-loaded reference.
-3. Organize examples into stable validation scripts, demos, and diagnostics archive after the viscoelastic path is stabilized.
-4. Decide whether the GUI should expose advanced Han tracker options or keep them as backend-only defaults.
-```
+See `docs/validation_status.md` for a compact validation/status table.
 
 ## Current limitations
 
@@ -334,7 +265,6 @@ Recommended next tasks:
 - mRLFE complex-k is a prototype and attenuation is not yet validated for quantitative fitting.
 - Han viscoelastic real-k can terminate at high etaS, low E, or high frequency when no mode-relevant continuous real-k local minimum is found.
 - The global minimum of the Han real-k residual can be a low-Cp edge valley and should not be interpreted as the physical branch.
-- The examples folder contains several historical diagnostics from solver development and should be reorganized after Han visco tracking is stabilized.
 - Group velocity is not implemented yet.
 - Modal structure and displacement animations are not implemented yet.
 - Higher modes such as A1 and S1 are not implemented yet.
