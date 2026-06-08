@@ -20,7 +20,7 @@ root.ColumnWidth = {500,'1x'};
 left = uipanel(root,'Title','Controls');
 left.Layout.Column = 1;
 leftGrid = uigridlayout(left,[3 1]);
-leftGrid.RowHeight = {'1x',265,255};
+leftGrid.RowHeight = {'1x',285,235};
 leftGrid.Padding = [5 5 5 5];
 leftGrid.RowSpacing = 8;
 
@@ -44,9 +44,9 @@ modelControls.panel.Layout.Row = 2;
 runPanel = uipanel(leftGrid,'Title','Run / Export / Status');
 runPanel.Layout.Row = 3;
 rg = uigridlayout(runPanel,[4 1]);
-rg.RowHeight = {30,42,'1x',28};
-rg.Padding = [8 6 8 6];
-rg.RowSpacing = 4;
+rg.RowHeight = {28,34,'1x',26};
+rg.Padding = [8 5 8 5];
+rg.RowSpacing = 3;
 buttonGrid = uigridlayout(rg,[1 2]);
 buttonGrid.Layout.Row = 1;
 buttonGrid.ColumnWidth = {'1x','1x'};
@@ -54,8 +54,8 @@ buttonGrid.Padding = [0 0 0 0];
 buttonGrid.ColumnSpacing = 6;
 uibutton(buttonGrid,'Text','Compute selected modes','ButtonPushedFcn',@(~,~)onCompute());
 uibutton(buttonGrid,'Text','Export results','ButtonPushedFcn',@(~,~)onExport());
-materialInfo = uilabel(rg,'Text','Material info will appear here.','WordWrap','on','FontSize',9,'VerticalAlignment','top');
-statusBox = uitextarea(rg,'Value',{'Status: ready.'},'Editable','off','FontName','Consolas','FontSize',9);
+materialInfo = uilabel(rg,'Text','Material info will appear here.','WordWrap','on','FontSize',10,'VerticalAlignment','top');
+statusBox = uitextarea(rg,'Value',{'Status: ready.'},'Editable','off','FontName','Consolas','FontSize',10);
 uibutton(rg,'Text','Show diagnostics','ButtonPushedFcn',@(~,~)onShowDiagnostics());
 
 ax = uiaxes(root);
@@ -441,12 +441,16 @@ updateAxisFieldState();
         if plotControls.showS0.Value && isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp))
             plotCount = plotCount + plotMode(lastResults.modes.S0, '-', 'S0', colors.S0, xSel);
         end
-        if plotControls.showMRLFEA0.Value
+        if isfield(plotControls, 'showMRLFEElasticA0') && plotControls.showMRLFEElasticA0.Value
             plotCount = plotCount + plotMRLFEBranch('mRLFEElasticRealK', 'A0Like', ':', 'mRLFE elastic A0-like', colors.HanA0, xSel);
+        end
+        if isfield(plotControls, 'showMRLFEElasticS0') && plotControls.showMRLFEElasticS0.Value
+            plotCount = plotCount + plotMRLFEBranch('mRLFEElasticRealK', 'S0Like', ':', 'mRLFE elastic S0-like', colors.HanS0, xSel);
+        end
+        if isfield(plotControls, 'showMRLFEHanA0') && plotControls.showMRLFEHanA0.Value
             plotCount = plotCount + plotMRLFEBranch('mRLFEHanViscoRealK', 'A0Like', '-.', 'mRLFE Han visco A0-like', colors.HanA0, xSel);
         end
-        if plotControls.showMRLFES0.Value
-            plotCount = plotCount + plotMRLFEBranch('mRLFEElasticRealK', 'S0Like', ':', 'mRLFE elastic S0-like', colors.HanS0, xSel);
+        if isfield(plotControls, 'showMRLFEHanS0') && plotControls.showMRLFEHanS0.Value
             plotCount = plotCount + plotMRLFEBranch('mRLFEHanViscoRealK', 'S0Like', '-.', 'mRLFE Han visco S0-like', colors.HanS0, xSel);
         end
         if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
