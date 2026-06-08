@@ -11,6 +11,7 @@ addpath(projectRoot);
 addpath(fullfile(projectRoot, 'app'));
 addpath(fullfile(projectRoot, 'core'));
 addpath(fullfile(projectRoot, 'equations'));
+addpath(fullfile(projectRoot, 'approximations'));
 addpath(fullfile(projectRoot, 'tracking'));
 addpath(genpath(fullfile(projectRoot, 'models')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'basic')));
