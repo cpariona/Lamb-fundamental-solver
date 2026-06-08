@@ -38,7 +38,7 @@ h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'Elastic real-k', 'Value', false, 
 h.mrlfe.computeRealK.Layout.Row = 2;
 h.mrlfe.computeRealK.Layout.Column = [1 2];
 
-h.mrlfe.computeHanViscoRealK = uicheckbox(gM, 'Text', 'Han visco real-k', 'Value', false, 'ValueChangedFcn', @onHanViscoChanged);
+h.mrlfe.computeHanViscoRealK = uicheckbox(gM, 'Text', 'Viscoelastic real-k', 'Value', false, 'ValueChangedFcn', @onHanViscoChanged);
 h.mrlfe.computeHanViscoRealK.Layout.Row = 2;
 h.mrlfe.computeHanViscoRealK.Layout.Column = [3 4];
 
@@ -75,7 +75,7 @@ h.mrlfe.etaS = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], 'ValueC
 h.mrlfe.etaS.Layout.Row = 7;
 h.mrlfe.etaS.Layout.Column = [3 4];
 
-note = uilabel(gM, 'Text', 'Selecting Han automatically keeps elastic real-k available because it is the reference branch.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note = uilabel(gM, 'Text', 'Selecting viscoelastic real-k automatically keeps elastic real-k available because it is the reference branch.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Row = 8;
 note.Layout.Column = [1 4];
 
