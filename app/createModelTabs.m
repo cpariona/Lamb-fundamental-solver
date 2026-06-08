@@ -38,7 +38,7 @@ h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'Elastic real-k', 'Value', false, 
 h.mrlfe.computeRealK.Layout.Row = 2;
 h.mrlfe.computeRealK.Layout.Column = [1 2];
 
-h.mrlfe.computeHanViscoRealK = uicheckbox(gM, 'Text', 'Han visco real-k', 'Value', false, 'ValueChangedFcn', callbacks.markDirty);
+h.mrlfe.computeHanViscoRealK = uicheckbox(gM, 'Text', 'Han visco real-k', 'Value', false, 'ValueChangedFcn', @onHanViscoChanged);
 h.mrlfe.computeHanViscoRealK.Layout.Row = 2;
 h.mrlfe.computeHanViscoRealK.Layout.Column = [3 4];
 
@@ -75,7 +75,7 @@ h.mrlfe.etaS = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], 'ValueC
 h.mrlfe.etaS.Layout.Row = 7;
 h.mrlfe.etaS.Layout.Column = [3 4];
 
-note = uilabel(gM, 'Text', 'Selecting one branch can reduce runtime. Han uses the matching elastic branch as reference.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note = uilabel(gM, 'Text', 'Selecting Han automatically keeps elastic real-k available because it is the reference branch.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Row = 8;
 note.Layout.Column = [1 4];
 
@@ -85,4 +85,11 @@ h.mrlfe.useComplexLambda = struct('Value', false);
 
 h.panel = panel;
 h.tabGroup = tg;
+
+    function onHanViscoChanged(~, ~)
+        if h.mrlfe.computeHanViscoRealK.Value
+            h.mrlfe.computeRealK.Value = true;
+        end
+        callbacks.markDirty();
+    end
 end
