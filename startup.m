@@ -14,9 +14,11 @@ addpath(fullfile(projectRoot, 'equations'));
 addpath(fullfile(projectRoot, 'approximations'));
 addpath(fullfile(projectRoot, 'tracking'));
 addpath(genpath(fullfile(projectRoot, 'models')));
+addpath(genpath(fullfile(projectRoot, 'analysis')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'basic')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'validation')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'diagnostics')));
+addpath(genpath(fullfile(projectRoot, 'examples', 'sweeps')));
 
 fprintf('Lamb Fundamental Solver active paths added from:\n%s\n', projectRoot);
 end
