@@ -20,7 +20,7 @@ root.ColumnWidth = {500,'1x'};
 left = uipanel(root,'Title','Controls');
 left.Layout.Column = 1;
 leftGrid = uigridlayout(left,[3 1]);
-leftGrid.RowHeight = {'1x',240,280};
+leftGrid.RowHeight = {'1x',265,255};
 leftGrid.Padding = [5 5 5 5];
 leftGrid.RowSpacing = 8;
 
@@ -43,12 +43,17 @@ modelControls.panel.Layout.Row = 2;
 
 runPanel = uipanel(leftGrid,'Title','Run / Export / Status');
 runPanel.Layout.Row = 3;
-rg = uigridlayout(runPanel,[5 1]);
-rg.RowHeight = {28,28,42,'1x',28};
+rg = uigridlayout(runPanel,[4 1]);
+rg.RowHeight = {30,42,'1x',28};
 rg.Padding = [8 6 8 6];
 rg.RowSpacing = 4;
-uibutton(rg,'Text','Compute selected modes','ButtonPushedFcn',@(~,~)onCompute());
-uibutton(rg,'Text','Export results','ButtonPushedFcn',@(~,~)onExport());
+buttonGrid = uigridlayout(rg,[1 2]);
+buttonGrid.Layout.Row = 1;
+buttonGrid.ColumnWidth = {'1x','1x'};
+buttonGrid.Padding = [0 0 0 0];
+buttonGrid.ColumnSpacing = 6;
+uibutton(buttonGrid,'Text','Compute selected modes','ButtonPushedFcn',@(~,~)onCompute());
+uibutton(buttonGrid,'Text','Export results','ButtonPushedFcn',@(~,~)onExport());
 materialInfo = uilabel(rg,'Text','Material info will appear here.','WordWrap','on','FontSize',9,'VerticalAlignment','top');
 statusBox = uitextarea(rg,'Value',{'Status: ready.'},'Editable','off','FontName','Consolas','FontSize',9);
 uibutton(rg,'Text','Show diagnostics','ButtonPushedFcn',@(~,~)onShowDiagnostics());
@@ -434,7 +439,7 @@ updateAxisFieldState();
             plotCount = plotCount + plotMode(lastResults.modes.A0, '-', 'A0', colors.A0, xSel);
         end
         if plotControls.showS0.Value && isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp))
-            plotCount = plotCount + plotMode(lastResults.modes.S0, '-', 'S0 experimental', colors.S0, xSel);
+            plotCount = plotCount + plotMode(lastResults.modes.S0, '-', 'S0', colors.S0, xSel);
         end
         if plotControls.showMRLFEA0.Value
             plotCount = plotCount + plotMRLFEBranch('mRLFEElasticRealK', 'A0Like', ':', 'mRLFE elastic A0-like', colors.HanA0, xSel);
