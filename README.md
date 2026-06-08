@@ -18,6 +18,7 @@ Current scope:
 app/                  Main MATLAB GUI and UI helper files.
 core/                 Solver orchestration, defaults, material/geometry builders, validation.
 equations/            Rayleigh-Lamb residual functions.
+approximations/       Low-frequency analytical approximation helpers.
 tracking/             Generic Rayleigh-Lamb branch tracker.
 models/mrlfe/         Fluid-loaded mRLFE model, real-k/complex-k solvers, and trackers.
 examples/basic/       Lightweight examples and visual sweeps.
@@ -54,6 +55,7 @@ LambFundamental_GUI
 app/
 core/
 equations/
+approximations/
 tracking/
 models/
 examples/basic/
