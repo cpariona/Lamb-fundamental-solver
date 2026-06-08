@@ -1,9 +1,6 @@
 function sweepResults = runParametricSweep(baseParams, baseOptions, sweepSpec)
 % Run a one-parameter sweep using computeFundamentalLambModes.
-%
-% sweepSpec.parameter is the parameter name. Supported direct names include
-% fields of params and mRLFE fields such as etaS, etaL, fluidDensity, and
-% fluidSoundSpeed. sweepSpec.values must be numeric.
+% sweepSpec.parameter can target params fields or mRLFE fields.
 
 if ~isfield(sweepSpec,'parameter') || ~isfield(sweepSpec,'values')
     error('sweepSpec must contain parameter and values.');
@@ -20,4 +17,6 @@ if ~isfield(sweepSpec,'units'), sweepSpec.units = ''; end
 if ~isfield(sweepSpec,'scale'), sweepSpec.scale = 1; end
 if ~isfield(sweepSpec,'verbose'), sweepSpec.verbose = true; end
 
-n
+nCases = numel(values);
+caseResults = cell(1,nCases);
+caseParams = cell(1,nCases);
