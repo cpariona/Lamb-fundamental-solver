@@ -1,8 +1,18 @@
-% Placeholder for mRLFE tracker-vs-condition diagnostic.
-% The complete diagnostic is provided as a local patch because the GitHub
-% connector truncated long MATLAB script uploads during this session.
-%
-% Replace this file with the full version from:
-%   compare_mrlfe_tracker_vs_condition_peaks.m
+% Compare mRLFE tracker with brute-force residual/condition peaks.
+% This script is diagnostic only. It does not change the solver.
 
-fprintf('Replace this placeholder with the full diagnostic script from the patch file.\n');
+startup();
+
+branchName = "A0Like";
+modelName = "mRLFEElasticRealK";
+frequencyList = [1000 3000 5000 7000 9000 12000 16000];
+CpMin = 0.25;
+CpMax = 80;
+CpScanPoints = 5000;
+numPeaksToShow = 5;
+
+params = defaultParams();
+params.E = 100e3;
+params.nu = 0.4999;
+params.CL = 1500;
+params.r
