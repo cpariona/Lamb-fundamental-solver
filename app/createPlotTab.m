@@ -33,15 +33,15 @@ h.showMRLFEElasticS0 = uicheckbox(g, 'Text', 'Elastic S0-like', 'Value', true, '
 h.showMRLFEElasticS0.Layout.Row = 4;
 h.showMRLFEElasticS0.Layout.Column = [3 4];
 
-header = uilabel(g, 'Text', 'mRLFE Han visco real-k', 'FontWeight', 'bold', 'VerticalAlignment', 'center');
+header = uilabel(g, 'Text', 'mRLFE viscoelastic real-k', 'FontWeight', 'bold', 'VerticalAlignment', 'center');
 header.Layout.Row = 5;
 header.Layout.Column = [1 4];
 
-h.showMRLFEHanA0 = uicheckbox(g, 'Text', 'Han A0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
+h.showMRLFEHanA0 = uicheckbox(g, 'Text', 'Viscoelastic A0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.showMRLFEHanA0.Layout.Row = 6;
 h.showMRLFEHanA0.Layout.Column = [1 2];
 
-h.showMRLFEHanS0 = uicheckbox(g, 'Text', 'Han S0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
+h.showMRLFEHanS0 = uicheckbox(g, 'Text', 'Viscoelastic S0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
 h.showMRLFEHanS0.Layout.Row = 6;
 h.showMRLFEHanS0.Layout.Column = [3 4];
 
