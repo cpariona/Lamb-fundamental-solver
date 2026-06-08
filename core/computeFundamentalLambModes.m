@@ -62,9 +62,9 @@ if computeElasticRealK || computeHanViscoRealK
     elasticOptions = makeElasticRealKOptions(options);
     elasticResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, elasticOptions);
 
-    % Han real-k uses the elastic real-k branch as its modal reference. Keep
-    % this reference in the results even when Han was the only explicitly
-    % requested fluid-loaded model, so it can be plotted/exported/diagnosed.
+    % Han real-k uses this elastic real-k result as its modal reference.
+    % Keep it available even when Han was the only explicitly requested
+    % fluid-loaded model, so the reference branch can be plotted/exported.
     results.models.mRLFEElasticRealK = elasticResult;
     results.models.mRLFERealK = results.models.mRLFEElasticRealK;
 end
@@ -129,35 +129,72 @@ elasticOptions.mrlfeRealKPredictionWeight = 4.0;
 elasticOptions.mrlfeRealKMaxRelativeKDrift = 0.30;
 elasticOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.35;
 elasticOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.35;
-elasticOptions.mrlfeResidualTolerance = max(getOptionValue(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
+elasticOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
 end
 
 function hanOptions = makeHanRealKOptions(options)
-% Han real-k uses real lambda, complex mu*, and real k.  The global residual
-% minimum can fall into a spurious low-Cp valley.  Therefore Han uses a
-% conservative modal-local tracker: local minima are filtered by a
-% branch-specific Cp window around the elastic mRLFE reference, and the branch
-% is cut when no mode-relevant local minimum remains.
+% Han viscoelastic real-k is seeded from the elastic real-k result.  It uses a
+% conservative modal-local tracker because viscosity can introduce strong
+% competing residual valleys and low-Cp edge minima.
 hanOptions = options;
 hanOptions.mrlfeA0UseDPTracker = false;
 hanOptions.mrlfeRealKAnchorToSeed = true;
 hanOptions.mrlfeRealKHardReferenceWindow = false;
 hanOptions.mrlfeRealKScoreMode = "modal";
 hanOptions.mrlfeRealKRequireLocalMinimum = true;
-hanOptions.mrlfeRealKUseModalCpWindow = getOptionValue(options, 'mrlfeHanUseModalLocalTracker', true);
-hanOptions.mrlfeRealKStopAtFirstMissingModalMinimum = getOptionValue(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', true);
+hanOptions.mrlfeRealKUseModalCpWindow = getOption(options, 'mrlfeHanUseModalLocalTracker', true);
+hanOptions.mrlfeRealKStopAtFirstMissingModalMinimum = getOption(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', true);
 hanOptions.mrlfeRealKReferenceWeight = 120.0;
 hanOptions.mrlfeRealKPredictionWeight = 6.0;
-hanOptions.mrlfeRealKPreviousCpWeight = getOptionValue(options, 'mrlfeHanPreviousCpWeight', 80.0);
-hanOptions.mrlfeRealKPreviousKWeight = getOptionValue(options, 'mrlfeHanPreviousKWeight', 0.0);
-hanOptions.mrlfeRealKPreviousCpMaxRelativeJump = getOptionValue(options, 'mrlfeHanPreviousCpMaxRelativeJump', inf);
+hanOptions.mrlfeRealKPreviousCpWeight = getOption(options, 'mrlfeHanPreviousCpWeight', 80.0);
+hanOptions.mrlfeRealKPreviousKWeight = getOption(options, 'mrlfeHanPreviousKWeight', 0.0);
+hanOptions.mrlfeRealKPreviousCpMaxRelativeJump = getOption(options, 'mrlfeHanPreviousCpMaxRelativeJump', inf);
 hanOptions.mrlfeRealKMaxRelativeKDrift = inf;
 hanOptions.mrlfeRealKValidationMaxRelativeKDrift = inf;
 hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = inf;
-hanOptions.mrlfeResidualTolerance = max(getOptionValue(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
+hanOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
 end
 
-function value = getOptionValue(options, fieldName, defaultValue)
+function solverOptions = buildSolverOptions(options, material)
+solverOptions = struct();
+solverOptions.CT = material.CT;
+solverOptions.gridPointsInitial = options.gridPointsInitial;
+solverOptions.gridPointsTracking = options.gridPointsTracking;
+solverOptions.jumpTol = options.jumpTol;
+solverOptions.residualTolerance = options.residualTolerance;
+
+optionalFields = {'searchFactors', 'minCpAbsolute', 'minCpRelativeToCT', ...
+    'maxCpFactorCT', 'minCpGlobalMax', 'initialGuessWeight', 'predictionWeight', ...
+    'maxPredictionRelativeError', 'maxSinglePointSpikeRelative', 'preferPreviousRootWeight'};
+for i = 1:numel(optionalFields)
+    fieldName = optionalFields{i};
+    if isfield(options, fieldName)
+        solverOptions.(fieldName) = options.(fieldName);
+    end
+end
+end
+
+function solverOptions = applyBranchSpec(solverOptions, branchSpec)
+solverOptions.branchName = branchSpec.name;
+solverOptions.initialCpGuess = branchSpec.initialCpGuess;
+solverOptions.initialSearchRange = branchSpec.initialSearchRange;
+solverOptions.preferLowestCp = branchSpec.preferLowestCp;
+end
+
+function mode = packModeResults(name, family, frequency, omega, Cp, k, thickness, residual)
+mode = struct( ...
+    'name', name, ...
+    'family', family, ...
+    'frequency', frequency, ...
+    'omega', omega, ...
+    'Cp', Cp, ...
+    'k', k, ...
+    'kThickness', k * thickness, ...
+    'residual', residual, ...
+    'valid', isfinite(Cp));
+end
+
+function value = getOption(options, fieldName, defaultValue)
 if isfield(options, fieldName)
     value = options.(fieldName);
 else
