@@ -1,10 +1,18 @@
-% Compare current mRLFE tracker against a brute-force condition/residual scan.
-%
-% Purpose:
-%   This diagnostic is meant to answer a practical question raised during
-%   solver review: is the current tracker following a mode-relevant continuous
-%   branch, or is it simply missing roots that a brute-force condition-number
-%   scan would find?
-%
-% What is compared:
-%   1) Current project solver:
+% Compare mRLFE tracker with brute-force residual/condition peaks.
+% This script is diagnostic only. It does not change the solver.
+
+startup();
+
+branchName = "A0Like";
+modelName = "mRLFEElasticRealK";
+frequencyList = [1000 3000 5000 7000 9000 12000 16000];
+CpMin = 0.25;
+CpMax = 80;
+CpScanPoints = 5000;
+numPeaksToShow = 5;
+
+params = defaultParams();
+params.E = 100e3;
+params.nu = 0.4999;
+params.CL = 1500;
+params.r
