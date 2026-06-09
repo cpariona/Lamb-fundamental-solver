@@ -59,7 +59,7 @@ params.thickness = 0.5e-3;
 params.fmin = 500;
 params.fmax = 16000;
 params.numFrequencyPoints = 120;
-params.frequencySpacing = "linear";
+params.frequencySpacing = "linspace";
 
 options = defaultOptions("Balanced");
 options.computeA0 = branchName == "A0Like";
