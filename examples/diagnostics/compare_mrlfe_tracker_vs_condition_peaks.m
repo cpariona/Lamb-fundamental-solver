@@ -1,47 +1,65 @@
 % Compare mRLFE tracker with brute-force residual/condition peaks.
 % This script is diagnostic only. It does not change the solver.
 %
-% Purpose:
-%   1) Verify that the current mRLFE tracker lies on a true local residual
-%      minimum of the mRLFE matrix.
-%   2) Show why global-minimum tracking is unsafe when a low-Cp valley
-%      dominates the residual landscape.
-%   3) Quantify continuity of the tracked branch.
-%   4) Compare the cost of the current tracker with brute-force scanning.
+% Purpose
+% -------
+% 1) Check whether the tracked mRLFE branch is continuous.
+% 2) Compare the tracker solution against the residual landscape.
+% 3) Show why global-minimum / minimum-Cp tracking is unsafe.
+% 4) Provide timing evidence that dense brute-force scanning is mainly
+%    diagnostic, not the preferred full-branch solver.
 %
-% Recommended use:
-%   Run from the repository root after startup, or just run this script
-%   directly; it calls startup() internally.
+% Recommended use
+% ---------------
+% Run from the repository root:
+%
+%   clear; clc; close all;
+%   startup
+%   examples/diagnostics/compare_mrlfe_tracker_vs_condition_peaks
+%
+% You can change branchName/modelName/frequencyList near the top.
 
 clear; clc; close all;
 startup();
 
 fprintf('\n=== mRLFE tracker vs brute-force residual/condition scan ===\n');
 
-%% Configuration
+%% User-facing diagnostic settings
 branchName = "A0Like";              % "A0Like" or "S0Like"
 modelName  = "mRLFEElasticRealK";   % "mRLFEElasticRealK" or "mRLFEHanViscoRealK"
 
+% Frequencies selected for expensive brute-force residual scans.
+% These do not need to include every solver frequency.
 frequencyList = [500 1000 3000 5000 7000 9000 12000 16000];
 
-% Brute-force scan range in phase velocity.
-% CpMin = 0.25 intentionally exposes low-Cp residual valleys if they exist.
+% Cp scan range for brute-force landscape visualization.
 CpMin = 0.25;
-CpMax = 80.0;
-numCpScan = 5000;
+CpMax = 80;
+numCpScanPoints = 5000;
 
-% Use a representative soft-material case.
+% Modal-window comparison around the solver solution.
+% This is intentionally local: it asks whether the solver lies near a
+% residual valley in its own modal neighborhood, instead of asking whether a
+% crude global discrete local-min detector found the same point.
+modalWindowRelativeHalfWidth = 0.15;      % +/-15% around solver Cp
+modalWindowMinHalfWidthAbs = 0.15;        % at least +/-0.15 m/s
+
+% Global-min mismatch tolerance. If the global minimum is outside this
+% relative distance from the solver, it is counted as a mismatch.
+globalMatchRelativeTolerance = 0.03;      % 3%
+
+% Material/geometry defaults for the diagnostic case.
 params = defaultParams();
 params.modelType = "YoungPoissonFixedCL";
-params.E = 100e3;          % Pa
+params.E = 100e3;
 params.nu = 0.4999;
-params.CL = 1500;          % m/s
-params.rho = 1050;         % kg/m^3
-params.thickness = 0.5e-3; % m
+params.rho = 1050;
+params.CL = 1500;
+params.thickness = 0.5e-3;
 params.fmin = 500;
 params.fmax = 16000;
 params.numFrequencyPoints = 120;
-params.frequencySpacing = "hybrid";
+params.frequencySpacing = "linear";
 
 options = defaultOptions("Balanced");
 options.computeA0 = branchName == "A0Like";
@@ -51,301 +69,315 @@ options.computeMRLFEHanViscoRealK = modelName == "mRLFEHanViscoRealK";
 options.computeMRLFEComplexK = false;
 options.mrlfeComputeA0Like = branchName == "A0Like";
 options.mrlfeComputeS0Like = branchName == "S0Like";
-
-mrlfeParams = defaultMRLFEParams();
-mrlfeParams.fluidDensity = 1000;
-mrlfeParams.fluidSoundSpeed = 1500;
-mrlfeParams.etaS = 0.05; % used only for mRLFEHanViscoRealK
-mrlfeParams.etaL = 0;
-mrlfeParams.useComplexLambda = false;
-options.mrlfeParams = mrlfeParams;
+options.mrlfeParams = defaultMRLFEParams();
+options.mrlfeParams.fluidDensity = 1000;
+options.mrlfeParams.fluidSoundSpeed = 1500;
+options.mrlfeParams.etaS = 0.05;  % only relevant if modelName is viscoelastic
 
 fprintf('Model: %s | Branch: %s\n', modelName, branchName);
 fprintf('E = %.4g kPa | thickness = %.4g mm | nu = %.5f\n', ...
     params.E/1e3, params.thickness*1e3, params.nu);
-fprintf('Cp scan: %.3g to %.3g m/s | points = %d\n', CpMin, CpMax, numCpScan);
+fprintf('Cp scan: %.4g to %.4g m/s | points = %d\n', CpMin, CpMax, numCpScanPoints);
+fprintf('Modal local window: solver Cp +/- %.1f%%, minimum half-width %.3g m/s\n', ...
+    100*modalWindowRelativeHalfWidth, modalWindowMinHalfWidthAbs);
 
-%% Current solver
+%% Compute current tracked branch
 solverTimer = tic;
 results = computeFundamentalLambModes(params, options);
 solverSeconds = toc(solverTimer);
 
 if ~isfield(results.models, modelName)
-    error('Requested model "%s" was not found in results.models.', modelName);
+    error('Requested model %s was not computed.', modelName);
 end
 if ~isfield(results.models.(modelName).branches, branchName)
-    error('Requested branch "%s" was not found in results.models.%s.branches.', branchName, modelName);
+    error('Requested branch %s was not computed in %s.', branchName, modelName);
 end
 
 branch = results.models.(modelName).branches.(branchName);
 validMask = getValidMask(branch);
-validCp = branch.Cp(validMask);
-validFrequency = branch.frequency(validMask);
+frequency = branch.frequency(:);
+solverCp = branch.Cp(:);
 
-if isempty(validCp)
-    error('The requested branch has no valid Cp points.');
-end
+%% Continuity metrics for full tracked branch
+continuity = computeContinuityMetrics(frequency, solverCp, validMask);
 
-continuity = computeContinuityMetrics(validFrequency, validCp);
+%% Brute-force residual scan at selected frequencies
+CpGrid = linspace(CpMin, CpMax, numCpScanPoints);
+frequencyList = frequencyList(:);
+nFreq = numel(frequencyList);
 
-%% Brute-force residual/condition scan at selected frequencies
-frequencyList = frequencyList(:).';
-frequencyList = frequencyList(frequencyList >= min(branch.frequency) & frequencyList <= max(branch.frequency));
-if isempty(frequencyList)
-    error('frequencyList does not overlap with the computed branch frequency range.');
-end
+rows = struct([]);
+fig = figure('Name', 'mRLFE tracker vs residual landscape', 'Color', 'w');
+tiledlayout(fig, nFreq, 1, 'TileSpacing', 'compact', 'Padding', 'compact');
 
-CpGrid = linspace(CpMin, CpMax, numCpScan);
-scanRows = table();
-scanProfiles = struct([]);
-
-for i = 1:numel(frequencyList)
-    f0 = frequencyList(i);
-    [~, idx] = min(abs(branch.frequency - f0));
-    f = branch.frequency(idx);
+for i = 1:nFreq
+    fTarget = frequencyList(i);
+    [~, idx] = min(abs(frequency - fTarget));
+    f = frequency(idx);
     omega = 2*pi*f;
-    solverCp = branch.Cp(idx);
+    cpSolver = solverCp(idx);
 
     scanTimer = tic;
-    residual = nan(size(CpGrid));
-    for j = 1:numel(CpGrid)
-        Cp = CpGrid(j);
-        k = omega / Cp;
-        residual(j) = mrlfeResidual(k, omega, results.material, results.geometry, options.mrlfeParams);
-    end
+    residual = scanResidualVsCp(CpGrid, omega, results.material, results.geometry, options.mrlfeParams);
     bruteSeconds = toc(scanTimer);
 
+    finiteMask = isfinite(residual);
+    [globalResidual, globalIdx] = min(residual(finiteMask));
+    finiteIndices = find(finiteMask);
+    globalIdx = finiteIndices(globalIdx);
+    globalCp = CpGrid(globalIdx);
+
     localMask = isLocalMinimum(residual);
-    localCp = CpGrid(localMask);
-    localResidual = residual(localMask);
+    localIdx = find(localMask);
+    localCp = CpGrid(localIdx);
+    localResidual = residual(localIdx);
 
-    [globalMinResidual, globalIdx] = min(residual);
-    globalMinCp = CpGrid(globalIdx);
+    [nearestLocalCp, nearestLocalResidual, nearestLocalAbsDiff, nearestLocalRelDiff] = ...
+        nearestCandidate(localCp, localResidual, cpSolver);
 
-    if isempty(localCp) || ~isfinite(solverCp)
-        nearestLocalCp = nan;
-        nearestLocalResidual = nan;
-        cpDifference = nan;
-        relativeCpDifference = nan;
-    else
-        [~, nearestIdx] = min(abs(localCp - solverCp));
-        nearestLocalCp = localCp(nearestIdx);
-        nearestLocalResidual = localResidual(nearestIdx);
-        cpDifference = abs(solverCp - nearestLocalCp);
-        relativeCpDifference = cpDifference / max(abs(solverCp), eps);
+    [modalBestCp, modalBestResidual, modalAbsDiff, modalRelDiff, modalNumPoints] = ...
+        bestResidualNearSolver(CpGrid, residual, cpSolver, modalWindowRelativeHalfWidth, modalWindowMinHalfWidthAbs);
+
+    globalRelDiff = abs(globalCp - cpSolver) / max(abs(cpSolver), eps);
+    globalMatchesTracker = globalRelDiff <= globalMatchRelativeTolerance;
+
+    rows(i).Frequency_Hz = f;
+    rows(i).SolverCp = cpSolver;
+    rows(i).NearestDiscreteLocalMinCp = nearestLocalCp;
+    rows(i).AbsDiffToDiscreteLocalMin = nearestLocalAbsDiff;
+    rows(i).RelDiffToDiscreteLocalMin = nearestLocalRelDiff;
+    rows(i).ModalWindowBestCp = modalBestCp;
+    rows(i).AbsDiffToModalWindowBest = modalAbsDiff;
+    rows(i).RelDiffToModalWindowBest = modalRelDiff;
+    rows(i).GlobalMinCp = globalCp;
+    rows(i).GlobalMinResidual = globalResidual;
+    rows(i).NearestDiscreteLocalMinResidual = nearestLocalResidual;
+    rows(i).ModalWindowBestResidual = modalBestResidual;
+    rows(i).NumDiscreteLocalMinima = numel(localIdx);
+    rows(i).ModalWindowNumPoints = modalNumPoints;
+    rows(i).GlobalMinMatchesTracker = globalMatchesTracker;
+    rows(i).BruteForceSeconds = bruteSeconds;
+
+    nexttile;
+    semilogy(CpGrid, residual, 'k-', 'LineWidth', 1.0); hold on;
+    if ~isempty(localIdx)
+        semilogy(localCp, localResidual, 'bo', 'MarkerSize', 4, 'DisplayName', 'discrete local minima');
     end
-
-    globalToSolverRelativeError = abs(globalMinCp - solverCp) / max(abs(solverCp), eps);
-    globalMatchesSolver = globalToSolverRelativeError < 0.02;
-
-    newRow = table(f, solverCp, nearestLocalCp, cpDifference, relativeCpDifference, ...
-        globalMinCp, globalMinResidual, nearestLocalResidual, sum(localMask), ...
-        globalMatchesSolver, bruteSeconds, ...
-        'VariableNames', {'Frequency_Hz','SolverCp','NearestLocalMinCp', ...
-        'AbsCpDifference','RelativeCpDifference','GlobalMinCp', ...
-        'GlobalMinResidual','NearestLocalMinResidual','NumLocalMinima', ...
-        'GlobalMinMatchesTracker','BruteForceSeconds'});
-
-    scanRows = [scanRows; newRow]; %#ok<AGROW>
-
-    scanProfiles(i).frequency = f; %#ok<SAGROW>
-    scanProfiles(i).CpGrid = CpGrid;
-    scanProfiles(i).residual = residual;
-    scanProfiles(i).localCp = localCp;
-    scanProfiles(i).localResidual = localResidual;
-    scanProfiles(i).solverCp = solverCp;
-    scanProfiles(i).nearestLocalCp = nearestLocalCp;
-    scanProfiles(i).globalMinCp = globalMinCp;
+    xline(cpSolver, 'r-', 'LineWidth', 1.5, 'DisplayName', 'tracker Cp');
+    if isfinite(nearestLocalCp)
+        xline(nearestLocalCp, 'g--', 'LineWidth', 1.1, 'DisplayName', 'nearest discrete local min');
+    end
+    if isfinite(modalBestCp)
+        xline(modalBestCp, 'm-.', 'LineWidth', 1.1, 'DisplayName', 'best residual near tracker');
+    end
+    xline(globalCp, 'c:', 'LineWidth', 1.1, 'DisplayName', 'global min');
+    grid on;
+    ylabel('residual');
+    title(sprintf('f = %.0f Hz | tracker Cp = %.4g m/s | global Cp = %.4g m/s', ...
+        f, cpSolver, globalCp));
+    if i == nFreq
+        xlabel('Cp [m/s]');
+    end
+    if i == 1
+        legend('Location', 'eastoutside');
+    end
 end
 
-%% Aggregate summary
-validScan = isfinite(scanRows.AbsCpDifference);
-if any(validScan)
-    maxAbsTrackerLocalDifference = max(scanRows.AbsCpDifference(validScan));
-    medianAbsTrackerLocalDifference = median(scanRows.AbsCpDifference(validScan));
-    maxRelativeTrackerLocalDifference = max(scanRows.RelativeCpDifference(validScan));
-else
-    maxAbsTrackerLocalDifference = nan;
-    medianAbsTrackerLocalDifference = nan;
-    maxRelativeTrackerLocalDifference = nan;
-end
+diagnosticTable = struct2table(rows);
+disp(diagnosticTable);
 
-globalMismatchCount = sum(~scanRows.GlobalMinMatchesTracker);
-globalMismatchFraction = globalMismatchCount / height(scanRows);
+%% Aggregated metrics
+finiteDiscrete = isfinite(diagnosticTable.AbsDiffToDiscreteLocalMin);
+finiteModal = isfinite(diagnosticTable.AbsDiffToModalWindowBest);
 
-meanBruteSeconds = mean(scanRows.BruteForceSeconds, 'omitnan');
-estimatedBruteForceFullBranchSeconds = meanBruteSeconds * numel(branch.frequency);
-speedupVsEstimatedBrute = estimatedBruteForceFullBranchSeconds / solverSeconds;
+discreteSummary = table();
+discreteSummary.MaxAbsDiffToDiscreteLocalMin = maxOrNaN(diagnosticTable.AbsDiffToDiscreteLocalMin(finiteDiscrete));
+discreteSummary.MedianAbsDiffToDiscreteLocalMin = medianOrNaN(diagnosticTable.AbsDiffToDiscreteLocalMin(finiteDiscrete));
+discreteSummary.MaxRelDiffToDiscreteLocalMin = maxOrNaN(diagnosticTable.RelDiffToDiscreteLocalMin(finiteDiscrete));
+discreteSummary.MedianRelDiffToDiscreteLocalMin = medianOrNaN(diagnosticTable.RelDiffToDiscreteLocalMin(finiteDiscrete));
+discreteSummary.MissingDiscreteLocalMinCount = sum(~finiteDiscrete);
 
-summary = table( ...
-    solverSeconds, ...
-    sum(validMask), ...
-    numel(branch.frequency), ...
-    continuity.NumSegments, ...
-    continuity.MaxAbsCpJump, ...
-    continuity.MaxRelativeCpJump, ...
-    continuity.MedianRelativeCpJump, ...
-    continuity.MaxCurvatureLikeChange, ...
-    maxAbsTrackerLocalDifference, ...
-    medianAbsTrackerLocalDifference, ...
-    maxRelativeTrackerLocalDifference, ...
-    globalMismatchCount, ...
-    globalMismatchFraction, ...
-    sum(scanRows.NumLocalMinima), ...
-    sum(scanRows.BruteForceSeconds), ...
-    estimatedBruteForceFullBranchSeconds, ...
-    speedupVsEstimatedBrute, ...
-    'VariableNames', {'SolverSeconds','ValidCpPoints','TotalBranchPoints', ...
-    'NumValiditySegments','MaxAbsCpJump','MaxRelativeCpJump', ...
-    'MedianRelativeCpJump','MaxCurvatureLikeChange', ...
-    'MaxAbsTrackerLocalDifference','MedianAbsTrackerLocalDifference', ...
-    'MaxRelativeTrackerLocalDifference','GlobalMismatchCount', ...
-    'GlobalMismatchFraction','TotalLocalMinimaFound', ...
-    'BruteForceSelectedSeconds','EstimatedBruteForceFullBranchSeconds', ...
-    'EstimatedSpeedupVsBruteForce'});
+modalSummary = table();
+modalSummary.MaxAbsDiffToModalWindowBest = maxOrNaN(diagnosticTable.AbsDiffToModalWindowBest(finiteModal));
+modalSummary.MedianAbsDiffToModalWindowBest = medianOrNaN(diagnosticTable.AbsDiffToModalWindowBest(finiteModal));
+modalSummary.MaxRelDiffToModalWindowBest = maxOrNaN(diagnosticTable.RelDiffToModalWindowBest(finiteModal));
+modalSummary.MedianRelDiffToModalWindowBest = medianOrNaN(diagnosticTable.RelDiffToModalWindowBest(finiteModal));
+modalSummary.MissingModalWindowCount = sum(~finiteModal);
 
-%% Print report
-disp(scanRows);
+globalSummary = table();
+globalSummary.GlobalMismatchCount = sum(~diagnosticTable.GlobalMinMatchesTracker);
+globalSummary.GlobalMismatchFraction = mean(~diagnosticTable.GlobalMinMatchesTracker);
+
+continuityTable = struct2table(continuity);
+
+bruteSelectedSeconds = sum(diagnosticTable.BruteForceSeconds);
+estimatedBruteFullSeconds = mean(diagnosticTable.BruteForceSeconds) * numel(frequency);
+speedupVsBrute = estimatedBruteFullSeconds / solverSeconds;
+
+timingSummary = table();
+timingSummary.CurrentSolverFullBranchSeconds = solverSeconds;
+timingSummary.BruteForceSelectedSeconds = bruteSelectedSeconds;
+timingSummary.EstimatedBruteForceFullBranchSeconds = estimatedBruteFullSeconds;
+timingSummary.EstimatedSpeedupVsBruteForce = speedupVsBrute;
+
 fprintf('\nContinuity metrics for tracked branch\n');
-disp(summary(:, {'ValidCpPoints','TotalBranchPoints','NumValiditySegments', ...
-    'MaxAbsCpJump','MaxRelativeCpJump','MedianRelativeCpJump','MaxCurvatureLikeChange'}));
+disp(continuityTable);
 
-fprintf('\nTracker-vs-local-minimum metrics\n');
-disp(summary(:, {'MaxAbsTrackerLocalDifference','MedianAbsTrackerLocalDifference', ...
-    'MaxRelativeTrackerLocalDifference','GlobalMismatchCount','GlobalMismatchFraction'}));
+fprintf('\nDiscrete local-minimum diagnostics\n');
+disp(discreteSummary);
+
+fprintf('\nModal-window diagnostics around tracker Cp\n');
+disp(modalSummary);
+
+fprintf('\nGlobal-minimum mismatch diagnostics\n');
+disp(globalSummary);
 
 fprintf('\nTiming summary\n');
-fprintf('  Current solver, full branch: %.3f s\n', solverSeconds);
-fprintf('  Brute-force scan, %d selected frequencies only: %.3f s\n', ...
-    height(scanRows), sum(scanRows.BruteForceSeconds));
-fprintf('  Estimated brute-force time for all %d branch points: %.3f s\n', ...
-    numel(branch.frequency), estimatedBruteForceFullBranchSeconds);
-fprintf('  Estimated speedup of current solver vs full brute-force scan: %.2fx\n', ...
-    speedupVsEstimatedBrute);
+disp(timingSummary);
 
 fprintf('\nInterpretation:\n');
-fprintf('  - Small tracker-vs-nearest-local-minimum errors show the tracker follows a true local singular/residual minimum.\n');
+fprintf('  - Continuity metrics quantify whether the tracked branch has artificial jumps.\n');
 fprintf('  - Global-minimum mismatches show why global-minimum or minimum-Cp tracking is unsafe.\n');
-fprintf('  - Continuity metrics quantify whether the branch has artificial jumps.\n');
+fprintf('  - Discrete local-minimum diagnostics depend on scan resolution and can miss shallow/narrow minima.\n');
+fprintf('  - Modal-window diagnostics ask a fairer question: is the tracker near a residual valley in its own modal neighborhood?\n');
 fprintf('  - Brute-force scanning is useful diagnostically, but expensive as a full solver.\n');
 
-%% Figures
-figure('Name','mRLFE tracker vs residual landscape','Color','w');
-tiledlayout('flow');
-
-for i = 1:numel(scanProfiles)
-    nexttile;
-    profile = scanProfiles(i);
-    semilogy(profile.CpGrid, profile.residual, 'k-', 'LineWidth', 1.2);
-    hold on;
-    if ~isempty(profile.localCp)
-        semilogy(profile.localCp, profile.localResidual, 'bo', 'MarkerSize', 4, ...
-            'DisplayName','local minima');
-    end
-    xline(profile.solverCp, 'r-', 'LineWidth', 1.5, 'DisplayName','tracker Cp');
-    if isfinite(profile.nearestLocalCp)
-        xline(profile.nearestLocalCp, 'g--', 'LineWidth', 1.2, 'DisplayName','nearest local min');
-    end
-    xline(profile.globalMinCp, 'm:', 'LineWidth', 1.2, 'DisplayName','global min');
-    grid on;
-    xlabel('Cp [m/s]');
-    ylabel('mRLFE residual');
-    title(sprintf('f = %.0f Hz', profile.frequency));
-end
-
-figure('Name','Tracked branch continuity and local-min comparison','Color','w');
-plot(branch.frequency(validMask), branch.Cp(validMask), 'r-', 'LineWidth', 2, ...
-    'DisplayName','tracker branch');
-hold on;
-scatter(scanRows.Frequency_Hz, scanRows.NearestLocalMinCp, 40, 'g', 'filled', ...
-    'DisplayName','nearest local minima');
-scatter(scanRows.Frequency_Hz, scanRows.GlobalMinCp, 30, 'm', 'filled', ...
-    'DisplayName','global minima');
-grid on;
-xlabel('frequency [Hz]');
-ylabel('Cp [m/s]');
-title(sprintf('%s / %s continuity diagnostic', modelName, branchName), 'Interpreter','none');
-legend('Location','best');
-
-%% Export to base workspace
-DiagnosticResults = struct();
-DiagnosticResults.config.branchName = branchName;
-DiagnosticResults.config.modelName = modelName;
-DiagnosticResults.config.frequencyList = frequencyList;
-DiagnosticResults.config.CpGrid = CpGrid;
-DiagnosticResults.results = results;
-DiagnosticResults.branch = branch;
-DiagnosticResults.validMask = validMask;
-DiagnosticResults.scanRows = scanRows;
-DiagnosticResults.summary = summary;
-DiagnosticResults.continuity = continuity;
-DiagnosticResults.scanProfiles = scanProfiles;
-assignin('base', 'MRLFETrackerDiagnosticResults', DiagnosticResults);
+MRLFETrackerDiagnosticResults = struct();
+MRLFETrackerDiagnosticResults.params = params;
+MRLFETrackerDiagnosticResults.options = options;
+MRLFETrackerDiagnosticResults.modelName = modelName;
+MRLFETrackerDiagnosticResults.branchName = branchName;
+MRLFETrackerDiagnosticResults.table = diagnosticTable;
+MRLFETrackerDiagnosticResults.continuity = continuityTable;
+MRLFETrackerDiagnosticResults.discreteLocalMinimumSummary = discreteSummary;
+MRLFETrackerDiagnosticResults.modalWindowSummary = modalSummary;
+MRLFETrackerDiagnosticResults.globalMinimumSummary = globalSummary;
+MRLFETrackerDiagnosticResults.timing = timingSummary;
+assignin('base', 'MRLFETrackerDiagnosticResults', MRLFETrackerDiagnosticResults);
 
 %% Local functions
+function residual = scanResidualVsCp(CpGrid, omega, material, geometry, mrlfeParams)
+    residual = nan(size(CpGrid));
+    for j = 1:numel(CpGrid)
+        cp = CpGrid(j);
+        if ~(isfinite(cp) && cp > 0)
+            continue;
+        end
+        k = omega / cp;
+        residual(j) = mrlfeResidual(k, omega, material, geometry, mrlfeParams);
+    end
+end
+
+function [cp, r, absDiff, relDiff] = nearestCandidate(candidateCp, candidateResidual, targetCp)
+    cp = nan; r = nan; absDiff = nan; relDiff = nan;
+    if isempty(candidateCp) || ~isfinite(targetCp)
+        return;
+    end
+    [absDiff, idx] = min(abs(candidateCp - targetCp));
+    cp = candidateCp(idx);
+    r = candidateResidual(idx);
+    relDiff = absDiff / max(abs(targetCp), eps);
+end
+
+function [bestCp, bestResidual, absDiff, relDiff, nPoints] = bestResidualNearSolver(CpGrid, residual, solverCp, relHalfWidth, minHalfWidthAbs)
+    bestCp = nan; bestResidual = nan; absDiff = nan; relDiff = nan; nPoints = 0;
+    if ~isfinite(solverCp)
+        return;
+    end
+    halfWidth = max(abs(solverCp) * relHalfWidth, minHalfWidthAbs);
+    mask = CpGrid >= (solverCp - halfWidth) & CpGrid <= (solverCp + halfWidth) & isfinite(residual);
+    nPoints = sum(mask);
+    if nPoints < 1
+        return;
+    end
+    idxAll = find(mask);
+    [bestResidual, localIdx] = min(residual(mask));
+    idx = idxAll(localIdx);
+    bestCp = CpGrid(idx);
+    absDiff = abs(bestCp - solverCp);
+    relDiff = absDiff / max(abs(solverCp), eps);
+end
+
+function continuity = computeContinuityMetrics(frequency, cp, validMask)
+    validMask = validMask(:) & isfinite(cp(:));
+    cpValid = cp(validMask);
+    frequencyValid = frequency(validMask);
+
+    continuity = struct();
+    continuity.ValidCpPoints = numel(cpValid);
+    continuity.TotalBranchPoints = numel(cp);
+    continuity.NumValiditySegments = countSegments(validMask);
+
+    if numel(cpValid) < 2
+        continuity.MaxAbsCpJump = nan;
+        continuity.MaxRelativeCpJump = nan;
+        continuity.MedianRelativeCpJump = nan;
+        continuity.MaxCurvatureLikeChange = nan;
+        return;
+    end
+
+    absJump = abs(diff(cpValid));
+    relJump = absJump ./ max(abs(cpValid(1:end-1)), eps);
+    continuity.MaxAbsCpJump = max(absJump);
+    continuity.MaxRelativeCpJump = max(relJump);
+    continuity.MedianRelativeCpJump = median(relJump);
+
+    if numel(cpValid) < 3
+        continuity.MaxCurvatureLikeChange = nan;
+    else
+        df = diff(frequencyValid);
+        slope = diff(cpValid) ./ max(df, eps);
+        slopeScale = max(abs(slope(1:end-1)), max(abs(slope(2:end)), eps));
+        curvatureLike = abs(diff(slope)) ./ slopeScale;
+        continuity.MaxCurvatureLikeChange = max(curvatureLike);
+    end
+end
+
+function nSegments = countSegments(mask)
+    mask = logical(mask(:));
+    if isempty(mask)
+        nSegments = 0;
+        return;
+    end
+    starts = mask & [true; ~mask(1:end-1)];
+    nSegments = sum(starts);
+end
+
 function mask = getValidMask(branch)
-if isfield(branch, 'validCp')
-    mask = branch.validCp & isfinite(branch.Cp);
-elseif isfield(branch, 'valid')
-    mask = branch.valid & isfinite(branch.Cp);
-else
-    mask = isfinite(branch.Cp);
-end
-end
-
-function tf = isLocalMinimum(y)
-tf = false(size(y));
-finiteMask = isfinite(y);
-for ii = 2:numel(y)-1
-    tf(ii) = finiteMask(ii-1) && finiteMask(ii) && finiteMask(ii+1) && ...
-        y(ii) <= y(ii-1) && y(ii) <= y(ii+1) && ...
-        (y(ii) < y(ii-1) || y(ii) < y(ii+1));
-end
+    if isfield(branch, 'validCp')
+        mask = branch.validCp;
+    elseif isfield(branch, 'valid')
+        mask = branch.valid;
+    else
+        mask = isfinite(branch.Cp);
+    end
+    mask = mask(:) & isfinite(branch.Cp(:));
 end
 
-function metrics = computeContinuityMetrics(frequency, Cp)
-frequency = frequency(:);
-Cp = Cp(:);
-
-valid = isfinite(frequency) & isfinite(Cp);
-frequency = frequency(valid);
-Cp = Cp(valid);
-
-metrics = struct();
-metrics.NumPoints = numel(Cp);
-
-if numel(Cp) < 2
-    metrics.NumSegments = double(numel(Cp) > 0);
-    metrics.MaxAbsCpJump = 0;
-    metrics.MaxRelativeCpJump = 0;
-    metrics.MedianRelativeCpJump = 0;
-    metrics.MaxCurvatureLikeChange = 0;
-    return;
+function mask = isLocalMinimum(y)
+    y = y(:).';
+    mask = false(size(y));
+    finiteMask = isfinite(y);
+    for i = 2:numel(y)-1
+        if finiteMask(i-1) && finiteMask(i) && finiteMask(i+1)
+            mask(i) = y(i) <= y(i-1) && y(i) <= y(i+1) && ...
+                (y(i) < y(i-1) || y(i) < y(i+1));
+        end
+    end
 end
 
-dCp = diff(Cp);
-relativeJump = abs(dCp) ./ max(abs(Cp(1:end-1)), eps);
-
-% A conservative segment counter based on finite continuity only. Since this
-% function receives only finite valid points, gaps are detected from frequency
-% spacing jumps larger than three times the median step.
-df = diff(frequency);
-if isempty(df) || median(df) == 0
-    gapMask = false(size(df));
-else
-    gapMask = df > 3 * median(df);
+function value = maxOrNaN(x)
+    if isempty(x)
+        value = nan;
+    else
+        value = max(x);
+    end
 end
 
-metrics.NumSegments = 1 + sum(gapMask);
-metrics.MaxAbsCpJump = max(abs(dCp));
-metrics.MaxRelativeCpJump = max(relativeJump);
-metrics.MedianRelativeCpJump = median(relativeJump);
-
-if numel(Cp) >= 3
-    secondDifference = diff(Cp, 2);
-    normalization = max(abs(Cp(2:end-1)), eps);
-    metrics.MaxCurvatureLikeChange = max(abs(secondDifference) ./ normalization);
-else
-    metrics.MaxCurvatureLikeChange = 0;
-end
+function value = medianOrNaN(x)
+    if isempty(x)
+        value = nan;
+    else
+        value = median(x);
+    end
 end
