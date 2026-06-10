@@ -39,67 +39,70 @@ cg.RowSpacing = 4;
 cg.ColumnSpacing = 8;
 
 row = 1;
-uilabel(cg, 'Text', 'Sweep parameter', 'FontWeight', 'bold').Layout.Row = row;
+addLabel(cg, row, [1 2], 'Sweep parameter', 'FontWeight', 'bold');
 row = row + 1;
 parameterDrop = uidropdown(cg, 'Items', {'etaS', 'E', 'thickness'}, 'Value', 'etaS', ...
     'ValueChangedFcn', @(~,~)onParameterChanged());
-parameterDrop.Layout.Row = row; parameterDrop.Layout.Column = [1 2];
+setGridPosition(parameterDrop, row, [1 2]);
 
 row = row + 1;
-uilabel(cg, 'Text', 'Values', 'FontWeight', 'bold').Layout.Row = row;
+addLabel(cg, row, [1 2], 'Values', 'FontWeight', 'bold');
 row = row + 1;
 valuesEdit = uieditfield(cg, 'text', 'Value', '0, 0.01, 0.05, 0.10, 0.20, 0.30, 0.50');
-valuesEdit.Layout.Row = row; valuesEdit.Layout.Column = [1 2];
+setGridPosition(valuesEdit, row, [1 2]);
 
 row = row + 1;
-uilabel(cg, 'Text', 'Model', 'FontWeight', 'bold').Layout.Row = row;
+addLabel(cg, row, [1 2], 'Model', 'FontWeight', 'bold');
 row = row + 1;
 modelDrop = uidropdown(cg, 'Items', {'Viscoelastic real-k', 'Elastic real-k'}, 'Value', 'Viscoelastic real-k');
-modelDrop.Layout.Row = row; modelDrop.Layout.Column = [1 2];
+setGridPosition(modelDrop, row, [1 2]);
 
 row = row + 1;
-uilabel(cg, 'Text', 'Branch', 'FontWeight', 'bold').Layout.Row = row;
+addLabel(cg, row, [1 2], 'Branch', 'FontWeight', 'bold');
 row = row + 1;
 branchDrop = uidropdown(cg, 'Items', {'A0Like', 'S0Like'}, 'Value', 'A0Like');
-branchDrop.Layout.Row = row; branchDrop.Layout.Column = [1 2];
+setGridPosition(branchDrop, row, [1 2]);
 
 row = row + 1;
-uilabel(cg, 'Text', 'Robustness', 'FontWeight', 'bold').Layout.Row = row;
+addLabel(cg, row, [1 2], 'Robustness', 'FontWeight', 'bold');
 row = row + 1;
 robustnessDrop = uidropdown(cg, 'Items', {'Fast', 'Balanced', 'Robust'}, 'Value', 'Fast');
-robustnessDrop.Layout.Row = row; robustnessDrop.Layout.Column = [1 2];
+setGridPosition(robustnessDrop, row, [1 2]);
 
 row = row + 1;
-uilabel(cg, 'Text', 'Base etaS [Pa*s]').Layout.Row = row; row = row + 1;
+addLabel(cg, row, [1 2], 'Base etaS [Pa*s]');
+row = row + 1;
 etaSEdit = uieditfield(cg, 'numeric', 'Value', getMRLFEValue(baseOptions, 'etaS', 0.05));
-etaSEdit.Layout.Row = row; etaSEdit.Layout.Column = [1 2];
+setGridPosition(etaSEdit, row, [1 2]);
 
 row = row + 1;
-uilabel(cg, 'Text', 'Fluid rho [kg/m^3]').Layout.Row = row; row = row + 1;
+addLabel(cg, row, [1 2], 'Fluid rho [kg/m^3]');
+row = row + 1;
 fluidDensityEdit = uieditfield(cg, 'numeric', 'Value', getMRLFEValue(baseOptions, 'fluidDensity', 1000));
-fluidDensityEdit.Layout.Row = row; fluidDensityEdit.Layout.Column = [1 2];
+setGridPosition(fluidDensityEdit, row, [1 2]);
 
 row = row + 1;
-uilabel(cg, 'Text', 'Fluid c [m/s]').Layout.Row = row; row = row + 1;
+addLabel(cg, row, [1 2], 'Fluid c [m/s]');
+row = row + 1;
 fluidSoundEdit = uieditfield(cg, 'numeric', 'Value', getMRLFEValue(baseOptions, 'fluidSoundSpeed', 1500));
-fluidSoundEdit.Layout.Row = row; fluidSoundEdit.Layout.Column = [1 2];
+setGridPosition(fluidSoundEdit, row, [1 2]);
 
 row = row + 1;
 runButton = uibutton(cg, 'Text', 'Run sweep', 'ButtonPushedFcn', @(~,~)onRunSweep());
-runButton.Layout.Row = row; runButton.Layout.Column = [1 2];
+setGridPosition(runButton, row, [1 2]);
 
 row = row + 1;
 exportButton = uibutton(cg, 'Text', 'Export sweep to workspace', 'ButtonPushedFcn', @(~,~)onExportSweep());
-exportButton.Layout.Row = row; exportButton.Layout.Column = [1 2];
+setGridPosition(exportButton, row, [1 2]);
 
 row = row + 1;
 statusBox = uitextarea(cg, 'Value', {'Status: ready.'}, 'Editable', 'off', 'FontName', 'Consolas', 'FontSize', 10);
-statusBox.Layout.Row = row; statusBox.Layout.Column = [1 2];
+setGridPosition(statusBox, row, [1 2]);
 
 row = row + 1;
 helpLabel = uilabel(cg, 'Text', 'Tip: values use displayed units: etaS [Pa*s], E [kPa], thickness [mm].', ...
     'WordWrap', 'on', 'FontSize', 10);
-helpLabel.Layout.Row = row; helpLabel.Layout.Column = [1 2];
+setGridPosition(helpLabel, row, [1 2]);
 
 rightPanel = uipanel(root, 'Title', 'Sweep results');
 rightPanel.Layout.Column = 2;
@@ -334,4 +337,14 @@ if isfield(spec, 'units') && strlength(string(spec.units)) > 0
 else
     txt = sprintf('%s = %.4g', string(spec.label), value);
 end
+end
+
+function h = addLabel(parent, row, col, txt, varargin)
+h = uilabel(parent, 'Text', txt, varargin{:});
+setGridPosition(h, row, col);
+end
+
+function setGridPosition(component, row, col)
+component.Layout.Row = row;
+component.Layout.Column = col;
 end
