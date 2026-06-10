@@ -236,6 +236,24 @@ Active diagnostics:
 ```matlab
 examples/diagnostics/diagnose_mrlfe_han_visco_validity_breakdown
 examples/diagnostics/diagnose_mrlfe_han_visco_residual_landscape
+examples/diagnostics/compare_mrlfe_tracker_vs_condition_peaks
+```
+
+Parametric sweeps:
+
+```matlab
+examples/sweeps/sweep_viscosity_A0Like_viscoelastic
+examples/sweeps/sweep_viscosity_S0Like_viscoelastic
+examples/sweeps/sweep_stiffness_A0Like_viscoelastic
+examples/sweeps/sweep_stiffness_S0Like_viscoelastic
+examples/sweeps/sweep_thickness_A0Like_viscoelastic
+examples/sweeps/sweep_thickness_S0Like_viscoelastic
+```
+
+Sweep workflow documentation:
+
+```text
+docs/parametric_sweeps.md
 ```
 
 Historical prototypes and exploratory diagnostics are in `examples/archive/` and are not part of routine validation.
@@ -258,15 +276,3 @@ Complex-k mRLFE:
     Still experimental. It is the likely next diagnostic path for regimes
     where Han real-k no longer has a mode-relevant local minimum.
 ```
-
-See `docs/validation_status.md` for a compact validation/status table.
-
-## Current limitations
-
-- S0 is implemented but should be treated as experimental until benchmarked against a trusted reference.
-- mRLFE complex-k is a prototype and attenuation is not yet validated for quantitative fitting.
-- Han viscoelastic real-k can terminate at high etaS, low E, or high frequency when no mode-relevant continuous real-k local minimum is found.
-- The global minimum of the Han real-k residual can be a low-Cp edge valley and should not be interpreted as the physical branch.
-- Group velocity is not implemented yet.
-- Modal structure and displacement animations are not implemented yet.
-- Higher modes such as A1 and S1 are not implemented yet.
