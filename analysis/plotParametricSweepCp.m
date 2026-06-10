@@ -5,10 +5,14 @@ function fig = plotParametricSweepCp(sweepResults, modelName, branchName, vararg
 %   plotParametricSweepCp(S, "mRLFEHanViscoRealK", "A0Like")
 %   plotParametricSweepCp(S, "mRLFEElasticRealK", "S0Like")
 %   plotParametricSweepCp(S, "RayleighLamb", "A0")
+%   plotParametricSweepCp(S, "mRLFEHanViscoRealK", "A0Like", ...
+%       "ShowLastValidPoint", true)
 
 p = inputParser;
 addParameter(p, 'Title', "", @(x)ischar(x) || isstring(x));
 addParameter(p, 'NewFigure', true, @(x)islogical(x) || isnumeric(x));
+addParameter(p, 'ShowLastValidPoint', false, @(x)islogical(x) || isnumeric(x));
+addParameter(p, 'LastValidPointMarkerSize', 7, @(x)isnumeric(x) && isscalar(x));
 parse(p, varargin{:});
 
 if p.Results.NewFigure
@@ -20,6 +24,7 @@ hold on; grid on;
 
 n = numel(sweepResults.results);
 legendText = strings(1, n);
+lastPointHandles = gobjects(0);
 
 for i = 1:n
     result = sweepResults.results{i};
@@ -30,13 +35,28 @@ for i = 1:n
     end
 
     valid = getBranchValidityMask(branch);
-    x = branch.frequency(:);
-    y = branch.Cp(:);
+    xRaw = branch.frequency(:);
+    yRaw = branch.Cp(:);
+    valid = valid & isfinite(xRaw) & isfinite(yRaw);
+
+    x = xRaw;
+    y = yRaw;
     x(~valid) = nan;
     y(~valid) = nan;
 
-    plot(x, y, 'LineWidth', 1.8);
+    lineHandle = plot(x, y, 'LineWidth', 1.8);
     legendText(i) = makeLegendLabel(sweepResults, i);
+
+    if p.Results.ShowLastValidPoint && any(valid)
+        lastValidIdx = find(valid, 1, 'last');
+        markerHandle = plot(xRaw(lastValidIdx), yRaw(lastValidIdx), 'o', ...
+            'MarkerSize', p.Results.LastValidPointMarkerSize, ...
+            'LineWidth', 1.4, ...
+            'Color', lineHandle.Color, ...
+            'MarkerFaceColor', lineHandle.Color, ...
+            'HandleVisibility', 'off');
+        lastPointHandles(end+1) = markerHandle; %#ok<AGROW>
+    end
 end
 
 xlabel('frequency [Hz]');
@@ -49,6 +69,11 @@ else
 end
 
 legend(legendText(legendText ~= ""), 'Location', 'best', 'Interpreter', 'none');
+
+if p.Results.ShowLastValidPoint && ~isempty(lastPointHandles)
+    addLastValidPointNote();
+end
+
 hold off;
 end
 
@@ -90,4 +115,17 @@ if isfield(spec, 'units') && strlength(string(spec.units)) > 0
 else
     txt = sprintf('%s = %.4g', string(spec.label), value);
 end
+end
+
+function addLastValidPointNote()
+ax = gca;
+xl = xlim(ax);
+yl = ylim(ax);
+text(ax, xl(1) + 0.02 * diff(xl), yl(2) - 0.06 * diff(yl), ...
+    'o = last valid Cp point', ...
+    'FontSize', 9, ...
+    'VerticalAlignment', 'top', ...
+    'BackgroundColor', 'w', ...
+    'Margin', 3, ...
+    'EdgeColor', [0.7 0.7 0.7]);
 end
