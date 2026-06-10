@@ -28,12 +28,18 @@ s1 = nan(n, 1) + 1i*nan(n, 1);
 s2 = nan(n, 1) + 1i*nan(n, 1);
 xi = nan(n, 1) + 1i*nan(n, 1);
 
-cGrid = makeCpGrid(params, options);
+[cGrid, gridInfo] = makeCpGrid(params, options);
 previousCp = nan;
 
 for i = 1:n
     [cp(i), objective(i), sigmaMin(i), details] = solveOneFrequency(params, options, f(i), cGrid, previousCp);
     if isfinite(cp(i))
+        if isfinite(previousCp) && isfinite(options.maxRelativeCpJump)
+            relJump = abs(cp(i) - previousCp) / max(abs(previousCp), eps);
+            if relJump > options.maxRelativeCpJump
+                break;
+            end
+        end
         previousCp = cp(i);
         valid(i) = objective(i) <= options.maxObjectiveForValid;
         s1(i) = details.aux.s1;
@@ -57,6 +63,7 @@ result.s2 = s2;
 result.xi = xi;
 result.params = params;
 result.options = options;
+result.gridInfo = gridInfo;
 result.diagnostics = summarizeResult(result);
 end
 
@@ -121,19 +128,25 @@ for i = 2:numel(y)-1
 end
 end
 
-function cGrid = makeCpGrid(params, options)
+function [cGrid, gridInfo] = makeCpGrid(params, options)
 if isfield(params, 'cGrid') && ~isempty(params.cGrid)
     cGrid = params.cGrid(:);
+    gridInfo = struct('source', "params.cGrid", 'cMin', min(cGrid), 'cMax', max(cGrid));
     return;
 end
 
-cMin = options.cMin;
-if isempty(options.cMax)
-    shearSpeed = sqrt(params.alpha / params.rho);
-    tensileSpeed = sqrt((2*params.beta + 2*params.gamma) / params.rho);
-    cMax = 1.35 * max([shearSpeed, tensileSpeed, cMin]);
+if isfield(options, 'usePhysicalCpWindow') && options.usePhysicalCpWindow
+    [cMin, cMax, source] = getPhysicalCpWindow(params, options);
 else
-    cMax = options.cMax;
+    cMin = options.cMin;
+    if isempty(options.cMax)
+        shearSpeed = sqrt(params.alpha / params.rho);
+        tensileSpeed = sqrt((2*params.beta + 2*params.gamma) / params.rho);
+        cMax = 1.35 * max([shearSpeed, tensileSpeed, cMin]);
+    else
+        cMax = options.cMax;
+    end
+    source = "manual/global";
 end
 
 if cMax <= cMin
@@ -141,6 +154,36 @@ if cMax <= cMin
 end
 
 cGrid = linspace(cMin, cMax, options.numCpScanPoints).';
+gridInfo = struct('source', source, 'cMin', cMin, 'cMax', cMax);
+end
+
+function [cMin, cMax, source] = getPhysicalCpWindow(params, options)
+branch = string(options.branch);
+shearSpeed = sqrt(params.alpha / params.rho);
+tensileSpeed = sqrt((2*params.beta + 2*params.gamma) / params.rho);
+
+switch branch
+    case "A0"
+        scale = options.A0CpWindowScale;
+        ref = shearSpeed;
+        source = "A0 sqrt(alpha/rho) window";
+    case "S0"
+        scale = options.S0CpWindowScale;
+        ref = tensileSpeed;
+        source = "S0 sqrt((2beta+2gamma)/rho) window";
+    otherwise
+        scale = [0.03, 1.35];
+        ref = max(shearSpeed, tensileSpeed);
+        source = "fallback physical window";
+end
+
+cMin = max(options.cMin, scale(1) * ref);
+cMaxPhysical = scale(2) * ref;
+if isempty(options.cMax)
+    cMax = cMaxPhysical;
+else
+    cMax = min(options.cMax, cMaxPhysical);
+end
 end
 
 function target = getInitialBranchTarget(params, options)
@@ -184,4 +227,5 @@ else
     diagnostics.minSigmaMin = nan;
 end
 diagnostics.M54_variant = string(result.options.M54_variant);
+diagnostics.gridInfo = result.gridInfo;
 end
