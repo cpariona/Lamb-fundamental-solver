@@ -45,4 +45,8 @@ sweepResults = runParametricSweep(params, options, sweepSpec);
 plotParametricSweepCp(sweepResults, "mRLFEHanViscoRealK", "S0Like", ...
     "Title", "Viscoelastic S0-like Cp sensitivity to etaS");
 
+sweepSummary = summarizeParametricSweepBranch(sweepResults, ...
+    "mRLFEHanViscoRealK", "S0Like");
+
 assignin('base', 'ViscositySweepS0LikeResults', sweepResults);
+assignin('base', 'ViscositySweepS0LikeSummary', sweepSummary);
