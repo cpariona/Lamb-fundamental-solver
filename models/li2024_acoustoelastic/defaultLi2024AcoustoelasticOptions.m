@@ -14,20 +14,30 @@ options.M54_variant = "corrected";
 % Target branch used by the simple continuation tracker.
 options.branch = "A0";
 
-% Phase-velocity scan range. If cMax is empty, the solver estimates a
-% conservative upper bound from alpha, beta, gamma, and rho.
+% Phase-velocity scan range. If usePhysicalCpWindow is true, branch-aware
+% physical windows override cMin/cMax unless params.cGrid is provided.
 options.cMin = 0.15;
 options.cMax = [];
 options.numCpScanPoints = 1400;
 options.maxLocalCandidates = 8;
 
+% Branch-aware physical velocity windows.
+% A0 is scaled by sqrt(alpha/rho).
+% S0 is scaled by sqrt((2*beta + 2*gamma)/rho).
+options.usePhysicalCpWindow = true;
+options.A0CpWindowScale = [0.03, 1.15];
+options.S0CpWindowScale = [0.20, 1.25];
+
 % Local refinement around minima detected in the coarse Cp scan.
 options.refineLocalMinima = true;
 options.refineHalfWindowPoints = 2;
 
-% Continuity penalties for choosing among local minima.
+% Light continuity penalties for choosing among local minima.
 options.previousCpWeight = 0.35;
 options.firstPointPreferenceWeight = 0.15;
+
+% Optional conservative jump cutoff. Inf keeps the first-stage solver simple.
+options.maxRelativeCpJump = inf;
 
 % If true, each matrix row is normalized before computing singular values.
 options.normalizeRows = true;
