@@ -90,6 +90,7 @@ if isempty(candidateIdx)
 end
 
 candidateIdx = filterCandidatesByBranchBand(candidateIdx, cGrid, params, options);
+candidateIdx = filterCandidatesByContinuity(candidateIdx, cGrid, previousCp, options);
 
 [~, order] = sort(objVals(candidateIdx), 'ascend');
 candidateIdx = candidateIdx(order);
@@ -150,6 +151,42 @@ end
 mask = yCandidates >= band(1) & yCandidates <= band(2);
 if any(mask)
     candidateIdx = candidateIdx(mask);
+end
+end
+
+function candidateIdx = filterCandidatesByContinuity(candidateIdx, cGrid, previousCp, options)
+if ~isfield(options, 'useBranchContinuityWindow') || ~options.useBranchContinuityWindow
+    return;
+end
+if ~isfinite(previousCp)
+    return;
+end
+
+window = getContinuityWindow(options);
+if ~isfinite(window) || window <= 0
+    return;
+end
+
+relDistance = abs(cGrid(candidateIdx) - previousCp) ./ max(abs(previousCp), eps);
+nearMask = relDistance <= window;
+if any(nearMask)
+    candidateIdx = candidateIdx(nearMask);
+else
+    [~, nearestIdx] = min(relDistance);
+    candidateIdx = candidateIdx(nearestIdx);
+end
+end
+
+function window = getContinuityWindow(options)
+switch string(options.branch)
+    case "A0"
+        window = options.A0ContinuityWindow;
+    case "A0High"
+        window = options.A0HighContinuityWindow;
+    case "S0"
+        window = options.S0ContinuityWindow;
+    otherwise
+        window = inf;
 end
 end
 
