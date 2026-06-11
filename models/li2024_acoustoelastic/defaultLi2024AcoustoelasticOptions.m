@@ -14,6 +14,14 @@ options.M54_variant = "corrected";
 % Target branch used by the simple continuation tracker.
 options.branch = "A0";
 
+% Initial branch preference for the first frequency point.
+%   "auto"          : A0 -> lowCp, S0 -> tensileTarget
+%   "lowCp"         : prefer the lowest-velocity local minimum
+%   "tensileTarget" : prefer sqrt((2*beta + 2*gamma)/rho)
+%   "shearTarget"   : prefer sqrt(alpha/rho)
+%   "bestObjective" : prefer the deepest local minimum
+options.branchStartPreference = "auto";
+
 % Phase-velocity scan range. If usePhysicalCpWindow is true, branch-aware
 % physical windows override cMin/cMax unless params.cGrid is provided.
 options.cMin = 0.15;
@@ -33,11 +41,12 @@ options.refineLocalMinima = true;
 options.refineHalfWindowPoints = 2;
 
 % Light continuity penalties for choosing among local minima.
-options.previousCpWeight = 0.35;
-options.firstPointPreferenceWeight = 0.15;
+options.previousCpWeight = 1.0;
+options.firstPointPreferenceWeight = 2.0;
 
-% Optional conservative jump cutoff. Inf keeps the first-stage solver simple.
-options.maxRelativeCpJump = inf;
+% Conservative jump cutoff. Inf disables the cut. Default remains moderately
+% permissive for the first-stage direct matrix solver.
+options.maxRelativeCpJump = 0.35;
 
 % If true, each matrix row is normalized before computing singular values.
 options.normalizeRows = true;
