@@ -30,21 +30,30 @@ baseOptions.numCpScanPoints = 1800;
 baseOptions.usePhysicalCpWindow = true;
 baseOptions.minDimensionlessFrequency = xMinDiagnostic;
 
-optionsA0 = baseOptions;
-optionsA0.branch = "A0";
-resultA0 = solveDispersion_Li2024_Acoustoelastic(params, optionsA0);
+optionsA0Forward = baseOptions;
+optionsA0Forward.branch = "A0";
+optionsA0Forward.trackingDirection = "forward";
+resultA0Forward = solveDispersion_Li2024_Acoustoelastic(params, optionsA0Forward);
+
+optionsA0Backward = baseOptions;
+optionsA0Backward.branch = "A0";
+optionsA0Backward.trackingDirection = "backward";
+resultA0Backward = solveDispersion_Li2024_Acoustoelastic(params, optionsA0Backward);
 
 optionsA0High = baseOptions;
 optionsA0High.branch = "A0High";
+optionsA0High.trackingDirection = "forward";
 resultA0High = solveDispersion_Li2024_Acoustoelastic(params, optionsA0High);
 
 optionsS0 = baseOptions;
 optionsS0.branch = "S0";
+optionsS0.trackingDirection = "forward";
 resultS0 = solveDispersion_Li2024_Acoustoelastic(params, optionsS0);
 
 figure('Color', 'w');
 hold on; grid on;
-plotDimensionless(resultA0, cShear, params.thickness, 'A0 low corrected');
+plotDimensionless(resultA0Forward, cShear, params.thickness, 'A0 low forward');
+plotDimensionless(resultA0Backward, cShear, params.thickness, 'A0 low backward');
 plotDimensionless(resultA0High, cShear, params.thickness, 'A0 high corrected');
 plotDimensionless(resultS0, cShear, params.thickness, 'S0 corrected');
 yline(0.955, ':', 'A0 high-f target ~0.955', 'HandleVisibility', 'off');
@@ -57,11 +66,13 @@ hold off;
 
 fprintf('\nLi 2024 dimensionless A1-style diagnostic\n');
 fprintf('Minimum dimensionless frequency used: %.3f\n', xMinDiagnostic);
-printSummary('A0 low', resultA0, cShear, params.thickness);
+printSummary('A0 low forward', resultA0Forward, cShear, params.thickness);
+printSummary('A0 low backward', resultA0Backward, cShear, params.thickness);
 printSummary('A0 high', resultA0High, cShear, params.thickness);
 printSummary('S0', resultS0, cShear, params.thickness);
 
-assignin('base', 'Li2024A1DiagnosticA0', resultA0);
+assignin('base', 'Li2024A1DiagnosticA0Forward', resultA0Forward);
+assignin('base', 'Li2024A1DiagnosticA0Backward', resultA0Backward);
 assignin('base', 'Li2024A1DiagnosticA0High', resultA0High);
 assignin('base', 'Li2024A1DiagnosticS0', resultS0);
 
@@ -84,9 +95,9 @@ if any(valid)
     xMax = max(result.frequency(valid) * h / cShear);
     yMin = min(result.Cp(valid) / cShear);
     yMax = max(result.Cp(valid) / cShear);
-    fprintf('%s: valid %d/%d, x %.4g..%.4g, y %.4g..%.4g, Cp window %.4g..%.4g m/s\n', ...
-        labelText, nnz(valid), numel(valid), xMin, xMax, yMin, yMax, ...
-        result.gridInfo.cMin, result.gridInfo.cMax);
+    fprintf('%s: valid %d/%d, direction %s, x %.4g..%.4g, y %.4g..%.4g, Cp window %.4g..%.4g m/s\n', ...
+        labelText, nnz(valid), numel(valid), string(result.options.trackingDirection), ...
+        xMin, xMax, yMin, yMax, result.gridInfo.cMin, result.gridInfo.cMax);
 else
     fprintf('%s: no valid points\n', labelText);
 end
