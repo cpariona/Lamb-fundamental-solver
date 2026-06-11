@@ -80,6 +80,8 @@ if isempty(candidateIdx)
     candidateIdx = idx;
 end
 
+candidateIdx = filterCandidatesByBranchBand(candidateIdx, cGrid, params, options);
+
 [~, order] = sort(objVals(candidateIdx), 'ascend');
 candidateIdx = candidateIdx(order);
 candidateIdx = candidateIdx(1:min(numel(candidateIdx), options.maxLocalCandidates));
@@ -116,6 +118,32 @@ bestObj = candidateObj(bestLocal);
 bestSigmaMin = bestDetails.sigmaMin;
 end
 
+function candidateIdx = filterCandidatesByBranchBand(candidateIdx, cGrid, params, options)
+if ~isfield(options, 'branchSelectionMode') || string(options.branchSelectionMode) ~= "band"
+    return;
+end
+
+shearSpeed = sqrt(params.alpha / params.rho);
+yCandidates = cGrid(candidateIdx) ./ shearSpeed;
+branch = string(options.branch);
+
+switch branch
+    case "A0"
+        band = options.A0Band;
+    case "A0High"
+        band = options.A0HighBand;
+    case "S0"
+        band = options.S0Band;
+    otherwise
+        return;
+end
+
+mask = yCandidates >= band(1) & yCandidates <= band(2);
+if any(mask)
+    candidateIdx = candidateIdx(mask);
+end
+end
+
 function scores = firstPointScores(candidateCp, candidateObj, params, options)
 preference = resolveStartPreference(options);
 
@@ -124,6 +152,10 @@ switch preference
         cpScale = max(candidateCp) - min(candidateCp);
         if cpScale <= 0, cpScale = max(abs(candidateCp)); end
         scores = candidateObj + options.firstPointPreferenceWeight * ((candidateCp - min(candidateCp)) ./ max(cpScale, eps));
+    case "A0HighTarget"
+        shearSpeed = sqrt(params.alpha / params.rho);
+        target = options.A0HighTarget * shearSpeed;
+        scores = candidateObj + options.firstPointPreferenceWeight * abs(log(candidateCp ./ target));
     case "tensileTarget"
         target = sqrt((2*params.beta + 2*params.gamma) / params.rho);
         scores = candidateObj + options.firstPointPreferenceWeight * abs(log(candidateCp ./ target));
@@ -146,6 +178,8 @@ end
 switch string(options.branch)
     case "A0"
         preference = "lowCp";
+    case "A0High"
+        preference = "A0HighTarget";
     case "S0"
         preference = "tensileTarget";
     otherwise
@@ -202,6 +236,10 @@ switch branch
         scale = options.A0CpWindowScale;
         ref = shearSpeed;
         source = "A0 sqrt(alpha/rho) window";
+    case "A0High"
+        scale = options.A0HighCpWindowScale;
+        ref = shearSpeed;
+        source = "A0High sqrt(alpha/rho) window";
     case "S0"
         scale = options.S0CpWindowScale;
         ref = tensileSpeed;
@@ -229,6 +267,8 @@ tensileSpeed = sqrt((2*params.beta + 2*params.gamma) / params.rho);
 switch branch
     case "A0"
         target = 0.9 * shearSpeed;
+    case "A0High"
+        target = options.A0HighTarget * shearSpeed;
     case "S0"
         target = tensileSpeed;
     otherwise
