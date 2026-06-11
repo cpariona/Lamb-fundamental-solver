@@ -32,13 +32,18 @@ optionsA0 = baseOptions;
 optionsA0.branch = "A0";
 resultA0 = solveDispersion_Li2024_Acoustoelastic(params, optionsA0);
 
+optionsA0High = baseOptions;
+optionsA0High.branch = "A0High";
+resultA0High = solveDispersion_Li2024_Acoustoelastic(params, optionsA0High);
+
 optionsS0 = baseOptions;
 optionsS0.branch = "S0";
 resultS0 = solveDispersion_Li2024_Acoustoelastic(params, optionsS0);
 
 figure('Color', 'w');
 hold on; grid on;
-plotDimensionless(resultA0, cShear, params.thickness, 'A0 corrected');
+plotDimensionless(resultA0, cShear, params.thickness, 'A0 low corrected');
+plotDimensionless(resultA0High, cShear, params.thickness, 'A0 high corrected');
 plotDimensionless(resultS0, cShear, params.thickness, 'S0 corrected');
 yline(0.955, ':', 'A0 high-f target ~0.955', 'HandleVisibility', 'off');
 yline(sqrt((2*params.beta + 2*params.gamma) / params.alpha), ':', 'S0 f=0 target', 'HandleVisibility', 'off');
@@ -49,10 +54,12 @@ legend('Location', 'best');
 hold off;
 
 fprintf('\nLi 2024 dimensionless A1-style diagnostic\n');
-printSummary('A0', resultA0, cShear, params.thickness);
+printSummary('A0 low', resultA0, cShear, params.thickness);
+printSummary('A0 high', resultA0High, cShear, params.thickness);
 printSummary('S0', resultS0, cShear, params.thickness);
 
 assignin('base', 'Li2024A1DiagnosticA0', resultA0);
+assignin('base', 'Li2024A1DiagnosticA0High', resultA0High);
 assignin('base', 'Li2024A1DiagnosticS0', resultS0);
 
 function plotDimensionless(result, cShear, h, labelText)
