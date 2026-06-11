@@ -12,11 +12,27 @@ options = struct();
 options.M54_variant = "corrected";
 
 % Target branch used by the simple continuation tracker.
+% Supported first-stage branches:
+%   "A0"     : deepest local minimum in low-velocity band.
+%   "A0High" : minimum near the high-frequency surface-wave target.
+%   "S0"     : deepest local minimum in high-velocity band.
 options.branch = "A0";
 
+% Branch-selection mode.
+%   "band"   : restrict candidate minima by dimensionless Cp bands.
+%   "global" : use all local minima in the Cp grid.
+options.branchSelectionMode = "band";
+
+% Dimensionless Cp bands y = c/sqrt(alpha/rho).
+options.A0Band = [0.02, 0.75];
+options.A0HighBand = [0.75, 1.20];
+options.S0Band = [1.20, 3.40];
+options.A0HighTarget = 0.955;
+
 % Initial branch preference for the first frequency point.
-%   "auto"          : A0 -> lowCp, S0 -> tensileTarget
+%   "auto"          : A0 -> lowCp, A0High -> A0HighTarget, S0 -> tensileTarget
 %   "lowCp"         : prefer the lowest-velocity local minimum
+%   "A0HighTarget"  : prefer y close to A0HighTarget
 %   "tensileTarget" : prefer sqrt((2*beta + 2*gamma)/rho)
 %   "shearTarget"   : prefer sqrt(alpha/rho)
 %   "bestObjective" : prefer the deepest local minimum
@@ -30,10 +46,11 @@ options.numCpScanPoints = 1400;
 options.maxLocalCandidates = 8;
 
 % Branch-aware physical velocity windows.
-% A0 is scaled by sqrt(alpha/rho).
+% A0/A0High are scaled by sqrt(alpha/rho).
 % S0 is scaled by sqrt((2*beta + 2*gamma)/rho).
 options.usePhysicalCpWindow = true;
 options.A0CpWindowScale = [0.03, 1.15];
+options.A0HighCpWindowScale = [0.60, 1.25];
 options.S0CpWindowScale = [0.20, 1.25];
 
 % Local refinement around minima detected in the coarse Cp scan.
