@@ -32,12 +32,12 @@ xi = nan(n, 1) + 1i*nan(n, 1);
 cShear = sqrt(params.alpha / params.rho);
 dimensionlessFrequency = f .* params.thickness ./ cShear;
 solveMask = dimensionlessFrequency >= options.minDimensionlessFrequency;
+
+trackOrder = getTrackingOrder(n, solveMask, options);
 previousCp = nan;
 
-for i = 1:n
-    if ~solveMask(i)
-        continue;
-    end
+for jj = 1:numel(trackOrder)
+    i = trackOrder(jj);
 
     [cp(i), objective(i), sigmaMin(i), details] = solveOneFrequency(params, options, f(i), cGrid, previousCp);
     if isfinite(cp(i))
@@ -58,6 +58,7 @@ end
 result = struct();
 result.frequency = f;
 result.dimensionlessFrequency = dimensionlessFrequency;
+result.trackingOrder = trackOrder;
 result.omega = 2*pi*f;
 result.Cp = cp;
 result.k = 2*pi*f ./ cp;
@@ -74,6 +75,18 @@ result.params = params;
 result.options = options;
 result.gridInfo = gridInfo;
 result.diagnostics = summarizeResult(result);
+end
+
+function trackOrder = getTrackingOrder(n, solveMask, options)
+validIdx = find(solveMask(:));
+switch string(options.trackingDirection)
+    case "forward"
+        trackOrder = validIdx(:).';
+    case "backward"
+        trackOrder = flipud(validIdx(:)).';
+    otherwise
+        error('Unknown trackingDirection: %s. Use "forward" or "backward".', string(options.trackingDirection));
+end
 end
 
 function [bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequency(params, options, f, cGrid, previousCp)
@@ -338,6 +351,7 @@ diagnostics.validCpPoints = nnz(valid);
 diagnostics.totalPoints = numel(result.Cp);
 diagnostics.skippedLowDimensionlessFrequencyPoints = nnz(result.skippedLowDimensionlessFrequency);
 diagnostics.minDimensionlessFrequency = result.options.minDimensionlessFrequency;
+diagnostics.trackingDirection = string(result.options.trackingDirection);
 if any(valid)
     diagnostics.minCp = min(result.Cp(valid));
     diagnostics.maxCp = max(result.Cp(valid));
