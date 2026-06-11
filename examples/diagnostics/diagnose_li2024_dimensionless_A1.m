@@ -45,17 +45,23 @@ optionsA0High.branch = "A0High";
 optionsA0High.trackingDirection = "forward";
 resultA0High = solveDispersion_Li2024_Acoustoelastic(params, optionsA0High);
 
-optionsS0 = baseOptions;
-optionsS0.branch = "S0";
-optionsS0.trackingDirection = "forward";
-resultS0 = solveDispersion_Li2024_Acoustoelastic(params, optionsS0);
+optionsS0Forward = baseOptions;
+optionsS0Forward.branch = "S0";
+optionsS0Forward.trackingDirection = "forward";
+resultS0Forward = solveDispersion_Li2024_Acoustoelastic(params, optionsS0Forward);
+
+optionsS0Backward = baseOptions;
+optionsS0Backward.branch = "S0";
+optionsS0Backward.trackingDirection = "backward";
+resultS0Backward = solveDispersion_Li2024_Acoustoelastic(params, optionsS0Backward);
 
 figure('Color', 'w');
 hold on; grid on;
 plotDimensionless(resultA0Forward, cShear, params.thickness, 'A0 low forward');
 plotDimensionless(resultA0Backward, cShear, params.thickness, 'A0 low backward');
 plotDimensionless(resultA0High, cShear, params.thickness, 'A0 high corrected');
-plotDimensionless(resultS0, cShear, params.thickness, 'S0 corrected');
+plotDimensionless(resultS0Forward, cShear, params.thickness, 'S0 forward');
+plotDimensionless(resultS0Backward, cShear, params.thickness, 'S0 backward');
 yline(0.955, ':', 'A0 high-f target ~0.955', 'HandleVisibility', 'off');
 yline(sqrt((2*params.beta + 2*params.gamma) / params.alpha), ':', 'S0 f=0 target', 'HandleVisibility', 'off');
 xlabel('f h / sqrt(alpha/rho) [-]');
@@ -69,12 +75,14 @@ fprintf('Minimum dimensionless frequency used: %.3f\n', xMinDiagnostic);
 printSummary('A0 low forward', resultA0Forward, cShear, params.thickness);
 printSummary('A0 low backward', resultA0Backward, cShear, params.thickness);
 printSummary('A0 high', resultA0High, cShear, params.thickness);
-printSummary('S0', resultS0, cShear, params.thickness);
+printSummary('S0 forward', resultS0Forward, cShear, params.thickness);
+printSummary('S0 backward', resultS0Backward, cShear, params.thickness);
 
 assignin('base', 'Li2024A1DiagnosticA0Forward', resultA0Forward);
 assignin('base', 'Li2024A1DiagnosticA0Backward', resultA0Backward);
 assignin('base', 'Li2024A1DiagnosticA0High', resultA0High);
-assignin('base', 'Li2024A1DiagnosticS0', resultS0);
+assignin('base', 'Li2024A1DiagnosticS0Forward', resultS0Forward);
+assignin('base', 'Li2024A1DiagnosticS0Backward', resultS0Backward);
 
 function plotDimensionless(result, cShear, h, labelText)
 valid = result.validCp & isfinite(result.Cp);
