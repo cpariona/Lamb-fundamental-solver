@@ -23,6 +23,12 @@ options.branch = "A0";
 %   "global" : use all local minima in the Cp grid.
 options.branchSelectionMode = "band";
 
+% Minimum dimensionless frequency x = f*h/sqrt(alpha/rho).
+% Values below this threshold are skipped by the solver. The default keeps
+% all points. Diagnostics can set this to 0.2 to avoid the low-kh region
+% where many near-degenerate minima appear.
+options.minDimensionlessFrequency = 0;
+
 % Dimensionless Cp bands y = c/sqrt(alpha/rho).
 options.A0Band = [0.02, 0.75];
 options.A0HighBand = [0.75, 1.20];
