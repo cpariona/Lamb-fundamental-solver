@@ -20,13 +20,15 @@ params.rhoF = 1000;                 % kg/m^3
 params.fluidBulkModulus = 2.2e9;    % Pa
 
 cShear = sqrt(params.alpha / params.rho);
-xDimensionless = linspace(0.05, 2.5, 90);
+xMinDiagnostic = 0.20;
+xDimensionless = linspace(xMinDiagnostic, 2.5, 90);
 params.frequency = xDimensionless * cShear / params.thickness;
 
 baseOptions = defaultLi2024AcoustoelasticOptions();
 baseOptions.M54_variant = "corrected";
 baseOptions.numCpScanPoints = 1800;
 baseOptions.usePhysicalCpWindow = true;
+baseOptions.minDimensionlessFrequency = xMinDiagnostic;
 
 optionsA0 = baseOptions;
 optionsA0.branch = "A0";
@@ -54,6 +56,7 @@ legend('Location', 'best');
 hold off;
 
 fprintf('\nLi 2024 dimensionless A1-style diagnostic\n');
+fprintf('Minimum dimensionless frequency used: %.3f\n', xMinDiagnostic);
 printSummary('A0 low', resultA0, cShear, params.thickness);
 printSummary('A0 high', resultA0High, cShear, params.thickness);
 printSummary('S0', resultS0, cShear, params.thickness);
@@ -77,11 +80,12 @@ end
 function printSummary(labelText, result, cShear, h)
 valid = result.validCp & isfinite(result.Cp);
 if any(valid)
+    xMin = min(result.frequency(valid) * h / cShear);
     xMax = max(result.frequency(valid) * h / cShear);
     yMin = min(result.Cp(valid) / cShear);
     yMax = max(result.Cp(valid) / cShear);
-    fprintf('%s: valid %d/%d, y %.4g..%.4g, max x %.4g, Cp window %.4g..%.4g m/s\n', ...
-        labelText, nnz(valid), numel(valid), yMin, yMax, xMax, ...
+    fprintf('%s: valid %d/%d, x %.4g..%.4g, y %.4g..%.4g, Cp window %.4g..%.4g m/s\n', ...
+        labelText, nnz(valid), numel(valid), xMin, xMax, yMin, yMax, ...
         result.gridInfo.cMin, result.gridInfo.cMax);
 else
     fprintf('%s: no valid points\n', labelText);
