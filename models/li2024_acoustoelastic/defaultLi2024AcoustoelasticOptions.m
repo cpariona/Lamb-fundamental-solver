@@ -40,13 +40,15 @@ options.S0CpWindowScale = [0.20, 1.25];
 options.refineLocalMinima = true;
 options.refineHalfWindowPoints = 2;
 
-% Light continuity penalties for choosing among local minima.
-options.previousCpWeight = 1.0;
+% Continuity penalties for choosing among local minima.
+% For this first-stage Li solver, prefer soft continuity over hard branch
+% cuts so the root landscape remains visible during diagnostics.
+options.previousCpWeight = 5.0;
 options.firstPointPreferenceWeight = 2.0;
 
-% Conservative jump cutoff. Inf disables the cut. Default remains moderately
-% permissive for the first-stage direct matrix solver.
-options.maxRelativeCpJump = 0.35;
+% Conservative jump cutoff. Inf disables the cut. The default is disabled
+% while the direct alpha-beta-gamma solver is being validated.
+options.maxRelativeCpJump = inf;
 
 % If true, each matrix row is normalized before computing singular values.
 options.normalizeRows = true;
