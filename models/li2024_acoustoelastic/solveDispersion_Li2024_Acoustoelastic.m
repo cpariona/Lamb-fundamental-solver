@@ -29,9 +29,16 @@ s2 = nan(n, 1) + 1i*nan(n, 1);
 xi = nan(n, 1) + 1i*nan(n, 1);
 
 [cGrid, gridInfo] = makeCpGrid(params, options);
+cShear = sqrt(params.alpha / params.rho);
+dimensionlessFrequency = f .* params.thickness ./ cShear;
+solveMask = dimensionlessFrequency >= options.minDimensionlessFrequency;
 previousCp = nan;
 
 for i = 1:n
+    if ~solveMask(i)
+        continue;
+    end
+
     [cp(i), objective(i), sigmaMin(i), details] = solveOneFrequency(params, options, f(i), cGrid, previousCp);
     if isfinite(cp(i))
         if isfinite(previousCp) && isfinite(options.maxRelativeCpJump)
@@ -50,6 +57,7 @@ end
 
 result = struct();
 result.frequency = f;
+result.dimensionlessFrequency = dimensionlessFrequency;
 result.omega = 2*pi*f;
 result.Cp = cp;
 result.k = 2*pi*f ./ cp;
@@ -58,6 +66,7 @@ result.objective = objective;
 result.sigmaMin = sigmaMin;
 result.valid = valid & isfinite(cp);
 result.validCp = result.valid;
+result.skippedLowDimensionlessFrequency = ~solveMask;
 result.s1 = s1;
 result.s2 = s2;
 result.xi = xi;
@@ -290,15 +299,21 @@ valid = result.validCp & isfinite(result.Cp);
 diagnostics = struct();
 diagnostics.validCpPoints = nnz(valid);
 diagnostics.totalPoints = numel(result.Cp);
+diagnostics.skippedLowDimensionlessFrequencyPoints = nnz(result.skippedLowDimensionlessFrequency);
+diagnostics.minDimensionlessFrequency = result.options.minDimensionlessFrequency;
 if any(valid)
     diagnostics.minCp = min(result.Cp(valid));
     diagnostics.maxCp = max(result.Cp(valid));
     diagnostics.maxFrequencyValid = max(result.frequency(valid));
+    diagnostics.minDimensionlessFrequencyValid = min(result.dimensionlessFrequency(valid));
+    diagnostics.maxDimensionlessFrequencyValid = max(result.dimensionlessFrequency(valid));
     diagnostics.minSigmaMin = min(result.sigmaMin(valid));
 else
     diagnostics.minCp = nan;
     diagnostics.maxCp = nan;
     diagnostics.maxFrequencyValid = nan;
+    diagnostics.minDimensionlessFrequencyValid = nan;
+    diagnostics.maxDimensionlessFrequencyValid = nan;
     diagnostics.minSigmaMin = nan;
 end
 diagnostics.M54_variant = string(result.options.M54_variant);
