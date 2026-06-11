@@ -18,6 +18,13 @@ options.M54_variant = "corrected";
 %   "S0"     : deepest local minimum in high-velocity band.
 options.branch = "A0";
 
+% Tracking direction in frequency.
+%   "forward"  : low frequency -> high frequency.
+%   "backward" : high frequency -> low frequency.
+% Backward tracking is useful when low-kh minima are highly degenerate and
+% high-frequency minima are better separated.
+options.trackingDirection = "forward";
+
 % Branch-selection mode.
 %   "band"   : restrict candidate minima by dimensionless Cp bands.
 %   "global" : use all local minima in the Cp grid.
