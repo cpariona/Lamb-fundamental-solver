@@ -102,12 +102,10 @@ if options.refineLocalMinima
     end
 end
 
-scores = candidateObj(:);
 if isfinite(previousCp)
-    scores = scores + options.previousCpWeight * abs(log(candidateCp(:) ./ previousCp));
+    scores = candidateObj(:) + options.previousCpWeight * abs(log(candidateCp(:) ./ previousCp));
 else
-    target = getInitialBranchTarget(params, options);
-    scores = scores + options.firstPointPreferenceWeight * abs(log(candidateCp(:) ./ target));
+    scores = firstPointScores(candidateCp(:), candidateObj(:), params, options);
 end
 
 [~, bestLocal] = min(scores);
@@ -116,6 +114,43 @@ bestObj = candidateObj(bestLocal);
 [~, bestDetails] = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
     params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, bestCp, options);
 bestSigmaMin = bestDetails.sigmaMin;
+end
+
+function scores = firstPointScores(candidateCp, candidateObj, params, options)
+preference = resolveStartPreference(options);
+
+switch preference
+    case "lowCp"
+        cpScale = max(candidateCp) - min(candidateCp);
+        if cpScale <= 0, cpScale = max(abs(candidateCp)); end
+        scores = candidateObj + options.firstPointPreferenceWeight * ((candidateCp - min(candidateCp)) ./ max(cpScale, eps));
+    case "tensileTarget"
+        target = sqrt((2*params.beta + 2*params.gamma) / params.rho);
+        scores = candidateObj + options.firstPointPreferenceWeight * abs(log(candidateCp ./ target));
+    case "shearTarget"
+        target = sqrt(params.alpha / params.rho);
+        scores = candidateObj + options.firstPointPreferenceWeight * abs(log(candidateCp ./ target));
+    case "bestObjective"
+        scores = candidateObj;
+    otherwise
+        target = getInitialBranchTarget(params, options);
+        scores = candidateObj + options.firstPointPreferenceWeight * abs(log(candidateCp ./ target));
+end
+end
+
+function preference = resolveStartPreference(options)
+preference = string(options.branchStartPreference);
+if preference ~= "auto"
+    return;
+end
+switch string(options.branch)
+    case "A0"
+        preference = "lowCp";
+    case "S0"
+        preference = "tensileTarget";
+    otherwise
+        preference = "bestObjective";
+end
 end
 
 function idx = findLocalMinimaIndices(y)
