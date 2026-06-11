@@ -69,6 +69,15 @@ options.refineHalfWindowPoints = 2;
 options.previousCpWeight = 5.0;
 options.firstPointPreferenceWeight = 2.0;
 
+% Optional candidate prefilter around the previous Cp after branch-band
+% filtering. If at least one candidate lies within the relative window, only
+% those nearby candidates are scored. If none are nearby, the nearest
+% candidate is kept so the diagnostic remains continuous instead of cutting.
+options.useBranchContinuityWindow = true;
+options.A0ContinuityWindow = 0.45;
+options.A0HighContinuityWindow = 0.25;
+options.S0ContinuityWindow = 0.18;
+
 % Conservative jump cutoff. Inf disables the cut. The default is disabled
 % while the direct alpha-beta-gamma solver is being validated.
 options.maxRelativeCpJump = inf;
