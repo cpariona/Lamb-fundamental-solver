@@ -35,11 +35,12 @@ solveMask = dimensionlessFrequency >= options.minDimensionlessFrequency;
 
 trackOrder = getTrackingOrder(n, solveMask, options);
 previousCp = nan;
+previousPreviousCp = nan;
 
 for jj = 1:numel(trackOrder)
     i = trackOrder(jj);
 
-    [cp(i), objective(i), sigmaMin(i), details] = solveOneFrequency(params, options, f(i), cGrid, previousCp);
+    [cp(i), objective(i), sigmaMin(i), details] = solveOneFrequency(params, options, f(i), cGrid, previousCp, previousPreviousCp);
     if isfinite(cp(i))
         if isfinite(previousCp) && isfinite(options.maxRelativeCpJump)
             relJump = abs(cp(i) - previousCp) / max(abs(previousCp), eps);
@@ -47,6 +48,7 @@ for jj = 1:numel(trackOrder)
                 break;
             end
         end
+        previousPreviousCp = previousCp;
         previousCp = cp(i);
         valid(i) = objective(i) <= options.maxObjectiveForValid;
         s1(i) = details.aux.s1;
@@ -89,22 +91,20 @@ switch string(options.trackingDirection)
 end
 end
 
-function [bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequency(params, options, f, cGrid, previousCp)
-if isfinite(previousCp) && string(options.trackingMethod) == "localContinuation"
+function [bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequency(params, options, f, cGrid, previousCp, previousPreviousCp)
+method = string(options.trackingMethod);
+if isfinite(previousCp) && method == "localContinuation"
     [bestCp, bestObj, bestSigmaMin, bestDetails, ok] = solveOneFrequencyLocal(params, options, f, cGrid, previousCp);
     if ok
         return;
     end
     if string(options.localContinuationFallback) ~= "globalScan"
-        bestCp = nan;
-        bestObj = nan;
-        bestSigmaMin = nan;
-        bestDetails = struct('aux', struct('s1', nan, 's2', nan, 'xi', nan));
+        [bestCp, bestObj, bestSigmaMin, bestDetails] = emptySolution();
         return;
     end
 end
 
-[bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequencyGlobal(params, options, f, cGrid, previousCp);
+[bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequencyGlobal(params, options, f, cGrid, previousCp, previousPreviousCp);
 end
 
 function [bestCp, bestObj, bestSigmaMin, bestDetails, ok] = solveOneFrequencyLocal(params, options, f, cGrid, previousCp)
@@ -112,11 +112,7 @@ localHalfWidth = max(options.localContinuationWindow * abs(previousCp), options.
 [cLower, cUpper] = getLocalContinuationBounds(params, options, cGrid, previousCp, localHalfWidth);
 
 ok = false;
-bestCp = nan;
-bestObj = nan;
-bestSigmaMin = nan;
-bestDetails = struct('aux', struct('s1', nan, 's2', nan, 'xi', nan));
-
+[bestCp, bestObj, bestSigmaMin, bestDetails] = emptySolution();
 if ~(isfinite(cLower) && isfinite(cUpper) && cUpper > cLower)
     return;
 end
@@ -150,16 +146,7 @@ cUpper = min(max(cGrid), previousCp + localHalfWidth);
 
 if isfield(options, 'branchSelectionMode') && string(options.branchSelectionMode) == "band"
     shearSpeed = sqrt(params.alpha / params.rho);
-    switch string(options.branch)
-        case "A0"
-            band = options.A0Band;
-        case "A0High"
-            band = options.A0HighBand;
-        case "S0"
-            band = options.S0Band;
-        otherwise
-            band = [];
-    end
+    band = getBranchBand(options);
     if ~isempty(band)
         cLower = max(cLower, band(1) * shearSpeed);
         cUpper = min(cUpper, band(2) * shearSpeed);
@@ -167,7 +154,7 @@ if isfield(options, 'branchSelectionMode') && string(options.branchSelectionMode
 end
 end
 
-function [bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequencyGlobal(params, options, f, cGrid, previousCp)
+function [bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequencyGlobal(params, options, f, cGrid, previousCp, previousPreviousCp)
 objVals = nan(size(cGrid));
 for j = 1:numel(cGrid)
     objVals(j) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
@@ -181,7 +168,12 @@ if isempty(candidateIdx)
 end
 
 candidateIdx = filterCandidatesByBranchBand(candidateIdx, cGrid, params, options);
-candidateIdx = filterCandidatesByContinuity(candidateIdx, cGrid, previousCp, options);
+
+if isfinite(previousCp) && string(options.trackingMethod) == "predictiveContinuation"
+    candidateIdx = filterCandidatesByPrediction(candidateIdx, cGrid, previousCp, previousPreviousCp, options);
+else
+    candidateIdx = filterCandidatesByContinuity(candidateIdx, cGrid, previousCp, options);
+end
 
 [~, order] = sort(objVals(candidateIdx), 'ascend');
 candidateIdx = candidateIdx(order);
@@ -191,22 +183,15 @@ candidateCp = cGrid(candidateIdx);
 candidateObj = objVals(candidateIdx);
 
 if options.refineLocalMinima
-    for j = 1:numel(candidateIdx)
-        idx = candidateIdx(j);
-        leftIdx = max(1, idx - options.refineHalfWindowPoints);
-        rightIdx = min(numel(cGrid), idx + options.refineHalfWindowPoints);
-        cLeft = cGrid(leftIdx);
-        cRight = cGrid(rightIdx);
-        if cRight > cLeft
-            localObj = @(cc)objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
-                params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cc, options);
-            [candidateCp(j), candidateObj(j)] = fminbnd(localObj, cLeft, cRight);
-        end
-    end
+    [candidateCp, candidateObj] = refineCandidates(candidateIdx, candidateCp, candidateObj, cGrid, params, options, f);
 end
 
 if isfinite(previousCp)
-    scores = candidateObj(:) + options.previousCpWeight * abs(log(candidateCp(:) ./ previousCp));
+    if string(options.trackingMethod) == "predictiveContinuation"
+        scores = predictiveScores(candidateCp(:), candidateObj(:), previousCp, previousPreviousCp, options);
+    else
+        scores = candidateObj(:) + options.previousCpWeight * abs(log(candidateCp(:) ./ previousCp));
+    end
 else
     scores = firstPointScores(candidateCp(:), candidateObj(:), params, options);
 end
@@ -219,6 +204,60 @@ bestObj = candidateObj(bestLocal);
 bestSigmaMin = bestDetails.sigmaMin;
 end
 
+function [candidateCp, candidateObj] = refineCandidates(candidateIdx, candidateCp, candidateObj, cGrid, params, options, f)
+for j = 1:numel(candidateIdx)
+    idx = candidateIdx(j);
+    leftIdx = max(1, idx - options.refineHalfWindowPoints);
+    rightIdx = min(numel(cGrid), idx + options.refineHalfWindowPoints);
+    cLeft = cGrid(leftIdx);
+    cRight = cGrid(rightIdx);
+    if cRight > cLeft
+        localObj = @(cc)objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+            params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cc, options);
+        [candidateCp(j), candidateObj(j)] = fminbnd(localObj, cLeft, cRight);
+    end
+end
+end
+
+function scores = predictiveScores(candidateCp, candidateObj, previousCp, previousPreviousCp, options)
+predictedCp = predictCp(previousCp, previousPreviousCp);
+scale = max(abs(previousCp), eps);
+predictionPenalty = abs(candidateCp - predictedCp) ./ scale;
+
+if isfinite(previousPreviousCp)
+    curvaturePenalty = abs(candidateCp - 2*previousCp + previousPreviousCp) ./ scale;
+else
+    curvaturePenalty = zeros(size(candidateCp));
+end
+
+scores = candidateObj + ...
+    options.predictionWeight .* predictionPenalty + ...
+    options.curvatureWeight .* curvaturePenalty;
+end
+
+function predictedCp = predictCp(previousCp, previousPreviousCp)
+if isfinite(previousPreviousCp)
+    predictedCp = previousCp + (previousCp - previousPreviousCp);
+else
+    predictedCp = previousCp;
+end
+predictedCp = max(predictedCp, eps);
+end
+
+function candidateIdx = filterCandidatesByPrediction(candidateIdx, cGrid, previousCp, previousPreviousCp, options)
+predictedCp = predictCp(previousCp, previousPreviousCp);
+halfWidth = max(options.predictiveWindow * abs(predictedCp), options.predictiveMinWidth);
+relOrAbsDistance = abs(cGrid(candidateIdx) - predictedCp);
+mask = relOrAbsDistance <= halfWidth;
+
+if any(mask)
+    candidateIdx = candidateIdx(mask);
+elseif options.allowPredictiveFallbackNearest
+    [~, nearestIdx] = min(relOrAbsDistance);
+    candidateIdx = candidateIdx(nearestIdx);
+end
+end
+
 function candidateIdx = filterCandidatesByBranchBand(candidateIdx, cGrid, params, options)
 if ~isfield(options, 'branchSelectionMode') || string(options.branchSelectionMode) ~= "band"
     return;
@@ -226,9 +265,19 @@ end
 
 shearSpeed = sqrt(params.alpha / params.rho);
 yCandidates = cGrid(candidateIdx) ./ shearSpeed;
-branch = string(options.branch);
+band = getBranchBand(options);
+if isempty(band)
+    return;
+end
 
-switch branch
+mask = yCandidates >= band(1) & yCandidates <= band(2);
+if any(mask)
+    candidateIdx = candidateIdx(mask);
+end
+end
+
+function band = getBranchBand(options)
+switch string(options.branch)
     case "A0"
         band = options.A0Band;
     case "A0High"
@@ -236,12 +285,7 @@ switch branch
     case "S0"
         band = options.S0Band;
     otherwise
-        return;
-end
-
-mask = yCandidates >= band(1) & yCandidates <= band(2);
-if any(mask)
-    candidateIdx = candidateIdx(mask);
+        band = [];
 end
 end
 
@@ -420,6 +464,13 @@ for i = 1:numel(requiredFields)
         error('Missing required Li2024 parameter: %s', requiredFields{i});
     end
 end
+end
+
+function [bestCp, bestObj, bestSigmaMin, bestDetails] = emptySolution()
+bestCp = nan;
+bestObj = nan;
+bestSigmaMin = nan;
+bestDetails = struct('aux', struct('s1', nan, 's2', nan, 'xi', nan), 'sigmaMin', nan);
 end
 
 function diagnostics = summarizeResult(result)
