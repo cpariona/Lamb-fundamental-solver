@@ -26,12 +26,18 @@ options.branch = "A0";
 options.trackingDirection = "forward";
 
 % Tracking method.
-%   "globalScan"        : scan the full physical Cp window at every frequency.
-%   "localContinuation" : after the first point, minimize around previous Cp.
+%   "globalScan"             : scan the full physical Cp window at every frequency.
+%   "localContinuation"      : after the first point, minimize around previous Cp.
+%   "predictiveContinuation" : score candidates around a linear Cp prediction.
 options.trackingMethod = "globalScan";
 options.localContinuationWindow = 0.20;        % relative half-window around previous Cp
 options.localContinuationMinWidth = 0.05;      % absolute minimum half-window [m/s]
 options.localContinuationFallback = "globalScan";
+options.predictiveWindow = 0.18;               % relative window around predicted Cp
+options.predictiveMinWidth = 0.05;             % absolute minimum prediction window [m/s]
+options.predictionWeight = 8.0;                % penalty for distance from predicted Cp
+options.curvatureWeight = 4.0;                 % penalty for local second difference
+options.allowPredictiveFallbackNearest = true;
 
 % Branch-selection mode.
 %   "band"   : restrict candidate minima by dimensionless Cp bands.
@@ -64,7 +70,7 @@ options.branchStartPreference = "auto";
 options.cMin = 0.15;
 options.cMax = [];
 options.numCpScanPoints = 1400;
-options.maxLocalCandidates = 8;
+options.maxLocalCandidates = 12;
 
 % Branch-aware physical velocity windows.
 % A0/A0High are scaled by sqrt(alpha/rho).
