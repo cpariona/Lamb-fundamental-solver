@@ -8,6 +8,8 @@ startup
 %   2. Inspect the local-minimum landscape at a reference frequency to see
 %      which solution families are available and which branch the tracker is
 %      following.
+%   3. Overlay the tracker-selected Cp at the reference frequency onto the
+%      local-minimum families to identify branch switches directly.
 %
 % This script does not replace previous strategies. It diagnoses whether the
 % selected A0 global-backward branch is stable with respect to numerical grid
@@ -77,9 +79,13 @@ convergenceTable = struct2table(convergenceRows);
 % solution families available to the tracker.
 landscapeTable = computeReferenceLandscape(baseParams, baseOptions, IOP_mmHg, IOP_Pa, referenceFrequency, 5200);
 
+% Match each tracked Cp@reference-frequency point to the nearest available
+% local-minimum family at the same IOP. This is the key branch-switch table.
+trackedBranchTable = matchTrackedCpToLandscape(convergenceTable, landscapeTable);
+
 plotCpAtReferenceVsGrid(convergenceTable, IOP_mmHg, cpGridPointsList, referenceFrequency);
 plotConvergenceCurves(convergenceResults, IOP_mmHg, cpGridPointsList);
-plotReferenceLandscape(landscapeTable, IOP_mmHg, referenceFrequency);
+plotReferenceLandscape(landscapeTable, convergenceTable, IOP_mmHg, cpGridPointsList, referenceFrequency);
 plotConstitutiveCheck(convergenceResults(:, 2), IOP_mmHg); % middle grid as representative
 
 fprintf('\nGrid convergence table\n');
@@ -88,9 +94,13 @@ disp(convergenceTable);
 fprintf('\nReference-frequency local-minimum landscape table\n');
 disp(landscapeTable);
 
+fprintf('\nTracked Cp matched to nearest local-minimum family\n');
+disp(trackedBranchTable);
+
 assignin('base', 'Li2024IOPGridConvergenceResults', convergenceResults);
 assignin('base', 'Li2024IOPGridConvergenceTable', convergenceTable);
 assignin('base', 'Li2024IOPReferenceLandscapeTable', landscapeTable);
+assignin('base', 'Li2024IOPTrackedBranchTable', trackedBranchTable);
 
 function row = makeConvergenceRow(result, IOP_mmHg, IOP_Pa, gridPoints, fRef)
 valid = result.validCp & isfinite(result.Cp) & isfinite(result.frequency);
@@ -138,11 +148,6 @@ for i = 1:numel(IOP_Pa)
     [alpha, beta, gamma, state] = computeABGFromIOPHGO_Li2024( ...
         params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
 
-    directParams = params;
-    directParams.alpha = alpha;
-    directParams.beta = beta;
-    directParams.gamma = gamma;
-
     cShear = sqrt(alpha / params.rho);
     tensileSpeed = sqrt((2*beta + 2*gamma) / params.rho);
 
@@ -171,6 +176,38 @@ for i = 1:numel(IOP_Pa)
     end
 end
 landscapeTable = struct2table(rows);
+end
+
+function trackedTable = matchTrackedCpToLandscape(convergenceTable, landscapeTable)
+rows = [];
+for r = 1:height(convergenceTable)
+    iop = convergenceTable.IOP_mmHg(r);
+    cpTracked = convergenceTable.CpAtRef_mps(r);
+    candidates = landscapeTable(landscapeTable.IOP_mmHg == iop, :);
+
+    row = struct();
+    row.IOP_mmHg = iop;
+    row.GridPoints = convergenceTable.GridPoints(r);
+    row.TrackedCp_mps = cpTracked;
+    row.NearestMinRank = nan;
+    row.NearestMinCp_mps = nan;
+    row.DistanceToNearestMin_mps = nan;
+    row.RelativeDistanceToNearestMin = nan;
+    row.NearestMinObjective = nan;
+
+    if ~isempty(candidates) && isfinite(cpTracked)
+        [distance, idx] = min(abs(candidates.Cp_mps - cpTracked));
+        nearestCp = candidates.Cp_mps(idx);
+        row.NearestMinRank = candidates.MinRank(idx);
+        row.NearestMinCp_mps = nearestCp;
+        row.DistanceToNearestMin_mps = distance;
+        row.RelativeDistanceToNearestMin = distance / max(abs(nearestCp), eps);
+        row.NearestMinObjective = candidates.Objective(idx);
+    end
+
+    rows = [rows; row]; %#ok<AGROW>
+end
+trackedTable = struct2table(rows);
 end
 
 function minimaTable = findTopLocalMinima(cGrid, obj, cShear, topN)
@@ -228,19 +265,34 @@ for g = 1:numel(gridList)
 end
 end
 
-function plotReferenceLandscape(T, IOP_mmHg, fRef)
+function plotReferenceLandscape(landscapeTable, convergenceTable, IOP_mmHg, gridList, fRef)
 figure('Color', 'w');
 hold on; grid on;
+
+% Background: all local-minimum families. Color encodes rank.
 for i = 1:numel(IOP_mmHg)
-    mask = T.IOP_mmHg == IOP_mmHg(i);
-    Ti = T(mask, :);
-    scatter(repmat(IOP_mmHg(i), height(Ti), 1), Ti.Cp_mps, 55, Ti.MinRank, 'filled');
+    mask = landscapeTable.IOP_mmHg == IOP_mmHg(i);
+    Ti = landscapeTable(mask, :);
+    scatter(repmat(IOP_mmHg(i), height(Ti), 1), Ti.Cp_mps, 55, Ti.MinRank, 'filled', ...
+        'HandleVisibility', 'off');
 end
+
+% Overlay: tracker-selected Cp for each grid density.
+markerList = {'o', 's', '^', 'd', 'v'};
+for g = 1:numel(gridList)
+    mask = convergenceTable.GridPoints == gridList(g);
+    Tg = sortrows(convergenceTable(mask, :), 'IOP_mmHg');
+    marker = markerList{min(g, numel(markerList))};
+    plot(Tg.IOP_mmHg, Tg.CpAtRef_mps, ['-', marker], 'LineWidth', 2.2, 'MarkerSize', 8, ...
+        'DisplayName', sprintf('tracked Cp, %d grid', gridList(g)));
+end
+
 xlabel('IOP [mmHg]');
-ylabel(sprintf('Local-minimum Cp at %.1f kHz [m/s]', fRef/1e3));
-title('Li 2024 local-minimum families at reference frequency');
+ylabel(sprintf('Cp at %.1f kHz [m/s]', fRef/1e3));
+title('Li 2024 local minima and tracker-selected branches at reference frequency');
 cb = colorbar;
-cb.Label.String = 'minimum rank, 1 = deepest';
+cb.Label.String = 'local-minimum rank, 1 = deepest';
+legend('Location', 'best');
 hold off;
 end
 
