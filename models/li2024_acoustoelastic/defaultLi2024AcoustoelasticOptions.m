@@ -29,6 +29,7 @@ options.trackingDirection = "forward";
 %   "globalScan"             : scan the full physical Cp window at every frequency.
 %   "localContinuation"      : after the first point, minimize around previous Cp.
 %   "predictiveContinuation" : score candidates around a linear Cp prediction.
+%   "singularVectorTracking" : score candidates using Cp prediction + MAC.
 options.trackingMethod = "globalScan";
 options.localContinuationWindow = 0.20;        % relative half-window around previous Cp
 options.localContinuationMinWidth = 0.05;      % absolute minimum half-window [m/s]
@@ -37,6 +38,8 @@ options.predictiveWindow = 0.18;               % relative window around predicte
 options.predictiveMinWidth = 0.05;             % absolute minimum prediction window [m/s]
 options.predictionWeight = 8.0;                % penalty for distance from predicted Cp
 options.curvatureWeight = 4.0;                 % penalty for local second difference
+options.macWeight = 12.0;                      % penalty for 1-MAC of singular vectors
+options.minAcceptableMAC = 0.00;               % 0 disables hard MAC rejection
 options.allowPredictiveFallbackNearest = true;
 
 % Branch-selection mode.
