@@ -5,15 +5,13 @@ startup
 %
 % Purpose:
 %   1. Check whether the IOP sweep result depends strongly on Cp grid density.
-%   2. Inspect the local-minimum landscape at a reference frequency to see
-%      which solution families are available and which branch the tracker is
-%      following.
-%   3. Overlay the tracker-selected Cp at the reference frequency onto the
-%      local-minimum families to identify branch switches directly.
+%   2. Inspect the local-minimum landscape at a reference frequency.
+%   3. Overlay the tracker-selected Cp on the local-minimum families.
+%   4. Build a full f-Cp branch map for selected IOP cases to identify where
+%      the tracker jumps between solution families.
 %
 % This script does not replace previous strategies. It diagnoses whether the
-% selected A0 global-backward branch is stable with respect to numerical grid
-% density and whether the 25 mmHg case switches to another local-minimum family.
+% selected A0 global-backward branch is stable and physically interpretable.
 
 baseParams = struct();
 
@@ -31,14 +29,18 @@ baseParams.rho = 1060;                  % kg/m^3
 baseParams.rhoF = 1000;                 % kg/m^3
 baseParams.fluidBulkModulus = 2.2e9;    % Pa
 
-% Keep the same frequency band as the sweep, but the number of points can be
-% reduced if the diagnostic becomes too slow.
-baseParams.frequency = linspace(6e3, 35e3, 100);
+referenceFrequency = 20e3;
+baseParams.frequency = ensureFrequencyIncludesReference(linspace(6e3, 35e3, 100), referenceFrequency);
 
 IOP_mmHg = [5, 10, 15, 20, 25];
 IOP_Pa = IOP_mmHg * 133.322;
 cpGridPointsList = [900, 1800, 3600];
-referenceFrequency = 20e3;
+
+% Full branch-map diagnostics are heavier than the reference-frequency scan.
+% Keep them focused on the problematic high-IOP cases.
+branchMapIOP_mmHg = [20, 25];
+branchMapScanPoints = 3600;
+branchMapTopN = 8;
 
 baseOptions = defaultLi2024AcoustoelasticOptions();
 baseOptions.M54_variant = "corrected";
@@ -75,17 +77,21 @@ end
 
 convergenceTable = struct2table(convergenceRows);
 
-% Local-minimum landscape at the reference frequency. This shows all main
-% solution families available to the tracker.
+% Local-minimum landscape at one reference frequency.
 landscapeTable = computeReferenceLandscape(baseParams, baseOptions, IOP_mmHg, IOP_Pa, referenceFrequency, 5200);
-
-% Match each tracked Cp@reference-frequency point to the nearest available
-% local-minimum family at the same IOP. This is the key branch-switch table.
 trackedBranchTable = matchTrackedCpToLandscape(convergenceTable, landscapeTable);
+
+% Full f-Cp landscape for selected IOP values. This is the key diagnostic for
+% seeing all available solution families and the tracker path over frequency.
+[fullBranchMapTable, trackedFrequencyBranchTable] = computeFullFrequencyBranchMap( ...
+    baseParams, baseOptions, convergenceResults, IOP_mmHg, IOP_Pa, cpGridPointsList, ...
+    branchMapIOP_mmHg, branchMapScanPoints, branchMapTopN);
 
 plotCpAtReferenceVsGrid(convergenceTable, IOP_mmHg, cpGridPointsList, referenceFrequency);
 plotConvergenceCurves(convergenceResults, IOP_mmHg, cpGridPointsList);
 plotReferenceLandscape(landscapeTable, convergenceTable, IOP_mmHg, cpGridPointsList, referenceFrequency);
+plotFullBranchMaps(fullBranchMapTable, convergenceResults, IOP_mmHg, cpGridPointsList, branchMapIOP_mmHg);
+plotTrackedRankOverFrequency(trackedFrequencyBranchTable, branchMapIOP_mmHg, cpGridPointsList);
 plotConstitutiveCheck(convergenceResults(:, 2), IOP_mmHg); % middle grid as representative
 
 fprintf('\nGrid convergence table\n');
@@ -94,13 +100,23 @@ disp(convergenceTable);
 fprintf('\nReference-frequency local-minimum landscape table\n');
 disp(landscapeTable);
 
-fprintf('\nTracked Cp matched to nearest local-minimum family\n');
+fprintf('\nTracked Cp matched to nearest local-minimum family at reference frequency\n');
 disp(trackedBranchTable);
+
+fprintf('\nTracked Cp matched to nearest local-minimum family over frequency\n');
+disp(trackedFrequencyBranchTable);
 
 assignin('base', 'Li2024IOPGridConvergenceResults', convergenceResults);
 assignin('base', 'Li2024IOPGridConvergenceTable', convergenceTable);
 assignin('base', 'Li2024IOPReferenceLandscapeTable', landscapeTable);
 assignin('base', 'Li2024IOPTrackedBranchTable', trackedBranchTable);
+assignin('base', 'Li2024IOPFullBranchMapTable', fullBranchMapTable);
+assignin('base', 'Li2024IOPTrackedFrequencyBranchTable', trackedFrequencyBranchTable);
+
+function frequency = ensureFrequencyIncludesReference(frequency, fRef)
+frequency = unique([frequency(:); fRef]);
+frequency = sort(frequency(:)).';
+end
 
 function row = makeConvergenceRow(result, IOP_mmHg, IOP_Pa, gridPoints, fRef)
 valid = result.validCp & isfinite(result.Cp) & isfinite(result.frequency);
@@ -110,7 +126,12 @@ maxRelJump = nan;
 roughness = nan;
 
 if any(valid)
-    cpAtRef = interp1(result.frequency(valid), result.Cp(valid), fRef, 'linear', nan);
+    [~, idxRef] = min(abs(result.frequency - fRef));
+    if abs(result.frequency(idxRef) - fRef) < 1e-9
+        cpAtRef = result.Cp(idxRef);
+    else
+        cpAtRef = interp1(result.frequency(valid), result.Cp(valid), fRef, 'linear', nan);
+    end
     medianCp = median(result.Cp(valid), 'omitnan');
     cp = result.Cp(valid);
     if numel(cp) >= 2
@@ -144,38 +165,111 @@ rows = [];
 for i = 1:numel(IOP_Pa)
     params = baseParams;
     params.IOP = IOP_Pa(i);
+    [directParams, state] = buildDirectParamsFromIOP(params);
+    minima = computeMinimaAtFrequency(directParams, baseOptions, fRef, nScan, 8);
 
-    [alpha, beta, gamma, state] = computeABGFromIOPHGO_Li2024( ...
-        params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
-
-    cShear = sqrt(alpha / params.rho);
-    tensileSpeed = sqrt((2*beta + 2*gamma) / params.rho);
-
-    yGrid = linspace(0.02, 1.35, nScan);
-    cGrid = yGrid * cShear;
-    obj = nan(size(cGrid));
-    for j = 1:numel(cGrid)
-        obj(j) = objective_Li2024_Acoustoelastic(alpha, beta, gamma, params.thickness, params.rho, ...
-            params.rhoF, params.fluidBulkModulus, fRef, cGrid(j), baseOptions);
-    end
-
-    minima = findTopLocalMinima(cGrid, obj, cShear, 8);
     for m = 1:height(minima)
-        row = struct();
-        row.IOP_mmHg = IOP_mmHg(i);
-        row.IOP_kPa = IOP_Pa(i) / 1e3;
-        row.Sigma_kPa = state.sigma / 1e3;
-        row.Lambda = state.lambda;
-        row.MinRank = m;
-        row.Cp_mps = minima.Cp(m);
-        row.y = minima.y(m);
-        row.Objective = minima.Objective(m);
+        row = minimaRow(IOP_mmHg(i), IOP_Pa(i), state, m, minima(m, :));
         row.DistanceToA0HighTarget = abs(minima.y(m) - baseOptions.A0HighTarget);
-        row.DistanceToTensileTarget = abs(minima.Cp(m) - tensileSpeed);
+        row.DistanceToTensileTarget = abs(minima.Cp(m) - sqrt((2*directParams.beta + 2*directParams.gamma) / directParams.rho));
         rows = [rows; row]; %#ok<AGROW>
     end
 end
 landscapeTable = struct2table(rows);
+end
+
+function [fullMap, trackedMap] = computeFullFrequencyBranchMap(baseParams, baseOptions, convergenceResults, IOP_mmHg, IOP_Pa, gridList, selectedIOP, nScan, topN)
+fullRows = [];
+trackedRows = [];
+for s = 1:numel(selectedIOP)
+    iopValue = selectedIOP(s);
+    idxIOP = find(IOP_mmHg == iopValue, 1, 'first');
+    if isempty(idxIOP)
+        continue;
+    end
+
+    params = baseParams;
+    params.IOP = IOP_Pa(idxIOP);
+    [directParams, state] = buildDirectParamsFromIOP(params);
+
+    for k = 1:numel(directParams.frequency)
+        f = directParams.frequency(k);
+        minima = computeMinimaAtFrequency(directParams, baseOptions, f, nScan, topN);
+        for m = 1:height(minima)
+            row = minimaRow(iopValue, IOP_Pa(idxIOP), state, m, minima(m, :));
+            row.Frequency_Hz = f;
+            row.Frequency_kHz = f / 1e3;
+            fullRows = [fullRows; row]; %#ok<AGROW>
+        end
+
+        for g = 1:numel(gridList)
+            result = convergenceResults{idxIOP, g};
+            cpTracked = result.Cp(k);
+            rowT = struct();
+            rowT.IOP_mmHg = iopValue;
+            rowT.GridPoints = gridList(g);
+            rowT.Frequency_Hz = f;
+            rowT.Frequency_kHz = f / 1e3;
+            rowT.TrackedCp_mps = cpTracked;
+            rowT.NearestMinRank = nan;
+            rowT.NearestMinCp_mps = nan;
+            rowT.DistanceToNearestMin_mps = nan;
+            rowT.RelativeDistanceToNearestMin = nan;
+            rowT.NearestMinObjective = nan;
+
+            if isfinite(cpTracked) && ~isempty(minima)
+                [distance, idx] = min(abs(minima.Cp - cpTracked));
+                nearestCp = minima.Cp(idx);
+                rowT.NearestMinRank = idx;
+                rowT.NearestMinCp_mps = nearestCp;
+                rowT.DistanceToNearestMin_mps = distance;
+                rowT.RelativeDistanceToNearestMin = distance / max(abs(nearestCp), eps);
+                rowT.NearestMinObjective = minima.Objective(idx);
+            end
+            trackedRows = [trackedRows; rowT]; %#ok<AGROW>
+        end
+    end
+end
+fullMap = struct2table(fullRows);
+trackedMap = struct2table(trackedRows);
+end
+
+function [directParams, state] = buildDirectParamsFromIOP(params)
+[alpha, beta, gamma, state] = computeABGFromIOPHGO_Li2024( ...
+    params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
+directParams = struct();
+directParams.alpha = alpha;
+directParams.beta = beta;
+directParams.gamma = gamma;
+directParams.thickness = params.thickness;
+directParams.rho = params.rho;
+directParams.rhoF = params.rhoF;
+directParams.fluidBulkModulus = params.fluidBulkModulus;
+directParams.frequency = params.frequency(:);
+end
+
+function minima = computeMinimaAtFrequency(params, options, f, nScan, topN)
+cShear = sqrt(params.alpha / params.rho);
+yGrid = linspace(0.02, 1.35, nScan);
+cGrid = yGrid * cShear;
+obj = nan(size(cGrid));
+for j = 1:numel(cGrid)
+    obj(j) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, params.thickness, params.rho, ...
+        params.rhoF, params.fluidBulkModulus, f, cGrid(j), options);
+end
+minima = findTopLocalMinima(cGrid, obj, cShear, topN);
+end
+
+function row = minimaRow(IOP_mmHg, IOP_Pa, state, minRank, minimaRowTable)
+row = struct();
+row.IOP_mmHg = IOP_mmHg;
+row.IOP_kPa = IOP_Pa / 1e3;
+row.Sigma_kPa = state.sigma / 1e3;
+row.Lambda = state.lambda;
+row.MinRank = minRank;
+row.Cp_mps = minimaRowTable.Cp(1);
+row.y = minimaRowTable.y(1);
+row.Objective = minimaRowTable.Objective(1);
 end
 
 function trackedTable = matchTrackedCpToLandscape(convergenceTable, landscapeTable)
@@ -268,16 +362,11 @@ end
 function plotReferenceLandscape(landscapeTable, convergenceTable, IOP_mmHg, gridList, fRef)
 figure('Color', 'w');
 hold on; grid on;
-
-% Background: all local-minimum families. Color encodes rank.
 for i = 1:numel(IOP_mmHg)
     mask = landscapeTable.IOP_mmHg == IOP_mmHg(i);
     Ti = landscapeTable(mask, :);
-    scatter(repmat(IOP_mmHg(i), height(Ti), 1), Ti.Cp_mps, 55, Ti.MinRank, 'filled', ...
-        'HandleVisibility', 'off');
+    scatter(repmat(IOP_mmHg(i), height(Ti), 1), Ti.Cp_mps, 55, Ti.MinRank, 'filled', 'HandleVisibility', 'off');
 end
-
-% Overlay: tracker-selected Cp for each grid density.
 markerList = {'o', 's', '^', 'd', 'v'};
 for g = 1:numel(gridList)
     mask = convergenceTable.GridPoints == gridList(g);
@@ -286,7 +375,6 @@ for g = 1:numel(gridList)
     plot(Tg.IOP_mmHg, Tg.CpAtRef_mps, ['-', marker], 'LineWidth', 2.2, 'MarkerSize', 8, ...
         'DisplayName', sprintf('tracked Cp, %d grid', gridList(g)));
 end
-
 xlabel('IOP [mmHg]');
 ylabel(sprintf('Cp at %.1f kHz [m/s]', fRef/1e3));
 title('Li 2024 local minima and tracker-selected branches at reference frequency');
@@ -294,6 +382,53 @@ cb = colorbar;
 cb.Label.String = 'local-minimum rank, 1 = deepest';
 legend('Location', 'best');
 hold off;
+end
+
+function plotFullBranchMaps(fullMap, results, IOP_mmHg, gridList, selectedIOP)
+for s = 1:numel(selectedIOP)
+    iop = selectedIOP(s);
+    idxIOP = find(IOP_mmHg == iop, 1, 'first');
+    figure('Color', 'w', 'Name', sprintf('Li2024 full branch map IOP %.0f', iop));
+    hold on; grid on;
+    mask = fullMap.IOP_mmHg == iop;
+    T = fullMap(mask, :);
+    scatter(T.Frequency_kHz, T.Cp_mps, 22, T.MinRank, 'filled', 'MarkerFaceAlpha', 0.55, 'HandleVisibility', 'off');
+    markerList = {'o', 's', '^', 'd', 'v'};
+    for g = 1:numel(gridList)
+        r = results{idxIOP, g};
+        valid = r.validCp & isfinite(r.Cp);
+        marker = markerList{min(g, numel(markerList))};
+        plot(r.frequency(valid)/1e3, r.Cp(valid), ['-', marker], 'LineWidth', 1.9, 'MarkerIndices', 1:12:nnz(valid), ...
+            'DisplayName', sprintf('tracked, %d grid', gridList(g)));
+    end
+    xlabel('frequency [kHz]');
+    ylabel('Cp [m/s]');
+    title(sprintf('Li 2024 f-Cp local minima map with tracked branches, IOP %.0f mmHg', iop));
+    cb = colorbar;
+    cb.Label.String = 'local-minimum rank, 1 = deepest';
+    legend('Location', 'best');
+    hold off;
+end
+end
+
+function plotTrackedRankOverFrequency(T, selectedIOP, gridList)
+for s = 1:numel(selectedIOP)
+    iop = selectedIOP(s);
+    figure('Color', 'w', 'Name', sprintf('Li2024 tracked rank IOP %.0f', iop));
+    hold on; grid on;
+    for g = 1:numel(gridList)
+        mask = T.IOP_mmHg == iop & T.GridPoints == gridList(g);
+        Tg = sortrows(T(mask, :), 'Frequency_kHz');
+        plot(Tg.Frequency_kHz, Tg.NearestMinRank, 'o-', 'LineWidth', 1.6, ...
+            'DisplayName', sprintf('%d grid', gridList(g)));
+    end
+    xlabel('frequency [kHz]');
+    ylabel('nearest local-minimum rank followed by tracker');
+    title(sprintf('Li 2024 tracked branch rank over frequency, IOP %.0f mmHg', iop));
+    set(gca, 'YDir', 'reverse');
+    legend('Location', 'best');
+    hold off;
+end
 end
 
 function plotConstitutiveCheck(results, IOP_mmHg)
