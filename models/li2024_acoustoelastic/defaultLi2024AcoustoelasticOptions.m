@@ -25,7 +25,7 @@ options.branch = "A0";
 % high-frequency minima are better separated.
 options.trackingDirection = "forward";
 
-% Tracking method.
+% Tracking method for real-Cp sigma_min solvers.
 %   "globalScan"             : scan the full physical Cp window at every frequency.
 %   "localContinuation"      : after the first point, minimize around previous Cp.
 %   "predictiveContinuation" : score candidates around a linear Cp prediction.
@@ -41,6 +41,18 @@ options.curvatureWeight = 4.0;                 % penalty for local second differ
 options.macWeight = 12.0;                      % penalty for 1-MAC of singular vectors
 options.minAcceptableMAC = 0.00;               % 0 disables hard MAC rejection
 options.allowPredictiveFallbackNearest = true;
+
+% Complex-C determinant continuation options.
+% This is a separate fallback/diagnostic strategy for cases where the real-Cp
+% minimum landscape is not smooth. It minimizes abs(det(M)) in c = cr+i*ci.
+options.complexCInitialImagRatio = -1e-3;
+options.complexCImagLimitRatio = 0.50;
+options.complexCMinScale = 0.05;
+options.complexCMaxIter = 250;
+options.complexCMaxFunEvals = 900;
+options.complexCTolX = 1e-9;
+options.complexCTolFun = 1e-9;
+options.complexCDisplay = "off";
 
 % Branch-selection mode.
 %   "band"   : restrict candidate minima by dimensionless Cp bands.
