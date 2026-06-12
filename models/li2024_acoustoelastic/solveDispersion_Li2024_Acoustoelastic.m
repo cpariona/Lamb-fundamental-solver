@@ -90,6 +90,84 @@ end
 end
 
 function [bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequency(params, options, f, cGrid, previousCp)
+if isfinite(previousCp) && string(options.trackingMethod) == "localContinuation"
+    [bestCp, bestObj, bestSigmaMin, bestDetails, ok] = solveOneFrequencyLocal(params, options, f, cGrid, previousCp);
+    if ok
+        return;
+    end
+    if string(options.localContinuationFallback) ~= "globalScan"
+        bestCp = nan;
+        bestObj = nan;
+        bestSigmaMin = nan;
+        bestDetails = struct('aux', struct('s1', nan, 's2', nan, 'xi', nan));
+        return;
+    end
+end
+
+[bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequencyGlobal(params, options, f, cGrid, previousCp);
+end
+
+function [bestCp, bestObj, bestSigmaMin, bestDetails, ok] = solveOneFrequencyLocal(params, options, f, cGrid, previousCp)
+localHalfWidth = max(options.localContinuationWindow * abs(previousCp), options.localContinuationMinWidth);
+[cLower, cUpper] = getLocalContinuationBounds(params, options, cGrid, previousCp, localHalfWidth);
+
+ok = false;
+bestCp = nan;
+bestObj = nan;
+bestSigmaMin = nan;
+bestDetails = struct('aux', struct('s1', nan, 's2', nan, 'xi', nan));
+
+if ~(isfinite(cLower) && isfinite(cUpper) && cUpper > cLower)
+    return;
+end
+
+localObj = @(cc)objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+    params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cc, options);
+
+try
+    [candidateCp, candidateObj] = fminbnd(localObj, cLower, cUpper);
+catch
+    return;
+end
+
+if ~isfinite(candidateCp) || ~isfinite(candidateObj)
+    return;
+end
+
+[~, candidateDetails] = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+    params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, candidateCp, options);
+
+bestCp = candidateCp;
+bestObj = candidateObj;
+bestSigmaMin = candidateDetails.sigmaMin;
+bestDetails = candidateDetails;
+ok = true;
+end
+
+function [cLower, cUpper] = getLocalContinuationBounds(params, options, cGrid, previousCp, localHalfWidth)
+cLower = max(min(cGrid), previousCp - localHalfWidth);
+cUpper = min(max(cGrid), previousCp + localHalfWidth);
+
+if isfield(options, 'branchSelectionMode') && string(options.branchSelectionMode) == "band"
+    shearSpeed = sqrt(params.alpha / params.rho);
+    switch string(options.branch)
+        case "A0"
+            band = options.A0Band;
+        case "A0High"
+            band = options.A0HighBand;
+        case "S0"
+            band = options.S0Band;
+        otherwise
+            band = [];
+    end
+    if ~isempty(band)
+        cLower = max(cLower, band(1) * shearSpeed);
+        cUpper = min(cUpper, band(2) * shearSpeed);
+    end
+end
+end
+
+function [bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequencyGlobal(params, options, f, cGrid, previousCp)
 objVals = nan(size(cGrid));
 for j = 1:numel(cGrid)
     objVals(j) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
@@ -352,6 +430,7 @@ diagnostics.totalPoints = numel(result.Cp);
 diagnostics.skippedLowDimensionlessFrequencyPoints = nnz(result.skippedLowDimensionlessFrequency);
 diagnostics.minDimensionlessFrequency = result.options.minDimensionlessFrequency;
 diagnostics.trackingDirection = string(result.options.trackingDirection);
+diagnostics.trackingMethod = string(result.options.trackingMethod);
 if any(valid)
     diagnostics.minCp = min(result.Cp(valid));
     diagnostics.maxCp = max(result.Cp(valid));
