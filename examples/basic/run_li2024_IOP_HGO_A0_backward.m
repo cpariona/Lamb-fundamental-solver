@@ -5,7 +5,7 @@ startup
 %
 % Recommended first-stage workflow:
 %   IOP/R/h/mu/k1/k2 -> lambda -> alpha,beta,gamma
-%   -> corrected M54 matrix -> A0 branch -> backward tracking
+%   -> corrected M54 matrix -> A0 branch -> backward local continuation
 %
 % S0 is intentionally not used here because its branch identity is still
 % under diagnostic evaluation.
@@ -35,6 +35,9 @@ options = defaultLi2024AcoustoelasticOptions();
 options.M54_variant = "corrected";
 options.branch = "A0";
 options.trackingDirection = "backward";
+options.trackingMethod = "localContinuation";
+options.localContinuationWindow = 0.20;
+options.localContinuationMinWidth = 0.05;
 options.minDimensionlessFrequency = 0.20;
 options.numCpScanPoints = 1800;
 
@@ -47,14 +50,15 @@ plot(result.frequency(valid)/1e3, result.Cp(valid), 'LineWidth', 2);
 grid on;
 xlabel('frequency [kHz]');
 ylabel('Phase velocity Cp [m/s]');
-title('Li 2024 IOP/HGO A0 corrected backward solver');
+title('Li 2024 IOP/HGO A0 corrected backward local-continuation solver');
 
-fprintf('\nLi 2024 IOP/HGO A0 backward example\n');
+fprintf('\nLi 2024 IOP/HGO A0 backward local-continuation example\n');
 fprintf('IOP = %.3f kPa, R = %.3f mm, h = %.3f um\n', params.IOP/1e3, params.R*1e3, params.thickness*1e6);
 fprintf('sigma = %.3f kPa\n', state.sigma/1e3);
 fprintf('lambda = %.6f, stretch residual = %.3e Pa\n', state.lambda, state.stretchInfo.residual);
 fprintf('alpha = %.3f kPa, beta = %.3f kPa, gamma = %.3f kPa\n', ...
     result.directParams.alpha/1e3, result.directParams.beta/1e3, result.directParams.gamma/1e3);
+fprintf('tracking method = %s, direction = %s\n', string(result.options.trackingMethod), string(result.options.trackingDirection));
 fprintf('valid Cp points = %d/%d\n', result.diagnostics.validCpPoints, result.diagnostics.totalPoints);
 
 assignin('base', 'Li2024IOPHGOA0BackwardResult', result);
