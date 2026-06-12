@@ -25,6 +25,14 @@ options.branch = "A0";
 % high-frequency minima are better separated.
 options.trackingDirection = "forward";
 
+% Tracking method.
+%   "globalScan"        : scan the full physical Cp window at every frequency.
+%   "localContinuation" : after the first point, minimize around previous Cp.
+options.trackingMethod = "globalScan";
+options.localContinuationWindow = 0.20;        % relative half-window around previous Cp
+options.localContinuationMinWidth = 0.05;      % absolute minimum half-window [m/s]
+options.localContinuationFallback = "globalScan";
+
 % Branch-selection mode.
 %   "band"   : restrict candidate minima by dimensionless Cp bands.
 %   "global" : use all local minima in the Cp grid.
