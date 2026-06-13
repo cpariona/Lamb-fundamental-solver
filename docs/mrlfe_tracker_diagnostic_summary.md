@@ -1,6 +1,6 @@
 # mRLFE tracker diagnostic summary
 
-This note summarizes the diagnostic evidence from `examples/diagnostics/compare_mrlfe_tracker_vs_condition_peaks.m`.
+This note summarizes the diagnostic evidence from `examples/mrlfe/diagnostics/compare_mrlfe_tracker_vs_condition_peaks.m`.
 
 The diagnostic compares the current tracked mRLFE branch against a brute-force residual/condition scan over phase velocity `Cp`. It is intended to answer four questions:
 
@@ -108,7 +108,13 @@ For elastic cases, the current tracker is faster than the estimated full brute-f
 Run the diagnostic from the repository root after `startup`:
 
 ```matlab
-examples/diagnostics/compare_mrlfe_tracker_vs_condition_peaks
+compare_mrlfe_tracker_vs_condition_peaks
+```
+
+The script is maintained under:
+
+```text
+examples/mrlfe/diagnostics/
 ```
 
 Edit the case at the top of the script:
