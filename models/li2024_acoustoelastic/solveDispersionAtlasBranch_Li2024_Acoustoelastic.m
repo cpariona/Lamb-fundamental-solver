@@ -69,7 +69,7 @@ if isempty(rows)
     branchTable = table();
 else
     minimaTable = struct2table(rows);
-    [minimaTable, branchTable] = linkBranches(minimaTable, options.atlasMaxLogYJump, options.atlasMinBranchPoints);
+    [minimaTable, branchTable] = linkBranches(minimaTable, options);
 end
 
 Cp = nan(size(frequency));
@@ -143,7 +143,12 @@ def.atlasRankWeight = 0.70;
 def.atlasLowYWeight = 0.35;
 def.atlasIncreaseWeight = 0.50;
 def.atlasDropWeight = 1.25;
+def.atlasStartYWeight = 1.10;
+def.atlasStartRankWeight = 0.55;
+def.atlasStartCpWeight = 0.65;
 def.atlasPreferPositiveSlope = true;
+def.atlasSplitOnLargeCpJump = true;
+def.atlasMaxRelativeCpJump = 0.05;
 def.atlasAllowInterpolationAcrossGaps = false;
 def.atlasMaxInterpolationFrequencyRatio = 1.12;
 names = fieldnames(def);
@@ -195,7 +200,7 @@ minima = table(cp(keep), y(keep), objective(keep), depthMedian(keep), depthDeepe
     'VariableNames', {'Cp_mps','y','Objective','DepthRelativeToMedian','DepthRelativeToDeepest','SpacingToNearestLogY'});
 end
 
-function [minimaTable, branchTable] = linkBranches(minimaTable, maxLogYJump, minBranchPoints)
+function [minimaTable, branchTable] = linkBranches(minimaTable, options)
 minimaTable = sortrows(minimaTable, {'Frequency_Hz','MinRank'});
 minimaTable.BranchID(:) = nan;
 lastLogY = [];
@@ -214,7 +219,7 @@ for k = 1:numel(freqList)
             if b <= numel(used) && used(b), continue; end
             if lastFreq(b) >= f, continue; end
             jump = abs(minimaTable.log10y(r) - lastLogY(b));
-            if jump > maxLogYJump, continue; end
+            if jump > options.atlasMaxLogYJump, continue; end
             score = jump + 0.02*minimaTable.MinRank(r);
             if score < bestScore
                 bestScore = score;
@@ -233,12 +238,57 @@ for k = 1:numel(freqList)
     end
 end
 
+if options.atlasSplitOnLargeCpJump
+    minimaTable = splitBranchesOnLargeCpJump(minimaTable, options.atlasMaxRelativeCpJump, options.atlasMinBranchPoints);
+end
+
+branchTable = buildBranchTable(minimaTable, options.atlasMinBranchPoints);
+end
+
+function minimaTable = splitBranchesOnLargeCpJump(minimaTable, maxRelativeCpJump, minBranchPoints)
+if isempty(minimaTable) || ~isfinite(maxRelativeCpJump) || maxRelativeCpJump <= 0
+    return;
+end
+branchIDs = unique(minimaTable.BranchID(isfinite(minimaTable.BranchID)), 'stable');
+if isempty(branchIDs)
+    return;
+end
+nextID = max(branchIDs) + 1;
+for ii = 1:numel(branchIDs)
+    b = branchIDs(ii);
+    idx = find(minimaTable.BranchID == b);
+    if numel(idx) < 2
+        continue;
+    end
+    [~, order] = sort(minimaTable.Frequency_Hz(idx));
+    idx = idx(order);
+    cp = minimaTable.Cp_mps(idx);
+    relJump = abs(diff(cp)) ./ max(abs(cp(1:end-1)), eps);
+    cutAfter = find(relJump > maxRelativeCpJump);
+    if isempty(cutAfter)
+        continue;
+    end
+    starts = [1; cutAfter(:)+1];
+    ends = [cutAfter(:); numel(idx)];
+    minimaTable.BranchID(idx) = nan;
+    for s = 1:numel(starts)
+        segIdx = idx(starts(s):ends(s));
+        if numel(segIdx) >= minBranchPoints
+            minimaTable.BranchID(segIdx) = nextID;
+            nextID = nextID + 1;
+        end
+    end
+end
+end
+
+function branchTable = buildBranchTable(minimaTable, minBranchPoints)
 branchRows = [];
-for b = 1:branchID
-    mask = minimaTable.BranchID == b;
-    T = sortrows(minimaTable(mask,:), 'Frequency_Hz');
+branchIDs = unique(minimaTable.BranchID(isfinite(minimaTable.BranchID)), 'stable');
+for ii = 1:numel(branchIDs)
+    b = branchIDs(ii);
+    T = sortrows(minimaTable(minimaTable.BranchID == b,:), 'Frequency_Hz');
     if height(T) < minBranchPoints
-        minimaTable.BranchID(mask) = nan;
+        minimaTable.BranchID(minimaTable.BranchID == b) = nan;
         continue;
     end
     row = struct();
@@ -251,6 +301,10 @@ for b = 1:branchID
     row.FrequencyCoverage_kHz = row.FrequencyEnd_kHz - row.FrequencyStart_kHz;
     row.CpStart_mps = T.Cp_mps(1);
     row.CpEnd_mps = T.Cp_mps(end);
+    row.YStart = T.y(1);
+    row.YEnd = T.y(end);
+    row.StartRank = T.MinRank(1);
+    row.EndRank = T.MinRank(end);
     row.MinCp_mps = min(T.Cp_mps);
     row.MaxCp_mps = max(T.Cp_mps);
     row.MedianCp_mps = median(T.Cp_mps, 'omitnan');
@@ -291,9 +345,13 @@ rank = normMetric(branchTable.MedianRank);
 lowY = normMetric(branchTable.MedianY);
 increase = normMetric(branchTable.NetCpIncrease_mps);
 dropPenalty = normMetric(branchTable.MaxRelativeCpDrop);
+startY = normMetric(branchTable.YStart);
+startRank = normMetric(branchTable.StartRank);
+startCp = normMetric(branchTable.CpStart_mps);
 score = -options.atlasCoverageWeight*coverage + options.atlasRoughnessWeight*roughness + ...
     options.atlasRankWeight*rank + options.atlasLowYWeight*lowY - options.atlasIncreaseWeight*increase + ...
-    options.atlasDropWeight*dropPenalty;
+    options.atlasDropWeight*dropPenalty + options.atlasStartYWeight*startY + ...
+    options.atlasStartRankWeight*startRank + options.atlasStartCpWeight*startCp;
 if options.atlasPreferPositiveSlope
     score(branchTable.NetCpIncrease_mps < 0) = score(branchTable.NetCpIncrease_mps < 0) + 1;
 end
