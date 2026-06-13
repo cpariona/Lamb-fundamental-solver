@@ -26,11 +26,13 @@ options.atlasTopNMinima = 12;
 options.atlasBranchPolicy = "strictA0";
 
 result = solveDispersionIOPHGOAtlasBranch_Li2024(params, options);
+resolvedOptions = result.options;
 
 assert(isstruct(result), 'Result must be a struct.');
 assert(isfield(result, 'Cp'), 'Result must contain Cp.');
 assert(isfield(result, 'validCp'), 'Result must contain validCp.');
 assert(isfield(result, 'reliability'), 'Result must contain reliability.');
+assert(isfield(result, 'options'), 'Result must contain resolved solver options.');
 assert(numel(result.Cp) == numel(params.frequency), 'Cp length must match frequency length.');
 assert(numel(result.validCp) == numel(params.frequency), 'validCp length must match frequency length.');
 assert(any(result.validCp), 'At least one phase-speed point must be valid.');
@@ -39,8 +41,8 @@ assert(result.reliability.ValidPoints == nnz(result.validCp), 'Reliability valid
 assert(result.reliability.ValidFraction > 0, 'ValidFraction must be positive.');
 assert(result.reliability.A0StartFilterPassed == true, 'Selected branch must pass the A0 start filter.');
 assert(result.reliability.SelectionFallbackUsed == false, 'Smoke test should not require fallback selection.');
-assert(result.reliability.YStart <= options.atlasMaxStartY, 'YStart must satisfy strict-A0 filter.');
-assert(result.reliability.StartRank <= options.atlasMaxStartRank, 'StartRank must satisfy strict-A0 filter.');
+assert(result.reliability.YStart <= resolvedOptions.atlasMaxStartY, 'YStart must satisfy strict-A0 filter.');
+assert(result.reliability.StartRank <= resolvedOptions.atlasMaxStartRank, 'StartRank must satisfy strict-A0 filter.');
 
 fprintf('test_li2024_strictA0_smoke passed. Valid points: %d/%d. Last valid frequency: %.3f kHz.\n', ...
     result.reliability.ValidPoints, result.reliability.TotalPoints, result.reliability.LastValidFrequency_kHz);
