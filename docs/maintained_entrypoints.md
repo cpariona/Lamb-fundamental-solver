@@ -25,6 +25,24 @@ test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
 ```
 
+
+Author-neutral Acoustoelastic IOP/HGO example, diagnostic, and sweep entrypoints now exist for the maintained `examples/acoustoelastic_iop_hgo/` tree. The older `Li2024`-named example, diagnostic, and sweep scripts remain available as compatibility wrappers during the naming transition.
+
+```matlab
+run_acoustoelastic_iop_hgo_A0_backward
+run_acoustoelastic_iop_hgo_A0_complexC
+run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma
+compare_acoustoelastic_iop_hgo_tracking_strategies
+diagnose_acoustoelastic_iop_hgo_grid_convergence
+diagnose_acoustoelastic_iop_hgo_dimensionless_A1
+diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas
+diagnose_acoustoelastic_iop_hgo_matrix_variants
+diagnose_acoustoelastic_iop_hgo_modal_atlas
+diagnose_acoustoelastic_iop_hgo_residual_landscape
+track_acoustoelastic_iop_hgo_raw_branch1_candidate
+sweep_acoustoelastic_iop_hgo_A0_backward
+```
+
 Compatibility/development entrypoints still available during the naming transition:
 
 ```matlab

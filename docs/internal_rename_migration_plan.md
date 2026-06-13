@@ -45,6 +45,9 @@ These are low-to-medium risk because author-neutral replacements already exist o
 - `examples/acoustoelastic_iop_hgo/diagnostics/track_li2024_raw_branch1_candidate.m` -> proposed `track_acoustoelastic_iop_hgo_raw_branch1_candidate.m`.
 - `examples/acoustoelastic_iop_hgo/sweeps/sweep_li2024_IOP_HGO_A0_backward.m` -> proposed `sweep_acoustoelastic_iop_hgo_A0_backward.m`.
 
+
+Implementation note: author-neutral Acoustoelastic IOP/HGO example, diagnostic, and sweep entrypoints now exist for the `Li2024`-named scripts listed in this section, and the old `Li2024`-named scripts remain as compatibility wrappers.
+
 ### Analysis helper
 
 - `analysis/summarizeLi2024TrackingQuality.m` -> proposed `analysis/acoustoelastic_iop_hgo/summarizeAcoustoelasticIOPHGOTrackingQuality.m`, with `summarizeLi2024TrackingQuality.m` kept as a wrapper while callers migrate.
