@@ -4,23 +4,15 @@ This document summarizes the maintained parametric sweep workflow for the Lamb F
 
 The sweep tools are intended for quick sensitivity studies of the mRLFE real-k branches. They reuse the same backend as the GUI and export both plotted curves and quantitative validity summaries.
 
-## Current migration note
+## Sweep script location
 
-The maintained mRLFE sweep scripts should live under:
+The maintained mRLFE sweep scripts live under:
 
 ```text
 examples/mrlfe/sweeps/
 ```
 
-If any sweep script is still located under the legacy folder:
-
-```text
-examples/sweeps/
-```
-
-move it with `git mv` before routine use, because `startup.m` no longer adds `examples/sweeps/` to the MATLAB path.
-
-Expected maintained sweep scripts:
+Maintained sweep scripts:
 
 ```text
 examples/mrlfe/sweeps/sweep_viscosity_A0Like_viscoelastic.m
@@ -30,6 +22,8 @@ examples/mrlfe/sweeps/sweep_stiffness_S0Like_viscoelastic.m
 examples/mrlfe/sweeps/sweep_thickness_A0Like_viscoelastic.m
 examples/mrlfe/sweeps/sweep_thickness_S0Like_viscoelastic.m
 ```
+
+Because `startup.m` adds `examples/mrlfe/` recursively, these scripts can be called directly by function/script name after running `startup`.
 
 ## Core sweep utilities
 
