@@ -9,25 +9,25 @@ MATLAB project for computing and plotting fundamental Lamb-wave phase velocity c
 * Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
 * mRLFE elastic real-k dispersion for fluid-loaded layers.
 * mRLFE Han-style viscoelastic real-k dispersion.
-* Li 2024 acoustoelastic atlas-branch solver for IOP/HGO prestress studies.
+* Acoustoelastic IOP/HGO atlas-branch solver for prestress studies.
 * GUI plotting of phase velocity Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
 
 ## Repository structure
 
 ```text
-app/                           Main MATLAB GUI and UI helper files.
-core/                          Solver orchestration, defaults, material/geometry builders, validation.
-equations/                     Rayleigh-Lamb residual functions.
-approximations/                Low-frequency analytical approximation helpers.
-tracking/                      Generic Rayleigh-Lamb branch tracker.
-models/li2024_acoustoelastic/  Li 2024 acoustoelastic model.
-models/mrlfe/                  Modified Rayleigh-Lamb fluid-loaded model.
-examples/li2024/               Maintained Li 2024 examples, sweeps, and diagnostics.
-examples/mrlfe/                Maintained mRLFE examples, sweeps, and diagnostics.
-examples/validation/           Maintained validation and stress-test scripts.
-examples/archive/              Historical prototypes and development diagnostics.
-tests/                         Lightweight smoke and consistency tests.
-docs/                          Technical notes and repository documentation.
+app/                                  Main MATLAB GUI and UI helper files.
+core/                                 Solver orchestration, defaults, material/geometry builders, validation.
+equations/                            Rayleigh-Lamb residual functions.
+approximations/                       Low-frequency analytical approximation helpers.
+tracking/                             Generic Rayleigh-Lamb branch tracker.
+models/acoustoelastic_iop_hgo/        Acoustoelastic model using IOP prestress and HGO constitutive response.
+models/mrlfe/                         Modified Rayleigh-Lamb fluid-loaded model.
+examples/acoustoelastic_iop_hgo/      Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
+examples/mrlfe/                       Maintained mRLFE examples, sweeps, and diagnostics.
+examples/validation/                  Maintained validation and stress-test scripts.
+examples/archive/                     Historical prototypes and development diagnostics.
+tests/                                Lightweight smoke and consistency tests.
+docs/                                 Technical notes and repository documentation.
 ```
 
 A more detailed structure map is available in:
@@ -40,6 +40,12 @@ Maintained solver, example, diagnostic, and test entrypoints are listed in:
 
 ```text
 docs/maintained_entrypoints.md
+```
+
+Naming-transition notes are listed in:
+
+```text
+docs/naming_transition.md
 ```
 
 ## Launching the GUI
@@ -69,7 +75,7 @@ approximations/
 tracking/
 models/
 analysis/
-examples/li2024/
+examples/acoustoelastic_iop_hgo/
 examples/mrlfe/
 examples/validation/
 tests/
@@ -148,42 +154,35 @@ diagnose_mrlfe_han_visco_residual_landscape
 compare_mrlfe_tracker_vs_condition_peaks
 ```
 
-## Li 2024 acoustoelastic workflow
+## Acoustoelastic IOP/HGO workflow
 
-The Li 2024 model is organized in:
+The acoustoelastic IOP/HGO model is organized in:
 
 ```text
-models/li2024_acoustoelastic/core/
-models/li2024_acoustoelastic/constitutive/
-models/li2024_acoustoelastic/solvers/
-models/li2024_acoustoelastic/options/
-examples/li2024/
+models/acoustoelastic_iop_hgo/core/
+models/acoustoelastic_iop_hgo/constitutive/
+models/acoustoelastic_iop_hgo/solvers/
+models/acoustoelastic_iop_hgo/options/
+examples/acoustoelastic_iop_hgo/
 ```
 
-The recommended high-level solver is:
+Recommended author-neutral entrypoints:
 
 ```matlab
-solveDispersionIOPHGOAtlasBranch_Li2024
+solveAcoustoelasticIOPHGOBranch
+defaultAcoustoelasticIOPHGOOptions
+run_acoustoelastic_iop_hgo_atlas_branch
+diagnose_acoustoelastic_iop_hgo_branch_policy
 ```
+
+The original Li2024-named functions remain available as compatibility/development entrypoints during the naming transition.
 
 The default atlas-branch policy is `strictA0`. It selects an A0-like branch using low-start-speed and start-rank filters, splits large Cp jumps, and reports non-traceable high-frequency portions as `NaN` instead of reconnecting them automatically.
 
 See:
 
 ```text
-docs/li2024_branch_tracking_policy.md
-```
-
-Useful maintained example:
-
-```matlab
-run_li2024_IOP_HGO_A0_atlas_branch
-```
-
-Useful diagnostic:
-
-```matlab
-diagnose_li2024_atlas_branch_policy
+docs/acoustoelastic_iop_hgo_branch_policy.md
 ```
 
 ## Maintained tests
@@ -195,19 +194,17 @@ clear functions
 rehash toolboxcache
 startup
 
-test_li2024_constitutive_identity
-test_li2024_strictA0_smoke
-test_mrlfe_smoke
+run_all_smoke_tests
 ```
 
 ## Maintained examples
 
-Li 2024 examples are in:
+Acoustoelastic IOP/HGO examples are in:
 
 ```text
-examples/li2024/basic/
-examples/li2024/sweeps/
-examples/li2024/diagnostics/
+examples/acoustoelastic_iop_hgo/basic/
+examples/acoustoelastic_iop_hgo/sweeps/
+examples/acoustoelastic_iop_hgo/diagnostics/
 ```
 
 mRLFE examples are in:
@@ -216,10 +213,4 @@ mRLFE examples are in:
 examples/mrlfe/basic/
 examples/mrlfe/sweeps/
 examples/mrlfe/diagnostics/
-```
-
-Validation scripts are in:
-
-```text
-examples/validation/
 ```

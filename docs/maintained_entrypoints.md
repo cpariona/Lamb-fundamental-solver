@@ -1,6 +1,6 @@
 # Maintained entrypoints
 
-This document lists the maintained solver, example, and test entrypoints after the Li 2024 and mRLFE refactors.
+This document lists the maintained solver, example, diagnostic, and test entrypoints after the Acoustoelastic IOP/HGO and mRLFE refactors.
 
 ## Setup
 
@@ -12,42 +12,51 @@ rehash toolboxcache
 startup
 ```
 
-## Li 2024 acoustoelastic model
+## Acoustoelastic IOP/HGO model
 
-Main high-level solver:
+Recommended author-neutral entrypoints for routine use:
+
+```matlab
+solveAcoustoelasticIOPHGOBranch
+defaultAcoustoelasticIOPHGOOptions
+run_acoustoelastic_iop_hgo_atlas_branch
+diagnose_acoustoelastic_iop_hgo_branch_policy
+test_acoustoelastic_iop_hgo_constitutive_identity
+test_acoustoelastic_iop_hgo_strictA0_smoke
+```
+
+Compatibility/development entrypoints still available during the naming transition:
 
 ```matlab
 solveDispersionIOPHGOAtlasBranch_Li2024
+defaultLi2024AcoustoelasticOptions
+run_li2024_IOP_HGO_A0_atlas_branch
+diagnose_li2024_atlas_branch_policy
+test_li2024_constitutive_identity
+test_li2024_strictA0_smoke
 ```
 
 Main model folders:
 
 ```text
-models/li2024_acoustoelastic/core/
-models/li2024_acoustoelastic/constitutive/
-models/li2024_acoustoelastic/solvers/
-models/li2024_acoustoelastic/options/
+models/acoustoelastic_iop_hgo/core/
+models/acoustoelastic_iop_hgo/constitutive/
+models/acoustoelastic_iop_hgo/solvers/
+models/acoustoelastic_iop_hgo/options/
 ```
 
 Maintained examples:
 
 ```text
-examples/li2024/basic/
-examples/li2024/sweeps/
-examples/li2024/diagnostics/
-```
-
-Useful diagnostic:
-
-```matlab
-diagnose_li2024_atlas_branch_policy
+examples/acoustoelastic_iop_hgo/basic/
+examples/acoustoelastic_iop_hgo/sweeps/
+examples/acoustoelastic_iop_hgo/diagnostics/
 ```
 
 Maintained tests:
 
-```matlab
-test_li2024_constitutive_identity
-test_li2024_strictA0_smoke
+```text
+tests/acoustoelastic_iop_hgo/
 ```
 
 ## mRLFE model
@@ -103,27 +112,40 @@ clear functions
 rehash toolboxcache
 startup
 
-test_li2024_constitutive_identity
-test_li2024_strictA0_smoke
-test_mrlfe_smoke
+run_all_smoke_tests
 ```
 
 ## Path check sequence
 
 ```matlab
-which solveDispersionIOPHGOAtlasBranch_Li2024
+which solveAcoustoelasticIOPHGOBranch
+which defaultAcoustoelasticIOPHGOOptions
+which run_acoustoelastic_iop_hgo_atlas_branch
+which diagnose_acoustoelastic_iop_hgo_branch_policy
+which test_acoustoelastic_iop_hgo_constitutive_identity
+which test_acoustoelastic_iop_hgo_strictA0_smoke
 which computeMRLFE
 which defaultMRLFEParams
-which diagnose_li2024_atlas_branch_policy
 which diagnose_mrlfe_han_visco_residual_landscape
 ```
 
 Expected folders:
 
 ```text
-models/li2024_acoustoelastic/solvers/
+models/acoustoelastic_iop_hgo/solvers/
+models/acoustoelastic_iop_hgo/options/
+examples/acoustoelastic_iop_hgo/basic/
+examples/acoustoelastic_iop_hgo/diagnostics/
+tests/acoustoelastic_iop_hgo/
 models/mrlfe/solvers/
 models/mrlfe/options/
-examples/li2024/diagnostics/
 examples/mrlfe/diagnostics/
+```
+
+## Naming transition
+
+The current naming transition is documented in:
+
+```text
+docs/naming_transition.md
 ```
