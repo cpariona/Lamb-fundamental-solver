@@ -28,6 +28,8 @@ test_acoustoelastic_iop_hgo_strictA0_smoke
 
 Author-neutral Acoustoelastic IOP/HGO example, diagnostic, and sweep entrypoints now exist for the maintained `examples/acoustoelastic_iop_hgo/` tree. The older `Li2024`-named example, diagnostic, and sweep scripts remain available as compatibility wrappers during the naming transition.
 
+The author-neutral Acoustoelastic IOP/HGO tracking-quality analysis helper is now available as `summarizeAcoustoelasticIOPHGOTrackingQuality`; the older `summarizeLi2024TrackingQuality` helper remains available as a compatibility wrapper.
+
 ```matlab
 run_acoustoelastic_iop_hgo_A0_backward
 run_acoustoelastic_iop_hgo_A0_complexC
@@ -144,6 +146,7 @@ which test_acoustoelastic_iop_hgo_constitutive_identity
 which test_acoustoelastic_iop_hgo_strictA0_smoke
 which computeMRLFE
 which defaultMRLFEParams
+which summarizeAcoustoelasticIOPHGOTrackingQuality
 which diagnose_mrlfe_han_visco_residual_landscape
 ```
 
