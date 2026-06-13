@@ -20,6 +20,7 @@ addpath(genpath(fullfile(projectRoot, 'examples', 'basic')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'validation')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'diagnostics')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'sweeps')));
+addpath(genpath(fullfile(projectRoot, 'tests')));
 
 fprintf('Lamb Fundamental Solver active paths added from:\n%s\n', projectRoot);
 end
