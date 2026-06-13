@@ -80,7 +80,7 @@ selectedBranch = table();
 branchPoints = table();
 
 if ~isempty(branchTable)
-    [selectedBranch, selectedBranchID] = selectBranch(branchTable, options);
+    [selectedBranch, selectedBranchID, branchTable] = selectBranch(branchTable, options);
     branchPoints = sortrows(minimaTable(minimaTable.BranchID == selectedBranchID, :), 'Frequency_Hz');
     [Cp, branchExistsAtFrequency, interpolatedCp] = assignCpFromBranch(frequency, branchPoints, options);
 end
@@ -149,6 +149,11 @@ def.atlasStartCpWeight = 0.65;
 def.atlasPreferPositiveSlope = true;
 def.atlasSplitOnLargeCpJump = true;
 def.atlasMaxRelativeCpJump = 0.05;
+def.atlasRequireLowStartY = true;
+def.atlasMaxStartY = 0.50;
+def.atlasRequireStartRank = true;
+def.atlasMaxStartRank = 3;
+def.atlasFallbackToUnfilteredSelection = true;
 def.atlasAllowInterpolationAcrossGaps = false;
 def.atlasMaxInterpolationFrequencyRatio = 1.12;
 names = fieldnames(def);
@@ -338,7 +343,25 @@ else
 end
 end
 
-function [branch, id] = selectBranch(branchTable, options)
+function [branch, id, branchTable] = selectBranch(branchTable, options)
+a0Mask = true(height(branchTable), 1);
+if options.atlasRequireLowStartY
+    a0Mask = a0Mask & branchTable.YStart <= options.atlasMaxStartY;
+end
+if options.atlasRequireStartRank
+    a0Mask = a0Mask & branchTable.StartRank <= options.atlasMaxStartRank;
+end
+fallbackUsed = false;
+selectionMask = a0Mask;
+if ~any(selectionMask)
+    if options.atlasFallbackToUnfilteredSelection
+        selectionMask = true(height(branchTable), 1);
+        fallbackUsed = true;
+    else
+        error('No atlas branch satisfies the hard A0-like start filters. Relax atlasMaxStartY or atlasMaxStartRank.');
+    end
+end
+
 coverage = normMetric(branchTable.FrequencyCoverage_kHz);
 roughness = normMetric(branchTable.Roughness);
 rank = normMetric(branchTable.MedianRank);
@@ -355,9 +378,12 @@ score = -options.atlasCoverageWeight*coverage + options.atlasRoughnessWeight*rou
 if options.atlasPreferPositiveSlope
     score(branchTable.NetCpIncrease_mps < 0) = score(branchTable.NetCpIncrease_mps < 0) + 1;
 end
+score(~selectionMask) = inf;
 [~, idx] = min(score);
+branchTable.A0StartFilterPassed = a0Mask;
+branchTable.SelectionScore = score;
+branchTable.SelectionFallbackUsed = repmat(fallbackUsed, height(branchTable), 1);
 branch = branchTable(idx,:);
-branch.SelectionScore = score(idx);
 id = branch.BranchID;
 end
 
