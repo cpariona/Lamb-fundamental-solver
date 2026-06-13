@@ -1,6 +1,6 @@
 # Maintained entrypoints
 
-This document lists the maintained solver, example, and test entrypoints after the Li 2024 and mRLFE refactors.
+This document lists the maintained solver, example, and test entrypoints after the Acoustoelastic IOP/HGO and mRLFE refactors.
 
 ## Setup
 
@@ -12,7 +12,7 @@ rehash toolboxcache
 startup
 ```
 
-## Li 2024 acoustoelastic model
+## Acoustoelastic IOP/HGO model
 
 Main high-level solver:
 
@@ -23,18 +23,18 @@ solveDispersionIOPHGOAtlasBranch_Li2024
 Main model folders:
 
 ```text
-models/li2024_acoustoelastic/core/
-models/li2024_acoustoelastic/constitutive/
-models/li2024_acoustoelastic/solvers/
-models/li2024_acoustoelastic/options/
+models/acoustoelastic_iop_hgo/core/
+models/acoustoelastic_iop_hgo/constitutive/
+models/acoustoelastic_iop_hgo/solvers/
+models/acoustoelastic_iop_hgo/options/
 ```
 
 Maintained examples:
 
 ```text
-examples/li2024/basic/
-examples/li2024/sweeps/
-examples/li2024/diagnostics/
+examples/acoustoelastic_iop_hgo/basic/
+examples/acoustoelastic_iop_hgo/sweeps/
+examples/acoustoelastic_iop_hgo/diagnostics/
 ```
 
 Useful diagnostic:
@@ -121,9 +121,9 @@ which diagnose_mrlfe_han_visco_residual_landscape
 Expected folders:
 
 ```text
-models/li2024_acoustoelastic/solvers/
+models/acoustoelastic_iop_hgo/solvers/
 models/mrlfe/solvers/
 models/mrlfe/options/
-examples/li2024/diagnostics/
+examples/acoustoelastic_iop_hgo/diagnostics/
 examples/mrlfe/diagnostics/
 ```

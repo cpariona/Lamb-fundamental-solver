@@ -1,6 +1,6 @@
 # Repository structure
 
-This document describes the active folder structure after the Li 2024 and mRLFE refactors.
+This document describes the active folder structure after the Acoustoelastic IOP/HGO and mRLFE refactors.
 
 ## Active MATLAB path
 
@@ -14,7 +14,7 @@ approximations/
 tracking/
 models/
 analysis/
-examples/li2024/
+examples/acoustoelastic_iop_hgo/
 examples/mrlfe/
 examples/validation/
 tests/
@@ -24,10 +24,10 @@ Legacy folders such as `examples/basic`, `examples/diagnostics`, and `examples/s
 
 ## Model folders
 
-### Li 2024 acoustoelastic model
+### Acoustoelastic IOP/HGO model
 
 ```text
-models/li2024_acoustoelastic/
+models/acoustoelastic_iop_hgo/
 ├─ core/
 ├─ constitutive/
 ├─ solvers/
@@ -45,7 +45,7 @@ solveDispersionIOPHGOAtlasBranch_Li2024
 The current default branch policy is `strictA0`. See:
 
 ```text
-docs/li2024_branch_tracking_policy.md
+docs/acoustoelastic_iop_hgo_branch_policy.md
 ```
 
 ### mRLFE model
@@ -67,10 +67,10 @@ computeMRLFE
 
 ## Example folders
 
-### Li 2024 examples
+### Acoustoelastic IOP/HGO examples
 
 ```text
-examples/li2024/
+examples/acoustoelastic_iop_hgo/
 ├─ basic/
 ├─ sweeps/
 └─ diagnostics/
@@ -106,7 +106,7 @@ This folder contains historical prototypes and development diagnostics. It is in
 Maintained smoke and consistency tests are stored in:
 
 ```text
-tests/li2024/
+tests/acoustoelastic_iop_hgo/
 tests/mrlfe/
 ```
 

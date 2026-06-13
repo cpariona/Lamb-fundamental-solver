@@ -1,6 +1,6 @@
-# Refactor log: Li 2024 and mRLFE cleanup
+# Refactor log: Acoustoelastic IOP/HGO and mRLFE cleanup
 
-This document records the structural cleanup performed after the Li 2024 acoustoelastic and mRLFE solver development work.
+This document records the structural cleanup performed after the Acoustoelastic IOP/HGO and mRLFE solver development work.
 
 ## Objective
 
@@ -16,13 +16,13 @@ The cleanup policy was:
 
 ## Final active structure
 
-### Li 2024 acoustoelastic model
+### Acoustoelastic IOP/HGO model
 
 ```text
-models/li2024_acoustoelastic/core/
-models/li2024_acoustoelastic/constitutive/
-models/li2024_acoustoelastic/solvers/
-models/li2024_acoustoelastic/options/
-examples/li2024/basic/
-examples/li2024/sweeps/
-examples/li2024/diagnostics/
+models/acoustoelastic_iop_hgo/core/
+models/acoustoelastic_iop_hgo/constitutive/
+models/acoustoelastic_iop_hgo/solvers/
+models/acoustoelastic_iop_hgo/options/
+examples/acoustoelastic_iop_hgo/basic/
+examples/acoustoelastic_iop_hgo/sweeps/
+examples/acoustoelastic_iop_hgo/diagnostics/
