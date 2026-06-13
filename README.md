@@ -36,6 +36,12 @@ A more detailed structure map is available in:
 docs/repository_structure.md
 ```
 
+Maintained solver, example, diagnostic, and test entrypoints are listed in:
+
+```text
+docs/maintained_entrypoints.md
+```
+
 ## Launching the GUI
 
 From the repository root, run:
@@ -217,7 +223,3 @@ Validation scripts are in:
 ```text
 examples/validation/
 ```
-
-## Current validated working ranges
-
-See `docs/validation_status.md` for the current validation status and known limitations.
