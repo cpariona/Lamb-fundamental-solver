@@ -36,16 +36,30 @@ models/acoustoelastic_iop_hgo/
 
 Use this model for IOP/HGO acoustoelastic dispersion studies.
 
-Recommended high-level solver:
+Recommended author-neutral entrypoints:
+
+```matlab
+solveAcoustoelasticIOPHGOBranch
+defaultAcoustoelasticIOPHGOOptions
+```
+
+Compatibility/development entrypoints remain available during the naming transition:
 
 ```matlab
 solveDispersionIOPHGOAtlasBranch_Li2024
+defaultLi2024AcoustoelasticOptions
 ```
 
 The current default branch policy is `strictA0`. See:
 
 ```text
 docs/acoustoelastic_iop_hgo_branch_policy.md
+```
+
+Naming-transition details are documented in:
+
+```text
+docs/naming_transition.md
 ```
 
 ### mRLFE model
@@ -74,6 +88,20 @@ examples/acoustoelastic_iop_hgo/
 ├─ basic/
 ├─ sweeps/
 └─ diagnostics/
+```
+
+Recommended author-neutral example and diagnostic entrypoints:
+
+```matlab
+run_acoustoelastic_iop_hgo_atlas_branch
+diagnose_acoustoelastic_iop_hgo_branch_policy
+```
+
+Compatibility/development entrypoints remain available:
+
+```matlab
+run_li2024_IOP_HGO_A0_atlas_branch
+diagnose_li2024_atlas_branch_policy
 ```
 
 ### mRLFE examples
@@ -110,6 +138,20 @@ tests/acoustoelastic_iop_hgo/
 tests/mrlfe/
 ```
 
+Recommended author-neutral acoustoelastic tests:
+
+```matlab
+test_acoustoelastic_iop_hgo_constitutive_identity
+test_acoustoelastic_iop_hgo_strictA0_smoke
+```
+
+Compatibility tests remain available:
+
+```matlab
+test_li2024_constitutive_identity
+test_li2024_strictA0_smoke
+```
+
 Recommended manual test sequence after refactors:
 
 ```matlab
@@ -117,9 +159,7 @@ clear functions
 rehash toolboxcache
 startup
 
-test_li2024_constitutive_identity
-test_li2024_strictA0_smoke
-test_mrlfe_smoke
+run_all_smoke_tests
 ```
 
 ## Refactor policy
