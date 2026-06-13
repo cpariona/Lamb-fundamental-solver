@@ -5,6 +5,13 @@ function result = solveDispersionAtlasBranch_Li2024_Acoustoelastic(params, optio
 % frequency. It builds a frequency-Cp atlas, detects local minima, links them
 % into continuous branches, and returns the selected persistent branch.
 %
+% Conservative behavior:
+%   By default, Cp is returned only at frequencies where the selected branch
+%   exists as an explicitly linked local minimum. The solver does not silently
+%   interpolate across missing branch segments. This prevents artificial curves
+%   through regions where the branch has mixed with, or jumped to, another
+%   family of minima.
+%
 % Required params fields:
 %   alpha, beta, gamma, thickness, rho, rhoF, fluidBulkModulus, frequency
 %
@@ -65,21 +72,31 @@ else
     [minimaTable, branchTable] = linkBranches(minimaTable, options.atlasMaxLogYJump, options.atlasMinBranchPoints);
 end
 
-if isempty(branchTable)
-    Cp = nan(size(frequency));
-    selectedBranchID = nan;
-    selectedBranch = table();
-else
+Cp = nan(size(frequency));
+branchExistsAtFrequency = false(size(frequency));
+interpolatedCp = false(size(frequency));
+selectedBranchID = nan;
+selectedBranch = table();
+branchPoints = table();
+
+if ~isempty(branchTable)
     [selectedBranch, selectedBranchID] = selectBranch(branchTable, options);
     branchPoints = sortrows(minimaTable(minimaTable.BranchID == selectedBranchID, :), 'Frequency_Hz');
-    Cp = interp1(branchPoints.Frequency_Hz, branchPoints.Cp_mps, frequency, 'linear', nan);
+    [Cp, branchExistsAtFrequency, interpolatedCp] = assignCpFromBranch(frequency, branchPoints, options);
 end
 
-validCp = isfinite(Cp);
+validCp = isfinite(Cp) & (branchExistsAtFrequency | interpolatedCp);
 objective = nan(size(Cp));
 nearestRank = nan(size(Cp));
 nearestBranchID = nan(size(Cp));
+pointStatus = repmat("missingSelectedBranch", size(Cp));
+pointStatus(branchExistsAtFrequency) = "explicitBranchPoint";
+pointStatus(interpolatedCp) = "interpolatedWithinAllowedGap";
+
 for k = 1:numel(frequency)
+    if isempty(minimaTable)
+        continue;
+    end
     candidates = minimaTable(minimaTable.Frequency_Hz == frequency(k), :);
     if ~isempty(candidates) && isfinite(Cp(k))
         [~, idx] = min(abs(candidates.Cp_mps - Cp(k)));
@@ -93,11 +110,15 @@ result = struct();
 result.frequency = frequency;
 result.Cp = Cp;
 result.validCp = validCp;
+result.branchExistsAtFrequency = branchExistsAtFrequency;
+result.interpolatedCp = interpolatedCp;
+result.pointStatus = pointStatus;
 result.objective = objective;
 result.nearestRank = nearestRank;
 result.nearestBranchID = nearestBranchID;
 result.selectedBranchID = selectedBranchID;
 result.selectedBranch = selectedBranch;
+result.selectedBranchPoints = branchPoints;
 result.minimaTable = minimaTable;
 result.branchTable = branchTable;
 result.objectiveMap = objectiveMap;
@@ -121,7 +142,10 @@ def.atlasRoughnessWeight = 1.20;
 def.atlasRankWeight = 0.70;
 def.atlasLowYWeight = 0.35;
 def.atlasIncreaseWeight = 0.50;
+def.atlasDropWeight = 1.25;
 def.atlasPreferPositiveSlope = true;
+def.atlasAllowInterpolationAcrossGaps = false;
+def.atlasMaxInterpolationFrequencyRatio = 1.12;
 names = fieldnames(def);
 for i = 1:numel(names)
     if ~isfield(options, names{i}) || isempty(options.(names{i}))
@@ -235,6 +259,17 @@ for b = 1:branchID
     row.MedianObjective = median(T.Objective, 'omitnan');
     row.MedianSpacingToNearestLogY = median(T.SpacingToNearestLogY, 'omitnan');
     row.NetCpIncrease_mps = T.Cp_mps(end) - T.Cp_mps(1);
+    dCp = diff(T.Cp_mps);
+    negativeDrops = -dCp(dCp < 0);
+    row.NumCpDrops = numel(negativeDrops);
+    if isempty(negativeDrops)
+        row.MaxCpDrop_mps = 0;
+        row.MaxRelativeCpDrop = 0;
+    else
+        row.MaxCpDrop_mps = max(negativeDrops);
+        relDrop = -dCp ./ max(abs(T.Cp_mps(1:end-1)), eps);
+        row.MaxRelativeCpDrop = max([0; relDrop(:)]);
+    end
     if height(T) >= 3
         row.Roughness = median(abs(diff(T.Cp_mps,2)), 'omitnan') / max(median(abs(T.Cp_mps), 'omitnan'), eps);
     else
@@ -255,8 +290,10 @@ roughness = normMetric(branchTable.Roughness);
 rank = normMetric(branchTable.MedianRank);
 lowY = normMetric(branchTable.MedianY);
 increase = normMetric(branchTable.NetCpIncrease_mps);
+dropPenalty = normMetric(branchTable.MaxRelativeCpDrop);
 score = -options.atlasCoverageWeight*coverage + options.atlasRoughnessWeight*roughness + ...
-    options.atlasRankWeight*rank + options.atlasLowYWeight*lowY - options.atlasIncreaseWeight*increase;
+    options.atlasRankWeight*rank + options.atlasLowYWeight*lowY - options.atlasIncreaseWeight*increase + ...
+    options.atlasDropWeight*dropPenalty;
 if options.atlasPreferPositiveSlope
     score(branchTable.NetCpIncrease_mps < 0) = score(branchTable.NetCpIncrease_mps < 0) + 1;
 end
@@ -264,6 +301,41 @@ end
 branch = branchTable(idx,:);
 branch.SelectionScore = score(idx);
 id = branch.BranchID;
+end
+
+function [Cp, branchExists, interpolated] = assignCpFromBranch(frequency, branchPoints, options)
+Cp = nan(size(frequency));
+branchExists = false(size(frequency));
+interpolated = false(size(frequency));
+if isempty(branchPoints)
+    return;
+end
+[isMember, loc] = ismember(frequency, branchPoints.Frequency_Hz);
+Cp(isMember) = branchPoints.Cp_mps(loc(isMember));
+branchExists(isMember) = true;
+
+if ~options.atlasAllowInterpolationAcrossGaps
+    return;
+end
+
+missing = ~branchExists;
+if ~any(missing)
+    return;
+end
+for k = find(missing)
+    f = frequency(k);
+    leftIdx = find(branchPoints.Frequency_Hz < f, 1, 'last');
+    rightIdx = find(branchPoints.Frequency_Hz > f, 1, 'first');
+    if isempty(leftIdx) || isempty(rightIdx)
+        continue;
+    end
+    fLeft = branchPoints.Frequency_Hz(leftIdx);
+    fRight = branchPoints.Frequency_Hz(rightIdx);
+    if fRight / max(fLeft, eps) <= options.atlasMaxInterpolationFrequencyRatio
+        Cp(k) = interp1([fLeft, fRight], [branchPoints.Cp_mps(leftIdx), branchPoints.Cp_mps(rightIdx)], f, 'linear');
+        interpolated(k) = true;
+    end
+end
 end
 
 function x = normMetric(x)
@@ -286,6 +358,9 @@ function diagnostics = summarizeResult(result)
 diagnostics = struct();
 diagnostics.validCpPoints = nnz(result.validCp);
 diagnostics.totalPoints = numel(result.Cp);
+diagnostics.explicitBranchPoints = nnz(result.branchExistsAtFrequency);
+diagnostics.interpolatedPoints = nnz(result.interpolatedCp);
+diagnostics.missingBranchPoints = nnz(~result.validCp);
 diagnostics.selectedBranchID = result.selectedBranchID;
 if any(result.validCp)
     diagnostics.minCp = min(result.Cp(result.validCp));
