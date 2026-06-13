@@ -25,14 +25,20 @@ examples/validation/stress_test_mrlfe_han_visco_range
 For Han real-k breakdown analysis:
 
 ```matlab
-examples/diagnostics/diagnose_mrlfe_han_visco_validity_breakdown
-examples/diagnostics/diagnose_mrlfe_han_visco_residual_landscape
+diagnose_mrlfe_han_visco_validity_breakdown
+diagnose_mrlfe_han_visco_residual_landscape
 ```
 
 For tracker-vs-residual landscape evidence:
 
 ```matlab
-examples/diagnostics/compare_mrlfe_tracker_vs_condition_peaks
+compare_mrlfe_tracker_vs_condition_peaks
+```
+
+These diagnostics are maintained under:
+
+```text
+examples/mrlfe/diagnostics/
 ```
 
 The current diagnostic summary is documented in:
