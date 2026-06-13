@@ -4,6 +4,33 @@ This document summarizes the maintained parametric sweep workflow for the Lamb F
 
 The sweep tools are intended for quick sensitivity studies of the mRLFE real-k branches. They reuse the same backend as the GUI and export both plotted curves and quantitative validity summaries.
 
+## Current migration note
+
+The maintained mRLFE sweep scripts should live under:
+
+```text
+examples/mrlfe/sweeps/
+```
+
+If any sweep script is still located under the legacy folder:
+
+```text
+examples/sweeps/
+```
+
+move it with `git mv` before routine use, because `startup.m` no longer adds `examples/sweeps/` to the MATLAB path.
+
+Expected maintained sweep scripts:
+
+```text
+examples/mrlfe/sweeps/sweep_viscosity_A0Like_viscoelastic.m
+examples/mrlfe/sweeps/sweep_viscosity_S0Like_viscoelastic.m
+examples/mrlfe/sweeps/sweep_stiffness_A0Like_viscoelastic.m
+examples/mrlfe/sweeps/sweep_stiffness_S0Like_viscoelastic.m
+examples/mrlfe/sweeps/sweep_thickness_A0Like_viscoelastic.m
+examples/mrlfe/sweeps/sweep_thickness_S0Like_viscoelastic.m
+```
+
 ## Core sweep utilities
 
 The generic sweep functions are located in `analysis/`:
@@ -88,8 +115,8 @@ Run all scripts from the repository root after `startup`.
 ### Shear viscosity sweeps
 
 ```matlab
-examples/sweeps/sweep_viscosity_A0Like_viscoelastic
-examples/sweeps/sweep_viscosity_S0Like_viscoelastic
+sweep_viscosity_A0Like_viscoelastic
+sweep_viscosity_S0Like_viscoelastic
 ```
 
 These sweep:
@@ -124,8 +151,8 @@ ViscositySweepS0LikeSummary
 ### Stiffness sweeps
 
 ```matlab
-examples/sweeps/sweep_stiffness_A0Like_viscoelastic
-examples/sweeps/sweep_stiffness_S0Like_viscoelastic
+sweep_stiffness_A0Like_viscoelastic
+sweep_stiffness_S0Like_viscoelastic
 ```
 
 These sweep:
@@ -160,8 +187,8 @@ StiffnessSweepS0LikeSummary
 ### Thickness sweeps
 
 ```matlab
-examples/sweeps/sweep_thickness_A0Like_viscoelastic
-examples/sweeps/sweep_thickness_S0Like_viscoelastic
+sweep_thickness_A0Like_viscoelastic
+sweep_thickness_S0Like_viscoelastic
 ```
 
 These sweep:
@@ -238,37 +265,4 @@ sweepSpec.parameter = "parameterName";
 sweepSpec.values = [...];
 sweepSpec.label = "display label";
 sweepSpec.units = "display units";
-sweepSpec.displayScale = scaleFactor;
 ```
-
-Then select the target branch in the plotting and summary calls:
-
-```matlab
-plotParametricSweepCp(sweepResults, "mRLFEHanViscoRealK", "A0Like", ...
-    "ShowLastValidPoint", true);
-
-sweepSummary = summarizeParametricSweepBranch(sweepResults, ...
-    "mRLFEHanViscoRealK", "A0Like");
-```
-
-## Possible GUI integration
-
-The current sweep system is script-based. This is deliberate because scripts are transparent, versionable, and easy to modify during solver development.
-
-A future GUI integration should probably be implemented as a separate sweep/batch panel rather than adding many controls to the main solver tab.
-
-Recommended GUI concept:
-
-```text
-Sweep tab
-    parameter selector: etaS, E, thickness
-    branch selector: A0-like, S0-like, or both
-    model selector: elastic real-k, viscoelastic real-k
-    value list input
-    run sweep button
-    plot Cp curves
-    show summary table
-    export results/figure/table
-```
-
-This keeps the main GUI focused on single-case exploration while making sweeps easy to run without editing MATLAB scripts.
