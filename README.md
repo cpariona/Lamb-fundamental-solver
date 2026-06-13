@@ -160,11 +160,16 @@ models/acoustoelastic_iop_hgo/options/
 examples/acoustoelastic_iop_hgo/
 ```
 
-The recommended high-level solver is:
+Recommended author-neutral entrypoints:
 
 ```matlab
-solveDispersionIOPHGOAtlasBranch_Li2024
+solveAcoustoelasticIOPHGOBranch
+defaultAcoustoelasticIOPHGOOptions
+run_acoustoelastic_iop_hgo_atlas_branch
+diagnose_acoustoelastic_iop_hgo_branch_policy
 ```
+
+The original Li2024-named functions remain available as compatibility/development entrypoints during the naming transition.
 
 The default atlas-branch policy is `strictA0`. It selects an A0-like branch using low-start-speed and start-rank filters, splits large Cp jumps, and reports non-traceable high-frequency portions as `NaN` instead of reconnecting them automatically.
 
@@ -172,18 +177,6 @@ See:
 
 ```text
 docs/acoustoelastic_iop_hgo_branch_policy.md
-```
-
-Useful maintained example:
-
-```matlab
-run_li2024_IOP_HGO_A0_atlas_branch
-```
-
-Useful diagnostic:
-
-```matlab
-diagnose_li2024_atlas_branch_policy
 ```
 
 ## Maintained tests
@@ -195,9 +188,7 @@ clear functions
 rehash toolboxcache
 startup
 
-test_li2024_constitutive_identity
-test_li2024_strictA0_smoke
-test_mrlfe_smoke
+run_all_smoke_tests
 ```
 
 ## Maintained examples
