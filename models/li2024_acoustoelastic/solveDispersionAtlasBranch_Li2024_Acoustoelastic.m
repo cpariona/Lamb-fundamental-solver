@@ -12,6 +12,12 @@ function result = solveDispersionAtlasBranch_Li2024_Acoustoelastic(params, optio
 %   through regions where the branch has mixed with, or jumped to, another
 %   family of minima.
 %
+% Default branch policy:
+%   strictA0. The solver selects only A0-like branches that start at low
+%   dimensionless phase speed and low rank, cuts branches with large Cp jumps,
+%   and reports missing high-frequency portions as NaN rather than reconnecting
+%   them automatically.
+%
 % Required params fields:
 %   alpha, beta, gamma, thickness, rho, rhoF, fluidBulkModulus, frequency
 %
@@ -126,11 +132,13 @@ result.yGrid = yGrid(:);
 result.cGrid = cGrid(:);
 result.cShear = cShear;
 result.options = options;
+result.reliability = summarizeReliability(result);
 result.diagnostics = summarizeResult(result);
 end
 
 function options = setAtlasDefaults(options)
 def = struct();
+def.atlasBranchPolicy = "strictA0";
 def.atlasYMin = 0.003;
 def.atlasYMax = 2.0;
 def.atlasNumYPoints = 1000;
@@ -422,6 +430,56 @@ for k = find(missing)
 end
 end
 
+function reliability = summarizeReliability(result)
+valid = result.validCp & isfinite(result.Cp);
+f = result.frequency;
+reliability = struct();
+reliability.PolicyName = string(result.options.atlasBranchPolicy);
+reliability.TotalPoints = numel(result.Cp);
+reliability.ValidPoints = nnz(valid);
+reliability.MissingPoints = nnz(~valid);
+reliability.ValidFraction = nnz(valid) / max(numel(result.Cp), 1);
+reliability.InterpolatedPoints = nnz(result.interpolatedCp);
+reliability.ExplicitBranchPoints = nnz(result.branchExistsAtFrequency);
+reliability.SelectedBranchID = result.selectedBranchID;
+if any(valid)
+    validF = f(valid);
+    reliability.FirstValidFrequency_Hz = validF(1);
+    reliability.FirstValidFrequency_kHz = validF(1)/1e3;
+    reliability.LastValidFrequency_Hz = validF(end);
+    reliability.LastValidFrequency_kHz = validF(end)/1e3;
+else
+    reliability.FirstValidFrequency_Hz = nan;
+    reliability.FirstValidFrequency_kHz = nan;
+    reliability.LastValidFrequency_Hz = nan;
+    reliability.LastValidFrequency_kHz = nan;
+end
+missingAfterStart = find(~valid & f >= reliability.FirstValidFrequency_Hz, 1, 'first');
+if isempty(missingAfterStart)
+    reliability.FirstMissingFrequency_Hz = nan;
+    reliability.FirstMissingFrequency_kHz = nan;
+else
+    reliability.FirstMissingFrequency_Hz = f(missingAfterStart);
+    reliability.FirstMissingFrequency_kHz = f(missingAfterStart)/1e3;
+end
+if ~isempty(result.selectedBranch)
+    reliability.A0StartFilterPassed = logical(result.selectedBranch.A0StartFilterPassed);
+    reliability.SelectionFallbackUsed = logical(result.selectedBranch.SelectionFallbackUsed);
+    reliability.YStart = result.selectedBranch.YStart;
+    reliability.StartRank = result.selectedBranch.StartRank;
+    reliability.CpStart_mps = result.selectedBranch.CpStart_mps;
+    reliability.MaxBranchRelativeCpDrop = result.selectedBranch.MaxRelativeCpDrop;
+else
+    reliability.A0StartFilterPassed = false;
+    reliability.SelectionFallbackUsed = false;
+    reliability.YStart = nan;
+    reliability.StartRank = nan;
+    reliability.CpStart_mps = nan;
+    reliability.MaxBranchRelativeCpDrop = nan;
+end
+reliability.ValidityNote = "Cp is considered reliable only where validCp is true; high-frequency NaNs mean the selected strict-A0 branch is not explicitly traceable under the current atlas criteria.";
+end
+
 function x = normMetric(x)
 x = x(:);
 mask = isfinite(x);
@@ -446,6 +504,9 @@ diagnostics.explicitBranchPoints = nnz(result.branchExistsAtFrequency);
 diagnostics.interpolatedPoints = nnz(result.interpolatedCp);
 diagnostics.missingBranchPoints = nnz(~result.validCp);
 diagnostics.selectedBranchID = result.selectedBranchID;
+diagnostics.policyName = string(result.options.atlasBranchPolicy);
+diagnostics.lastValidFrequency_kHz = result.reliability.LastValidFrequency_kHz;
+diagnostics.validFraction = result.reliability.ValidFraction;
 if any(result.validCp)
     diagnostics.minCp = min(result.Cp(result.validCp));
     diagnostics.maxCp = max(result.Cp(result.validCp));
