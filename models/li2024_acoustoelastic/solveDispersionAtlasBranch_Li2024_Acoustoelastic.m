@@ -1,0 +1,297 @@
+function result = solveDispersionAtlasBranch_Li2024_Acoustoelastic(params, options)
+%SOLVEDISPERSIONATLASBRANCH_LI2024_ACOUSTOELASTIC Track a persistent atlas branch.
+%
+% This solver does not choose the deepest minimum independently at each
+% frequency. It builds a frequency-Cp atlas, detects local minima, links them
+% into continuous branches, and returns the selected persistent branch.
+%
+% Required params fields:
+%   alpha, beta, gamma, thickness, rho, rhoF, fluidBulkModulus, frequency
+%
+% Recommended current use for the Li 2024 diagnostic model:
+%   options.M54_variant = "corrected";
+%   options.normalizeRows = false;
+%   options.usePhysicalCpWindow = false;
+
+if nargin < 2 || isempty(options)
+    options = defaultLi2024AcoustoelasticOptions();
+end
+options = setAtlasDefaults(options);
+
+required = {'alpha','beta','gamma','thickness','rho','rhoF','fluidBulkModulus','frequency'};
+for i = 1:numel(required)
+    if ~isfield(params, required{i})
+        error('Missing required Li2024 atlas-branch parameter: %s', required{i});
+    end
+end
+
+frequency = params.frequency(:).';
+cShear = sqrt(params.alpha / params.rho);
+yGrid = logspace(log10(options.atlasYMin), log10(options.atlasYMax), options.atlasNumYPoints);
+cGrid = yGrid(:) * cShear;
+
+objectiveMap = nan(numel(cGrid), numel(frequency));
+rows = [];
+
+for k = 1:numel(frequency)
+    f = frequency(k);
+    for j = 1:numel(cGrid)
+        objectiveMap(j,k) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+            params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cGrid(j), options);
+    end
+    minima = localMinima(cGrid, objectiveMap(:,k), cShear, options.atlasTopNMinima);
+    for m = 1:height(minima)
+        row = struct();
+        row.Frequency_Hz = f;
+        row.Frequency_kHz = f/1e3;
+        row.MinRank = m;
+        row.Cp_mps = minima.Cp_mps(m);
+        row.y = minima.y(m);
+        row.log10y = log10(minima.y(m));
+        row.Objective = minima.Objective(m);
+        row.DepthRelativeToMedian = minima.DepthRelativeToMedian(m);
+        row.DepthRelativeToDeepest = minima.DepthRelativeToDeepest(m);
+        row.SpacingToNearestLogY = minima.SpacingToNearestLogY(m);
+        row.BranchID = nan;
+        rows = [rows; row]; %#ok<AGROW>
+    end
+end
+
+if isempty(rows)
+    minimaTable = table();
+    branchTable = table();
+else
+    minimaTable = struct2table(rows);
+    [minimaTable, branchTable] = linkBranches(minimaTable, options.atlasMaxLogYJump, options.atlasMinBranchPoints);
+end
+
+if isempty(branchTable)
+    Cp = nan(size(frequency));
+    selectedBranchID = nan;
+    selectedBranch = table();
+else
+    [selectedBranch, selectedBranchID] = selectBranch(branchTable, options);
+    branchPoints = sortrows(minimaTable(minimaTable.BranchID == selectedBranchID, :), 'Frequency_Hz');
+    Cp = interp1(branchPoints.Frequency_Hz, branchPoints.Cp_mps, frequency, 'linear', nan);
+end
+
+validCp = isfinite(Cp);
+objective = nan(size(Cp));
+nearestRank = nan(size(Cp));
+nearestBranchID = nan(size(Cp));
+for k = 1:numel(frequency)
+    candidates = minimaTable(minimaTable.Frequency_Hz == frequency(k), :);
+    if ~isempty(candidates) && isfinite(Cp(k))
+        [~, idx] = min(abs(candidates.Cp_mps - Cp(k)));
+        objective(k) = candidates.Objective(idx);
+        nearestRank(k) = candidates.MinRank(idx);
+        nearestBranchID(k) = candidates.BranchID(idx);
+    end
+end
+
+result = struct();
+result.frequency = frequency;
+result.Cp = Cp;
+result.validCp = validCp;
+result.objective = objective;
+result.nearestRank = nearestRank;
+result.nearestBranchID = nearestBranchID;
+result.selectedBranchID = selectedBranchID;
+result.selectedBranch = selectedBranch;
+result.minimaTable = minimaTable;
+result.branchTable = branchTable;
+result.objectiveMap = objectiveMap;
+result.yGrid = yGrid(:);
+result.cGrid = cGrid(:);
+result.cShear = cShear;
+result.options = options;
+result.diagnostics = summarizeResult(result);
+end
+
+function options = setAtlasDefaults(options)
+def = struct();
+def.atlasYMin = 0.003;
+def.atlasYMax = 2.0;
+def.atlasNumYPoints = 1000;
+def.atlasTopNMinima = 18;
+def.atlasMaxLogYJump = 0.075;
+def.atlasMinBranchPoints = 12;
+def.atlasCoverageWeight = 1.40;
+def.atlasRoughnessWeight = 1.20;
+def.atlasRankWeight = 0.70;
+def.atlasLowYWeight = 0.35;
+def.atlasIncreaseWeight = 0.50;
+def.atlasPreferPositiveSlope = true;
+names = fieldnames(def);
+for i = 1:numel(names)
+    if ~isfield(options, names{i}) || isempty(options.(names{i}))
+        options.(names{i}) = def.(names{i});
+    end
+end
+end
+
+function minima = localMinima(cGrid, obj, cShear, topN)
+idx = [];
+for i = 2:numel(obj)-1
+    if isfinite(obj(i-1)) && isfinite(obj(i)) && isfinite(obj(i+1)) && obj(i) <= obj(i-1) && obj(i) <= obj(i+1)
+        idx(end+1) = i; %#ok<AGROW>
+    end
+end
+if isempty(idx)
+    minima = table([],[],[],[],[],[], 'VariableNames', {'Cp_mps','y','Objective','DepthRelativeToMedian','DepthRelativeToDeepest','SpacingToNearestLogY'});
+    return;
+end
+cp = cGrid(idx(:));
+y = cp ./ cShear;
+objective = obj(idx(:));
+finiteObj = obj(isfinite(obj));
+medianObj = median(finiteObj, 'omitnan');
+deepest = min(objective, [], 'omitnan');
+depthMedian = medianObj - objective;
+depthDeepest = objective - deepest;
+logY = log10(y);
+spacing = nan(size(logY));
+for i = 1:numel(logY)
+    other = logY;
+    other(i) = [];
+    if isempty(other)
+        spacing(i) = inf;
+    else
+        spacing(i) = min(abs(logY(i) - other));
+    end
+end
+[objective, order] = sort(objective, 'ascend');
+cp = cp(order);
+y = y(order);
+depthMedian = depthMedian(order);
+depthDeepest = depthDeepest(order);
+spacing = spacing(order);
+keep = 1:min(topN, numel(cp));
+minima = table(cp(keep), y(keep), objective(keep), depthMedian(keep), depthDeepest(keep), spacing(keep), ...
+    'VariableNames', {'Cp_mps','y','Objective','DepthRelativeToMedian','DepthRelativeToDeepest','SpacingToNearestLogY'});
+end
+
+function [minimaTable, branchTable] = linkBranches(minimaTable, maxLogYJump, minBranchPoints)
+minimaTable = sortrows(minimaTable, {'Frequency_Hz','MinRank'});
+minimaTable.BranchID(:) = nan;
+lastLogY = [];
+lastFreq = [];
+branchID = 0;
+freqList = unique(minimaTable.Frequency_Hz, 'stable');
+for k = 1:numel(freqList)
+    f = freqList(k);
+    rows = find(minimaTable.Frequency_Hz == f);
+    used = false(1, max(branchID,1));
+    for ii = 1:numel(rows)
+        r = rows(ii);
+        best = nan;
+        bestScore = inf;
+        for b = 1:branchID
+            if b <= numel(used) && used(b), continue; end
+            if lastFreq(b) >= f, continue; end
+            jump = abs(minimaTable.log10y(r) - lastLogY(b));
+            if jump > maxLogYJump, continue; end
+            score = jump + 0.02*minimaTable.MinRank(r);
+            if score < bestScore
+                bestScore = score;
+                best = b;
+            end
+        end
+        if isnan(best)
+            branchID = branchID + 1;
+            best = branchID;
+            used(best) = false;
+        end
+        minimaTable.BranchID(r) = best;
+        lastLogY(best) = minimaTable.log10y(r); %#ok<AGROW>
+        lastFreq(best) = f; %#ok<AGROW>
+        used(best) = true;
+    end
+end
+
+branchRows = [];
+for b = 1:branchID
+    mask = minimaTable.BranchID == b;
+    T = sortrows(minimaTable(mask,:), 'Frequency_Hz');
+    if height(T) < minBranchPoints
+        minimaTable.BranchID(mask) = nan;
+        continue;
+    end
+    row = struct();
+    row.BranchID = b;
+    row.NumPoints = height(T);
+    row.FrequencyStart_Hz = min(T.Frequency_Hz);
+    row.FrequencyEnd_Hz = max(T.Frequency_Hz);
+    row.FrequencyStart_kHz = min(T.Frequency_kHz);
+    row.FrequencyEnd_kHz = max(T.Frequency_kHz);
+    row.FrequencyCoverage_kHz = row.FrequencyEnd_kHz - row.FrequencyStart_kHz;
+    row.CpStart_mps = T.Cp_mps(1);
+    row.CpEnd_mps = T.Cp_mps(end);
+    row.MinCp_mps = min(T.Cp_mps);
+    row.MaxCp_mps = max(T.Cp_mps);
+    row.MedianCp_mps = median(T.Cp_mps, 'omitnan');
+    row.MedianY = median(T.y, 'omitnan');
+    row.MedianRank = median(T.MinRank, 'omitnan');
+    row.MedianObjective = median(T.Objective, 'omitnan');
+    row.MedianSpacingToNearestLogY = median(T.SpacingToNearestLogY, 'omitnan');
+    row.NetCpIncrease_mps = T.Cp_mps(end) - T.Cp_mps(1);
+    if height(T) >= 3
+        row.Roughness = median(abs(diff(T.Cp_mps,2)), 'omitnan') / max(median(abs(T.Cp_mps), 'omitnan'), eps);
+    else
+        row.Roughness = nan;
+    end
+    branchRows = [branchRows; row]; %#ok<AGROW>
+end
+if isempty(branchRows)
+    branchTable = table();
+else
+    branchTable = struct2table(branchRows);
+end
+end
+
+function [branch, id] = selectBranch(branchTable, options)
+coverage = normMetric(branchTable.FrequencyCoverage_kHz);
+roughness = normMetric(branchTable.Roughness);
+rank = normMetric(branchTable.MedianRank);
+lowY = normMetric(branchTable.MedianY);
+increase = normMetric(branchTable.NetCpIncrease_mps);
+score = -options.atlasCoverageWeight*coverage + options.atlasRoughnessWeight*roughness + ...
+    options.atlasRankWeight*rank + options.atlasLowYWeight*lowY - options.atlasIncreaseWeight*increase;
+if options.atlasPreferPositiveSlope
+    score(branchTable.NetCpIncrease_mps < 0) = score(branchTable.NetCpIncrease_mps < 0) + 1;
+end
+[~, idx] = min(score);
+branch = branchTable(idx,:);
+branch.SelectionScore = score(idx);
+id = branch.BranchID;
+end
+
+function x = normMetric(x)
+x = x(:);
+mask = isfinite(x);
+if ~any(mask)
+    x(:) = 0;
+    return;
+end
+xmin = min(x(mask)); xmax = max(x(mask));
+if abs(xmax-xmin) < eps
+    x(mask) = 0;
+else
+    x(mask) = (x(mask)-xmin)./(xmax-xmin);
+end
+x(~mask) = 1;
+end
+
+function diagnostics = summarizeResult(result)
+diagnostics = struct();
+diagnostics.validCpPoints = nnz(result.validCp);
+diagnostics.totalPoints = numel(result.Cp);
+diagnostics.selectedBranchID = result.selectedBranchID;
+if any(result.validCp)
+    diagnostics.minCp = min(result.Cp(result.validCp));
+    diagnostics.maxCp = max(result.Cp(result.validCp));
+    diagnostics.medianCp = median(result.Cp(result.validCp), 'omitnan');
+else
+    diagnostics.minCp = nan; diagnostics.maxCp = nan; diagnostics.medianCp = nan;
+end
+end
