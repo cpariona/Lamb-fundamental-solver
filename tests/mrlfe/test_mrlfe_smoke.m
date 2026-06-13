@@ -9,7 +9,7 @@ params = defaultParams();
 params.fmin = 500;
 params.fmax = 4000;
 params.numFrequencyPoints = 18;
-params.frequencySpacing = "linear";
+params.frequencySpacing = "linspace";
 
 options = defaultOptions("Fast");
 options.computeA0 = true;
