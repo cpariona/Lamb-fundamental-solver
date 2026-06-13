@@ -42,6 +42,12 @@ Maintained solver, example, diagnostic, and test entrypoints are listed in:
 docs/maintained_entrypoints.md
 ```
 
+Naming-transition notes are listed in:
+
+```text
+docs/naming_transition.md
+```
+
 ## Launching the GUI
 
 From the repository root, run:
