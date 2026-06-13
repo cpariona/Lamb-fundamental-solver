@@ -15,6 +15,7 @@ addpath(fullfile(projectRoot, 'approximations'));
 addpath(fullfile(projectRoot, 'tracking'));
 addpath(genpath(fullfile(projectRoot, 'models')));
 addpath(genpath(fullfile(projectRoot, 'analysis')));
+addpath(genpath(fullfile(projectRoot, 'examples', 'li2024')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'basic')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'validation')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'diagnostics')));
