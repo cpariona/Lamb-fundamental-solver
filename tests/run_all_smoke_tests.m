@@ -10,10 +10,16 @@ startup
 fprintf('\nRunning Lamb Fundamental Solver smoke tests...\n');
 fprintf('---------------------------------------------\n');
 
-fprintf('\n[1/3] Li 2024 constitutive identity test\n');
+fprintf('\nChecking maintained acoustoelastic IOP/HGO wrappers...\n');
+assert(~isempty(which('solveAcoustoelasticIOPHGOBranch')), ...
+    'Missing solveAcoustoelasticIOPHGOBranch on MATLAB path.');
+assert(~isempty(which('defaultAcoustoelasticIOPHGOOptions')), ...
+    'Missing defaultAcoustoelasticIOPHGOOptions on MATLAB path.');
+
+fprintf('\n[1/3] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_li2024_constitutive_identity;
 
-fprintf('\n[2/3] Li 2024 strict-A0 atlas branch smoke test\n');
+fprintf('\n[2/3] Acoustoelastic IOP/HGO strict-A0 atlas branch smoke test\n');
 test_li2024_strictA0_smoke;
 
 fprintf('\n[3/3] mRLFE smoke test\n');
