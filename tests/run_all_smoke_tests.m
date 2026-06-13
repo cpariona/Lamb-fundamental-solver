@@ -10,11 +10,15 @@ startup
 fprintf('\nRunning Lamb Fundamental Solver smoke tests...\n');
 fprintf('---------------------------------------------\n');
 
-fprintf('\nChecking maintained acoustoelastic IOP/HGO wrappers...\n');
+fprintf('\nChecking maintained acoustoelastic IOP/HGO wrappers and entrypoints...\n');
 assert(~isempty(which('solveAcoustoelasticIOPHGOBranch')), ...
     'Missing solveAcoustoelasticIOPHGOBranch on MATLAB path.');
 assert(~isempty(which('defaultAcoustoelasticIOPHGOOptions')), ...
     'Missing defaultAcoustoelasticIOPHGOOptions on MATLAB path.');
+assert(~isempty(which('run_acoustoelastic_iop_hgo_atlas_branch')), ...
+    'Missing run_acoustoelastic_iop_hgo_atlas_branch on MATLAB path.');
+assert(~isempty(which('diagnose_acoustoelastic_iop_hgo_branch_policy')), ...
+    'Missing diagnose_acoustoelastic_iop_hgo_branch_policy on MATLAB path.');
 
 fprintf('\n[1/3] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_li2024_constitutive_identity;
