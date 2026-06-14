@@ -19,9 +19,9 @@ startup
 
 ## Rayleigh-Lamb base solver
 
-The original top-level Rayleigh-Lamb implementation files remain in place under `core/`, `equations/`, `approximations/`, and `tracking/`. A non-invasive organized wrapper layer now exists under `models/rayleigh_lamb/` for author-neutral model-scoped path organization. These wrappers forward to the existing top-level functions and are not yet used by examples.
+The `rl*` Rayleigh-Lamb functions under `models/rayleigh_lamb/` are now the primary implementation entrypoints for the base solver. The old top-level Rayleigh-Lamb function names remain in place under `core/`, `equations/`, `approximations/`, and `tracking/` as compatibility wrappers that forward to the `rl*` implementations. Files have not yet been physically removed, archive/prototype migration remains deferred, and numerical behavior is intended to remain unchanged.
 
-Organized wrapper entrypoints:
+Primary `rl*` implementation entrypoints:
 
 ```matlab
 rlBuildFrequencyVector
@@ -209,7 +209,7 @@ test_mrlfe_smoke
 
 ## Smoke-test compatibility scope
 
-`run_all_smoke_tests` also includes Rayleigh-Lamb base solver path smoke checks for the current functions under `core/`, `equations/`, `approximations/`, and `tracking/`, plus path checks for the organized wrappers under `models/rayleigh_lamb/`. These checks use `which` only; they do not call the functions numerically or solve dispersion curves.
+`run_all_smoke_tests` also includes Rayleigh-Lamb base solver path smoke checks for the old top-level compatibility wrappers under `core/`, `equations/`, `approximations/`, and `tracking/`, plus path checks for the primary `rl*` implementation entrypoints under `models/rayleigh_lamb/`. These checks use `which` only; they do not call the functions numerically or solve dispersion curves.
 
 `run_all_smoke_tests` now verifies that both the maintained author-neutral Acoustoelastic IOP/HGO names and the preserved `Li2024` legacy wrapper names are resolvable on the MATLAB path. The legacy-wrapper portion is a path-level compatibility check only: it uses `which` and intentionally does not execute the wrappers, compare numerical outputs, solve dispersion curves, or run heavy diagnostics. Numerical equivalence testing between legacy wrappers and author-neutral implementations is intentionally deferred to a separate future validation phase.
 
