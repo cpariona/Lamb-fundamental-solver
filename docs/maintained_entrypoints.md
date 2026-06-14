@@ -110,6 +110,19 @@ Maintained tests:
 tests/acoustoelastic_iop_hgo/
 ```
 
+
+## Li2024 legacy reference audit
+
+Author-neutral names in the recommended lists above are the maintained names for new code. The `Li2024`-named functions and scripts listed under compatibility/development entrypoints remain callable only as backward-compatibility wrappers during the naming transition. New code should avoid calling `Li2024` names unless it is explicitly testing backward compatibility or comparing legacy behavior.
+
+Remaining `Li2024` references are intentional in these categories:
+
+- Compatibility wrappers and compatibility tests that preserve old callable names.
+- Archive, prototype, example, diagnostic, and sweep files whose names, generated output labels, or historical scripts still document earlier development phases; these should not be renamed in this documentation-only audit.
+- Paper, literature, and provenance notes where `Li2024` describes lineage rather than a preferred API name.
+
+Do not treat those preserved references as primary entrypoints. Prefer the author-neutral Acoustoelastic IOP/HGO APIs for routine use.
+
 ## mRLFE model
 
 Main high-level function:

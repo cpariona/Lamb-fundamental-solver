@@ -172,6 +172,19 @@ The author-neutral Acoustoelastic IOP/HGO constitutive helper names now exist, t
 
 Before touching these, add targeted tests that compare old and new function outputs on fixed small cases, including edge cases for `strictA0`, complex-c solving, constitutive identity, and GUI-independent default parameter construction.
 
+
+## Legacy Li2024 reference audit status
+
+This audit keeps the migration documentation-only. Author-neutral Acoustoelastic IOP/HGO names are the maintained names for new code, while `Li2024`-named functions remain callable as compatibility wrappers. Remaining `Li2024` references in compatibility wrappers are intentional. Remaining references in archive, prototype, example, diagnostic, sweep, generated-output, and paper/provenance contexts are historical and should not be renamed in this phase. New implementation code should avoid `Li2024` calls unless the code is explicitly exercising backward compatibility.
+
+Checklist before a future public v1-style API cleanup:
+
+- Keep legacy wrappers until a documented deprecation policy exists.
+- Do not rename archive/prototype scripts without a separate archive migration.
+- Do not rename literature/provenance references.
+- Consider a future explicit compatibility test suite for wrappers.
+- Consider a future Rayleigh-Lamb base package reorganization separately.
+
 ## 7. Suggested PR phases
 
 ### PR 1: audit documents only
