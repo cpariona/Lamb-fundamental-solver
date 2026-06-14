@@ -6,7 +6,7 @@ function result = solveAcoustoelasticIOPHGODispersion(params, options)
 %   rho, rhoF, fluidBulkModulus, frequency
 %
 % This wrapper computes alpha, beta, gamma from the constitutive block and
-% then calls solveDispersion_Li2024_Acoustoelastic. By default, it is intended
+% then calls solveAcoustoelasticDispersion. By default, it is intended
 % for the A0 corrected/backward workflow while the direct solver is being
 % validated.
 
@@ -38,7 +38,7 @@ if isfield(params, 'cGrid')
     directParams.cGrid = params.cGrid;
 end
 
-result = solveDispersion_Li2024_Acoustoelastic(directParams, options);
+result = solveAcoustoelasticDispersion(directParams, options);
 result.constitutiveState = state;
 result.directParams = directParams;
 end

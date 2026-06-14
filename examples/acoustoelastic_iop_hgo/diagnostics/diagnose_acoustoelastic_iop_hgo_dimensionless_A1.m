@@ -33,27 +33,27 @@ baseOptions.minDimensionlessFrequency = xMinDiagnostic;
 optionsA0Forward = baseOptions;
 optionsA0Forward.branch = "A0";
 optionsA0Forward.trackingDirection = "forward";
-resultA0Forward = solveDispersion_Li2024_Acoustoelastic(params, optionsA0Forward);
+resultA0Forward = solveAcoustoelasticDispersion(params, optionsA0Forward);
 
 optionsA0Backward = baseOptions;
 optionsA0Backward.branch = "A0";
 optionsA0Backward.trackingDirection = "backward";
-resultA0Backward = solveDispersion_Li2024_Acoustoelastic(params, optionsA0Backward);
+resultA0Backward = solveAcoustoelasticDispersion(params, optionsA0Backward);
 
 optionsA0High = baseOptions;
 optionsA0High.branch = "A0High";
 optionsA0High.trackingDirection = "forward";
-resultA0High = solveDispersion_Li2024_Acoustoelastic(params, optionsA0High);
+resultA0High = solveAcoustoelasticDispersion(params, optionsA0High);
 
 optionsS0Forward = baseOptions;
 optionsS0Forward.branch = "S0";
 optionsS0Forward.trackingDirection = "forward";
-resultS0Forward = solveDispersion_Li2024_Acoustoelastic(params, optionsS0Forward);
+resultS0Forward = solveAcoustoelasticDispersion(params, optionsS0Forward);
 
 optionsS0Backward = baseOptions;
 optionsS0Backward.branch = "S0";
 optionsS0Backward.trackingDirection = "backward";
-resultS0Backward = solveDispersion_Li2024_Acoustoelastic(params, optionsS0Backward);
+resultS0Backward = solveAcoustoelasticDispersion(params, optionsS0Backward);
 
 figure('Color', 'w');
 hold on; grid on;

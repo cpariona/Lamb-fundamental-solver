@@ -23,7 +23,7 @@ options.cMin = 0.5;
 options.cMax = 30;
 options.numCpScanPoints = 1800;
 
-result = solveDispersion_Li2024_Acoustoelastic(params, options);
+result = solveAcoustoelasticDispersion(params, options);
 
 figure('Color', 'w');
 valid = result.validCp & isfinite(result.Cp);

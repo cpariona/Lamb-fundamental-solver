@@ -25,11 +25,11 @@ baseOptions.numCpScanPoints = 1800;
 
 optionsPaper = baseOptions;
 optionsPaper.M54_variant = "paper";
-resultPaper = solveDispersion_Li2024_Acoustoelastic(params, optionsPaper);
+resultPaper = solveAcoustoelasticDispersion(params, optionsPaper);
 
 optionsCorrected = baseOptions;
 optionsCorrected.M54_variant = "corrected";
-resultCorrected = solveDispersion_Li2024_Acoustoelastic(params, optionsCorrected);
+resultCorrected = solveAcoustoelasticDispersion(params, optionsCorrected);
 
 figure('Color', 'w');
 hold on; grid on;
