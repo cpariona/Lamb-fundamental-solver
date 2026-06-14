@@ -2,12 +2,12 @@
 
 startup();
 
-params = defaultParams();
-options = defaultOptions("Balanced");
+params = rlDefaultParams();
+options = rlDefaultOptions("Balanced");
 options.computeA0 = true;
 options.computeS0 = false;
 
-results = computeFundamentalLambModes(params, options);
+results = rlComputeFundamentalLambModes(params, options);
 
 mode = results.modes.A0;
 fprintf('A0 valid points: %d / %d\n', sum(mode.valid), numel(mode.valid));

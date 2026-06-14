@@ -38,7 +38,7 @@ for i = 1:n
     [params, options] = setSweepValue(params, options, paramName, values(i));
 
     t = tic;
-    result = computeFundamentalLambModes(params, options);
+    result = rlComputeFundamentalLambModes(params, options);
 
     sweepResults.results{i} = result;
     sweepResults.params{i} = params;

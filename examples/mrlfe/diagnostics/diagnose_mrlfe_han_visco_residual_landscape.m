@@ -58,7 +58,7 @@ modalWindowA0UpperFactor = 2.50;
 modalWindowS0LowerFactor = 0.70;
 modalWindowS0UpperFactor = 1.40;
 
-paramsBase = defaultParams();
+paramsBase = rlDefaultParams();
 paramsBase.fmin = 500;
 paramsBase.fmax = 16000;
 paramsBase.numFrequencyPoints = 160;
@@ -67,7 +67,7 @@ paramsBase.thickness = 0.5e-3;
 paramsBase.nu = 0.4999;
 paramsBase.CL = 1500;
 
-optionsBase = defaultOptions("Fast");
+optionsBase = rlDefaultOptions("Fast");
 optionsBase.computeA0 = true;
 optionsBase.computeS0 = true;
 optionsBase.computeMRLFERealK = true;
@@ -90,8 +90,8 @@ for iCase = 1:numel(cases)
     caseInfo = cases(iCase);
     params = paramsBase;
     params.E = caseInfo.E;
-    material = computeMaterial(params);
-    geometry = computeGeometry(params);
+    material = rlComputeMaterial(params);
+    geometry = rlComputeGeometry(params);
     geometryPublic = rmfield(geometry, 'halfThickness');
     [modalWindowLowerFactor, modalWindowUpperFactor] = getModalWindowFactors(caseInfo.branch, ...
         modalWindowA0LowerFactor, modalWindowA0UpperFactor, modalWindowS0LowerFactor, modalWindowS0UpperFactor);
@@ -113,7 +113,7 @@ for iCase = 1:numel(cases)
         caseInfo.branch, modalWindowLowerFactor, modalWindowUpperFactor);
 
     try
-        results = computeFundamentalLambModes(params, options);
+        results = rlComputeFundamentalLambModes(params, options);
         currentBranch = results.models.mRLFEHanViscoRealK.branches.(caseInfo.branch);
         elasticBranch = results.models.mRLFEElasticRealK.branches.(caseInfo.branch);
     catch ME

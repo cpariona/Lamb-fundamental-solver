@@ -9,7 +9,7 @@
 
 startup();
 
-params = defaultParams();
+params = rlDefaultParams();
 params.fmin = 500;
 params.fmax = 8000;
 params.numFrequencyPoints = 90;
@@ -19,7 +19,7 @@ etaSValues = [0.1, 0.5, 1.0]; % [Pa*s]
 sampleFrequencies = [2000, 4000, 6000, 8000]; % [Hz]
 maxAbsShiftForPlot = 0.25; % hide extreme/suspicious relative-shift values in plots
 
-optionsBase = defaultOptions("Fast");
+optionsBase = rlDefaultOptions("Fast");
 optionsBase.computeA0 = true;
 optionsBase.computeS0 = true;
 optionsBase.computeMRLFERealK = true;
@@ -44,7 +44,7 @@ for i = 1:numel(etaSValues)
     mrlfeParams.useComplexLambda = false;
     options.mrlfeParams = mrlfeParams;
 
-    results = computeFundamentalLambModes(params, options);
+    results = rlComputeFundamentalLambModes(params, options);
     resultsByEtaS{i} = results;
 
     fprintf('\netaS = %.4g Pa*s\n', etaSValues(i));

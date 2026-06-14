@@ -1,8 +1,8 @@
 function LambFundamental_GUI
 % Compact GUI for fundamental Lamb modes using the modular backend.
 
-params0 = defaultParams();
-opts0 = defaultOptions("Balanced");
+params0 = rlDefaultParams();
+opts0 = rlDefaultOptions("Balanced");
 lastResults = [];
 lastOptions = [];
 lastParams = [];
@@ -111,7 +111,7 @@ updateAxisFieldState();
                 lastResults = computeMRLFEWithCachedBase(lastResults, options);
                 lastComputeCacheMessage = "cache: reused selected Rayleigh-Lamb seed(s)";
             else
-                lastResults = computeFundamentalLambModes(params, options);
+                lastResults = rlComputeFundamentalLambModes(params, options);
             end
 
             lastOptions = options;
@@ -128,7 +128,7 @@ updateAxisFieldState();
     end
 
     function options = readOptionsFromGui()
-        options = defaultOptions(string(advanced.robustness.Value));
+        options = rlDefaultOptions(string(advanced.robustness.Value));
         options.computeA0 = logical(modelControls.rl.computeA0.Value);
         options.computeS0 = logical(modelControls.rl.computeS0.Value);
         options.computeMRLFERealK = logical(modelControls.mrlfe.computeRealK.Value);
@@ -150,7 +150,7 @@ updateAxisFieldState();
     end
 
     function params = readParamsFromGui()
-        params = defaultParams();
+        params = rlDefaultParams();
         params.modelType = string(setup.model.Value);
         params.rho = setup.rho.Value;
         params.E = setup.E.Value * 1e3;

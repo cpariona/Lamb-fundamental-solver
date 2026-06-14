@@ -4,7 +4,7 @@
 
 startup();
 
-params = defaultParams();
+params = rlDefaultParams();
 params.fmin = 500;
 params.fmax = 8000;
 params.numFrequencyPoints = 90;
@@ -12,7 +12,7 @@ params.frequencySpacing = "hybrid";
 
 etaSValues = [0, 0.01, 0.05, 0.1, 0.3, 0.5, 0.7, 1.0]; % [Pa*s]
 
-optionsBase = defaultOptions("Fast");
+optionsBase = rlDefaultOptions("Fast");
 optionsBase.computeA0 = true;
 optionsBase.computeS0 = true;
 optionsBase.computeMRLFEHanViscoRealK = true;
@@ -33,7 +33,7 @@ for i = 1:numel(etaSValues)
     mrlfeParams.useComplexLambda = false;
     options.mrlfeParams = mrlfeParams;
 
-    results = computeFundamentalLambModes(params, options);
+    results = rlComputeFundamentalLambModes(params, options);
     resultsByEtaS{i} = results;
 
     fprintf('etaS = %.4g Pa*s\n', etaSValues(i));

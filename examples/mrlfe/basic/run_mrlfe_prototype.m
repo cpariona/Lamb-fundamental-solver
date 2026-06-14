@@ -4,18 +4,18 @@
 
 startup();
 
-params = defaultParams();
+params = rlDefaultParams();
 params.fmin = 500;
 params.fmax = 8000;
 params.numFrequencyPoints = 120;
 params.frequencySpacing = "hybrid";
 
-options = defaultOptions("Fast");
+options = rlDefaultOptions("Fast");
 options.computeA0 = true;
 options.computeS0 = true;
 options.computeMRLFE = true;
 
-results = computeFundamentalLambModes(params, options);
+results = rlComputeFundamentalLambModes(params, options);
 
 figure;
 hold on;

@@ -7,7 +7,7 @@ startup
 % This sweep complements the A0-like thickness sweep and is useful for
 % checking how the higher-speed S0-like branch changes with k*thickness.
 
-params = defaultParams();
+params = rlDefaultParams();
 params.modelType = "YoungPoissonFixedCL";
 params.rho = 1070;
 params.E = 475e3;
@@ -19,7 +19,7 @@ params.fmax = 16000;
 params.numFrequencyPoints = "auto";
 params.frequencySpacing = "hybrid";
 
-options = defaultOptions("Fast");
+options = rlDefaultOptions("Fast");
 options.computeA0 = false;
 options.computeS0 = true;
 options.computeMRLFERealK = true;
