@@ -66,7 +66,8 @@ For at least one release, keep these names callable:
 - `models/acoustoelastic_iop_hgo/solvers/solveDispersionAtlasBranch_Li2024_Acoustoelastic.m` remains a compatibility wrapper to `solveAcoustoelasticAtlasBranch`.
 - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticComplexCDispersion.m` is now the author-neutral complex-c Acoustoelastic dispersion solver. `models/acoustoelastic_iop_hgo/solvers/solveDispersionComplexC_Li2024_Acoustoelastic.m` remains a compatibility wrapper.
 - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticDispersion.m` is now the author-neutral mid-level Acoustoelastic dispersion solver. `models/acoustoelastic_iop_hgo/solvers/solveDispersion_Li2024_Acoustoelastic.m` remains a compatibility wrapper.
-- `models/acoustoelastic_iop_hgo/core/*_Li2024*.m` and `models/acoustoelastic_iop_hgo/constitutive/*_Li2024*.m` -> wrappers only after equivalent author-neutral internals are introduced and tests cover the call graph.
+- `models/acoustoelastic_iop_hgo/core/computeAcoustoelasticSRoots.m` is now the author-neutral Acoustoelastic S-roots helper; `models/acoustoelastic_iop_hgo/core/computeSRoots_Li2024.m` remains a compatibility wrapper. No root logic was intentionally changed during this rename.
+- Remaining `models/acoustoelastic_iop_hgo/core/*_Li2024*.m` and `models/acoustoelastic_iop_hgo/constitutive/*_Li2024*.m` -> wrappers only after equivalent author-neutral internals are introduced and tests cover the call graph.
 - Legacy examples, diagnostics, sweeps, and tests listed in section 1 when they may be documented or user-facing.
 
 ## 3. Files that should move to archive
@@ -148,7 +149,7 @@ Because these functions are broadly used and `startup.m` path behavior is centra
 ## 6. High-risk files that should not be touched until more tests exist
 
 - `models/acoustoelastic_iop_hgo/core/buildMatrix_Li2024_Acoustoelastic.m`
-- `models/acoustoelastic_iop_hgo/core/computeSRoots_Li2024.m`
+- `models/acoustoelastic_iop_hgo/core/computeSRoots_Li2024.m` (compatibility wrapper for `computeAcoustoelasticSRoots`)
 - `models/acoustoelastic_iop_hgo/core/objectiveComplexDet_Li2024_Acoustoelastic.m`
 - `models/acoustoelastic_iop_hgo/core/objective_Li2024_Acoustoelastic.m`
 - `models/acoustoelastic_iop_hgo/constitutive/computeAcoustoelasticABGFromIOPHGO.m` (author-neutral implementation; `computeABGFromIOPHGO_Li2024.m` remains a compatibility wrapper)

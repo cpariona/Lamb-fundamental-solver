@@ -27,6 +27,7 @@ defaultAcoustoelasticIOPHGOOptions
 computeAcoustoelasticABGFromIOPHGO
 computeAcoustoelasticAlphaBetaGamma
 computeAcoustoelasticPrestressSigma
+computeAcoustoelasticSRoots
 solveAcoustoelasticHGOStretch
 run_acoustoelastic_iop_hgo_atlas_branch
 diagnose_acoustoelastic_iop_hgo_branch_policy
@@ -35,6 +36,8 @@ test_acoustoelastic_iop_hgo_strictA0_smoke
 ```
 
 Author-neutral Acoustoelastic IOP/HGO constitutive helper names now exist: `computeAcoustoelasticABGFromIOPHGO`, `computeAcoustoelasticAlphaBetaGamma`, `computeAcoustoelasticPrestressSigma`, and `solveAcoustoelasticHGOStretch`. The older `Li2024` constitutive helper names remain available as compatibility wrappers, and no constitutive logic was intentionally changed during this rename.
+
+`computeAcoustoelasticSRoots` is now the author-neutral Acoustoelastic S-roots helper. `computeSRoots_Li2024` remains available as a compatibility wrapper, and no root logic was intentionally changed during this rename.
 
 Author-neutral Acoustoelastic IOP/HGO example, diagnostic, and sweep entrypoints now exist for the maintained `examples/acoustoelastic_iop_hgo/` tree. The older `Li2024`-named example, diagnostic, and sweep scripts remain available as compatibility wrappers during the naming transition.
 
@@ -165,6 +168,7 @@ which defaultAcoustoelasticIOPHGOOptions
 which computeAcoustoelasticABGFromIOPHGO
 which computeAcoustoelasticAlphaBetaGamma
 which computeAcoustoelasticPrestressSigma
+which computeAcoustoelasticSRoots
 which solveAcoustoelasticHGOStretch
 which run_acoustoelastic_iop_hgo_atlas_branch
 which diagnose_acoustoelastic_iop_hgo_branch_policy
