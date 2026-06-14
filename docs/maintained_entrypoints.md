@@ -1,6 +1,6 @@
 # Maintained entrypoints
 
-For a documentation-only audit and future migration plan for the base Rayleigh-Lamb solver, see [Rayleigh-Lamb base solver reorganization plan](rayleigh_lamb_base_reorganization_plan.md).
+For a documentation-only audit and future migration plan for the base Rayleigh-Lamb solver, see [Rayleigh-Lamb base solver reorganization plan](rayleigh_lamb_base_reorganization_plan.md). For the wrapper-layer release checklist and suggested tag, see [Rayleigh-Lamb wrapper layer release checklist](rayleigh_lamb_wrapper_release_checklist.md).
 
 For a concise layer-by-layer summary of the post-migration Acoustoelastic IOP/HGO API structure, see [Acoustoelastic IOP/HGO post-rename architecture](acoustoelastic_post_rename_architecture.md). For the final naming snapshot of maintained names, compatibility wrappers, and intentional legacy references, see [Acoustoelastic IOP/HGO final naming snapshot](acoustoelastic_final_naming_snapshot.md).
 
