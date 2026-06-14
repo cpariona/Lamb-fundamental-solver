@@ -4,7 +4,7 @@
 
 This checklist records the documentation-only release criteria for the Rayleigh-Lamb `rl*` implementation handoff and maintained call-site adoption milestone. For the public `rl*` API table and old-name mapping, see [Rayleigh-Lamb public API](rayleigh_lamb_public_api.md). For the ongoing maintenance, deprecation, and physical-migration rules for old top-level wrappers, see [Rayleigh-Lamb legacy wrapper policy](rayleigh_lamb_legacy_wrapper_policy.md). The tag should only be created after the required validation below passes locally in MATLAB from a clean `main`.
 
-Before any future physical migration of the legacy wrapper folders, consult the [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md).
+Before any future physical migration of the legacy wrapper folders, consult the [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md) and apply the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md).
 
 ## Required local validation before tagging
 

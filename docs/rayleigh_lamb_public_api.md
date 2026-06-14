@@ -8,7 +8,7 @@ The old top-level functions under `core/`, `equations/`, `approximations/`, and 
 
 No top-level compatibility function is formally deprecated yet unless explicitly documented elsewhere.
 
-For the documentation-only audit governing future physical movement, removal, or retention of the legacy wrapper folders, see the [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md).
+For the documentation-only audit governing future physical movement, removal, or retention of the legacy wrapper folders, see the [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md). For the final gate before any such migration, see the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md).
 
 ## Primary API table
 

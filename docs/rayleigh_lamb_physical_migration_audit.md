@@ -1,5 +1,7 @@
 # Rayleigh-Lamb physical migration audit
 
+Before using this audit to plan any folder movement, apply the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md) as the final gate.
+
 ## Current state
 
 The `models/rayleigh_lamb/rl*` files contain the primary Rayleigh-Lamb implementation. The old top-level folders `core/`, `equations/`, `approximations/`, and `tracking/` remain in place as compatibility wrapper folders that preserve historical callable names while forwarding to the `rl*` layer.
