@@ -4,7 +4,7 @@
 
 This document is a documentation-only architecture audit and future migration plan for the current Rayleigh-Lamb base solver. It records the present folder layout, identifies the MATLAB files that appear to form the base solver, and proposes a conservative reorganization path for a later implementation phase.
 
-This phase does not move files, rename MATLAB functions, modify solver source code, change tests, or alter numerical behavior. The Acoustoelastic IOP/HGO author-neutral API migration is treated as completed and tagged as `v0.4.0-acoustoelastic-author-neutral-api`; this plan is about the next possible Rayleigh-Lamb base solver cleanup.
+This phase does not move files, rename MATLAB functions, modify solver source code, or alter numerical behavior. Lightweight path-level smoke coverage now exists for the current Rayleigh-Lamb base functions in `tests/run_all_smoke_tests.m`; those checks verify MATLAB path resolution only and do not execute numerical solves. The Acoustoelastic IOP/HGO author-neutral API migration is treated as completed and tagged as `v0.4.0-acoustoelastic-author-neutral-api`; this plan is about the next possible Rayleigh-Lamb base solver cleanup.
 
 ## Current repository structure
 
@@ -100,12 +100,12 @@ Future reorganization should preserve current public function names through wrap
 
 MATLAB primary function names must continue to match their file names. Therefore, if a maintained implementation file is renamed or moved into a new file, the primary function inside that file must use the same name as the file. If legacy callable names remain public, same-named wrapper files should remain at the old paths until deprecation is explicitly documented and tested.
 
-The transition should avoid changing `startup.m` path behavior and public entrypoint resolution in the same commit as numerical code movement unless path-level smoke checks already cover both old and new locations.
+The transition should avoid changing `startup.m` path behavior and public entrypoint resolution in the same commit as numerical code movement unless path-level smoke checks already cover both old and new locations. Current path-level smoke checks cover the existing Rayleigh-Lamb base function locations before any future reorganization.
 
 ## Migration phases
 
 - Phase 1: documentation and inventory only.
-- Phase 2: add path-level smoke checks for current Rayleigh-Lamb base functions.
+- Phase 2: add path-level smoke checks for current Rayleigh-Lamb base functions. **Completed:** `run_all_smoke_tests` now checks that current base functions in `core/`, `equations/`, `approximations/`, and `tracking/` resolve on the MATLAB path without calling them numerically.
 - Phase 3: introduce author-neutral maintained entrypoints if needed.
 - Phase 4: move files into `models/rayleigh_lamb/` while preserving wrappers.
 - Phase 5: update examples and docs.
