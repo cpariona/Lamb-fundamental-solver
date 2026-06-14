@@ -12,7 +12,7 @@ startup();
 branchName = "A0Like";              % "A0Like" or "S0Like"
 modelName  = "mRLFEElasticRealK";   % "mRLFEElasticRealK" or "mRLFEHanViscoRealK"
 
-params = defaultParams();
+params = rlDefaultParams();
 params.E = 100e3;
 params.nu = 0.4999;
 params.CL = 1500;
@@ -23,7 +23,7 @@ params.fmax = 16000;
 params.numFrequencyPoints = 120;
 params.frequencySpacing = "linspace";
 
-options = defaultOptions("Balanced");
+options = rlDefaultOptions("Balanced");
 options.computeA0 = branchName == "A0Like";
 options.computeS0 = branchName == "S0Like";
 options.computeMRLFERealK = true;
@@ -58,7 +58,7 @@ fprintf('Tight local window: solver Cp +/- %.1f%%, minimum half-width %.3g m/s\n
     100*localWindowRelativeHalfWidth, localWindowMinHalfWidthAbs);
 
 solverTimer = tic;
-results = computeFundamentalLambModes(params, options);
+results = rlComputeFundamentalLambModes(params, options);
 solverTime = toc(solverTimer);
 
 branch = results.models.(modelName).branches.(branchName);

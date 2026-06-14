@@ -17,7 +17,7 @@ EValues = [50e3, 75e3, 100e3, 150e3, 225e3, 300e3, 400e3, 500e3, ...
            750e3, 1000e3, 1500e3]; % [Pa]
 largeJumpThreshold = 0.15;
 
-paramsBase = defaultParams();
+paramsBase = rlDefaultParams();
 paramsBase.fmin = 500;
 paramsBase.fmax = 16000;
 paramsBase.numFrequencyPoints = 160;
@@ -26,7 +26,7 @@ paramsBase.thickness = 0.5e-3;
 paramsBase.nu = 0.4999;
 paramsBase.CL = 1500;
 
-optionsBase = defaultOptions("Fast");
+optionsBase = rlDefaultOptions("Fast");
 optionsBase.computeA0 = true;
 optionsBase.computeS0 = true;
 optionsBase.computeMRLFERealK = true;
@@ -46,13 +46,13 @@ fprintf('Large-jump threshold for safe fmax: %.3g\n', largeJumpThreshold);
 for iE = 1:numel(EValues)
     params = paramsBase;
     params.E = EValues(iE);
-    material = computeMaterial(params);
+    material = rlComputeMaterial(params);
 
     fprintf('\nE = %.6g kPa, mu = %.6g kPa, CT = %.6g m/s\n', ...
         params.E/1e3, material.mu/1e3, material.CT);
 
     try
-        results = computeFundamentalLambModes(params, optionsBase);
+        results = rlComputeFundamentalLambModes(params, optionsBase);
         resultsByE{iE} = results;
         branches = results.models.mRLFEElasticRealK.branches;
         rowA0 = printBranchSummary(branches, 'A0Like', params, material, largeJumpThreshold);

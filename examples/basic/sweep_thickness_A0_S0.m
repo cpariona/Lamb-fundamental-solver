@@ -3,8 +3,8 @@
 
 startup();
 
-baseParams = defaultParams();
-baseOptions = defaultOptions("Balanced");
+baseParams = rlDefaultParams();
+baseOptions = rlDefaultOptions("Balanced");
 baseOptions.computeA0 = true;
 baseOptions.computeS0 = true;
 
@@ -17,7 +17,7 @@ for i = 1:numel(thicknessVec)
     params = baseParams;
     params.thickness = thicknessVec(i);
 
-    results = computeFundamentalLambModes(params, baseOptions);
+    results = rlComputeFundamentalLambModes(params, baseOptions);
     resultsByThickness{i} = results;
 
     if isfield(results.modes, 'A0')

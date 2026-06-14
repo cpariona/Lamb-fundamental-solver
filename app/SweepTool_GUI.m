@@ -9,10 +9,10 @@ function SweepTool_GUI(baseParams, baseOptions)
 % keeps sweep exploration separate from the main single-case GUI.
 
 if nargin < 1 || isempty(baseParams)
-    baseParams = defaultParams();
+    baseParams = rlDefaultParams();
 end
 if nargin < 2 || isempty(baseOptions)
-    baseOptions = defaultOptions("Fast");
+    baseOptions = rlDefaultOptions("Fast");
 end
 if ~isfield(baseOptions, 'mrlfeParams') || isempty(baseOptions.mrlfeParams)
     baseOptions.mrlfeParams = defaultMRLFEParams();
@@ -150,7 +150,7 @@ onParameterChanged();
             params.numFrequencyPoints = "auto";
             params.frequencySpacing = "hybrid";
 
-            options = defaultOptions(string(robustnessDrop.Value));
+            options = rlDefaultOptions(string(robustnessDrop.Value));
             options.computeMRLFEComplexK = false;
             options.mrlfeParams = defaultMRLFEParams();
             options.mrlfeParams.fluidDensity = fluidDensityEdit.Value;

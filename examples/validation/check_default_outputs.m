@@ -3,12 +3,12 @@
 
 startup();
 
-params = defaultParams();
-options = defaultOptions("Balanced");
+params = rlDefaultParams();
+options = rlDefaultOptions("Balanced");
 options.computeA0 = true;
 options.computeS0 = true;
 
-results = computeFundamentalLambModes(params, options);
+results = rlComputeFundamentalLambModes(params, options);
 
 fprintf('\nDefault output check\n');
 fprintf('--------------------\n');

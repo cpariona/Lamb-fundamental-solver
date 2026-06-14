@@ -5,13 +5,13 @@ startup
 % This verifies that the refactored mRLFE folders are on the path and that a
 % small fundamental-mode computation returns finite A0-like/S0-like branches.
 
-params = defaultParams();
+params = rlDefaultParams();
 params.fmin = 500;
 params.fmax = 4000;
 params.numFrequencyPoints = 18;
 params.frequencySpacing = "linspace";
 
-options = defaultOptions("Fast");
+options = rlDefaultOptions("Fast");
 options.computeA0 = true;
 options.computeS0 = true;
 options.computeMRLFE = true;
@@ -21,7 +21,7 @@ options.computeMRLFEHanViscoRealK = false;
 mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams = mrlfeParams;
 
-results = computeFundamentalLambModes(params, options);
+results = rlComputeFundamentalLambModes(params, options);
 
 assert(isstruct(results), 'Results must be a struct.');
 assert(isfield(results, 'models'), 'Results must contain models.');

@@ -7,7 +7,7 @@ startup
 % This sweep is useful for Lamb-wave/OCE sensitivity analysis because A0-like
 % dispersion depends strongly on thickness and k*thickness.
 
-params = defaultParams();
+params = rlDefaultParams();
 params.modelType = "YoungPoissonFixedCL";
 params.rho = 1070;
 params.E = 475e3;
@@ -19,7 +19,7 @@ params.fmax = 16000;
 params.numFrequencyPoints = "auto";
 params.frequencySpacing = "hybrid";
 
-options = defaultOptions("Fast");
+options = rlDefaultOptions("Fast");
 options.computeA0 = true;
 options.computeS0 = false;
 options.computeMRLFERealK = true;

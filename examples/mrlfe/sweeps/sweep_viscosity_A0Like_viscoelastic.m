@@ -4,7 +4,7 @@ startup
 % Sweep example:
 % Effect of shear viscosity etaS on the viscoelastic A0-like mRLFE branch.
 
-params = defaultParams();
+params = rlDefaultParams();
 params.modelType = "YoungPoissonFixedCL";
 params.rho = 1070;
 params.E = 475e3;
@@ -16,7 +16,7 @@ params.fmax = 16000;
 params.numFrequencyPoints = "auto";
 params.frequencySpacing = "hybrid";
 
-options = defaultOptions("Fast");
+options = rlDefaultOptions("Fast");
 options.computeA0 = true;
 options.computeS0 = false;
 options.computeMRLFERealK = true;
