@@ -136,6 +136,42 @@ assert(isequaln(s0ApproxOld, s0ApproxNew), ...
     'computeS0ExtensionalApproximation does not match rlComputeS0ExtensionalApproximation.');
 
 
+%% Rayleigh-Lamb maintained-code old-name audit
+fprintf('\nAuditing maintained MATLAB code for old Rayleigh-Lamb function calls...\n');
+oldRayleighLambNames = { ...
+    'buildFrequencyVector', ...
+    'computeFundamentalLambModes', ...
+    'computeGeometry', ...
+    'computeMaterial', ...
+    'defaultOptions', ...
+    'defaultParams', ...
+    'makeBranchSpec', ...
+    'validateOptions', ...
+    'validateParams', ...
+    'rayleighLambAResidual', ...
+    'rayleighLambSResidual', ...
+    'computeA0ThinPlateApproximation', ...
+    'computeAnalyticalApproximations', ...
+    'computeS0ExtensionalApproximation', ...
+    'solveFundamentalBranch'};
+maintainedAuditRoots = {'analysis', 'app', 'examples', 'tests'};
+maintainedAuditExcludes = { ...
+    'core/', ...
+    'equations/', ...
+    'approximations/', ...
+    'tracking/', ...
+    'models/rayleigh_lamb/', ...
+    'archive/', ...
+    'prototypes/', ...
+    'examples/archive/', ...
+    'tests/run_all_smoke_tests.m'};
+oldNameMatches = auditOldRayleighLambNames( ...
+    maintainedAuditRoots, maintainedAuditExcludes, oldRayleighLambNames);
+assert(isempty(oldNameMatches), ...
+    sprintf('Maintained code uses old Rayleigh-Lamb function calls outside allowed legacy contexts:\n%s', ...
+    strjoin(oldNameMatches, newline)));
+
+
 %% Rayleigh-Lamb minimal numerical regression fixtures
 fprintf('\nChecking Rayleigh-Lamb minimal numerical regression fixtures...\n');
 regressionTol = 1e-12;
@@ -300,6 +336,86 @@ test_mrlfe_smoke;
 
 fprintf('\nAll maintained smoke tests passed.\n');
 
+
+function matches = auditOldRayleighLambNames(auditRoots, auditExcludes, oldNames)
+%AUDITOLDRAYLEIGHLAMBNAMES Find old-name function calls in maintained code.
+matches = {};
+repoRoot = fileparts(fileparts(mfilename('fullpath')));
+for iRoot = 1:numel(auditRoots)
+    rootPath = fullfile(repoRoot, auditRoots{iRoot});
+    if ~isfolder(rootPath)
+        continue;
+    end
+    files = dir(fullfile(rootPath, '**', '*.m'));
+    for iFile = 1:numel(files)
+        filePath = fullfile(files(iFile).folder, files(iFile).name);
+        relativePath = normalizeAuditPath(strrep(filePath, [repoRoot filesep], ''));
+        if isExcludedAuditPath(relativePath, auditExcludes)
+            continue;
+        end
+        fileText = fileread(filePath);
+        codeText = stripMatlabComments(fileText);
+        for iName = 1:numel(oldNames)
+            expression = ['(?<![A-Za-z0-9_])' oldNames{iName} '\s*\('];
+            if ~isempty(regexp(codeText, expression, 'once'))
+                matches{end + 1} = sprintf('%s: %s(', relativePath, oldNames{iName}); %#ok<AGROW>
+            end
+        end
+    end
+end
+matches = unique(matches, 'stable');
+end
+
+function tf = isExcludedAuditPath(relativePath, auditExcludes)
+%ISEXCLUDEDAUDITPATH Return true for compatibility, archive, or audit files.
+tf = false;
+for iExclude = 1:numel(auditExcludes)
+    excludedPath = normalizeAuditPath(auditExcludes{iExclude});
+    if endsWith(excludedPath, '/')
+        if startsWith(relativePath, excludedPath) || contains(relativePath, ['/' excludedPath])
+            tf = true;
+            return;
+        end
+    elseif strcmp(relativePath, excludedPath)
+        tf = true;
+        return;
+    end
+end
+end
+
+function normalizedPath = normalizeAuditPath(pathText)
+%NORMALIZEAUDITPATH Use forward slashes for stable path matching.
+normalizedPath = strrep(pathText, '\', '/');
+end
+
+function codeText = stripMatlabComments(fileText)
+%STRIPMATLABCOMMENTS Remove MATLAB comments while preserving quoted strings.
+lines = regexp(fileText, '\r\n|\n|\r', 'split');
+for iLine = 1:numel(lines)
+    lineText = lines{iLine};
+    inString = false;
+    commentStart = 0;
+    iChar = 1;
+    while iChar <= strlength(lineText)
+        currentChar = extractBetween(lineText, iChar, iChar);
+        if strcmp(currentChar, '''')
+            if inString && iChar < strlength(lineText) && strcmp(extractBetween(lineText, iChar + 1, iChar + 1), '''')
+                iChar = iChar + 2;
+                continue;
+            end
+            inString = ~inString;
+        elseif strcmp(currentChar, '%') && ~inString
+            commentStart = iChar;
+            break;
+        end
+        iChar = iChar + 1;
+    end
+    if commentStart > 0
+        lines{iLine} = extractBefore(lineText, commentStart);
+    end
+end
+codeText = strjoin(lines, newline);
+end
 function assertNumericClose(actual, expected, tol, message)
 %ASSERTNUMERICCLOSE Strict numeric comparison that treats matching empty arrays as equal.
 if isempty(actual) && isempty(expected)

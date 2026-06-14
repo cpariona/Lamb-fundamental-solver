@@ -76,6 +76,9 @@ No physical Rayleigh-Lamb file migration, removal, or folder cleanup should be a
 
 ## Test requirements before migration
 
+The smoke suite includes a maintained-code old-name audit that guards against accidental calls to legacy Rayleigh-Lamb names in maintained MATLAB code. Old names are expected only in compatibility wrappers, compatibility smoke checks, documentation, archive/prototype content, or other explicitly allowed legacy contexts.
+
+
 Before any future migration, the validation plan should include:
 
 - Path checks for both old top-level names and new `rl*` names.
