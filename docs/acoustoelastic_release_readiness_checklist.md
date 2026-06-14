@@ -1,5 +1,7 @@
 # Acoustoelastic IOP/HGO release-readiness checklist
 
+For the post-release documentation-only audit and future migration plan for the base Rayleigh-Lamb solver, see [Rayleigh-Lamb base solver reorganization plan](rayleigh_lamb_base_reorganization_plan.md).
+
 ## Purpose
 
 This checklist records the minimum documentation, API, compatibility, and local-validation state expected before creating a post-migration Acoustoelastic IOP/HGO tag. It is documentation-only and does not change MATLAB source, tests, examples, diagnostics, sweeps, GUI code, archive/prototype files, startup behavior, or model implementation files.
