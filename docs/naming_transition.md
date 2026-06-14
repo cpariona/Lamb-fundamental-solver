@@ -24,9 +24,16 @@ Author-neutral atlas-branch implementation used by the convenience entrypoint:
 solveAcoustoelasticIOPHGOAtlasBranch
 ```
 
-Compatibility function still available as a wrapper:
+Author-neutral direct IOP/HGO dispersion solver implementation:
 
 ```matlab
+solveAcoustoelasticIOPHGODispersion
+```
+
+Compatibility functions still available as wrappers:
+
+```matlab
+solveDispersionIOPHGO_Li2024
 solveDispersionIOPHGOAtlasBranch_Li2024
 ```
 
@@ -102,7 +109,7 @@ tests/li2024/
 
 ## Current policy
 
-For now, do not delete the original Li2024-named MATLAB functions. `defaultLi2024AcoustoelasticOptions` and `solveDispersionIOPHGOAtlasBranch_Li2024` remain compatibility wrappers while the public API moves to author-neutral names.
+For now, do not delete the original Li2024-named MATLAB functions. `defaultLi2024AcoustoelasticOptions`, `solveDispersionIOPHGO_Li2024`, and `solveDispersionIOPHGOAtlasBranch_Li2024` remain compatibility wrappers while the public API moves to author-neutral names.
 
 Future cleanup can rename internal functions in a dedicated pull request, but MATLAB file names and function names must be changed consistently.
 
