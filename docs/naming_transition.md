@@ -210,6 +210,10 @@ Remaining `Li2024` references are preserved intentionally when they fall into on
 
 When documentation lists both names, list the author-neutral name first and mark the `Li2024` name as compatibility-only.
 
+## Smoke-test coverage
+
+`run_all_smoke_tests` now includes a path-level compatibility section for the preserved `Li2024` wrapper names in addition to the maintained author-neutral Acoustoelastic IOP/HGO path checks. These checks only verify that names are resolvable with `which`; they do not execute numerical wrappers, solve dispersion curves, or validate numerical equivalence. Numerical equivalence testing is intentionally deferred to a separate future validation phase.
+
 ## Current policy
 
 For now, do not delete the original Li2024-named MATLAB functions. `defaultLi2024AcoustoelasticOptions`, `solveDispersionIOPHGO_Li2024`, `solveDispersionIOPHGOAtlasBranch_Li2024`, `solveDispersion_Li2024_Acoustoelastic`, `solveDispersionComplexC_Li2024_Acoustoelastic`, `computeABGFromIOPHGO_Li2024`, `computeAlphaBetaGamma_Li2024`, `computePrestressSigma_Li2024`, `solveStretchHGO_Li2024`, `computeSRoots_Li2024`, and `buildMatrix_Li2024_Acoustoelastic` remain compatibility wrappers while the public API moves to author-neutral names.

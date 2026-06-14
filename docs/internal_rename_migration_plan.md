@@ -173,6 +173,10 @@ The author-neutral Acoustoelastic IOP/HGO constitutive helper names now exist, t
 Before touching these, add targeted tests that compare old and new function outputs on fixed small cases, including edge cases for `strictA0`, complex-c solving, constitutive identity, and GUI-independent default parameter construction.
 
 
+## Smoke-test compatibility status
+
+`run_all_smoke_tests` now verifies both maintained author-neutral Acoustoelastic IOP/HGO names and preserved `Li2024` legacy wrapper names are resolvable on the MATLAB path. This is a path-level compatibility check only, implemented with `which`; it does not execute the legacy numerical wrappers, solve dispersion curves, or run heavy diagnostics. Numerical equivalence testing remains intentionally deferred to a separate future validation phase.
+
 ## Legacy Li2024 reference audit status
 
 This audit keeps the migration documentation-only. Author-neutral Acoustoelastic IOP/HGO names are the maintained names for new code, while `Li2024`-named functions remain callable as compatibility wrappers. Remaining `Li2024` references in compatibility wrappers are intentional. Remaining references in archive, prototype, example, diagnostic, sweep, generated-output, and paper/provenance contexts are historical and should not be renamed in this phase. New implementation code should avoid `Li2024` calls unless the code is explicitly exercising backward compatibility.
