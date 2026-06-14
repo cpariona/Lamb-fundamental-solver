@@ -197,6 +197,19 @@ examples/li2024/
 tests/li2024/
 ```
 
+
+## Legacy reference audit policy
+
+Author-neutral Acoustoelastic IOP/HGO names are the maintained API names for new code. The `Li2024`-named functions remain available as compatibility wrappers and should stay callable until the project adopts a documented deprecation policy. New code should not call `Li2024` names except when explicitly testing backward compatibility or documenting legacy behavior.
+
+Remaining `Li2024` references are preserved intentionally when they fall into one of these categories:
+
+- Compatibility wrappers, compatibility scripts, and compatibility tests whose purpose is to keep old user-facing names callable.
+- Archive, prototype, example, diagnostic, and sweep files that preserve historical development context, output names, or comparison workflows; these are historical and should not be renamed in this phase.
+- Paper, literature, and provenance notes where the author label identifies model lineage or source material rather than the maintained API.
+
+When documentation lists both names, list the author-neutral name first and mark the `Li2024` name as compatibility-only.
+
 ## Current policy
 
 For now, do not delete the original Li2024-named MATLAB functions. `defaultLi2024AcoustoelasticOptions`, `solveDispersionIOPHGO_Li2024`, `solveDispersionIOPHGOAtlasBranch_Li2024`, `solveDispersion_Li2024_Acoustoelastic`, `solveDispersionComplexC_Li2024_Acoustoelastic`, `computeABGFromIOPHGO_Li2024`, `computeAlphaBetaGamma_Li2024`, `computePrestressSigma_Li2024`, `solveStretchHGO_Li2024`, `computeSRoots_Li2024`, and `buildMatrix_Li2024_Acoustoelastic` remain compatibility wrappers while the public API moves to author-neutral names.
