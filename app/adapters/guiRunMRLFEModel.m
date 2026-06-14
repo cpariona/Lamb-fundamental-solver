@@ -62,6 +62,13 @@ end
 
 modelNames = string(fieldnames(rawResult.models));
 modelNames = modelNames(modelNames ~= "mRLFE");
+if any(modelNames == "mRLFEElasticRealK")
+    % mRLFERealK is a compatibility alias for mRLFEElasticRealK in the raw
+    % solver result. Keep only the explicit maintained model name so the GUI
+    % normalized result does not plot/export duplicated elastic branches.
+    modelNames = modelNames(modelNames ~= "mRLFERealK");
+end
+
 for i = 1:numel(modelNames)
     modelName = modelNames(i);
     modelResult = rawResult.models.(char(modelName));
