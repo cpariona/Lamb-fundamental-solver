@@ -16,7 +16,7 @@ Do not treat this document as approval to migrate those folders. It defines the 
 ## Current implementation state
 
 - `rl*` functions under `models/rayleigh_lamb/` are the primary Rayleigh-Lamb implementation entrypoints.
-- Top-level functions under `core/`, `equations/`, `approximations/`, and `tracking/` are compatibility wrappers.
+- Top-level functions under `core/`, `equations/`, `approximations/`, and `tracking/` are compatibility wrappers with explicit compatibility headers.
 - Maintained code should use `rl*` names when it calls the Rayleigh-Lamb base implementation directly.
 - Old names remain supported for existing scripts and downstream workflows, but they should not be used in new maintained code.
 

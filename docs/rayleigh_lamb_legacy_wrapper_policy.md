@@ -4,7 +4,7 @@
 
 The `models/rayleigh_lamb/rl*` functions are the primary Rayleigh-Lamb implementation entrypoints. For the public API table mapping primary `rl*` names to old top-level compatibility names, see [Rayleigh-Lamb public API](rayleigh_lamb_public_api.md). Maintained examples, GUI/app call sites, analysis scripts, and mRLFE examples/tests should prefer the `rl*` names when they need to call the base Rayleigh-Lamb implementation directly.
 
-The old top-level functions in `core/`, `equations/`, `approximations/`, and `tracking/` remain available as compatibility wrappers. These files preserve the historical callable names while forwarding to the maintained `rl*` implementation layer.
+The old top-level functions in `core/`, `equations/`, `approximations/`, and `tracking/` remain available as compatibility wrappers. These files preserve the historical callable names while forwarding to the maintained `rl*` implementation layer. The legacy wrapper files now include explicit compatibility headers that identify the corresponding primary `rl*` function, direct new maintained code to call that `rl*` entrypoint, and explain that the wrapper remains for old scripts and notebooks.
 
 This policy is documentation-only. It does not authorize removing files, changing startup path behavior, changing numerical behavior, or migrating physical files.
 
