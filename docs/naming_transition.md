@@ -1,5 +1,7 @@
 # Naming transition guide
 
+For the current post-rename Acoustoelastic IOP/HGO layer map, maintained entrypoints, compatibility wrappers, and future cleanup candidates, see [Acoustoelastic IOP/HGO post-rename architecture](acoustoelastic_post_rename_architecture.md).
+
 This document records the current naming transition for the acoustoelastic IOP/HGO implementation.
 
 ## Goal

@@ -1,5 +1,7 @@
 # Internal rename migration plan
 
+For the concise current-state summary after the Acoustoelastic IOP/HGO author-neutral rename migration, see [Acoustoelastic IOP/HGO post-rename architecture](acoustoelastic_post_rename_architecture.md).
+
 This is a conservative implementation plan only. It does not perform the migration. Each implementation phase must preserve a passing MATLAB validation sequence:
 
 ```matlab

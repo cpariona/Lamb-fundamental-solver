@@ -1,5 +1,7 @@
 # Maintained entrypoints
 
+For a concise layer-by-layer summary of the post-migration Acoustoelastic IOP/HGO API structure, see [Acoustoelastic IOP/HGO post-rename architecture](acoustoelastic_post_rename_architecture.md).
+
 This document lists the maintained solver, example, diagnostic, and test entrypoints after the Acoustoelastic IOP/HGO and mRLFE refactors.
 
 ## Setup
