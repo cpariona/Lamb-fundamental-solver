@@ -19,6 +19,7 @@ Recommended author-neutral entrypoints for routine use:
 ```matlab
 solveAcoustoelasticIOPHGOBranch
 solveAcoustoelasticIOPHGOAtlasBranch
+solveAcoustoelasticAtlasBranch
 solveAcoustoelasticIOPHGODispersion
 solveAcoustoelasticDispersion
 solveAcoustoelasticComplexCDispersion
@@ -33,7 +34,7 @@ test_acoustoelastic_iop_hgo_strictA0_smoke
 Author-neutral Acoustoelastic IOP/HGO example, diagnostic, and sweep entrypoints now exist for the maintained `examples/acoustoelastic_iop_hgo/` tree. The older `Li2024`-named example, diagnostic, and sweep scripts remain available as compatibility wrappers during the naming transition.
 
 
-`solveAcoustoelasticIOPHGOBranch` remains the recommended public convenience entrypoint. `solveAcoustoelasticIOPHGOAtlasBranch` is the author-neutral atlas-branch implementation used by that convenience entrypoint. `solveAcoustoelasticIOPHGODispersion` is now the author-neutral direct IOP/HGO dispersion solver implementation. `solveAcoustoelasticDispersion` is now the author-neutral mid-level Acoustoelastic dispersion solver. `solveAcoustoelasticComplexCDispersion` is now the author-neutral complex-c Acoustoelastic dispersion solver. `defaultAcoustoelasticIOPHGOOptions` is now the author-neutral options implementation. `solveDispersionIOPHGO_Li2024`, `solveDispersionIOPHGOAtlasBranch_Li2024`, `solveDispersion_Li2024_Acoustoelastic`, `solveDispersionComplexC_Li2024_Acoustoelastic`, and `defaultLi2024AcoustoelasticOptions` remain compatibility wrappers.
+`solveAcoustoelasticIOPHGOBranch` remains the recommended public convenience entrypoint. `solveAcoustoelasticIOPHGOAtlasBranch` remains the author-neutral high-level IOP/HGO atlas-branch solver used by that convenience entrypoint. `solveAcoustoelasticAtlasBranch` is now the author-neutral generic Acoustoelastic atlas-branch solver. `solveAcoustoelasticIOPHGODispersion` is now the author-neutral direct IOP/HGO dispersion solver implementation. `solveAcoustoelasticDispersion` is now the author-neutral mid-level Acoustoelastic dispersion solver. `solveAcoustoelasticComplexCDispersion` is now the author-neutral complex-c Acoustoelastic dispersion solver. `defaultAcoustoelasticIOPHGOOptions` is now the author-neutral options implementation. `solveDispersionIOPHGO_Li2024`, `solveDispersionIOPHGOAtlasBranch_Li2024`, `solveDispersionAtlasBranch_Li2024_Acoustoelastic`, `solveDispersion_Li2024_Acoustoelastic`, `solveDispersionComplexC_Li2024_Acoustoelastic`, and `defaultLi2024AcoustoelasticOptions` remain compatibility wrappers.
 
 The author-neutral Acoustoelastic IOP/HGO tracking-quality analysis helper is now available as `summarizeAcoustoelasticIOPHGOTrackingQuality`; the older `summarizeLi2024TrackingQuality` helper remains available as a compatibility wrapper.
 

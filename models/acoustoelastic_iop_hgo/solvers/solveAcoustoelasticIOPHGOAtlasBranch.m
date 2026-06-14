@@ -5,7 +5,7 @@ function result = solveAcoustoelasticIOPHGOAtlasBranch(params, options)
 %   IOP, R, thickness, mu, k1, k2, rho, rhoF, fluidBulkModulus, frequency
 %
 % This wrapper computes alpha, beta, gamma from the IOP/HGO constitutive block
-% and then calls solveDispersionAtlasBranch_Li2024_Acoustoelastic.
+% and then calls solveAcoustoelasticAtlasBranch.
 
 if nargin < 2 || isempty(options)
     options = defaultAcoustoelasticIOPHGOOptions();
@@ -31,7 +31,7 @@ directParams.rhoF = params.rhoF;
 directParams.fluidBulkModulus = params.fluidBulkModulus;
 directParams.frequency = params.frequency;
 
-result = solveDispersionAtlasBranch_Li2024_Acoustoelastic(directParams, options);
+result = solveAcoustoelasticAtlasBranch(directParams, options);
 result.constitutiveState = state;
 result.directParams = directParams;
 end

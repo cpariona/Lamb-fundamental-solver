@@ -18,10 +18,16 @@ Recommended public convenience entrypoint:
 solveAcoustoelasticIOPHGOBranch
 ```
 
-Author-neutral atlas-branch implementation used by the convenience entrypoint:
+Author-neutral high-level IOP/HGO atlas-branch solver used by the convenience entrypoint:
 
 ```matlab
 solveAcoustoelasticIOPHGOAtlasBranch
+```
+
+Author-neutral generic Acoustoelastic atlas-branch solver:
+
+```matlab
+solveAcoustoelasticAtlasBranch
 ```
 
 Author-neutral direct IOP/HGO dispersion solver implementation:
@@ -42,6 +48,7 @@ Compatibility functions still available as wrappers:
 ```matlab
 solveDispersionIOPHGO_Li2024
 solveDispersionIOPHGOAtlasBranch_Li2024
+solveDispersionAtlasBranch_Li2024_Acoustoelastic
 solveDispersion_Li2024_Acoustoelastic
 solveDispersionComplexC_Li2024_Acoustoelastic
 ```

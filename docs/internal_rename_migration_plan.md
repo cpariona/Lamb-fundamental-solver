@@ -58,11 +58,12 @@ For at least one release, keep these names callable:
 
 - `models/acoustoelastic_iop_hgo/options/defaultAcoustoelasticIOPHGOOptions.m` is now the author-neutral options implementation.
 - `models/acoustoelastic_iop_hgo/options/defaultLi2024AcoustoelasticOptions.m` remains a wrapper to `defaultAcoustoelasticIOPHGOOptions`.
-- `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGOAtlasBranch.m` is now the author-neutral atlas-branch implementation.
+- `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGOAtlasBranch.m` remains the author-neutral high-level IOP/HGO atlas-branch solver.
 - `models/acoustoelastic_iop_hgo/solvers/solveDispersionIOPHGOAtlasBranch_Li2024.m` remains a wrapper to `solveAcoustoelasticIOPHGOAtlasBranch`.
 - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGODispersion.m` is now the author-neutral direct IOP/HGO dispersion solver implementation.
 - `models/acoustoelastic_iop_hgo/solvers/solveDispersionIOPHGO_Li2024.m` remains a wrapper to `solveAcoustoelasticIOPHGODispersion`.
-- `models/acoustoelastic_iop_hgo/solvers/solveDispersionAtlasBranch_Li2024_Acoustoelastic.m` -> wrapper to an author-neutral atlas-branch implementation once introduced.
+- `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticAtlasBranch.m` is now the author-neutral generic Acoustoelastic atlas-branch solver.
+- `models/acoustoelastic_iop_hgo/solvers/solveDispersionAtlasBranch_Li2024_Acoustoelastic.m` remains a compatibility wrapper to `solveAcoustoelasticAtlasBranch`.
 - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticComplexCDispersion.m` is now the author-neutral complex-c Acoustoelastic dispersion solver. `models/acoustoelastic_iop_hgo/solvers/solveDispersionComplexC_Li2024_Acoustoelastic.m` remains a compatibility wrapper.
 - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticDispersion.m` is now the author-neutral mid-level Acoustoelastic dispersion solver. `models/acoustoelastic_iop_hgo/solvers/solveDispersion_Li2024_Acoustoelastic.m` remains a compatibility wrapper.
 - `models/acoustoelastic_iop_hgo/core/*_Li2024*.m` and `models/acoustoelastic_iop_hgo/constitutive/*_Li2024*.m` -> wrappers only after equivalent author-neutral internals are introduced and tests cover the call graph.
@@ -126,7 +127,8 @@ Because these functions are broadly used and `startup.m` path behavior is centra
 - All `models/mrlfe/**` files; `mRLFE` is the model name and should not be renamed.
 - Author-neutral acoustoelastic public entrypoints:
   - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGOBranch.m` (recommended public convenience entrypoint)
-  - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGOAtlasBranch.m` (author-neutral atlas-branch implementation)
+  - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGOAtlasBranch.m` (author-neutral high-level IOP/HGO atlas-branch solver)
+  - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticAtlasBranch.m` (author-neutral generic Acoustoelastic atlas-branch solver)
   - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGODispersion.m` (author-neutral direct IOP/HGO dispersion solver implementation)
   - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticDispersion.m` (author-neutral mid-level Acoustoelastic dispersion solver)
   - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticComplexCDispersion.m` (author-neutral complex-c Acoustoelastic dispersion solver)
