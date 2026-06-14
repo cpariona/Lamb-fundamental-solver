@@ -1,6 +1,6 @@
 # Acoustoelastic IOP/HGO post-rename architecture
 
-For a concise final snapshot of maintained author-neutral names, legacy compatibility wrappers, intentional `Li2024` references, and deferred validation work, see [Acoustoelastic IOP/HGO final naming snapshot](acoustoelastic_final_naming_snapshot.md).
+For a concise final snapshot of maintained author-neutral names, legacy compatibility wrappers, intentional `Li2024` references, and deferred validation work, see [Acoustoelastic IOP/HGO final naming snapshot](acoustoelastic_final_naming_snapshot.md). For tag preparation, see the [Acoustoelastic IOP/HGO release-readiness checklist](acoustoelastic_release_readiness_checklist.md).
 
 This document summarizes the maintained Acoustoelastic IOP/HGO naming structure after the author-neutral rename migration. It is an architecture and naming guide only; it does not define new numerical formulas, solver behavior, or validation requirements.
 

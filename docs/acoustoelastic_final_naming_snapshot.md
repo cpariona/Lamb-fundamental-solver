@@ -4,7 +4,7 @@
 
 This document records the post-migration naming state of the Acoustoelastic IOP/HGO model after the author-neutral naming migration. It is a documentation snapshot only: it does not introduce numerical changes, new APIs, source moves, or validation requirements.
 
-Use this snapshot as the concise reference for which Acoustoelastic IOP/HGO names are maintained for new code, which legacy `Li2024` names remain callable as compatibility wrappers, and which remaining `Li2024` references are intentional.
+Use this snapshot as the concise reference for which Acoustoelastic IOP/HGO names are maintained for new code, which legacy `Li2024` names remain callable as compatibility wrappers, and which remaining `Li2024` references are intentional. For tag preparation, see the [Acoustoelastic IOP/HGO release-readiness checklist](acoustoelastic_release_readiness_checklist.md).
 
 ## Maintained author-neutral names
 
