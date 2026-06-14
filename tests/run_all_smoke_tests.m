@@ -11,6 +11,15 @@ fprintf('\nRunning Lamb Fundamental Solver smoke tests...\n');
 fprintf('---------------------------------------------\n');
 
 
+%% GUI adapter path checks
+fprintf('\nChecking GUI adapter path functions...\n');
+assert(~isempty(which('guiRunRayleighLambModel')), ...
+    'Missing GUI adapter function guiRunRayleighLambModel on MATLAB path.');
+assert(~isempty(which('guiRunMRLFEModel')), ...
+    'Missing GUI adapter function guiRunMRLFEModel on MATLAB path.');
+assert(~isempty(which('guiRunAcoustoelasticIOPHGOModel')), ...
+    'Missing GUI adapter function guiRunAcoustoelasticIOPHGOModel on MATLAB path.');
+
 %% Rayleigh-Lamb primary API path checks
 fprintf('\nChecking Rayleigh-Lamb primary rl* API functions...\n');
 assert(~isempty(which('rlBuildFrequencyVector')), ...
