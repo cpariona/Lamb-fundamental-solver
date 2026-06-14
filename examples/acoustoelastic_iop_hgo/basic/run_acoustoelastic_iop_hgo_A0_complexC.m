@@ -51,7 +51,7 @@ complexOptions.complexCInitialImagRatio = -1e-3;
 complexOptions.complexCImagLimitRatio = 0.50;
 complexOptions.complexCMaxIter = 250;
 complexOptions.complexCMaxFunEvals = 900;
-complexResult = solveDispersionComplexC_Li2024_Acoustoelastic(seedResult.directParams, complexOptions, seedResult);
+complexResult = solveAcoustoelasticComplexCDispersion(seedResult.directParams, complexOptions, seedResult);
 
 figure('Color', 'w');
 validSeed = seedResult.validCp & isfinite(seedResult.Cp);
