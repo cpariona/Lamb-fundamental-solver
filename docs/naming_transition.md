@@ -89,6 +89,22 @@ solveStretchHGO_Li2024
 
 No constitutive logic was intentionally changed during this rename; the compatibility wrappers forward to the author-neutral implementations.
 
+### Acoustoelastic S-roots helper
+
+Author-neutral Acoustoelastic S-roots helper implementation:
+
+```matlab
+computeAcoustoelasticSRoots
+```
+
+Compatibility function still available as a wrapper:
+
+```matlab
+computeSRoots_Li2024
+```
+
+No root logic was intentionally changed during this rename; the compatibility wrapper forwards to the author-neutral implementation.
+
 ### Acoustoelastic IOP/HGO example
 
 ```matlab
@@ -147,7 +163,7 @@ tests/li2024/
 
 ## Current policy
 
-For now, do not delete the original Li2024-named MATLAB functions. `defaultLi2024AcoustoelasticOptions`, `solveDispersionIOPHGO_Li2024`, `solveDispersionIOPHGOAtlasBranch_Li2024`, `solveDispersion_Li2024_Acoustoelastic`, `solveDispersionComplexC_Li2024_Acoustoelastic`, `computeABGFromIOPHGO_Li2024`, `computeAlphaBetaGamma_Li2024`, `computePrestressSigma_Li2024`, and `solveStretchHGO_Li2024` remain compatibility wrappers while the public API moves to author-neutral names.
+For now, do not delete the original Li2024-named MATLAB functions. `defaultLi2024AcoustoelasticOptions`, `solveDispersionIOPHGO_Li2024`, `solveDispersionIOPHGOAtlasBranch_Li2024`, `solveDispersion_Li2024_Acoustoelastic`, `solveDispersionComplexC_Li2024_Acoustoelastic`, `computeABGFromIOPHGO_Li2024`, `computeAlphaBetaGamma_Li2024`, `computePrestressSigma_Li2024`, `solveStretchHGO_Li2024`, and `computeSRoots_Li2024` remain compatibility wrappers while the public API moves to author-neutral names.
 
 Future cleanup can rename internal functions in a dedicated pull request, but MATLAB file names and function names must be changed consistently.
 
