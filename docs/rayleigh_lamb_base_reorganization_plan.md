@@ -4,7 +4,7 @@
 
 This document is a documentation-only architecture audit and future migration plan for the current Rayleigh-Lamb base solver. It records the present folder layout, identifies the MATLAB files that appear to form the base solver, and proposes a conservative reorganization path for a later implementation phase.
 
-This phase does not move files, rename MATLAB functions, modify solver source code, or alter numerical behavior. Lightweight path-level smoke coverage now exists for the current Rayleigh-Lamb base functions in `tests/run_all_smoke_tests.m`; those checks verify MATLAB path resolution only and do not execute numerical solves. The Acoustoelastic IOP/HGO author-neutral API migration is treated as completed and tagged as `v0.4.0-acoustoelastic-author-neutral-api`; this plan is about the next possible Rayleigh-Lamb base solver cleanup.
+This phase now introduces a non-invasive organized wrapper layer under `models/rayleigh_lamb/` without moving files, renaming existing MATLAB functions, modifying solver source code, or altering numerical behavior. The original top-level implementations in `core/`, `equations/`, `approximations/`, and `tracking/` remain in place. Lightweight path-level smoke coverage now exists for both the current Rayleigh-Lamb base functions and the organized wrappers in `tests/run_all_smoke_tests.m`; those checks verify MATLAB path resolution only and do not execute numerical solves. The Acoustoelastic IOP/HGO author-neutral API migration is treated as completed and tagged as `v0.4.0-acoustoelastic-author-neutral-api`; this plan is about the next possible Rayleigh-Lamb base solver cleanup.
 
 ## Current repository structure
 
@@ -14,7 +14,7 @@ The following relevant folders exist in the current repository:
 - `equations/`: Normalized antisymmetric and symmetric Rayleigh-Lamb residual equations used by the base solver.
 - `approximations/`: Low-frequency analytical approximations for the fundamental A0 and S0 Lamb modes.
 - `tracking/`: Continuation/root-tracking logic for following a fundamental branch across frequency points.
-- `models/`: Model-specific implementations that already use model-scoped folders, including Acoustoelastic IOP/HGO and mRLFE code.
+- `models/`: Model-specific implementations that already use model-scoped folders, including Acoustoelastic IOP/HGO and mRLFE code. A non-invasive Rayleigh-Lamb wrapper layer now exists under `models/rayleigh_lamb/` and forwards to the original top-level base implementation files.
 - `examples/`: Runnable examples, sweeps, diagnostics, validation scripts, and archived exploratory scripts for the base solver and model-specific extensions.
 - `tests/`: MATLAB smoke tests for maintained functionality, including Acoustoelastic IOP/HGO and mRLFE checks.
 - `docs/`: Architecture, migration, validation, release-readiness, and maintained-entrypoint documentation.
@@ -92,7 +92,7 @@ Possible mapping for a later code-moving phase:
 - `tracking/solveFundamentalBranch.m` -> `models/rayleigh_lamb/tracking/`
 - selected future Rayleigh-Lamb examples, if reorganized, -> `models/rayleigh_lamb/examples/` or a clearly documented examples subtree.
 
-These folders are proposed only. They should not be created in this documentation-only phase.
+The `core/`, `equations/`, `approximations/`, and `tracking/` folders now exist under `models/rayleigh_lamb/` as an organized wrapper layer only. They forward to the original top-level functions and do not contain moved implementation logic.
 
 ## Compatibility strategy
 
@@ -106,7 +106,7 @@ The transition should avoid changing `startup.m` path behavior and public entryp
 
 - Phase 1: documentation and inventory only.
 - Phase 2: add path-level smoke checks for current Rayleigh-Lamb base functions. **Completed:** `run_all_smoke_tests` now checks that current base functions in `core/`, `equations/`, `approximations/`, and `tracking/` resolve on the MATLAB path without calling them numerically.
-- Phase 3: introduce author-neutral maintained entrypoints if needed.
+- Phase 3: introduce author-neutral maintained entrypoints if needed. **Completed for the wrapper layer:** `models/rayleigh_lamb/` now contains `rl*` wrappers that forward to the original top-level functions without changing numerical behavior.
 - Phase 4: move files into `models/rayleigh_lamb/` while preserving wrappers.
 - Phase 5: update examples and docs.
 - Phase 6: add numerical regression tests before removing or deprecating any legacy paths.
