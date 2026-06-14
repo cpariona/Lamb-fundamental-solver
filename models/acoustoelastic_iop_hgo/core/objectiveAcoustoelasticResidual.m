@@ -10,7 +10,7 @@ if nargin < 10 || isempty(options)
     options = defaultLi2024AcoustoelasticOptions();
 end
 
-[M, aux] = buildMatrix_Li2024_Acoustoelastic(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options);
+[M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options);
 [U, S, V] = svd(M);
 singularValues = diag(S);
 [sigmaMin, idxMin] = min(singularValues);
