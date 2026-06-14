@@ -60,7 +60,8 @@ For at least one release, keep these names callable:
 - `models/acoustoelastic_iop_hgo/options/defaultLi2024AcoustoelasticOptions.m` remains a wrapper to `defaultAcoustoelasticIOPHGOOptions`.
 - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGOAtlasBranch.m` is now the author-neutral atlas-branch implementation.
 - `models/acoustoelastic_iop_hgo/solvers/solveDispersionIOPHGOAtlasBranch_Li2024.m` remains a wrapper to `solveAcoustoelasticIOPHGOAtlasBranch`.
-- `models/acoustoelastic_iop_hgo/solvers/solveDispersionIOPHGO_Li2024.m` -> wrapper to an author-neutral internal IOP/HGO dispersion solver once introduced.
+- `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGODispersion.m` is now the author-neutral direct IOP/HGO dispersion solver implementation.
+- `models/acoustoelastic_iop_hgo/solvers/solveDispersionIOPHGO_Li2024.m` remains a wrapper to `solveAcoustoelasticIOPHGODispersion`.
 - `models/acoustoelastic_iop_hgo/solvers/solveDispersionAtlasBranch_Li2024_Acoustoelastic.m` -> wrapper to an author-neutral atlas-branch implementation once introduced.
 - `models/acoustoelastic_iop_hgo/solvers/solveDispersionComplexC_Li2024_Acoustoelastic.m` -> wrapper to an author-neutral complex-c implementation once introduced.
 - `models/acoustoelastic_iop_hgo/solvers/solveDispersion_Li2024_Acoustoelastic.m` -> wrapper to an author-neutral low-level dispersion implementation once introduced.
@@ -126,6 +127,7 @@ Because these functions are broadly used and `startup.m` path behavior is centra
 - Author-neutral acoustoelastic public entrypoints:
   - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGOBranch.m` (recommended public convenience entrypoint)
   - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGOAtlasBranch.m` (author-neutral atlas-branch implementation)
+  - `models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticIOPHGODispersion.m` (author-neutral direct IOP/HGO dispersion solver implementation)
   - `models/acoustoelastic_iop_hgo/options/defaultAcoustoelasticIOPHGOOptions.m` (author-neutral options implementation)
   - `examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_atlas_branch.m`
   - `examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_policy.m`
