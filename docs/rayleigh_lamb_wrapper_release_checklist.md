@@ -38,7 +38,8 @@ Do not create the tag until this validation passes.
 
 - Old top-level Rayleigh-Lamb functions remain available as compatibility wrappers.
 - `run_all_smoke_tests` includes path-level checks for both old top-level compatibility wrappers and primary `rl*` functions.
-- These checks are path-only, not numerical equivalence tests.
+- `run_all_smoke_tests` also includes lightweight compatibility smoke checks that compare selected safe old-vs-new helper outputs to verify forwarding behavior.
+- Full numerical regression fixtures remain deferred; the smoke checks intentionally avoid full dispersion sweeps and expensive solves.
 
 ## Deferred work not required for this tag
 
