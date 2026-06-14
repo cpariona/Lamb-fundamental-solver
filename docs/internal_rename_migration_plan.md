@@ -50,7 +50,7 @@ Implementation note: author-neutral Acoustoelastic IOP/HGO example, diagnostic, 
 
 ### Analysis helper
 
-- `analysis/summarizeLi2024TrackingQuality.m` -> proposed `analysis/acoustoelastic_iop_hgo/summarizeAcoustoelasticIOPHGOTrackingQuality.m`, with `summarizeLi2024TrackingQuality.m` kept as a wrapper while callers migrate.
+- `analysis/summarizeLi2024TrackingQuality.m` -> `analysis/acoustoelastic_iop_hgo/summarizeAcoustoelasticIOPHGOTrackingQuality.m`, with `summarizeLi2024TrackingQuality.m` kept as a compatibility wrapper while callers migrate. The author-neutral Acoustoelastic IOP/HGO analysis helper now exists.
 
 ## 2. Files that should remain as compatibility wrappers
 
@@ -180,8 +180,8 @@ Before touching these, add targeted tests that compare old and new function outp
 
 ### PR 4: analysis helper rename
 
-- Add `analysis/acoustoelastic_iop_hgo/summarizeAcoustoelasticIOPHGOTrackingQuality.m`.
-- Keep `analysis/summarizeLi2024TrackingQuality.m` as a wrapper.
+- Add `analysis/acoustoelastic_iop_hgo/summarizeAcoustoelasticIOPHGOTrackingQuality.m` author-neutral analysis helper.
+- Keep `analysis/summarizeLi2024TrackingQuality.m` as a compatibility wrapper.
 - Update only documentation and callers that are already under acoustoelastic diagnostics, if any.
 - Run the required MATLAB sequence.
 
