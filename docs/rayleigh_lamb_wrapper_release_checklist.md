@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This checklist records the documentation-only release criteria for the Rayleigh-Lamb `rl*` implementation handoff and maintained call-site adoption milestone. The tag should only be created after the required validation below passes locally in MATLAB from a clean `main`.
+This checklist records the documentation-only release criteria for the Rayleigh-Lamb `rl*` implementation handoff and maintained call-site adoption milestone. For the ongoing maintenance, deprecation, and physical-migration rules for old top-level wrappers, see [Rayleigh-Lamb legacy wrapper policy](rayleigh_lamb_legacy_wrapper_policy.md). The tag should only be created after the required validation below passes locally in MATLAB from a clean `main`.
 
 ## Required local validation before tagging
 
