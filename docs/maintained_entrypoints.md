@@ -175,6 +175,8 @@ test_mrlfe_smoke
 
 ## Smoke-test compatibility scope
 
+`run_all_smoke_tests` also includes Rayleigh-Lamb base solver path smoke checks for the current functions under `core/`, `equations/`, `approximations/`, and `tracking/`. These checks use `which` only; they do not call the functions numerically or solve dispersion curves.
+
 `run_all_smoke_tests` now verifies that both the maintained author-neutral Acoustoelastic IOP/HGO names and the preserved `Li2024` legacy wrapper names are resolvable on the MATLAB path. The legacy-wrapper portion is a path-level compatibility check only: it uses `which` and intentionally does not execute the wrappers, compare numerical outputs, solve dispersion curves, or run heavy diagnostics. Numerical equivalence testing between legacy wrappers and author-neutral implementations is intentionally deferred to a separate future validation phase.
 
 ## Full manual test sequence
