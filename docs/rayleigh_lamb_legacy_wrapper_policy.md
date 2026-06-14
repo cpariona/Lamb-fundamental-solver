@@ -8,6 +8,8 @@ The old top-level functions in `core/`, `equations/`, `approximations/`, and `tr
 
 This policy is documentation-only. It does not authorize removing files, changing startup path behavior, changing numerical behavior, or migrating physical files.
 
+For the physical migration risk assessment and staged plan for these wrapper folders, see the [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md).
+
 ## Compatibility wrapper purpose
 
 The old top-level Rayleigh-Lamb names exist to avoid breaking existing scripts, external notebooks, and downstream workflows that still call the historical API. They provide a stable transition layer while maintained repository code adopts the `rl*` implementation entrypoints.
