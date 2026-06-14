@@ -47,6 +47,12 @@ The repository naming strategy is documented in:
 docs/naming_strategy.md
 ```
 
+The current GUI integration audit and adapter plan are documented in:
+
+```text
+docs/gui_integration_audit.md
+```
+
 ## Launching the GUI
 
 From the repository root, run:
