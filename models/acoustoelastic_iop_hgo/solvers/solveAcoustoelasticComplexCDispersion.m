@@ -95,7 +95,7 @@ catch
 end
 
 cBest = scale .* (xBest(1) + 1i*xBest(2));
-[~, details] = objectiveComplexDet_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+[~, details] = objectiveAcoustoelasticComplexDeterminant(params.alpha, params.beta, params.gamma, ...
     params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cBest, options);
 absDetBest = details.absDet;
 sigmaMinBest = details.sigmaMin;
@@ -114,7 +114,7 @@ if abs(imag(c)) > imagLimit
     return;
 end
 
-[value, ~] = objectiveComplexDet_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+[value, ~] = objectiveAcoustoelasticComplexDeterminant(params.alpha, params.beta, params.gamma, ...
     params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, c, options);
 
 if ~isfinite(value)

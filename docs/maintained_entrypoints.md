@@ -23,6 +23,8 @@ solveAcoustoelasticAtlasBranch
 solveAcoustoelasticIOPHGODispersion
 solveAcoustoelasticDispersion
 solveAcoustoelasticComplexCDispersion
+objectiveAcoustoelasticResidual
+objectiveAcoustoelasticComplexDeterminant
 defaultAcoustoelasticIOPHGOOptions
 computeAcoustoelasticABGFromIOPHGO
 computeAcoustoelasticAlphaBetaGamma
@@ -34,6 +36,8 @@ diagnose_acoustoelastic_iop_hgo_branch_policy
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
 ```
+
+`objectiveAcoustoelasticResidual` is now the author-neutral real-valued Acoustoelastic residual objective helper. `objective_Li2024_Acoustoelastic` remains available as a compatibility wrapper. `objectiveAcoustoelasticComplexDeterminant` is now the author-neutral complex determinant objective helper. `objectiveComplexDet_Li2024_Acoustoelastic` remains available as a compatibility wrapper. No objective, residual, or determinant logic was intentionally changed during this rename.
 
 Author-neutral Acoustoelastic IOP/HGO constitutive helper names now exist: `computeAcoustoelasticABGFromIOPHGO`, `computeAcoustoelasticAlphaBetaGamma`, `computeAcoustoelasticPrestressSigma`, and `solveAcoustoelasticHGOStretch`. The older `Li2024` constitutive helper names remain available as compatibility wrappers, and no constitutive logic was intentionally changed during this rename.
 
@@ -71,6 +75,8 @@ computeABGFromIOPHGO_Li2024
 computeAlphaBetaGamma_Li2024
 computePrestressSigma_Li2024
 solveStretchHGO_Li2024
+objective_Li2024_Acoustoelastic
+objectiveComplexDet_Li2024_Acoustoelastic
 run_li2024_IOP_HGO_A0_atlas_branch
 diagnose_li2024_atlas_branch_policy
 test_li2024_constitutive_identity

@@ -53,6 +53,26 @@ solveDispersion_Li2024_Acoustoelastic
 solveDispersionComplexC_Li2024_Acoustoelastic
 ```
 
+### Acoustoelastic objective helpers
+
+Author-neutral objective helper implementations now exist:
+
+```matlab
+objectiveAcoustoelasticResidual
+objectiveAcoustoelasticComplexDeterminant
+```
+
+`objectiveAcoustoelasticResidual` is the author-neutral real-valued Acoustoelastic residual objective helper. `objectiveAcoustoelasticComplexDeterminant` is the author-neutral complex determinant objective helper.
+
+Compatibility functions still available as wrappers:
+
+```matlab
+objective_Li2024_Acoustoelastic
+objectiveComplexDet_Li2024_Acoustoelastic
+```
+
+No objective, residual, or determinant logic was intentionally changed during this rename; the compatibility wrappers forward to the author-neutral implementations.
+
 ### Acoustoelastic IOP/HGO options
 
 Author-neutral options implementation:

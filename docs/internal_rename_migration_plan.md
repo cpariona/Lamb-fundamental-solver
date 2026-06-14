@@ -150,8 +150,8 @@ Because these functions are broadly used and `startup.m` path behavior is centra
 
 - `models/acoustoelastic_iop_hgo/core/buildMatrix_Li2024_Acoustoelastic.m`
 - `models/acoustoelastic_iop_hgo/core/computeSRoots_Li2024.m` (compatibility wrapper for `computeAcoustoelasticSRoots`)
-- `models/acoustoelastic_iop_hgo/core/objectiveComplexDet_Li2024_Acoustoelastic.m`
-- `models/acoustoelastic_iop_hgo/core/objective_Li2024_Acoustoelastic.m`
+- `models/acoustoelastic_iop_hgo/core/objectiveAcoustoelasticComplexDeterminant.m` (author-neutral complex determinant objective helper; `objectiveComplexDet_Li2024_Acoustoelastic.m` remains a compatibility wrapper)
+- `models/acoustoelastic_iop_hgo/core/objectiveAcoustoelasticResidual.m` (author-neutral real-valued residual objective helper; `objective_Li2024_Acoustoelastic.m` remains a compatibility wrapper)
 - `models/acoustoelastic_iop_hgo/constitutive/computeAcoustoelasticABGFromIOPHGO.m` (author-neutral implementation; `computeABGFromIOPHGO_Li2024.m` remains a compatibility wrapper)
 - `models/acoustoelastic_iop_hgo/constitutive/computeAcoustoelasticAlphaBetaGamma.m` (author-neutral implementation; `computeAlphaBetaGamma_Li2024.m` remains a compatibility wrapper)
 - `models/acoustoelastic_iop_hgo/constitutive/computeAcoustoelasticPrestressSigma.m` (author-neutral implementation; `computePrestressSigma_Li2024.m` remains a compatibility wrapper)
@@ -164,6 +164,8 @@ Because these functions are broadly used and `startup.m` path behavior is centra
 - GUI files in `app/`
 - `startup.m`
 
+
+The author-neutral Acoustoelastic objective helper names now exist: `objectiveAcoustoelasticResidual` is the real-valued residual objective helper, and `objectiveAcoustoelasticComplexDeterminant` is the complex determinant objective helper. The old `objective_Li2024_Acoustoelastic` and `objectiveComplexDet_Li2024_Acoustoelastic` names remain as compatibility wrappers. No objective, residual, or determinant logic was intentionally changed during this rename.
 
 The author-neutral Acoustoelastic IOP/HGO constitutive helper names now exist, the old `Li2024` helper names remain as compatibility wrappers, and no constitutive logic was intentionally changed during the helper rename.
 
