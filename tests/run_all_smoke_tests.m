@@ -135,6 +135,64 @@ s0ApproxNew = rlComputeS0ExtensionalApproximation(approxFrequency, materialNew, 
 assert(isequaln(s0ApproxOld, s0ApproxNew), ...
     'computeS0ExtensionalApproximation does not match rlComputeS0ExtensionalApproximation.');
 
+
+%% Rayleigh-Lamb minimal numerical regression fixtures
+fprintf('\nChecking Rayleigh-Lamb minimal numerical regression fixtures...\n');
+regressionTol = 1e-12;
+
+regressionParams = rlDefaultParams();
+regressionParams.fmin = 10;
+regressionParams.fmax = 100;
+regressionParams.numFrequencyPoints = 10;
+regressionParams.frequencySpacing = "linspace";
+
+regressionOptions = rlDefaultOptions();
+regressionOptions.computeA0 = true;
+regressionOptions.computeS0 = true;
+regressionOptions.computeMRLFE = false;
+
+regressionResults = rlComputeFundamentalLambModes(regressionParams, regressionOptions);
+regressionRepeat = rlComputeFundamentalLambModes(regressionParams, regressionOptions);
+expectedSize = size(rlBuildFrequencyVector(regressionParams));
+
+assert(isfield(regressionResults, 'grid') && isfield(regressionResults.grid, 'frequency'), ...
+    'Rayleigh-Lamb regression results are missing grid.frequency.');
+assert(isfield(regressionResults, 'modes') && isfield(regressionResults.modes, 'A0'), ...
+    'Rayleigh-Lamb regression results are missing A0 mode output.');
+assert(isfield(regressionResults.modes, 'S0'), ...
+    'Rayleigh-Lamb regression results are missing S0 mode output.');
+
+regressionFrequency = regressionResults.grid.frequency;
+regressionA0 = regressionResults.modes.A0;
+regressionS0 = regressionResults.modes.S0;
+
+assert(isequal(size(regressionFrequency), expectedSize), ...
+    'Rayleigh-Lamb regression frequency size does not match the requested grid.');
+assert(isequal(size(regressionA0.frequency), expectedSize), ...
+    'Rayleigh-Lamb A0 regression frequency size does not match the requested grid.');
+assert(isequal(size(regressionS0.frequency), expectedSize), ...
+    'Rayleigh-Lamb S0 regression frequency size does not match the requested grid.');
+assert(isequal(size(regressionA0.Cp), expectedSize), ...
+    'Rayleigh-Lamb A0 regression Cp size does not match the requested grid.');
+assert(isequal(size(regressionS0.Cp), expectedSize), ...
+    'Rayleigh-Lamb S0 regression Cp size does not match the requested grid.');
+
+assert(all(isfinite(regressionFrequency(:))), ...
+    'Rayleigh-Lamb regression frequencies must be finite.');
+assert(all(isfinite(regressionA0.Cp(:)) & regressionA0.Cp(:) > 0), ...
+    'Rayleigh-Lamb A0 regression Cp values must be finite and positive.');
+assert(all(isfinite(regressionS0.Cp(:)) & regressionS0.Cp(:) > 0), ...
+    'Rayleigh-Lamb S0 regression Cp values must be finite and positive.');
+assert(any(abs(regressionA0.Cp(:) - regressionS0.Cp(:)) > regressionTol), ...
+    'Rayleigh-Lamb A0 and S0 regression Cp outputs should not be identical.');
+
+assertNumericClose(regressionFrequency, regressionRepeat.grid.frequency, regressionTol, ...
+    'Rayleigh-Lamb regression frequencies are not repeatable.');
+assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol, ...
+    'Rayleigh-Lamb A0 regression Cp values are not repeatable.');
+assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
+    'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
+
 fprintf('\nChecking maintained acoustoelastic IOP/HGO wrappers and entrypoints...\n');
 assert(~isempty(which('solveAcoustoelasticIOPHGOBranch')), ...
     'Missing solveAcoustoelasticIOPHGOBranch on MATLAB path.');

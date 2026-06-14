@@ -78,7 +78,7 @@ Before any future migration, the validation plan should include:
 
 - Path checks for both old top-level names and new `rl*` names.
 - Compatibility smoke checks that compare selected old-vs-new forwarding behavior.
-- At least one numerical regression fixture for representative A0/S0 behavior after the future migration.
+- At least one numerical regression fixture for representative A0/S0 behavior after the future migration; the current smoke suite already includes minimal representative A0/S0 fixtures using the primary `rl*` API.
 - No heavy sweeps in smoke tests; expensive dispersion sweeps should remain outside lightweight smoke coverage.
 
 ## Recommended future migration sequence

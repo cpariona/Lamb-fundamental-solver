@@ -73,6 +73,6 @@ These compatibility names are not formally deprecated unless a separate policy, 
 
 ## Notes for future migration
 
-Physical file migration is deferred until numerical regression fixtures and compatibility policy requirements are satisfied.
+Physical file migration is deferred until compatibility policy requirements are satisfied and the existing minimal A0/S0 numerical regression smoke fixtures are considered sufficient for the migration scope.
 
 Future migration work should preserve compatibility wrappers, avoid changing numerical behavior unintentionally, and keep public API guidance synchronized with this table and the legacy wrapper policy.
