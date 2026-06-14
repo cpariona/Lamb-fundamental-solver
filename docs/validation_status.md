@@ -10,7 +10,6 @@ This document summarizes the current numerical/physical status of the main solve
 | mRLFE elastic real-k S0-like | Numerically stable in tested range, physically experimental | `examples/validation/stress_test_mrlfe_elastic_range.m` | Needs trusted S0/fluid-loaded benchmark. Tracker-vs-residual diagnostics support local-minimum consistency. |
 | mRLFE Han visco real-k A0-like | Conservative modal-local tracker | `examples/validation/stress_test_mrlfe_han_visco_range.m` | Uses modal Cp window and previous-point continuity cutoff. Valid branches are intentionally cut when no mode-relevant real-k local minimum remains. |
 | mRLFE Han visco real-k S0-like | Conservative modal-local tracker, experimental | `examples/validation/stress_test_mrlfe_han_visco_range.m` | S0-like remains more sensitive and needs benchmarking, but tracker diagnostics support local-minimum consistency in the valid segment. |
-| mRLFE complex-k | Experimental/internal | `examples/archive/run_mrlfe_complexk_prototype.m` | Not validated for quantitative attenuation fitting. |
 | Acoustoelastic IOP/HGO author-neutral API | Smoke-tested | `run_all_smoke_tests` | Former author-specific compatibility wrappers were removed; maintained code should call author-neutral entrypoints only. |
 
 ## Current maintained validation workflow
@@ -73,4 +72,4 @@ See `docs/mrlfe_tracker_diagnostic_summary.md` for the case-by-case metrics.
 
 1. Add a focused validation case reproducing GUI-like settings where branch switching is observed between the current stress-test grid points.
 2. Benchmark S0-like against an independent trusted Rayleigh-Lamb/fluid-loaded reference.
-3. Build focused complex-k diagnostics for cases where the Han real-k modal minimum disappears.
+3. If complex-k work resumes, add a maintained diagnostic under the active example or validation tree.

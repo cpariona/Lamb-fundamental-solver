@@ -57,17 +57,6 @@ Category key:
 | `examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_residual_landscape.m` | `diagnose_acoustoelastic_iop_hgo_residual_landscape` | 6 | `examples/acoustoelastic_iop_hgo/diagnostics/` | Yes, later | Maybe | Medium | Acoustoelastic residual-landscape diagnostic. |
 | `examples/acoustoelastic_iop_hgo/diagnostics/track_acoustoelastic_iop_hgo_raw_branch1_candidate.m` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate` | 6 | `examples/acoustoelastic_iop_hgo/diagnostics/` | Yes, later | Maybe | Medium | Low-level candidate tracking diagnostic. |
 | `examples/acoustoelastic_iop_hgo/sweeps/sweep_acoustoelastic_iop_hgo_IOP_HGO_A0_backward.m` | `sweep_acoustoelastic_iop_hgo_IOP_HGO_A0_backward` | 6 | `examples/acoustoelastic_iop_hgo/sweeps/` | Yes, later | Maybe | Medium | Model-specific acoustoelastic sweep with legacy name. |
-| `examples/archive/diagnose_mrlfe_a0_candidates.m` | `diagnose_mrlfe_a0_candidates` | 10 | `examples/archive/` | No | No | Low | Archived mRLFE development diagnostic. |
-| `examples/archive/diagnose_mrlfe_a0_visco_residual.m` | `diagnose_mrlfe_a0_visco_residual` | 10 | `examples/archive/` | No | No | Low | Archived viscoelastic residual diagnostic. |
-| `examples/archive/diagnose_mrlfe_elastic_soft_range_candidates.m` | `diagnose_mrlfe_elastic_soft_range_candidates` | 10 | `examples/archive/` | No | No | Low | Archived mRLFE soft-range diagnostic. |
-| `examples/archive/diagnose_mrlfe_etaS1_local_candidates.m` | `diagnose_mrlfe_etaS1_local_candidates` | 10 | `examples/archive/` | No | No | Low | Archived mRLFE local-candidate diagnostic. |
-| `examples/archive/diagnose_mrlfe_etaS1_transition.m` | `diagnose_mrlfe_etaS1_transition` | 10 | `examples/archive/` | No | No | Low | Archived transition diagnostic. |
-| `examples/archive/diagnose_mrlfe_s0_visco_residual.m` | `diagnose_mrlfe_s0_visco_residual` | 10 | `examples/archive/` | No | No | Low | Archived S0 viscoelastic residual diagnostic. |
-| `examples/archive/prototype_mrlfe_a0_multicandidate_tracker.m` | `prototype_mrlfe_a0_multicandidate_tracker` | 10 | `examples/archive/` | No | No | Low | Historical prototype tracker. |
-| `examples/archive/prototype_mrlfe_han_visco_a0_multicandidate_tracker.m` | `prototype_mrlfe_han_visco_a0_multicandidate_tracker` | 10 | `examples/archive/` | No | No | Low | Historical Han viscoelastic prototype tracker. |
-| `examples/archive/run_mrlfe_complexk_prototype.m` | `run_mrlfe_complexk_prototype` | 10 | `examples/archive/` | No | No | Low | Archived complex-k prototype. |
-| `examples/archive/stress_test_mrlfe_parameter_space.m` | `stress_test_mrlfe_parameter_space` | 10 | `examples/archive/` | No | No | Low | Archived broad parameter-space stress test. |
-| `examples/archive/sweep_mrlfe_viscosity.m` | `sweep_mrlfe_viscosity` | 10 | `examples/archive/` | No | No | Low | Archived viscosity sweep. |
 | `examples/basic/run_default_A0.m` | `run_default_A0` | 7 | `examples/basic/` | No | No | Low | Maintained base Rayleigh-Lamb A0 example. |
 | `examples/basic/run_default_A0_S0.m` | `run_default_A0_S0` | 7 | `examples/basic/` | No | No | Low | Maintained base A0/S0 example. |
 | `examples/basic/sweep_thickness_A0_S0.m` | `sweep_thickness_A0_S0` | 7 | `examples/basic/` | No | No | Low | Maintained base thickness-sweep example. |

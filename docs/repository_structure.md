@@ -77,14 +77,6 @@ examples/mrlfe/
 examples/validation/
 ```
 
-### Archive
-
-```text
-examples/archive/
-```
-
-Archive content is historical and is not added to the MATLAB path by `startup.m`.
-
 ## Tests
 
 Maintained smoke and consistency tests are stored in:

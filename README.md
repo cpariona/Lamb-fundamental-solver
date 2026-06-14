@@ -25,7 +25,6 @@ models/mrlfe/                         Modified Rayleigh-Lamb fluid-loaded model.
 examples/acoustoelastic_iop_hgo/      Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
 examples/mrlfe/                       Maintained mRLFE examples, sweeps, and diagnostics.
 examples/validation/                  Maintained validation and stress-test scripts.
-examples/archive/                     Historical prototypes and development diagnostics.
 tests/                                Lightweight smoke and consistency tests.
 docs/                                 Technical notes and repository documentation.
 ```
@@ -81,7 +80,7 @@ examples/validation/
 tests/
 ```
 
-Archived examples remain in `examples/archive/` for traceability, but are not part of the routine MATLAB path.
+Historical archived examples have been removed; `startup.m` adds only maintained example folders.
 
 ## Naming convention
 
