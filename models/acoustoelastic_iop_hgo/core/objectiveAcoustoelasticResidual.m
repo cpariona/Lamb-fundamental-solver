@@ -7,7 +7,7 @@ function [objectiveValue, details] = objectiveAcoustoelasticResidual(alpha, beta
 % can be used as a modal signature for MAC-based tracking.
 
 if nargin < 10 || isempty(options)
-    options = defaultLi2024AcoustoelasticOptions();
+    options = defaultAcoustoelasticIOPHGOOptions();
 end
 
 [M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options);

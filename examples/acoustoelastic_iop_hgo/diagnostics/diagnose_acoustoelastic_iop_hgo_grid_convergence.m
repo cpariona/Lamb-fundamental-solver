@@ -42,7 +42,7 @@ branchMapIOP_mmHg = [20, 25];
 branchMapScanPoints = 3600;
 branchMapTopN = 8;
 
-baseOptions = defaultLi2024AcoustoelasticOptions();
+baseOptions = defaultAcoustoelasticIOPHGOOptions();
 baseOptions.M54_variant = "corrected";
 baseOptions.branch = "A0";
 baseOptions.trackingDirection = "backward";
@@ -64,7 +64,7 @@ for g = 1:numel(cpGridPointsList)
         params = baseParams;
         params.IOP = IOP_Pa(i);
 
-        result = solveDispersionIOPHGO_Li2024(params, options);
+        result = solveAcoustoelasticIOPHGODispersion(params, options);
         convergenceResults{i, g} = result;
 
         row = makeConvergenceRow(result, IOP_mmHg(i), IOP_Pa(i), cpGridPointsList(g), referenceFrequency);
@@ -106,12 +106,12 @@ disp(trackedBranchTable);
 fprintf('\nTracked Cp matched to nearest local-minimum family over frequency\n');
 disp(trackedFrequencyBranchTable);
 
-assignin('base', 'Li2024IOPGridConvergenceResults', convergenceResults);
-assignin('base', 'Li2024IOPGridConvergenceTable', convergenceTable);
-assignin('base', 'Li2024IOPReferenceLandscapeTable', landscapeTable);
-assignin('base', 'Li2024IOPTrackedBranchTable', trackedBranchTable);
-assignin('base', 'Li2024IOPFullBranchMapTable', fullBranchMapTable);
-assignin('base', 'Li2024IOPTrackedFrequencyBranchTable', trackedFrequencyBranchTable);
+assignin('base', 'AcoustoelasticIOPHGOIOPGridConvergenceResults', convergenceResults);
+assignin('base', 'AcoustoelasticIOPHGOIOPGridConvergenceTable', convergenceTable);
+assignin('base', 'AcoustoelasticIOPHGOIOPReferenceLandscapeTable', landscapeTable);
+assignin('base', 'AcoustoelasticIOPHGOIOPTrackedBranchTable', trackedBranchTable);
+assignin('base', 'AcoustoelasticIOPHGOIOPFullBranchMapTable', fullBranchMapTable);
+assignin('base', 'AcoustoelasticIOPHGOIOPTrackedFrequencyBranchTable', trackedFrequencyBranchTable);
 
 function frequency = ensureFrequencyIncludesReference(frequency, fRef)
 frequency = unique([frequency(:); fRef]);
@@ -254,7 +254,7 @@ yGrid = linspace(0.02, 1.35, nScan);
 cGrid = yGrid * cShear;
 obj = nan(size(cGrid));
 for j = 1:numel(cGrid)
-    obj(j) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, params.thickness, params.rho, ...
+    obj(j) = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, params.thickness, params.rho, ...
         params.rhoF, params.fluidBulkModulus, f, cGrid(j), options);
 end
 minima = findTopLocalMinima(cGrid, obj, cShear, topN);
@@ -343,7 +343,7 @@ end
 
 function plotConvergenceCurves(results, IOP_mmHg, gridList)
 for g = 1:numel(gridList)
-    figure('Color', 'w', 'Name', sprintf('Li2024 IOP sweep grid %d', gridList(g)));
+    figure('Color', 'w', 'Name', sprintf('AcoustoelasticIOPHGO IOP sweep grid %d', gridList(g)));
     hold on; grid on;
     for i = 1:numel(IOP_mmHg)
         r = results{i, g};
@@ -388,7 +388,7 @@ function plotFullBranchMaps(fullMap, results, IOP_mmHg, gridList, selectedIOP)
 for s = 1:numel(selectedIOP)
     iop = selectedIOP(s);
     idxIOP = find(IOP_mmHg == iop, 1, 'first');
-    figure('Color', 'w', 'Name', sprintf('Li2024 full branch map IOP %.0f', iop));
+    figure('Color', 'w', 'Name', sprintf('AcoustoelasticIOPHGO full branch map IOP %.0f', iop));
     hold on; grid on;
     mask = fullMap.IOP_mmHg == iop;
     T = fullMap(mask, :);
@@ -414,7 +414,7 @@ end
 function plotTrackedRankOverFrequency(T, selectedIOP, gridList)
 for s = 1:numel(selectedIOP)
     iop = selectedIOP(s);
-    figure('Color', 'w', 'Name', sprintf('Li2024 tracked rank IOP %.0f', iop));
+    figure('Color', 'w', 'Name', sprintf('AcoustoelasticIOPHGO tracked rank IOP %.0f', iop));
     hold on; grid on;
     for g = 1:numel(gridList)
         mask = T.IOP_mmHg == iop & T.GridPoints == gridList(g);

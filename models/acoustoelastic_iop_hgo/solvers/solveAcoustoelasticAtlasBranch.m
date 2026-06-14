@@ -27,14 +27,14 @@ function result = solveAcoustoelasticAtlasBranch(params, options)
 %   options.usePhysicalCpWindow = false;
 
 if nargin < 2 || isempty(options)
-    options = defaultLi2024AcoustoelasticOptions();
+    options = defaultAcoustoelasticIOPHGOOptions();
 end
 options = setAtlasDefaults(options);
 
 required = {'alpha','beta','gamma','thickness','rho','rhoF','fluidBulkModulus','frequency'};
 for i = 1:numel(required)
     if ~isfield(params, required{i})
-        error('Missing required Li2024 atlas-branch parameter: %s', required{i});
+        error('Missing required Acoustoelastic IOP/HGO atlas-branch parameter: %s', required{i});
     end
 end
 

@@ -30,7 +30,7 @@ params.rhoF = 1000;                 % kg/m^3
 params.fluidBulkModulus = 2.2e9;    % Pa
 params.frequency = linspace(6e3, 35e3, 100);
 
-baseOptions = defaultLi2024AcoustoelasticOptions();
+baseOptions = defaultAcoustoelasticIOPHGOOptions();
 baseOptions.M54_variant = "corrected";
 baseOptions.minDimensionlessFrequency = 0.20;
 baseOptions.numCpScanPoints = 1800;
@@ -43,7 +43,7 @@ opt = baseOptions;
 opt.branch = "A0";
 opt.trackingDirection = "backward";
 opt.trackingMethod = "globalScan";
-results{end+1,1} = solveDispersionIOPHGO_Li2024(params, opt); %#ok<SAGROW>
+results{end+1,1} = solveAcoustoelasticIOPHGODispersion(params, opt); %#ok<SAGROW>
 labels(end+1,1) = "A0 global backward";
 
 % A0 low, backward, predictive continuation.
@@ -54,7 +54,7 @@ opt.trackingMethod = "predictiveContinuation";
 opt.predictiveWindow = 0.18;
 opt.predictionWeight = 8.0;
 opt.curvatureWeight = 4.0;
-results{end+1,1} = solveDispersionIOPHGO_Li2024(params, opt); %#ok<SAGROW>
+results{end+1,1} = solveAcoustoelasticIOPHGODispersion(params, opt); %#ok<SAGROW>
 labels(end+1,1) = "A0 predictive backward";
 
 % A0 low, backward, singular-vector/MAC tracking.
@@ -66,7 +66,7 @@ opt.predictiveWindow = 0.18;
 opt.predictionWeight = 8.0;
 opt.curvatureWeight = 4.0;
 opt.macWeight = 12.0;
-results{end+1,1} = solveDispersionIOPHGO_Li2024(params, opt); %#ok<SAGROW>
+results{end+1,1} = solveAcoustoelasticIOPHGODispersion(params, opt); %#ok<SAGROW>
 labels(end+1,1) = "A0 singular-vector backward";
 seedResult = results{end};
 
@@ -76,7 +76,7 @@ opt = baseOptions;
 opt.branch = "A0High";
 opt.trackingDirection = "forward";
 opt.trackingMethod = "globalScan";
-results{end+1,1} = solveDispersionIOPHGO_Li2024(params, opt); %#ok<SAGROW>
+results{end+1,1} = solveAcoustoelasticIOPHGODispersion(params, opt); %#ok<SAGROW>
 labels(end+1,1) = "A0High global forward";
 
 % Complex-C determinant continuation, seeded by singular-vector tracking.
@@ -91,7 +91,7 @@ complexResult = solveAcoustoelasticComplexCDispersion(seedResult.directParams, c
 results{end+1,1} = complexResult; %#ok<SAGROW>
 labels(end+1,1) = "A0 complex-C seeded";
 
-summaryTable = summarizeLi2024TrackingQuality(results, labels, 'Print', true);
+summaryTable = summarizeAcoustoelasticIOPHGOTrackingQuality(results, labels, 'Print', true);
 
 figure('Color', 'w');
 hold on; grid on;
@@ -112,9 +112,9 @@ ylabel('Diagnostic quality score [-]');
 title('Li 2024 tracking quality score: lower is better');
 xtickangle(30);
 
-assignin('base', 'Li2024TrackingComparisonResults', results);
-assignin('base', 'Li2024TrackingComparisonLabels', labels);
-assignin('base', 'Li2024TrackingComparisonSummary', summaryTable);
+assignin('base', 'AcoustoelasticIOPHGOTrackingComparisonResults', results);
+assignin('base', 'AcoustoelasticIOPHGOTrackingComparisonLabels', labels);
+assignin('base', 'AcoustoelasticIOPHGOTrackingComparisonSummary', summaryTable);
 
 function [f, cp, valid] = extractPlotCurve(result)
 if isfield(result, 'Cp')

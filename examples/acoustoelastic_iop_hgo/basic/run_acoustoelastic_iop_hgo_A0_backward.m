@@ -31,7 +31,7 @@ params.fluidBulkModulus = 2.2e9;    % Pa
 % Frequency range.
 params.frequency = linspace(6e3, 35e3, 100);
 
-options = defaultLi2024AcoustoelasticOptions();
+options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.branch = "A0";
 options.trackingDirection = "backward";
@@ -39,7 +39,7 @@ options.trackingMethod = "globalScan";
 options.minDimensionlessFrequency = 0.20;
 options.numCpScanPoints = 1800;
 
-result = solveDispersionIOPHGO_Li2024(params, options);
+result = solveAcoustoelasticIOPHGODispersion(params, options);
 state = result.constitutiveState;
 
 figure('Color', 'w');
@@ -59,4 +59,4 @@ fprintf('alpha = %.3f kPa, beta = %.3f kPa, gamma = %.3f kPa\n', ...
 fprintf('tracking method = %s, direction = %s\n', string(result.options.trackingMethod), string(result.options.trackingDirection));
 fprintf('valid Cp points = %d/%d\n', result.diagnostics.validCpPoints, result.diagnostics.totalPoints);
 
-assignin('base', 'Li2024IOPHGOA0BackwardResult', result);
+assignin('base', 'AcoustoelasticIOPHGOIOPHGOA0BackwardResult', result);

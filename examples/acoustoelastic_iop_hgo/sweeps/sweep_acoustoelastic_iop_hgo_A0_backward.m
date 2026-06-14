@@ -32,7 +32,7 @@ baseParams.frequency = linspace(6e3, 35e3, 100);
 IOP_mmHg = [5, 10, 15, 20, 25];
 IOP_Pa = IOP_mmHg * 133.322;
 
-options = defaultLi2024AcoustoelasticOptions();
+options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.branch = "A0";
 options.trackingDirection = "backward";
@@ -54,7 +54,7 @@ for i = 1:numel(IOP_Pa)
     params = baseParams;
     params.IOP = IOP_Pa(i);
 
-    results{i} = solveDispersionIOPHGO_Li2024(params, options);
+    results{i} = solveAcoustoelasticIOPHGODispersion(params, options);
     state = results{i}.constitutiveState;
 
     sigma_kPa(i) = state.sigma / 1e3;
@@ -112,5 +112,5 @@ hold off;
 fprintf('\nLi 2024 IOP sweep summary\n');
 disp(summaryTable);
 
-assignin('base', 'Li2024IOPSweepResults', results);
-assignin('base', 'Li2024IOPSweepSummary', summaryTable);
+assignin('base', 'AcoustoelasticIOPHGOIOPSweepResults', results);
+assignin('base', 'AcoustoelasticIOPHGOIOPSweepSummary', summaryTable);

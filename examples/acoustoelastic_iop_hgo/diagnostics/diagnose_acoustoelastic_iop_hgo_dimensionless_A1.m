@@ -24,7 +24,7 @@ xMinDiagnostic = 0.20;
 xDimensionless = linspace(xMinDiagnostic, 2.5, 90);
 params.frequency = xDimensionless * cShear / params.thickness;
 
-baseOptions = defaultLi2024AcoustoelasticOptions();
+baseOptions = defaultAcoustoelasticIOPHGOOptions();
 baseOptions.M54_variant = "corrected";
 baseOptions.numCpScanPoints = 1800;
 baseOptions.usePhysicalCpWindow = true;
@@ -78,11 +78,11 @@ printSummary('A0 high', resultA0High, cShear, params.thickness);
 printSummary('S0 forward', resultS0Forward, cShear, params.thickness);
 printSummary('S0 backward', resultS0Backward, cShear, params.thickness);
 
-assignin('base', 'Li2024A1DiagnosticA0Forward', resultA0Forward);
-assignin('base', 'Li2024A1DiagnosticA0Backward', resultA0Backward);
-assignin('base', 'Li2024A1DiagnosticA0High', resultA0High);
-assignin('base', 'Li2024A1DiagnosticS0Forward', resultS0Forward);
-assignin('base', 'Li2024A1DiagnosticS0Backward', resultS0Backward);
+assignin('base', 'AcoustoelasticIOPHGOA1DiagnosticA0Forward', resultA0Forward);
+assignin('base', 'AcoustoelasticIOPHGOA1DiagnosticA0Backward', resultA0Backward);
+assignin('base', 'AcoustoelasticIOPHGOA1DiagnosticA0High', resultA0High);
+assignin('base', 'AcoustoelasticIOPHGOA1DiagnosticS0Forward', resultS0Forward);
+assignin('base', 'AcoustoelasticIOPHGOA1DiagnosticS0Backward', resultS0Backward);
 
 function plotDimensionless(result, cShear, h, labelText)
 valid = result.validCp & isfinite(result.Cp);

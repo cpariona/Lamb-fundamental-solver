@@ -3,4 +3,4 @@
 % This script delegates to the original development script while providing an
 % author-neutral name for routine use.
 
-run_li2024_IOP_HGO_A0_atlas_branch
+run_acoustoelastic_iop_hgo_IOP_HGO_A0_atlas_branch
