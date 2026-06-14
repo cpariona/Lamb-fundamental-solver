@@ -24,9 +24,12 @@ options = mergeStructs(rlDefaultOptions(), getStructField(guiRequest, 'options',
 
 computeElastic = getStructField(guiRequest, 'computeElastic', true);
 computeHan = getStructField(guiRequest, 'computeHan', false);
+computeA0Like = getStructField(options, 'mrlfeComputeA0Like', true);
+computeS0Like = getStructField(options, 'mrlfeComputeS0Like', true);
+computeMRLFE = logical(computeElastic || computeHan);
 
-options.computeA0 = true;
-options.computeS0 = true;
+options.computeA0 = logical(getStructField(options, 'computeA0', true) || (computeMRLFE && computeA0Like));
+options.computeS0 = logical(getStructField(options, 'computeS0', true) || (computeMRLFE && computeS0Like));
 options.computeMRLFE = false;
 options.computeMRLFERealK = logical(computeElastic || computeHan);
 options.computeMRLFEHanViscoRealK = logical(computeHan);
