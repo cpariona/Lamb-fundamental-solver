@@ -1,12 +1,16 @@
 # Rayleigh-Lamb public API
 
+
+> **Current layout update:** The primary Rayleigh-Lamb implementation remains under `models/rayleigh_lamb/` in the `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old callable compatibility-wrapper function names now physically live under `models/rayleigh_lamb/legacy/` with matching `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old top-level `core/`, `equations/`, `approximations/`, and `tracking/` folders are no longer the Rayleigh-Lamb compatibility-wrapper location. `startup.m` adds the `models/` tree, so both primary `rl*` names and legacy old names remain callable through the updated path behavior.
+
+
 ## API status
 
 The `rl*` functions under `models/rayleigh_lamb/` are the primary Rayleigh-Lamb implementation entrypoints.
 
-The old top-level functions under `core/`, `equations/`, `approximations/`, and `tracking/` remain supported as compatibility wrappers that preserve the historical callable names while forwarding to the primary `rl*` implementation layer.
+The old function names under `models/rayleigh_lamb/legacy/` remain supported as compatibility wrappers that preserve the historical callable names while forwarding to the primary `rl*` implementation layer.
 
-No top-level compatibility function is formally deprecated yet unless explicitly documented elsewhere.
+No legacy compatibility function is formally deprecated yet unless explicitly documented elsewhere.
 
 For the documentation-only audit governing future physical movement, removal, or retention of the legacy wrapper folders, see the [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md). For the final gate before any such migration, see the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md). For the stable post-wrapper compatibility checkpoint, see the [Rayleigh-Lamb compatibility snapshot](rayleigh_lamb_compatibility_snapshot.md).
 
@@ -34,21 +38,21 @@ For the documentation-only audit governing future physical movement, removal, or
 
 | Legacy folder | Legacy function | Primary replacement | Status |
 | --- | --- | --- | --- |
-| `core/` | `defaultParams` | `rlDefaultParams` | Compatibility wrapper; not formally deprecated. |
-| `core/` | `defaultOptions` | `rlDefaultOptions` | Compatibility wrapper; not formally deprecated. |
-| `core/` | `computeFundamentalLambModes` | `rlComputeFundamentalLambModes` | Compatibility wrapper; not formally deprecated. |
-| `core/` | `buildFrequencyVector` | `rlBuildFrequencyVector` | Compatibility wrapper; not formally deprecated. |
-| `core/` | `computeMaterial` | `rlComputeMaterial` | Compatibility wrapper; not formally deprecated. |
-| `core/` | `computeGeometry` | `rlComputeGeometry` | Compatibility wrapper; not formally deprecated. |
-| `core/` | `makeBranchSpec` | `rlMakeBranchSpec` | Compatibility wrapper; not formally deprecated. |
-| `core/` | `validateParams` | `rlValidateParams` | Compatibility wrapper; not formally deprecated. |
-| `core/` | `validateOptions` | `rlValidateOptions` | Compatibility wrapper; not formally deprecated. |
-| `equations/` | `rayleighLambAResidual` | `rlAResidual` | Compatibility wrapper; not formally deprecated. |
-| `equations/` | `rayleighLambSResidual` | `rlSResidual` | Compatibility wrapper; not formally deprecated. |
-| `approximations/` | `computeA0ThinPlateApproximation` | `rlComputeA0ThinPlateApproximation` | Compatibility wrapper; not formally deprecated. |
-| `approximations/` | `computeS0ExtensionalApproximation` | `rlComputeS0ExtensionalApproximation` | Compatibility wrapper; not formally deprecated. |
-| `approximations/` | `computeAnalyticalApproximations` | `rlComputeAnalyticalApproximations` | Compatibility wrapper; not formally deprecated. |
-| `tracking/` | `solveFundamentalBranch` | `rlSolveFundamentalBranch` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/core/` | `defaultParams` | `rlDefaultParams` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/core/` | `defaultOptions` | `rlDefaultOptions` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/core/` | `computeFundamentalLambModes` | `rlComputeFundamentalLambModes` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/core/` | `buildFrequencyVector` | `rlBuildFrequencyVector` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/core/` | `computeMaterial` | `rlComputeMaterial` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/core/` | `computeGeometry` | `rlComputeGeometry` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/core/` | `makeBranchSpec` | `rlMakeBranchSpec` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/core/` | `validateParams` | `rlValidateParams` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/core/` | `validateOptions` | `rlValidateOptions` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/equations/` | `rayleighLambAResidual` | `rlAResidual` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/equations/` | `rayleighLambSResidual` | `rlSResidual` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/approximations/` | `computeA0ThinPlateApproximation` | `rlComputeA0ThinPlateApproximation` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/approximations/` | `computeS0ExtensionalApproximation` | `rlComputeS0ExtensionalApproximation` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/approximations/` | `computeAnalyticalApproximations` | `rlComputeAnalyticalApproximations` | Compatibility wrapper; not formally deprecated. |
+| `models/rayleigh_lamb/legacy/tracking/` | `solveFundamentalBranch` | `rlSolveFundamentalBranch` | Compatibility wrapper; not formally deprecated. |
 
 ## Recommended user-facing entrypoints
 
@@ -72,12 +76,12 @@ Direct calls to these helpers may be appropriate for focused diagnostics, tests,
 A lightweight static audit in `tests/run_all_smoke_tests.m` checks maintained MATLAB code for old-name function-call patterns and helps keep new maintained call sites on the primary `rl*` API. The audit deliberately does not make the legacy wrappers deprecated; it only prevents accidental maintained-code usage outside compatibility or legacy contexts.
 
 
-The old top-level names are compatibility wrappers and should not be used in new maintained code, but they remain available for existing scripts and downstream workflows.
+The old names in `models/rayleigh_lamb/legacy/` are compatibility wrappers and should not be used in new maintained code, but they remain available for existing scripts and downstream workflows.
 
 These compatibility names are not formally deprecated unless a separate policy, release note, or migration document explicitly marks a specific function as deprecated.
 
 ## Notes for future migration
 
-Physical file migration is deferred until compatibility policy requirements are satisfied and the existing minimal A0/S0 numerical regression smoke fixtures are considered sufficient for the migration scope.
+Physical migration of the compatibility wrappers into `models/rayleigh_lamb/legacy/` is complete; future migration work should focus on any explicitly documented deprecation or removal policy.
 
 Future migration work should preserve compatibility wrappers, avoid changing numerical behavior unintentionally, and keep public API guidance synchronized with this table and the legacy wrapper policy.

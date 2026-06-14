@@ -1,5 +1,9 @@
 # Rayleigh-Lamb wrapper layer release checklist
 
+
+> **Current layout update:** The primary Rayleigh-Lamb implementation remains under `models/rayleigh_lamb/` in the `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old callable compatibility-wrapper function names now physically live under `models/rayleigh_lamb/legacy/` with matching `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old top-level `core/`, `equations/`, `approximations/`, and `tracking/` folders are no longer the Rayleigh-Lamb compatibility-wrapper location. `startup.m` adds the `models/` tree, so both primary `rl*` names and legacy old names remain callable through the updated path behavior.
+
+
 ## Purpose
 
 This checklist records the documentation-only release criteria for the Rayleigh-Lamb `rl*` implementation handoff and maintained call-site adoption milestone. For the public `rl*` API table and old-name mapping, see [Rayleigh-Lamb public API](rayleigh_lamb_public_api.md). For the ongoing maintenance, deprecation, and physical-migration rules for old top-level wrappers, see [Rayleigh-Lamb legacy wrapper policy](rayleigh_lamb_legacy_wrapper_policy.md). The tag should only be created after the required validation below passes locally in MATLAB from a clean `main`.
@@ -39,7 +43,7 @@ Do not create the tag until this validation passes.
 ## Compatibility state
 
 - Old top-level Rayleigh-Lamb functions remain available as compatibility wrappers.
-- `run_all_smoke_tests` includes path-level checks for both old top-level compatibility wrappers and primary `rl*` functions.
+- `run_all_smoke_tests` includes path-level checks for both legacy compatibility wrappers and primary `rl*` functions.
 - `run_all_smoke_tests` also includes lightweight compatibility smoke checks that compare selected safe old-vs-new helper outputs to verify forwarding behavior.
 - Minimal Rayleigh-Lamb numerical regression smoke fixtures now exercise representative A0/S0 outputs through the primary `rl*` API without full dispersion sweeps, plotting, file I/O, or generated fixtures.
 

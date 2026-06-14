@@ -1,18 +1,14 @@
 function startup()
 % Add active Lamb Fundamental Solver folders to the MATLAB path.
 %
-% Archived examples and legacy material are intentionally excluded from the
-% default path so that routine use only sees the current backend, GUI, tests,
-% and maintained examples.
+% Archived examples are intentionally excluded from the default path.
+% Rayleigh-Lamb legacy compatibility wrappers under models/rayleigh_lamb/legacy
+% are included through the model tree so old function names remain callable.
 
 projectRoot = fileparts(mfilename('fullpath'));
 
 addpath(projectRoot);
 addpath(fullfile(projectRoot, 'app'));
-addpath(fullfile(projectRoot, 'core'));
-addpath(fullfile(projectRoot, 'equations'));
-addpath(fullfile(projectRoot, 'approximations'));
-addpath(fullfile(projectRoot, 'tracking'));
 addpath(genpath(fullfile(projectRoot, 'models')));
 addpath(genpath(fullfile(projectRoot, 'analysis')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'acoustoelastic_iop_hgo')));
