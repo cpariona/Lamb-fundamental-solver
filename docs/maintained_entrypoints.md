@@ -110,3 +110,19 @@ test_mrlfe_smoke
 ## Smoke-test scope
 
 `run_all_smoke_tests` verifies the maintained Rayleigh-Lamb `rl*` path checks, minimal Rayleigh-Lamb numerical fixtures, author-neutral acoustoelastic IOP/HGO entrypoints and tests, and the mRLFE smoke test.
+
+## Active documentation links
+
+The active documentation set is:
+
+```text
+docs/repository_structure.md
+docs/validation_status.md
+docs/rayleigh_lamb_overview.md
+docs/rayleigh_lamb_public_api.md
+docs/acoustoelastic_iop_hgo_overview.md
+docs/acoustoelastic_iop_hgo_public_api.md
+docs/acoustoelastic_iop_hgo_branch_policy.md
+docs/parametric_sweeps.md
+docs/mrlfe_tracker_diagnostic_summary.md
+```
