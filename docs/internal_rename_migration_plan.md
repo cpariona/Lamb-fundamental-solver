@@ -148,7 +148,7 @@ Because these functions are broadly used and `startup.m` path behavior is centra
 
 ## 6. High-risk files that should not be touched until more tests exist
 
-- `models/acoustoelastic_iop_hgo/core/buildMatrix_Li2024_Acoustoelastic.m`
+- `models/acoustoelastic_iop_hgo/core/buildAcoustoelasticMatrix.m` (author-neutral Acoustoelastic matrix-builder helper; `buildMatrix_Li2024_Acoustoelastic.m` remains a compatibility wrapper)
 - `models/acoustoelastic_iop_hgo/core/computeSRoots_Li2024.m` (compatibility wrapper for `computeAcoustoelasticSRoots`)
 - `models/acoustoelastic_iop_hgo/core/objectiveAcoustoelasticComplexDeterminant.m` (author-neutral complex determinant objective helper; `objectiveComplexDet_Li2024_Acoustoelastic.m` remains a compatibility wrapper)
 - `models/acoustoelastic_iop_hgo/core/objectiveAcoustoelasticResidual.m` (author-neutral real-valued residual objective helper; `objective_Li2024_Acoustoelastic.m` remains a compatibility wrapper)
@@ -164,6 +164,7 @@ Because these functions are broadly used and `startup.m` path behavior is centra
 - GUI files in `app/`
 - `startup.m`
 
+The author-neutral Acoustoelastic matrix-builder helper is now `buildAcoustoelasticMatrix`. The old `buildMatrix_Li2024_Acoustoelastic` name remains as a compatibility wrapper. No matrix assembly logic, matrix entries, determinant logic, or physical equations were intentionally changed during this rename.
 
 The author-neutral Acoustoelastic objective helper names now exist: `objectiveAcoustoelasticResidual` is the real-valued residual objective helper, and `objectiveAcoustoelasticComplexDeterminant` is the complex determinant objective helper. The old `objective_Li2024_Acoustoelastic` and `objectiveComplexDet_Li2024_Acoustoelastic` names remain as compatibility wrappers. No objective, residual, or determinant logic was intentionally changed during this rename.
 

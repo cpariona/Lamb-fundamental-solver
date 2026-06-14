@@ -12,7 +12,7 @@ if nargin < 10 || isempty(options)
     options = defaultLi2024AcoustoelasticOptions();
 end
 
-[M, aux] = buildMatrix_Li2024_Acoustoelastic(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, cComplex, options);
+[M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, cComplex, options);
 detM = det(M);
 absDet = abs(detM);
 
