@@ -24,12 +24,17 @@ solveAcoustoelasticIOPHGODispersion
 solveAcoustoelasticDispersion
 solveAcoustoelasticComplexCDispersion
 defaultAcoustoelasticIOPHGOOptions
+computeAcoustoelasticABGFromIOPHGO
+computeAcoustoelasticAlphaBetaGamma
+computeAcoustoelasticPrestressSigma
+solveAcoustoelasticHGOStretch
 run_acoustoelastic_iop_hgo_atlas_branch
 diagnose_acoustoelastic_iop_hgo_branch_policy
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
 ```
 
+Author-neutral Acoustoelastic IOP/HGO constitutive helper names now exist: `computeAcoustoelasticABGFromIOPHGO`, `computeAcoustoelasticAlphaBetaGamma`, `computeAcoustoelasticPrestressSigma`, and `solveAcoustoelasticHGOStretch`. The older `Li2024` constitutive helper names remain available as compatibility wrappers, and no constitutive logic was intentionally changed during this rename.
 
 Author-neutral Acoustoelastic IOP/HGO example, diagnostic, and sweep entrypoints now exist for the maintained `examples/acoustoelastic_iop_hgo/` tree. The older `Li2024`-named example, diagnostic, and sweep scripts remain available as compatibility wrappers during the naming transition.
 
@@ -59,6 +64,10 @@ Compatibility/development entrypoints still available during the naming transiti
 solveDispersionIOPHGO_Li2024
 solveDispersionIOPHGOAtlasBranch_Li2024
 defaultLi2024AcoustoelasticOptions
+computeABGFromIOPHGO_Li2024
+computeAlphaBetaGamma_Li2024
+computePrestressSigma_Li2024
+solveStretchHGO_Li2024
 run_li2024_IOP_HGO_A0_atlas_branch
 diagnose_li2024_atlas_branch_policy
 test_li2024_constitutive_identity
@@ -153,6 +162,10 @@ which solveAcoustoelasticIOPHGODispersion
 which solveAcoustoelasticDispersion
 which solveAcoustoelasticComplexCDispersion
 which defaultAcoustoelasticIOPHGOOptions
+which computeAcoustoelasticABGFromIOPHGO
+which computeAcoustoelasticAlphaBetaGamma
+which computeAcoustoelasticPrestressSigma
+which solveAcoustoelasticHGOStretch
 which run_acoustoelastic_iop_hgo_atlas_branch
 which diagnose_acoustoelastic_iop_hgo_branch_policy
 which test_acoustoelastic_iop_hgo_constitutive_identity

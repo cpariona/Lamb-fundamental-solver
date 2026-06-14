@@ -172,7 +172,7 @@ frequency = sort(frequency(:)).';
 end
 
 function [directParams, state] = buildDirectParamsFromIOP(params)
-[alpha, beta, gamma, state] = computeABGFromIOPHGO_Li2024( ...
+[alpha, beta, gamma, state] = computeAcoustoelasticABGFromIOPHGO( ...
     params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
 directParams = struct();
 directParams.alpha = alpha;

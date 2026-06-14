@@ -151,10 +151,10 @@ Because these functions are broadly used and `startup.m` path behavior is centra
 - `models/acoustoelastic_iop_hgo/core/computeSRoots_Li2024.m`
 - `models/acoustoelastic_iop_hgo/core/objectiveComplexDet_Li2024_Acoustoelastic.m`
 - `models/acoustoelastic_iop_hgo/core/objective_Li2024_Acoustoelastic.m`
-- `models/acoustoelastic_iop_hgo/constitutive/computeABGFromIOPHGO_Li2024.m`
-- `models/acoustoelastic_iop_hgo/constitutive/computeAlphaBetaGamma_Li2024.m`
-- `models/acoustoelastic_iop_hgo/constitutive/computePrestressSigma_Li2024.m`
-- `models/acoustoelastic_iop_hgo/constitutive/solveStretchHGO_Li2024.m`
+- `models/acoustoelastic_iop_hgo/constitutive/computeAcoustoelasticABGFromIOPHGO.m` (author-neutral implementation; `computeABGFromIOPHGO_Li2024.m` remains a compatibility wrapper)
+- `models/acoustoelastic_iop_hgo/constitutive/computeAcoustoelasticAlphaBetaGamma.m` (author-neutral implementation; `computeAlphaBetaGamma_Li2024.m` remains a compatibility wrapper)
+- `models/acoustoelastic_iop_hgo/constitutive/computeAcoustoelasticPrestressSigma.m` (author-neutral implementation; `computePrestressSigma_Li2024.m` remains a compatibility wrapper)
+- `models/acoustoelastic_iop_hgo/constitutive/solveAcoustoelasticHGOStretch.m` (author-neutral implementation; `solveStretchHGO_Li2024.m` remains a compatibility wrapper)
 - `core/computeFundamentalLambModes.m`
 - `core/defaultOptions.m`
 - `core/defaultParams.m`
@@ -162,6 +162,9 @@ Because these functions are broadly used and `startup.m` path behavior is centra
 - `tests/run_all_smoke_tests.m`
 - GUI files in `app/`
 - `startup.m`
+
+
+The author-neutral Acoustoelastic IOP/HGO constitutive helper names now exist, the old `Li2024` helper names remain as compatibility wrappers, and no constitutive logic was intentionally changed during the helper rename.
 
 Before touching these, add targeted tests that compare old and new function outputs on fixed small cases, including edge cases for `strictA0`, complex-c solving, constitutive identity, and GUI-independent default parameter construction.
 
