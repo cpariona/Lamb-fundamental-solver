@@ -1,6 +1,6 @@
 # Rayleigh-Lamb physical migration audit
 
-Before using this audit to plan any folder movement, apply the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md) as the final gate.
+Before using this audit to plan any folder movement, apply the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md) as the final gate. For the stable post-wrapper, pre-migration state, see the [Rayleigh-Lamb compatibility snapshot](rayleigh_lamb_compatibility_snapshot.md).
 
 ## Current state
 
