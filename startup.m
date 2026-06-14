@@ -7,7 +7,7 @@ function startup()
 projectRoot = fileparts(mfilename('fullpath'));
 
 addpath(projectRoot);
-addpath(fullfile(projectRoot, 'app'));
+addpath(genpath(fullfile(projectRoot, 'app')));
 addpath(genpath(fullfile(projectRoot, 'models')));
 addpath(genpath(fullfile(projectRoot, 'analysis')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'acoustoelastic_iop_hgo')));
