@@ -18,6 +18,7 @@ Recommended author-neutral entrypoints for routine use:
 
 ```matlab
 solveAcoustoelasticIOPHGOBranch
+solveAcoustoelasticIOPHGOAtlasBranch
 defaultAcoustoelasticIOPHGOOptions
 run_acoustoelastic_iop_hgo_atlas_branch
 diagnose_acoustoelastic_iop_hgo_branch_policy
@@ -27,6 +28,9 @@ test_acoustoelastic_iop_hgo_strictA0_smoke
 
 
 Author-neutral Acoustoelastic IOP/HGO example, diagnostic, and sweep entrypoints now exist for the maintained `examples/acoustoelastic_iop_hgo/` tree. The older `Li2024`-named example, diagnostic, and sweep scripts remain available as compatibility wrappers during the naming transition.
+
+
+`solveAcoustoelasticIOPHGOBranch` remains the recommended public convenience entrypoint. `solveAcoustoelasticIOPHGOAtlasBranch` is the author-neutral atlas-branch implementation used by that convenience entrypoint. `defaultAcoustoelasticIOPHGOOptions` is now the author-neutral options implementation. `solveDispersionIOPHGOAtlasBranch_Li2024` and `defaultLi2024AcoustoelasticOptions` remain compatibility wrappers.
 
 The author-neutral Acoustoelastic IOP/HGO tracking-quality analysis helper is now available as `summarizeAcoustoelasticIOPHGOTrackingQuality`; the older `summarizeLi2024TrackingQuality` helper remains available as a compatibility wrapper.
 
@@ -139,6 +143,7 @@ run_all_smoke_tests
 
 ```matlab
 which solveAcoustoelasticIOPHGOBranch
+which solveAcoustoelasticIOPHGOAtlasBranch
 which defaultAcoustoelasticIOPHGOOptions
 which run_acoustoelastic_iop_hgo_atlas_branch
 which diagnose_acoustoelastic_iop_hgo_branch_policy

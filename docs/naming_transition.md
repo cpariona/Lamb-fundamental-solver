@@ -12,11 +12,19 @@ The mRLFE name is preserved because it identifies the model family used in this 
 
 ### Acoustoelastic IOP/HGO solver
 
+Recommended public convenience entrypoint:
+
 ```matlab
 solveAcoustoelasticIOPHGOBranch
 ```
 
-Compatibility function still available:
+Author-neutral atlas-branch implementation used by the convenience entrypoint:
+
+```matlab
+solveAcoustoelasticIOPHGOAtlasBranch
+```
+
+Compatibility function still available as a wrapper:
 
 ```matlab
 solveDispersionIOPHGOAtlasBranch_Li2024
@@ -24,11 +32,13 @@ solveDispersionIOPHGOAtlasBranch_Li2024
 
 ### Acoustoelastic IOP/HGO options
 
+Author-neutral options implementation:
+
 ```matlab
 defaultAcoustoelasticIOPHGOOptions
 ```
 
-Compatibility function still available:
+Compatibility function still available as a wrapper:
 
 ```matlab
 defaultLi2024AcoustoelasticOptions
@@ -92,7 +102,7 @@ tests/li2024/
 
 ## Current policy
 
-For now, do not delete the original Li2024-named MATLAB functions. They remain as compatibility and development entrypoints while the public API moves to author-neutral names.
+For now, do not delete the original Li2024-named MATLAB functions. `defaultLi2024AcoustoelasticOptions` and `solveDispersionIOPHGOAtlasBranch_Li2024` remain compatibility wrappers while the public API moves to author-neutral names.
 
 Future cleanup can rename internal functions in a dedicated pull request, but MATLAB file names and function names must be changed consistently.
 
