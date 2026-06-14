@@ -78,6 +78,63 @@ assert(~isempty(which('rlComputeS0ExtensionalApproximation')), ...
 assert(~isempty(which('rlSolveFundamentalBranch')), ...
     'Missing Rayleigh-Lamb wrapper function rlSolveFundamentalBranch on MATLAB path.');
 
+
+%% Rayleigh-Lamb compatibility wrapper smoke checks
+fprintf('\nChecking Rayleigh-Lamb compatibility wrapper forwarding...\n');
+compatTol = 1e-12;
+
+paramsOld = defaultParams();
+paramsNew = rlDefaultParams();
+assert(isequaln(paramsOld, paramsNew), ...
+    'defaultParams does not match rlDefaultParams.');
+
+optionsOld = defaultOptions();
+optionsNew = rlDefaultOptions();
+assert(isequaln(optionsOld, optionsNew), ...
+    'defaultOptions does not match rlDefaultOptions.');
+
+materialOld = computeMaterial(paramsNew);
+materialNew = rlComputeMaterial(paramsNew);
+assert(isequaln(materialOld, materialNew), ...
+    'computeMaterial does not match rlComputeMaterial.');
+
+geometryOld = computeGeometry(paramsNew);
+geometryNew = rlComputeGeometry(paramsNew);
+assert(isequaln(geometryOld, geometryNew), ...
+    'computeGeometry does not match rlComputeGeometry.');
+
+frequencyParams = paramsNew;
+frequencyParams.fmin = 10;
+frequencyParams.fmax = 100;
+frequencyParams.numFrequencyPoints = 10;
+frequencyParams.frequencySpacing = "linspace";
+frequencyOld = buildFrequencyVector(frequencyParams);
+frequencyNew = rlBuildFrequencyVector(frequencyParams);
+assertNumericClose(frequencyOld, frequencyNew, compatTol, ...
+    'buildFrequencyVector does not match rlBuildFrequencyVector.');
+
+branchGeometry = geometryNew;
+branchGeometry.frequency0 = frequencyNew(1);
+branchSpecOld = makeBranchSpec("A0", materialNew, branchGeometry);
+branchSpecNew = rlMakeBranchSpec("A0", materialNew, branchGeometry);
+assert(isequaln(branchSpecOld, branchSpecNew), ...
+    'makeBranchSpec A0 does not match rlMakeBranchSpec A0.');
+branchSpecOld = makeBranchSpec("S0", materialNew, branchGeometry);
+branchSpecNew = rlMakeBranchSpec("S0", materialNew, branchGeometry);
+assert(isequaln(branchSpecOld, branchSpecNew), ...
+    'makeBranchSpec S0 does not match rlMakeBranchSpec S0.');
+
+approxFrequency = [10, 25, 100];
+a0ApproxOld = computeA0ThinPlateApproximation(approxFrequency, materialNew, geometryNew);
+a0ApproxNew = rlComputeA0ThinPlateApproximation(approxFrequency, materialNew, geometryNew);
+assert(isequaln(a0ApproxOld, a0ApproxNew), ...
+    'computeA0ThinPlateApproximation does not match rlComputeA0ThinPlateApproximation.');
+
+s0ApproxOld = computeS0ExtensionalApproximation(approxFrequency, materialNew, geometryNew);
+s0ApproxNew = rlComputeS0ExtensionalApproximation(approxFrequency, materialNew, geometryNew);
+assert(isequaln(s0ApproxOld, s0ApproxNew), ...
+    'computeS0ExtensionalApproximation does not match rlComputeS0ExtensionalApproximation.');
+
 fprintf('\nChecking maintained acoustoelastic IOP/HGO wrappers and entrypoints...\n');
 assert(~isempty(which('solveAcoustoelasticIOPHGOBranch')), ...
     'Missing solveAcoustoelasticIOPHGOBranch on MATLAB path.');
@@ -184,3 +241,12 @@ fprintf('\n[3/3] mRLFE smoke test\n');
 test_mrlfe_smoke;
 
 fprintf('\nAll maintained smoke tests passed.\n');
+
+function assertNumericClose(actual, expected, tol, message)
+%ASSERTNUMERICCLOSE Strict numeric comparison that treats matching empty arrays as equal.
+if isempty(actual) && isempty(expected)
+    return;
+end
+assert(isequal(size(actual), size(expected)), message);
+assert(max(abs(actual(:) - expected(:))) < tol, message);
+end
