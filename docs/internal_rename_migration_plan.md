@@ -1,6 +1,6 @@
 # Internal rename migration plan
 
-For the concise current-state summary after the Acoustoelastic IOP/HGO author-neutral rename migration, see [Acoustoelastic IOP/HGO post-rename architecture](acoustoelastic_post_rename_architecture.md). For the final naming snapshot of maintained names, compatibility wrappers, intentional legacy references, and deferred validation work, see [Acoustoelastic IOP/HGO final naming snapshot](acoustoelastic_final_naming_snapshot.md).
+For the concise current-state summary after the Acoustoelastic IOP/HGO author-neutral rename migration, see [Acoustoelastic IOP/HGO post-rename architecture](acoustoelastic_post_rename_architecture.md). For the final naming snapshot of maintained names, compatibility wrappers, intentional legacy references, and deferred validation work, see [Acoustoelastic IOP/HGO final naming snapshot](acoustoelastic_final_naming_snapshot.md). For tag preparation, see the [Acoustoelastic IOP/HGO release-readiness checklist](acoustoelastic_release_readiness_checklist.md).
 
 This is a conservative implementation plan only. It does not perform the migration. Each implementation phase must preserve a passing MATLAB validation sequence:
 
