@@ -2,8 +2,7 @@ function startup()
 % Add active Lamb Fundamental Solver folders to the MATLAB path.
 %
 % Archived examples are intentionally excluded from the default path.
-% Rayleigh-Lamb legacy compatibility wrappers under models/rayleigh_lamb/legacy
-% are included through the model tree so old function names remain callable.
+% The models tree contains the primary Rayleigh-Lamb rl* implementation.
 
 projectRoot = fileparts(mfilename('fullpath'));
 

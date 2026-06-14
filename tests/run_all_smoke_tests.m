@@ -11,42 +11,8 @@ fprintf('\nRunning Lamb Fundamental Solver smoke tests...\n');
 fprintf('---------------------------------------------\n');
 
 
-%% Rayleigh-Lamb legacy compatibility wrapper path checks
-fprintf('\nChecking Rayleigh-Lamb legacy compatibility wrapper functions...\n');
-assert(~isempty(which('buildFrequencyVector')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function buildFrequencyVector on MATLAB path.');
-assert(~isempty(which('computeFundamentalLambModes')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function computeFundamentalLambModes on MATLAB path.');
-assert(~isempty(which('computeGeometry')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function computeGeometry on MATLAB path.');
-assert(~isempty(which('computeMaterial')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function computeMaterial on MATLAB path.');
-assert(~isempty(which('defaultOptions')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function defaultOptions on MATLAB path.');
-assert(~isempty(which('defaultParams')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function defaultParams on MATLAB path.');
-assert(~isempty(which('makeBranchSpec')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function makeBranchSpec on MATLAB path.');
-assert(~isempty(which('validateOptions')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function validateOptions on MATLAB path.');
-assert(~isempty(which('validateParams')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function validateParams on MATLAB path.');
-assert(~isempty(which('rayleighLambAResidual')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function rayleighLambAResidual on MATLAB path.');
-assert(~isempty(which('rayleighLambSResidual')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function rayleighLambSResidual on MATLAB path.');
-assert(~isempty(which('computeA0ThinPlateApproximation')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function computeA0ThinPlateApproximation on MATLAB path.');
-assert(~isempty(which('computeAnalyticalApproximations')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function computeAnalyticalApproximations on MATLAB path.');
-assert(~isempty(which('computeS0ExtensionalApproximation')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function computeS0ExtensionalApproximation on MATLAB path.');
-assert(~isempty(which('solveFundamentalBranch')), ...
-    'Missing Rayleigh-Lamb legacy compatibility function solveFundamentalBranch on MATLAB path.');
-
-
-%% Rayleigh-Lamb organized wrapper layer path checks
-fprintf('\nChecking Rayleigh-Lamb organized wrapper layer functions...\n');
+%% Rayleigh-Lamb primary API path checks
+fprintf('\nChecking Rayleigh-Lamb primary rl* API functions...\n');
 assert(~isempty(which('rlBuildFrequencyVector')), ...
     'Missing Rayleigh-Lamb wrapper function rlBuildFrequencyVector on MATLAB path.');
 assert(~isempty(which('rlComputeFundamentalLambModes')), ...
@@ -77,96 +43,6 @@ assert(~isempty(which('rlComputeS0ExtensionalApproximation')), ...
     'Missing Rayleigh-Lamb wrapper function rlComputeS0ExtensionalApproximation on MATLAB path.');
 assert(~isempty(which('rlSolveFundamentalBranch')), ...
     'Missing Rayleigh-Lamb wrapper function rlSolveFundamentalBranch on MATLAB path.');
-
-
-%% Rayleigh-Lamb compatibility wrapper smoke checks
-fprintf('\nChecking Rayleigh-Lamb compatibility wrapper forwarding...\n');
-compatTol = 1e-12;
-
-paramsOld = defaultParams();
-paramsNew = rlDefaultParams();
-assert(isequaln(paramsOld, paramsNew), ...
-    'defaultParams does not match rlDefaultParams.');
-
-optionsOld = defaultOptions();
-optionsNew = rlDefaultOptions();
-assert(isequaln(optionsOld, optionsNew), ...
-    'defaultOptions does not match rlDefaultOptions.');
-
-materialOld = computeMaterial(paramsNew);
-materialNew = rlComputeMaterial(paramsNew);
-assert(isequaln(materialOld, materialNew), ...
-    'computeMaterial does not match rlComputeMaterial.');
-
-geometryOld = computeGeometry(paramsNew);
-geometryNew = rlComputeGeometry(paramsNew);
-assert(isequaln(geometryOld, geometryNew), ...
-    'computeGeometry does not match rlComputeGeometry.');
-
-frequencyParams = paramsNew;
-frequencyParams.fmin = 10;
-frequencyParams.fmax = 100;
-frequencyParams.numFrequencyPoints = 10;
-frequencyParams.frequencySpacing = "linspace";
-frequencyOld = buildFrequencyVector(frequencyParams);
-frequencyNew = rlBuildFrequencyVector(frequencyParams);
-assertNumericClose(frequencyOld, frequencyNew, compatTol, ...
-    'buildFrequencyVector does not match rlBuildFrequencyVector.');
-
-branchGeometry = geometryNew;
-branchGeometry.frequency0 = frequencyNew(1);
-branchSpecOld = makeBranchSpec("A0", materialNew, branchGeometry);
-branchSpecNew = rlMakeBranchSpec("A0", materialNew, branchGeometry);
-assert(isequaln(branchSpecOld, branchSpecNew), ...
-    'makeBranchSpec A0 does not match rlMakeBranchSpec A0.');
-branchSpecOld = makeBranchSpec("S0", materialNew, branchGeometry);
-branchSpecNew = rlMakeBranchSpec("S0", materialNew, branchGeometry);
-assert(isequaln(branchSpecOld, branchSpecNew), ...
-    'makeBranchSpec S0 does not match rlMakeBranchSpec S0.');
-
-approxFrequency = [10, 25, 100];
-a0ApproxOld = computeA0ThinPlateApproximation(approxFrequency, materialNew, geometryNew);
-a0ApproxNew = rlComputeA0ThinPlateApproximation(approxFrequency, materialNew, geometryNew);
-assert(isequaln(a0ApproxOld, a0ApproxNew), ...
-    'computeA0ThinPlateApproximation does not match rlComputeA0ThinPlateApproximation.');
-
-s0ApproxOld = computeS0ExtensionalApproximation(approxFrequency, materialNew, geometryNew);
-s0ApproxNew = rlComputeS0ExtensionalApproximation(approxFrequency, materialNew, geometryNew);
-assert(isequaln(s0ApproxOld, s0ApproxNew), ...
-    'computeS0ExtensionalApproximation does not match rlComputeS0ExtensionalApproximation.');
-
-
-%% Rayleigh-Lamb maintained-code old-name audit
-fprintf('\nAuditing maintained MATLAB code for old Rayleigh-Lamb function calls...\n');
-oldRayleighLambNames = { ...
-    'buildFrequencyVector', ...
-    'computeFundamentalLambModes', ...
-    'computeGeometry', ...
-    'computeMaterial', ...
-    'defaultOptions', ...
-    'defaultParams', ...
-    'makeBranchSpec', ...
-    'validateOptions', ...
-    'validateParams', ...
-    'rayleighLambAResidual', ...
-    'rayleighLambSResidual', ...
-    'computeA0ThinPlateApproximation', ...
-    'computeAnalyticalApproximations', ...
-    'computeS0ExtensionalApproximation', ...
-    'solveFundamentalBranch'};
-maintainedAuditRoots = {'analysis', 'app', 'examples', 'tests'};
-maintainedAuditExcludes = { ...
-    'models/rayleigh_lamb/legacy/', ...
-    'models/rayleigh_lamb/', ...
-    'archive/', ...
-    'prototypes/', ...
-    'examples/archive/', ...
-    'tests/run_all_smoke_tests.m'};
-oldNameMatches = auditOldRayleighLambNames( ...
-    maintainedAuditRoots, maintainedAuditExcludes, oldRayleighLambNames);
-assert(isempty(oldNameMatches), ...
-    sprintf('Maintained code uses old Rayleigh-Lamb function calls outside allowed legacy contexts:\n%s', ...
-    strjoin(oldNameMatches, newline)));
 
 
 %% Rayleigh-Lamb minimal numerical regression fixtures
@@ -334,85 +210,6 @@ test_mrlfe_smoke;
 fprintf('\nAll maintained smoke tests passed.\n');
 
 
-function matches = auditOldRayleighLambNames(auditRoots, auditExcludes, oldNames)
-%AUDITOLDRAYLEIGHLAMBNAMES Find old-name function calls in maintained code.
-matches = {};
-repoRoot = fileparts(fileparts(mfilename('fullpath')));
-for iRoot = 1:numel(auditRoots)
-    rootPath = fullfile(repoRoot, auditRoots{iRoot});
-    if ~isfolder(rootPath)
-        continue;
-    end
-    files = dir(fullfile(rootPath, '**', '*.m'));
-    for iFile = 1:numel(files)
-        filePath = fullfile(files(iFile).folder, files(iFile).name);
-        relativePath = normalizeAuditPath(strrep(filePath, [repoRoot filesep], ''));
-        if isExcludedAuditPath(relativePath, auditExcludes)
-            continue;
-        end
-        fileText = fileread(filePath);
-        codeText = stripMatlabComments(fileText);
-        for iName = 1:numel(oldNames)
-            expression = ['(?<![A-Za-z0-9_])' oldNames{iName} '\s*\('];
-            if ~isempty(regexp(codeText, expression, 'once'))
-                matches{end + 1} = sprintf('%s: %s(', relativePath, oldNames{iName}); %#ok<AGROW>
-            end
-        end
-    end
-end
-matches = unique(matches, 'stable');
-end
-
-function tf = isExcludedAuditPath(relativePath, auditExcludes)
-%ISEXCLUDEDAUDITPATH Return true for compatibility, archive, or audit files.
-tf = false;
-for iExclude = 1:numel(auditExcludes)
-    excludedPath = normalizeAuditPath(auditExcludes{iExclude});
-    if endsWith(excludedPath, '/')
-        if startsWith(relativePath, excludedPath) || contains(relativePath, ['/' excludedPath])
-            tf = true;
-            return;
-        end
-    elseif strcmp(relativePath, excludedPath)
-        tf = true;
-        return;
-    end
-end
-end
-
-function normalizedPath = normalizeAuditPath(pathText)
-%NORMALIZEAUDITPATH Use forward slashes for stable path matching.
-normalizedPath = strrep(pathText, '\', '/');
-end
-
-function codeText = stripMatlabComments(fileText)
-%STRIPMATLABCOMMENTS Remove MATLAB comments while preserving quoted strings.
-lines = regexp(fileText, '\r\n|\n|\r', 'split');
-for iLine = 1:numel(lines)
-    lineText = lines{iLine};
-    inString = false;
-    commentStart = 0;
-    iChar = 1;
-    while iChar <= strlength(lineText)
-        currentChar = extractBetween(lineText, iChar, iChar);
-        if strcmp(currentChar, '''')
-            if inString && iChar < strlength(lineText) && strcmp(extractBetween(lineText, iChar + 1, iChar + 1), '''')
-                iChar = iChar + 2;
-                continue;
-            end
-            inString = ~inString;
-        elseif strcmp(currentChar, '%') && ~inString
-            commentStart = iChar;
-            break;
-        end
-        iChar = iChar + 1;
-    end
-    if commentStart > 0
-        lines{iLine} = extractBefore(lineText, commentStart);
-    end
-end
-codeText = strjoin(lines, newline);
-end
 function assertNumericClose(actual, expected, tol, message)
 %ASSERTNUMERICCLOSE Strict numeric comparison that treats matching empty arrays as equal.
 if isempty(actual) && isempty(expected)
