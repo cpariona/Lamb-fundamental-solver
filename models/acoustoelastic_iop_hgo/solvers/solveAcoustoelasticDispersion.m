@@ -13,7 +13,7 @@ function result = solveAcoustoelasticDispersion(params, options)
 %   cGrid              : custom Cp grid [m/s]
 
 if nargin < 2 || isempty(options)
-    options = defaultLi2024AcoustoelasticOptions();
+    options = defaultAcoustoelasticIOPHGOOptions();
 end
 
 validateDirectParams(params);
@@ -523,7 +523,7 @@ function validateDirectParams(params)
 requiredFields = {'alpha', 'beta', 'gamma', 'thickness', 'rho', 'rhoF', 'fluidBulkModulus', 'frequency'};
 for i = 1:numel(requiredFields)
     if ~isfield(params, requiredFields{i})
-        error('Missing required Li2024 parameter: %s', requiredFields{i});
+        error('Missing required Acoustoelastic IOP/HGO parameter: %s', requiredFields{i});
     end
 end
 end

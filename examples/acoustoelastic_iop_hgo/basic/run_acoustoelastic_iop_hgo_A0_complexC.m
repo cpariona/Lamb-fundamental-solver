@@ -29,7 +29,7 @@ params.fluidBulkModulus = 2.2e9;    % Pa
 % Frequency range.
 params.frequency = linspace(6e3, 35e3, 100);
 
-options = defaultLi2024AcoustoelasticOptions();
+options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.branch = "A0";
 options.trackingDirection = "backward";
@@ -43,7 +43,7 @@ seedOptions.predictiveWindow = 0.18;
 seedOptions.predictionWeight = 8.0;
 seedOptions.curvatureWeight = 4.0;
 seedOptions.macWeight = 12.0;
-seedResult = solveDispersionIOPHGO_Li2024(params, seedOptions);
+seedResult = solveAcoustoelasticIOPHGODispersion(params, seedOptions);
 
 % Step 2: complex-C continuation over the direct alpha-beta-gamma problem.
 complexOptions = options;
@@ -80,5 +80,5 @@ fprintf('complex CpReal range = %.4g..%.4g m/s\n', complexResult.diagnostics.min
 fprintf('min abs(det(M)) = %.3e\n', complexResult.diagnostics.minAbsDet);
 fprintf('median |Im(c)/Re(c)| = %.3e\n', complexResult.diagnostics.medianAbsImagOverReal);
 
-assignin('base', 'Li2024IOPHGOA0ComplexSeedResult', seedResult);
-assignin('base', 'Li2024IOPHGOA0ComplexResult', complexResult);
+assignin('base', 'AcoustoelasticIOPHGOIOPHGOA0ComplexSeedResult', seedResult);
+assignin('base', 'AcoustoelasticIOPHGOIOPHGOA0ComplexResult', complexResult);

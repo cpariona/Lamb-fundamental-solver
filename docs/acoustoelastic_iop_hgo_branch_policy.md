@@ -102,7 +102,7 @@ For high-IOP cases, the recommended interpretation is to use `LastValidFrequency
 The script
 
 ```matlab
-examples/li2024/diagnostics/diagnose_li2024_atlas_branch_policy.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlas_branch_policy.m
 ```
 
 compares the default `strictA0` behavior against diagnostic alternatives:

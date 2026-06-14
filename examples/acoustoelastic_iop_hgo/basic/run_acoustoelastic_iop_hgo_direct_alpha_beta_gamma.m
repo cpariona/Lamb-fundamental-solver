@@ -16,7 +16,7 @@ params.rhoF = 1000;                 % kg/m^3
 params.fluidBulkModulus = 2.2e9;    % Pa
 params.frequency = linspace(2e3, 30e3, 80);
 
-options = defaultLi2024AcoustoelasticOptions();
+options = defaultAcoustoelasticIOPHGOOptions();
 options.branch = "A0";
 options.M54_variant = "corrected";
 options.cMin = 0.5;
@@ -33,4 +33,4 @@ xlabel('frequency [kHz]');
 ylabel('Phase velocity Cp [m/s]');
 title('Li 2024 direct acoustoelastic solver: prescribed alpha, beta, gamma');
 
-assignin('base', 'Li2024DirectResult', result);
+assignin('base', 'AcoustoelasticIOPHGODirectResult', result);

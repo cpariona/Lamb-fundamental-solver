@@ -3,4 +3,4 @@
 % This script delegates to the original development diagnostic while providing
 % an author-neutral name for routine use.
 
-diagnose_li2024_atlas_branch_policy
+diagnose_acoustoelastic_iop_hgo_atlas_branch_policy

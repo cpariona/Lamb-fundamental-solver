@@ -11,13 +11,13 @@ function result = solveAcoustoelasticIOPHGODispersion(params, options)
 % validated.
 
 if nargin < 2 || isempty(options)
-    options = defaultLi2024AcoustoelasticOptions();
+    options = defaultAcoustoelasticIOPHGOOptions();
 end
 
 requiredFields = {'IOP', 'R', 'thickness', 'mu', 'k1', 'k2', 'rho', 'rhoF', 'fluidBulkModulus', 'frequency'};
 for i = 1:numel(requiredFields)
     if ~isfield(params, requiredFields{i})
-        error('Missing required Li2024 IOP/HGO parameter: %s', requiredFields{i});
+        error('Missing required Acoustoelastic IOP/HGO parameter: %s', requiredFields{i});
     end
 end
 

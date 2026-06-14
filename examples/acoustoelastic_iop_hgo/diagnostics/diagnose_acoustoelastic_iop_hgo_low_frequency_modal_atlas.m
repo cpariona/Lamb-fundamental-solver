@@ -41,7 +41,7 @@ topNMinimaPerFrequency = 16;
 maxLogYJumpForBranch = 0.075;
 minBranchPoints = 10;
 
-baseOptions = defaultLi2024AcoustoelasticOptions();
+baseOptions = defaultAcoustoelasticIOPHGOOptions();
 baseOptions.branch = "A0";
 baseOptions.trackingDirection = "backward";
 baseOptions.trackingMethod = "globalScan";
@@ -93,16 +93,16 @@ for c = 1:numel(conditionList)
     end
 end
 
-outputFolder = fullfile(pwd, 'Results', 'Li2024_low_frequency_modal_atlas');
+outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_low_frequency_modal_atlas');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
 
-writetable(allMinima, fullfile(outputFolder, 'Li2024_low_frequency_modal_atlas_minima_table.csv'));
-writetable(allBranches, fullfile(outputFolder, 'Li2024_low_frequency_modal_atlas_branch_table.csv'));
-writetable(conditionSummary, fullfile(outputFolder, 'Li2024_low_frequency_modal_atlas_condition_summary_table.csv'));
+writetable(allMinima, fullfile(outputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_minima_table.csv'));
+writetable(allBranches, fullfile(outputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_branch_table.csv'));
+writetable(conditionSummary, fullfile(outputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_condition_summary_table.csv'));
 
-save(fullfile(outputFolder, 'Li2024_low_frequency_modal_atlas_workspace.mat'), ...
+save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_workspace.mat'), ...
     'atlasMaps', 'allMinima', 'allBranches', 'conditionSummary', ...
     'baseParams', 'atlasIOP_mmHg', 'yGrid', 'conditionList', ...
     '-v7.3');
@@ -118,10 +118,10 @@ disp(conditionSummary);
 
 fprintf('\nData files written to:\n%s\n', outputFolder);
 
-assignin('base', 'Li2024LowFrequencyAtlasMaps', atlasMaps);
-assignin('base', 'Li2024LowFrequencyAtlasMinimaTable', allMinima);
-assignin('base', 'Li2024LowFrequencyAtlasBranchTable', allBranches);
-assignin('base', 'Li2024LowFrequencyAtlasConditionSummaryTable', conditionSummary);
+assignin('base', 'AcoustoelasticIOPHGOLowFrequencyAtlasMaps', atlasMaps);
+assignin('base', 'AcoustoelasticIOPHGOLowFrequencyAtlasMinimaTable', allMinima);
+assignin('base', 'AcoustoelasticIOPHGOLowFrequencyAtlasBranchTable', allBranches);
+assignin('base', 'AcoustoelasticIOPHGOLowFrequencyAtlasConditionSummaryTable', conditionSummary);
 
 function conditionList = makeLowFrequencyConditionList(baseOptions)
 conditionList = struct([]);
@@ -172,7 +172,7 @@ minimaRows = [];
 for k = 1:numel(freq)
     f = freq(k);
     for j = 1:numel(cGrid)
-        objectiveMap(j, k) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+        objectiveMap(j, k) = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cGrid(j), options);
     end
 

@@ -41,7 +41,7 @@ bands.A0_low = [0.02, 0.75];
 bands.A0_high = [0.75, 1.20];
 bands.S0_high = [1.20, 3.40];
 
-baseOptions = defaultLi2024AcoustoelasticOptions();
+baseOptions = defaultAcoustoelasticIOPHGOOptions();
 baseOptions.normalizeRows = true;
 baseOptions.usePhysicalCpWindow = false; % explicit y-grid used here
 
@@ -60,7 +60,7 @@ end
 plotLandscapeComparison(landscape, xTargets, yGrid, yA0HighTarget, yS0LowFreqTarget);
 printLandscapeSummary(landscape, xTargets);
 
-assignin('base', 'Li2024ResidualLandscape', landscape);
+assignin('base', 'AcoustoelasticIOPHGOResidualLandscape', landscape);
 
 function landscape = computeLandscape(params, options, xTargets, cGrid, cShear, bands, yA0HighTarget, yS0LowFreqTarget)
 objectiveMap = nan(numel(cGrid), numel(xTargets));
@@ -70,7 +70,7 @@ bandSummary = cell(numel(xTargets), 1);
 for ix = 1:numel(xTargets)
     f = xTargets(ix) * cShear / params.thickness;
     for ic = 1:numel(cGrid)
-        objectiveMap(ic, ix) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+        objectiveMap(ic, ix) = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cGrid(ic), options);
     end
     localMinima{ix} = findLocalMinima(cGrid, objectiveMap(:, ix), cShear);
@@ -177,7 +177,7 @@ for v = 1:numel(variantList)
     variant = variantList{v};
     data = landscape.(variant);
 
-    figure('Color', 'w', 'Name', ['Li2024 residual landscape - ', variant]);
+    figure('Color', 'w', 'Name', ['AcoustoelasticIOPHGO residual landscape - ', variant]);
     tiledlayout(numel(xTargets), 1, 'TileSpacing', 'compact', 'Padding', 'compact');
 
     for ix = 1:numel(xTargets)

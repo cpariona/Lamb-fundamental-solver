@@ -4,24 +4,24 @@ startup
 % Li 2024 corrected-raw-matrix branch-candidate postprocessor.
 %
 % Run this after:
-%   examples/diagnostics/diagnose_li2024_low_frequency_modal_atlas.m
+%   examples/diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
 %
 % It reads the low-frequency atlas CSV tables, selects the smooth persistent
 % branch from corrected_raw_matrix for each IOP, and compares that atlas-defined
 % branch against the current global-scan trackers.
 
-inputFolder = fullfile(pwd, 'Results', 'Li2024_low_frequency_modal_atlas');
-outputFolder = fullfile(pwd, 'Results', 'Li2024_raw_branch_candidate');
+inputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_low_frequency_modal_atlas');
+outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_raw_branch_candidate');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
 
-minimaFile = fullfile(inputFolder, 'Li2024_low_frequency_modal_atlas_minima_table.csv');
-branchFile = fullfile(inputFolder, 'Li2024_low_frequency_modal_atlas_branch_table.csv');
+minimaFile = fullfile(inputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_minima_table.csv');
+branchFile = fullfile(inputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_branch_table.csv');
 
 if ~exist(minimaFile, 'file') || ~exist(branchFile, 'file')
     error(['Low-frequency atlas CSV files were not found. Run ', ...
-        'examples/diagnostics/diagnose_li2024_low_frequency_modal_atlas.m first.']);
+        'examples/diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m first.']);
 end
 
 minimaTable = readtable(minimaFile);
@@ -34,7 +34,7 @@ IOP_mmHg = unique(rawBranchTable.IOP_mmHg, 'stable');
 trackerGridPoints = [900, 1800, 3600];
 
 baseParams = defaultExampleParams();
-rawOptions = defaultLi2024AcoustoelasticOptions();
+rawOptions = defaultAcoustoelasticIOPHGOOptions();
 rawOptions.M54_variant = "corrected";
 rawOptions.normalizeRows = false;
 rawOptions.branch = "A0";
@@ -75,12 +75,12 @@ comparisonSummary = summarizeTrackerComparison(trackerComparison);
 plotCandidateAcrossIOP(candidateCurve);
 plotTrackerComparisonSummary(comparisonSummary);
 
-writetable(candidateSummary, fullfile(outputFolder, 'Li2024_raw_branch_candidate_summary_table.csv'));
-writetable(candidateCurve, fullfile(outputFolder, 'Li2024_raw_branch_candidate_curve_table.csv'));
-writetable(trackerComparison, fullfile(outputFolder, 'Li2024_raw_branch_tracker_comparison_table.csv'));
-writetable(comparisonSummary, fullfile(outputFolder, 'Li2024_raw_branch_tracker_comparison_summary_table.csv'));
+writetable(candidateSummary, fullfile(outputFolder, 'acoustoelastic_iop_hgo_raw_branch_candidate_summary_table.csv'));
+writetable(candidateCurve, fullfile(outputFolder, 'acoustoelastic_iop_hgo_raw_branch_candidate_curve_table.csv'));
+writetable(trackerComparison, fullfile(outputFolder, 'acoustoelastic_iop_hgo_raw_branch_tracker_comparison_table.csv'));
+writetable(comparisonSummary, fullfile(outputFolder, 'acoustoelastic_iop_hgo_raw_branch_tracker_comparison_summary_table.csv'));
 
-save(fullfile(outputFolder, 'Li2024_raw_branch_candidate_workspace.mat'), ...
+save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_raw_branch_candidate_workspace.mat'), ...
     'candidateSummary', 'candidateCurve', 'trackerComparison', 'comparisonSummary', ...
     'rawOptions', 'normalizedOptions', 'trackerGridPoints', '-v7.3');
 
@@ -92,10 +92,10 @@ disp(comparisonSummary);
 
 fprintf('\nData files written to:\n%s\n', outputFolder);
 
-assignin('base', 'Li2024RawBranchCandidateSummary', candidateSummary);
-assignin('base', 'Li2024RawBranchCandidateCurve', candidateCurve);
-assignin('base', 'Li2024RawBranchTrackerComparison', trackerComparison);
-assignin('base', 'Li2024RawBranchTrackerComparisonSummary', comparisonSummary);
+assignin('base', 'AcoustoelasticIOPHGORawBranchCandidateSummary', candidateSummary);
+assignin('base', 'AcoustoelasticIOPHGORawBranchCandidateCurve', candidateCurve);
+assignin('base', 'AcoustoelasticIOPHGORawBranchTrackerComparison', trackerComparison);
+assignin('base', 'AcoustoelasticIOPHGORawBranchTrackerComparisonSummary', comparisonSummary);
 
 function params = defaultExampleParams()
 params = struct();
@@ -153,7 +153,7 @@ for m = 1:numel(methodLabels)
             opt = normalizedOptions;
         end
         opt.numCpScanPoints = gridList(g);
-        result = solveDispersionIOPHGO_Li2024(params, opt);
+        result = solveAcoustoelasticIOPHGODispersion(params, opt);
         candidateCp = interp1(branchPoints.Frequency_Hz, branchPoints.Cp_mps, result.frequency, 'linear', nan);
         for k = 1:numel(result.frequency)
             row = struct();
@@ -187,17 +187,17 @@ S.ValidFraction = splitapply(@(x) mean(double(x), 'omitnan'), T.ValidTracker, G)
 end
 
 function plotCandidateVsTrackers(params, branchPoints, rawOptions, normalizedOptions, gridList, iop)
-figure('Color', 'w', 'Name', sprintf('Li2024 raw branch candidate IOP %.0f', iop));
+figure('Color', 'w', 'Name', sprintf('AcoustoelasticIOPHGO raw branch candidate IOP %.0f', iop));
 hold on; grid on;
 plot(branchPoints.Frequency_kHz, branchPoints.Cp_mps, 'k-', 'LineWidth', 3, 'DisplayName', 'atlas candidate');
 for g = 1:numel(gridList)
     opt = rawOptions;
     opt.numCpScanPoints = gridList(g);
-    r = solveDispersionIOPHGO_Li2024(params, opt);
+    r = solveAcoustoelasticIOPHGODispersion(params, opt);
     plot(r.frequency/1e3, r.Cp, '--', 'LineWidth', 1.2, 'DisplayName', sprintf('raw tracker %d', gridList(g)));
     opt = normalizedOptions;
     opt.numCpScanPoints = gridList(g);
-    r = solveDispersionIOPHGO_Li2024(params, opt);
+    r = solveAcoustoelasticIOPHGODispersion(params, opt);
     plot(r.frequency/1e3, r.Cp, ':', 'LineWidth', 1.2, 'DisplayName', sprintf('normalized tracker %d', gridList(g)));
 end
 xlabel('frequency [kHz]');
@@ -208,7 +208,7 @@ hold off;
 end
 
 function plotCandidateAcrossIOP(T)
-figure('Color', 'w', 'Name', 'Li2024 raw branch candidate across IOP');
+figure('Color', 'w', 'Name', 'AcoustoelasticIOPHGO raw branch candidate across IOP');
 hold on; grid on;
 iops = unique(T.IOP_mmHg, 'stable');
 for i = 1:numel(iops)
@@ -223,7 +223,7 @@ hold off;
 end
 
 function plotTrackerComparisonSummary(S)
-figure('Color', 'w', 'Name', 'Li2024 raw branch tracker error summary');
+figure('Color', 'w', 'Name', 'AcoustoelasticIOPHGO raw branch tracker error summary');
 labels = strcat(S.TrackerMethod, " | grid ", string(S.GridPoints), " | IOP ", string(S.IOP_mmHg));
 bar(categorical(labels), S.MedianRelativeError);
 grid on;

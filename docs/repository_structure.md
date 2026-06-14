@@ -1,26 +1,10 @@
 # Repository structure
 
-This document describes the active folder structure after the Acoustoelastic IOP/HGO and mRLFE refactors.
+This document describes the active folder structure after the acoustoelastic IOP/HGO compatibility-layer cleanup and the mRLFE refactor.
 
 ## Active MATLAB path
 
-`startup.m` adds the following active folders to the MATLAB path:
-
-```text
-app/
-core/
-equations/
-approximations/
-tracking/
-models/
-analysis/
-examples/acoustoelastic_iop_hgo/
-examples/mrlfe/
-examples/validation/
-tests/
-```
-
-Legacy folders such as `examples/basic`, `examples/diagnostics`, and `examples/sweeps` are no longer part of the default MATLAB path.
+`startup.m` adds active implementation, analysis, example, and test folders to the MATLAB path. Maintained acoustoelastic callers should use author-neutral `Acoustoelastic` / `AcoustoelasticIOPHGO` names only.
 
 ## Model folders
 
@@ -34,33 +18,16 @@ models/acoustoelastic_iop_hgo/
 └─ options/
 ```
 
-Use this model for IOP/HGO acoustoelastic dispersion studies.
-
 Recommended author-neutral entrypoints:
 
 ```matlab
 solveAcoustoelasticIOPHGOBranch
+solveAcoustoelasticIOPHGOAtlasBranch
+solveAcoustoelasticIOPHGODispersion
 defaultAcoustoelasticIOPHGOOptions
 ```
 
-Compatibility/development entrypoints remain available during the naming transition:
-
-```matlab
-solveDispersionIOPHGOAtlasBranch_Li2024
-defaultLi2024AcoustoelasticOptions
-```
-
-The current default branch policy is `strictA0`. See:
-
-```text
-docs/acoustoelastic_iop_hgo_branch_policy.md
-```
-
-Naming-transition details are documented in:
-
-```text
-docs/naming_transition.md
-```
+The old author-specific compatibility wrappers have been removed and are not maintained entrypoints. GUI code should call the author-neutral API only.
 
 ### mRLFE model
 
@@ -70,8 +37,6 @@ models/mrlfe/
 ├─ solvers/
 └─ options/
 ```
-
-Use this model for modified Rayleigh-Lamb fluid-loaded elastic and Han-style viscoelastic real-k calculations.
 
 Recommended high-level function:
 
@@ -90,18 +55,11 @@ examples/acoustoelastic_iop_hgo/
 └─ diagnostics/
 ```
 
-Recommended author-neutral example and diagnostic entrypoints:
+Maintained examples and diagnostics use `acoustoelastic_iop_hgo` names only.
 
 ```matlab
 run_acoustoelastic_iop_hgo_atlas_branch
 diagnose_acoustoelastic_iop_hgo_branch_policy
-```
-
-Compatibility/development entrypoints remain available:
-
-```matlab
-run_li2024_IOP_HGO_A0_atlas_branch
-diagnose_li2024_atlas_branch_policy
 ```
 
 ### mRLFE examples
@@ -119,15 +77,13 @@ examples/mrlfe/
 examples/validation/
 ```
 
-This folder contains maintained validation and stress-test scripts.
-
 ### Archive
 
 ```text
 examples/archive/
 ```
 
-This folder contains historical prototypes and development diagnostics. It is intentionally not added to the MATLAB path by `startup.m`.
+Archive content is historical and is not added to the MATLAB path by `startup.m`.
 
 ## Tests
 
@@ -138,18 +94,11 @@ tests/acoustoelastic_iop_hgo/
 tests/mrlfe/
 ```
 
-Recommended author-neutral acoustoelastic tests:
+Recommended acoustoelastic tests:
 
 ```matlab
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
-```
-
-Compatibility tests remain available:
-
-```matlab
-test_li2024_constitutive_identity
-test_li2024_strictA0_smoke
 ```
 
 Recommended manual test sequence after refactors:
@@ -158,16 +107,5 @@ Recommended manual test sequence after refactors:
 clear functions
 rehash toolboxcache
 startup
-
 run_all_smoke_tests
 ```
-
-## Refactor policy
-
-For future cleanup:
-
-1. Move files first.
-2. Confirm MATLAB resolves the new paths with `which`.
-3. Run the smoke tests.
-4. Only then remove legacy locations.
-5. Prefer small commits over large mixed renames and deletions.

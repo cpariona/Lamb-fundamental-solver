@@ -47,7 +47,7 @@ minBranchPoints = 8;
 % Existing tracker overlays. These are not used to define branches.
 trackerGridPoints = [900, 1800, 3600];
 
-baseOptions = defaultLi2024AcoustoelasticOptions();
+baseOptions = defaultAcoustoelasticIOPHGOOptions();
 baseOptions.branch = "A0";
 baseOptions.trackingDirection = "backward";
 baseOptions.trackingMethod = "globalScan";
@@ -108,14 +108,14 @@ end
 plotBranchPersistenceSummary(allBranches);
 plotConditionMinimaDensity(conditionSummary);
 
-outputFolder = fullfile(pwd, 'Results', 'Li2024_modal_atlas');
+outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_modal_atlas');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
-writetable(allMinima, fullfile(outputFolder, 'Li2024_modal_atlas_minima_table.csv'));
-writetable(allBranches, fullfile(outputFolder, 'Li2024_modal_atlas_branch_table.csv'));
-writetable(allTrackerMatches, fullfile(outputFolder, 'Li2024_modal_atlas_tracker_match_table.csv'));
-writetable(conditionSummary, fullfile(outputFolder, 'Li2024_modal_atlas_condition_summary_table.csv'));
+writetable(allMinima, fullfile(outputFolder, 'acoustoelastic_iop_hgo_modal_atlas_minima_table.csv'));
+writetable(allBranches, fullfile(outputFolder, 'acoustoelastic_iop_hgo_modal_atlas_branch_table.csv'));
+writetable(allTrackerMatches, fullfile(outputFolder, 'acoustoelastic_iop_hgo_modal_atlas_tracker_match_table.csv'));
+writetable(conditionSummary, fullfile(outputFolder, 'acoustoelastic_iop_hgo_modal_atlas_condition_summary_table.csv'));
 
 fprintf('\nModal-atlas minima table\n');
 disp(head(allMinima, min(20, height(allMinima))));
@@ -131,12 +131,12 @@ disp(conditionSummary);
 
 fprintf('\nCSV files written to:\n%s\n', outputFolder);
 
-assignin('base', 'Li2024ModalAtlasMaps', atlasMaps);
-assignin('base', 'Li2024ModalAtlasMinimaTable', allMinima);
-assignin('base', 'Li2024ModalAtlasBranchTable', allBranches);
-assignin('base', 'Li2024ModalAtlasTrackerMatchTable', allTrackerMatches);
-assignin('base', 'Li2024ModalAtlasConditionSummaryTable', conditionSummary);
-assignin('base', 'Li2024ModalAtlasTrackerResults', trackerResults);
+assignin('base', 'AcoustoelasticIOPHGOModalAtlasMaps', atlasMaps);
+assignin('base', 'AcoustoelasticIOPHGOModalAtlasMinimaTable', allMinima);
+assignin('base', 'AcoustoelasticIOPHGOModalAtlasBranchTable', allBranches);
+assignin('base', 'AcoustoelasticIOPHGOModalAtlasTrackerMatchTable', allTrackerMatches);
+assignin('base', 'AcoustoelasticIOPHGOModalAtlasConditionSummaryTable', conditionSummary);
+assignin('base', 'AcoustoelasticIOPHGOModalAtlasTrackerResults', trackerResults);
 
 function conditionList = makeConditionList(baseOptions)
 conditionList = struct([]);
@@ -195,7 +195,7 @@ minimaRows = [];
 for k = 1:numel(freq)
     f = freq(k);
     for j = 1:numel(cGrid)
-        objectiveMap(j, k) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+        objectiveMap(j, k) = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cGrid(j), options);
     end
 
@@ -415,7 +415,7 @@ trackerResultsForCase = cell(numel(gridList), 1);
 for g = 1:numel(gridList)
     opt = options;
     opt.numCpScanPoints = gridList(g);
-    result = solveDispersionIOPHGO_Li2024(params, opt);
+    result = solveAcoustoelasticIOPHGODispersion(params, opt);
     trackerResultsForCase{g} = result;
 
     for k = 1:numel(result.frequency)

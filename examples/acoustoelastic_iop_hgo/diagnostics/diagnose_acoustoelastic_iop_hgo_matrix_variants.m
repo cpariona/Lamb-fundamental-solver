@@ -17,7 +17,7 @@ params.rhoF = 1000;                 % kg/m^3
 params.fluidBulkModulus = 2.2e9;    % Pa
 params.frequency = linspace(2e3, 30e3, 80);
 
-baseOptions = defaultLi2024AcoustoelasticOptions();
+baseOptions = defaultAcoustoelasticIOPHGOOptions();
 baseOptions.branch = "A0";
 baseOptions.cMin = 0.5;
 baseOptions.cMax = 30;
@@ -45,8 +45,8 @@ fprintf('\nLi 2024 matrix variant diagnostic\n');
 printSummary('paper', resultPaper);
 printSummary('corrected', resultCorrected);
 
-assignin('base', 'Li2024MatrixVariantPaper', resultPaper);
-assignin('base', 'Li2024MatrixVariantCorrected', resultCorrected);
+assignin('base', 'AcoustoelasticIOPHGOMatrixVariantPaper', resultPaper);
+assignin('base', 'AcoustoelasticIOPHGOMatrixVariantCorrected', resultCorrected);
 
 function plotVariant(result, labelText)
 valid = result.validCp & isfinite(result.Cp);

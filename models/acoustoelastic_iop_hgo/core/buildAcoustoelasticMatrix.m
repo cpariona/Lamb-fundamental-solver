@@ -9,11 +9,11 @@ function [M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, 
 % surface x3 = h is stress-free.
 
 if nargin < 10 || isempty(options)
-    options = defaultLi2024AcoustoelasticOptions();
+    options = defaultAcoustoelasticIOPHGOOptions();
 end
 
 k = 2*pi*f/c;
-[s1, s2, rootInfo] = computeSRoots_Li2024(alpha, beta, gamma, rho, c);
+[s1, s2, rootInfo] = computeAcoustoelasticSRoots(alpha, beta, gamma, rho, c);
 xi = sqrt(complex(1 - (c^2*rhoF/fluidBulkModulus)));
 
 kh = k*h;

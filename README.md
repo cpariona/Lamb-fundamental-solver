@@ -175,7 +175,7 @@ run_acoustoelastic_iop_hgo_atlas_branch
 diagnose_acoustoelastic_iop_hgo_branch_policy
 ```
 
-The original Li2024-named functions remain available as compatibility/development entrypoints during the naming transition.
+The old author-specific compatibility wrappers have been removed; maintained acoustoelastic code should use the author-neutral Acoustoelastic IOP/HGO API.
 
 The default atlas-branch policy is `strictA0`. It selects an A0-like branch using low-start-speed and start-rank filters, splits large Cp jumps, and reports non-traceable high-frequency portions as `NaN` instead of reconnecting them automatically.
 
