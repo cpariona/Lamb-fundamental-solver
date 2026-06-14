@@ -1,5 +1,9 @@
 # Rayleigh-Lamb compatibility snapshot
 
+
+> **Current layout update:** The primary Rayleigh-Lamb implementation remains under `models/rayleigh_lamb/` in the `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old callable compatibility-wrapper function names now physically live under `models/rayleigh_lamb/legacy/` with matching `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old top-level `core/`, `equations/`, `approximations/`, and `tracking/` folders are no longer the Rayleigh-Lamb compatibility-wrapper location. `startup.m` adds the `models/` tree, so both primary `rl*` names and legacy old names remain callable through the updated path behavior.
+
+
 ## Snapshot purpose
 
 This document captures the stable post-wrapper, post-compatibility state of the Rayleigh-Lamb base solver before any physical migration of legacy folders. It is intended as a documentation-only checkpoint for the current API, wrapper, test, and migration-readiness state.
@@ -43,13 +47,13 @@ They are grouped as follows.
 
 ## Current compatibility layer
 
-Old top-level files under `core/`, `equations/`, `approximations/`, and `tracking/` remain available. These legacy names forward to the primary `rl*` implementation files and include explicit compatibility headers that identify the corresponding primary entrypoint.
+Legacy files under `models/rayleigh_lamb/legacy/core/`, `models/rayleigh_lamb/legacy/equations/`, `models/rayleigh_lamb/legacy/approximations/`, and `models/rayleigh_lamb/legacy/tracking/` remain available. These legacy names forward to the primary `rl*` implementation files and include explicit compatibility headers that identify the corresponding primary entrypoint.
 
 These compatibility wrappers should not be removed yet. They preserve existing scripts, notebooks, and downstream workflows while maintained repository code uses the primary `rl*` names.
 
 ## Maintained call-site state
 
-Maintained code should call `rl*` names, not old top-level names. Old top-level names are intentionally reserved for compatibility wrappers, compatibility checks, documentation, and explicitly legacy or archived contexts.
+Maintained code should call `rl*` names, not old legacy names. Old top-level names are intentionally reserved for compatibility wrappers, compatibility checks, documentation, and explicitly legacy or archived contexts.
 
 ## Test coverage state
 
@@ -82,7 +86,7 @@ Old names remain available for existing scripts, notebooks, and downstream workf
 
 ## Migration status
 
-Physical migration has not yet been performed. Option A remains recommended: keep the top-level `core/`, `equations/`, `approximations/`, and `tracking/` folders as compatibility-wrapper folders for now.
+Physical migration of Rayleigh-Lamb compatibility wrappers has now been performed. Option A remains recommended: keep the `models/rayleigh_lamb/legacy/` folders as compatibility-wrapper folders for now.
 
 This keeps MATLAB path behavior stable, avoids breaking old user code, and preserves a clear separation between the primary implementation layer and legacy callable names.
 

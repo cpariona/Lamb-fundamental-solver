@@ -1,10 +1,14 @@
 # Rayleigh-Lamb base solver reorganization plan
 
+
+> **Current layout update:** The primary Rayleigh-Lamb implementation remains under `models/rayleigh_lamb/` in the `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old callable compatibility-wrapper function names now physically live under `models/rayleigh_lamb/legacy/` with matching `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old top-level `core/`, `equations/`, `approximations/`, and `tracking/` folders are no longer the Rayleigh-Lamb compatibility-wrapper location. `startup.m` adds the `models/` tree, so both primary `rl*` names and legacy old names remain callable through the updated path behavior.
+
+
 ## Purpose
 
 This document is a documentation-only architecture audit and future migration plan for the current Rayleigh-Lamb base solver. It records the present folder layout, identifies the MATLAB files that appear to form the base solver, and proposes a conservative reorganization path for a later implementation phase.
 
-This phase makes the organized `rl*` functions under `models/rayleigh_lamb/` the primary Rayleigh-Lamb implementation entrypoints, without moving files or intentionally altering numerical behavior. The old top-level Rayleigh-Lamb function names in `core/`, `equations/`, `approximations/`, and `tracking/` remain in place as compatibility wrappers that forward to the `rl*` implementations. For the public `rl*` API table and old-name mapping, see [Rayleigh-Lamb public API](rayleigh_lamb_public_api.md). For the policy governing the old top-level compatibility wrappers, see [Rayleigh-Lamb legacy wrapper policy](rayleigh_lamb_legacy_wrapper_policy.md). For the release checklist for this implementation handoff milestone, see [Rayleigh-Lamb wrapper layer release checklist](rayleigh_lamb_wrapper_release_checklist.md). Lightweight smoke coverage exists for both the old top-level compatibility wrappers and the `rl*` implementation entrypoints in `tests/run_all_smoke_tests.m`; the compatibility section verifies selected old-vs-new forwarding behavior for safe helper functions without full dispersion sweeps, and the minimal numerical regression section checks representative A0/S0 outputs without broad sweeps. The Acoustoelastic IOP/HGO author-neutral API migration is treated as completed and tagged as `v0.4.0-acoustoelastic-author-neutral-api`; this plan is about the next possible Rayleigh-Lamb base solver cleanup.
+This phase makes the organized `rl*` functions under `models/rayleigh_lamb/` the primary Rayleigh-Lamb implementation entrypoints without intentionally altering numerical behavior. The old Rayleigh-Lamb function names now live in `models/rayleigh_lamb/legacy/` as compatibility wrappers that forward to the `rl*` implementations. For the public `rl*` API table and old-name mapping, see [Rayleigh-Lamb public API](rayleigh_lamb_public_api.md). For the policy governing the legacy compatibility wrappers, see [Rayleigh-Lamb legacy wrapper policy](rayleigh_lamb_legacy_wrapper_policy.md). For the release checklist for this implementation handoff milestone, see [Rayleigh-Lamb wrapper layer release checklist](rayleigh_lamb_wrapper_release_checklist.md). Lightweight smoke coverage exists for both the legacy compatibility wrappers and the `rl*` implementation entrypoints in `tests/run_all_smoke_tests.m`; the compatibility section verifies selected old-vs-new forwarding behavior for safe helper functions without full dispersion sweeps, and the minimal numerical regression section checks representative A0/S0 outputs without broad sweeps. The Acoustoelastic IOP/HGO author-neutral API migration is treated as completed and tagged as `v0.4.0-acoustoelastic-author-neutral-api`; this plan is about the next possible Rayleigh-Lamb base solver cleanup.
 
 This plan is complemented by the [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md), which records the risks, preconditions, forbidden changes, rollback approach, and open decisions for any future physical movement or removal of the legacy wrapper folders. Before any physical movement, deletion, or path restructuring, use the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md) as the final gate. For the stable post-wrapper, pre-migration state, see the [Rayleigh-Lamb compatibility snapshot](rayleigh_lamb_compatibility_snapshot.md).
 
@@ -16,7 +20,7 @@ The following relevant folders exist in the current repository:
 - `equations/`: Normalized antisymmetric and symmetric Rayleigh-Lamb residual equations used by the base solver.
 - `approximations/`: Low-frequency analytical approximations for the fundamental A0 and S0 Lamb modes.
 - `tracking/`: Continuation/root-tracking logic for following a fundamental branch across frequency points.
-- `models/`: Model-specific implementations that already use model-scoped folders, including Acoustoelastic IOP/HGO and mRLFE code. The Rayleigh-Lamb `rl*` implementation layer now exists under `models/rayleigh_lamb/`; the old top-level base function names forward to this layer for compatibility.
+- `models/`: Model-specific implementations that already use model-scoped folders, including Acoustoelastic IOP/HGO and mRLFE code. The Rayleigh-Lamb `rl*` implementation layer exists under `models/rayleigh_lamb/`; the old base function names under `models/rayleigh_lamb/legacy/` forward to this layer for compatibility.
 - `examples/`: Runnable examples, sweeps, diagnostics, validation scripts, and archived exploratory scripts for the base solver and model-specific extensions.
 - `tests/`: MATLAB smoke tests for maintained functionality, including Acoustoelastic IOP/HGO and mRLFE checks.
 - `docs/`: Architecture, migration, validation, release-readiness, and maintained-entrypoint documentation.
@@ -25,7 +29,7 @@ The following relevant folders exist in the current repository:
 
 ## Current Rayleigh-Lamb base components
 
-The current base Rayleigh-Lamb solver appears to be spread across four top-level folders rather than under a model-scoped folder.
+Historically, the base Rayleigh-Lamb solver was spread across four top-level folders; the primary implementation is now model-scoped under `models/rayleigh_lamb/`.
 
 `core/` appears to contain the high-level base solver and shared setup helpers:
 
@@ -94,7 +98,7 @@ Possible mapping for a later code-moving phase:
 - `tracking/solveFundamentalBranch.m` -> `models/rayleigh_lamb/tracking/`
 - selected future Rayleigh-Lamb examples, if reorganized, -> `models/rayleigh_lamb/examples/` or a clearly documented examples subtree.
 
-The `core/`, `equations/`, `approximations/`, and `tracking/` folders now exist under `models/rayleigh_lamb/` as the primary `rl*` implementation layer. The original top-level files have not been physically removed; they remain as compatibility wrappers.
+The `core/`, `equations/`, `approximations/`, and `tracking/` folders now exist under `models/rayleigh_lamb/` as the primary `rl*` implementation layer. The original top-level wrapper files have been moved into `models/rayleigh_lamb/legacy/`; the old callable names remain compatibility wrappers.
 
 ## Compatibility strategy
 
@@ -109,7 +113,7 @@ The transition should avoid changing `startup.m` path behavior and public entryp
 - Phase 1: documentation and inventory only.
 - Phase 2: add path-level smoke checks for current Rayleigh-Lamb base functions. **Completed:** `run_all_smoke_tests` checks that current base functions in `core/`, `equations/`, `approximations/`, and `tracking/` resolve on the MATLAB path.
 - Phase 3: introduce author-neutral maintained entrypoints if needed. **Completed for the wrapper layer:** `models/rayleigh_lamb/` introduced `rl*` entrypoints without changing numerical behavior.
-- Phase 4: hand off primary implementation responsibility to `models/rayleigh_lamb/` while preserving old top-level compatibility wrappers. **Completed for the base function pairs listed in this plan:** `rl*` files now contain the implementation logic, old top-level names forward to them, and lightweight smoke checks compare selected old-vs-new helper outputs. Files have not yet been physically removed.
+- Phase 4: hand off primary implementation responsibility to `models/rayleigh_lamb/` while preserving legacy compatibility wrappers. **Completed for the base function pairs listed in this plan:** `rl*` files now contain the implementation logic, old legacy names forward to them, and lightweight smoke checks compare selected old-vs-new helper outputs. Legacy wrapper files have been physically moved under `models/rayleigh_lamb/legacy/`.
 - Phase 5: physical file removal or broader archive/prototype migration remains deferred.
 - Phase 6: update examples and docs.
 - Phase 7: add numerical regression tests before removing or deprecating any legacy paths.

@@ -1,10 +1,14 @@
 # Rayleigh-Lamb physical migration audit
 
+
+> **Current layout update:** The primary Rayleigh-Lamb implementation remains under `models/rayleigh_lamb/` in the `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old callable compatibility-wrapper function names now physically live under `models/rayleigh_lamb/legacy/` with matching `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old top-level `core/`, `equations/`, `approximations/`, and `tracking/` folders are no longer the Rayleigh-Lamb compatibility-wrapper location. `startup.m` adds the `models/` tree, so both primary `rl*` names and legacy old names remain callable through the updated path behavior.
+
+
 Before using this audit to plan any folder movement, apply the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md) as the final gate. For the stable post-wrapper, pre-migration state, see the [Rayleigh-Lamb compatibility snapshot](rayleigh_lamb_compatibility_snapshot.md).
 
 ## Current state
 
-The `models/rayleigh_lamb/rl*` files contain the primary Rayleigh-Lamb implementation. The old top-level folders `core/`, `equations/`, `approximations/`, and `tracking/` remain in place as compatibility wrapper folders that preserve historical callable names while forwarding to the `rl*` layer.
+The `models/rayleigh_lamb/rl*` files contain the primary Rayleigh-Lamb implementation. The legacy wrapper folders under `models/rayleigh_lamb/legacy/` preserve historical callable names while forwarding to the `rl*` layer; the old top-level folders are no longer the Rayleigh-Lamb compatibility location.
 
 Maintained call sites should prefer the `rl*` names when directly calling the Rayleigh-Lamb base solver. Compatibility smoke checks and minimal numerical regression fixtures exist so that old-name forwarding and representative A0/S0 behavior can be checked before any future physical migration.
 
@@ -68,10 +72,10 @@ Maintained call sites should prefer the `rl*` names when directly calling the Ra
 
 ## Maintained code dependency state
 
-`tests/run_all_smoke_tests.m` now includes a lightweight maintained-code static audit that scans MATLAB files under `analysis/`, `app/`, `examples/`, and `tests/` for function-call uses of old top-level Rayleigh-Lamb names. The audit excludes compatibility wrappers, the primary `models/rayleigh_lamb/` implementation layer, archive/prototype material, `examples/archive/`, and the smoke-test file itself because it intentionally exercises old names for path and compatibility checks.
+`tests/run_all_smoke_tests.m` now includes a lightweight maintained-code static audit that scans MATLAB files under `analysis/`, `app/`, `examples/`, and `tests/` for function-call uses of old Rayleigh-Lamb legacy names. The audit excludes compatibility wrappers, the primary `models/rayleigh_lamb/` implementation layer, archive/prototype material, `examples/archive/`, and the smoke-test file itself because it intentionally exercises old names for path and compatibility checks.
 
 
-Maintained code should not directly depend on old top-level Rayleigh-Lamb names except where those names are intentionally exercised by compatibility tests or implemented inside compatibility wrapper files. Before any physical migration, this state must be verified with a repository search confirming that maintained code uses the `rl*` names and that any remaining old-name references are intentional compatibility coverage, wrapper implementations, documentation, or archived/prototype material.
+Maintained code should not directly depend on old Rayleigh-Lamb legacy names except where those names are intentionally exercised by compatibility tests or implemented inside compatibility wrapper files. Before any physical migration, this state must be verified with a repository search confirming that maintained code uses the `rl*` names and that any remaining old-name references are intentional compatibility coverage, wrapper implementations, documentation, or archived/prototype material.
 
 ## Startup/path considerations
 
@@ -79,7 +83,7 @@ MATLAB path behavior must be reviewed before removing or relocating the top-leve
 
 ## Risks of physical migration
 
-- breaking user scripts that call old top-level names
+- breaking user scripts that call old legacy names
 - breaking MATLAB path resolution
 - introducing duplicate function names
 - changing function precedence unexpectedly
@@ -98,7 +102,7 @@ MATLAB path behavior must be reviewed before removing or relocating the top-leve
 
 The next actual implementation PR, if any, should not delete compatibility wrappers.
 
-Option A is to keep the top-level folders as permanent compatibility-wrapper folders. This is the safest next implementation strategy because it preserves old user-facing names, minimizes MATLAB path surprises, and allows maintained code to continue using the `rl*` implementation layer without forcing an immediate path or deprecation decision.
+The implemented strategy keeps `models/rayleigh_lamb/legacy/` as the physical compatibility-wrapper layer. This preserves old user-facing names while making the old top-level folders no longer be the Rayleigh-Lamb compatibility location.
 
 Option B is to move compatibility wrappers to a clearly named legacy layer, but only after startup/path behavior is explicitly redesigned and validated. This option carries more path-resolution and user-script risk, so it should not be the next physical migration step unless the project first decides how legacy paths will be supported.
 

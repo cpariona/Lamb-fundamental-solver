@@ -1,5 +1,9 @@
 # Rayleigh-Lamb migration readiness checklist
 
+
+> **Current layout update:** The primary Rayleigh-Lamb implementation remains under `models/rayleigh_lamb/` in the `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old callable compatibility-wrapper function names now physically live under `models/rayleigh_lamb/legacy/` with matching `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old top-level `core/`, `equations/`, `approximations/`, and `tracking/` folders are no longer the Rayleigh-Lamb compatibility-wrapper location. `startup.m` adds the `models/` tree, so both primary `rl*` names and legacy old names remain callable through the updated path behavior.
+
+
 ## Purpose
 
 This checklist is the final gate before any physical movement, deletion, or path restructuring involving the legacy Rayleigh-Lamb top-level folders:
@@ -11,12 +15,12 @@ approximations/
 tracking/
 ```
 
-Do not treat this document as approval to migrate those folders. It defines the minimum green checks, repository searches, documentation state, and no-go conditions that must be satisfied before any separate migration proposal is attempted. For the stable post-wrapper compatibility checkpoint, see the [Rayleigh-Lamb compatibility snapshot](rayleigh_lamb_compatibility_snapshot.md).
+The compatibility wrapper migration into `models/rayleigh_lamb/legacy/` is complete. Treat this document as the checklist for any future wrapper removal, deprecation, or additional path restructuring. For the stable post-wrapper compatibility checkpoint, see the [Rayleigh-Lamb compatibility snapshot](rayleigh_lamb_compatibility_snapshot.md).
 
 ## Current implementation state
 
 - `rl*` functions under `models/rayleigh_lamb/` are the primary Rayleigh-Lamb implementation entrypoints.
-- Top-level functions under `core/`, `equations/`, `approximations/`, and `tracking/` are compatibility wrappers with explicit compatibility headers.
+- Legacy functions under `models/rayleigh_lamb/legacy/` are compatibility wrappers with explicit compatibility headers.
 - Maintained code should use `rl*` names when it calls the Rayleigh-Lamb base implementation directly.
 - Old names remain supported for existing scripts and downstream workflows, but they should not be used in new maintained code.
 
@@ -66,9 +70,9 @@ The public API table should still identify the primary `rl*` names and legacy co
 
 ## Migration strategy recommendation
 
-Recommended strategy: Option A — keep the top-level folders as permanent compatibility-wrapper folders for now.
+Recommended strategy: keep `models/rayleigh_lamb/legacy/` as the permanent compatibility-wrapper layer for now.
 
-This avoids touching `startup.m`, minimizes MATLAB path risk, preserves old user scripts and downstream workflows, and still keeps the primary implementation under `models/rayleigh_lamb/`. Under this strategy, cleanup work should focus on making the wrapper folders clearly documented as compatibility layers rather than moving or deleting them.
+This preserves old user scripts and downstream workflows, keeps the primary implementation under `models/rayleigh_lamb/`, and documents `models/rayleigh_lamb/legacy/` as the compatibility layer. `startup.m` path behavior should remain synchronized with that layout.
 
 ## Explicit no-go conditions
 
@@ -92,4 +96,4 @@ v0.7.0-rayleigh-lamb-migration-ready
 
 ## Suggested next implementation PR
 
-The next implementation PR should be limited to cleanup around compatibility-wrapper folder documentation or comments. It should not delete compatibility wrappers, move compatibility wrappers, restructure paths, change `startup.m`, or mix archive/prototype migration into the same change.
+Any next implementation PR should be limited to explicitly scoped compatibility cleanup. It should not delete compatibility wrappers, change numerical behavior, alter public signatures, or mix archive/prototype migration into the same change.
