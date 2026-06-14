@@ -8,7 +8,7 @@ The old top-level functions in `core/`, `equations/`, `approximations/`, and `tr
 
 This policy is documentation-only. It does not authorize removing files, changing startup path behavior, changing numerical behavior, or migrating physical files.
 
-For the physical migration risk assessment and staged plan for these wrapper folders, see the [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md). Before any physical movement, deletion, or path restructuring, apply the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md).
+For the physical migration risk assessment and staged plan for these wrapper folders, see the [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md). Before any physical movement, deletion, or path restructuring, apply the [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md). For the stable post-wrapper compatibility checkpoint, see the [Rayleigh-Lamb compatibility snapshot](rayleigh_lamb_compatibility_snapshot.md).
 
 ## Compatibility wrapper purpose
 

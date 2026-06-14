@@ -11,7 +11,7 @@ approximations/
 tracking/
 ```
 
-Do not treat this document as approval to migrate those folders. It defines the minimum green checks, repository searches, documentation state, and no-go conditions that must be satisfied before any separate migration proposal is attempted.
+Do not treat this document as approval to migrate those folders. It defines the minimum green checks, repository searches, documentation state, and no-go conditions that must be satisfied before any separate migration proposal is attempted. For the stable post-wrapper compatibility checkpoint, see the [Rayleigh-Lamb compatibility snapshot](rayleigh_lamb_compatibility_snapshot.md).
 
 ## Current implementation state
 
