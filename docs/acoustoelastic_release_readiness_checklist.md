@@ -1,6 +1,6 @@
 # Acoustoelastic IOP/HGO release-readiness checklist
 
-For the post-release documentation-only audit and future migration plan for the base Rayleigh-Lamb solver, see [Rayleigh-Lamb base solver reorganization plan](rayleigh_lamb_base_reorganization_plan.md).
+For the current Rayleigh-Lamb architecture and API reference, see [Rayleigh-Lamb solver overview](rayleigh_lamb_overview.md) and [Rayleigh-Lamb public API](rayleigh_lamb_public_api.md).
 
 ## Purpose
 

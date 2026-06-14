@@ -1,12 +1,7 @@
 # Maintained entrypoints
 
 
-> **Current layout update:** The primary Rayleigh-Lamb implementation remains under `models/rayleigh_lamb/` in the `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old callable compatibility-wrapper function names now physically live under `models/rayleigh_lamb/legacy/` with matching `core/`, `equations/`, `approximations/`, and `tracking/` subfolders. The old top-level `core/`, `equations/`, `approximations/`, and `tracking/` folders are no longer the Rayleigh-Lamb compatibility-wrapper location. `startup.m` adds the `models/` tree, so both primary `rl*` names and legacy old names remain callable through the updated path behavior.
-
-
-For the public Rayleigh-Lamb `rl*` API table and legacy compatibility-name mapping, see [Rayleigh-Lamb public API](rayleigh_lamb_public_api.md). For a documentation-only audit and future migration plan for the base Rayleigh-Lamb solver, see [Rayleigh-Lamb base solver reorganization plan](rayleigh_lamb_base_reorganization_plan.md). For the policy governing old top-level Rayleigh-Lamb compatibility wrappers, see [Rayleigh-Lamb legacy wrapper policy](rayleigh_lamb_legacy_wrapper_policy.md). For the wrapper-layer release checklist and suggested tag, see [Rayleigh-Lamb wrapper layer release checklist](rayleigh_lamb_wrapper_release_checklist.md). For the final gate before any physical Rayleigh-Lamb wrapper-folder migration, see [Rayleigh-Lamb migration readiness checklist](rayleigh_lamb_migration_readiness_checklist.md). For the stable post-wrapper compatibility checkpoint, see [Rayleigh-Lamb compatibility snapshot](rayleigh_lamb_compatibility_snapshot.md).
-
-For the physical migration audit covering risks, preconditions, and rollback for the legacy Rayleigh-Lamb wrapper folders, see [Rayleigh-Lamb physical migration audit](rayleigh_lamb_physical_migration_audit.md). For a concise layer-by-layer summary of the post-migration Acoustoelastic IOP/HGO API structure, see [Acoustoelastic IOP/HGO post-rename architecture](acoustoelastic_post_rename_architecture.md). For the final naming snapshot of maintained names, compatibility wrappers, and intentional legacy references, see [Acoustoelastic IOP/HGO final naming snapshot](acoustoelastic_final_naming_snapshot.md).
+For the current Rayleigh-Lamb architecture and validation guidance, see [Rayleigh-Lamb solver overview](rayleigh_lamb_overview.md). For the supported `rl*` API table, see [Rayleigh-Lamb public API](rayleigh_lamb_public_api.md).
 
 This document lists the maintained solver, example, diagnostic, and test entrypoints after the Acoustoelastic IOP/HGO and mRLFE refactors.
 
@@ -23,10 +18,7 @@ startup
 
 ## Rayleigh-Lamb base solver
 
-`run_all_smoke_tests` now includes a lightweight static audit for maintained MATLAB code. It scans `analysis/`, `app/`, `examples/`, and `tests/` for old Rayleigh-Lamb function-call patterns while excluding compatibility wrappers, the primary `models/rayleigh_lamb/` implementation layer, archive/prototype material, `examples/archive/`, and the smoke-test file itself.
-
-
-The `rl*` Rayleigh-Lamb functions under `models/rayleigh_lamb/` are now the primary implementation entrypoints for the base solver. The old Rayleigh-Lamb function names remain callable from `models/rayleigh_lamb/legacy/` as compatibility wrappers that forward to the `rl*` implementations. Legacy wrapper files have been physically moved under `models/rayleigh_lamb/legacy/`, archive/prototype migration remains deferred, and numerical behavior is intended to remain unchanged. Lightweight compatibility smoke checks verify selected old-vs-new forwarding behavior, while full numerical regression fixtures remain deferred.
+The `rl*` Rayleigh-Lamb functions under `models/rayleigh_lamb/` are the maintained implementation entrypoints for the base solver. Historical old-name compatibility wrappers have been removed; maintained code should call the modern `rl*` API only.
 
 Primary `rl*` implementation entrypoints:
 
@@ -48,7 +40,7 @@ rlComputeS0ExtensionalApproximation
 rlSolveFundamentalBranch
 ```
 
-Main wrapper folders:
+Main implementation folders:
 
 ```text
 models/rayleigh_lamb/core/
@@ -214,9 +206,9 @@ Maintained test:
 test_mrlfe_smoke
 ```
 
-## Smoke-test compatibility scope
+## Smoke-test scope
 
-`run_all_smoke_tests` also includes Rayleigh-Lamb path smoke checks for the legacy compatibility wrappers under `models/rayleigh_lamb/legacy/`, plus path checks for the primary `rl*` implementation entrypoints under `models/rayleigh_lamb/`. A lightweight compatibility section compares selected safe old-vs-new helper outputs to verify forwarding behavior without full dispersion sweeps or long-running root searches. Full numerical regression fixtures remain deferred.
+`run_all_smoke_tests` includes Rayleigh-Lamb path smoke checks for the primary `rl*` implementation entrypoints under `models/rayleigh_lamb/` and minimal A0/S0 numerical regression fixtures. It does not test removed Rayleigh-Lamb old-name compatibility wrappers.
 
 `run_all_smoke_tests` now verifies that both the maintained author-neutral Acoustoelastic IOP/HGO names and the preserved `Li2024` legacy wrapper names are resolvable on the MATLAB path. The legacy-wrapper portion is a path-level compatibility check only: it uses `which` and intentionally does not execute the wrappers, compare numerical outputs, solve dispersion curves, or run heavy diagnostics. Numerical equivalence testing between legacy wrappers and author-neutral implementations is intentionally deferred to a separate future validation phase.
 

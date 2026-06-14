@@ -1,6 +1,6 @@
 # Internal rename migration plan
 
-For the dedicated documentation-only audit and future migration plan for the base Rayleigh-Lamb solver, see [Rayleigh-Lamb base solver reorganization plan](rayleigh_lamb_base_reorganization_plan.md).
+For the current Rayleigh-Lamb architecture and API reference, see [Rayleigh-Lamb solver overview](rayleigh_lamb_overview.md) and [Rayleigh-Lamb public API](rayleigh_lamb_public_api.md).
 
 For the concise current-state summary after the Acoustoelastic IOP/HGO author-neutral rename migration, see [Acoustoelastic IOP/HGO post-rename architecture](acoustoelastic_post_rename_architecture.md). For the final naming snapshot of maintained names, compatibility wrappers, intentional legacy references, and deferred validation work, see [Acoustoelastic IOP/HGO final naming snapshot](acoustoelastic_final_naming_snapshot.md). For tag preparation, see the [Acoustoelastic IOP/HGO release-readiness checklist](acoustoelastic_release_readiness_checklist.md).
 
