@@ -1,12 +1,66 @@
 # Repository structure
 
-This document describes the active folder structure after the acoustoelastic IOP/HGO compatibility-layer cleanup and the mRLFE refactor.
+This document describes the active repository layout for GUI-focused development. The current MATLAB implementation is organized around the clean Rayleigh-Lamb `rl*` API, the mRLFE model, and the author-neutral acoustoelastic IOP/HGO API.
 
-## Active MATLAB path
+## Active top-level areas
 
-`startup.m` adds active implementation, analysis, example, and test folders to the MATLAB path. Maintained acoustoelastic callers should use author-neutral `Acoustoelastic` / `AcoustoelasticIOPHGO` names only.
+```text
+app/                         MATLAB GUI entrypoints and UI helper files.
+analysis/                    Generic analysis utilities plus model-specific analysis helpers.
+docs/                        Active repository, API, validation, and workflow documentation.
+examples/basic/              Basic Rayleigh-Lamb examples.
+examples/validation/         Maintained validation and stress-test scripts.
+examples/mrlfe/              Maintained mRLFE examples, sweeps, and diagnostics.
+examples/acoustoelastic_iop_hgo/
+                             Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
+models/rayleigh_lamb/        Clean Rayleigh-Lamb implementation using `rl*` functions.
+models/mrlfe/                Modified Rayleigh-Lamb fluid-loaded model implementation.
+models/acoustoelastic_iop_hgo/
+                             Author-neutral acoustoelastic IOP/HGO implementation.
+tests/                       Smoke and consistency tests.
+references/                  Reference material used for development and validation context.
+```
+
+## Active MATLAB path and startup
+
+`startup.m` prepares the active implementation, GUI, analysis, example, and test folders for use from the repository root. Maintained callers should use the documented public entrypoints.
+
+Recommended setup sequence:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+```
 
 ## Model folders
+
+### Rayleigh-Lamb base solver
+
+```text
+models/rayleigh_lamb/
+├─ approximations/
+├─ core/
+├─ equations/
+└─ tracking/
+```
+
+Maintained Rayleigh-Lamb implementation functions use the `rl*` API. See `docs/rayleigh_lamb_public_api.md` for the public function list and `docs/rayleigh_lamb_overview.md` for model context.
+
+### mRLFE model
+
+```text
+models/mrlfe/
+├─ core/
+├─ solvers/
+└─ options/
+```
+
+The high-level mRLFE entrypoint is:
+
+```matlab
+computeMRLFE
+```
 
 ### Acoustoelastic IOP/HGO model
 
@@ -18,7 +72,7 @@ models/acoustoelastic_iop_hgo/
 └─ options/
 ```
 
-Recommended author-neutral entrypoints:
+Recommended author-neutral entrypoints include:
 
 ```matlab
 solveAcoustoelasticIOPHGOBranch
@@ -27,73 +81,36 @@ solveAcoustoelasticIOPHGODispersion
 defaultAcoustoelasticIOPHGOOptions
 ```
 
-The old author-specific compatibility wrappers have been removed and are not maintained entrypoints. GUI code should call the author-neutral API only.
-
-### mRLFE model
-
-```text
-models/mrlfe/
-├─ core/
-├─ solvers/
-└─ options/
-```
-
-Recommended high-level function:
-
-```matlab
-computeMRLFE
-```
+GUI code, examples, diagnostics, tests, and analysis scripts should call the author-neutral acoustoelastic IOP/HGO API documented in `docs/acoustoelastic_iop_hgo_public_api.md`.
 
 ## Example folders
 
-### Acoustoelastic IOP/HGO examples
-
 ```text
+examples/basic/
+examples/validation/
+examples/mrlfe/
+├─ basic/
+├─ sweeps/
+└─ diagnostics/
 examples/acoustoelastic_iop_hgo/
 ├─ basic/
 ├─ sweeps/
 └─ diagnostics/
 ```
 
-Maintained examples and diagnostics use `acoustoelastic_iop_hgo` names only.
-
-```matlab
-run_acoustoelastic_iop_hgo_atlas_branch
-diagnose_acoustoelastic_iop_hgo_branch_policy
-```
-
-### mRLFE examples
-
-```text
-examples/mrlfe/
-├─ basic/
-├─ sweeps/
-└─ diagnostics/
-```
-
-### Validation examples
-
-```text
-examples/validation/
-```
+Maintained examples are intended to exercise active APIs only. Archived example material is not part of the active documentation set.
 
 ## Tests
 
-Maintained smoke and consistency tests are stored in:
+Maintained tests are stored in:
 
 ```text
-tests/acoustoelastic_iop_hgo/
+tests/run_all_smoke_tests.m
 tests/mrlfe/
+tests/acoustoelastic_iop_hgo/
 ```
 
-Recommended acoustoelastic tests:
-
-```matlab
-test_acoustoelastic_iop_hgo_constitutive_identity
-test_acoustoelastic_iop_hgo_strictA0_smoke
-```
-
-Recommended manual test sequence after refactors:
+Recommended smoke-test sequence after documentation or path-sensitive refactors:
 
 ```matlab
 clear functions

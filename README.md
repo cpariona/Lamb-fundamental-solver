@@ -16,17 +16,17 @@ MATLAB project for computing and plotting fundamental Lamb-wave phase velocity c
 
 ```text
 app/                                  Main MATLAB GUI and UI helper files.
-core/                                 Solver orchestration, defaults, material/geometry builders, validation.
-equations/                            Rayleigh-Lamb residual functions.
-approximations/                       Low-frequency analytical approximation helpers.
-tracking/                             Generic Rayleigh-Lamb branch tracker.
-models/acoustoelastic_iop_hgo/        Acoustoelastic model using IOP prestress and HGO constitutive response.
-models/mrlfe/                         Modified Rayleigh-Lamb fluid-loaded model.
-examples/acoustoelastic_iop_hgo/      Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
-examples/mrlfe/                       Maintained mRLFE examples, sweeps, and diagnostics.
+analysis/                             Analysis utilities and model-specific summaries.
+docs/                                 Active repository, API, validation, and workflow documentation.
+examples/basic/                       Basic Rayleigh-Lamb examples.
 examples/validation/                  Maintained validation and stress-test scripts.
+examples/mrlfe/                       Maintained mRLFE examples, sweeps, and diagnostics.
+examples/acoustoelastic_iop_hgo/      Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
+models/rayleigh_lamb/                 Clean Rayleigh-Lamb implementation using `rl*` functions.
+models/mrlfe/                         Modified Rayleigh-Lamb fluid-loaded model.
+models/acoustoelastic_iop_hgo/        Acoustoelastic model using IOP prestress and HGO constitutive response.
 tests/                                Lightweight smoke and consistency tests.
-docs/                                 Technical notes and repository documentation.
+references/                           Reference material for development and validation context.
 ```
 
 A more detailed structure map is available in:
@@ -39,12 +39,6 @@ Maintained solver, example, diagnostic, and test entrypoints are listed in:
 
 ```text
 docs/maintained_entrypoints.md
-```
-
-Naming-transition notes are listed in:
-
-```text
-docs/naming_transition.md
 ```
 
 ## Launching the GUI
@@ -68,15 +62,14 @@ LambFundamental_GUI
 
 ```text
 app/
-core/
-equations/
-approximations/
-tracking/
-models/
 analysis/
-examples/acoustoelastic_iop_hgo/
-examples/mrlfe/
+models/rayleigh_lamb/
+models/mrlfe/
+models/acoustoelastic_iop_hgo/
+examples/basic/
 examples/validation/
+examples/mrlfe/
+examples/acoustoelastic_iop_hgo/
 tests/
 ```
 
