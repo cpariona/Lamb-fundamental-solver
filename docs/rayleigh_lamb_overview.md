@@ -51,4 +51,4 @@ GUI and app code should depend on the `rl*` API only. Prefer high-level calls to
 
 ## Removed legacy compatibility layer
 
-The old Rayleigh-Lamb compatibility layer under `models/rayleigh_lamb/legacy/` has been removed. Historical old-name wrappers are no longer maintained as supported API. Maintained MATLAB code should use the modern `rl*` names only.
+The old Rayleigh-Lamb compatibility layer has been removed. Historical old-name wrappers are no longer maintained as supported API. Maintained MATLAB code should use the modern `rl*` names only.

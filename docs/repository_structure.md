@@ -1,6 +1,6 @@
 # Repository structure
 
-This document describes the active repository layout for GUI-focused development. The current MATLAB implementation is organized around the clean Rayleigh-Lamb `rl*` API, the mRLFE model, and the author-neutral acoustoelastic IOP/HGO API.
+This document describes the active repository layout for GUI-focused development. The current MATLAB implementation is organized around the clean Rayleigh-Lamb `rl*` API, the mRLFE model, and the author-neutral acoustoelastic IOP/HGO API. Naming guidance is documented in `docs/naming_strategy.md`.
 
 ## Active top-level areas
 

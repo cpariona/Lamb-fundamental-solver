@@ -85,7 +85,7 @@ test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
 ```
 
-See `docs/acoustoelastic_iop_hgo_public_api.md` for the public API list.
+See `docs/acoustoelastic_iop_hgo_public_api.md` for the public API list. Naming guidance is documented in `docs/naming_strategy.md`.
 
 ## mRLFE model
 
@@ -117,6 +117,7 @@ The active documentation set is:
 
 ```text
 docs/repository_structure.md
+docs/naming_strategy.md
 docs/validation_status.md
 docs/rayleigh_lamb_overview.md
 docs/rayleigh_lamb_public_api.md

@@ -41,6 +41,12 @@ Maintained solver, example, diagnostic, and test entrypoints are listed in:
 docs/maintained_entrypoints.md
 ```
 
+The repository naming strategy is documented in:
+
+```text
+docs/naming_strategy.md
+```
+
 ## Launching the GUI
 
 From the repository root, run:
@@ -87,17 +93,21 @@ Public GUI labels, exported tables, and result structures should use `thickness`
 
 ## Defaults and robustness presets
 
-Default physical and frequency parameters are centralized in:
+Default physical and frequency parameters are provided by the Rayleigh-Lamb API function:
 
 ```matlab
-core/defaultParams.m
+rlDefaultParams
 ```
 
-Default numerical options and robustness presets are centralized in:
+Current file: `models/rayleigh_lamb/core/rlDefaultParams.m`.
+
+Default numerical options and robustness presets are provided by the Rayleigh-Lamb API function:
 
 ```matlab
-core/defaultOptions.m
+rlDefaultOptions
 ```
+
+Current file: `models/rayleigh_lamb/core/rlDefaultOptions.m`.
 
 Available robustness presets:
 
