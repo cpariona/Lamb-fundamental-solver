@@ -126,7 +126,7 @@ if ~(isfinite(cLower) && isfinite(cUpper) && cUpper > cLower)
     return;
 end
 
-localObj = @(cc)objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+localObj = @(cc)objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
     params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cc, options);
 
 try
@@ -139,7 +139,7 @@ if ~isfinite(candidateCp) || ~isfinite(candidateObj)
     return;
 end
 
-[~, candidateDetails] = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+[~, candidateDetails] = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
     params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, candidateCp, options);
 
 bestCp = candidateCp;
@@ -166,7 +166,7 @@ end
 function [bestCp, bestObj, bestSigmaMin, bestDetails] = solveOneFrequencyGlobal(params, options, f, cGrid, previousCp, previousPreviousCp, previousModeVector)
 objVals = nan(size(cGrid));
 for j = 1:numel(cGrid)
-    objVals(j) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+    objVals(j) = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
         params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cGrid(j), options);
 end
 
@@ -226,7 +226,7 @@ for j = 1:numel(candidateIdx)
     cLeft = cGrid(leftIdx);
     cRight = cGrid(rightIdx);
     if cRight > cLeft
-        localObj = @(cc)objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+        localObj = @(cc)objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cc, options);
         [candidateCp(j), candidateObj(j)] = fminbnd(localObj, cLeft, cRight);
     end
@@ -236,7 +236,7 @@ end
 function candidateDetails = evaluateCandidateDetails(candidateCp, params, options, f)
 candidateDetails = cell(numel(candidateCp), 1);
 for j = 1:numel(candidateCp)
-    [~, details] = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+    [~, details] = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
         params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, candidateCp(j), options);
     candidateDetails{j} = details;
 end

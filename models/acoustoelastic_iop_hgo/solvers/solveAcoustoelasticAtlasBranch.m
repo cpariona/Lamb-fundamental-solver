@@ -49,7 +49,7 @@ rows = [];
 for k = 1:numel(frequency)
     f = frequency(k);
     for j = 1:numel(cGrid)
-        objectiveMap(j,k) = objective_Li2024_Acoustoelastic(params.alpha, params.beta, params.gamma, ...
+        objectiveMap(j,k) = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cGrid(j), options);
     end
     minima = localMinima(cGrid, objectiveMap(:,k), cShear, options.atlasTopNMinima);
