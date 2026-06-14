@@ -19,6 +19,9 @@ startup
 
 ## Rayleigh-Lamb base solver
 
+`run_all_smoke_tests` now includes a lightweight static audit for maintained MATLAB code. It scans `analysis/`, `app/`, `examples/`, and `tests/` for old Rayleigh-Lamb function-call patterns while excluding compatibility wrappers, the primary `models/rayleigh_lamb/` implementation layer, archive/prototype material, `examples/archive/`, and the smoke-test file itself.
+
+
 The `rl*` Rayleigh-Lamb functions under `models/rayleigh_lamb/` are now the primary implementation entrypoints for the base solver. The old top-level Rayleigh-Lamb function names remain in place under `core/`, `equations/`, `approximations/`, and `tracking/` as compatibility wrappers that forward to the `rl*` implementations. Files have not yet been physically removed, archive/prototype migration remains deferred, and numerical behavior is intended to remain unchanged. Lightweight compatibility smoke checks verify selected old-vs-new forwarding behavior, while full numerical regression fixtures remain deferred.
 
 Primary `rl*` implementation entrypoints:

@@ -69,6 +69,9 @@ Direct calls to these helpers may be appropriate for focused diagnostics, tests,
 
 ## Deprecated or not-yet-deprecated names
 
+A lightweight static audit in `tests/run_all_smoke_tests.m` checks maintained MATLAB code for old-name function-call patterns and helps keep new maintained call sites on the primary `rl*` API. The audit deliberately does not make the legacy wrappers deprecated; it only prevents accidental maintained-code usage outside compatibility or legacy contexts.
+
+
 The old top-level names are compatibility wrappers and should not be used in new maintained code, but they remain available for existing scripts and downstream workflows.
 
 These compatibility names are not formally deprecated unless a separate policy, release note, or migration document explicitly marks a specific function as deprecated.

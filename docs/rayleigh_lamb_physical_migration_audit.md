@@ -66,6 +66,9 @@ Maintained call sites should prefer the `rl*` names when directly calling the Ra
 
 ## Maintained code dependency state
 
+`tests/run_all_smoke_tests.m` now includes a lightweight maintained-code static audit that scans MATLAB files under `analysis/`, `app/`, `examples/`, and `tests/` for function-call uses of old top-level Rayleigh-Lamb names. The audit excludes compatibility wrappers, the primary `models/rayleigh_lamb/` implementation layer, archive/prototype material, `examples/archive/`, and the smoke-test file itself because it intentionally exercises old names for path and compatibility checks.
+
+
 Maintained code should not directly depend on old top-level Rayleigh-Lamb names except where those names are intentionally exercised by compatibility tests or implemented inside compatibility wrapper files. Before any physical migration, this state must be verified with a repository search confirming that maintained code uses the `rl*` names and that any remaining old-name references are intentional compatibility coverage, wrapper implementations, documentation, or archived/prototype material.
 
 ## Startup/path considerations
