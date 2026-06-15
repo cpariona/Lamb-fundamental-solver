@@ -6,7 +6,7 @@ The sweep layer is intentionally separated from the numerical branch solver. The
 
 ## Design rule
 
-Do not encode internal branch policies such as `strictA0` in maintained sweep file names.
+Do not encode internal branch policies in maintained sweep file names.
 
 Use physical or workflow names instead:
 
@@ -19,8 +19,10 @@ compare_acoustoelastic_iop_hgo_branch_policies.m
 The branch policy belongs in solver options:
 
 ```matlab
-options.atlasBranchPolicy = "strictA0";
+options.atlasBranchPolicy = "atlasA0";
 ```
+
+`"atlasA0"` is the canonical maintained name for the current atlas-based A0 branch policy. The previous name `"strictA0"` remains accepted as a legacy alias for backward compatibility.
 
 This allows future changes to the branch-selection strategy without renaming physical sweep scripts.
 
@@ -196,7 +198,7 @@ examples/acoustoelastic_iop_hgo/diagnostics/compare_acoustoelastic_iop_hgo_branc
 This diagnostic compares:
 
 ```text
-current_atlas_policy
+atlas_a0_policy
 legacy_backward_global_scan
 ```
 
@@ -236,13 +238,14 @@ A missing high-frequency segment should be interpreted as a numerical traceabili
 
 ## Future renaming stage
 
-When the solver is made more robust, the acoustoelastic section can enter a dedicated renaming stage. The recommended direction from the repository naming strategy is to introduce short `ae*` names for functions clearly inside `models/acoustoelastic_iop_hgo/` while keeping high-level public names explicit only where needed.
+When the solver is made more robust, the acoustoelastic section can enter additional dedicated renaming stages. The recommended direction from the repository naming strategy is to introduce short `ae*` names for functions clearly inside `models/acoustoelastic_iop_hgo/` while keeping high-level public names explicit only where needed.
 
 The sweep layer already follows this direction with:
 
 ```matlab
 aeRunSweep
 aeSummarizeSweep
+aeNormalizeBranchPolicy
 ```
 
 Further renaming should be done in a dedicated refactor with path checks, smoke tests, updated examples, updated docs, and a migration note.
