@@ -8,16 +8,18 @@ startup
 % optional diagnostic recovery assessment based on local minima and short-gap
 % continuity. Recovery outputs are diagnostic only; they do not replace atlasA0.
 
-outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_truncation_cases');
+repoRoot = getRepositoryRoot();
+outputFolder = fullfile(repoRoot, 'Results', 'acoustoelastic_iop_hgo_truncation_cases');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
 
-cases = makeCaseSpecs();
+cases = makeCaseSpecs(repoRoot);
 allSummaryRows = [];
 caseAnalysisByName = struct();
 
 fprintf('\nAcoustoelastic IOP/HGO truncation-case diagnostic\n');
+fprintf('Repository root:\n%s\n', repoRoot);
 fprintf('Output folder:\n%s\n\n', outputFolder);
 
 for i = 1:numel(cases)
@@ -82,7 +84,7 @@ end
 
 writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_summary.csv'));
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_workspace.mat'), ...
-    'caseAnalysisByName', 'summaryTable', 'cases', '-v7.3');
+    'caseAnalysisByName', 'summaryTable', 'cases', 'repoRoot', '-v7.3');
 
 disp(summaryTable);
 fprintf('\nTruncation-case diagnostic files written to:\n%s\n', outputFolder);
@@ -90,8 +92,8 @@ fprintf('\nTruncation-case diagnostic files written to:\n%s\n', outputFolder);
 assignin('base', 'AcoustoelasticIOPHGOTruncationCaseAnalysis', caseAnalysisByName);
 assignin('base', 'AcoustoelasticIOPHGOTruncationCaseSummary', summaryTable);
 
-function cases = makeCaseSpecs()
-baseResults = fullfile(pwd, 'Results');
+function cases = makeCaseSpecs(repoRoot)
+baseResults = fullfile(repoRoot, 'Results');
 cases = struct([]);
 
 cases(1).caseName = "iop_20mmHg";
@@ -172,4 +174,15 @@ legend({'reported Cp', 'best atlas minimum', 'closest minimum to previous Cp', '
 hold off;
 saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.fig"));
 saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.png"));
+end
+
+function repoRoot = getRepositoryRoot()
+scriptPath = mfilename('fullpath');
+repoRoot = fileparts(fileparts(fileparts(fileparts(scriptPath))));
+if ~exist(fullfile(repoRoot, 'startup.m'), 'file')
+    startupPath = which('startup');
+    if ~isempty(startupPath)
+        repoRoot = fileparts(startupPath);
+    end
+end
 end
