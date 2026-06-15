@@ -17,6 +17,7 @@ cases = makeCaseSpecs();
 allSummaryRows = [];
 classificationRows = [];
 breakRows = [];
+sensitivitySummaryRows = [];
 caseAnalysisByName = struct();
 
 fprintf('\nAcoustoelastic IOP/HGO truncation-case diagnostic\n');
@@ -49,12 +50,19 @@ for i = 1:numel(cases)
     firstBreak = aeAnalyzeFirstUnrecoveredBreak(result, recovery, ...
         'MaxRelativeCpDistance', spec.maxRelativeCpDistance, ...
         'WindowPoints', 6);
+    thresholdSensitivity = aeAnalyzeBreakThresholdSensitivity(result, ...
+        'RelativeCpDistanceValues', spec.relativeCpDistanceSensitivityValues, ...
+        'MaxRelativeBridgeMismatch', spec.maxRelativeBridgeMismatch, ...
+        'MaxGapPoints', spec.maxGapPoints, ...
+        'MaxGapFrequencyRatio', spec.maxGapFrequencyRatio, ...
+        'WindowPoints', 6);
 
     key = matlab.lang.makeValidName(spec.caseName);
     caseAnalysisByName.(key).truncation = caseAnalysis;
     caseAnalysisByName.(key).recovery = recovery;
     caseAnalysisByName.(key).classification = classification;
     caseAnalysisByName.(key).firstUnrecoveredBreak = firstBreak;
+    caseAnalysisByName.(key).thresholdSensitivity = thresholdSensitivity;
 
     row = caseAnalysis.summary;
     row.CaseName = spec.caseName;
@@ -82,6 +90,9 @@ for i = 1:numel(cases)
     row.FirstUnrecoveredBreakFrequency_kHz = firstBreak.summary.BreakFrequency_kHz;
     row.FirstUnrecoveredBreakNearestRelativeDistance = firstBreak.summary.NearestRelativeDistanceToPreviousCp;
     row.FirstUnrecoveredBreakRelativeDistanceMargin = firstBreak.summary.RelativeDistanceMargin;
+    row.ThresholdForInitialBreakRecovery = thresholdSensitivity.summary.ThresholdForInitialBreakRecovery;
+    row.BestThresholdByContiguousExtension = thresholdSensitivity.summary.BestThresholdByContiguousExtension;
+    row.MaxContiguousExtensionByThreshold_kHz = thresholdSensitivity.summary.MaxContiguousExtension_kHz;
     allSummaryRows = [allSummaryRows; row]; %#ok<AGROW>
 
     classRow = classification;
@@ -96,9 +107,24 @@ for i = 1:numel(cases)
     breakRow.TargetDisplayValue = spec.targetDisplayValue;
     breakRows = [breakRows; breakRow]; %#ok<AGROW>
 
+    sensitivityRow = thresholdSensitivity.summary;
+    sensitivityRow.CaseName = spec.caseName;
+    sensitivityRow.SweepField = spec.sweepField;
+    sensitivityRow.TargetDisplayValue = spec.targetDisplayValue;
+    sensitivitySummaryRows = [sensitivitySummaryRows; sensitivityRow]; %#ok<AGROW>
+
+    sensitivityTable = thresholdSensitivity.sensitivityTable;
+    if ~isempty(sensitivityTable)
+        sensitivityTable.CaseName = repmat(spec.caseName, height(sensitivityTable), 1);
+        sensitivityTable.SweepField = repmat(spec.sweepField, height(sensitivityTable), 1);
+        sensitivityTable.TargetDisplayValue = repmat(spec.targetDisplayValue, height(sensitivityTable), 1);
+    end
+
     writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
     writetable(struct2table(classification), fullfile(outputFolder, spec.filePrefix + "_recovery_classification.csv"));
     writetable(struct2table(firstBreak.summary), fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_summary.csv"));
+    writetable(struct2table(thresholdSensitivity.summary), fullfile(outputFolder, spec.filePrefix + "_threshold_sensitivity_summary.csv"));
+    writetable(sensitivityTable, fullfile(outputFolder, spec.filePrefix + "_threshold_sensitivity.csv"));
     writetable(caseAnalysis.neighborhoodTable, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.csv"));
     writetable(recovery.recoveryTable, fullfile(outputFolder, spec.filePrefix + "_recovery_table.csv"));
     writetable(firstBreak.localWindowTable, fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_window.csv"));
@@ -130,14 +156,21 @@ if isempty(breakRows)
 else
     firstUnrecoveredBreakTable = struct2table(breakRows);
 end
+if isempty(sensitivitySummaryRows)
+    thresholdSensitivitySummaryTable = table();
+else
+    thresholdSensitivitySummaryTable = struct2table(sensitivitySummaryRows);
+end
 interpretationTable = aeSummarizeTruncationRecoveryClassification(classificationTable);
 
 writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_summary.csv'));
 writetable(classificationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_recovery_classification.csv'));
 writetable(interpretationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_recovery_interpretation.csv'));
 writetable(firstUnrecoveredBreakTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_first_unrecovered_break_summary.csv'));
+writetable(thresholdSensitivitySummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_sensitivity_summary.csv'));
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_workspace.mat'), ...
-    'caseAnalysisByName', 'summaryTable', 'classificationTable', 'interpretationTable', 'firstUnrecoveredBreakTable', 'cases', '-v7.3');
+    'caseAnalysisByName', 'summaryTable', 'classificationTable', 'interpretationTable', ...
+    'firstUnrecoveredBreakTable', 'thresholdSensitivitySummaryTable', 'cases', '-v7.3');
 
 disp(summaryTable);
 if ~isempty(classificationTable)
@@ -145,6 +178,9 @@ if ~isempty(classificationTable)
 end
 if ~isempty(firstUnrecoveredBreakTable)
     disp(firstUnrecoveredBreakTable(:, {'CaseName','BreakClass','BreakFrequency_kHz','NearestRelativeDistanceToPreviousCp','RelativeDistanceMargin'}));
+end
+if ~isempty(thresholdSensitivitySummaryTable)
+    disp(thresholdSensitivitySummaryTable(:, {'CaseName','ThresholdForInitialBreakRecovery','BestThresholdByContiguousExtension','MaxContiguousExtension_kHz'}));
 end
 if ~isempty(interpretationTable)
     disp(interpretationTable(:, {'CaseName','RecoveryClass','ReportingInterpretation','RecommendedNextStep'}));
@@ -156,6 +192,7 @@ assignin('base', 'AcoustoelasticIOPHGOTruncationCaseSummary', summaryTable);
 assignin('base', 'AcoustoelasticIOPHGOTruncationRecoveryClassification', classificationTable);
 assignin('base', 'AcoustoelasticIOPHGOTruncationRecoveryInterpretation', interpretationTable);
 assignin('base', 'AcoustoelasticIOPHGOFirstUnrecoveredBreakSummary', firstUnrecoveredBreakTable);
+assignin('base', 'AcoustoelasticIOPHGOThresholdSensitivitySummary', thresholdSensitivitySummaryTable);
 
 function cases = makeCaseSpecs()
 baseResults = fullfile(pwd, 'Results');
@@ -173,6 +210,7 @@ cases(1).maxRelativeCpDistance = 0.08;
 cases(1).maxRelativeBridgeMismatch = 0.03;
 cases(1).maxGapPoints = 2;
 cases(1).maxGapFrequencyRatio = 1.12;
+cases(1).relativeCpDistanceSensitivityValues = [0.08 0.10 0.12 0.15];
 
 cases(2).caseName = "iop_25mmHg";
 cases(2).filePrefix = "acoustoelastic_iop_hgo_iop_25mmHg";
@@ -186,6 +224,7 @@ cases(2).maxRelativeCpDistance = 0.08;
 cases(2).maxRelativeBridgeMismatch = 0.03;
 cases(2).maxGapPoints = 2;
 cases(2).maxGapFrequencyRatio = 1.12;
+cases(2).relativeCpDistanceSensitivityValues = [0.08 0.10 0.12 0.15];
 
 cases(3).caseName = "mu_25kPa";
 cases(3).filePrefix = "acoustoelastic_iop_hgo_mu_25kPa";
@@ -199,6 +238,7 @@ cases(3).maxRelativeCpDistance = 0.08;
 cases(3).maxRelativeBridgeMismatch = 0.03;
 cases(3).maxGapPoints = 2;
 cases(3).maxGapFrequencyRatio = 1.12;
+cases(3).relativeCpDistanceSensitivityValues = [0.08 0.10 0.12 0.15];
 end
 
 function idx = findConditionIndex(sweepResult, sweepField, targetValue, tol)
