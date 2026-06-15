@@ -41,7 +41,7 @@ options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.usePhysicalCpWindow = false;
-options.atlasBranchPolicy = "strictA0";
+options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 1000;
 options.atlasTopNMinima = 18;
 
