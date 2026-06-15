@@ -16,6 +16,7 @@ end
 cases = makeCaseSpecs();
 allSummaryRows = [];
 classificationRows = [];
+breakRows = [];
 caseAnalysisByName = struct();
 
 fprintf('\nAcoustoelastic IOP/HGO truncation-case diagnostic\n');
@@ -45,11 +46,15 @@ for i = 1:numel(cases)
         'MaxGapPoints', spec.maxGapPoints, ...
         'MaxGapFrequencyRatio', spec.maxGapFrequencyRatio);
     classification = aeClassifyTruncationRecovery(caseAnalysis.summary, recovery.summary);
+    firstBreak = aeAnalyzeFirstUnrecoveredBreak(result, recovery, ...
+        'MaxRelativeCpDistance', spec.maxRelativeCpDistance, ...
+        'WindowPoints', 6);
 
     key = matlab.lang.makeValidName(spec.caseName);
     caseAnalysisByName.(key).truncation = caseAnalysis;
     caseAnalysisByName.(key).recovery = recovery;
     caseAnalysisByName.(key).classification = classification;
+    caseAnalysisByName.(key).firstUnrecoveredBreak = firstBreak;
 
     row = caseAnalysis.summary;
     row.CaseName = spec.caseName;
@@ -73,6 +78,10 @@ for i = 1:numel(cases)
     row.InitialBreakRecovered = classification.InitialBreakRecovered;
     row.ContiguousExtension_kHz = classification.ContiguousExtension_kHz;
     row.PointwiseOnly = classification.PointwiseOnly;
+    row.FirstUnrecoveredBreakClass = firstBreak.summary.BreakClass;
+    row.FirstUnrecoveredBreakFrequency_kHz = firstBreak.summary.BreakFrequency_kHz;
+    row.FirstUnrecoveredBreakNearestRelativeDistance = firstBreak.summary.NearestRelativeDistanceToPreviousCp;
+    row.FirstUnrecoveredBreakRelativeDistanceMargin = firstBreak.summary.RelativeDistanceMargin;
     allSummaryRows = [allSummaryRows; row]; %#ok<AGROW>
 
     classRow = classification;
@@ -81,10 +90,21 @@ for i = 1:numel(cases)
     classRow.TargetDisplayValue = spec.targetDisplayValue;
     classificationRows = [classificationRows; classRow]; %#ok<AGROW>
 
+    breakRow = firstBreak.summary;
+    breakRow.CaseName = spec.caseName;
+    breakRow.SweepField = spec.sweepField;
+    breakRow.TargetDisplayValue = spec.targetDisplayValue;
+    breakRows = [breakRows; breakRow]; %#ok<AGROW>
+
     writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
     writetable(struct2table(classification), fullfile(outputFolder, spec.filePrefix + "_recovery_classification.csv"));
+    writetable(struct2table(firstBreak.summary), fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_summary.csv"));
     writetable(caseAnalysis.neighborhoodTable, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.csv"));
     writetable(recovery.recoveryTable, fullfile(outputFolder, spec.filePrefix + "_recovery_table.csv"));
+    writetable(firstBreak.localWindowTable, fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_window.csv"));
+    if ~isempty(firstBreak.breakMinimaTable)
+        writetable(firstBreak.breakMinimaTable, fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_minima.csv"));
+    end
     if ~isempty(caseAnalysis.firstMissingMinimaTable)
         writetable(caseAnalysis.firstMissingMinimaTable, fullfile(outputFolder, spec.filePrefix + "_first_missing_minima.csv"));
     end
@@ -105,17 +125,26 @@ if isempty(classificationRows)
 else
     classificationTable = struct2table(classificationRows);
 end
+if isempty(breakRows)
+    firstUnrecoveredBreakTable = table();
+else
+    firstUnrecoveredBreakTable = struct2table(breakRows);
+end
 interpretationTable = aeSummarizeTruncationRecoveryClassification(classificationTable);
 
 writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_summary.csv'));
 writetable(classificationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_recovery_classification.csv'));
 writetable(interpretationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_recovery_interpretation.csv'));
+writetable(firstUnrecoveredBreakTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_first_unrecovered_break_summary.csv'));
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_workspace.mat'), ...
-    'caseAnalysisByName', 'summaryTable', 'classificationTable', 'interpretationTable', 'cases', '-v7.3');
+    'caseAnalysisByName', 'summaryTable', 'classificationTable', 'interpretationTable', 'firstUnrecoveredBreakTable', 'cases', '-v7.3');
 
 disp(summaryTable);
 if ~isempty(classificationTable)
     disp(classificationTable(:, {'CaseName','RecoveryClass','InitialBreakRecovered','ContiguousExtension_kHz','NumPointwiseRecoveriesAfterContiguousBreak'}));
+end
+if ~isempty(firstUnrecoveredBreakTable)
+    disp(firstUnrecoveredBreakTable(:, {'CaseName','BreakClass','BreakFrequency_kHz','NearestRelativeDistanceToPreviousCp','RelativeDistanceMargin'}));
 end
 if ~isempty(interpretationTable)
     disp(interpretationTable(:, {'CaseName','RecoveryClass','ReportingInterpretation','RecommendedNextStep'}));
@@ -126,6 +155,7 @@ assignin('base', 'AcoustoelasticIOPHGOTruncationCaseAnalysis', caseAnalysisByNam
 assignin('base', 'AcoustoelasticIOPHGOTruncationCaseSummary', summaryTable);
 assignin('base', 'AcoustoelasticIOPHGOTruncationRecoveryClassification', classificationTable);
 assignin('base', 'AcoustoelasticIOPHGOTruncationRecoveryInterpretation', interpretationTable);
+assignin('base', 'AcoustoelasticIOPHGOFirstUnrecoveredBreakSummary', firstUnrecoveredBreakTable);
 
 function cases = makeCaseSpecs()
 baseResults = fullfile(pwd, 'Results');
