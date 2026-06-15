@@ -57,6 +57,8 @@ computeAcoustoelasticPrestressSigma
 computeAcoustoelasticSRoots
 solveAcoustoelasticHGOStretch
 summarizeAcoustoelasticIOPHGOTrackingQuality
+aeRunSweep
+aeSummarizeSweep
 ```
 
 Maintained examples and diagnostics use `acoustoelastic_iop_hgo` names only:
@@ -67,6 +69,7 @@ run_acoustoelastic_iop_hgo_A0_backward
 run_acoustoelastic_iop_hgo_A0_complexC
 run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma
 compare_acoustoelastic_iop_hgo_tracking_strategies
+compare_acoustoelastic_iop_hgo_branch_policies
 diagnose_acoustoelastic_iop_hgo_branch_policy
 diagnose_acoustoelastic_iop_hgo_grid_convergence
 diagnose_acoustoelastic_iop_hgo_dimensionless_A1
@@ -76,6 +79,8 @@ diagnose_acoustoelastic_iop_hgo_modal_atlas
 diagnose_acoustoelastic_iop_hgo_residual_landscape
 track_acoustoelastic_iop_hgo_raw_branch1_candidate
 sweep_acoustoelastic_iop_hgo_A0_backward
+sweep_acoustoelastic_iop_hgo_iop
+sweep_acoustoelastic_iop_hgo_mu
 ```
 
 Maintained tests:
@@ -124,6 +129,7 @@ docs/rayleigh_lamb_public_api.md
 docs/acoustoelastic_iop_hgo_overview.md
 docs/acoustoelastic_iop_hgo_public_api.md
 docs/acoustoelastic_iop_hgo_branch_policy.md
+docs/acoustoelastic_iop_hgo_sweep_workflow.md
 docs/parametric_sweeps.md
 docs/mrlfe_tracker_diagnostic_summary.md
 ```
