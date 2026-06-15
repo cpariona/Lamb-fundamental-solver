@@ -2,6 +2,11 @@ clear; clc; close all;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_SWEEP_RELIABILITY Analyze maintained sweep workspaces.
+%
+% This diagnostic reports both strict monotonicity and effective monotonicity.
+% Effective monotonicity can ignore very-low-frequency points and use a physical
+% tolerance when the expected material sensitivity is below numerical/branching
+% resolution.
 
 specs = makeWorkspaceSpecs();
 outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_sweep_reliability');
@@ -25,20 +30,39 @@ for i = 1:numel(specs)
 
     data = load(spec.workspacePath, 'sweepResult', 'summary');
     if isfield(data, 'sweepResult')
-        analysis = aeAnalyzeSweepReliability(data.sweepResult, 'ExpectedDirection', spec.expectedDirection, 'Label', spec.label);
+        inputData = data.sweepResult;
     else
-        analysis = aeAnalyzeSweepReliability(data.summary, 'ExpectedDirection', spec.expectedDirection, 'Label', spec.label);
+        inputData = data.summary;
     end
 
+    strictAnalysis = aeAnalyzeSweepReliability(inputData, ...
+        'ExpectedDirection', spec.expectedDirection, ...
+        'Tolerance', spec.strictTolerance, ...
+        'MinFrequencyForMonotonicity_kHz', spec.strictMinFrequency_kHz, ...
+        'Label', spec.label + "_strict");
+
+    effectiveAnalysis = aeAnalyzeSweepReliability(inputData, ...
+        'ExpectedDirection', spec.expectedDirection, ...
+        'Tolerance', spec.effectiveTolerance, ...
+        'MinFrequencyForMonotonicity_kHz', spec.effectiveMinFrequency_kHz, ...
+        'Label', spec.label + "_effective");
+
     key = matlab.lang.makeValidName(spec.label);
-    analysisBySweep.(key) = analysis;
+    analysisBySweep.(key).strict = strictAnalysis;
+    analysisBySweep.(key).effective = effectiveAnalysis;
 
-    writetable(analysis.truncationTable, fullfile(outputFolder, spec.filePrefix + "_truncation_table.csv"));
-    writetable(analysis.branchConsistencyTable, fullfile(outputFolder, spec.filePrefix + "_branch_consistency_table.csv"));
-    writetable(analysis.monotonicityTable, fullfile(outputFolder, spec.filePrefix + "_monotonicity_table.csv"));
+    writetable(strictAnalysis.truncationTable, fullfile(outputFolder, spec.filePrefix + "_truncation_table.csv"));
+    writetable(strictAnalysis.branchConsistencyTable, fullfile(outputFolder, spec.filePrefix + "_branch_consistency_table.csv"));
+    writetable(strictAnalysis.monotonicityTable, fullfile(outputFolder, spec.filePrefix + "_strict_monotonicity_table.csv"));
+    writetable(effectiveAnalysis.monotonicityTable, fullfile(outputFolder, spec.filePrefix + "_effective_monotonicity_table.csv"));
 
-    allOverallRows = [allOverallRows; analysis.overallSummary]; %#ok<AGROW>
-    plotSweepReliability(analysis, spec, outputFolder);
+    strictRow = strictAnalysis.overallSummary;
+    strictRow.MetricType = "strict";
+    effectiveRow = effectiveAnalysis.overallSummary;
+    effectiveRow.MetricType = "effective";
+    allOverallRows = [allOverallRows; strictRow; effectiveRow]; %#ok<AGROW>
+
+    plotSweepReliability(strictAnalysis, effectiveAnalysis, spec, outputFolder);
 end
 
 if isempty(allOverallRows)
@@ -60,23 +84,33 @@ assignin('base', 'AcoustoelasticIOPHGOSweepReliabilityOverallTable', overallTabl
 function specs = makeWorkspaceSpecs()
 baseResults = fullfile(pwd, 'Results');
 specs = struct([]);
+
 specs(1).label = "iop_sweep";
 specs(1).filePrefix = "acoustoelastic_iop_hgo_iop_sweep";
 specs(1).expectedDirection = "increasing";
 specs(1).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
 specs(1).xLabel = "IOP [mmHg]";
+specs(1).strictTolerance = 1e-9;
+specs(1).strictMinFrequency_kHz = -inf;
+specs(1).effectiveTolerance = 1e-9;
+specs(1).effectiveMinFrequency_kHz = -inf;
+
 specs(2).label = "mu_sweep";
 specs(2).filePrefix = "acoustoelastic_iop_hgo_mu_sweep";
 specs(2).expectedDirection = "increasing";
 specs(2).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
 specs(2).xLabel = "mu [kPa]";
+specs(2).strictTolerance = 1e-9;
+specs(2).strictMinFrequency_kHz = -inf;
+specs(2).effectiveTolerance = 0.02;
+specs(2).effectiveMinFrequency_kHz = 0.25;
 end
 
-function plotSweepReliability(analysis, spec, outputFolder)
-if isempty(analysis.truncationTable)
+function plotSweepReliability(strictAnalysis, effectiveAnalysis, spec, outputFolder)
+if isempty(strictAnalysis.truncationTable)
     return;
 end
-T = analysis.truncationTable;
+T = strictAnalysis.truncationTable;
 figure('Color', 'w', 'Name', sprintf('%s valid fraction', spec.label));
 plot(T.SweepValueScaled, T.ValidFraction, 'o-', 'LineWidth', 1.5);
 grid on; xlabel(spec.xLabel); ylabel('valid Cp fraction [-]');
@@ -91,15 +125,19 @@ title(sprintf('%s: truncation limit', strrep(spec.label, '_', ' ')));
 saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_last_valid_frequency.fig"));
 saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_last_valid_frequency.png"));
 
-M = analysis.monotonicityTable;
-if ~isempty(M)
+M1 = strictAnalysis.monotonicityTable;
+M2 = effectiveAnalysis.monotonicityTable;
+if ~isempty(M1)
     figure('Color', 'w', 'Name', sprintf('%s monotonicity', spec.label));
-    plot(M.Frequency_kHz, double(M.SharedValid), '-', 'LineWidth', 1.5);
+    plot(M1.Frequency_kHz, double(M1.SharedValid), '-', 'LineWidth', 1.5);
     hold on;
-    plot(M.Frequency_kHz, double(M.IsMonotonic), '--', 'LineWidth', 1.5);
+    plot(M1.Frequency_kHz, double(M1.IsMonotonic), '--', 'LineWidth', 1.5);
+    if ~isempty(M2)
+        plot(M2.Frequency_kHz, double(M2.IsMonotonic), ':', 'LineWidth', 2.0);
+    end
     grid on; xlabel('frequency [kHz]'); ylabel('flag [-]'); ylim([-0.05, 1.05]);
-    legend({'shared valid', 'monotonic'}, 'Location', 'best');
-    title(sprintf('%s: shared-valid monotonicity', strrep(spec.label, '_', ' ')));
+    legend({'shared valid', 'strict monotonic', 'effective monotonic'}, 'Location', 'best');
+    title(sprintf('%s: strict vs effective monotonicity', strrep(spec.label, '_', ' ')));
     hold off;
     saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_monotonicity_flags.fig"));
     saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_monotonicity_flags.png"));
