@@ -68,11 +68,11 @@ opt = defaultAcoustoelasticIOPHGOOptions();
 opt.M54_variant = "corrected";
 opt.normalizeRows = false;
 opt.usePhysicalCpWindow = false;
-opt.atlasBranchPolicy = "strictA0";
+opt.atlasBranchPolicy = "atlasA0";
 opt.atlasNumYPoints = 1000;
 opt.atlasTopNMinima = 18;
-policyList(1).name = "current_atlas_policy";
-policyList(1).description = "Current maintained atlas policy";
+policyList(1).name = "atlas_a0_policy";
+policyList(1).description = "Maintained atlas-based A0 policy";
 policyList(1).options = opt;
 policyList(1).runner = @(params, options) solveAcoustoelasticIOPHGOBranch(params, options);
 
