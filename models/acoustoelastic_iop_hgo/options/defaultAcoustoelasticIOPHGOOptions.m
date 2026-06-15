@@ -54,6 +54,11 @@ options.complexCTolX = 1e-9;
 options.complexCTolFun = 1e-9;
 options.complexCDisplay = "off";
 
+% Atlas branch-selection policy.
+%   "atlasA0"  : maintained atlas-based A0 branch policy.
+%   "strictA0" : legacy alias accepted by aeNormalizeBranchPolicy.
+options.atlasBranchPolicy = "atlasA0";
+
 % Branch-selection mode.
 %   "band"   : restrict candidate minima by dimensionless Cp bands.
 %   "global" : use all local minima in the Cp grid.
@@ -133,5 +138,11 @@ end
 for i = 1:2:numel(varargin)
     name = char(varargin{i});
     options.(name) = varargin{i+1};
+end
+
+% Normalize branch-policy names after overrides so legacy callers can still
+% pass "strictA0" while maintained workflows report the canonical "atlasA0".
+if isfield(options, 'atlasBranchPolicy')
+    options.atlasBranchPolicy = aeNormalizeBranchPolicy(options.atlasBranchPolicy);
 end
 end
