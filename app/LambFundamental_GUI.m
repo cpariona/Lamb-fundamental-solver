@@ -104,14 +104,17 @@ updateAxisFieldState();
 
             lastComputeCacheMessage = "";
             if canReuseCompleteResults(params, options)
+                if isempty(lastGuiResult)
+                    lastGuiResult = guiNormalizeRawResult(lastResults, "cacheComplete");
+                end
                 lastComputeCacheMessage = "cache: reused previous results";
             elseif canReuseElasticForHan(params, options)
                 lastResults = computeHanWithCachedElastic(lastResults, options);
-                lastGuiResult = [];
+                lastGuiResult = guiNormalizeRawResult(lastResults, "cacheHan");
                 lastComputeCacheMessage = "cache: reused selected elastic mRLFE branch(es)";
             elseif canReuseBaseForMRLFE(params, options)
                 lastResults = computeMRLFEWithCachedBase(lastResults, options);
-                lastGuiResult = [];
+                lastGuiResult = guiNormalizeRawResult(lastResults, "cacheBase");
                 lastComputeCacheMessage = "cache: reused selected Rayleigh-Lamb seed(s)";
             else
                 [lastResults, lastGuiResult] = runModelRequestThroughAdapter(params, options);
