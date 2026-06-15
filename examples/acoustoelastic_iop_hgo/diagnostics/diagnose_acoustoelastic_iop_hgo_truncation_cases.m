@@ -105,21 +105,27 @@ if isempty(classificationRows)
 else
     classificationTable = struct2table(classificationRows);
 end
+interpretationTable = aeSummarizeTruncationRecoveryClassification(classificationTable);
 
 writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_summary.csv'));
 writetable(classificationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_recovery_classification.csv'));
+writetable(interpretationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_recovery_interpretation.csv'));
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_workspace.mat'), ...
-    'caseAnalysisByName', 'summaryTable', 'classificationTable', 'cases', '-v7.3');
+    'caseAnalysisByName', 'summaryTable', 'classificationTable', 'interpretationTable', 'cases', '-v7.3');
 
 disp(summaryTable);
 if ~isempty(classificationTable)
     disp(classificationTable(:, {'CaseName','RecoveryClass','InitialBreakRecovered','ContiguousExtension_kHz','NumPointwiseRecoveriesAfterContiguousBreak'}));
+end
+if ~isempty(interpretationTable)
+    disp(interpretationTable(:, {'CaseName','RecoveryClass','ReportingInterpretation','RecommendedNextStep'}));
 end
 fprintf('\nTruncation-case diagnostic files written to:\n%s\n', outputFolder);
 
 assignin('base', 'AcoustoelasticIOPHGOTruncationCaseAnalysis', caseAnalysisByName);
 assignin('base', 'AcoustoelasticIOPHGOTruncationCaseSummary', summaryTable);
 assignin('base', 'AcoustoelasticIOPHGOTruncationRecoveryClassification', classificationTable);
+assignin('base', 'AcoustoelasticIOPHGOTruncationRecoveryInterpretation', interpretationTable);
 
 function cases = makeCaseSpecs()
 baseResults = fullfile(pwd, 'Results');
