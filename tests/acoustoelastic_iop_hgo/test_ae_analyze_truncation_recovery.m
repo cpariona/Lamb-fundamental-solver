@@ -39,12 +39,13 @@ assert(recovery.recoveryMode(5) == "smallGapBridge", 'Unexpected recovery mode f
 assert(recovery.summary.NumRecoveredPoints == 2, 'Unexpected number of recovered points.');
 assert(recovery.summary.NumLocalMinimumRecoveries == 1, 'Unexpected number of local-minimum recoveries.');
 assert(recovery.summary.NumSmallGapBridgeRecoveries == 1, 'Unexpected number of bridge recoveries.');
-assert(recovery.summary.NumContiguousRecoveredPoints == 1, 'Unexpected number of contiguous recovered points.');
+assert(recovery.summary.NumContiguousRecoveredPoints == 2, 'Unexpected number of contiguous recovered points.');
 assert(recovery.summary.NumContiguousLocalMinimumRecoveries == 1, 'Unexpected number of contiguous local-minimum recoveries.');
-assert(recovery.summary.NumPointwiseRecoveriesAfterContiguousBreak == 1, 'Unexpected pointwise recoveries after contiguous break.');
-assert(abs(recovery.summary.FirstMissingAfterContiguousRecovery_kHz - 5) < 1e-12, ...
-    'Unexpected first missing frequency after contiguous recovery.');
-assert(abs(recovery.summary.LastContiguousRecoveredFrequency_kHz - 4) < 1e-12, ...
+assert(recovery.summary.NumContiguousSmallGapBridgeRecoveries == 1, 'Unexpected number of contiguous bridge recoveries.');
+assert(recovery.summary.NumPointwiseRecoveriesAfterContiguousBreak == 0, 'Unexpected pointwise recoveries after contiguous break.');
+assert(isnan(recovery.summary.FirstMissingAfterContiguousRecovery_kHz), ...
+    'There should be no missing frequency after contiguous recovery in this fixture.');
+assert(abs(recovery.summary.LastContiguousRecoveredFrequency_kHz - 6) < 1e-12, ...
     'Unexpected last contiguous recovered frequency.');
 
 fprintf('test_ae_analyze_truncation_recovery passed.\n');
