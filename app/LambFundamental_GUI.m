@@ -4,6 +4,7 @@ function LambFundamental_GUI
 params0 = rlDefaultParams();
 opts0 = rlDefaultOptions("Balanced");
 lastResults = [];
+lastGuiResult = [];
 lastOptions = [];
 lastParams = [];
 lastComputeCacheMessage = "";
@@ -106,12 +107,14 @@ updateAxisFieldState();
                 lastComputeCacheMessage = "cache: reused previous results";
             elseif canReuseElasticForHan(params, options)
                 lastResults = computeHanWithCachedElastic(lastResults, options);
+                lastGuiResult = [];
                 lastComputeCacheMessage = "cache: reused selected elastic mRLFE branch(es)";
             elseif canReuseBaseForMRLFE(params, options)
                 lastResults = computeMRLFEWithCachedBase(lastResults, options);
+                lastGuiResult = [];
                 lastComputeCacheMessage = "cache: reused selected Rayleigh-Lamb seed(s)";
             else
-                lastResults = runModelRequestThroughAdapter(params, options);
+                [lastResults, lastGuiResult] = runModelRequestThroughAdapter(params, options);
             end
 
             lastOptions = options;
@@ -174,7 +177,7 @@ updateAxisFieldState();
         mrlfeParams.useComplexLambda = false;
     end
 
-    function results = runModelRequestThroughAdapter(params, options)
+    function [results, guiResult] = runModelRequestThroughAdapter(params, options)
         guiRequest = struct();
         guiRequest.params = params;
         guiRequest.options = options;
@@ -192,7 +195,8 @@ updateAxisFieldState();
         end
 
         % Keep the existing GUI plotting/export code unchanged for this step.
-        % The normalized adapter result is introduced gradually in later PRs.
+        % Preserve the normalized adapter result for export and future plotting.
+        guiResult = adapterResult;
         results = adapterResult.metadata.rawResult;
     end
 
@@ -602,6 +606,10 @@ updateAxisFieldState();
         if isempty(lastResults), uialert(fig,'No results to export.','Export error'); return; end
         LambResults = lastResults; %#ok<NASGU>
         assignin('base','LambResults',LambResults);
+        if ~isempty(lastGuiResult)
+            GuiResults = lastGuiResult; %#ok<NASGU>
+            assignin('base','GuiResults',GuiResults);
+        end
         if isfield(lastResults.modes,'A0'), assignin('base','A0_table',modeToTable(lastResults.modes.A0)); end
         if isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp)), assignin('base','S0_table',modeToTable(lastResults.modes.S0)); end
         if isfield(lastResults, 'approximations'), assignin('base', 'ApproximationResults', lastResults.approximations); end
