@@ -2,7 +2,8 @@ function policy = aeNormalizeBranchPolicy(policy)
 %AENORMALIZEBRANCHPOLICY Normalize acoustoelastic atlas branch-policy names.
 %
 %   policy = aeNormalizeBranchPolicy(policy) returns the canonical policy name
-%   used by maintained acoustoelastic IOP/HGO workflows.
+%   used by maintained acoustoelastic IOP/HGO workflows when a known alias is
+%   supplied.
 %
 %   Canonical policy
 %   ----------------
@@ -12,6 +13,12 @@ function policy = aeNormalizeBranchPolicy(policy)
 %   ------------
 %   "strictA0" remains accepted for backward compatibility with existing
 %   workspaces, scripts, and diagnostic outputs. It maps to "atlasA0".
+%
+%   Diagnostic policies
+%   -------------------
+%   Other policy names are returned unchanged so experimental diagnostic
+%   scripts can continue to compare policy variants without being blocked by
+%   this compatibility helper.
 
 if nargin < 1 || isempty(policy)
     policy = "atlasA0";
@@ -26,6 +33,6 @@ switch lower(strtrim(policy))
     case "atlasa0"
         policy = "atlasA0";
     otherwise
-        error('Unknown acoustoelastic atlas branch policy: %s. Use "atlasA0" or legacy alias "strictA0".', policy);
+        policy = string(policy);
 end
 end
