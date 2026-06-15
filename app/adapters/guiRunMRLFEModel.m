@@ -39,88 +39,9 @@ if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
 end
 
 rawResult = rlComputeFundamentalLambModes(params, options);
-
-result = struct();
-result.modelName = "mRLFE";
-result.branchName = "";
-result.frequency = rawResult.grid.frequency(:);
-result.phaseVelocity = [];
-result.wavenumber = [];
-result.kThickness = [];
-result.branches = normalizeMRLFEBranches(rawResult);
-result.metadata = struct();
+result = guiNormalizeRawResult(rawResult, mfilename);
 result.metadata.params = params;
 result.metadata.options = options;
-result.metadata.rawResult = rawResult;
-result.metadata.adapter = mfilename;
-result.diagnostics = struct();
-result.diagnostics.branchCount = numel(result.branches);
-end
-
-function branches = normalizeMRLFEBranches(rawResult)
-branches = repmat(emptyBranch(), 0, 1);
-if ~isfield(rawResult, 'models')
-    return;
-end
-
-modelNames = string(fieldnames(rawResult.models));
-modelNames = modelNames(modelNames ~= "mRLFE");
-if any(modelNames == "mRLFEElasticRealK")
-    % mRLFERealK is a compatibility alias for mRLFEElasticRealK in the raw
-    % solver result. Keep only the explicit maintained model name so the GUI
-    % normalized result does not plot/export duplicated elastic branches.
-    modelNames = modelNames(modelNames ~= "mRLFERealK");
-end
-
-for i = 1:numel(modelNames)
-    modelName = modelNames(i);
-    modelResult = rawResult.models.(char(modelName));
-    if ~isfield(modelResult, 'branches')
-        continue;
-    end
-    branchNames = string(fieldnames(modelResult.branches));
-    for j = 1:numel(branchNames)
-        branchName = branchNames(j);
-        branch = modelResult.branches.(char(branchName));
-        branches(end+1, 1) = normalizeMRLFEBranch(modelName, branchName, branch, modelResult); %#ok<AGROW>
-    end
-end
-end
-
-function out = normalizeMRLFEBranch(modelName, branchName, branch, modelResult)
-out = emptyBranch();
-out.modelName = modelName;
-out.branchName = branchName;
-out.frequency = getFieldOrDefault(branch, 'frequency', []);
-out.phaseVelocity = getFieldOrDefault(branch, 'Cp', []);
-out.wavenumber = getFieldOrDefault(branch, 'k', []);
-out.kThickness = getFieldOrDefault(branch, 'kThickness', []);
-out.frequency = out.frequency(:);
-out.phaseVelocity = out.phaseVelocity(:);
-out.wavenumber = out.wavenumber(:);
-out.kThickness = out.kThickness(:);
-out.metadata = struct();
-out.metadata.rawBranch = branch;
-out.metadata.rawModel = modelResult;
-out.metadata.units = struct('frequency', 'Hz', 'phaseVelocity', 'm/s', 'wavenumber', '1/m', 'kThickness', 'dimensionless');
-out.diagnostics = struct();
-out.diagnostics.residual = getFieldOrDefault(branch, 'residual', []);
-out.diagnostics.valid = getFieldOrDefault(branch, 'valid', isfinite(out.phaseVelocity));
-if isfield(branch, 'validCp')
-    out.diagnostics.validCp = branch.validCp;
-end
-end
-
-function branch = emptyBranch()
-branch = struct();
-branch.modelName = "";
-branch.branchName = "";
-branch.frequency = [];
-branch.phaseVelocity = [];
-branch.wavenumber = [];
-branch.kThickness = [];
-branch.metadata = struct();
-branch.diagnostics = struct();
 end
 
 function value = getStructField(s, name, defaultValue)
@@ -138,13 +59,5 @@ end
 names = fieldnames(overlay);
 for i = 1:numel(names)
     base.(names{i}) = overlay.(names{i});
-end
-end
-
-function value = getFieldOrDefault(s, name, defaultValue)
-if isstruct(s) && isfield(s, name) && ~isempty(s.(name))
-    value = s.(name);
-else
-    value = defaultValue;
 end
 end
