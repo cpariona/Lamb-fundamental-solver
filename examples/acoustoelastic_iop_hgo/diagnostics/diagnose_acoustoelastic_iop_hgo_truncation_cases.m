@@ -59,6 +59,13 @@ for i = 1:numel(cases)
     row.NumSmallGapBridgeRecoveries = recovery.summary.NumSmallGapBridgeRecoveries;
     row.FirstMissingAfterRecovery_kHz = recovery.summary.FirstMissingAfterRecovery_kHz;
     row.LastRecoveredValidFrequency_kHz = recovery.summary.LastRecoveredValidFrequency_kHz;
+    row.ContiguousRecoveredValidFraction = recovery.summary.ContiguousRecoveredValidFraction;
+    row.NumContiguousRecoveredPoints = recovery.summary.NumContiguousRecoveredPoints;
+    row.NumContiguousLocalMinimumRecoveries = recovery.summary.NumContiguousLocalMinimumRecoveries;
+    row.NumContiguousSmallGapBridgeRecoveries = recovery.summary.NumContiguousSmallGapBridgeRecoveries;
+    row.FirstMissingAfterContiguousRecovery_kHz = recovery.summary.FirstMissingAfterContiguousRecovery_kHz;
+    row.LastContiguousRecoveredFrequency_kHz = recovery.summary.LastContiguousRecoveredFrequency_kHz;
+    row.NumPointwiseRecoveriesAfterContiguousBreak = recovery.summary.NumPointwiseRecoveriesAfterContiguousBreak;
     allSummaryRows = [allSummaryRows; row]; %#ok<AGROW>
 
     writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
