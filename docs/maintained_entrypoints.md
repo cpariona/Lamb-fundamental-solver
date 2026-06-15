@@ -51,6 +51,7 @@ objectiveAcoustoelasticResidual
 objectiveAcoustoelasticComplexDeterminant
 buildAcoustoelasticMatrix
 defaultAcoustoelasticIOPHGOOptions
+aeNormalizeBranchPolicy
 computeAcoustoelasticABGFromIOPHGO
 computeAcoustoelasticAlphaBetaGamma
 computeAcoustoelasticPrestressSigma
@@ -86,6 +87,7 @@ sweep_acoustoelastic_iop_hgo_mu
 Maintained tests:
 
 ```matlab
+test_acoustoelastic_iop_hgo_branch_policy_aliases
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
 ```

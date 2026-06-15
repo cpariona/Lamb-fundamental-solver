@@ -19,6 +19,7 @@ solveAcoustoelasticComplexCDispersion
 
 ```matlab
 defaultAcoustoelasticIOPHGOOptions
+aeNormalizeBranchPolicy
 ```
 
 ## Constitutive helpers
@@ -39,15 +40,18 @@ objectiveAcoustoelasticResidual
 objectiveAcoustoelasticComplexDeterminant
 ```
 
-## Analysis helper
+## Sweep and analysis helpers
 
 ```matlab
+aeRunSweep
+aeSummarizeSweep
 summarizeAcoustoelasticIOPHGOTrackingQuality
 ```
 
 ## Maintained tests
 
 ```matlab
+test_acoustoelastic_iop_hgo_branch_policy_aliases
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
 ```
@@ -57,4 +61,6 @@ test_acoustoelastic_iop_hgo_strictA0_smoke
 - GUI code should call author-neutral functions only.
 - Maintained examples should use `acoustoelastic_iop_hgo` names only.
 - Active tests should validate author-neutral names only.
+- The maintained atlas A0 policy name is `"atlasA0"`.
+- The legacy policy name `"strictA0"` remains accepted as an alias.
 - Removed compatibility names are not part of the supported API.

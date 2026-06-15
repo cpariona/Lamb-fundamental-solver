@@ -13,10 +13,11 @@ function result = solveAcoustoelasticAtlasBranch(params, options)
 %   family of minima.
 %
 % Default branch policy:
-%   strictA0. The solver selects only A0-like branches that start at low
+%   atlasA0. The solver selects only A0-like branches that start at low
 %   dimensionless phase speed and low rank, cuts branches with large Cp jumps,
 %   and reports missing high-frequency portions as NaN rather than reconnecting
-%   them automatically.
+%   them automatically. The legacy name strictA0 remains accepted through
+%   aeNormalizeBranchPolicy.
 %
 % Required params fields:
 %   alpha, beta, gamma, thickness, rho, rhoF, fluidBulkModulus, frequency
@@ -138,7 +139,7 @@ end
 
 function options = setAtlasDefaults(options)
 def = struct();
-def.atlasBranchPolicy = "strictA0";
+def.atlasBranchPolicy = "atlasA0";
 def.atlasYMin = 0.003;
 def.atlasYMax = 2.0;
 def.atlasNumYPoints = 1000;
@@ -169,6 +170,10 @@ for i = 1:numel(names)
     if ~isfield(options, names{i}) || isempty(options.(names{i}))
         options.(names{i}) = def.(names{i});
     end
+end
+
+if isfield(options, 'atlasBranchPolicy')
+    options.atlasBranchPolicy = aeNormalizeBranchPolicy(options.atlasBranchPolicy);
 end
 end
 
