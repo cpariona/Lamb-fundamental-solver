@@ -608,7 +608,9 @@ updateAxisFieldState();
         assignin('base','LambResults',LambResults);
         if ~isempty(lastGuiResult)
             GuiResults = lastGuiResult; %#ok<NASGU>
+            GuiBranchTables = guiNormalizedBranchesToTables(lastGuiResult); %#ok<NASGU>
             assignin('base','GuiResults',GuiResults);
+            assignin('base','GuiBranchTables',GuiBranchTables);
         end
         if isfield(lastResults.modes,'A0'), assignin('base','A0_table',modeToTable(lastResults.modes.A0)); end
         if isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp)), assignin('base','S0_table',modeToTable(lastResults.modes.S0)); end
