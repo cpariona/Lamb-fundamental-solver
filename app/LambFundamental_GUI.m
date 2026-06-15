@@ -461,6 +461,9 @@ updateAxisFieldState();
     function updatePlot()
         cla(ax); hold(ax,'on');
         xSel = string(plotControls.xaxis.Value); plotCount = 0;
+        if tryPlotNormalizedResults(xSel)
+            return;
+        end
         if plotControls.showA0.Value && isfield(lastResults.modes,'A0')
             plotCount = plotCount + plotMode(lastResults.modes.A0, '-', 'A0', colors.A0, xSel);
         end
@@ -495,6 +498,140 @@ updateAxisFieldState();
             if plotControls.ymax.Value > plotControls.ymin.Value, ylim(ax,[plotControls.ymin.Value plotControls.ymax.Value]); end
         end
         hold(ax,'off');
+    end
+
+
+    function didPlot = tryPlotNormalizedResults(xSel)
+        didPlot = false;
+        if isempty(lastGuiResult) || ~isfield(lastGuiResult, 'branches') || isempty(lastGuiResult.branches)
+            return;
+        end
+
+        plotCount = 0;
+        branches = lastGuiResult.branches(:);
+        for iBranch = 1:numel(branches)
+            branch = branches(iBranch);
+            if ~shouldPlotNormalizedBranch(branch)
+                continue;
+            end
+
+            plotData = guiGetNormalizedBranchPlotData(branch, xSel);
+            x = plotData.x;
+            y = plotData.y;
+            validMask = plotData.validMask;
+            x(~validMask) = nan;
+            y(~validMask) = nan;
+
+            if any(isfinite(y))
+                plot(ax, x, y, normalizedBranchLineStyle(branch), ...
+                    'LineWidth', 2, ...
+                    'Color', normalizedBranchColor(branch), ...
+                    'DisplayName', normalizedBranchDisplayName(branch));
+                plotCount = plotCount + 1;
+            end
+        end
+
+        if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
+            plotCount = plotCount + plotMode(lastResults.approximations.A0ThinPlate, '--', 'A0 thin plate', colors.A0, xSel);
+        end
+        if plotControls.showS0Ext.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'S0Extensional')
+            plotCount = plotCount + plotMode(lastResults.approximations.S0Extensional, '--', 'S0 extensional', colors.S0, xSel);
+        end
+
+        if plotCount <= 0
+            return;
+        end
+
+        xlabel(ax, getXLabel(xSel));
+        ylabel(ax, 'Phase velocity Cp [m/s]');
+        title(ax, 'Fundamental Lamb modes (Cp)');
+        grid(ax, 'on');
+        legend(ax, 'Location', 'best');
+        applyAxisLimits();
+        hold(ax, 'off');
+        didPlot = true;
+    end
+
+    function tf = shouldPlotNormalizedBranch(branch)
+        modelName = string(branch.modelName);
+        branchName = string(branch.branchName);
+
+        tf = false;
+        if modelName == "RayleighLamb" && branchName == "A0"
+            tf = plotControls.showA0.Value;
+        elseif modelName == "RayleighLamb" && branchName == "S0"
+            tf = plotControls.showS0.Value;
+        elseif modelName == "mRLFEElasticRealK" && branchName == "A0Like"
+            tf = isfield(plotControls, 'showMRLFEElasticA0') && plotControls.showMRLFEElasticA0.Value;
+        elseif modelName == "mRLFEElasticRealK" && branchName == "S0Like"
+            tf = isfield(plotControls, 'showMRLFEElasticS0') && plotControls.showMRLFEElasticS0.Value;
+        elseif modelName == "mRLFEHanViscoRealK" && branchName == "A0Like"
+            tf = isfield(plotControls, 'showMRLFEHanA0') && plotControls.showMRLFEHanA0.Value;
+        elseif modelName == "mRLFEHanViscoRealK" && branchName == "S0Like"
+            tf = isfield(plotControls, 'showMRLFEHanS0') && plotControls.showMRLFEHanS0.Value;
+        end
+    end
+
+    function displayName = normalizedBranchDisplayName(branch)
+        modelName = string(branch.modelName);
+        branchName = string(branch.branchName);
+
+        if modelName == "RayleighLamb"
+            displayName = char(branchName);
+        elseif modelName == "mRLFEElasticRealK" && branchName == "A0Like"
+            displayName = 'mRLFE elastic A0-like';
+        elseif modelName == "mRLFEElasticRealK" && branchName == "S0Like"
+            displayName = 'mRLFE elastic S0-like';
+        elseif modelName == "mRLFEHanViscoRealK" && branchName == "A0Like"
+            displayName = 'mRLFE Han visco A0-like';
+        elseif modelName == "mRLFEHanViscoRealK" && branchName == "S0Like"
+            displayName = 'mRLFE Han visco S0-like';
+        else
+            displayName = char(strtrim(modelName + " " + branchName));
+        end
+    end
+
+    function lineStyle = normalizedBranchLineStyle(branch)
+        modelName = string(branch.modelName);
+        if modelName == "mRLFEElasticRealK"
+            lineStyle = ':';
+        elseif modelName == "mRLFEHanViscoRealK"
+            lineStyle = '-.';
+        else
+            lineStyle = '-';
+        end
+    end
+
+    function colorValue = normalizedBranchColor(branch)
+        modelName = string(branch.modelName);
+        branchName = string(branch.branchName);
+        if branchName == "A0" || branchName == "A0Like"
+            if startsWith(modelName, "mRLFE")
+                colorValue = colors.HanA0;
+            else
+                colorValue = colors.A0;
+            end
+        else
+            if startsWith(modelName, "mRLFE")
+                colorValue = colors.HanS0;
+            else
+                colorValue = colors.S0;
+            end
+        end
+    end
+
+    function applyAxisLimits()
+        if plotControls.autoAxes.Value
+            xlim(ax, 'auto');
+            ylim(ax, 'auto');
+        else
+            if plotControls.xmax.Value > plotControls.xmin.Value
+                xlim(ax, [plotControls.xmin.Value plotControls.xmax.Value]);
+            end
+            if plotControls.ymax.Value > plotControls.ymin.Value
+                ylim(ax, [plotControls.ymin.Value plotControls.ymax.Value]);
+            end
+        end
     end
 
     function didPlot = plotMode(mode, lineStyle, displayName, colorValue, xSel)
