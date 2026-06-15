@@ -1,8 +1,9 @@
 %TEST_GUI_NORMALIZED_ADAPTERS_SMOKE Smoke tests for GUI normalized adapter outputs.
 %
 % This test validates the GUI adapter normalization layer independently from
-% the interactive app. It intentionally uses small frequency grids so it can be
-% called from run_all_smoke_tests without generating figures.
+% the interactive app. It intentionally uses the smallest valid frequency grid
+% accepted by rlValidateParams so it can be called from run_all_smoke_tests
+% without generating figures.
 
 fprintf('Running GUI normalized adapters smoke test...\n');
 
@@ -10,7 +11,7 @@ fprintf('Running GUI normalized adapters smoke test...\n');
 rlParams = rlDefaultParams();
 rlParams.fmin = 50;
 rlParams.fmax = 250;
-rlParams.numFrequencyPoints = 6;
+rlParams.numFrequencyPoints = 10;
 rlParams.frequencySpacing = "linspace";
 
 rlOptions = rlDefaultOptions();
