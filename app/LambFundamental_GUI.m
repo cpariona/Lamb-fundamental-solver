@@ -111,7 +111,7 @@ updateAxisFieldState();
                 lastResults = computeMRLFEWithCachedBase(lastResults, options);
                 lastComputeCacheMessage = "cache: reused selected Rayleigh-Lamb seed(s)";
             else
-                lastResults = rlComputeFundamentalLambModes(params, options);
+                lastResults = runModelRequestThroughAdapter(params, options);
             end
 
             lastOptions = options;
@@ -172,6 +172,28 @@ updateAxisFieldState();
         mrlfeParams.etaS = modelControls.mrlfe.etaS.Value;
         mrlfeParams.etaL = 0;
         mrlfeParams.useComplexLambda = false;
+    end
+
+    function results = runModelRequestThroughAdapter(params, options)
+        guiRequest = struct();
+        guiRequest.params = params;
+        guiRequest.options = options;
+
+        if isfield(options, 'mrlfeParams')
+            guiRequest.mrlfeParams = options.mrlfeParams;
+        end
+
+        if options.computeMRLFERealK || options.computeMRLFEHanViscoRealK
+            guiRequest.computeElastic = options.computeMRLFERealK || options.computeMRLFEHanViscoRealK;
+            guiRequest.computeHan = options.computeMRLFEHanViscoRealK;
+            adapterResult = guiRunMRLFEModel(guiRequest);
+        else
+            adapterResult = guiRunRayleighLambModel(guiRequest);
+        end
+
+        % Keep the existing GUI plotting/export code unchanged for this step.
+        % The normalized adapter result is introduced gradually in later PRs.
+        results = adapterResult.metadata.rawResult;
     end
 
     function tf = canReuseCompleteResults(params, options)
