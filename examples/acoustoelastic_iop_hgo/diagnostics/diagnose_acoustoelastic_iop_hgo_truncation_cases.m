@@ -15,6 +15,7 @@ end
 
 cases = makeCaseSpecs();
 allSummaryRows = [];
+classificationRows = [];
 caseAnalysisByName = struct();
 
 fprintf('\nAcoustoelastic IOP/HGO truncation-case diagnostic\n');
@@ -43,10 +44,12 @@ for i = 1:numel(cases)
         'MaxRelativeBridgeMismatch', spec.maxRelativeBridgeMismatch, ...
         'MaxGapPoints', spec.maxGapPoints, ...
         'MaxGapFrequencyRatio', spec.maxGapFrequencyRatio);
+    classification = aeClassifyTruncationRecovery(caseAnalysis.summary, recovery.summary);
 
     key = matlab.lang.makeValidName(spec.caseName);
     caseAnalysisByName.(key).truncation = caseAnalysis;
     caseAnalysisByName.(key).recovery = recovery;
+    caseAnalysisByName.(key).classification = classification;
 
     row = caseAnalysis.summary;
     row.CaseName = spec.caseName;
@@ -66,9 +69,20 @@ for i = 1:numel(cases)
     row.FirstMissingAfterContiguousRecovery_kHz = recovery.summary.FirstMissingAfterContiguousRecovery_kHz;
     row.LastContiguousRecoveredFrequency_kHz = recovery.summary.LastContiguousRecoveredFrequency_kHz;
     row.NumPointwiseRecoveriesAfterContiguousBreak = recovery.summary.NumPointwiseRecoveriesAfterContiguousBreak;
+    row.RecoveryClass = classification.RecoveryClass;
+    row.InitialBreakRecovered = classification.InitialBreakRecovered;
+    row.ContiguousExtension_kHz = classification.ContiguousExtension_kHz;
+    row.PointwiseOnly = classification.PointwiseOnly;
     allSummaryRows = [allSummaryRows; row]; %#ok<AGROW>
 
+    classRow = classification;
+    classRow.CaseName = spec.caseName;
+    classRow.SweepField = spec.sweepField;
+    classRow.TargetDisplayValue = spec.targetDisplayValue;
+    classificationRows = [classificationRows; classRow]; %#ok<AGROW>
+
     writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
+    writetable(struct2table(classification), fullfile(outputFolder, spec.filePrefix + "_recovery_classification.csv"));
     writetable(caseAnalysis.neighborhoodTable, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.csv"));
     writetable(recovery.recoveryTable, fullfile(outputFolder, spec.filePrefix + "_recovery_table.csv"));
     if ~isempty(caseAnalysis.firstMissingMinimaTable)
@@ -86,16 +100,26 @@ if isempty(allSummaryRows)
 else
     summaryTable = struct2table(allSummaryRows);
 end
+if isempty(classificationRows)
+    classificationTable = table();
+else
+    classificationTable = struct2table(classificationRows);
+end
 
 writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_summary.csv'));
+writetable(classificationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_recovery_classification.csv'));
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_workspace.mat'), ...
-    'caseAnalysisByName', 'summaryTable', 'cases', '-v7.3');
+    'caseAnalysisByName', 'summaryTable', 'classificationTable', 'cases', '-v7.3');
 
 disp(summaryTable);
+if ~isempty(classificationTable)
+    disp(classificationTable(:, {'CaseName','RecoveryClass','InitialBreakRecovered','ContiguousExtension_kHz','NumPointwiseRecoveriesAfterContiguousBreak'}));
+end
 fprintf('\nTruncation-case diagnostic files written to:\n%s\n', outputFolder);
 
 assignin('base', 'AcoustoelasticIOPHGOTruncationCaseAnalysis', caseAnalysisByName);
 assignin('base', 'AcoustoelasticIOPHGOTruncationCaseSummary', summaryTable);
+assignin('base', 'AcoustoelasticIOPHGOTruncationRecoveryClassification', classificationTable);
 
 function cases = makeCaseSpecs()
 baseResults = fullfile(pwd, 'Results');
@@ -171,11 +195,12 @@ if ismember('ClosestMinimaCpToPreviousCp_mps', T.Properties.VariableNames)
 end
 idx = ismember(result.frequency(:)/1e3, T.Frequency_kHz);
 plot(result.frequency(idx)/1e3, recovery.recoveredCp(idx), 'd-.', 'LineWidth', 1.2);
+plot(result.frequency(idx)/1e3, recovery.contiguousRecoveredCp(idx), '^-', 'LineWidth', 1.2);
 grid on;
 xlabel('frequency [kHz]');
 ylabel('Cp [m/s]');
 title(strrep(spec.caseName, '_', ' ') + " truncation neighborhood");
-legend({'reported Cp', 'best atlas minimum', 'closest minimum to previous Cp', 'diagnostic recovered Cp'}, 'Location', 'best');
+legend({'reported Cp', 'best atlas minimum', 'closest minimum to previous Cp', 'pointwise recovered Cp', 'contiguous recovered Cp'}, 'Location', 'best');
 hold off;
 saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.fig"));
 saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.png"));
