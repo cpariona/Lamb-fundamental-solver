@@ -1,18 +1,28 @@
-# Li 2024 atlas-branch tracking policy
+# Acoustoelastic IOP/HGO atlas A0 branch policy
 
 ## Purpose
 
-This document defines the current default policy used by the Li 2024 acoustoelastic atlas-branch solver for selecting and reporting the A0-like branch.
+This document defines the current maintained atlas-based policy used by the acoustoelastic IOP/HGO solver for selecting and reporting the A0-like branch.
 
 The policy is intentionally conservative. Its goal is to avoid fabricating high-frequency continuity when the selected branch is no longer explicitly traceable in the numerical objective landscape.
 
-## Current default policy: `strictA0`
+Recent IOP and shear-modulus sweeps showed that this atlas-based A0 policy is the most robust working strategy currently available in the repository. It gives smoother and more physically plausible A0-like curves than the earlier corrected + A0 + backward globalScan diagnostic workflow.
 
-The default solver option is:
+## Current canonical policy: `atlasA0`
+
+The maintained solver option is:
+
+```matlab
+options.atlasBranchPolicy = "atlasA0";
+```
+
+The previous name:
 
 ```matlab
 options.atlasBranchPolicy = "strictA0";
 ```
+
+is retained as a legacy alias for backward compatibility with existing scripts, workspaces, and diagnostic outputs. New maintained examples and sweeps should use `"atlasA0"`.
 
 Under this policy, the solver:
 
@@ -95,27 +105,35 @@ result.reliability.MaxBranchRelativeCpDrop
 result.reliability.ValidityNote
 ```
 
-For high-IOP cases, the recommended interpretation is to use `LastValidFrequency_kHz` as the upper frequency limit of the reported strict-A0 curve.
+For high-IOP cases, the recommended interpretation is to use `LastValidFrequency_kHz` as the upper frequency limit of the reported atlas-A0 curve.
 
 ## Diagnostic alternatives
 
 The script
 
 ```matlab
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlas_branch_policy.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_policy.m
 ```
 
-compares the default `strictA0` behavior against diagnostic alternatives:
+compares atlas policy behavior against diagnostic alternatives such as:
 
 - `strict`
 - `smallGapInterpolation`
 - `softJumpStrict`
 - `monotoneReconnectDiagnostic`
 
+The script
+
+```matlab
+examples/acoustoelastic_iop_hgo/diagnostics/compare_acoustoelastic_iop_hgo_branch_policies.m
+```
+
+compares the maintained `atlasA0` path against the earlier `legacy_backward_global_scan` diagnostic strategy.
+
 These alternatives are intended for evidence gathering only. They should not be treated as final output policies unless they are validated against physical continuity, monotonicity with IOP, and branch-consistency metrics.
 
 ## Current recommendation
 
-Use `strictA0` as the default policy for final results.
+Use `atlasA0` as the default maintained policy for current parametric sweeps and final working results.
 
-Use reconnection or interpolation only as diagnostics. If a high-frequency branch segment cannot be explicitly traced, report the strict-A0 curve as truncated and state the last valid frequency.
+Use reconnection or interpolation only as diagnostics. If a high-frequency branch segment cannot be explicitly traced, report the atlas-A0 curve as truncated and state the last valid frequency.
