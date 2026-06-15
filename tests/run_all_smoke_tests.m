@@ -119,6 +119,9 @@ assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol,
 assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
     'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
 
+fprintf('\n[1/4] GUI normalized adapters smoke test\n');
+test_gui_normalized_adapters_smoke;
+
 fprintf('\nChecking maintained acoustoelastic IOP/HGO wrappers and entrypoints...\n');
 assert(~isempty(which('solveAcoustoelasticIOPHGOBranch')), ...
     'Missing solveAcoustoelasticIOPHGOBranch on MATLAB path.');
@@ -185,13 +188,13 @@ assert(~isempty(which('test_acoustoelastic_iop_hgo_constitutive_identity')), ...
 assert(~isempty(which('test_acoustoelastic_iop_hgo_strictA0_smoke')), ...
     'Missing test_acoustoelastic_iop_hgo_strictA0_smoke on MATLAB path.');
 
-fprintf('\n[1/3] Acoustoelastic IOP/HGO constitutive identity test\n');
+fprintf('\n[2/4] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_acoustoelastic_iop_hgo_constitutive_identity;
 
-fprintf('\n[2/3] Acoustoelastic IOP/HGO strict-A0 atlas branch smoke test\n');
+fprintf('\n[3/4] Acoustoelastic IOP/HGO strict-A0 atlas branch smoke test\n');
 test_acoustoelastic_iop_hgo_strictA0_smoke;
 
-fprintf('\n[3/3] mRLFE smoke test\n');
+fprintf('\n[4/4] mRLFE smoke test\n');
 test_mrlfe_smoke;
 
 fprintf('\nAll maintained smoke tests passed.\n');
