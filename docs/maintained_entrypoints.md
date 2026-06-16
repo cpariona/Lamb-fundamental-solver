@@ -1,6 +1,6 @@
 # Maintained entrypoints
 
-This document lists the maintained solver, example, diagnostic, and test entrypoints after the acoustoelastic IOP/HGO compatibility-layer cleanup and the mRLFE refactor.
+This document lists the maintained solver, example, diagnostic, and test entrypoints after the acoustoelastic IOP/HGO compatibility-layer cleanup, the mRLFE refactor, and the short-name migration for acoustoelastic scripts.
 
 ## Setup
 
@@ -36,7 +36,7 @@ rlSolveFundamentalBranch
 
 ## Acoustoelastic IOP/HGO model
 
-The supported acoustoelastic API is author-neutral. The former author-specific compatibility wrappers were removed; GUI code, examples, diagnostics, tests, and analysis scripts should call author-neutral functions only.
+The supported acoustoelastic API is author-neutral. GUI code, examples, diagnostics, tests, and analysis scripts should call author-neutral functions only.
 
 Recommended solver/API entrypoints:
 
@@ -67,6 +67,7 @@ Recommended analysis helpers:
 ```matlab
 aeOutputFolder
 aeResolveResultFile
+aeRunLegacyScript
 aeScoreBranchIdentityCandidates
 aeBuildIdentityA0DiagnosticBranch
 aeDiagnoseAtlasA0TruncationCause
@@ -74,17 +75,28 @@ aeAnalyzeBranchPersistenceCandidates
 aeRefineAtlasA0BranchPersistence
 ```
 
-Maintained short diagnostic/validation entrypoints for recent atlasA0/identityA0 work:
+Recommended short example, sweep, diagnostic, and validation entrypoints:
 
 ```matlab
+run_atlas_branch
+sweep_iop
+sweep_mu
 validate_idA0_score_grid
 validate_idA0_grid
+diagnose_branch_policy
+diagnose_sweep_reliability
+diagnose_truncation_cases
+diagnose_branch_persistence
+diagnose_atlas_truncation
+diagnose_atlas_resolution
+diagnose_landscape_failure
+diagnose_idA0_score
 diagnose_idA0_plausibility
 ```
 
-Legacy descriptive diagnostics remain available for backward compatibility and implementation detail, but new user-facing commands should prefer the short entrypoints above.
+Legacy descriptive scripts remain available for backward compatibility and implementation detail, but new user-facing commands should prefer the short entrypoints above.
 
-Other maintained examples and diagnostics:
+Legacy examples and diagnostics still present include:
 
 ```matlab
 run_acoustoelastic_iop_hgo_atlas_branch
