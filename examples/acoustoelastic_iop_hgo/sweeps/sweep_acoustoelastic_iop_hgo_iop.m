@@ -1,4 +1,5 @@
 clear; clc; close all;
+launchFolder = pwd;
 startup
 
 %SWEEP_ACOUSTOELASTIC_IOP_HGO_IOP Maintained IOP sweep for the acoustoelastic IOP/HGO model.
@@ -51,6 +52,7 @@ sweepConfig.ValueScale = 133.322;
 sweepConfig.ValueFormatter = "%.1f";
 
 fprintf('\nAcoustoelastic IOP/HGO IOP sweep\n');
+fprintf('Launch folder: %s\n', launchFolder);
 fprintf('IOP values: %s mmHg\n', mat2str(IOP_mmHg));
 fprintf('Frequency range: %.3g Hz to %.3g kHz\n', min(baseParams.frequency), max(baseParams.frequency)/1e3);
 fprintf('Branch policy: %s\n\n', string(options.atlasBranchPolicy));
@@ -58,7 +60,7 @@ fprintf('Branch policy: %s\n\n', string(options.atlasBranchPolicy));
 sweepResult = aeRunSweep(baseParams, "IOP", IOP_Pa, options, sweepConfig);
 summary = aeSummarizeSweep(sweepResult);
 
-outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_iop_sweep');
+outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_iop_sweep');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
@@ -70,7 +72,7 @@ if ~isempty(summary.branchTable)
 end
 
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat'), ...
-    'baseParams', 'options', 'IOP_mmHg', 'IOP_Pa', 'sweepResult', 'summary', '-v7.3');
+    'baseParams', 'options', 'IOP_mmHg', 'IOP_Pa', 'sweepResult', 'summary', 'launchFolder', '-v7.3');
 
 fprintf('\nCondition summary\n');
 disp(summary.conditionTable);
@@ -78,3 +80,4 @@ fprintf('\nData files written to:\n%s\n', outputFolder);
 
 assignin('base', 'AcoustoelasticIOPHGOIOPSweepResult', sweepResult);
 assignin('base', 'AcoustoelasticIOPHGOIOPSweepSummary', summary);
+assignin('base', 'AcoustoelasticIOPHGOIOPSweepOutputFolder', outputFolder);
