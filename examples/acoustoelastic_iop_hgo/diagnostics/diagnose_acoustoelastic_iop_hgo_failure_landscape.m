@@ -113,8 +113,11 @@ function landscape = analyzeCaseLandscape(params, result, diagnosis, yGrid, offs
 f = result.frequency(:);
 cp = result.Cp(:);
 valid = logical(result.validCp(:)) & isfinite(cp);
-alpha = result.alpha;
-rho = params.rho;
+directParams = getDirectAcoustoelasticParams(params, result);
+alpha = directParams.alpha;
+beta = directParams.beta;
+gamma = directParams.gamma;
+rho = directParams.rho;
 cShear = sqrt(alpha / rho);
 cGrid = yGrid(:) * cShear;
 
@@ -130,8 +133,8 @@ for ii = 1:numel(idx)
     k = idx(ii);
     objective = nan(numel(cGrid), 1);
     for j = 1:numel(cGrid)
-        objective(j) = objectiveAcoustoelasticResidual(result.alpha(k), result.beta(k), result.gamma(k), ...
-            params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f(k), cGrid(j), result.options);
+        objective(j) = objectiveAcoustoelasticResidual(alpha, beta, gamma, ...
+            directParams.thickness, directParams.rho, directParams.rhoF, directParams.fluidBulkModulus, f(k), cGrid(j), result.options);
     end
     minima = findLocalMinima(yGrid(:), cGrid, objective, cShear);
     previousIdx = find(valid & (1:numel(valid)).' < k, 1, 'last');
@@ -152,6 +155,24 @@ else
 end
 landscape.summary = summarizeCase(landscape.frequencyTable, landscape.minimaTable, diagnosis);
 landscape.diagnosisSummary = diagnosis.summary;
+landscape.directParams = directParams;
+end
+
+function directParams = getDirectAcoustoelasticParams(params, result)
+if isfield(result, 'directParams') && isstruct(result.directParams)
+    directParams = result.directParams;
+else
+    [alpha, beta, gamma] = computeAcoustoelasticABGFromIOPHGO( ...
+        params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
+    directParams = struct();
+    directParams.alpha = alpha;
+    directParams.beta = beta;
+    directParams.gamma = gamma;
+    directParams.thickness = params.thickness;
+    directParams.rho = params.rho;
+    directParams.rhoF = params.rhoF;
+    directParams.fluidBulkModulus = params.fluidBulkModulus;
+end
 end
 
 function minima = findLocalMinima(yGrid, cGrid, objective, cShear)
