@@ -19,6 +19,7 @@ classificationRows = [];
 breakRows = [];
 sensitivitySummaryRows = [];
 relaxedComparisonRows = [];
+relaxedQualityRows = [];
 caseAnalysisByName = struct();
 
 fprintf('\nAcoustoelastic IOP/HGO truncation-case diagnostic\n');
@@ -67,6 +68,7 @@ for i = 1:numel(cases)
         'MaxRelativeBridgeMismatch', spec.maxRelativeBridgeMismatch, ...
         'MaxGapPoints', spec.maxGapPoints, ...
         'MaxGapFrequencyRatio', spec.maxGapFrequencyRatio);
+    thresholdRelaxedQuality = aeAssessThresholdRelaxedBranchQuality(result, thresholdRelaxedComparison);
 
     key = matlab.lang.makeValidName(spec.caseName);
     caseAnalysisByName.(key).truncation = caseAnalysis;
@@ -75,6 +77,7 @@ for i = 1:numel(cases)
     caseAnalysisByName.(key).firstUnrecoveredBreak = firstBreak;
     caseAnalysisByName.(key).thresholdSensitivity = thresholdSensitivity;
     caseAnalysisByName.(key).thresholdRelaxedComparison = thresholdRelaxedComparison;
+    caseAnalysisByName.(key).thresholdRelaxedQuality = thresholdRelaxedQuality;
 
     row = caseAnalysis.summary;
     row.CaseName = spec.caseName;
@@ -109,6 +112,14 @@ for i = 1:numel(cases)
     row.RelaxedComparisonClass = thresholdRelaxedComparison.summary.RelaxedBranchClass;
     row.RelaxedAddedPoints = thresholdRelaxedComparison.summary.AddedByRelaxedPoints;
     row.RelaxedLastValidFrequency_kHz = thresholdRelaxedComparison.summary.LastRelaxedValidFrequency_kHz;
+    row.RelaxedQualityClass = thresholdRelaxedQuality.summary.RelaxedQualityClass;
+    row.RelaxedStrongMinimumPoints = thresholdRelaxedQuality.summary.StrongMinimumPoints;
+    row.RelaxedAcceptableMinimumPoints = thresholdRelaxedQuality.summary.AcceptableMinimumPoints;
+    row.RelaxedWeakOrCrowdedMinimumPoints = thresholdRelaxedQuality.summary.WeakOrCrowdedMinimumPoints;
+    row.RelaxedLowRankMinimumPoints = thresholdRelaxedQuality.summary.LowRankMinimumPoints;
+    row.RelaxedMedianAddedMinRank = thresholdRelaxedQuality.summary.MedianAddedMinRank;
+    row.RelaxedMedianAddedDepthRelativeToMedian = thresholdRelaxedQuality.summary.MedianAddedDepthRelativeToMedian;
+    row.RelaxedMedianAddedSpacingToNearestLogY = thresholdRelaxedQuality.summary.MedianAddedSpacingToNearestLogY;
     allSummaryRows = [allSummaryRows; row]; %#ok<AGROW>
 
     classRow = classification;
@@ -135,6 +146,12 @@ for i = 1:numel(cases)
     relaxedRow.TargetDisplayValue = spec.targetDisplayValue;
     relaxedComparisonRows = [relaxedComparisonRows; relaxedRow]; %#ok<AGROW>
 
+    qualityRow = thresholdRelaxedQuality.summary;
+    qualityRow.CaseName = spec.caseName;
+    qualityRow.SweepField = spec.sweepField;
+    qualityRow.TargetDisplayValue = spec.targetDisplayValue;
+    relaxedQualityRows = [relaxedQualityRows; qualityRow]; %#ok<AGROW>
+
     sensitivityTable = thresholdSensitivity.sensitivityTable;
     if ~isempty(sensitivityTable)
         sensitivityTable.CaseName = repmat(spec.caseName, height(sensitivityTable), 1);
@@ -149,6 +166,13 @@ for i = 1:numel(cases)
         relaxedComparisonTable.TargetDisplayValue = repmat(spec.targetDisplayValue, height(relaxedComparisonTable), 1);
     end
 
+    relaxedQualityTable = thresholdRelaxedQuality.addedQualityTable;
+    if ~isempty(relaxedQualityTable)
+        relaxedQualityTable.CaseName = repmat(spec.caseName, height(relaxedQualityTable), 1);
+        relaxedQualityTable.SweepField = repmat(spec.sweepField, height(relaxedQualityTable), 1);
+        relaxedQualityTable.TargetDisplayValue = repmat(spec.targetDisplayValue, height(relaxedQualityTable), 1);
+    end
+
     writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
     writetable(struct2table(classification), fullfile(outputFolder, spec.filePrefix + "_recovery_classification.csv"));
     writetable(struct2table(firstBreak.summary), fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_summary.csv"));
@@ -156,6 +180,8 @@ for i = 1:numel(cases)
     writetable(sensitivityTable, fullfile(outputFolder, spec.filePrefix + "_threshold_sensitivity.csv"));
     writetable(struct2table(thresholdRelaxedComparison.summary), fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_comparison_summary.csv"));
     writetable(relaxedComparisonTable, fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_comparison.csv"));
+    writetable(struct2table(thresholdRelaxedQuality.summary), fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_quality_summary.csv"));
+    writetable(relaxedQualityTable, fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_quality.csv"));
     writetable(caseAnalysis.neighborhoodTable, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.csv"));
     writetable(recovery.recoveryTable, fullfile(outputFolder, spec.filePrefix + "_recovery_table.csv"));
     writetable(firstBreak.localWindowTable, fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_window.csv"));
@@ -197,6 +223,11 @@ if isempty(relaxedComparisonRows)
 else
     thresholdRelaxedComparisonSummaryTable = struct2table(relaxedComparisonRows);
 end
+if isempty(relaxedQualityRows)
+    thresholdRelaxedQualitySummaryTable = table();
+else
+    thresholdRelaxedQualitySummaryTable = struct2table(relaxedQualityRows);
+end
 interpretationTable = aeSummarizeTruncationRecoveryClassification(classificationTable);
 
 writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_summary.csv'));
@@ -205,10 +236,11 @@ writetable(interpretationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_t
 writetable(firstUnrecoveredBreakTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_first_unrecovered_break_summary.csv'));
 writetable(thresholdSensitivitySummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_sensitivity_summary.csv'));
 writetable(thresholdRelaxedComparisonSummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_relaxed_comparison_summary.csv'));
+writetable(thresholdRelaxedQualitySummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_relaxed_quality_summary.csv'));
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_workspace.mat'), ...
     'caseAnalysisByName', 'summaryTable', 'classificationTable', 'interpretationTable', ...
     'firstUnrecoveredBreakTable', 'thresholdSensitivitySummaryTable', ...
-    'thresholdRelaxedComparisonSummaryTable', 'cases', '-v7.3');
+    'thresholdRelaxedComparisonSummaryTable', 'thresholdRelaxedQualitySummaryTable', 'cases', '-v7.3');
 
 disp(summaryTable);
 if ~isempty(classificationTable)
@@ -223,6 +255,9 @@ end
 if ~isempty(thresholdRelaxedComparisonSummaryTable)
     disp(thresholdRelaxedComparisonSummaryTable(:, {'CaseName','RelaxedThreshold','RelaxedBranchClass','AddedByRelaxedPoints','LastRelaxedValidFrequency_kHz'}));
 end
+if ~isempty(thresholdRelaxedQualitySummaryTable)
+    disp(thresholdRelaxedQualitySummaryTable(:, {'CaseName','RelaxedQualityClass','StrongMinimumPoints','AcceptableMinimumPoints','WeakOrCrowdedMinimumPoints','LowRankMinimumPoints'}));
+end
 if ~isempty(interpretationTable)
     disp(interpretationTable(:, {'CaseName','RecoveryClass','ReportingInterpretation','RecommendedNextStep'}));
 end
@@ -235,6 +270,7 @@ assignin('base', 'AcoustoelasticIOPHGOTruncationRecoveryInterpretation', interpr
 assignin('base', 'AcoustoelasticIOPHGOFirstUnrecoveredBreakSummary', firstUnrecoveredBreakTable);
 assignin('base', 'AcoustoelasticIOPHGOThresholdSensitivitySummary', thresholdSensitivitySummaryTable);
 assignin('base', 'AcoustoelasticIOPHGOThresholdRelaxedComparisonSummary', thresholdRelaxedComparisonSummaryTable);
+assignin('base', 'AcoustoelasticIOPHGOThresholdRelaxedQualitySummary', thresholdRelaxedQualitySummaryTable);
 
 function cases = makeCaseSpecs()
 baseResults = fullfile(pwd, 'Results');
