@@ -45,7 +45,7 @@ The dominant causal diagnosis is centered on `FirstTerminalMissing*`, because th
 
 This distinction matters for `mu_25kPa`, where an internal gap appears before the last official valid point. The corrected diagnostic reports that internal gap separately and then analyzes the terminal break after the last official valid frequency.
 
-### Runnable diagnostic script
+### Runnable causal diagnostic script
 
 Run:
 
@@ -73,7 +73,7 @@ The helper classifies local truncation behavior with labels such as:
 
 The dominant case label is selected from the missing-frequency rows in the local diagnostic window around the terminal break.
 
-### Output files
+### Output files for causal diagnostic
 
 The script writes:
 
@@ -84,15 +84,42 @@ The script writes:
 - a workspace MAT file;
 - local landscape plots under the `plots` subfolder.
 
-### Atlas-resolution sensitivity plan
+### Atlas-resolution sensitivity batch
 
-The first implementation records the rerun plan rather than executing all sensitivity cases automatically. The plan covers:
+A second diagnostic script reruns the three target cases with controlled atlas settings:
+
+`diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity`
+
+It writes outputs under:
+
+`E:\Results\acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity`
+
+The batch evaluates:
 
 `options.atlasNumYPoints = [1000 1500 2000 3000];`
 
 `options.atlasTopNMinima = [18 24 32];`
 
-This avoids expensive automatic sweeps during the first causal diagnostic pass. A later issue can turn the plan into a full batch rerun once the causal table is validated.
+for each of:
+
+- `iop_20mmHg`
+- `iop_25mmHg`
+- `mu_25kPa`
+
+The output table reports, per case and atlas setting:
+
+- valid points and valid fraction;
+- last official valid frequency;
+- first terminal missing frequency;
+- first internal gap frequency;
+- diagnostic accepted points;
+- diagnostic extension;
+- median accepted diagnostic rank;
+- dominant cause label;
+- y-boundary status;
+- start-filter and fallback flags.
+
+This batch is still diagnostic only. It does not change the official solver output.
 
 ### Validation snapshot after terminal-break correction
 
