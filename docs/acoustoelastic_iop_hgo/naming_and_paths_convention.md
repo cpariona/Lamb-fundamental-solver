@@ -33,18 +33,41 @@ when naming new result folders or short entrypoints.
 Inside:
 
 ```text
-examples/acoustoelastic_iop_hgo/diagnostics
+examples/acoustoelastic_iop_hgo/
 ```
 
-prefer short script names:
+prefer short task-oriented script names.
 
-```text
-validate_idA0_score_grid.m
-validate_idA0_grid.m
-diagnose_idA0_plausibility.m
+Basic examples:
+
+```matlab
+run_atlas_branch
 ```
 
-instead of repeating the full model name in the script filename.
+Sweeps:
+
+```matlab
+sweep_iop
+sweep_mu
+```
+
+Diagnostics and validations:
+
+```matlab
+validate_idA0_score_grid
+validate_idA0_grid
+diagnose_branch_policy
+diagnose_sweep_reliability
+diagnose_truncation_cases
+diagnose_branch_persistence
+diagnose_atlas_truncation
+diagnose_atlas_resolution
+diagnose_landscape_failure
+diagnose_idA0_score
+diagnose_idA0_plausibility
+```
+
+instead of repeating the full model name in every script filename.
 
 Long descriptive files can remain as implementation files for backward compatibility, but user-facing execution should use the short entrypoints.
 
@@ -93,23 +116,42 @@ aeResolveResultFile(launchFolder, shortTaskName, shortFileName, legacyFolderName
 
 when reading files during migration. It checks the short path first, then falls back to the legacy path.
 
+Use:
+
+```matlab
+aeRunLegacyScript(scriptPath)
+```
+
+for short wrappers that need to execute legacy descriptive scripts. This helper copies the legacy script to a short temporary filename, restores the caller launch folder, and runs the copy. It avoids MATLAB `namelengthmax` failures without duplicating implementation code.
+
 ### Migration rule
 
-Do not mass-rename existing scripts or result folders unless necessary. Instead:
+Do not mass-delete existing scripts or result folders unless necessary. Instead:
 
 1. Add a short entrypoint.
 2. Keep the legacy descriptive script for backward compatibility.
 3. Write new outputs to `Results/ae_iop_hgo/<task>`.
 4. Resolve inputs from short paths first, then legacy paths.
-5. Update documentation to show only the short entrypoint.
+5. Update documentation to show the short entrypoint.
 
 ### Recommended user commands
 
 Prefer:
 
 ```matlab
+run_atlas_branch
+sweep_iop
+sweep_mu
 validate_idA0_score_grid
 validate_idA0_grid
+diagnose_branch_policy
+diagnose_sweep_reliability
+diagnose_truncation_cases
+diagnose_branch_persistence
+diagnose_atlas_truncation
+diagnose_atlas_resolution
+diagnose_landscape_failure
+diagnose_idA0_score
 diagnose_idA0_plausibility
 ```
 
