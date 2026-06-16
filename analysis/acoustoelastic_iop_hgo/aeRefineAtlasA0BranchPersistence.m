@@ -47,14 +47,14 @@ if numContiguous == 0 || ~isfinite(extension) || extension <= 0
     cls = "not_recommended";
     conf = "high";
     useText = "Keep maintained atlasA0 output unchanged.";
-elseif weakCount > 0 || (isfinite(medianRank) && medianRank > 3)
-    cls = "caution_low_rank_branch";
-    conf = "medium";
-    useText = "Use as diagnostic evidence only.";
 elseif numContiguous < 3 || extension < 5 || numAfterBreak > 0
     cls = "weak_partial_extension";
     conf = "medium";
     useText = "Partial diagnostic continuation.";
+elseif weakCount > 0 || (isfinite(medianRank) && medianRank > 3)
+    cls = "caution_low_rank_branch";
+    conf = "medium";
+    useText = "Use as diagnostic evidence only.";
 elseif strongCount >= numContiguous
     cls = "accepted_contiguous_extension";
     conf = "medium";
