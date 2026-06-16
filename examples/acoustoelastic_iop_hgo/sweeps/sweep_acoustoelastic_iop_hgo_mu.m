@@ -3,10 +3,11 @@ launchFolder = pwd;
 startup
 
 %SWEEP_ACOUSTOELASTIC_IOP_HGO_MU Maintained shear-modulus sweep for the acoustoelastic IOP/HGO model.
+% Prefer the short entrypoint:
+%   sweep_mu
 %
-% This script defines a physical material-stiffness campaign. The current
-% branch-selection policy is configured through options, not through the script
-% name, so the file can remain valid if the solver/tracker is later refactored.
+% New outputs are written to:
+%   Results/ae_iop_hgo/mu_sweep
 
 baseParams = struct();
 
@@ -63,18 +64,15 @@ fprintf('Branch policy: %s\n\n', string(options.atlasBranchPolicy));
 sweepResult = aeRunSweep(baseParams, "mu", mu_Pa, options, sweepConfig);
 summary = aeSummarizeSweep(sweepResult);
 
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_mu_sweep');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'mu_sweep');
 
-writetable(summary.conditionTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_mu_sweep_condition_summary.csv'));
-writetable(summary.dispersionTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_mu_sweep_dispersion_table.csv'));
+writetable(summary.conditionTable, fullfile(outputFolder, 'mu_sweep_condition_summary.csv'));
+writetable(summary.dispersionTable, fullfile(outputFolder, 'mu_sweep_dispersion_table.csv'));
 if ~isempty(summary.branchTable)
-    writetable(summary.branchTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_mu_sweep_selected_branch_table.csv'));
+    writetable(summary.branchTable, fullfile(outputFolder, 'mu_sweep_selected_branch_table.csv'));
 end
 
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat'), ...
+save(fullfile(outputFolder, 'mu_sweep_workspace.mat'), ...
     'baseParams', 'options', 'mu_kPa', 'mu_Pa', 'sweepResult', 'summary', 'launchFolder', '-v7.3');
 
 fprintf('\nCondition summary\n');
