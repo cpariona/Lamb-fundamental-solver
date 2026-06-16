@@ -108,11 +108,53 @@ The aggregate table reports:
 - median number of added points;
 - median score and rank of added points.
 
+### Validation result
+
+The first 110-case validation confirms that `identityA0Diagnostic` preserves the official fields while adding separate diagnostic candidates.
+
+| Group | Cases | Officially truncated | Candidate extends official | Truncated extended | Truncated not extended | Candidate reaches final frequency | Median official valid fraction | Median candidate valid fraction | Median gain | Median added points | Median added score | Median added rank |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `material_iop_core` | 108 | 67 | 67 | 67 | 0 | 56 | 0.9458 | 0.9958 | 0.0417 | 5 | 1.7685 | 30.0 |
+| `thickness_probe` | 2 | 2 | 2 | 2 | 0 | 0 | 0.8708 | 0.9292 | 0.0583 | 7 | 1.7847 | 41.0 |
+| `all` | 110 | 69 | 69 | 69 | 0 | 56 | 0.9417 | 0.9917 | 0.0417 | 5 | 1.7685 | 30.0 |
+
+Interpretation:
+
+- The official atlas fields were preserved for all 110 cases.
+- All 69 officially truncated cases were extended by `identityA0Diagnostic`.
+- No truncated case failed to receive a diagnostic extension.
+- The median valid fraction increased from 0.9417 to 0.9917 across all cases.
+- 56 cases reached the final frequency after applying the diagnostic candidate branch.
+- The diagnostic candidate still does not fully fix all difficult cases, especially the low-`mu` and high-IOP regimes.
+
+### Parameter trends
+
+By IOP:
+
+| IOP [mmHg] | Cases | Truncated | Extended | Reaches final | Median official valid fraction | Median candidate valid fraction | Median gain | Median added points | Median added score | Median added rank |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 5 | 27 | 12 | 12 | 20 | 1.0000 | 1.0000 | 0.0000 | 0 | 1.5122 | 12.75 |
+| 15 | 27 | 15 | 15 | 16 | 0.9583 | 1.0000 | 0.0417 | 5 | 1.7568 | 29.00 |
+| 25 | 29 | 20 | 20 | 11 | 0.8917 | 0.9500 | 0.0583 | 7 | 1.8449 | 39.00 |
+| 35 | 27 | 22 | 22 | 9 | 0.8167 | 0.8833 | 0.0583 | 7 | 1.8162 | 38.50 |
+
+By shear modulus:
+
+| mu [kPa] | Cases | Truncated | Extended | Reaches final | Median official valid fraction | Median candidate valid fraction | Median gain | Median added points | Median added score | Median added rank |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 25 | 36 | 36 | 36 | 2 | 0.7250 | 0.7958 | 0.0667 | 8 | 1.8527 | 31.00 |
+| 50 | 38 | 29 | 29 | 18 | 0.9167 | 0.9833 | 0.0583 | 7 | 1.7084 | 29.00 |
+| 100 | 36 | 4 | 4 | 36 | 1.0000 | 1.0000 | 0.0000 | 0 | 1.6648 | 23.25 |
+
+Hardest observed cases remain low shear modulus and high IOP. In the most difficult cases, the diagnostic candidate adds points but may still leave a low candidate valid fraction; therefore, these cases should remain flagged for manual/physical inspection.
+
 ### Interpretation
 
 This validation answers:
 
 > Does `identityA0Diagnostic` preserve official atlas output while adding a useful separate candidate branch?
+
+For this first grid, the answer is yes. It preserved the official output and extended every officially truncated case.
 
 Possible outcomes:
 
@@ -130,3 +172,5 @@ result.validCp
 ```
 
 unless a later validation explicitly promotes the identity-scored branch.
+
+The next step should be a visual/physical plausibility diagnostic comparing official and identity candidate curves, especially in low-`mu` / high-IOP cases where the candidate still does not reach the final frequency.
