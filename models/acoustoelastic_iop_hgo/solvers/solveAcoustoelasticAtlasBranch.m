@@ -1,31 +1,10 @@
 function result = solveAcoustoelasticAtlasBranch(params, options)
 %SOLVEACOUSTOELASTICATLASBRANCH Track a persistent atlas branch.
 %
-% This solver does not choose the deepest minimum independently at each
-% frequency. It builds a frequency-Cp atlas, detects local minima, links them
-% into continuous branches, and returns the selected persistent branch.
-%
-% Conservative behavior:
-%   By default, Cp is returned only at frequencies where the selected branch
-%   exists as an explicitly linked local minimum. The solver does not silently
-%   interpolate across missing branch segments. This prevents artificial curves
-%   through regions where the branch has mixed with, or jumped to, another
-%   family of minima.
-%
-% Default branch policy:
-%   atlasA0. The solver selects only A0-like branches that start at low
-%   dimensionless phase speed and low rank, cuts branches with large Cp jumps,
-%   and reports missing high-frequency portions as NaN rather than reconnecting
-%   them automatically. The legacy name strictA0 remains accepted through
-%   aeNormalizeBranchPolicy.
-%
-% Required params fields:
-%   alpha, beta, gamma, thickness, rho, rhoF, fluidBulkModulus, frequency
-%
-% Recommended current use for the Li 2024 diagnostic model:
-%   options.M54_variant = "corrected";
-%   options.normalizeRows = false;
-%   options.usePhysicalCpWindow = false;
+% Conservative official output:
+%   result.Cp and result.validCp are always assigned from the maintained atlas
+%   branch logic. The optional identityA0Diagnostic policy only adds separate
+%   candidate fields under result.identityA0.
 
 if nargin < 2 || isempty(options)
     options = defaultAcoustoelasticIOPHGOOptions();
@@ -135,6 +114,12 @@ result.cShear = cShear;
 result.options = options;
 result.reliability = summarizeReliability(result);
 result.diagnostics = summarizeResult(result);
+
+if strcmpi(string(options.atlasBranchPolicy), "identityA0Diagnostic")
+    result.identityA0 = aeBuildIdentityA0DiagnosticBranch(result);
+    result.diagnostics.identityA0CandidateValidPoints = result.identityA0.summary.CandidateValidPoints;
+    result.diagnostics.identityA0AddedCandidatePoints = result.identityA0.summary.AddedCandidatePoints;
+end
 end
 
 function options = setAtlasDefaults(options)
@@ -482,7 +467,7 @@ else
     reliability.CpStart_mps = nan;
     reliability.MaxBranchRelativeCpDrop = nan;
 end
-reliability.ValidityNote = "Cp is considered reliable only where validCp is true; high-frequency NaNs mean the selected strict-A0 branch is not explicitly traceable under the current atlas criteria.";
+reliability.ValidityNote = "Cp is considered reliable only where validCp is true; high-frequency NaNs mean the selected atlasA0 branch is not explicitly traceable under the current atlas criteria.";
 end
 
 function x = normMetric(x)
