@@ -3,7 +3,8 @@ function diagnosis = aeDiagnoseAtlasA0TruncationCause(result, varargin)
 %
 %   This diagnostic is read-only. It does not modify result.Cp or
 %   result.validCp. It inspects the local-minimum landscape around the first
-%   missing atlasA0 point and assigns conservative cause labels.
+%   terminal missing atlasA0 point, i.e. the first missing point after the last
+%   official valid point. Internal gaps are reported separately.
 
 opts = parseOptions(varargin{:});
 f = result.frequency(:);
@@ -24,11 +25,11 @@ persistence = aeAnalyzeBranchPersistenceCandidates(result, ...
     'MaxCandidateRank', opts.MaxCandidateRank, ...
     'StrongCandidateRank', opts.StrongCandidateRank);
 
-[firstBreak, previousIdx] = findFirstBreak(valid);
+[firstBreak, previousIdx, firstInternalGap] = findTerminalBreak(valid);
 windowIdx = buildWindow(firstBreak, numel(f), opts.WindowPoints);
 
 localTable = buildLocalTable(result, f, cp, valid, recovery, persistence, windowIdx, previousIdx, opts);
-summary = buildSummary(result, f, cp, valid, firstBreak, previousIdx, localTable, persistence, opts);
+summary = buildSummary(result, f, cp, valid, firstBreak, previousIdx, firstInternalGap, localTable, persistence, opts);
 
 resolutionTable = buildAtlasResolutionPlan(opts);
 
@@ -95,20 +96,26 @@ for i = 1:2:numel(varargin)
 end
 end
 
-function [firstBreak, previousIdx] = findFirstBreak(valid)
+function [firstBreak, previousIdx, firstInternalGap] = findTerminalBreak(valid)
+idx = (1:numel(valid)).';
 firstValid = find(valid, 1, 'first');
-if isempty(firstValid)
-    firstBreak = nan;
-    previousIdx = nan;
+lastValid = find(valid, 1, 'last');
+firstBreak = nan;
+previousIdx = nan;
+firstInternalGap = nan;
+
+if isempty(firstValid) || isempty(lastValid)
     return;
 end
-firstBreak = find(~valid & (1:numel(valid)).' >= firstValid, 1, 'first');
-if isempty(firstBreak)
-    firstBreak = nan;
-    previousIdx = find(valid, 1, 'last');
-else
-    previousIdx = find(valid & (1:numel(valid)).' < firstBreak, 1, 'last');
-    if isempty(previousIdx), previousIdx = nan; end
+
+firstInternalGap = find(~valid & idx >= firstValid & idx <= lastValid, 1, 'first');
+if isempty(firstInternalGap)
+    firstInternalGap = nan;
+end
+
+previousIdx = lastValid;
+if lastValid < numel(valid)
+    firstBreak = lastValid + 1;
 end
 end
 
@@ -267,14 +274,17 @@ else
 end
 end
 
-function summary = buildSummary(result, f, cp, valid, firstBreak, previousIdx, localTable, persistence, opts)
+function summary = buildSummary(result, f, cp, valid, firstBreak, previousIdx, firstInternalGap, localTable, persistence, opts)
 summary = struct();
 summary.CaseLabel = opts.Label;
 summary.TotalPoints = numel(f);
 summary.OfficialValidPoints = nnz(valid);
 summary.OfficialValidFraction = nnz(valid) / max(numel(valid), 1);
-summary.FirstMissingIndex = firstBreak;
-summary.FirstMissingFrequency_kHz = valueFrequency(f, firstBreak);
+summary.FirstTerminalMissingIndex = firstBreak;
+summary.FirstTerminalMissingFrequency_kHz = valueFrequency(f, firstBreak);
+summary.FirstInternalGapIndex = firstInternalGap;
+summary.FirstInternalGapFrequency_kHz = valueFrequency(f, firstInternalGap);
+summary.HasInternalGap = isfinite(firstInternalGap);
 summary.PreviousValidIndex = previousIdx;
 summary.PreviousValidFrequency_kHz = valueFrequency(f, previousIdx);
 summary.PreviousValidCp_mps = valueAt(cp, previousIdx);
@@ -319,9 +329,9 @@ end
 function txt = interpretCause(label)
 switch string(label)
     case "no_truncation"
-        txt = "No official truncation was detected in the inspected branch.";
+        txt = "No terminal official truncation was detected in the inspected branch.";
     case "no_minimum_available"
-        txt = "No local minimum was available at the break; inspect atlas coverage or objective sampling.";
+        txt = "No local minimum was available at the terminal break; inspect atlas coverage or objective sampling.";
     case "nearest_minimum_too_far"
         txt = "Local minima exist, but the nearest one is too far from the previous official Cp.";
     case "candidate_low_rank"
