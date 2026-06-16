@@ -3,10 +3,11 @@ launchFolder = pwd;
 startup
 
 %SWEEP_ACOUSTOELASTIC_IOP_HGO_IOP Maintained IOP sweep for the acoustoelastic IOP/HGO model.
+% Prefer the short entrypoint:
+%   sweep_iop
 %
-% This script defines a physical IOP campaign. The branch-selection policy is
-% read from the solver options and is not encoded in the script name. This keeps
-% the file stable if the internal solver/tracker is later made more robust.
+% New outputs are written to:
+%   Results/ae_iop_hgo/iop_sweep
 
 baseParams = struct();
 
@@ -60,18 +61,15 @@ fprintf('Branch policy: %s\n\n', string(options.atlasBranchPolicy));
 sweepResult = aeRunSweep(baseParams, "IOP", IOP_Pa, options, sweepConfig);
 summary = aeSummarizeSweep(sweepResult);
 
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_iop_sweep');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'iop_sweep');
 
-writetable(summary.conditionTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_iop_sweep_condition_summary.csv'));
-writetable(summary.dispersionTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_iop_sweep_dispersion_table.csv'));
+writetable(summary.conditionTable, fullfile(outputFolder, 'iop_sweep_condition_summary.csv'));
+writetable(summary.dispersionTable, fullfile(outputFolder, 'iop_sweep_dispersion_table.csv'));
 if ~isempty(summary.branchTable)
-    writetable(summary.branchTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_iop_sweep_selected_branch_table.csv'));
+    writetable(summary.branchTable, fullfile(outputFolder, 'iop_sweep_selected_branch_table.csv'));
 end
 
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat'), ...
+save(fullfile(outputFolder, 'iop_sweep_workspace.mat'), ...
     'baseParams', 'options', 'IOP_mmHg', 'IOP_Pa', 'sweepResult', 'summary', 'launchFolder', '-v7.3');
 
 fprintf('\nCondition summary\n');
