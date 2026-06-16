@@ -3,16 +3,14 @@ launchFolder = pwd;
 startup
 
 %VALIDATE_ACOUSTOELASTIC_IOP_HGO_IDENTITYA0_DIAGNOSTIC_GRID
-% Validate the optional identityA0Diagnostic policy over the same moderate grid
-% used for branch-identity score validation.
+% Legacy descriptive implementation for identityA0Diagnostic grid validation.
+% Prefer the short entrypoint:
+%   validate_idA0_grid
 %
-% This script confirms that official atlas fields are preserved and summarizes
-% the separate diagnostic candidate branch.
+% New outputs are written to:
+%   Results/ae_iop_hgo/idA0_grid
 
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_identityA0_diagnostic_grid');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'idA0_grid');
 
 baseParams = makeBaseParams();
 baseOptions = makeBaseOptions();
@@ -75,10 +73,10 @@ else
 end
 aggregateTable = buildAggregateTable(summaryTable);
 
-writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_identityA0_diagnostic_grid_summary.csv'));
-writetable(addedCandidateTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_identityA0_diagnostic_grid_added_candidates.csv'));
-writetable(aggregateTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_identityA0_diagnostic_grid_aggregate.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_identityA0_diagnostic_grid_workspace.mat'), ...
+writetable(summaryTable, fullfile(outputFolder, 'idA0_grid_summary.csv'));
+writetable(addedCandidateTable, fullfile(outputFolder, 'idA0_grid_added_candidates.csv'));
+writetable(aggregateTable, fullfile(outputFolder, 'idA0_grid_aggregate.csv'));
+save(fullfile(outputFolder, 'idA0_grid_workspace.mat'), ...
     'summaryTable', 'addedCandidateTable', 'aggregateTable', 'identityByCase', 'grid', 'baseParams', 'baseOptions', 'launchFolder', '-v7.3');
 
 fprintf('\nAggregate summary\n');
