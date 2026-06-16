@@ -20,20 +20,32 @@ If either official field changes, the script throws an error.
 
 ### Runnable script
 
-`validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid`
-
-Run from the desired output root:
+Use the short entrypoint:
 
 ```matlab
 cd('E:\')
 startup
-validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
+validate_idA0_grid
 AcoustoelasticIOPHGOIdentityA0DiagnosticGridAggregate
+```
+
+The legacy descriptive implementation remains available but should not be called directly for new work:
+
+```matlab
+validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 ```
 
 Outputs are written under:
 
-`Results/acoustoelastic_iop_hgo_identityA0_diagnostic_grid`
+```text
+Results/ae_iop_hgo/idA0_grid
+```
+
+Legacy output folders from earlier runs may still exist under:
+
+```text
+Results/acoustoelastic_iop_hgo_identityA0_diagnostic_grid
+```
 
 ### Grid definition
 
@@ -63,12 +75,12 @@ Total cases: 110.
 
 ### Output tables
 
-The script writes:
+The short-path script writes:
 
-- `acoustoelastic_iop_hgo_identityA0_diagnostic_grid_summary.csv`
-- `acoustoelastic_iop_hgo_identityA0_diagnostic_grid_added_candidates.csv`
-- `acoustoelastic_iop_hgo_identityA0_diagnostic_grid_aggregate.csv`
-- `acoustoelastic_iop_hgo_identityA0_diagnostic_grid_workspace.mat`
+- `idA0_grid_summary.csv`
+- `idA0_grid_added_candidates.csv`
+- `idA0_grid_aggregate.csv`
+- `idA0_grid_workspace.mat`
 
 Workspace variables:
 
