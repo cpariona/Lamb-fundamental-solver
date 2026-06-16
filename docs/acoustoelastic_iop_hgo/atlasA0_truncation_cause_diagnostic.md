@@ -121,6 +121,23 @@ The output table reports, per case and atlas setting:
 
 This batch is still diagnostic only. It does not change the official solver output.
 
+### Focused failure-landscape diagnostic
+
+The focused landscape diagnostic is:
+
+`diagnose_acoustoelastic_iop_hgo_failure_landscape`
+
+It inspects the objective landscape around the terminal failure of:
+
+- `iop_25mmHg`
+- `mu_25kPa`
+
+The script scans `y = Cp / sqrt(alpha/rho)` and computes local minima of `objectiveAcoustoelasticResidual`. The diagnostic reports the deepest minimum, the minimum nearest to the previous valid Cp, nearest-minimum rank, relative distance to the previous Cp, objective ratio, and local crowding.
+
+Outputs are written under:
+
+`E:\Results\acoustoelastic_iop_hgo_failure_landscape`
+
 ### Validation snapshot after terminal-break correction
 
 The corrected helper distinguishes terminal truncation from internal gaps. Current numeric checks from the uploaded workspace are:
@@ -150,6 +167,22 @@ Dominant cause labels across the batch:
 | `mu_25kPa` | mostly `nearest_minimum_too_far`; one `candidate_low_rank`, one `crowded_minima_landscape`, one `unclassified_tracker_rejection` | This case is not solved by atlas resolution or top-N minima alone; it likely needs deeper inspection of the objective landscape or model regime. |
 
 Current conclusion: `iop_20mmHg` is sensitive to how many local minima are retained, `iop_25mmHg` is partially resolution-sensitive, and `mu_25kPa` is not meaningfully fixed by the tested atlas settings.
+
+### Focused failure-landscape validation
+
+The focused landscape workspace shows that the continuation neighborhood is not empty. Instead, the objective landscape contains many competing minima near the previous valid Cp.
+
+| Case | Last official valid [kHz] | First terminal missing [kHz] | Inspected frequencies | Missing inspected frequencies | Median nearest relative distance | Median nearest rank | Max crowding within 5% Cp | Top minima rows |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `iop_25mmHg` | 15.9224 | 16.7258 | 7 | 5 | 0.000783 | 35.0 | 26 | 84 |
+| `mu_25kPa` | 9.2649 | 9.7324 | 7 | 6 | 0.001033 | 25.5 | 24 | 84 |
+
+Interpretation:
+
+- The nearest continuation minimum is extremely close in phase velocity to the previous valid Cp for both cases.
+- However, that nearest minimum is low-rank in the landscape: median rank is about 35 for `iop_25mmHg` and 25.5 for `mu_25kPa`.
+- The local region is strongly crowded: 24-26 minima lie within 5% of the previous valid Cp.
+- Therefore, the main failure is not lack of a nearby local minimum. It is branch identity ambiguity in a highly crowded objective landscape.
 
 ### Expected interpretation from issue #48
 
