@@ -34,6 +34,17 @@ It returns:
 - `diagnosis.recovery`
 - `diagnosis.atlasResolutionPlan`
 
+### Terminal truncation versus internal gaps
+
+The diagnostic separates two different failure patterns:
+
+- `FirstInternalGap*`: first missing point between the first and last official valid points;
+- `FirstTerminalMissing*`: first missing point after the last official valid point.
+
+The dominant causal diagnosis is centered on `FirstTerminalMissing*`, because the target of this issue is high-frequency truncation rather than isolated internal gaps.
+
+This distinction matters for `mu_25kPa`, where an internal gap appears before the last official valid point. The corrected diagnostic reports that internal gap separately and then analyzes the terminal break after the last official valid frequency.
+
 ### Runnable diagnostic script
 
 Run:
@@ -60,7 +71,7 @@ The helper classifies local truncation behavior with labels such as:
 - `branch_id_discontinuity`
 - `unclassified_tracker_rejection`
 
-The dominant case label is selected from the missing-frequency rows in the local diagnostic window.
+The dominant case label is selected from the missing-frequency rows in the local diagnostic window around the terminal break.
 
 ### Output files
 
@@ -82,6 +93,16 @@ The first implementation records the rerun plan rather than executing all sensit
 `options.atlasTopNMinima = [18 24 32];`
 
 This avoids expensive automatic sweeps during the first causal diagnostic pass. A later issue can turn the plan into a full batch rerun once the causal table is validated.
+
+### Validation snapshot after terminal-break correction
+
+The corrected helper distinguishes terminal truncation from internal gaps. Current numeric checks from the uploaded workspace are:
+
+| Case | Last official valid [kHz] | First terminal missing [kHz] | First internal gap [kHz] | Has internal gap | Diagnostic accepted points | Diagnostic extension [kHz] |
+|---|---:|---:|---:|---:|---:|---:|
+| `iop_20mmHg` | 18.4563 | 19.3876 | NaN | false | 7 | 16.5437 |
+| `iop_25mmHg` | 15.9224 | 16.7258 | NaN | false | 1 | 0.8034 |
+| `mu_25kPa` | 9.2649 | 9.7324 | 8.8199 | true | 0 | 0 |
 
 ### Expected interpretation from issue #48
 
