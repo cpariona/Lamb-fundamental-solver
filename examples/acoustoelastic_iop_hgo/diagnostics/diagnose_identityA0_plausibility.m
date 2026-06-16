@@ -2,16 +2,18 @@ clear; clc; close all;
 
 %DIAGNOSE_IDENTITYA0_PLAUSIBILITY Short MATLAB-compatible entrypoint.
 %
-% MATLAB only recognizes function/script names up to namelengthmax characters.
-% The descriptive identityA0 plausibility diagnostic filename is longer than
-% that limit, so this wrapper executes it by explicit file path.
+% MATLAB's run() also resolves the script by file stem, so directly running a
+% file whose name exceeds namelengthmax still fails. This wrapper copies the
+% long descriptive script to a short temporary filename and runs that copy.
 
 thisFile = mfilename('fullpath');
 thisFolder = fileparts(thisFile);
 longScript = fullfile(thisFolder, 'diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility.m');
+shortScript = fullfile(tempdir, 'identityA0_plaus_impl.m');
 
 if ~exist(longScript, 'file')
     error('Expected diagnostic script not found: %s', longScript);
 end
 
-run(longScript);
+copyfile(longScript, shortScript, 'f');
+run(shortScript);
