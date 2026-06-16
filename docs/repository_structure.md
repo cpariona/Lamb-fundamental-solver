@@ -94,6 +94,7 @@ Examples:
 ```matlab
 aeOutputFolder
 aeResolveResultFile
+aeRunLegacyScript
 aeScoreBranchIdentityCandidates
 aeBuildIdentityA0DiagnosticBranch
 ```
@@ -115,11 +116,22 @@ examples/acoustoelastic_iop_hgo/
 
 Maintained examples are intended to exercise active APIs only. Archived example material is not part of the active documentation set.
 
-For acoustoelastic IOP/HGO diagnostics, the folder already provides model context. New executable scripts should therefore use short task-oriented names, for example:
+For acoustoelastic IOP/HGO examples, sweeps, and diagnostics, the folder already provides model context. New executable scripts should therefore use short task-oriented names, for example:
 
 ```matlab
+run_atlas_branch
+sweep_iop
+sweep_mu
 validate_idA0_score_grid
 validate_idA0_grid
+diagnose_branch_policy
+diagnose_sweep_reliability
+diagnose_truncation_cases
+diagnose_branch_persistence
+diagnose_atlas_truncation
+diagnose_atlas_resolution
+diagnose_landscape_failure
+diagnose_idA0_score
 diagnose_idA0_plausibility
 ```
 
@@ -160,4 +172,10 @@ clear functions
 rehash toolboxcache
 startup
 run_all_smoke_tests
+```
+
+For short acoustoelastic entrypoint path checks, run:
+
+```matlab
+test_acoustoelastic_iop_hgo_short_entrypoints
 ```
