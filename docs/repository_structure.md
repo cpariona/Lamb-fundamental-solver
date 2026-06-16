@@ -1,6 +1,6 @@
 # Repository structure
 
-This document describes the active repository layout for GUI-focused development. The current MATLAB implementation is organized around the clean Rayleigh-Lamb `rl*` API, the mRLFE model, and the author-neutral acoustoelastic IOP/HGO API. Naming guidance is documented in `docs/naming_strategy.md`.
+This document describes the active repository layout for GUI-focused development. The current MATLAB implementation is organized around the clean Rayleigh-Lamb `rl*` API, the mRLFE model, and the author-neutral acoustoelastic IOP/HGO API. Naming guidance is documented in `docs/naming_strategy.md` and the acoustoelastic short-path convention is summarized in `docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md`.
 
 ## Active top-level areas
 
@@ -83,6 +83,21 @@ defaultAcoustoelasticIOPHGOOptions
 
 GUI code, examples, diagnostics, tests, and analysis scripts should call the author-neutral acoustoelastic IOP/HGO API documented in `docs/acoustoelastic_iop_hgo_public_api.md`.
 
+Model-specific analysis helpers for diagnostics and output paths live in:
+
+```text
+analysis/acoustoelastic_iop_hgo/
+```
+
+Examples:
+
+```matlab
+aeOutputFolder
+aeResolveResultFile
+aeScoreBranchIdentityCandidates
+aeBuildIdentityA0DiagnosticBranch
+```
+
 ## Example folders
 
 ```text
@@ -99,6 +114,34 @@ examples/acoustoelastic_iop_hgo/
 ```
 
 Maintained examples are intended to exercise active APIs only. Archived example material is not part of the active documentation set.
+
+For acoustoelastic IOP/HGO diagnostics, the folder already provides model context. New executable scripts should therefore use short task-oriented names, for example:
+
+```matlab
+validate_idA0_score_grid
+validate_idA0_grid
+diagnose_idA0_plausibility
+```
+
+rather than repeating `acoustoelastic_iop_hgo` in the filename.
+
+## Result folders
+
+The preferred result root for new acoustoelastic IOP/HGO outputs is:
+
+```text
+Results/ae_iop_hgo/<task>
+```
+
+Examples:
+
+```text
+Results/ae_iop_hgo/idA0_score_grid
+Results/ae_iop_hgo/idA0_grid
+Results/ae_iop_hgo/idA0_plausibility
+```
+
+Legacy long result folders remain valid and should not be deleted automatically. New scripts should write to the short root and, during migration, may read from short paths first and legacy paths second using `aeResolveResultFile`.
 
 ## Tests
 
