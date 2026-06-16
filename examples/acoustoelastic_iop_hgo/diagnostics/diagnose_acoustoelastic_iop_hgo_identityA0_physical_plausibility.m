@@ -3,22 +3,21 @@ launchFolder = pwd;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_IDENTITYA0_PHYSICAL_PLAUSIBILITY
-% Inspect identityA0Diagnostic candidate curves for visual/physical plausibility.
+% Legacy descriptive implementation for identityA0Diagnostic plausibility.
+% Prefer the short entrypoint:
+%   diagnose_idA0_plausibility
 %
-% This diagnostic consumes the workspace produced by:
-%   validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
-%
-% It does not rerun the solver and does not modify official atlas outputs.
+% New outputs are written to:
+%   Results/ae_iop_hgo/idA0_plausibility
 
-inputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_identityA0_diagnostic_grid');
-inputFile = fullfile(inputFolder, 'acoustoelastic_iop_hgo_identityA0_diagnostic_grid_workspace.mat');
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_identityA0_physical_plausibility');
+inputFile = aeResolveResultFile( ...
+    launchFolder, ...
+    'idA0_grid', 'idA0_grid_workspace.mat', ...
+    'acoustoelastic_iop_hgo_identityA0_diagnostic_grid', ...
+    'acoustoelastic_iop_hgo_identityA0_diagnostic_grid_workspace.mat');
+outputFolder = aeOutputFolder(launchFolder, 'idA0_plausibility');
 plotFolder = fullfile(outputFolder, 'plots');
 
-if ~exist(inputFile, 'file')
-    error('Input workspace not found. Run validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid first. Expected: %s', inputFile);
-end
-if ~exist(outputFolder, 'dir'), mkdir(outputFolder); end
 if ~exist(plotFolder, 'dir'), mkdir(plotFolder); end
 
 data = load(inputFile, 'summaryTable', 'identityByCase');
@@ -42,9 +41,9 @@ plausibilityTable = struct2table(caseRows);
 plausibilityTable = sortrows(plausibilityTable, {'PlausibilityClass', 'CandidateValidFraction', 'MaxRelativeDrop'}, {'ascend', 'ascend', 'descend'});
 aggregateTable = buildAggregateTable(plausibilityTable);
 
-writetable(plausibilityTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_identityA0_physical_plausibility_summary.csv'));
-writetable(aggregateTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_identityA0_physical_plausibility_aggregate.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_identityA0_physical_plausibility_workspace.mat'), ...
+writetable(plausibilityTable, fullfile(outputFolder, 'idA0_plausibility_summary.csv'));
+writetable(aggregateTable, fullfile(outputFolder, 'idA0_plausibility_aggregate.csv'));
+save(fullfile(outputFolder, 'idA0_plausibility_workspace.mat'), ...
     'plausibilityTable', 'aggregateTable', 'summaryTable', 'identityByCase', 'launchFolder', '-v7.3');
 
 plotWorstCases(plausibilityTable, identityByCase, plotFolder, 18);
@@ -69,7 +68,7 @@ cpOfficial(added) = nan;
 validOfficial = isfinite(cpOfficial);
 
 s = findSummaryRow(caseFieldName, summaryTable);
-metrics = curveMetrics(frequency_kHz, cpCandidate, validCandidate, added);
+metrics = curveMetrics(frequency_kHz, cpCandidate, validCandidate);
 
 row = struct();
 row.CaseFieldName = string(caseFieldName);
@@ -113,7 +112,7 @@ end
 s = summaryTable(idx, :);
 end
 
-function metrics = curveMetrics(frequency_kHz, cp, valid, added)
+function metrics = curveMetrics(frequency_kHz, cp, valid)
 metrics = struct();
 metrics.MaxRelativeJump = nan;
 metrics.MaxRelativeDrop = nan;
