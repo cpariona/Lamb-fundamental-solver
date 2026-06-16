@@ -6,6 +6,8 @@ function score = aeScoreBranchIdentityCandidates(result, varargin)
 %
 %   The score combines numerical continuity, slope continuity, local-minimum
 %   rank, objective depth, crowding, and a soft high-frequency physical prior.
+%   By default it recomputes deeper local minima from result.objectiveMap so the
+%   diagnostic is not limited by the production atlasTopNMinima value.
 
 opts = parseOptions(varargin{:});
 f = result.frequency(:);
@@ -33,6 +35,8 @@ opts = struct();
 opts.Label = "";
 opts.WindowPoints = 6;
 opts.HistoryPoints = 4;
+opts.UseObjectiveMapMinima = true;
+opts.DeepMinimaTopN = 80;
 opts.MaxRankScale = 40;
 opts.RelativeDistanceScale = 0.05;
 opts.SlopeMismatchScale = 0.15;
@@ -62,6 +66,10 @@ for i = 1:2:numel(varargin)
             opts.WindowPoints = value;
         case 'historypoints'
             opts.HistoryPoints = value;
+        case 'useobjectivemapminima'
+            opts.UseObjectiveMapMinima = logical(value);
+        case 'deepminimatopn'
+            opts.DeepMinimaTopN = value;
         case 'maxrankscale'
             opts.MaxRankScale = value;
         case 'relativedistancescale'
@@ -131,7 +139,7 @@ function T = buildCandidateTable(result, f, cp, valid, idx, opts)
 rows = [];
 for ii = 1:numel(idx)
     k = idx(ii);
-    minima = minimaAtFrequency(result, f(k), opts.MinimaFrequencyTolerance_Hz);
+    minima = minimaAtFrequency(result, f(k), k, opts);
     if isempty(minima)
         continue;
     end
@@ -154,6 +162,7 @@ for ii = 1:numel(idx)
         row.CandidateRank = getColumn(minima, 'MinRank', m, nan);
         row.CandidateObjective = getColumn(minima, 'Objective', m, nan);
         row.CandidateBranchID = getColumn(minima, 'BranchID', m, nan);
+        row.CandidateSource = string(getColumn(minima, 'Source', m, "unknown"));
         row.RelativeDistanceToPreviousCp = abs(row.CandidateCp_mps - context.PreviousCp_mps) ./ max(abs(context.PreviousCp_mps), eps);
         row.RelativeCandidateSlope = candidateRelativeSlope(row.CandidateCp_mps, context.PreviousCp_mps, f(k), context.PreviousFrequency_Hz);
         row.SlopeMismatch = abs(row.RelativeCandidateSlope - context.RelativeSlope);
@@ -183,16 +192,56 @@ for i = 1:numel(indices)
 end
 end
 
-function minima = minimaAtFrequency(result, f0, tol)
+function minima = minimaAtFrequency(result, f0, k, opts)
+if opts.UseObjectiveMapMinima && isfield(result, 'objectiveMap') && isfield(result, 'cGrid') && size(result.objectiveMap, 2) >= k
+    minima = minimaFromObjectiveMap(result, k, opts.DeepMinimaTopN);
+    if ~isempty(minima)
+        return;
+    end
+end
+
 if ~isfield(result, 'minimaTable') || isempty(result.minimaTable)
     minima = table();
     return;
 end
 M = result.minimaTable;
-minima = M(abs(M.Frequency_Hz - f0) <= tol * max(abs(f0), 1), :);
+minima = M(abs(M.Frequency_Hz - f0) <= opts.MinimaFrequencyTolerance_Hz * max(abs(f0), 1), :);
 if ~isempty(minima)
+    minima.Source = repmat("storedMinimaTable", height(minima), 1);
     minima = sortrows(minima, 'MinRank');
 end
+end
+
+function minima = minimaFromObjectiveMap(result, k, topN)
+obj = result.objectiveMap(:, k);
+cGrid = result.cGrid(:);
+yGrid = result.yGrid(:);
+idx = [];
+for i = 2:numel(obj)-1
+    if isfinite(obj(i-1)) && isfinite(obj(i)) && isfinite(obj(i+1)) && obj(i) <= obj(i-1) && obj(i) <= obj(i+1)
+        idx(end+1) = i; %#ok<AGROW>
+    end
+end
+if isempty(idx)
+    minima = table();
+    return;
+end
+objective = obj(idx(:));
+[objective, order] = sort(objective, 'ascend');
+idx = idx(order);
+keep = 1:min(topN, numel(idx));
+idx = idx(keep);
+objective = objective(keep);
+minima = table();
+minima.Frequency_Hz = repmat(result.frequency(k), numel(idx), 1);
+minima.Frequency_kHz = repmat(result.frequency(k) / 1e3, numel(idx), 1);
+minima.MinRank = (1:numel(idx)).';
+minima.Cp_mps = cGrid(idx);
+minima.y = yGrid(idx);
+minima.log10y = log10(minima.y);
+minima.Objective = objective(:);
+minima.BranchID = nan(numel(idx), 1);
+minima.Source = repmat("objectiveMap", numel(idx), 1);
 end
 
 function context = branchContext(f, cp, valid, k, historyPoints)
