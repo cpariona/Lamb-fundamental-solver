@@ -38,7 +38,7 @@ rlSolveFundamentalBranch
 
 The supported acoustoelastic API is author-neutral. The former author-specific compatibility wrappers were removed; GUI code, examples, diagnostics, tests, and analysis scripts should call author-neutral functions only.
 
-Recommended entrypoints:
+Recommended solver/API entrypoints:
 
 ```matlab
 solveAcoustoelasticIOPHGOBranch
@@ -62,7 +62,29 @@ aeRunSweep
 aeSummarizeSweep
 ```
 
-Maintained examples and diagnostics use `acoustoelastic_iop_hgo` names only:
+Recommended analysis helpers:
+
+```matlab
+aeOutputFolder
+aeResolveResultFile
+aeScoreBranchIdentityCandidates
+aeBuildIdentityA0DiagnosticBranch
+aeDiagnoseAtlasA0TruncationCause
+aeAnalyzeBranchPersistenceCandidates
+aeRefineAtlasA0BranchPersistence
+```
+
+Maintained short diagnostic/validation entrypoints for recent atlasA0/identityA0 work:
+
+```matlab
+validate_idA0_score_grid
+validate_idA0_grid
+diagnose_idA0_plausibility
+```
+
+Legacy descriptive diagnostics remain available for backward compatibility and implementation detail, but new user-facing commands should prefer the short entrypoints above.
+
+Other maintained examples and diagnostics:
 
 ```matlab
 run_acoustoelastic_iop_hgo_atlas_branch
@@ -90,9 +112,10 @@ Maintained tests:
 test_acoustoelastic_iop_hgo_branch_policy_aliases
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
+test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 ```
 
-See `docs/acoustoelastic_iop_hgo_public_api.md` for the public API list. Naming guidance is documented in `docs/naming_strategy.md`.
+See `docs/acoustoelastic_iop_hgo_public_api.md` for the public API list. Naming guidance is documented in `docs/naming_strategy.md`, and the short acoustoelastic path convention is documented in `docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md`.
 
 ## mRLFE model
 
@@ -132,6 +155,10 @@ docs/acoustoelastic_iop_hgo_overview.md
 docs/acoustoelastic_iop_hgo_public_api.md
 docs/acoustoelastic_iop_hgo_branch_policy.md
 docs/acoustoelastic_iop_hgo_sweep_workflow.md
+docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md
+docs/acoustoelastic_iop_hgo/identityA0_diagnostic_policy.md
+docs/acoustoelastic_iop_hgo/identityA0_diagnostic_grid_validation.md
+docs/acoustoelastic_iop_hgo/identityA0_physical_plausibility_diagnostic.md
 docs/parametric_sweeps.md
 docs/mrlfe_tracker_diagnostic_summary.md
 ```
