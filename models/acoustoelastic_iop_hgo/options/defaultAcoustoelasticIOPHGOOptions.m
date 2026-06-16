@@ -55,8 +55,10 @@ options.complexCTolFun = 1e-9;
 options.complexCDisplay = "off";
 
 % Atlas branch-selection policy.
-%   "atlasA0"  : maintained atlas-based A0 branch policy.
-%   "strictA0" : legacy alias accepted by aeNormalizeBranchPolicy.
+%   "atlasA0"              : maintained atlas-based A0 branch policy.
+%   "strictA0"             : legacy alias accepted by aeNormalizeBranchPolicy.
+%   "identityA0Diagnostic" : keeps atlasA0 official output and adds a separate
+%                            identity-scored candidate branch in result.identityA0.
 options.atlasBranchPolicy = "atlasA0";
 
 % Branch-selection mode.
