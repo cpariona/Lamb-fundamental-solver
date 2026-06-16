@@ -119,7 +119,7 @@ assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol,
 assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
     'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
 
-fprintf('\n[1/6] GUI normalized adapters smoke test\n');
+fprintf('\n[1/7] GUI normalized adapters smoke test\n');
 test_gui_normalized_adapters_smoke;
 
 fprintf('\nChecking maintained acoustoelastic IOP/HGO wrappers and entrypoints...\n');
@@ -169,6 +169,10 @@ assert(~isempty(which('aeClassifyTruncationRecovery')), ...
     'Missing aeClassifyTruncationRecovery on MATLAB path.');
 assert(~isempty(which('aeSummarizeTruncationRecoveryClassification')), ...
     'Missing aeSummarizeTruncationRecoveryClassification on MATLAB path.');
+assert(~isempty(which('aeAnalyzeBranchPersistenceCandidates')), ...
+    'Missing aeAnalyzeBranchPersistenceCandidates on MATLAB path.');
+assert(~isempty(which('aeRefineAtlasA0BranchPersistence')), ...
+    'Missing aeRefineAtlasA0BranchPersistence on MATLAB path.');
 assert(~isempty(which('computeAcoustoelasticABGFromIOPHGO')), ...
     'Missing computeAcoustoelasticABGFromIOPHGO on MATLAB path.');
 assert(~isempty(which('computeAcoustoelasticAlphaBetaGamma')), ...
@@ -187,6 +191,8 @@ assert(~isempty(which('diagnose_acoustoelastic_iop_hgo_sweep_reliability')), ...
     'Missing diagnose_acoustoelastic_iop_hgo_sweep_reliability on MATLAB path.');
 assert(~isempty(which('diagnose_acoustoelastic_iop_hgo_truncation_cases')), ...
     'Missing diagnose_acoustoelastic_iop_hgo_truncation_cases on MATLAB path.');
+assert(~isempty(which('diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement')), ...
+    'Missing diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement on MATLAB path.');
 assert(~isempty(which('run_acoustoelastic_iop_hgo_A0_backward')), ...
     'Missing run_acoustoelastic_iop_hgo_A0_backward on MATLAB path.');
 assert(~isempty(which('run_acoustoelastic_iop_hgo_A0_complexC')), ...
@@ -227,20 +233,25 @@ assert(~isempty(which('test_acoustoelastic_iop_hgo_strictA0_smoke')), ...
     'Missing test_acoustoelastic_iop_hgo_strictA0_smoke on MATLAB path.');
 assert(~isempty(which('test_ae_analyze_truncation_recovery')), ...
     'Missing test_ae_analyze_truncation_recovery on MATLAB path.');
+assert(~isempty(which('test_acoustoelastic_iop_hgo_branch_persistence_refinement')), ...
+    'Missing test_acoustoelastic_iop_hgo_branch_persistence_refinement on MATLAB path.');
 
-fprintf('\n[2/6] Acoustoelastic IOP/HGO branch policy alias test\n');
+fprintf('\n[2/7] Acoustoelastic IOP/HGO branch policy alias test\n');
 test_acoustoelastic_iop_hgo_branch_policy_aliases;
 
-fprintf('\n[3/6] Acoustoelastic truncation recovery helper unit test\n');
+fprintf('\n[3/7] Acoustoelastic truncation recovery helper unit test\n');
 test_ae_analyze_truncation_recovery;
 
-fprintf('\n[4/6] Acoustoelastic IOP/HGO constitutive identity test\n');
+fprintf('\n[4/7] Acoustoelastic branch-persistence refinement unit test\n');
+test_acoustoelastic_iop_hgo_branch_persistence_refinement;
+
+fprintf('\n[5/7] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_acoustoelastic_iop_hgo_constitutive_identity;
 
-fprintf('\n[5/6] Acoustoelastic IOP/HGO legacy strict-A0 atlas branch smoke test\n');
+fprintf('\n[6/7] Acoustoelastic IOP/HGO legacy strict-A0 atlas branch smoke test\n');
 test_acoustoelastic_iop_hgo_strictA0_smoke;
 
-fprintf('\n[6/6] mRLFE smoke test\n');
+fprintf('\n[7/7] mRLFE smoke test\n');
 test_mrlfe_smoke;
 
 fprintf('\nAll maintained smoke tests passed.\n');
