@@ -131,6 +131,26 @@ The corrected helper distinguishes terminal truncation from internal gaps. Curre
 | `iop_25mmHg` | 15.9224 | 16.7258 | NaN | false | 1 | 0.8034 |
 | `mu_25kPa` | 9.2649 | 9.7324 | 8.8199 | true | 0 | 0 |
 
+### Atlas-resolution sensitivity validation
+
+The resolution-sensitivity batch shows that truncation is not controlled by a single monotonic resolution parameter.
+
+| Case | Best setting by valid points | Best valid points | Best last valid [kHz] | Baseline `1000/18` valid points | Main sensitivity observation |
+|---|---|---:|---:|---:|---|
+| `iop_20mmHg` | `atlasNumYPoints=1000`, `atlasTopNMinima=32` | 120 | 35.0000 | 107 | Increasing `atlasTopNMinima` can fully remove terminal truncation, but the response is non-monotonic with `atlasNumYPoints`. |
+| `iop_25mmHg` | `atlasNumYPoints=3000`, `atlasTopNMinima=24` | 112 | 30.1948 | 104 | Higher resolution improves coverage, but no tested setting reaches full 35 kHz coverage. |
+| `mu_25kPa` | `atlasNumYPoints=1500`, `atlasTopNMinima=32` | 95 | 10.2235 | 92 | The branch remains strongly truncated under all tested atlas settings. |
+
+Dominant cause labels across the batch:
+
+| Case | Dominant labels observed | Interpretation |
+|---|---|---|
+| `iop_20mmHg` | `nearest_minimum_too_far`, `candidate_low_rank`, `crowded_minima_landscape`, `no_truncation` | The branch can be recovered by storing more minima, but branch identity remains sensitive. This points to branch competition/tracker selection rather than a pure lack of atlas resolution. |
+| `iop_25mmHg` | mostly `nearest_minimum_too_far`, with some `candidate_low_rank` and `crowded_minima_landscape` | The branch improves but remains incomplete; continuity thresholds and branch competition both matter. |
+| `mu_25kPa` | mostly `nearest_minimum_too_far`; one `candidate_low_rank`, one `crowded_minima_landscape`, one `unclassified_tracker_rejection` | This case is not solved by atlas resolution or top-N minima alone; it likely needs deeper inspection of the objective landscape or model regime. |
+
+Current conclusion: `iop_20mmHg` is sensitive to how many local minima are retained, `iop_25mmHg` is partially resolution-sensitive, and `mu_25kPa` is not meaningfully fixed by the tested atlas settings.
+
 ### Expected interpretation from issue #48
 
 Starting expectations are:
