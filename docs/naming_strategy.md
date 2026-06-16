@@ -39,6 +39,8 @@ Results/ae_iop_hgo/<task>
 Examples:
 
 ```text
+Results/ae_iop_hgo/iop_sweep
+Results/ae_iop_hgo/mu_sweep
 Results/ae_iop_hgo/idA0_score_grid
 Results/ae_iop_hgo/idA0_grid
 Results/ae_iop_hgo/idA0_plausibility
@@ -52,7 +54,7 @@ Results/acoustoelastic_iop_hgo_identityA0_physical_plausibility
 
 Legacy long folders remain valid for backward compatibility, but new scripts should write to the short result root.
 
-## Helper functions for paths
+## Helper functions for paths and legacy execution
 
 Use:
 
@@ -73,6 +75,14 @@ aeResolveResultFile(launchFolder, shortTaskName, shortFileName, legacyFolderName
 ```
 
 when a script must support both new short outputs and older long outputs. It checks the short path first, then falls back to the legacy path.
+
+Use:
+
+```matlab
+aeRunLegacyScript(scriptPath)
+```
+
+when a short entrypoint needs to execute a legacy descriptive script. It avoids `namelengthmax` problems by running a temporary short-name copy while preserving the caller launch folder.
 
 ## Rayleigh-Lamb
 
@@ -95,7 +105,7 @@ when a script must support both new short outputs and older long outputs. It che
 * Use `aeIOPHGO*` only for high-level public functions where IOP/HGO specificity must be explicit.
 * Do not reintroduce `Li2024`.
 
-Recommended future acoustoelastic helper naming examples:
+Recommended acoustoelastic helper naming examples:
 
 ```matlab
 aeDefaultOptions
@@ -112,13 +122,25 @@ aeComputePrestress
 aeSolveStretch
 aeOutputFolder
 aeResolveResultFile
+aeRunLegacyScript
 ```
 
-Recommended diagnostic entrypoint examples:
+Recommended user-facing entrypoints:
 
 ```matlab
+run_atlas_branch
+sweep_iop
+sweep_mu
 validate_idA0_score_grid
 validate_idA0_grid
+diagnose_branch_policy
+diagnose_sweep_reliability
+diagnose_truncation_cases
+diagnose_branch_persistence
+diagnose_atlas_truncation
+diagnose_atlas_resolution
+diagnose_landscape_failure
+diagnose_idA0_score
 diagnose_idA0_plausibility
 ```
 
@@ -157,4 +179,4 @@ Existing function names should not be renamed casually. Renames should happen on
 4. updated docs,
 5. a clear migration note.
 
-For the current issue, use short wrappers and short result paths for new work. Full migration/renaming of legacy files should be handled after the issue is closed.
+For current migration work, keep legacy descriptive scripts available and prefer short wrappers plus short result paths for new work.
