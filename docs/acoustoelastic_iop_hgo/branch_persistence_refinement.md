@@ -18,17 +18,25 @@ The refinement is returned separately:
 
 The candidate branch is diagnostic only. It must not automatically replace `result.Cp`.
 
+### Result-location policy
+
+Sweep and diagnostic scripts should be launched from the folder where the user wants the `Results` directory to be created. For example, if MATLAB is currently in `E:\`, outputs are written under:
+
+`E:\Results\...`
+
+The repository only needs to be on the MATLAB path through `startup`; results do not need to be stored inside the repository checkout.
+
+The branch-persistence diagnostic captures the launch folder before calling `startup` and then writes under:
+
+`fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_branch_persistence_refinement')`
+
 ### Intended use
 
-Run this diagnostic after generating the IOP and shear-modulus sweeps:
+Run this diagnostic after generating the IOP and shear-modulus sweeps from the same launch folder:
 
 - `sweep_acoustoelastic_iop_hgo_iop`
 - `sweep_acoustoelastic_iop_hgo_mu`
 - `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement`
-
-Outputs are written under:
-
-`fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_branch_persistence_refinement')`
 
 ### Classification
 
