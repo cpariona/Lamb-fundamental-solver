@@ -2,10 +2,12 @@ clear; clc; close all;
 
 %DIAGNOSE_IDENTITYA0_PLAUSIBILITY Short MATLAB-compatible entrypoint.
 %
-% MATLAB's run() also resolves the script by file stem, so directly running a
-% file whose name exceeds namelengthmax still fails. This wrapper copies the
-% long descriptive script to a short temporary filename and runs that copy.
+% MATLAB's run() resolves scripts by file stem and may execute them from the
+% temporary script folder. This wrapper writes a short temporary script that
+% first restores the caller launch folder, then executes the long diagnostic
+% implementation.
 
+launchFolder = pwd;
 thisFile = mfilename('fullpath');
 thisFolder = fileparts(thisFile);
 longScript = fullfile(thisFolder, 'diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility.m');
@@ -15,5 +17,17 @@ if ~exist(longScript, 'file')
     error('Expected diagnostic script not found: %s', longScript);
 end
 
-copyfile(longScript, shortScript, 'f');
+sourceText = fileread(longScript);
+launchFolderEscaped = strrep(launchFolder, '''', '''''');
+shortText = sprintf('cd(''%s'');\n%s', launchFolderEscaped, sourceText);
+writeTextFile(shortScript, shortText);
 run(shortScript);
+
+function writeTextFile(fileName, text)
+fid = fopen(fileName, 'w');
+if fid < 0
+    error('Could not create temporary diagnostic script: %s', fileName);
+end
+cleanupObj = onCleanup(@() fclose(fid)); %#ok<NASGU>
+fwrite(fid, text, 'char');
+end
