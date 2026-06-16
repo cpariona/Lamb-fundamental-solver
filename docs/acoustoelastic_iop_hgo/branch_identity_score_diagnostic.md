@@ -95,6 +95,22 @@ diagnose_acoustoelastic_iop_hgo_branch_identity_score
 AcoustoelasticIOPHGOBranchIdentityScoreSummary
 ```
 
+### Validation snapshot
+
+The first validation workspace produced plausible diagnostic candidates for both unresolved cases.
+
+| Case | Last official valid [kHz] | First terminal missing [kHz] | Best-frequency candidates | Strong candidates | Caution candidates | Median best score | Median best rank | Median best relative Cp distance | Median best crowding |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| `iop_25mmHg` | 15.9224 | 16.7258 | 13 | 9 | 4 | 1.3504 | 18.0 | 0.00653 | 3.0 |
+| `mu_25kPa` | 9.2649 | 9.7324 | 13 | 8 | 5 | 1.3621 | 16.0 | 0.00653 | 1.0 |
+
+Interpretation:
+
+- The branch-identity score finds locally plausible candidates for both cases.
+- The selected best candidates are close to the previous valid Cp, with median relative distance near 0.65%.
+- The median rank is lower than in the focused failure-landscape table because this helper recomputes deeper minima from the stored objective map and scores candidates by continuity, not by nearest-only rank.
+- This supports the idea that a physically and numerically informed continuation is possible, but it remains diagnostic evidence only.
+
 ### Interpretation policy
 
 A low diagnostic score means that a candidate is locally plausible under the chosen score. It does not mean the candidate should replace `atlasA0`.
