@@ -64,15 +64,22 @@ end
 end
 
 function T = enrichCandidateTable(T, opts)
+mode = string(T.ContiguousRecoveryMode);
 T.PointwisePersistenceCandidate = logical(T.Recovered);
-T.ContiguousPersistenceCandidate = logical(T.ContiguousRecovered) & ~strcmp(string(T.ContiguousRecoveryMode), 'originalValid');
-T.RankAcceptable = T.LocalCandidateRank <= opts.MaxCandidateRank | isnan(T.LocalCandidateRank);
-T.RankStrong = T.LocalCandidateRank <= opts.StrongCandidateRank;
-T.RelativeCpAcceptable = T.LocalRelativeDistance <= opts.MaxRelativeCpJump | isnan(T.LocalRelativeDistance);
-T.PersistenceCandidateAccepted = T.ContiguousPersistenceCandidate & T.RankAcceptable & T.RelativeCpAcceptable;
+T.ContiguousPersistenceCandidate = logical(T.ContiguousRecovered) & mode ~= "originalValid";
+
+hasLocalMinimum = isfinite(T.LocalCandidateRank);
+T.RankAcceptable = ~hasLocalMinimum | T.LocalCandidateRank <= opts.MaxCandidateRank;
+T.RankStrong = hasLocalMinimum & T.LocalCandidateRank <= opts.StrongCandidateRank;
+T.RelativeCpAcceptable = isnan(T.LocalRelativeDistance) | T.LocalRelativeDistance <= opts.MaxRelativeCpJump;
+T.HasFiniteCandidateCp = isfinite(T.ContiguousRecoveredCp_mps);
+
+T.PersistenceCandidateAccepted = T.ContiguousPersistenceCandidate & ...
+    T.HasFiniteCandidateCp & T.RankAcceptable & T.RelativeCpAcceptable;
+
 T.PersistenceQuality = repmat("not_accepted", height(T), 1);
 T.PersistenceQuality(T.PersistenceCandidateAccepted & T.RankStrong) = "strong";
-T.PersistenceQuality(T.PersistenceCandidateAccepted & ~T.RankStrong) = "low_rank_or_weak";
+T.PersistenceQuality(T.PersistenceCandidateAccepted & ~T.RankStrong) = "bridge_or_low_rank";
 end
 
 function summary = buildSummary(result, recovery, candidateTable, opts)
@@ -85,11 +92,13 @@ summary.OriginalValidPoints = nnz(valid);
 summary.OriginalValidFraction = nnz(valid) / max(numel(valid), 1);
 summary.LastOfficialValidFrequency_kHz = lastFrequency(f, valid);
 summary.FirstMissingFrequency_kHz = firstMissingFrequency(f, valid);
-summary.NumPointwisePersistenceCandidates = recovery.summary.NumRecoveredPoints;
-summary.NumContiguousPersistenceCandidates = recovery.summary.NumContiguousRecoveredPoints;
-summary.LastContiguousPersistenceFrequency_kHz = recovery.summary.LastContiguousRecoveredFrequency_kHz;
-summary.PersistenceExtension_kHz = summary.LastContiguousPersistenceFrequency_kHz - summary.LastOfficialValidFrequency_kHz;
-summary.NumPointwiseCandidatesAfterContiguousBreak = recovery.summary.NumPointwiseRecoveriesAfterContiguousBreak;
+summary.RawRecoveredPoints = recovery.summary.NumRecoveredPoints;
+summary.RawContiguousRecoveredPoints = recovery.summary.NumContiguousRecoveredPoints;
+summary.NumPointwisePersistenceCandidates = 0;
+summary.NumContiguousPersistenceCandidates = 0;
+summary.LastContiguousPersistenceFrequency_kHz = nan;
+summary.PersistenceExtension_kHz = 0;
+summary.NumPointwiseCandidatesAfterContiguousBreak = 0;
 summary.MedianAcceptedCandidateRank = nan;
 summary.MaxAcceptedRelativeCpDistance = nan;
 summary.NumStrongAcceptedCandidates = 0;
@@ -98,15 +107,27 @@ summary.MaxRelativeCpJump = opts.MaxRelativeCpJump;
 summary.MaxCandidateRank = opts.MaxCandidateRank;
 summary.StrongCandidateRank = opts.StrongCandidateRank;
 summary.Note = "Diagnostic branch-persistence candidates do not replace maintained atlasA0 output.";
-if ~isempty(candidateTable) && ismember('PersistenceCandidateAccepted', candidateTable.Properties.VariableNames)
-    A = candidateTable(logical(candidateTable.PersistenceCandidateAccepted), :);
-    if ~isempty(A)
-        summary.MedianAcceptedCandidateRank = median(A.LocalCandidateRank, 'omitnan');
-        summary.MaxAcceptedRelativeCpDistance = max(A.LocalRelativeDistance, [], 'omitnan');
-        summary.NumStrongAcceptedCandidates = nnz(A.PersistenceQuality == "strong");
-        summary.NumLowRankOrWeakAcceptedCandidates = nnz(A.PersistenceQuality == "low_rank_or_weak");
-    end
+
+if isempty(candidateTable) || ~ismember('PersistenceCandidateAccepted', candidateTable.Properties.VariableNames)
+    return;
 end
+
+accepted = logical(candidateTable.PersistenceCandidateAccepted);
+A = candidateTable(accepted, :);
+summary.NumPointwisePersistenceCandidates = nnz(logical(candidateTable.PointwisePersistenceCandidate) & accepted);
+summary.NumContiguousPersistenceCandidates = height(A);
+summary.NumPointwiseCandidatesAfterContiguousBreak = nnz(logical(candidateTable.PointwisePersistenceCandidate) & ~logical(candidateTable.ContiguousPersistenceCandidate));
+
+if isempty(A)
+    return;
+end
+
+summary.LastContiguousPersistenceFrequency_kHz = A.Frequency_kHz(end);
+summary.PersistenceExtension_kHz = max(0, summary.LastContiguousPersistenceFrequency_kHz - summary.LastOfficialValidFrequency_kHz);
+summary.MedianAcceptedCandidateRank = median(A.LocalCandidateRank, 'omitnan');
+summary.MaxAcceptedRelativeCpDistance = max(A.LocalRelativeDistance, [], 'omitnan');
+summary.NumStrongAcceptedCandidates = nnz(A.PersistenceQuality == "strong");
+summary.NumLowRankOrWeakAcceptedCandidates = nnz(A.PersistenceQuality == "bridge_or_low_rank");
 end
 
 function fk = lastFrequency(f, mask)
