@@ -1,19 +1,23 @@
 clear; clc; close all;
+launchFolder = pwd;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_BRANCH_PERSISTENCE_REFINEMENT
 % Inspect diagnostic A0 branch-persistence continuation after atlasA0 truncation.
+% Results are written under fullfile(launchFolder, 'Results', ...), where
+% launchFolder is the folder from which this script was started.
 
-outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_branch_persistence_refinement');
+outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_branch_persistence_refinement');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
 
-cases = makeCaseSpecs();
+cases = makeCaseSpecs(launchFolder);
 summaryRows = [];
 caseRefinementByName = struct();
 
 fprintf('\nAcoustoelastic IOP/HGO branch-persistence refinement diagnostic\n');
+fprintf('Launch folder:\n%s\n', launchFolder);
 fprintf('Output folder:\n%s\n\n', outputFolder);
 
 for i = 1:numel(cases)
@@ -21,7 +25,7 @@ for i = 1:numel(cases)
     fprintf('Processing %s\n', spec.caseName);
 
     if ~exist(spec.workspacePath, 'file')
-        warning('Workspace not found: %s. Run the corresponding sweep first.', spec.workspacePath);
+        warning('Workspace not found: %s. Run the corresponding sweep from the same launch folder first.', spec.workspacePath);
         continue;
     end
 
@@ -70,16 +74,17 @@ writetable(summaryTable, ...
     fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_persistence_refinement_summary.csv'));
 
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_persistence_refinement_workspace.mat'), ...
-    'caseRefinementByName', 'summaryTable', 'cases', '-v7.3');
+    'caseRefinementByName', 'summaryTable', 'cases', 'launchFolder', '-v7.3');
 
 disp(summaryTable);
 fprintf('\nBranch-persistence refinement diagnostic files written to:\n%s\n', outputFolder);
 
 assignin('base', 'AcoustoelasticIOPHGOBranchPersistenceRefinement', caseRefinementByName);
 assignin('base', 'AcoustoelasticIOPHGOBranchPersistenceRefinementSummary', summaryTable);
+assignin('base', 'AcoustoelasticIOPHGOBranchPersistenceRefinementOutputFolder', outputFolder);
 
-function cases = makeCaseSpecs()
-baseResults = fullfile(pwd, 'Results');
+function cases = makeCaseSpecs(launchFolder)
+baseResults = fullfile(launchFolder, 'Results');
 cases = struct([]);
 
 cases(1).caseName = "iop_20mmHg";
