@@ -1,4 +1,5 @@
 clear; clc; close all;
+launchFolder = pwd;
 startup
 
 %SWEEP_ACOUSTOELASTIC_IOP_HGO_MU Maintained shear-modulus sweep for the acoustoelastic IOP/HGO model.
@@ -53,6 +54,7 @@ sweepConfig.ValueScale = 1e3;
 sweepConfig.ValueFormatter = "%.1f";
 
 fprintf('\nAcoustoelastic IOP/HGO mu sweep\n');
+fprintf('Launch folder: %s\n', launchFolder);
 fprintf('mu values: %s kPa\n', mat2str(mu_kPa));
 fprintf('Fixed IOP: %.1f mmHg\n', baseParams.IOP / 133.322);
 fprintf('Frequency range: %.3g Hz to %.3g kHz\n', min(baseParams.frequency), max(baseParams.frequency)/1e3);
@@ -61,7 +63,7 @@ fprintf('Branch policy: %s\n\n', string(options.atlasBranchPolicy));
 sweepResult = aeRunSweep(baseParams, "mu", mu_Pa, options, sweepConfig);
 summary = aeSummarizeSweep(sweepResult);
 
-outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_mu_sweep');
+outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_mu_sweep');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
@@ -73,7 +75,7 @@ if ~isempty(summary.branchTable)
 end
 
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat'), ...
-    'baseParams', 'options', 'mu_kPa', 'mu_Pa', 'sweepResult', 'summary', '-v7.3');
+    'baseParams', 'options', 'mu_kPa', 'mu_Pa', 'sweepResult', 'summary', 'launchFolder', '-v7.3');
 
 fprintf('\nCondition summary\n');
 disp(summary.conditionTable);
@@ -81,3 +83,4 @@ fprintf('\nData files written to:\n%s\n', outputFolder);
 
 assignin('base', 'AcoustoelasticIOPHGOMuSweepResult', sweepResult);
 assignin('base', 'AcoustoelasticIOPHGOMuSweepSummary', summary);
+assignin('base', 'AcoustoelasticIOPHGOMuSweepOutputFolder', outputFolder);
