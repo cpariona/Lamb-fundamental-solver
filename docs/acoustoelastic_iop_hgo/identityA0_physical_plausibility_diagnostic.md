@@ -12,12 +12,16 @@ and does not rerun the solver.
 
 ### Runnable script
 
+Use the short MATLAB-compatible entrypoint:
+
 ```matlab
 cd('E:\')
 startup
-diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility
+diagnose_identityA0_plausibility
 AcoustoelasticIOPHGOIdentityA0PhysicalPlausibilityAggregate
 ```
+
+The longer descriptive script filename exceeds MATLAB's 63-character name limit, so `diagnose_identityA0_plausibility` is the maintained entrypoint.
 
 Expected input:
 
