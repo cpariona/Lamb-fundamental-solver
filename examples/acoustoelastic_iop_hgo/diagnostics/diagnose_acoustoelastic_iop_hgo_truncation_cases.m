@@ -20,6 +20,7 @@ breakRows = [];
 sensitivitySummaryRows = [];
 relaxedComparisonRows = [];
 relaxedQualityRows = [];
+relaxedDecisionRows = [];
 caseAnalysisByName = struct();
 
 fprintf('\nAcoustoelastic IOP/HGO truncation-case diagnostic\n');
@@ -69,6 +70,8 @@ for i = 1:numel(cases)
         'MaxGapPoints', spec.maxGapPoints, ...
         'MaxGapFrequencyRatio', spec.maxGapFrequencyRatio);
     thresholdRelaxedQuality = aeAssessThresholdRelaxedBranchQuality(result, thresholdRelaxedComparison);
+    thresholdRelaxedDecision = aeClassifyThresholdRelaxedBranchDecision( ...
+        thresholdRelaxedComparison.summary, thresholdRelaxedQuality.summary);
 
     key = matlab.lang.makeValidName(spec.caseName);
     caseAnalysisByName.(key).truncation = caseAnalysis;
@@ -78,6 +81,7 @@ for i = 1:numel(cases)
     caseAnalysisByName.(key).thresholdSensitivity = thresholdSensitivity;
     caseAnalysisByName.(key).thresholdRelaxedComparison = thresholdRelaxedComparison;
     caseAnalysisByName.(key).thresholdRelaxedQuality = thresholdRelaxedQuality;
+    caseAnalysisByName.(key).thresholdRelaxedDecision = thresholdRelaxedDecision;
 
     row = caseAnalysis.summary;
     row.CaseName = spec.caseName;
@@ -120,6 +124,9 @@ for i = 1:numel(cases)
     row.RelaxedMedianAddedMinRank = thresholdRelaxedQuality.summary.MedianAddedMinRank;
     row.RelaxedMedianAddedDepthRelativeToMedian = thresholdRelaxedQuality.summary.MedianAddedDepthRelativeToMedian;
     row.RelaxedMedianAddedSpacingToNearestLogY = thresholdRelaxedQuality.summary.MedianAddedSpacingToNearestLogY;
+    row.RelaxedDecisionClass = thresholdRelaxedDecision.DecisionClass;
+    row.RelaxedDecisionConfidence = thresholdRelaxedDecision.DecisionConfidence;
+    row.RelaxedDecisionRecommendedUse = thresholdRelaxedDecision.RecommendedUse;
     allSummaryRows = [allSummaryRows; row]; %#ok<AGROW>
 
     classRow = classification;
@@ -152,6 +159,12 @@ for i = 1:numel(cases)
     qualityRow.TargetDisplayValue = spec.targetDisplayValue;
     relaxedQualityRows = [relaxedQualityRows; qualityRow]; %#ok<AGROW>
 
+    decisionRow = thresholdRelaxedDecision;
+    decisionRow.CaseName = spec.caseName;
+    decisionRow.SweepField = spec.sweepField;
+    decisionRow.TargetDisplayValue = spec.targetDisplayValue;
+    relaxedDecisionRows = [relaxedDecisionRows; decisionRow]; %#ok<AGROW>
+
     sensitivityTable = thresholdSensitivity.sensitivityTable;
     if ~isempty(sensitivityTable)
         sensitivityTable.CaseName = repmat(spec.caseName, height(sensitivityTable), 1);
@@ -182,6 +195,7 @@ for i = 1:numel(cases)
     writetable(relaxedComparisonTable, fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_comparison.csv"));
     writetable(struct2table(thresholdRelaxedQuality.summary), fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_quality_summary.csv"));
     writetable(relaxedQualityTable, fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_quality.csv"));
+    writetable(struct2table(thresholdRelaxedDecision), fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_decision.csv"));
     writetable(caseAnalysis.neighborhoodTable, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.csv"));
     writetable(recovery.recoveryTable, fullfile(outputFolder, spec.filePrefix + "_recovery_table.csv"));
     writetable(firstBreak.localWindowTable, fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_window.csv"));
@@ -228,6 +242,11 @@ if isempty(relaxedQualityRows)
 else
     thresholdRelaxedQualitySummaryTable = struct2table(relaxedQualityRows);
 end
+if isempty(relaxedDecisionRows)
+    thresholdRelaxedDecisionTable = table();
+else
+    thresholdRelaxedDecisionTable = struct2table(relaxedDecisionRows);
+end
 interpretationTable = aeSummarizeTruncationRecoveryClassification(classificationTable);
 
 writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_summary.csv'));
@@ -237,10 +256,12 @@ writetable(firstUnrecoveredBreakTable, fullfile(outputFolder, 'acoustoelastic_io
 writetable(thresholdSensitivitySummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_sensitivity_summary.csv'));
 writetable(thresholdRelaxedComparisonSummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_relaxed_comparison_summary.csv'));
 writetable(thresholdRelaxedQualitySummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_relaxed_quality_summary.csv'));
+writetable(thresholdRelaxedDecisionTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_relaxed_decision.csv'));
 save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_workspace.mat'), ...
     'caseAnalysisByName', 'summaryTable', 'classificationTable', 'interpretationTable', ...
     'firstUnrecoveredBreakTable', 'thresholdSensitivitySummaryTable', ...
-    'thresholdRelaxedComparisonSummaryTable', 'thresholdRelaxedQualitySummaryTable', 'cases', '-v7.3');
+    'thresholdRelaxedComparisonSummaryTable', 'thresholdRelaxedQualitySummaryTable', ...
+    'thresholdRelaxedDecisionTable', 'cases', '-v7.3');
 
 disp(summaryTable);
 if ~isempty(classificationTable)
@@ -258,6 +279,9 @@ end
 if ~isempty(thresholdRelaxedQualitySummaryTable)
     disp(thresholdRelaxedQualitySummaryTable(:, {'CaseName','RelaxedQualityClass','StrongMinimumPoints','AcceptableMinimumPoints','WeakOrCrowdedMinimumPoints','LowRankMinimumPoints'}));
 end
+if ~isempty(thresholdRelaxedDecisionTable)
+    disp(thresholdRelaxedDecisionTable(:, {'CaseName','DecisionClass','DecisionConfidence','AddedByRelaxedPoints','Extension_kHz'}));
+end
 if ~isempty(interpretationTable)
     disp(interpretationTable(:, {'CaseName','RecoveryClass','ReportingInterpretation','RecommendedNextStep'}));
 end
@@ -271,6 +295,7 @@ assignin('base', 'AcoustoelasticIOPHGOFirstUnrecoveredBreakSummary', firstUnreco
 assignin('base', 'AcoustoelasticIOPHGOThresholdSensitivitySummary', thresholdSensitivitySummaryTable);
 assignin('base', 'AcoustoelasticIOPHGOThresholdRelaxedComparisonSummary', thresholdRelaxedComparisonSummaryTable);
 assignin('base', 'AcoustoelasticIOPHGOThresholdRelaxedQualitySummary', thresholdRelaxedQualitySummaryTable);
+assignin('base', 'AcoustoelasticIOPHGOThresholdRelaxedDecision', thresholdRelaxedDecisionTable);
 
 function cases = makeCaseSpecs()
 baseResults = fullfile(pwd, 'Results');
