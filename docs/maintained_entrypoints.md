@@ -75,7 +75,7 @@ aeAnalyzeBranchPersistenceCandidates
 aeRefineAtlasA0BranchPersistence
 ```
 
-Recommended short example, sweep, diagnostic, and validation entrypoints:
+Recommended short example, sweep, diagnostic, comparison, and validation entrypoints:
 
 ```matlab
 run_atlas_branch
@@ -83,6 +83,7 @@ sweep_iop
 sweep_mu
 validate_idA0_score_grid
 validate_idA0_grid
+compare_branch_policies
 diagnose_branch_policy
 diagnose_sweep_reliability
 diagnose_truncation_cases
