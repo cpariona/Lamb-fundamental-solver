@@ -125,6 +125,7 @@ test_acoustoelastic_iop_hgo_branch_policy_aliases
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
 test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
+test_acoustoelastic_iop_hgo_short_entrypoints
 ```
 
 See `docs/acoustoelastic_iop_hgo_public_api.md` for the public API list. Naming guidance is documented in `docs/naming_strategy.md`, and the short acoustoelastic path convention is documented in `docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md`.
