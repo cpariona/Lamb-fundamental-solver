@@ -29,21 +29,31 @@ AcoustoelasticIOPHGOIdentityA0PhysicalPlausibilityAggregate
 
 `diagnose_identityA0_plausibility` is also available as a maintained wrapper. The longer descriptive script filename exceeds MATLAB's 63-character name limit and should not be called directly.
 
-Expected input:
+Preferred input:
 
-`Results/acoustoelastic_iop_hgo_identityA0_diagnostic_grid/acoustoelastic_iop_hgo_identityA0_diagnostic_grid_workspace.mat`
+```text
+Results/ae_iop_hgo/idA0_grid/idA0_grid_workspace.mat
+```
 
-During the naming/path migration, future outputs should move toward:
+Legacy fallback input:
 
-`Results/ae_iop_hgo/idA0_plausibility`
+```text
+Results/acoustoelastic_iop_hgo_identityA0_diagnostic_grid/acoustoelastic_iop_hgo_identityA0_diagnostic_grid_workspace.mat
+```
+
+Outputs are written under:
+
+```text
+Results/ae_iop_hgo/idA0_plausibility
+```
 
 ### Output files
 
 The script writes:
 
-- `acoustoelastic_iop_hgo_identityA0_physical_plausibility_summary.csv`
-- `acoustoelastic_iop_hgo_identityA0_physical_plausibility_aggregate.csv`
-- `acoustoelastic_iop_hgo_identityA0_physical_plausibility_workspace.mat`
+- `idA0_plausibility_summary.csv`
+- `idA0_plausibility_aggregate.csv`
+- `idA0_plausibility_workspace.mat`
 - plots under `plots/`
 
 Workspace variables:
