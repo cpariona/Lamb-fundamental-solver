@@ -93,6 +93,9 @@ diagnose_atlas_resolution
 diagnose_landscape_failure
 diagnose_idA0_score
 diagnose_idA0_plausibility
+diagnose_modal_atlas
+diagnose_modal_atlas_lowfreq
+track_raw_branch1
 ```
 
 Legacy descriptive scripts remain available for backward compatibility and implementation detail, but new user-facing commands should prefer the short entrypoints above.
