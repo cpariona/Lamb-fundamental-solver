@@ -3,12 +3,13 @@ launchFolder = pwd;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_ATLASA0_TRUNCATION_CAUSE
-% Diagnose likely root causes of atlasA0 high-frequency truncation.
+% Legacy descriptive implementation. Prefer the short entrypoint:
+%   diagnose_atlas_truncation
+%
+% New outputs are written to:
+%   Results/ae_iop_hgo/atlas_truncation
 
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_atlasA0_truncation_cause');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'atlas_truncation');
 
 cases = makeCaseSpecs(launchFolder);
 summaryRows = [];
@@ -46,9 +47,9 @@ for i = 1:numel(cases)
     row.TargetDisplayValue = spec.targetDisplayValue;
     summaryRows = [summaryRows; row]; %#ok<AGROW>
 
-    writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_truncation_cause_summary.csv"));
-    writetable(diagnosis.localCauseTable, fullfile(outputFolder, spec.filePrefix + "_local_cause_table.csv"));
-    writetable(diagnosis.atlasResolutionPlan, fullfile(outputFolder, spec.filePrefix + "_atlas_resolution_plan.csv"));
+    writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
+    writetable(diagnosis.localCauseTable, fullfile(outputFolder, spec.filePrefix + "_local_cause.csv"));
+    writetable(diagnosis.atlasResolutionPlan, fullfile(outputFolder, spec.filePrefix + "_resolution_plan.csv"));
 
     writeLandscapePlots(result, diagnosis, outputFolder, spec.filePrefix);
 end
@@ -59,8 +60,8 @@ else
     summaryTable = struct2table(summaryRows);
 end
 
-writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_atlasA0_truncation_cause_summary.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_atlasA0_truncation_cause_workspace.mat'), ...
+writetable(summaryTable, fullfile(outputFolder, 'atlas_truncation_summary.csv'));
+save(fullfile(outputFolder, 'atlas_truncation_workspace.mat'), ...
     'caseDiagnosisByName', 'summaryTable', 'cases', 'launchFolder', '-v7.3');
 
 disp(summaryTable);
@@ -71,12 +72,12 @@ assignin('base', 'AcoustoelasticIOPHGOAtlasA0TruncationCauseSummary', summaryTab
 assignin('base', 'AcoustoelasticIOPHGOAtlasA0TruncationCauseOutputFolder', outputFolder);
 
 function cases = makeCaseSpecs(launchFolder)
-baseResults = fullfile(launchFolder, 'Results');
 cases = struct([]);
 
 cases(1).caseName = "iop_20mmHg";
-cases(1).filePrefix = "acoustoelastic_iop_hgo_iop_20mmHg";
-cases(1).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
+cases(1).filePrefix = "iop_20mmHg";
+cases(1).workspacePath = aeResolveResultFile(launchFolder, 'iop_sweep', 'iop_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
 cases(1).sweepField = "IOP";
 cases(1).targetValue = 20 * 133.322;
 cases(1).targetDisplayValue = 20;
@@ -84,13 +85,14 @@ cases(1).valueTolerance = 1e-6;
 
 cases(2) = cases(1);
 cases(2).caseName = "iop_25mmHg";
-cases(2).filePrefix = "acoustoelastic_iop_hgo_iop_25mmHg";
+cases(2).filePrefix = "iop_25mmHg";
 cases(2).targetValue = 25 * 133.322;
 cases(2).targetDisplayValue = 25;
 
 cases(3).caseName = "mu_25kPa";
-cases(3).filePrefix = "acoustoelastic_iop_hgo_mu_25kPa";
-cases(3).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
+cases(3).filePrefix = "mu_25kPa";
+cases(3).workspacePath = aeResolveResultFile(launchFolder, 'mu_sweep', 'mu_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
 cases(3).sweepField = "mu";
 cases(3).targetValue = 25e3;
 cases(3).targetDisplayValue = 25;
@@ -132,7 +134,7 @@ if ismember('AcceptedPersistenceCandidate', T.Properties.VariableNames)
 end
 xlabel('Frequency [kHz]'); ylabel('Cp [m/s]'); grid on;
 title(strrep(filePrefix, '_', '\_'));
-saveas(fig, fullfile(plotFolder, filePrefix + "_cp_official_and_candidates.png"));
+saveas(fig, fullfile(plotFolder, filePrefix + "_cp_candidates.png"));
 close(fig);
 
 if isfield(result, 'minimaTable') && ~isempty(result.minimaTable)
@@ -145,7 +147,7 @@ if isfield(result, 'minimaTable') && ~isempty(result.minimaTable)
     xlabel('Frequency [kHz]'); ylabel('log10(y)'); grid on;
     title(strrep(filePrefix + " local minima cloud", '_', '\_'));
     colorbar;
-    saveas(fig, fullfile(plotFolder, filePrefix + "_local_minima_logy_cloud.png"));
+    saveas(fig, fullfile(plotFolder, filePrefix + "_minima_logy.png"));
     close(fig);
 end
 
@@ -154,7 +156,7 @@ if ~isempty(T)
     plot(T.Frequency_kHz, T.NearestMinimumRank, 'o-');
     xlabel('Frequency [kHz]'); ylabel('Nearest minimum rank'); grid on;
     title(strrep(filePrefix + " nearest rank near break", '_', '\_'));
-    saveas(fig, fullfile(plotFolder, filePrefix + "_nearest_rank_near_break.png"));
+    saveas(fig, fullfile(plotFolder, filePrefix + "_nearest_rank.png"));
     close(fig);
 end
 end
