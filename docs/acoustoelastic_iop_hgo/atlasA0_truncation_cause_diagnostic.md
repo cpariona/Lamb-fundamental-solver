@@ -14,9 +14,9 @@ The official branch policy remains:
 
 ### Result-location policy
 
-The diagnostic should be launched from the folder where generated outputs should be stored. For example, if MATLAB is currently in `E:\`, outputs are written under:
+The diagnostic should be launched from the folder where generated outputs should be stored. For example, if MATLAB is currently in `E:\`, outputs are written under short result folders such as:
 
-`E:\Results\acoustoelastic_iop_hgo_atlasA0_truncation_cause`
+`E:\Results\ae_iop_hgo\atlas_truncation`
 
 The repository only needs to be available through `startup`.
 
@@ -41,21 +41,31 @@ The diagnostic separates two different failure patterns:
 - `FirstInternalGap*`: first missing point between the first and last official valid points;
 - `FirstTerminalMissing*`: first missing point after the last official valid point.
 
-The dominant causal diagnosis is centered on `FirstTerminalMissing*`, because the target of this issue is high-frequency truncation rather than isolated internal gaps.
+The dominant causal diagnosis is centered on `FirstTerminalMissing*`, because the target is high-frequency truncation rather than isolated internal gaps.
 
 This distinction matters for `mu_25kPa`, where an internal gap appears before the last official valid point. The corrected diagnostic reports that internal gap separately and then analyzes the terminal break after the last official valid frequency.
 
 ### Runnable causal diagnostic script
 
-Run:
+Use the short entrypoint:
+
+`diagnose_atlas_truncation`
+
+Legacy descriptive implementation:
 
 `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause`
 
-The script loads the maintained IOP and shear-modulus sweep workspaces from the launch-folder `Results` tree and analyzes:
+The script loads the maintained IOP and shear-modulus sweep workspaces from the launch-folder `Results` tree. It checks short sweep paths first and then legacy sweep paths.
+
+It analyzes:
 
 - `iop_20mmHg`
 - `iop_25mmHg`
 - `mu_25kPa`
+
+Preferred output folder:
+
+`Results/ae_iop_hgo/atlas_truncation`
 
 ### Local cause labels
 
@@ -75,24 +85,30 @@ The dominant case label is selected from the missing-frequency rows in the local
 
 ### Output files for causal diagnostic
 
-The script writes:
+The short-path script writes:
 
-- per-case truncation-cause summary CSV files;
-- per-case local-cause tables;
-- per-case atlas-resolution sensitivity plans;
-- a combined summary table;
-- a workspace MAT file;
+- per-case summary CSV files: `<case>_summary.csv`
+- per-case local-cause tables: `<case>_local_cause.csv`
+- per-case atlas-resolution plans: `<case>_resolution_plan.csv`
+- combined summary table: `atlas_truncation_summary.csv`
+- workspace: `atlas_truncation_workspace.mat`
 - local landscape plots under the `plots` subfolder.
 
 ### Atlas-resolution sensitivity batch
 
-A second diagnostic script reruns the three target cases with controlled atlas settings:
+A second diagnostic script reruns the three target cases with controlled atlas settings.
+
+Use the short entrypoint:
+
+`diagnose_atlas_resolution`
+
+Legacy descriptive implementation:
 
 `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity`
 
 It writes outputs under:
 
-`E:\Results\acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity`
+`Results/ae_iop_hgo/atlas_resolution`
 
 The batch evaluates:
 
@@ -123,7 +139,11 @@ This batch is still diagnostic only. It does not change the official solver outp
 
 ### Focused failure-landscape diagnostic
 
-The focused landscape diagnostic is:
+Use the short entrypoint:
+
+`diagnose_landscape_failure`
+
+Legacy descriptive implementation:
 
 `diagnose_acoustoelastic_iop_hgo_failure_landscape`
 
@@ -136,7 +156,7 @@ The script scans `y = Cp / sqrt(alpha/rho)` and computes local minima of `object
 
 Outputs are written under:
 
-`E:\Results\acoustoelastic_iop_hgo_failure_landscape`
+`Results/ae_iop_hgo/landscape_failure`
 
 ### Validation snapshot after terminal-break correction
 
