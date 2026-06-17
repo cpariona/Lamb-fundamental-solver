@@ -1,23 +1,22 @@
 clear; clc; close all;
+launchFolder = pwd;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_SWEEP_RELIABILITY Analyze maintained sweep workspaces.
+% Legacy descriptive implementation. Prefer the short entrypoint:
+%   diagnose_sweep_reliability
 %
-% This diagnostic reports both strict monotonicity and effective monotonicity.
-% Effective monotonicity can ignore very-low-frequency points and use a physical
-% tolerance when the expected material sensitivity is below numerical/branching
-% resolution.
+% New outputs are written to:
+%   Results/ae_iop_hgo/sweep_reliability
 
-specs = makeWorkspaceSpecs();
-outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_sweep_reliability');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+specs = makeWorkspaceSpecs(launchFolder);
+outputFolder = aeOutputFolder(launchFolder, 'sweep_reliability');
 
 allOverallRows = [];
 analysisBySweep = struct();
 
 fprintf('\nAcoustoelastic IOP/HGO sweep reliability diagnostic\n');
+fprintf('Output folder:\n%s\n', outputFolder);
 
 for i = 1:numel(specs)
     spec = specs(i);
@@ -51,10 +50,10 @@ for i = 1:numel(specs)
     analysisBySweep.(key).strict = strictAnalysis;
     analysisBySweep.(key).effective = effectiveAnalysis;
 
-    writetable(strictAnalysis.truncationTable, fullfile(outputFolder, spec.filePrefix + "_truncation_table.csv"));
-    writetable(strictAnalysis.branchConsistencyTable, fullfile(outputFolder, spec.filePrefix + "_branch_consistency_table.csv"));
-    writetable(strictAnalysis.monotonicityTable, fullfile(outputFolder, spec.filePrefix + "_strict_monotonicity_table.csv"));
-    writetable(effectiveAnalysis.monotonicityTable, fullfile(outputFolder, spec.filePrefix + "_effective_monotonicity_table.csv"));
+    writetable(strictAnalysis.truncationTable, fullfile(outputFolder, spec.filePrefix + "_truncation.csv"));
+    writetable(strictAnalysis.branchConsistencyTable, fullfile(outputFolder, spec.filePrefix + "_branch_consistency.csv"));
+    writetable(strictAnalysis.monotonicityTable, fullfile(outputFolder, spec.filePrefix + "_strict_monotonicity.csv"));
+    writetable(effectiveAnalysis.monotonicityTable, fullfile(outputFolder, spec.filePrefix + "_effective_monotonicity.csv"));
 
     strictRow = strictAnalysis.overallSummary;
     strictRow.MetricType = "strict";
@@ -71,9 +70,9 @@ else
     overallTable = struct2table(allOverallRows);
 end
 
-writetable(overallTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_sweep_reliability_overall_summary.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_sweep_reliability_workspace.mat'), ...
-    'analysisBySweep', 'overallTable', 'specs', '-v7.3');
+writetable(overallTable, fullfile(outputFolder, 'sweep_reliability_overall.csv'));
+save(fullfile(outputFolder, 'sweep_reliability_workspace.mat'), ...
+    'analysisBySweep', 'overallTable', 'specs', 'launchFolder', '-v7.3');
 
 disp(overallTable);
 fprintf('\nReliability diagnostic files written to:\n%s\n', outputFolder);
@@ -81,14 +80,14 @@ fprintf('\nReliability diagnostic files written to:\n%s\n', outputFolder);
 assignin('base', 'AcoustoelasticIOPHGOSweepReliabilityAnalysis', analysisBySweep);
 assignin('base', 'AcoustoelasticIOPHGOSweepReliabilityOverallTable', overallTable);
 
-function specs = makeWorkspaceSpecs()
-baseResults = fullfile(pwd, 'Results');
+function specs = makeWorkspaceSpecs(launchFolder)
 specs = struct([]);
 
 specs(1).label = "iop_sweep";
-specs(1).filePrefix = "acoustoelastic_iop_hgo_iop_sweep";
+specs(1).filePrefix = "iop_sweep";
 specs(1).expectedDirection = "increasing";
-specs(1).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
+specs(1).workspacePath = aeResolveResultFile(launchFolder, 'iop_sweep', 'iop_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
 specs(1).xLabel = "IOP [mmHg]";
 specs(1).strictTolerance = 1e-9;
 specs(1).strictMinFrequency_kHz = -inf;
@@ -96,9 +95,10 @@ specs(1).effectiveTolerance = 1e-9;
 specs(1).effectiveMinFrequency_kHz = -inf;
 
 specs(2).label = "mu_sweep";
-specs(2).filePrefix = "acoustoelastic_iop_hgo_mu_sweep";
+specs(2).filePrefix = "mu_sweep";
 specs(2).expectedDirection = "increasing";
-specs(2).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
+specs(2).workspacePath = aeResolveResultFile(launchFolder, 'mu_sweep', 'mu_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
 specs(2).xLabel = "mu [kPa]";
 specs(2).strictTolerance = 1e-9;
 specs(2).strictMinFrequency_kHz = -inf;
