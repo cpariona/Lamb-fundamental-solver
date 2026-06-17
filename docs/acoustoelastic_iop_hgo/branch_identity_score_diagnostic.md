@@ -35,6 +35,12 @@ This is important because the production atlas may retain only `atlasTopNMinima 
 
 ### Runnable script
 
+Use the short entrypoint:
+
+`diagnose_idA0_score`
+
+Legacy descriptive implementation:
+
 `diagnose_acoustoelastic_iop_hgo_branch_identity_score`
 
 The script analyzes:
@@ -42,7 +48,11 @@ The script analyzes:
 - `iop_25mmHg`
 - `mu_25kPa`
 
-and writes outputs under:
+Preferred output folder:
+
+`Results/ae_iop_hgo/idA0_score`
+
+Legacy output folder from earlier runs may still exist under:
 
 `Results/acoustoelastic_iop_hgo_branch_identity_score`
 
@@ -72,16 +82,16 @@ These classes are not production branch labels. They are evidence for later trac
 
 ### Output tables
 
-The script writes:
+The short-path script writes:
 
-- `*_branch_identity_candidate_table.csv`
-- `*_branch_identity_summary.csv`
-- `acoustoelastic_iop_hgo_branch_identity_score_summary.csv`
-- `acoustoelastic_iop_hgo_branch_identity_score_workspace.mat`
+- `<case>_candidates.csv`
+- `<case>_summary.csv`
+- `idA0_score_summary.csv`
+- `idA0_score_workspace.mat`
 
 It also writes plots under:
 
-`Results/acoustoelastic_iop_hgo_branch_identity_score/plots`
+`Results/ae_iop_hgo/idA0_score/plots`
 
 ### Validation command
 
@@ -90,8 +100,7 @@ Run from the desired output root, for example `E:\`:
 ```matlab
 cd('E:\')
 startup
-run_all_smoke_tests
-diagnose_acoustoelastic_iop_hgo_branch_identity_score
+diagnose_idA0_score
 AcoustoelasticIOPHGOBranchIdentityScoreSummary
 ```
 
