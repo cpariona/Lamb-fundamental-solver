@@ -3,12 +3,13 @@ launchFolder = pwd;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_ATLASA0_RESOLUTION_SENSITIVITY
-% Rerun selected cases with controlled atlas resolution settings.
+% Legacy descriptive implementation. Prefer the short entrypoint:
+%   diagnose_atlas_resolution
+%
+% New outputs are written to:
+%   Results/ae_iop_hgo/atlas_resolution
 
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'atlas_resolution');
 
 cases = makeCaseSpecs(launchFolder);
 atlasNumYPointsValues = [1000 1500 2000 3000];
@@ -54,7 +55,7 @@ for c = 1:numel(cases)
     end
 
     caseTable = struct2table(caseRows);
-    writetable(caseTable, fullfile(outputFolder, spec.filePrefix + "_resolution_sensitivity.csv"));
+    writetable(caseTable, fullfile(outputFolder, spec.filePrefix + "_resolution.csv"));
     resultByCase.(matlab.lang.makeValidName(spec.caseName)) = caseTable;
 end
 
@@ -64,8 +65,8 @@ else
     summaryTable = struct2table(summaryRows);
 end
 
-writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity_summary.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity_workspace.mat'), ...
+writetable(summaryTable, fullfile(outputFolder, 'atlas_resolution_summary.csv'));
+save(fullfile(outputFolder, 'atlas_resolution_workspace.mat'), ...
     'summaryTable', 'resultByCase', 'cases', 'atlasNumYPointsValues', 'atlasTopNMinimaValues', 'launchFolder', '-v7.3');
 
 disp(summaryTable);
@@ -76,25 +77,26 @@ assignin('base', 'AcoustoelasticIOPHGOAtlasA0ResolutionSensitivityByCase', resul
 assignin('base', 'AcoustoelasticIOPHGOAtlasA0ResolutionSensitivityOutputFolder', outputFolder);
 
 function cases = makeCaseSpecs(launchFolder)
-baseResults = fullfile(launchFolder, 'Results');
 cases = struct([]);
 
 cases(1).caseName = "iop_20mmHg";
-cases(1).filePrefix = "acoustoelastic_iop_hgo_iop_20mmHg";
-cases(1).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
+cases(1).filePrefix = "iop_20mmHg";
+cases(1).workspacePath = aeResolveResultFile(launchFolder, 'iop_sweep', 'iop_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
 cases(1).sweepField = "IOP";
 cases(1).targetValue = 20 * 133.322;
 cases(1).targetDisplayValue = 20;
 
 cases(2) = cases(1);
 cases(2).caseName = "iop_25mmHg";
-cases(2).filePrefix = "acoustoelastic_iop_hgo_iop_25mmHg";
+cases(2).filePrefix = "iop_25mmHg";
 cases(2).targetValue = 25 * 133.322;
 cases(2).targetDisplayValue = 25;
 
 cases(3).caseName = "mu_25kPa";
-cases(3).filePrefix = "acoustoelastic_iop_hgo_mu_25kPa";
-cases(3).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
+cases(3).filePrefix = "mu_25kPa";
+cases(3).workspacePath = aeResolveResultFile(launchFolder, 'mu_sweep', 'mu_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
 cases(3).sweepField = "mu";
 cases(3).targetValue = 25e3;
 cases(3).targetDisplayValue = 25;
