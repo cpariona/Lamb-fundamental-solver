@@ -1,11 +1,13 @@
 clear; clc; close all;
+launchFolder = pwd;
 startup
 
 %COMPARE_ACOUSTOELASTIC_IOP_HGO_BRANCH_POLICIES Compare current atlas policy against legacy tracking.
+% Legacy descriptive implementation. Prefer the short entrypoint:
+%   compare_branch_policies
 %
-% This is a diagnostic script, not a final sweep. It compares the maintained
-% atlas-branch path against the earlier backward globalScan strategy so the
-% current policy can be evaluated before treating sweep outputs as final.
+% New outputs are written to:
+%   Results/ae_iop_hgo/branch_policy_compare
 
 baseParams = struct();
 baseParams.R = 7.8e-3;                  % m
@@ -46,16 +48,13 @@ end
 
 disp(comparisonTable);
 
-outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_branch_policy_comparison');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'branch_policy_compare');
 
-writetable(comparisonTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_policy_comparison_summary.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_policy_comparison_workspace.mat'), ...
-    'baseParams', 'policyList', 'resultByPolicy', 'comparisonTable', '-v7.3');
+writetable(comparisonTable, fullfile(outputFolder, 'branch_policy_compare_summary.csv'));
+save(fullfile(outputFolder, 'branch_policy_compare_workspace.mat'), ...
+    'baseParams', 'policyList', 'resultByPolicy', 'comparisonTable', 'launchFolder', '-v7.3');
 
-plotPolicyComparison(baseParams.frequency, resultByPolicy, policyList);
+plotPolicyComparison(baseParams.frequency, resultByPolicy, policyList, outputFolder);
 
 fprintf('\nData files written to:\n%s\n', outputFolder);
 assignin('base', 'AcoustoelasticIOPHGOBranchPolicyComparison', resultByPolicy);
@@ -140,7 +139,7 @@ else
 end
 end
 
-function plotPolicyComparison(frequency, resultByPolicy, policyList)
+function plotPolicyComparison(frequency, resultByPolicy, policyList, outputFolder)
 figure('Color', 'w', 'Name', 'Acoustoelastic IOP/HGO branch policy comparison');
 hold on; grid on;
 for i = 1:numel(policyList)
@@ -160,6 +159,8 @@ ylabel('Cp [m/s]');
 title('Acoustoelastic IOP/HGO branch-policy diagnostic');
 legend('Location', 'best');
 hold off;
+saveas(gcf, fullfile(outputFolder, 'branch_policy_compare.png'));
+saveas(gcf, fullfile(outputFolder, 'branch_policy_compare.fig'));
 end
 
 function value = getStructField(s, fieldName, defaultValue)
