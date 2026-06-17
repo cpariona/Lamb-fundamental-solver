@@ -3,15 +3,14 @@ launchFolder = pwd;
 startup
 
 %VALIDATE_ACOUSTOELASTIC_IOP_HGO_BRANCH_IDENTITY_SCORE_GRID
-% Validate branch-identity scoring over a moderate parameter grid.
+% Legacy descriptive implementation for branch-identity score grid validation.
+% Prefer the short entrypoint:
+%   validate_idA0_score_grid
 %
-% This script is diagnostic only. It does not change atlasA0 or promote any
-% candidate to official Cp output.
+% New outputs are written to:
+%   Results/ae_iop_hgo/idA0_score_grid
 
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_branch_identity_score_grid');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'idA0_score_grid');
 
 baseParams = makeBaseParams();
 baseOptions = makeBaseOptions();
@@ -59,10 +58,10 @@ else
 end
 aggregateTable = buildAggregateTable(summaryTable);
 
-writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_identity_score_grid_summary.csv'));
-writetable(bestCandidateTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_identity_score_grid_best_candidates.csv'));
-writetable(aggregateTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_identity_score_grid_aggregate.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_identity_score_grid_workspace.mat'), ...
+writetable(summaryTable, fullfile(outputFolder, 'idA0_score_grid_summary.csv'));
+writetable(bestCandidateTable, fullfile(outputFolder, 'idA0_score_grid_best_candidates.csv'));
+writetable(aggregateTable, fullfile(outputFolder, 'idA0_score_grid_aggregate.csv'));
+save(fullfile(outputFolder, 'idA0_score_grid_workspace.mat'), ...
     'summaryTable', 'bestCandidateTable', 'aggregateTable', 'scoreByCase', 'grid', 'baseParams', 'baseOptions', 'launchFolder', '-v7.3');
 
 fprintf('\nAggregate summary\n');
