@@ -3,12 +3,13 @@ launchFolder = pwd;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_BRANCH_IDENTITY_SCORE
-% Score local minima near atlasA0 terminal failures using a soft branch-identity prior.
+% Legacy descriptive implementation. Prefer the short entrypoint:
+%   diagnose_idA0_score
+%
+% New outputs are written to:
+%   Results/ae_iop_hgo/idA0_score
 
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_branch_identity_score');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'idA0_score');
 plotFolder = fullfile(outputFolder, 'plots');
 if ~exist(plotFolder, 'dir')
     mkdir(plotFolder);
@@ -41,8 +42,8 @@ for c = 1:numel(cases)
     score = aeScoreBranchIdentityCandidates(result, 'Label', spec.caseName);
     scoreByCase.(matlab.lang.makeValidName(spec.caseName)) = score;
 
-    writetable(score.candidateTable, fullfile(outputFolder, spec.filePrefix + "_branch_identity_candidate_table.csv"));
-    writetable(struct2table(score.summary), fullfile(outputFolder, spec.filePrefix + "_branch_identity_summary.csv"));
+    writetable(score.candidateTable, fullfile(outputFolder, spec.filePrefix + "_candidates.csv"));
+    writetable(struct2table(score.summary), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
     plotScoreDiagnostics(score, plotFolder, spec.filePrefix);
 
     row = score.summary;
@@ -58,8 +59,8 @@ else
     summaryTable = struct2table(summaryRows);
 end
 
-writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_identity_score_summary.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_identity_score_workspace.mat'), ...
+writetable(summaryTable, fullfile(outputFolder, 'idA0_score_summary.csv'));
+save(fullfile(outputFolder, 'idA0_score_workspace.mat'), ...
     'summaryTable', 'scoreByCase', 'cases', 'launchFolder', '-v7.3');
 
 disp(summaryTable);
@@ -70,20 +71,21 @@ assignin('base', 'AcoustoelasticIOPHGOBranchIdentityScoreByCase', scoreByCase);
 assignin('base', 'AcoustoelasticIOPHGOBranchIdentityScoreOutputFolder', outputFolder);
 
 function cases = makeCaseSpecs(launchFolder)
-baseResults = fullfile(launchFolder, 'Results');
 cases = struct([]);
 
 cases(1).caseName = "iop_25mmHg";
-cases(1).filePrefix = "acoustoelastic_iop_hgo_iop_25mmHg";
-cases(1).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
+cases(1).filePrefix = "iop_25mmHg";
+cases(1).workspacePath = aeResolveResultFile(launchFolder, 'iop_sweep', 'iop_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
 cases(1).sweepField = "IOP";
 cases(1).targetValue = 25 * 133.322;
 cases(1).targetDisplayValue = 25;
 cases(1).valueTolerance = 1e-6;
 
 cases(2).caseName = "mu_25kPa";
-cases(2).filePrefix = "acoustoelastic_iop_hgo_mu_25kPa";
-cases(2).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
+cases(2).filePrefix = "mu_25kPa";
+cases(2).workspacePath = aeResolveResultFile(launchFolder, 'mu_sweep', 'mu_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
 cases(2).sweepField = "mu";
 cases(2).targetValue = 25e3;
 cases(2).targetDisplayValue = 25;
