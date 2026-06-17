@@ -3,14 +3,13 @@ launchFolder = pwd;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_BRANCH_PERSISTENCE_REFINEMENT
-% Inspect diagnostic A0 branch-persistence continuation after atlasA0 truncation.
-% Results are written under fullfile(launchFolder, 'Results', ...), where
-% launchFolder is the folder from which this script was started.
+% Legacy descriptive implementation. Prefer the short entrypoint:
+%   diagnose_branch_persistence
+%
+% New outputs are written to:
+%   Results/ae_iop_hgo/branch_persistence
 
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_branch_persistence_refinement');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'branch_persistence');
 
 cases = makeCaseSpecs(launchFolder);
 summaryRows = [];
@@ -56,11 +55,11 @@ for i = 1:numel(cases)
     row.TargetDisplayValue = spec.targetDisplayValue;
     summaryRows = [summaryRows; row]; %#ok<AGROW>
 
-    writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_branch_persistence_summary.csv"));
+    writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
 
     if ~isempty(refinement.analysis.candidateTable)
         writetable(refinement.analysis.candidateTable, ...
-            fullfile(outputFolder, spec.filePrefix + "_branch_persistence_candidates.csv"));
+            fullfile(outputFolder, spec.filePrefix + "_candidates.csv"));
     end
 end
 
@@ -70,10 +69,9 @@ else
     summaryTable = struct2table(summaryRows);
 end
 
-writetable(summaryTable, ...
-    fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_persistence_refinement_summary.csv'));
+writetable(summaryTable, fullfile(outputFolder, 'branch_persistence_summary.csv'));
 
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_branch_persistence_refinement_workspace.mat'), ...
+save(fullfile(outputFolder, 'branch_persistence_workspace.mat'), ...
     'caseRefinementByName', 'summaryTable', 'cases', 'launchFolder', '-v7.3');
 
 disp(summaryTable);
@@ -84,12 +82,12 @@ assignin('base', 'AcoustoelasticIOPHGOBranchPersistenceRefinementSummary', summa
 assignin('base', 'AcoustoelasticIOPHGOBranchPersistenceRefinementOutputFolder', outputFolder);
 
 function cases = makeCaseSpecs(launchFolder)
-baseResults = fullfile(launchFolder, 'Results');
 cases = struct([]);
 
 cases(1).caseName = "iop_20mmHg";
-cases(1).filePrefix = "acoustoelastic_iop_hgo_iop_20mmHg";
-cases(1).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
+cases(1).filePrefix = "iop_20mmHg";
+cases(1).workspacePath = aeResolveResultFile(launchFolder, 'iop_sweep', 'iop_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
 cases(1).sweepField = "IOP";
 cases(1).targetValue = 20 * 133.322;
 cases(1).targetDisplayValue = 20;
@@ -103,13 +101,14 @@ cases(1).strongCandidateRank = 3;
 
 cases(2) = cases(1);
 cases(2).caseName = "iop_25mmHg";
-cases(2).filePrefix = "acoustoelastic_iop_hgo_iop_25mmHg";
+cases(2).filePrefix = "iop_25mmHg";
 cases(2).targetValue = 25 * 133.322;
 cases(2).targetDisplayValue = 25;
 
 cases(3).caseName = "mu_25kPa";
-cases(3).filePrefix = "acoustoelastic_iop_hgo_mu_25kPa";
-cases(3).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
+cases(3).filePrefix = "mu_25kPa";
+cases(3).workspacePath = aeResolveResultFile(launchFolder, 'mu_sweep', 'mu_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
 cases(3).sweepField = "mu";
 cases(3).targetValue = 25e3;
 cases(3).targetDisplayValue = 25;
