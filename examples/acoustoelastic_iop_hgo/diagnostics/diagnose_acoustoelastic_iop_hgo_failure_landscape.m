@@ -3,12 +3,13 @@ launchFolder = pwd;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_FAILURE_LANDSCAPE
-% Focused objective-landscape diagnostic near atlasA0 terminal failures.
+% Legacy descriptive implementation. Prefer the short entrypoint:
+%   diagnose_landscape_failure
+%
+% New outputs are written to:
+%   Results/ae_iop_hgo/landscape_failure
 
-outputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_failure_landscape');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'landscape_failure');
 plotFolder = fullfile(outputFolder, 'plots');
 if ~exist(plotFolder, 'dir')
     mkdir(plotFolder);
@@ -45,9 +46,9 @@ for c = 1:numel(cases)
     landscape = analyzeCaseLandscape(params, result, diagnosis, yGrid, windowOffsets, spec.caseName);
     caseLandscapeByName.(matlab.lang.makeValidName(spec.caseName)) = landscape;
 
-    writetable(landscape.frequencyTable, fullfile(outputFolder, spec.filePrefix + "_failure_landscape_frequency_table.csv"));
-    writetable(landscape.minimaTable, fullfile(outputFolder, spec.filePrefix + "_failure_landscape_minima_table.csv"));
-    writetable(struct2table(landscape.summary), fullfile(outputFolder, spec.filePrefix + "_failure_landscape_summary.csv"));
+    writetable(landscape.frequencyTable, fullfile(outputFolder, spec.filePrefix + "_frequency.csv"));
+    writetable(landscape.minimaTable, fullfile(outputFolder, spec.filePrefix + "_minima.csv"));
+    writetable(struct2table(landscape.summary), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
     plotCaseLandscape(landscape, plotFolder, spec.filePrefix);
 
     row = landscape.summary;
@@ -63,8 +64,8 @@ else
     summaryTable = struct2table(summaryRows);
 end
 
-writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_failure_landscape_summary.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_failure_landscape_workspace.mat'), ...
+writetable(summaryTable, fullfile(outputFolder, 'landscape_failure_summary.csv'));
+save(fullfile(outputFolder, 'landscape_failure_workspace.mat'), ...
     'summaryTable', 'caseLandscapeByName', 'cases', 'yGrid', 'windowOffsets', 'launchFolder', '-v7.3');
 
 disp(summaryTable);
@@ -75,20 +76,21 @@ assignin('base', 'AcoustoelasticIOPHGOFailureLandscapeByCase', caseLandscapeByNa
 assignin('base', 'AcoustoelasticIOPHGOFailureLandscapeOutputFolder', outputFolder);
 
 function cases = makeCaseSpecs(launchFolder)
-baseResults = fullfile(launchFolder, 'Results');
 cases = struct([]);
 
 cases(1).caseName = "iop_25mmHg";
-cases(1).filePrefix = "acoustoelastic_iop_hgo_iop_25mmHg";
-cases(1).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
+cases(1).filePrefix = "iop_25mmHg";
+cases(1).workspacePath = aeResolveResultFile(launchFolder, 'iop_sweep', 'iop_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
 cases(1).sweepField = "IOP";
 cases(1).targetValue = 25 * 133.322;
 cases(1).targetDisplayValue = 25;
 cases(1).valueTolerance = 1e-6;
 
 cases(2).caseName = "mu_25kPa";
-cases(2).filePrefix = "acoustoelastic_iop_hgo_mu_25kPa";
-cases(2).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
+cases(2).filePrefix = "mu_25kPa";
+cases(2).workspacePath = aeResolveResultFile(launchFolder, 'mu_sweep', 'mu_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
 cases(2).sweepField = "mu";
 cases(2).targetValue = 25e3;
 cases(2).targetDisplayValue = 25;
