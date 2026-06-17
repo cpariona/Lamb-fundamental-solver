@@ -14,20 +14,32 @@ The official branch policy remains:
 
 ### Runnable script
 
-`validate_acoustoelastic_iop_hgo_branch_identity_score_grid`
-
-Run from the desired output root, for example:
+Use the short entrypoint:
 
 ```matlab
 cd('E:\')
 startup
-validate_acoustoelastic_iop_hgo_branch_identity_score_grid
+validate_idA0_score_grid
 AcoustoelasticIOPHGOBranchIdentityScoreGridAggregate
+```
+
+The legacy descriptive implementation remains available:
+
+```matlab
+validate_acoustoelastic_iop_hgo_branch_identity_score_grid
 ```
 
 The script writes outputs under:
 
-`Results/acoustoelastic_iop_hgo_branch_identity_score_grid`
+```text
+Results/ae_iop_hgo/idA0_score_grid
+```
+
+Legacy output folders from earlier runs may still exist under:
+
+```text
+Results/acoustoelastic_iop_hgo_branch_identity_score_grid
+```
 
 ### Grid definition
 
@@ -72,12 +84,12 @@ The branch-identity score then analyzes the resulting official solver output and
 
 ### Output tables
 
-The script writes:
+The short-path script writes:
 
-- `acoustoelastic_iop_hgo_branch_identity_score_grid_summary.csv`
-- `acoustoelastic_iop_hgo_branch_identity_score_grid_best_candidates.csv`
-- `acoustoelastic_iop_hgo_branch_identity_score_grid_aggregate.csv`
-- `acoustoelastic_iop_hgo_branch_identity_score_grid_workspace.mat`
+- `idA0_score_grid_summary.csv`
+- `idA0_score_grid_best_candidates.csv`
+- `idA0_score_grid_aggregate.csv`
+- `idA0_score_grid_workspace.mat`
 
 Workspace variables:
 
