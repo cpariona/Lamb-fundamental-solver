@@ -56,6 +56,7 @@ Diagnostics and validations:
 ```matlab
 validate_idA0_score_grid
 validate_idA0_grid
+compare_branch_policies
 diagnose_branch_policy
 diagnose_sweep_reliability
 diagnose_truncation_cases
@@ -65,6 +66,9 @@ diagnose_atlas_resolution
 diagnose_landscape_failure
 diagnose_idA0_score
 diagnose_idA0_plausibility
+diagnose_modal_atlas
+diagnose_modal_atlas_lowfreq
+track_raw_branch1
 ```
 
 instead of repeating the full model name in every script filename.
@@ -82,9 +86,22 @@ Results/ae_iop_hgo/<task>
 Examples:
 
 ```text
+Results/ae_iop_hgo/iop_sweep
+Results/ae_iop_hgo/mu_sweep
 Results/ae_iop_hgo/idA0_score_grid
 Results/ae_iop_hgo/idA0_grid
 Results/ae_iop_hgo/idA0_plausibility
+Results/ae_iop_hgo/branch_policy_compare
+Results/ae_iop_hgo/sweep_reliability
+Results/ae_iop_hgo/truncation_cases
+Results/ae_iop_hgo/branch_persistence
+Results/ae_iop_hgo/atlas_truncation
+Results/ae_iop_hgo/atlas_resolution
+Results/ae_iop_hgo/landscape_failure
+Results/ae_iop_hgo/idA0_score
+Results/ae_iop_hgo/modal_atlas
+Results/ae_iop_hgo/modal_atlas_lowfreq
+Results/ae_iop_hgo/raw_branch1
 ```
 
 Legacy folders remain valid and should not be deleted automatically:
@@ -144,6 +161,7 @@ sweep_iop
 sweep_mu
 validate_idA0_score_grid
 validate_idA0_grid
+compare_branch_policies
 diagnose_branch_policy
 diagnose_sweep_reliability
 diagnose_truncation_cases
@@ -153,6 +171,9 @@ diagnose_atlas_resolution
 diagnose_landscape_failure
 diagnose_idA0_score
 diagnose_idA0_plausibility
+diagnose_modal_atlas
+diagnose_modal_atlas_lowfreq
+track_raw_branch1
 ```
 
 instead of the longer descriptive script names.
