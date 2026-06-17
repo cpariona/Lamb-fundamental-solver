@@ -1,19 +1,17 @@
 clear; clc; close all;
+launchFolder = pwd;
 startup
 
 %DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_TRUNCATION_CASES Inspect atlasA0 truncation cases.
+% Legacy descriptive implementation. Prefer the short entrypoint:
+%   diagnose_truncation_cases
 %
-% This diagnostic focuses on conditions where the maintained atlasA0 branch
-% becomes untraceable. It reports the conservative atlasA0 truncation and an
-% optional diagnostic recovery assessment based on local minima and short-gap
-% continuity. Recovery outputs are diagnostic only; they do not replace atlasA0.
+% New outputs are written to:
+%   Results/ae_iop_hgo/truncation_cases
 
-outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_truncation_cases');
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = aeOutputFolder(launchFolder, 'truncation_cases');
 
-cases = makeCaseSpecs();
+cases = makeCaseSpecs(launchFolder);
 allSummaryRows = [];
 classificationRows = [];
 breakRows = [];
@@ -187,20 +185,20 @@ for i = 1:numel(cases)
     end
 
     writetable(struct2table(row), fullfile(outputFolder, spec.filePrefix + "_summary.csv"));
-    writetable(struct2table(classification), fullfile(outputFolder, spec.filePrefix + "_recovery_classification.csv"));
-    writetable(struct2table(firstBreak.summary), fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_summary.csv"));
-    writetable(struct2table(thresholdSensitivity.summary), fullfile(outputFolder, spec.filePrefix + "_threshold_sensitivity_summary.csv"));
+    writetable(struct2table(classification), fullfile(outputFolder, spec.filePrefix + "_classification.csv"));
+    writetable(struct2table(firstBreak.summary), fullfile(outputFolder, spec.filePrefix + "_first_break.csv"));
+    writetable(struct2table(thresholdSensitivity.summary), fullfile(outputFolder, spec.filePrefix + "_threshold_summary.csv"));
     writetable(sensitivityTable, fullfile(outputFolder, spec.filePrefix + "_threshold_sensitivity.csv"));
-    writetable(struct2table(thresholdRelaxedComparison.summary), fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_comparison_summary.csv"));
-    writetable(relaxedComparisonTable, fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_comparison.csv"));
-    writetable(struct2table(thresholdRelaxedQuality.summary), fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_quality_summary.csv"));
-    writetable(relaxedQualityTable, fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_quality.csv"));
-    writetable(struct2table(thresholdRelaxedDecision), fullfile(outputFolder, spec.filePrefix + "_threshold_relaxed_decision.csv"));
-    writetable(caseAnalysis.neighborhoodTable, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.csv"));
-    writetable(recovery.recoveryTable, fullfile(outputFolder, spec.filePrefix + "_recovery_table.csv"));
-    writetable(firstBreak.localWindowTable, fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_window.csv"));
+    writetable(struct2table(thresholdRelaxedComparison.summary), fullfile(outputFolder, spec.filePrefix + "_relaxed_summary.csv"));
+    writetable(relaxedComparisonTable, fullfile(outputFolder, spec.filePrefix + "_relaxed_comparison.csv"));
+    writetable(struct2table(thresholdRelaxedQuality.summary), fullfile(outputFolder, spec.filePrefix + "_relaxed_quality_summary.csv"));
+    writetable(relaxedQualityTable, fullfile(outputFolder, spec.filePrefix + "_relaxed_quality.csv"));
+    writetable(struct2table(thresholdRelaxedDecision), fullfile(outputFolder, spec.filePrefix + "_relaxed_decision.csv"));
+    writetable(caseAnalysis.neighborhoodTable, fullfile(outputFolder, spec.filePrefix + "_neighborhood.csv"));
+    writetable(recovery.recoveryTable, fullfile(outputFolder, spec.filePrefix + "_recovery.csv"));
+    writetable(firstBreak.localWindowTable, fullfile(outputFolder, spec.filePrefix + "_first_break_window.csv"));
     if ~isempty(firstBreak.breakMinimaTable)
-        writetable(firstBreak.breakMinimaTable, fullfile(outputFolder, spec.filePrefix + "_first_unrecovered_break_minima.csv"));
+        writetable(firstBreak.breakMinimaTable, fullfile(outputFolder, spec.filePrefix + "_first_break_minima.csv"));
     end
     if ~isempty(caseAnalysis.firstMissingMinimaTable)
         writetable(caseAnalysis.firstMissingMinimaTable, fullfile(outputFolder, spec.filePrefix + "_first_missing_minima.csv"));
@@ -249,19 +247,19 @@ else
 end
 interpretationTable = aeSummarizeTruncationRecoveryClassification(classificationTable);
 
-writetable(summaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_summary.csv'));
-writetable(classificationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_recovery_classification.csv'));
-writetable(interpretationTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_recovery_interpretation.csv'));
-writetable(firstUnrecoveredBreakTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_first_unrecovered_break_summary.csv'));
-writetable(thresholdSensitivitySummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_sensitivity_summary.csv'));
-writetable(thresholdRelaxedComparisonSummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_relaxed_comparison_summary.csv'));
-writetable(thresholdRelaxedQualitySummaryTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_relaxed_quality_summary.csv'));
-writetable(thresholdRelaxedDecisionTable, fullfile(outputFolder, 'acoustoelastic_iop_hgo_threshold_relaxed_decision.csv'));
-save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_truncation_cases_workspace.mat'), ...
+writetable(summaryTable, fullfile(outputFolder, 'truncation_cases_summary.csv'));
+writetable(classificationTable, fullfile(outputFolder, 'truncation_classification.csv'));
+writetable(interpretationTable, fullfile(outputFolder, 'truncation_interpretation.csv'));
+writetable(firstUnrecoveredBreakTable, fullfile(outputFolder, 'first_break_summary.csv'));
+writetable(thresholdSensitivitySummaryTable, fullfile(outputFolder, 'threshold_sensitivity_summary.csv'));
+writetable(thresholdRelaxedComparisonSummaryTable, fullfile(outputFolder, 'relaxed_comparison_summary.csv'));
+writetable(thresholdRelaxedQualitySummaryTable, fullfile(outputFolder, 'relaxed_quality_summary.csv'));
+writetable(thresholdRelaxedDecisionTable, fullfile(outputFolder, 'relaxed_decision.csv'));
+save(fullfile(outputFolder, 'truncation_cases_workspace.mat'), ...
     'caseAnalysisByName', 'summaryTable', 'classificationTable', 'interpretationTable', ...
     'firstUnrecoveredBreakTable', 'thresholdSensitivitySummaryTable', ...
     'thresholdRelaxedComparisonSummaryTable', 'thresholdRelaxedQualitySummaryTable', ...
-    'thresholdRelaxedDecisionTable', 'cases', '-v7.3');
+    'thresholdRelaxedDecisionTable', 'cases', 'launchFolder', '-v7.3');
 
 disp(summaryTable);
 if ~isempty(classificationTable)
@@ -297,13 +295,13 @@ assignin('base', 'AcoustoelasticIOPHGOThresholdRelaxedComparisonSummary', thresh
 assignin('base', 'AcoustoelasticIOPHGOThresholdRelaxedQualitySummary', thresholdRelaxedQualitySummaryTable);
 assignin('base', 'AcoustoelasticIOPHGOThresholdRelaxedDecision', thresholdRelaxedDecisionTable);
 
-function cases = makeCaseSpecs()
-baseResults = fullfile(pwd, 'Results');
+function cases = makeCaseSpecs(launchFolder)
 cases = struct([]);
 
 cases(1).caseName = "iop_20mmHg";
-cases(1).filePrefix = "acoustoelastic_iop_hgo_iop_20mmHg";
-cases(1).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
+cases(1).filePrefix = "iop_20mmHg";
+cases(1).workspacePath = aeResolveResultFile(launchFolder, 'iop_sweep', 'iop_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_iop_sweep', 'acoustoelastic_iop_hgo_iop_sweep_workspace.mat');
 cases(1).sweepField = "IOP";
 cases(1).targetValue = 20 * 133.322;
 cases(1).targetDisplayValue = 20;
@@ -315,23 +313,16 @@ cases(1).maxGapPoints = 2;
 cases(1).maxGapFrequencyRatio = 1.12;
 cases(1).relativeCpDistanceSensitivityValues = [0.08 0.10 0.12 0.15];
 
+cases(2) = cases(1);
 cases(2).caseName = "iop_25mmHg";
-cases(2).filePrefix = "acoustoelastic_iop_hgo_iop_25mmHg";
-cases(2).workspacePath = cases(1).workspacePath;
-cases(2).sweepField = "IOP";
+cases(2).filePrefix = "iop_25mmHg";
 cases(2).targetValue = 25 * 133.322;
 cases(2).targetDisplayValue = 25;
-cases(2).valueTolerance = 1e-6;
-cases(2).xUnit = "mmHg";
-cases(2).maxRelativeCpDistance = 0.08;
-cases(2).maxRelativeBridgeMismatch = 0.03;
-cases(2).maxGapPoints = 2;
-cases(2).maxGapFrequencyRatio = 1.12;
-cases(2).relativeCpDistanceSensitivityValues = [0.08 0.10 0.12 0.15];
 
 cases(3).caseName = "mu_25kPa";
-cases(3).filePrefix = "acoustoelastic_iop_hgo_mu_25kPa";
-cases(3).workspacePath = fullfile(baseResults, 'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
+cases(3).filePrefix = "mu_25kPa";
+cases(3).workspacePath = aeResolveResultFile(launchFolder, 'mu_sweep', 'mu_sweep_workspace.mat', ...
+    'acoustoelastic_iop_hgo_mu_sweep', 'acoustoelastic_iop_hgo_mu_sweep_workspace.mat');
 cases(3).sweepField = "mu";
 cases(3).targetValue = 25e3;
 cases(3).targetDisplayValue = 25;
@@ -382,6 +373,6 @@ ylabel('Cp [m/s]');
 title(strrep(spec.caseName, '_', ' ') + " truncation neighborhood");
 legend({'reported Cp', 'best atlas minimum', 'closest minimum to previous Cp', 'pointwise recovered Cp', 'contiguous recovered Cp', 'threshold-relaxed contiguous Cp'}, 'Location', 'best');
 hold off;
-saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.fig"));
-saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_truncation_neighborhood.png"));
+saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_neighborhood.fig"));
+saveas(gcf, fullfile(outputFolder, spec.filePrefix + "_neighborhood.png"));
 end
