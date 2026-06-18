@@ -85,6 +85,50 @@ The grid script writes:
 - `atlas_vs_raw_branch1_grid_workspace.mat`
 - plots under `plots/`
 
+### Corner ambiguity script
+
+Use the short entrypoint:
+
+```matlab
+cd('E:\')
+startup
+diagnose_raw_branch_corner
+AcoustoelasticIOPHGORawBranchCornerSummary
+AcoustoelasticIOPHGORawBranchCornerAggregate
+```
+
+This script focuses on the difficult grid corner:
+
+```matlab
+IOP_mmHg = 35;
+mu_kPa = 25;
+k1_kPa = 25;
+k2 = 100;
+thickness_um = 550;
+```
+
+It tests whether the selected `raw_branch1` candidate is sensitive to raw-atlas numerical settings:
+
+- `NumY`, the number of dimensionless phase-velocity grid points;
+- `TopNMinimaPerFrequency`, the number of retained local minima per frequency;
+- `MaxLogYJumpForRawBranch`, the branch-linking jump threshold.
+
+Outputs are written under:
+
+```text
+Results/ae_iop_hgo/raw_branch_corner
+```
+
+The corner script writes:
+
+- `raw_branch_corner_points.csv`
+- `raw_branch_corner_summary.csv`
+- `raw_branch_corner_branches.csv`
+- `raw_branch_corner_configs.csv`
+- `raw_branch_corner_aggregate.csv`
+- `raw_branch_corner_workspace.mat`
+- plots under `plots/`
+
 ### Output files
 
 The single-input comparison script writes:
@@ -106,6 +150,12 @@ The grid validation script writes workspace variables:
 - `AcoustoelasticIOPHGOAtlasVsRawBranch1GridAggregate`
 - `AcoustoelasticIOPHGOAtlasVsRawBranch1GridOutputFolder`
 
+The corner ambiguity script writes workspace variables:
+
+- `AcoustoelasticIOPHGORawBranchCornerSummary`
+- `AcoustoelasticIOPHGORawBranchCornerAggregate`
+- `AcoustoelasticIOPHGORawBranchCornerOutputFolder`
+
 ### Metrics
 
 For each IOP case, the summary table reports:
@@ -123,7 +173,7 @@ A mismatch is flagged when the relative error against `raw_branch1` exceeds 5% f
 
 ### Diagnostic classifications
 
-The script assigns one of:
+The comparison and grid scripts assign one of:
 
 - `aligned_with_raw_branch`
 - `atlas_truncated_but_aligned`
@@ -131,6 +181,15 @@ The script assigns one of:
 - `identity_extension_modal_mismatch`
 - `atlas_branch_switch_suspected`
 - `raw_branch_uncertain`
+
+The corner script assigns one of:
+
+- `stable_raw_and_aligned`
+- `stable_raw_atlas_aligned`
+- `raw_branch_weak`
+- `raw_selection_sensitive`
+- `raw_weak_and_selection_sensitive`
+- `atlas_mismatch_or_unresolved`
 
 These are diagnostic labels only. They do not promote `raw_branch1` or `identityA0Diagnostic` to production output.
 
