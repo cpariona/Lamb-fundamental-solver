@@ -88,6 +88,26 @@ The script assigns one of:
 
 These are diagnostic labels only. They do not promote `raw_branch1` or `identityA0Diagnostic` to production output.
 
+### Validation snapshot: corrected raw matrix, mu 50 kPa
+
+First completed run after adding this diagnostic used the `raw_branch1` curves produced from the corrected raw matrix condition at 5, 15, and 25 mmHg.
+
+| IOP [mmHg] | Raw valid points | Raw median rank | Atlas valid fraction | Identity valid fraction | First atlas/raw mismatch [kHz] | First identity/raw mismatch [kHz] | Median atlas/raw rel. error | Median identity/raw rel. error | Max atlas/raw rel. error | Max identity/raw rel. error | Identity added points | Classification |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| 5 | 160 | 1 | 1.00000 | 1.00000 | NaN | NaN | 0.0020757 | 0.0020757 | 0.0059108 | 0.0059108 | 0 | `aligned_with_raw_branch` |
+| 15 | 160 | 1 | 0.96250 | 1.00000 | NaN | NaN | 0.0020721 | 0.0022651 | 0.0242100 | 0.0382230 | 6 | `atlas_truncated_but_aligned` |
+| 25 | 144 | 1 | 0.97917 | 0.99306 | NaN | NaN | 0.0020396 | 0.0020613 | 0.0391710 | 0.0391710 | 2 | `atlas_truncated_but_aligned` |
+
+Interpretation:
+
+- No case exceeded the configured modal-mismatch rule of relative error greater than 5% for at least three consecutive frequency points.
+- The raw branch is high-confidence in these cases: coverage is complete over the tested raw frequency grid and median rank is 1.
+- The official `atlasA0` branch is aligned with `raw_branch1` where valid.
+- At 15 and 25 mmHg, the official behavior is best interpreted as conservative truncation while staying on the same global branch, not as a detected modal switch.
+- `identityA0Diagnostic` increases coverage for 15 and 25 mmHg while remaining below the 5% mismatch threshold in this run.
+
+This snapshot supports using `raw_branch1` as a validation reference for this corrected raw matrix regime, but it does not promote `raw_branch1` or `identityA0Diagnostic` to official solver output.
+
 ### Interpretation
 
 Use this diagnostic to decide whether the current `atlasA0` selection is consistent with the globally persistent modal-atlas branch. A result classified as `atlas_branch_switch_suspected` or `identity_extension_modal_mismatch` should trigger manual inspection of the point-level table and plots before any solver-policy change is considered.
