@@ -45,9 +45,49 @@ Outputs are written under:
 Results/ae_iop_hgo/atlas_vs_raw_branch1
 ```
 
+### Grid validation script
+
+Use the short entrypoint:
+
+```matlab
+cd('E:\')
+startup
+validate_atlas_raw_grid
+AcoustoelasticIOPHGOAtlasVsRawBranch1GridSummary
+AcoustoelasticIOPHGOAtlasVsRawBranch1GridAggregate
+```
+
+Unlike `compare_atlasA0_vs_raw_branch1`, this script does not require a precomputed `raw_branch1_curve.csv`. It computes the corrected-raw-matrix modal atlas internally for each grid case, extracts the selected persistent `raw_branch1` candidate, and compares it against official `atlasA0` and diagnostic `identityA0Diagnostic`.
+
+The default grid is:
+
+```matlab
+IOP_mmHg = [5, 15, 25, 35];
+mu_kPa = [25, 50, 100];
+k1_kPa = 25;
+k2 = 100;
+thickness_um = 550;
+```
+
+Outputs are written under:
+
+```text
+Results/ae_iop_hgo/atlas_vs_raw_branch1_grid
+```
+
+The grid script writes:
+
+- `atlas_vs_raw_branch1_grid_points.csv`
+- `atlas_vs_raw_branch1_grid_summary.csv`
+- `atlas_vs_raw_branch1_grid_aggregate.csv`
+- `raw_branch1_grid_curve.csv`
+- `raw_branch1_grid_branch_summary.csv`
+- `atlas_vs_raw_branch1_grid_workspace.mat`
+- plots under `plots/`
+
 ### Output files
 
-The script writes:
+The single-input comparison script writes:
 
 - `atlas_vs_raw_branch1_points.csv`
 - `atlas_vs_raw_branch1_summary.csv`
@@ -59,6 +99,12 @@ Workspace variables:
 - `AcoustoelasticIOPHGOAtlasVsRawBranch1Points`
 - `AcoustoelasticIOPHGOAtlasVsRawBranch1Summary`
 - `AcoustoelasticIOPHGOAtlasVsRawBranch1OutputFolder`
+
+The grid validation script writes workspace variables:
+
+- `AcoustoelasticIOPHGOAtlasVsRawBranch1GridSummary`
+- `AcoustoelasticIOPHGOAtlasVsRawBranch1GridAggregate`
+- `AcoustoelasticIOPHGOAtlasVsRawBranch1GridOutputFolder`
 
 ### Metrics
 
