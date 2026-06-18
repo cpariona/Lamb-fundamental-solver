@@ -31,22 +31,24 @@ fprintf('\natlasA0 versus raw_branch1 grid diagnostic\n');
 fprintf('Cases: %d | frequencies: %d | y-grid: %d\n\n', height(cases), numel(settings.frequency), numel(settings.yGrid));
 
 for i = 1:height(cases)
+    caseRow = cases(i, :);
+    caseLabel = char(caseRow.CaseLabel);
+
     params = defaultExampleParams();
-    params.IOP = cases.IOP_mmHg(i) * 133.322;
-    params.mu = cases.Mu_kPa(i) * 1e3;
-    params.k1 = cases.K1_kPa(i) * 1e3;
-    params.k2 = cases.K2(i);
-    params.thickness = cases.Thickness_um(i) * 1e-6;
+    params.IOP = caseRow.IOP_mmHg * 133.322;
+    params.mu = caseRow.Mu_kPa * 1e3;
+    params.k1 = caseRow.K1_kPa * 1e3;
+    params.k2 = caseRow.K2;
+    params.thickness = caseRow.Thickness_um * 1e-6;
     params.frequency = settings.frequency;
 
-    fprintf('Case %d/%d: IOP %.0f mmHg, mu %.0f kPa, k1 %.0f kPa, k2 %.0f, h %.0f um\n', ...
-        i, height(cases), cases.IOP_mmHg(i), cases.Mu_kPa(i), cases.K1_kPa(i), cases.K2(i), cases.Thickness_um(i));
+    fprintf('Case %d/%d: %s\n', i, height(cases), caseLabel);
 
     [directParams, state] = buildDirectParamsFromIOP(params);
     rawAtlas = computeRawModalAtlas(directParams, settings);
     [rawBranch, rawPoints] = selectRawBranch(rawAtlas.branchTable, rawAtlas.minimaTable);
-    rawPoints = addCaseColumns(rawPoints, cases(i, :), state);
-    rawBranch = addCaseColumns(rawBranch, cases(i, :), state);
+    rawPoints = addCaseColumns(rawPoints, caseRow, state);
+    rawBranch = addCaseColumns(rawBranch, caseRow, state);
 
     atlasOptions = defaultSolverOptions(settings);
     atlasOptions.atlasBranchPolicy = "atlasA0";
@@ -56,15 +58,19 @@ for i = 1:height(cases)
     identityOptions.atlasBranchPolicy = "identityA0Diagnostic";
     identityResult = solveAcoustoelasticIOPHGOBranch(params, identityOptions);
 
-    comparison = compareCase(cases(i, :), rawPoints, atlasResult, identityResult, settings);
+    comparison = compareCase(caseRow, rawPoints, atlasResult, identityResult, settings);
 
     pointRows = [pointRows; comparison.points]; %#ok<AGROW>
     summaryRows = [summaryRows; comparison.summary]; %#ok<AGROW>
-    rawCurveRows = [rawCurveRows; rawPoints]; %#ok<AGROW>
-    rawBranchRows = [rawBranchRows; rawBranch]; %#ok<AGROW>
+    if ~isempty(rawPoints)
+        rawCurveRows = [rawCurveRows; rawPoints]; %#ok<AGROW>
+    end
+    if ~isempty(rawBranch)
+        rawBranchRows = [rawBranchRows; rawBranch]; %#ok<AGROW>
+    end
 
-    caseResults(i).CaseLabel = cases.CaseLabel(i); %#ok<SAGROW>
-    caseResults(i).case = cases(i, :);
+    caseResults(i).CaseLabel = string(caseLabel); %#ok<SAGROW>
+    caseResults(i).case = caseRow;
     caseResults(i).state = state;
     caseResults(i).rawAtlas = rawAtlas;
     caseResults(i).rawBranch = rawBranch;
@@ -73,10 +79,10 @@ for i = 1:height(cases)
     caseResults(i).identityResult = identityResult;
     caseResults(i).comparison = comparison;
 
-    plotCaseComparison(comparison.points, cases(i, :), plotFolder);
+    plotCaseComparison(comparison.points, caseRow, plotFolder);
 
     fprintf('  %s | raw frac %.3f | atlas frac %.3f | identity frac %.3f | atlas median err %.4g\n', ...
-        comparison.summary.Classification, comparison.summary.RawValidFraction, ...
+        char(comparison.summary.Classification), comparison.summary.RawValidFraction, ...
         comparison.summary.AtlasValidFraction, comparison.summary.IdentityValidFraction, ...
         comparison.summary.MedianAtlasRawRelError);
 end
@@ -404,7 +410,7 @@ end
 
 function T = addCaseColumns(T, caseRow, state)
 if isempty(T)
-    T = table();
+    return;
 end
 n = height(T);
 T.CaseLabel = repmat(string(caseRow.CaseLabel), n, 1);
@@ -586,24 +592,30 @@ aggregate.MedianIdentityRawRelError = splitapply(@(x) median(x, 'omitnan'), S.Me
 end
 
 function plotCaseComparison(points, caseRow, plotFolder)
-figure('Color', 'w', 'Name', char(caseRow.CaseLabel));
+caseLabel = char(caseRow.CaseLabel);
+figure('Color', 'w', 'Name', caseLabel);
 hold on; grid on;
 plot(points.Frequency_kHz, points.RawCp_mps, '-', 'LineWidth', 2.5, 'DisplayName', 'raw_branch1');
 plot(points.Frequency_kHz, points.AtlasCp_mps, '--', 'LineWidth', 1.8, 'DisplayName', 'atlasA0 official');
 plot(points.Frequency_kHz, points.IdentityCp_mps, ':', 'LineWidth', 1.8, 'DisplayName', 'identityA0 diagnostic');
 xlabel('frequency [kHz]');
 ylabel('Cp [m/s]');
-title(sprintf('%s: atlasA0 and identityA0 versus raw_branch1', caseRow.CaseLabel), 'Interpreter', 'none');
+title(sprintf('%s: atlasA0 and identityA0 versus raw_branch1', caseLabel), 'Interpreter', 'none');
 legend('Location', 'best', 'Interpreter', 'none');
 hold off;
-saveas(gcf, fullfile(plotFolder, sprintf('%s.png', caseRow.CaseLabel)));
-saveas(gcf, fullfile(plotFolder, sprintf('%s.fig', caseRow.CaseLabel)));
+saveas(gcf, fullfile(plotFolder, sprintf('%s.png', caseLabel)));
+saveas(gcf, fullfile(plotFolder, sprintf('%s.fig', caseLabel)));
 end
 
 function plotAggregate(S, plotFolder)
+if isempty(S)
+    return;
+end
 figure('Color', 'w', 'Name', 'atlas versus raw grid median errors');
 hold on; grid on;
-for mu = unique(S.Mu_kPa(:).')
+muList = unique(S.Mu_kPa(:).');
+for i = 1:numel(muList)
+    mu = muList(i);
     T = S(S.Mu_kPa == mu, :);
     T = sortrows(T, 'IOP_mmHg');
     plot(T.IOP_mmHg, T.MedianAtlasRawRelError, '-o', 'LineWidth', 1.5, 'DisplayName', sprintf('atlasA0 mu %.0f kPa', mu));
