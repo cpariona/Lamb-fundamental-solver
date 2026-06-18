@@ -59,6 +59,7 @@ validate_idA0_grid
 compare_branch_policies
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
+diagnose_raw_branch_corner
 diagnose_branch_policy
 diagnose_sweep_reliability
 diagnose_truncation_cases
@@ -106,6 +107,7 @@ Results/ae_iop_hgo/modal_atlas_lowfreq
 Results/ae_iop_hgo/raw_branch1
 Results/ae_iop_hgo/atlas_vs_raw_branch1
 Results/ae_iop_hgo/atlas_vs_raw_branch1_grid
+Results/ae_iop_hgo/raw_branch_corner
 ```
 
 Legacy folders remain valid and should not be deleted automatically:
@@ -168,6 +170,7 @@ validate_idA0_grid
 compare_branch_policies
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
+diagnose_raw_branch_corner
 diagnose_branch_policy
 diagnose_sweep_reliability
 diagnose_truncation_cases
