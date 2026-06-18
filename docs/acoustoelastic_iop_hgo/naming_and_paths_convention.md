@@ -57,6 +57,7 @@ Diagnostics and validations:
 validate_idA0_score_grid
 validate_idA0_grid
 compare_branch_policies
+compare_atlasA0_vs_raw_branch1
 diagnose_branch_policy
 diagnose_sweep_reliability
 diagnose_truncation_cases
@@ -102,6 +103,7 @@ Results/ae_iop_hgo/idA0_score
 Results/ae_iop_hgo/modal_atlas
 Results/ae_iop_hgo/modal_atlas_lowfreq
 Results/ae_iop_hgo/raw_branch1
+Results/ae_iop_hgo/atlas_vs_raw_branch1
 ```
 
 Legacy folders remain valid and should not be deleted automatically:
@@ -162,6 +164,7 @@ sweep_mu
 validate_idA0_score_grid
 validate_idA0_grid
 compare_branch_policies
+compare_atlasA0_vs_raw_branch1
 diagnose_branch_policy
 diagnose_sweep_reliability
 diagnose_truncation_cases

@@ -84,6 +84,7 @@ sweep_mu
 validate_idA0_score_grid
 validate_idA0_grid
 compare_branch_policies
+compare_atlasA0_vs_raw_branch1
 diagnose_branch_policy
 diagnose_sweep_reliability
 diagnose_truncation_cases
@@ -176,6 +177,7 @@ docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md
 docs/acoustoelastic_iop_hgo/identityA0_diagnostic_policy.md
 docs/acoustoelastic_iop_hgo/identityA0_diagnostic_grid_validation.md
 docs/acoustoelastic_iop_hgo/identityA0_physical_plausibility_diagnostic.md
+docs/acoustoelastic_iop_hgo/atlas_vs_raw_branch1_diagnostic.md
 docs/parametric_sweeps.md
 docs/mrlfe_tracker_diagnostic_summary.md
 ```
