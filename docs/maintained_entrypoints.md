@@ -85,6 +85,7 @@ validate_idA0_score_grid
 validate_idA0_grid
 compare_branch_policies
 compare_atlasA0_vs_raw_branch1
+validate_atlas_raw_grid
 diagnose_branch_policy
 diagnose_sweep_reliability
 diagnose_truncation_cases
