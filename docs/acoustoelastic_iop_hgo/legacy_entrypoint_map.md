@@ -28,8 +28,6 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | direct maintained implementation; legacy file is alias to short entrypoint |
-| `diagnose_branch_policy` | `diagnose_acoustoelastic_iop_hgo_branch_policy` | historical compatibility entrypoint |
 | `diagnose_sweep_reliability` | `diagnose_acoustoelastic_iop_hgo_sweep_reliability` | direct maintained implementation; legacy file is alias to short entrypoint |
 | `diagnose_atlas_truncation` | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | direct maintained implementation; legacy file is alias to short entrypoint |
 | `diagnose_atlas_resolution` | `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity` | direct maintained implementation; legacy file is alias to short entrypoint |
@@ -56,6 +54,8 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 | Removed short entrypoint | Removed legacy/descriptive file | Replacement or retained evidence |
 |---|---|---|
+| `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | `atlasA0` policy closure is documented in `docs/acoustoelastic_iop_hgo/phase_closure_atlasA0.md` and `docs/acoustoelastic_iop_hgo/solver_optimization_status.md` |
+| `diagnose_branch_policy` | `diagnose_acoustoelastic_iop_hgo_branch_policy` | branch-policy comparison history retained in documentation; use maintained `atlasA0` policy |
 | `diagnose_truncation_cases` | `diagnose_acoustoelastic_iop_hgo_truncation_cases` | use `diagnose_atlas_truncation`; see `docs/acoustoelastic_iop_hgo/atlasA0_truncation_validation.md` |
 | `diagnose_landscape_failure` | `diagnose_acoustoelastic_iop_hgo_failure_landscape` | use `diagnose_atlas_truncation`; see `docs/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md` |
 | `diagnose_branch_persistence` | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement` | helper behavior retained in `aeAnalyzeBranchPersistenceCandidates`, `aeRefineAtlasA0BranchPersistence`, and `test_acoustoelastic_iop_hgo_branch_persistence_refinement` |
