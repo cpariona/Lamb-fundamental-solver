@@ -66,13 +66,13 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 ### Naming risk
 
-The legacy file below is longer than MATLAB's usual `namelengthmax = 63`:
+The previous overlong identity-A0 plausibility implementation has been renamed to:
 
 ```text
 diagnose_idA0_plausibility_impl.m
 ```
 
-It should not be used as a direct user-facing command. Prefer:
+This removes the known namelengthmax risk for that diagnostic while preserving the user-facing command:
 
 ```matlab
 diagnose_idA0_plausibility

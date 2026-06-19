@@ -12,7 +12,7 @@ Therefore:
 
 ```text
 Good:  examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
-Avoid: examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility_impl.m
+Avoid: examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility.m
 ```
 
 The folder already states the model. The filename should state the task.

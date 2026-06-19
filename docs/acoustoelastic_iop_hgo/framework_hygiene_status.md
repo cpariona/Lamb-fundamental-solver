@@ -70,13 +70,13 @@ docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md
 
 ### Naming risk
 
-The main known naming risk is the legacy file whose basename is longer than MATLAB's usual `namelengthmax = 63`:
+The previous known `namelengthmax` issue in the identity-A0 plausibility diagnostic has been resolved by renaming the implementation file to:
 
 ```text
 diagnose_idA0_plausibility_impl.m
 ```
 
-Do not use it as a direct command. Prefer:
+The preferred user-facing command remains:
 
 ```matlab
 diagnose_idA0_plausibility
