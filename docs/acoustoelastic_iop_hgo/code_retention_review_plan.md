@@ -169,7 +169,31 @@ They are not primary thesis workflows.
 They have shorter or more current diagnostics that capture the main conclusions.
 ```
 
-Before deletion, each candidate requires:
+### Reference-check results for first deletion-candidate subset
+
+A first `git grep`-style review found that none of the four candidates is deletion-ready without additional cleanup.
+
+| Candidate | Short references | Long implementation references | Decision after grep |
+|---|---|---|---|
+| `diagnose_truncation_cases` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_truncation_cases.m`, `atlasA0_truncation_validation.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready. Review `run_all_smoke_tests.m` and consolidate truncation docs first. |
+| `diagnose_landscape_failure` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_failure_landscape.m`, `atlasA0_truncation_cause_diagnostic.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready. Review failure-landscape documentation and smoke-test references first. |
+| `diagnose_branch_persistence` | short implementation, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m`, `branch_persistence_refinement.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready. Keep until branch-persistence document is either preserved as archive or folded into truncation docs. |
+| `track_raw_branch1` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests, `compare_atlasA0_vs_raw_branch1.m` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate.m`, `tests/run_all_smoke_tests.m` | Not deletion-ready. Raw branch comparison still depends on this history. |
+
+Current interpretation:
+
+```text
+These files are no longer primary maintained workflows, but they still have documentation and test references.
+The next cleanup should update or reduce those references before deleting code.
+```
+
+Next safe action:
+
+```text
+Review tests/run_all_smoke_tests.m to determine whether it is intentionally preserving historical diagnostics or simply stale.
+```
+
+Before any deletion, each candidate still requires local reference checks:
 
 ```bash
 git grep "<candidate_basename>"
@@ -272,11 +296,7 @@ Do not attempt a complete repository-wide cleanup in one pass.
 Recommended next concrete step:
 
 ```text
-Run reference checks for the first deletion-candidate subset:
-  diagnose_truncation_cases
-  diagnose_landscape_failure
-  diagnose_branch_persistence
-  track_raw_branch1
+Review tests/run_all_smoke_tests.m to identify stale historical-diagnostic calls.
 ```
 
-Then decide whether to remove, keep as archived code, or fold the conclusions into documentation before deletion.
+Only after that review should code deletion be considered.
