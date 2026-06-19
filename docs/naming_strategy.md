@@ -138,7 +138,6 @@ diagnose_sweep_reliability
 diagnose_truncation_cases
 diagnose_branch_persistence
 diagnose_atlas_truncation
-diagnose_atlas_resolution
 diagnose_landscape_failure
 diagnose_idA0_score
 diagnose_idA0_plausibility
