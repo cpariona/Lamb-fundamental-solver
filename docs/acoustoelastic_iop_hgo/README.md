@@ -69,6 +69,7 @@ Do not execute long legacy scripts directly unless reproducing historical behavi
 | `legacy_entrypoint_map.md` | Mapping from maintained short entrypoints to legacy descriptive scripts. |
 | `remaining_wrapper_inventory.md` | Remaining wrapper inventory after partial consolidation. |
 | `modal_atlas_wrapper_review.md` | Focused review of modal-atlas wrapper cleanup risks and plan. |
+| `validation_grid_wrapper_review.md` | Focused review of identity-A0 validation-grid wrappers. |
 | `framework_hygiene_status.md` | Current framework structure, naming, and cleanup status. |
 | `post_rename_audit.md` | Post-renaming audit status and remaining naming decision. |
 | `phase_closure_atlasA0.md` | Formal closure note for the `atlasA0` optimization phase. |
