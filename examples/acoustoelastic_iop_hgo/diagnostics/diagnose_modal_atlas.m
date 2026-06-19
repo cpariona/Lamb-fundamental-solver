@@ -12,7 +12,7 @@ legacyPath = fullfile(thisFolder, 'diagnose_acoustoelastic_iop_hgo_modal_atlas.m
 
 sourceText = fileread(legacyPath);
 oldLine = "outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_modal_atlas');";
-newLine = "outputFolder = aeOutputFolder(launchFolder, 'modal_atlas');";
+newLine = "outputFolder = aeOutputFolder(pwd, 'modal_atlas');";
 if ~contains(sourceText, oldLine)
     error('Expected modal-atlas output-folder line not found.');
 end
@@ -29,5 +29,5 @@ if fid < 0
 end
 cleanupObj = onCleanup(@() fclose(fid)); %#ok<NASGU>
 launchFolderEscaped = strrep(launchFolder, '''', '''''');
-fprintf(fid, 'cd(''%s'');\nlaunchFolder = ''%s'';\n%s', launchFolderEscaped, launchFolderEscaped, sourceText);
+fprintf(fid, 'cd(''%s'');\n%s', launchFolderEscaped, sourceText);
 end
