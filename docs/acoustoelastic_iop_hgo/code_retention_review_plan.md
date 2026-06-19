@@ -68,6 +68,9 @@ KEEP_AS_COMPATIBILITY
 DELETE_CANDIDATE_AFTER_GREP
   Superseded, unreferenced, redundant, or broken script that no longer contributes to tests, documentation, or current analysis.
   Delete only after reference checks and local tests.
+
+DELETED_AFTER_TESTS
+  Archived diagnostic removed after the maintained test layer was reduced and local tests passed.
 ```
 
 ### Initial high-level classification
@@ -131,7 +134,7 @@ Rationale: they document why `atlasA0` is conservative, where it truncates, and 
 
 ### Historical diagnostic retention matrix
 
-This is the first explicit classification pass for short historical diagnostics that were moved out of the primary maintained-entrypoint list.
+This is the explicit classification pass for short historical diagnostics that were moved out of the primary maintained-entrypoint list.
 
 | Entrypoint | Classification | Rationale | Action |
 |---|---|---|---|
@@ -144,47 +147,34 @@ This is the first explicit classification pass for short historical diagnostics 
 | `diagnose_modal_atlas` | `KEEP_FOR_THESIS_ANALYSIS` | Useful visual/diagnostic evidence for modal-family ambiguity; now writes to short output path. | Keep for thesis-level interpretation; not routine. |
 | `diagnose_modal_atlas_lowfreq` | `KEEP_FOR_THESIS_ANALYSIS` | Useful for low-frequency modal-family interpretation; now writes to short output path. | Keep for thesis-level interpretation; not routine. |
 | `track_raw_branch1` | `DIAGNOSTIC_ARCHIVE` | Raw branch1 was useful for comparison but is not official output. | Keep until raw-branch historical docs are consolidated. |
-| `diagnose_truncation_cases` | `DIAGNOSTIC_ARCHIVE` | Superseded in part by `diagnose_atlas_truncation` and related docs. | Candidate for later deletion after grep/reference checks. |
-| `diagnose_landscape_failure` | `DIAGNOSTIC_ARCHIVE` | Exploratory failure-landscape diagnostic; likely redundant after modal/family docs. | Candidate for later deletion after grep/reference checks. |
+| `diagnose_truncation_cases` | `DELETED_AFTER_TESTS` | Superseded by `diagnose_atlas_truncation` and retained documentation. | Removed with legacy implementation. |
+| `diagnose_landscape_failure` | `DELETED_AFTER_TESTS` | Superseded by `diagnose_atlas_truncation` and retained failure-landscape documentation. | Removed with legacy implementation. |
 | `diagnose_branch_persistence` | `DIAGNOSTIC_ARCHIVE` | Branch-persistence ideas contributed to truncation interpretation; may be redundant now. | Keep temporarily; candidate for archive/deletion review with truncation diagnostics. |
 
-### First deletion-candidate subset
+### First deletion batch
 
-No file is approved for deletion yet.
-
-The first candidates for focused `git grep` and local test review are:
+The first deletion batch removed:
 
 ```text
-diagnose_truncation_cases
-diagnose_landscape_failure
-diagnose_branch_persistence
-track_raw_branch1
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_truncation_cases.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_truncation_cases.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_landscape_failure.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_failure_landscape.m
 ```
 
-Reason:
+Replacement or retained evidence:
 
 ```text
-They appear to be exploratory or superseded by the current maintained diagnostic evidence layer.
-They are not primary thesis workflows.
-They have shorter or more current diagnostics that capture the main conclusions.
+diagnose_atlas_truncation
+docs/acoustoelastic_iop_hgo/atlasA0_truncation_validation.md
+docs/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md
 ```
-
-### Reference-check results for first deletion-candidate subset
-
-A first `git grep`-style review found that none of the four candidates was deletion-ready before reducing test references.
-
-| Candidate | Short references | Long implementation references | Decision after grep |
-|---|---|---|---|
-| `diagnose_truncation_cases` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_truncation_cases.m`, `atlasA0_truncation_validation.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready before test cleanup. Review truncation docs before deletion. |
-| `diagnose_landscape_failure` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_failure_landscape.m`, `atlasA0_truncation_cause_diagnostic.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready before test cleanup. Review failure-landscape documentation before deletion. |
-| `diagnose_branch_persistence` | short implementation, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m`, `branch_persistence_refinement.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready before test cleanup. Keep until branch-persistence document is either preserved as archive or folded into truncation docs. |
-| `track_raw_branch1` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests, `compare_atlasA0_vs_raw_branch1.m` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate.m`, `tests/run_all_smoke_tests.m` | Not deletion-ready. Raw branch comparison still depends on this history. |
 
 ### Test-reference cleanup status
 
 `tests/run_all_smoke_tests.m` was reduced to the primary maintained API, workflows, diagnostic evidence, and tests. It no longer protects historical diagnostics or legacy aliases.
 
-`tests/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_short_entrypoints.m` now separates:
+`tests/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_short_entrypoints.m` separates:
 
 ```text
 maintainedNames
@@ -192,31 +182,6 @@ historicalNames
 ```
 
 Historical names are validated only if they are still present. This preserves wrapper-target checks while allowing future deletion of archived diagnostics.
-
-Current interpretation:
-
-```text
-The test layer no longer blocks historical diagnostic deletion.
-Documentation and compatibility references still need to be addressed before deleting files.
-```
-
-Before any deletion, each candidate still requires local reference checks:
-
-```bash
-git grep "<candidate_basename>"
-git grep "<candidate_filename>"
-```
-
-and then at minimum:
-
-```matlab
-clear functions
-rehash toolboxcache
-startup
-
-test_acoustoelastic_iop_hgo_short_entrypoints
-run_all_smoke_tests
-```
 
 ### Recommended retention workflow
 
@@ -237,7 +202,7 @@ diagnose_atlas_truncation
 diagnose_idA0_plausibility
 ```
 
-Everything outside this list is either `DIAGNOSTIC_ARCHIVE`, `KEEP_FOR_THESIS_ANALYSIS`, `KEEP_AS_COMPATIBILITY`, or `DELETE_CANDIDATE_AFTER_GREP` unless there is a specific reason to keep it maintained.
+Everything outside this list is either `DIAGNOSTIC_ARCHIVE`, `KEEP_FOR_THESIS_ANALYSIS`, `KEEP_AS_COMPATIBILITY`, `DELETED_AFTER_TESTS`, or `DELETE_CANDIDATE_AFTER_GREP` unless there is a specific reason to keep it maintained.
 
 #### Phase 2: keep historical diagnostics out of the primary maintained-entrypoint list
 
@@ -287,24 +252,15 @@ If a deleted script had a legacy alias or wrapper relationship, run the relevant
 
 ### Suggested deletion policy
 
-Do not delete in the same commit where a file is first reclassified.
-
-Use two commits:
-
-```text
-Commit 1: reclassify as archived or delete candidate in docs.
-Commit 2: delete after reference checks and tests.
-```
-
-This keeps the history auditable.
+Use small batches and keep the history auditable.
 
 ### Current recommendation
 
-The test layer has been prepared for deletion of archived diagnostics.
+The first archived diagnostic deletion batch has been applied.
 
 Recommended next concrete step:
 
 ```text
-Re-run reference checks after syncing the latest test cleanup.
-If only documentation and compatibility maps remain for a candidate, update those docs first, then delete in a small batch.
+Run test_acoustoelastic_iop_hgo_short_entrypoints and run_all_smoke_tests locally.
+Then review remaining DIAGNOSTIC_ARCHIVE entries before deleting more code.
 ```
