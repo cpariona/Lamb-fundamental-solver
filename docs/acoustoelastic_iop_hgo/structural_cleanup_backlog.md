@@ -114,6 +114,70 @@ Short wrappers are useful, but wrappers that only call legacy scripts should eve
 
 This should be done case by case, not as a broad rename sweep.
 
+
+### Wrapper consolidation pass: diagnostics partial
+
+A conservative wrapper inspection of `examples/acoustoelastic_iop_hgo/basic/`, `examples/acoustoelastic_iop_hgo/sweeps/`, and `examples/acoustoelastic_iop_hgo/diagnostics/` found no missing `aeRunLegacyScript` targets in the maintained short-wrapper layer.
+
+Converted to direct maintained implementations, with the legacy descriptive file changed to a compatibility alias:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/compare_branch_policies.m
+  CONVERT_SHORT_TO_DIRECT
+examples/acoustoelastic_iop_hgo/diagnostics/compare_acoustoelastic_iop_hgo_branch_policies.m
+  LEGACY_ALIAS_TO_SHORT
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_sweep_reliability.m
+  CONVERT_SHORT_TO_DIRECT
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
+  LEGACY_ALIAS_TO_SHORT
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_score.m
+  CONVERT_SHORT_TO_DIRECT
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_identity_score.m
+  LEGACY_ALIAS_TO_SHORT
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_atlas_truncation.m
+  CONVERT_SHORT_TO_DIRECT
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
+  LEGACY_ALIAS_TO_SHORT
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_branch_persistence.m
+  CONVERT_SHORT_TO_DIRECT
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m
+  LEGACY_ALIAS_TO_SHORT
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_atlas_resolution.m
+  CONVERT_SHORT_TO_DIRECT
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity.m
+  LEGACY_ALIAS_TO_SHORT
+```
+
+Deferred wrappers and reasons:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
+  KEEP_AS_WRAPPER: target is the renamed implementation file, not a legacy descriptive script.
+
+examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
+examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
+examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
+  TOO_RISKY_DEFER: target exists and uses clean output helpers, but the implementation is large enough to defer to a focused pass.
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_truncation_cases.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_landscape_failure.m
+  TOO_RISKY_DEFER: target exists and uses clean output helpers, but the diagnostic implementation is long/heavy.
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
+  KEEP_AS_WRAPPER: target exists but has additional result-copy compatibility behavior in the short wrapper.
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
+  TOO_RISKY_DEFER: wrapper edits a temporary copy of a long legacy diagnostic rather than using a simple `aeRunLegacyScript` target.
+```
+
+No files were deleted in this pass. Wrapper consolidation is partially complete; legacy cleanup still open.
+
 ### Priority 5: documentation consistency
 
 Documentation should distinguish:

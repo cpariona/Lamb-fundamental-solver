@@ -28,22 +28,22 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | maintained short entrypoint |
+| `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | direct maintained implementation; legacy file is alias to short entrypoint |
 | `diagnose_branch_policy` | `diagnose_acoustoelastic_iop_hgo_branch_policy` | maintained short entrypoint |
-| `diagnose_sweep_reliability` | `diagnose_acoustoelastic_iop_hgo_sweep_reliability` | maintained short entrypoint |
+| `diagnose_sweep_reliability` | `diagnose_acoustoelastic_iop_hgo_sweep_reliability` | direct maintained implementation; legacy file is alias to short entrypoint |
 | `diagnose_truncation_cases` | `diagnose_acoustoelastic_iop_hgo_truncation_cases` | maintained short entrypoint |
-| `diagnose_branch_persistence` | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement` | maintained short entrypoint |
-| `diagnose_atlas_truncation` | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | maintained short entrypoint |
-| `diagnose_atlas_resolution` | `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity` | maintained short entrypoint |
+| `diagnose_branch_persistence` | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement` | direct maintained implementation; legacy file is alias to short entrypoint |
+| `diagnose_atlas_truncation` | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | direct maintained implementation; legacy file is alias to short entrypoint |
+| `diagnose_atlas_resolution` | `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity` | direct maintained implementation; legacy file is alias to short entrypoint |
 | `diagnose_landscape_failure` | `diagnose_acoustoelastic_iop_hgo_failure_landscape` | maintained short entrypoint |
 
 ### Identity-A0 diagnostics
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `validate_idA0_score_grid` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score_grid` | maintained short entrypoint |
-| `validate_idA0_grid` | `diagnose_acoustoelastic_iop_hgo_identityA0_grid` | maintained short entrypoint |
-| `diagnose_idA0_score` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | maintained short entrypoint |
+| `validate_idA0_score_grid` | `validate_acoustoelastic_iop_hgo_branch_identity_score_grid` | maintained short wrapper; target exists; consolidation deferred |
+| `validate_idA0_grid` | `validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid` | maintained short wrapper; target exists; consolidation deferred |
+| `diagnose_idA0_score` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | direct maintained implementation; legacy file is alias to short entrypoint |
 | `diagnose_idA0_plausibility` | `diagnose_idA0_plausibility_impl` | maintained short entrypoint |
 | `diagnose_identityA0_plausibility` | `diagnose_idA0_plausibility_impl` | compatibility alias; prefer `diagnose_idA0_plausibility` |
 
