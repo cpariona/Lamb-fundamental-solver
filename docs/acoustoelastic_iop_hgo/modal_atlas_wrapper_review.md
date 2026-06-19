@@ -9,20 +9,22 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
 
 ### Current status after partial cleanup
 
-A conservative partial cleanup has been applied.
+A conservative partial cleanup has been applied and validated by local MATLAB execution.
 
 ```text
 diagnose_modal_atlas.m
   runs a temporary copy of the legacy implementation;
   redirects output to Results/ae_iop_hgo/modal_atlas;
-  no longer calls aeCopyLegacyResultFolder.
+  no longer calls aeCopyLegacyResultFolder;
+  user-reported MATLAB execution passed.
 
 diagnose_modal_atlas_lowfreq.m
   runs a temporary copy of the legacy implementation;
   redirects output to Results/ae_iop_hgo/modal_atlas_lowfreq;
   keeps interactive plotting disabled for routine execution;
   validates that the expected plotting and output-folder lines exist before patching;
-  no longer calls aeCopyLegacyResultFolder.
+  no longer calls aeCopyLegacyResultFolder;
+  user-reported MATLAB execution passed after removing external state dependence.
 ```
 
 This eliminates the normal short-entrypoint dependence on duplicated legacy output folders, while avoiding a risky manual copy of several hundred lines of diagnostic implementation code.
@@ -50,7 +52,7 @@ The current state is therefore cleaner than the previous bridge, but not a full 
 
 The modal-atlas implementations are long diagnostic scripts with nested helper functions. A direct inversion would require copying hundreds of lines into the short entrypoints and turning the legacy files into aliases.
 
-That operation is mechanically possible, but risky without MATLAB execution because small copy errors in nested functions would be hard to detect through static review alone.
+That operation is mechanically possible, but risky because small copy errors in nested functions would be hard to detect through static review alone.
 
 ### Numerical logic
 
@@ -81,9 +83,8 @@ A later focused pass may fully invert these files:
 ```text
 1. Copy the long implementation body into the corresponding short entrypoint.
 2. Replace legacy output filenames with short output filenames directly.
-3. Keep the low-frequency plot control as an explicit makeInteractivePlots variable.
-4. Convert the long descriptive scripts into aliases toward the short entrypoints.
-5. Run the two modal-atlas diagnostics in MATLAB before committing.
+3. Convert the long descriptive scripts into aliases toward the short entrypoints.
+4. Run the two modal-atlas diagnostics in MATLAB before committing.
 ```
 
 Do not delete either legacy file in the same pass.
@@ -104,11 +105,6 @@ Because this pass touches executable modal-atlas wrappers, run:
 
 ```matlab
 diagnose_modal_atlas
-```
-
-and, if runtime is acceptable:
-
-```matlab
 diagnose_modal_atlas_lowfreq
 ```
 
