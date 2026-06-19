@@ -51,24 +51,24 @@ sweep_iop
 sweep_mu
 ```
 
-Diagnostics and validations:
+Maintained diagnostics:
 
 ```matlab
-validate_idA0_score_grid
-validate_idA0_grid
-compare_branch_policies
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
 diagnose_raw_branch_corner
 diagnose_branch_families
-diagnose_branch_policy
 diagnose_sweep_reliability
-diagnose_truncation_cases
-diagnose_branch_persistence
 diagnose_atlas_truncation
-diagnose_landscape_failure
-diagnose_idA0_score
 diagnose_idA0_plausibility
+```
+
+Historical diagnostics retained for traceability:
+
+```matlab
+validate_idA0_score_grid
+validate_idA0_grid
+diagnose_idA0_score
 diagnose_modal_atlas
 diagnose_modal_atlas_lowfreq
 track_raw_branch1
@@ -94,12 +94,8 @@ Results/ae_iop_hgo/mu_sweep
 Results/ae_iop_hgo/idA0_score_grid
 Results/ae_iop_hgo/idA0_grid
 Results/ae_iop_hgo/idA0_plausibility
-Results/ae_iop_hgo/branch_policy_compare
 Results/ae_iop_hgo/sweep_reliability
-Results/ae_iop_hgo/truncation_cases
-Results/ae_iop_hgo/branch_persistence
 Results/ae_iop_hgo/atlas_truncation
-Results/ae_iop_hgo/landscape_failure
 Results/ae_iop_hgo/idA0_score
 Results/ae_iop_hgo/modal_atlas
 Results/ae_iop_hgo/modal_atlas_lowfreq
@@ -165,21 +161,16 @@ Prefer:
 run_atlas_branch
 sweep_iop
 sweep_mu
-validate_idA0_score_grid
-validate_idA0_grid
-compare_branch_policies
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
 diagnose_raw_branch_corner
 diagnose_branch_families
-diagnose_branch_policy
 diagnose_sweep_reliability
-diagnose_truncation_cases
-diagnose_branch_persistence
 diagnose_atlas_truncation
-diagnose_landscape_failure
-diagnose_idA0_score
 diagnose_idA0_plausibility
+validate_idA0_score_grid
+validate_idA0_grid
+diagnose_idA0_score
 diagnose_modal_atlas
 diagnose_modal_atlas_lowfreq
 track_raw_branch1
