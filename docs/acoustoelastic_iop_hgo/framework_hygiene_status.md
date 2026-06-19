@@ -1,16 +1,17 @@
 ### Framework hygiene status
 
-This document records the framework-structure status after closing the `atlasA0` solver optimization phase.
+This document records the framework-structure status after closing the `atlasA0` solver optimization phase and the targeted naming cleanup.
 
 ### Overall status
 
-The framework is in a usable and maintainable state.
+The framework hygiene pass is closed for the current acoustoelastic IOP/HGO phase.
 
 ```text
 Solver status: closed for the current atlasA0 optimization phase
-Framework status: mixed but controlled
-Naming status: maintained short layer plus legacy descriptive layer
-Recommended next work: light hygiene only, not solver retuning
+Framework status: closed for current hygiene pass
+Naming status: maintained short layer plus accepted legacy descriptive layer
+Renaming status: targeted rename completed; no broad rename recommended
+Recommended next work: future modal-identity phase, not residual-tracking retuning
 ```
 
 ### Current structure
@@ -49,7 +50,7 @@ track_raw_branch1
 
 This is the layer that should be used in examples, documentation, and future workflows.
 
-### Legacy layer
+### Accepted legacy layer
 
 The repository still contains descriptive legacy scripts with names such as:
 
@@ -60,7 +61,7 @@ diagnose_acoustoelastic_iop_hgo_...
 track_acoustoelastic_iop_hgo_...
 ```
 
-This is acceptable as long as the legacy scripts are treated as compatibility or implementation-history files, not as the preferred user-facing interface.
+This is acceptable. These scripts are compatibility or implementation-history files, not the preferred user-facing interface.
 
 The mapping from short entrypoints to legacy files is maintained in:
 
@@ -68,7 +69,7 @@ The mapping from short entrypoints to legacy files is maintained in:
 docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md
 ```
 
-### Naming risk
+### Naming status
 
 The previous known `namelengthmax` issue in the identity-A0 plausibility diagnostic has been resolved by renaming the implementation file to:
 
@@ -80,6 +81,19 @@ The preferred user-facing command remains:
 
 ```matlab
 diagnose_idA0_plausibility
+```
+
+The post-renaming audit is recorded in:
+
+```text
+docs/acoustoelastic_iop_hgo/post_rename_audit.md
+```
+
+The audit decision is:
+
+```text
+Over63Chars = 0
+No additional broad renaming is recommended.
 ```
 
 ### Result path convention
@@ -98,19 +112,20 @@ aeOutputFolder(launchFolder, taskName)
 
 Legacy result folders may remain available for fallback, but new work should not add new `Results/acoustoelastic_iop_hgo_*` output roots.
 
-### What is considered clean enough
+### Closure criteria
 
-The framework is considered clean enough for continued development if:
+This framework hygiene pass is considered closed because:
 
-1. Maintained short entrypoints remain documented and pass the path smoke test.
-2. New user-facing scripts use short names.
-3. New outputs use `Results/ae_iop_hgo/<task>`.
-4. Legacy scripts are not expanded unless required for compatibility.
-5. Diagnostics do not mutate official solver outputs.
+1. Maintained short entrypoints are documented.
+2. The path smoke test passes locally.
+3. New acoustoelastic docs are indexed from `docs/acoustoelastic_iop_hgo/README.md` and `docs/maintained_entrypoints.md`.
+4. The known `namelengthmax` issue has been removed.
+5. The remaining long descriptive names are accepted as legacy, not active renaming targets.
+6. Diagnostics remain diagnostic-only and do not define production output policy.
 
-### What should not be done now
+### What should not be done in this closed pass
 
-Do not perform a large deletion or rename sweep at this stage.
+Do not perform a broad deletion or rename sweep at this stage.
 
 Avoid:
 
@@ -119,16 +134,18 @@ Avoid:
 - changing production solver policy as part of hygiene cleanup;
 - mixing framework cleanup with modal-identity research.
 
-### Recommended cleanup policy
+### Future cleanup policy
 
-Use small PRs with one purpose each:
+Future cleanup should start from the audit reports, not from manual inspection alone.
 
-1. Documentation and index cleanup.
-2. Wrapper/legacy mapping cleanup.
-3. Non-numerical report-column cleanup.
-4. Optional helper extraction from diagnostics into `analysis/acoustoelastic_iop_hgo/`.
+Use small, dedicated commits for:
 
-Each PR should keep MATLAB logic changes minimal and should pass:
+1. documentation/index cleanup;
+2. wrapper/legacy mapping cleanup;
+3. non-numerical report-column cleanup;
+4. optional helper extraction from diagnostics into `analysis/acoustoelastic_iop_hgo/`.
+
+Each commit should keep MATLAB logic changes minimal and should pass:
 
 ```matlab
 test_acoustoelastic_iop_hgo_short_entrypoints
@@ -138,4 +155,4 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 
 The framework is stable enough to build on.
 
-The next major phase, if needed, should be modal-identity enhancement rather than additional residual-tracking tuning or broad framework restructuring.
+The current hygiene and renaming phase is closed. The next major phase, if needed, should be modal-identity enhancement rather than additional residual-tracking tuning or broad framework restructuring.
