@@ -44,8 +44,8 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 | `validate_idA0_score_grid` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score_grid` | maintained short entrypoint |
 | `validate_idA0_grid` | `diagnose_acoustoelastic_iop_hgo_identityA0_grid` | maintained short entrypoint |
 | `diagnose_idA0_score` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | maintained short entrypoint |
-| `diagnose_idA0_plausibility` | `diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility` | maintained short entrypoint |
-| `diagnose_identityA0_plausibility` | `diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility` | compatibility alias; prefer `diagnose_idA0_plausibility` |
+| `diagnose_idA0_plausibility` | `diagnose_idA0_plausibility_impl` | maintained short entrypoint |
+| `diagnose_identityA0_plausibility` | `diagnose_idA0_plausibility_impl` | compatibility alias; prefer `diagnose_idA0_plausibility` |
 
 ### Modal atlas and raw-branch diagnostics
 
@@ -69,7 +69,7 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 The legacy file below is longer than MATLAB's usual `namelengthmax = 63`:
 
 ```text
-diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility.m
+diagnose_idA0_plausibility_impl.m
 ```
 
 It should not be used as a direct user-facing command. Prefer:

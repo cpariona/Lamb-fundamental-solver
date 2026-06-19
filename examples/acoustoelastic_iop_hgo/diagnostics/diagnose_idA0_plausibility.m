@@ -4,5 +4,5 @@ clear; clc; close all;
 
 thisFile = mfilename('fullpath');
 thisFolder = fileparts(thisFile);
-legacyScript = fullfile(thisFolder, 'diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility.m');
+legacyScript = fullfile(thisFolder, 'diagnose_idA0_plausibility_impl.m');
 aeRunLegacyScript(legacyScript);

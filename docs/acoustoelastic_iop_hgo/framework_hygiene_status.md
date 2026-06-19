@@ -73,7 +73,7 @@ docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md
 The main known naming risk is the legacy file whose basename is longer than MATLAB's usual `namelengthmax = 63`:
 
 ```text
-diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility.m
+diagnose_idA0_plausibility_impl.m
 ```
 
 Do not use it as a direct command. Prefer:
