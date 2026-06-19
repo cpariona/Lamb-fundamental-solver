@@ -107,7 +107,6 @@ These scripts are not primary maintained workflows. They are retained because th
 Do not delete them without a focused reference check and test pass.
 
 ```matlab
-diagnose_atlas_resolution
 diagnose_idA0_score
 validate_idA0_grid
 validate_idA0_score_grid
