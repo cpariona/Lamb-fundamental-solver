@@ -1,0 +1,90 @@
+### Legacy entrypoint map
+
+This document maps maintained short entrypoints to older descriptive legacy scripts in the `acoustoelastic_iop_hgo` examples tree.
+
+The current convention is:
+
+```text
+Use short entrypoints for user-facing execution.
+Keep long descriptive scripts only for compatibility or implementation history.
+```
+
+Do not call long legacy scripts directly unless there is a specific reason to inspect historical behavior.
+
+### Basic examples
+
+| Maintained entrypoint | Legacy/descriptive file | Status |
+|---|---|---|
+| `run_atlas_branch` | `run_acoustoelastic_iop_hgo_atlas_branch` | maintained short entrypoint |
+
+### Sweeps
+
+| Maintained entrypoint | Legacy/descriptive file | Status |
+|---|---|---|
+| `sweep_iop` | `sweep_acoustoelastic_iop_hgo_iop` | maintained short entrypoint |
+| `sweep_mu` | `sweep_acoustoelastic_iop_hgo_mu` | maintained short entrypoint |
+
+### Branch policy and tracking diagnostics
+
+| Maintained entrypoint | Legacy/descriptive file | Status |
+|---|---|---|
+| `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | maintained short entrypoint |
+| `diagnose_branch_policy` | `diagnose_acoustoelastic_iop_hgo_branch_policy` | maintained short entrypoint |
+| `diagnose_sweep_reliability` | `diagnose_acoustoelastic_iop_hgo_sweep_reliability` | maintained short entrypoint |
+| `diagnose_truncation_cases` | `diagnose_acoustoelastic_iop_hgo_truncation_cases` | maintained short entrypoint |
+| `diagnose_branch_persistence` | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement` | maintained short entrypoint |
+| `diagnose_atlas_truncation` | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | maintained short entrypoint |
+| `diagnose_atlas_resolution` | `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity` | maintained short entrypoint |
+| `diagnose_landscape_failure` | `diagnose_acoustoelastic_iop_hgo_failure_landscape` | maintained short entrypoint |
+
+### Identity-A0 diagnostics
+
+| Maintained entrypoint | Legacy/descriptive file | Status |
+|---|---|---|
+| `validate_idA0_score_grid` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score_grid` | maintained short entrypoint |
+| `validate_idA0_grid` | `diagnose_acoustoelastic_iop_hgo_identityA0_grid` | maintained short entrypoint |
+| `diagnose_idA0_score` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | maintained short entrypoint |
+| `diagnose_idA0_plausibility` | `diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility` | maintained short entrypoint |
+| `diagnose_identityA0_plausibility` | `diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility` | compatibility alias; prefer `diagnose_idA0_plausibility` |
+
+### Modal atlas and raw-branch diagnostics
+
+| Maintained entrypoint | Legacy/descriptive file | Status |
+|---|---|---|
+| `diagnose_modal_atlas` | `diagnose_acoustoelastic_iop_hgo_modal_atlas` | maintained short entrypoint |
+| `diagnose_modal_atlas_lowfreq` | `diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas` | maintained short entrypoint |
+| `track_raw_branch1` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate` | maintained short entrypoint |
+
+### New diagnostics without legacy counterpart
+
+| Maintained entrypoint | Legacy/descriptive file | Status |
+|---|---|---|
+| `compare_atlasA0_vs_raw_branch1` | none | maintained diagnostic |
+| `validate_atlas_raw_grid` | none | maintained diagnostic |
+| `diagnose_raw_branch_corner` | none | maintained diagnostic |
+| `diagnose_branch_families` | none | maintained diagnostic |
+
+### Naming risk
+
+The legacy file below is longer than MATLAB's usual `namelengthmax = 63`:
+
+```text
+diagnose_acoustoelastic_iop_hgo_identityA0_physical_plausibility.m
+```
+
+It should not be used as a direct user-facing command. Prefer:
+
+```matlab
+diagnose_idA0_plausibility
+```
+
+### Migration rule
+
+When adding new scripts:
+
+1. Use a short task-oriented filename.
+2. Put context in the folder path.
+3. Write new outputs under `Results/ae_iop_hgo/<task>`.
+4. Use `aeOutputFolder` for new output paths.
+5. Use `aeResolveResultFile` only when short-path plus legacy fallback is required.
+6. Do not add new user-facing files with the prefix `acoustoelastic_iop_hgo_...`.
