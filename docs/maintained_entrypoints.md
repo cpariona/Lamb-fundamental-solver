@@ -181,6 +181,8 @@ docs/acoustoelastic_iop_hgo/identityA0_diagnostic_policy.md
 docs/acoustoelastic_iop_hgo/identityA0_diagnostic_grid_validation.md
 docs/acoustoelastic_iop_hgo/identityA0_physical_plausibility_diagnostic.md
 docs/acoustoelastic_iop_hgo/atlas_vs_raw_branch1_diagnostic.md
+docs/acoustoelastic_iop_hgo/branch_families_diagnostic.md
+docs/acoustoelastic_iop_hgo/solver_optimization_status.md
 docs/parametric_sweeps.md
 docs/mrlfe_tracker_diagnostic_summary.md
 ```
