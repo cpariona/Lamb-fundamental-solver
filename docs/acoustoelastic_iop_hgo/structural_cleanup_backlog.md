@@ -1,12 +1,12 @@
 ### Structural cleanup backlog
 
-This document records remaining cleanup work after the targeted identity-A0 plausibility renaming pass.
+This document records remaining cleanup work after the targeted identity-A0 plausibility renaming pass and later archived-diagnostic cleanup passes.
 
 ### Summary
 
 The critical MATLAB filename issue is resolved, but the repository still contains cleanup candidates.
 
-Current audit signals:
+Current audit signals from the last recorded audit were:
 
 ```text
 Over63Chars = 0
@@ -18,6 +18,8 @@ UsesAeOutputFolder = 11
 UsesAeResolveResultFile = 7
 MutatesOfficialCp = 5
 ```
+
+These values may be stale after the archived-diagnostic deletions. Re-run the structural audit before using the counts as current evidence.
 
 ### Interpretation
 
@@ -42,11 +44,13 @@ KEEP_SOLVER_ASSIGNMENT
 KEEP_DIAGNOSTIC_SOLVER_VALIDCP
 DIRECT_MAINTAINED_ENTRYPOINT
 LEGACY_ALIAS_TO_SHORT
+RETAIN_FOR_COMPARISON_REPRODUCIBILITY
+ARCHIVED_REMOVED
 ```
 
 ### Priority 1: output path cleanup
 
-Many scripts still match `WritesLegacyResults`.
+Many scripts still match `WritesLegacyResults` in the old audit.
 
 This should be triaged into:
 
@@ -71,7 +75,7 @@ examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_atlas_branch.m
 
 ### Priority 2: mutation flag review completed
 
-The audit reports `MutatesOfficialCp = 5`.
+The audit reported `MutatesOfficialCp = 5`.
 
 These files were reviewed in:
 
@@ -99,34 +103,28 @@ The flags are either legitimate solver-result construction, diagnostic-solver va
 
 ### Priority 3: legacy script classification
 
-Legacy descriptive scripts should not be deleted just because they are long.
+Legacy descriptive scripts should not be removed just because they are long.
 
 Each legacy script should be classified as:
 
 - required implementation target of a short wrapper;
 - historical diagnostic still referenced by documentation;
 - obsolete diagnostic superseded by a maintained short entrypoint;
-- safe deletion candidate after `git grep` reference checks.
+- safe removal candidate after reference checks.
 
 ### Priority 4: wrapper consolidation
 
-Short wrappers are useful, but wrappers that only call legacy scripts should eventually point to shorter implementation files when the implementation is still maintained.
+Short wrappers are useful, but wrappers that only call legacy scripts may eventually point to shorter implementation files when the implementation is still maintained.
 
 This should be done case by case, not as a broad rename sweep.
 
-
-### Wrapper consolidation pass: diagnostics partial
+### Wrapper consolidation and archived-diagnostic cleanup status
 
 A conservative wrapper inspection of `examples/acoustoelastic_iop_hgo/basic/`, `examples/acoustoelastic_iop_hgo/sweeps/`, and `examples/acoustoelastic_iop_hgo/diagnostics/` found no missing `aeRunLegacyScript` targets in the maintained short-wrapper layer.
 
-Converted to direct maintained implementations, with the legacy descriptive file changed to a compatibility alias:
+Converted earlier to direct maintained implementations, with the legacy descriptive file changed to a compatibility alias:
 
 ```text
-examples/acoustoelastic_iop_hgo/diagnostics/compare_branch_policies.m
-  CONVERT_SHORT_TO_DIRECT
-examples/acoustoelastic_iop_hgo/diagnostics/compare_acoustoelastic_iop_hgo_branch_policies.m
-  LEGACY_ALIAS_TO_SHORT
-
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_sweep_reliability.m
   CONVERT_SHORT_TO_DIRECT
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
@@ -141,19 +139,26 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_atlas_truncation.m
   CONVERT_SHORT_TO_DIRECT
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
   LEGACY_ALIAS_TO_SHORT
-
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_branch_persistence.m
-  CONVERT_SHORT_TO_DIRECT
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m
-  LEGACY_ALIAS_TO_SHORT
-
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_atlas_resolution.m
-  CONVERT_SHORT_TO_DIRECT
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity.m
-  LEGACY_ALIAS_TO_SHORT
 ```
 
-Deferred wrappers and reasons:
+Archived executable diagnostics removed after reference checks and retained documentation coverage:
+
+```text
+compare_branch_policies.m
+compare_acoustoelastic_iop_hgo_branch_policies.m
+diagnose_branch_policy.m
+diagnose_acoustoelastic_iop_hgo_branch_policy.m
+diagnose_truncation_cases.m
+diagnose_acoustoelastic_iop_hgo_truncation_cases.m
+diagnose_landscape_failure.m
+diagnose_acoustoelastic_iop_hgo_failure_landscape.m
+diagnose_branch_persistence.m
+diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m
+diagnose_atlas_resolution.m
+diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity.m
+```
+
+Remaining wrappers and reasons:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
@@ -162,21 +167,19 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
 
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
-examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
-  TOO_RISKY_DEFER: target exists and uses clean output helpers, but the implementation is large enough to defer to a focused pass.
+  KEEP_AS_WRAPPER: targets exist and write to clean output helpers; the implementations are heavy validation grids.
 
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_truncation_cases.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_landscape_failure.m
-  TOO_RISKY_DEFER: target exists and uses clean output helpers, but the diagnostic implementation is long/heavy.
+examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
+  RETAIN_FOR_COMPARISON_REPRODUCIBILITY: required while compare_atlasA0_vs_raw_branch1 consumes raw_branch1_curve.csv.
 
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
   KEEP_AS_WRAPPER: target exists but has additional result-copy compatibility behavior in the short wrapper.
 
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
-  TOO_RISKY_DEFER: wrapper edits a temporary copy of a long legacy diagnostic rather than using a simple `aeRunLegacyScript` target.
+  SPECIAL_CASE_DEFER: wrapper edits a temporary copy of a long legacy diagnostic rather than using a simple aeRunLegacyScript target.
 ```
 
-No files were deleted in this pass. Wrapper consolidation is partially complete; legacy cleanup still open.
+Wrapper consolidation is partially complete; legacy cleanup remains open.
 
 ### Priority 5: documentation consistency
 
@@ -191,9 +194,9 @@ modal-identity research open
 
 Avoid using a single phrase such as `framework closed` without specifying which layer is closed.
 
-### Required checks before deleting any file
+### Required checks before removing any file
 
-For each deletion candidate:
+For each removal candidate:
 
 ```bash
 git grep "<candidate_basename>"
@@ -213,12 +216,12 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 ### Recommended next cleanup order
 
 1. Separate true legacy output writes from compatibility references.
-2. Convert maintained short wrappers to short implementation files only when needed.
-3. Delete only obsolete scripts that are unreferenced and superseded.
-4. Update `legacy_entrypoint_map.md` after each consolidation.
+2. Keep validation-grid and modal-atlas wrappers until a focused pass can execute their diagnostics.
+3. Keep `track_raw_branch1` while the maintained atlas-vs-raw comparison depends on its generated curve.
+4. Re-run the structural audit before deleting additional scripts based on old audit counts.
 
 ### Current decision
 
-Do not start a broad deletion pass yet.
+Do not start a broad deletion pass.
 
-The next safe cleanup step is output-path triage for files flagged as `WritesLegacyResults`, starting with maintained short entrypoints that still depend on legacy bridges.
+The next safe cleanup step is a refreshed output-path audit, because the old `WritesLegacyResults` counts predate several archived-diagnostic removals.
