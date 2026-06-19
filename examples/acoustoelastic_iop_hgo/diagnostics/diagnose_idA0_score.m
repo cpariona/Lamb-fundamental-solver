@@ -2,11 +2,9 @@ clear; clc; close all;
 launchFolder = pwd;
 startup
 
-%DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_BRANCH_IDENTITY_SCORE
-% Legacy descriptive implementation. Prefer the short entrypoint:
-%   diagnose_idA0_score
+%DIAGNOSE_IDA0_SCORE Branch-identity score diagnostic.
 %
-% New outputs are written to:
+% Outputs are written to:
 %   Results/ae_iop_hgo/idA0_score
 
 outputFolder = aeOutputFolder(launchFolder, 'idA0_score');

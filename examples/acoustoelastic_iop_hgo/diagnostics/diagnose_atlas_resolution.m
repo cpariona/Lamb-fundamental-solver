@@ -2,11 +2,9 @@ clear; clc; close all;
 launchFolder = pwd;
 startup
 
-%DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_ATLASA0_RESOLUTION_SENSITIVITY
-% Legacy descriptive implementation. Prefer the short entrypoint:
-%   diagnose_atlas_resolution
+%DIAGNOSE_ATLAS_RESOLUTION AtlasA0 resolution-sensitivity diagnostic.
 %
-% New outputs are written to:
+% Outputs are written to:
 %   Results/ae_iop_hgo/atlas_resolution
 
 outputFolder = aeOutputFolder(launchFolder, 'atlas_resolution');

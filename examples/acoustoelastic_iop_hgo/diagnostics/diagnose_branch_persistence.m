@@ -2,11 +2,9 @@ clear; clc; close all;
 launchFolder = pwd;
 startup
 
-%DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_BRANCH_PERSISTENCE_REFINEMENT
-% Legacy descriptive implementation. Prefer the short entrypoint:
-%   diagnose_branch_persistence
+%DIAGNOSE_BRANCH_PERSISTENCE Branch-persistence refinement diagnostic.
 %
-% New outputs are written to:
+% Outputs are written to:
 %   Results/ae_iop_hgo/branch_persistence
 
 outputFolder = aeOutputFolder(launchFolder, 'branch_persistence');

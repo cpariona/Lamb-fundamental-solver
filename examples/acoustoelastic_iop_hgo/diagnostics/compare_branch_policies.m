@@ -2,11 +2,9 @@ clear; clc; close all;
 launchFolder = pwd;
 startup
 
-%COMPARE_ACOUSTOELASTIC_IOP_HGO_BRANCH_POLICIES Compare current atlas policy against legacy tracking.
-% Legacy descriptive implementation. Prefer the short entrypoint:
-%   compare_branch_policies
+%COMPARE_BRANCH_POLICIES Compare current atlas policy against legacy tracking.
 %
-% New outputs are written to:
+% Outputs are written to:
 %   Results/ae_iop_hgo/branch_policy_compare
 
 baseParams = struct();

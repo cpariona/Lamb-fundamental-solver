@@ -2,11 +2,9 @@ clear; clc; close all;
 launchFolder = pwd;
 startup
 
-%DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_SWEEP_RELIABILITY Analyze maintained sweep workspaces.
-% Legacy descriptive implementation. Prefer the short entrypoint:
-%   diagnose_sweep_reliability
+%DIAGNOSE_SWEEP_RELIABILITY Analyze maintained sweep workspaces.
 %
-% New outputs are written to:
+% Outputs are written to:
 %   Results/ae_iop_hgo/sweep_reliability
 
 specs = makeWorkspaceSpecs(launchFolder);

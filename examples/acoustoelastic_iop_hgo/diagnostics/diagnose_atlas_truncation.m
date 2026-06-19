@@ -2,11 +2,9 @@ clear; clc; close all;
 launchFolder = pwd;
 startup
 
-%DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_ATLASA0_TRUNCATION_CAUSE
-% Legacy descriptive implementation. Prefer the short entrypoint:
-%   diagnose_atlas_truncation
+%DIAGNOSE_ATLAS_TRUNCATION AtlasA0 truncation-cause diagnostic.
 %
-% New outputs are written to:
+% Outputs are written to:
 %   Results/ae_iop_hgo/atlas_truncation
 
 outputFolder = aeOutputFolder(launchFolder, 'atlas_truncation');
