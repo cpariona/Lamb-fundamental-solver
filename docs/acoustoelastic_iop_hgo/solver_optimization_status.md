@@ -99,6 +99,26 @@ The branch-family diagnostic showed:
 
 The last row is the key result: no reported family combines high coverage and low median minima rank.
 
+### Ambiguity helper
+
+Use the helper below to classify known ambiguity regimes without changing solver output:
+
+```matlab
+status = aeClassifyAmbiguityRegime(struct( ...
+    'IOP_mmHg', 35, ...
+    'Mu_kPa', 25));
+```
+
+For the documented corner, the helper returns:
+
+```text
+status.isKnownAmbiguous = true
+status.severity = "high"
+status.label = "low_mu_high_iop_modal_family_ambiguity"
+```
+
+The helper is diagnostic only. It records the validation boundary and does not modify `result.Cp`, `result.validCp`, or `options.atlasBranchPolicy`.
+
 ### Interpretation of the ambiguity corner
 
 The difficult corner is not resolved by increasing atlas resolution or retaining more residual minima.
@@ -128,9 +148,9 @@ For the current model assumptions and residual-only tracking, the solver optimiz
 
 The next work should not be a broad rewrite of the solver. Recommended next actions are:
 
-1. Add a compact warning or status flag for explicit ambiguity regimes.
-2. Keep `atlasA0` as the official conservative policy.
-3. Keep `identityA0Diagnostic`, `raw_branch1`, and `branch_families` as diagnostics.
+1. Keep `atlasA0` as the official conservative policy.
+2. Keep `identityA0Diagnostic`, `raw_branch1`, and `branch_families` as diagnostics.
+3. Use `aeClassifyAmbiguityRegime` when reports or scripts need to mark the documented ambiguity boundary.
 4. Add a final smoke/validation command list to make the closure reproducible.
 5. If more accuracy is needed inside the ambiguous corner, add a new project phase focused on modal identity, not residual minimization.
 
