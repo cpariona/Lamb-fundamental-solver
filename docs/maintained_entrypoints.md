@@ -107,8 +107,6 @@ These scripts are not primary maintained workflows. They are retained because th
 Do not delete them without a focused reference check and test pass.
 
 ```matlab
-compare_branch_policies
-diagnose_branch_policy
 diagnose_atlas_resolution
 diagnose_idA0_score
 validate_idA0_grid
@@ -132,8 +130,6 @@ run_acoustoelastic_iop_hgo_A0_backward
 run_acoustoelastic_iop_hgo_A0_complexC
 run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma
 compare_acoustoelastic_iop_hgo_tracking_strategies
-compare_acoustoelastic_iop_hgo_branch_policies
-diagnose_acoustoelastic_iop_hgo_branch_policy
 diagnose_acoustoelastic_iop_hgo_grid_convergence
 diagnose_acoustoelastic_iop_hgo_dimensionless_A1
 diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas
