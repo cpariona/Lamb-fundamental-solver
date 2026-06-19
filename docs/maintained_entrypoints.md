@@ -180,6 +180,7 @@ docs/acoustoelastic_iop_hgo_sweep_workflow.md
 docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md
 docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md
+docs/acoustoelastic_iop_hgo/framework_hygiene_status.md
 docs/acoustoelastic_iop_hgo/phase_closure_atlasA0.md
 docs/acoustoelastic_iop_hgo/identityA0_diagnostic_policy.md
 docs/acoustoelastic_iop_hgo/identityA0_diagnostic_grid_validation.md
