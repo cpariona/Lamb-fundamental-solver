@@ -74,7 +74,7 @@ test_ae_analyze_truncation_recovery
 |---|---|---|---|
 | `compare_branch_policies` | `DELETED_AFTER_TESTS` | Branch-policy selection is closed; `atlasA0` policy is documented. | Removed with aliases. |
 | `diagnose_branch_policy` | `DELETED_AFTER_TESTS` | Thin alias around removed branch-policy comparison. | Removed with legacy alias. |
-| `diagnose_atlas_resolution` | `DIAGNOSTIC_ARCHIVE` | Resolution sensitivity informed atlas settings; expensive to run. | Keep as archive. |
+| `diagnose_atlas_resolution` | `DELETED_AFTER_TESTS` | Resolution-sensitivity conclusions are retained in `docs/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md`; executable batch was expensive and no longer part of the maintained surface. | Removed with legacy alias. |
 | `diagnose_idA0_score` | `KEEP_FOR_THESIS_ANALYSIS` | Helps explain identity-score behavior and diagnostic-only branches. | Keep outside primary maintained list. |
 | `validate_idA0_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy grid validation for `identityA0Diagnostic` official-output preservation. | Keep outside routine workflow. |
 | `validate_idA0_score_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy score-grid validation for branch-identity scoring. | Keep outside routine workflow. |
@@ -94,6 +94,8 @@ compare_branch_policies.m
 compare_acoustoelastic_iop_hgo_branch_policies.m
 diagnose_branch_policy.m
 diagnose_acoustoelastic_iop_hgo_branch_policy.m
+diagnose_atlas_resolution.m
+diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity.m
 diagnose_truncation_cases.m
 diagnose_acoustoelastic_iop_hgo_truncation_cases.m
 diagnose_landscape_failure.m
@@ -152,4 +154,4 @@ run_all_smoke_tests
 
 Do not delete `track_raw_branch1` yet.
 
-The next cleanup target should be `diagnose_atlas_resolution`, after checking whether its conclusions are fully represented in retained documentation.
+The next cleanup target should be selected from the remaining retained historical diagnostics only after focused reference checks and confirmation that the relevant conclusions are represented in retained documentation.
