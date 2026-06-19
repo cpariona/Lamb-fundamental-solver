@@ -1,6 +1,6 @@
 ### Acoustoelastic IOP/HGO code retention review plan
 
-This document records the current retention policy for the acoustoelastic IOP/HGO module after the `atlasA0` policy closure and the first archived-diagnostic cleanup passes.
+This document records the current retention policy for the acoustoelastic IOP/HGO module after the `atlasA0` policy closure and archived-diagnostic cleanup passes.
 
 ### Retention principle
 
@@ -72,8 +72,8 @@ test_ae_analyze_truncation_recovery
 
 | Entrypoint | Classification | Rationale | Action |
 |---|---|---|---|
-| `compare_branch_policies` | `DIAGNOSTIC_ARCHIVE` | Useful during branch-policy selection; current policy is now `atlasA0`. | Keep as historical evidence for now. |
-| `diagnose_branch_policy` | `KEEP_AS_COMPATIBILITY` | Thin compatibility command around branch-policy comparison history. | Keep until branch-policy historical scripts are reviewed together. |
+| `compare_branch_policies` | `DELETED_AFTER_TESTS` | Branch-policy selection is closed; `atlasA0` policy is documented. | Removed with aliases. |
+| `diagnose_branch_policy` | `DELETED_AFTER_TESTS` | Thin alias around removed branch-policy comparison. | Removed with legacy alias. |
 | `diagnose_atlas_resolution` | `DIAGNOSTIC_ARCHIVE` | Resolution sensitivity informed atlas settings; expensive to run. | Keep as archive. |
 | `diagnose_idA0_score` | `KEEP_FOR_THESIS_ANALYSIS` | Helps explain identity-score behavior and diagnostic-only branches. | Keep outside primary maintained list. |
 | `validate_idA0_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy grid validation for `identityA0Diagnostic` official-output preservation. | Keep outside routine workflow. |
@@ -90,6 +90,10 @@ test_ae_analyze_truncation_recovery
 The following historical executable diagnostics were removed from `examples/acoustoelastic_iop_hgo/diagnostics/`:
 
 ```text
+compare_branch_policies.m
+compare_acoustoelastic_iop_hgo_branch_policies.m
+diagnose_branch_policy.m
+diagnose_acoustoelastic_iop_hgo_branch_policy.m
 diagnose_truncation_cases.m
 diagnose_acoustoelastic_iop_hgo_truncation_cases.m
 diagnose_landscape_failure.m
@@ -101,6 +105,8 @@ diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m
 Replacement or retained evidence:
 
 ```text
+docs/acoustoelastic_iop_hgo/phase_closure_atlasA0.md
+docs/acoustoelastic_iop_hgo/solver_optimization_status.md
 diagnose_atlas_truncation
 docs/acoustoelastic_iop_hgo/atlasA0_truncation_validation.md
 docs/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md
@@ -146,4 +152,4 @@ run_all_smoke_tests
 
 Do not delete `track_raw_branch1` yet.
 
-The next cleanup target should be a low-risk historical diagnostic that is not required as input to maintained diagnostic evidence, such as branch-policy history or atlas-resolution history.
+The next cleanup target should be `diagnose_atlas_resolution`, after checking whether its conclusions are fully represented in retained documentation.
