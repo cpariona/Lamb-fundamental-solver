@@ -171,26 +171,33 @@ They have shorter or more current diagnostics that capture the main conclusions.
 
 ### Reference-check results for first deletion-candidate subset
 
-A first `git grep`-style review found that none of the four candidates is deletion-ready without additional cleanup.
+A first `git grep`-style review found that none of the four candidates was deletion-ready before reducing test references.
 
 | Candidate | Short references | Long implementation references | Decision after grep |
 |---|---|---|---|
-| `diagnose_truncation_cases` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_truncation_cases.m`, `atlasA0_truncation_validation.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready. Review `run_all_smoke_tests.m` and consolidate truncation docs first. |
-| `diagnose_landscape_failure` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_failure_landscape.m`, `atlasA0_truncation_cause_diagnostic.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready. Review failure-landscape documentation and smoke-test references first. |
-| `diagnose_branch_persistence` | short implementation, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m`, `branch_persistence_refinement.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready. Keep until branch-persistence document is either preserved as archive or folded into truncation docs. |
+| `diagnose_truncation_cases` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_truncation_cases.m`, `atlasA0_truncation_validation.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready before test cleanup. Review truncation docs before deletion. |
+| `diagnose_landscape_failure` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_failure_landscape.m`, `atlasA0_truncation_cause_diagnostic.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready before test cleanup. Review failure-landscape documentation before deletion. |
+| `diagnose_branch_persistence` | short implementation, docs, `legacy_entrypoint_map.md`, static entrypoint tests | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m`, `branch_persistence_refinement.md`, `tests/run_all_smoke_tests.m` | Not deletion-ready before test cleanup. Keep until branch-persistence document is either preserved as archive or folded into truncation docs. |
 | `track_raw_branch1` | short wrapper, docs, `legacy_entrypoint_map.md`, static entrypoint tests, `compare_atlasA0_vs_raw_branch1.m` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate.m`, `tests/run_all_smoke_tests.m` | Not deletion-ready. Raw branch comparison still depends on this history. |
+
+### Test-reference cleanup status
+
+`tests/run_all_smoke_tests.m` was reduced to the primary maintained API, workflows, diagnostic evidence, and tests. It no longer protects historical diagnostics or legacy aliases.
+
+`tests/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_short_entrypoints.m` now separates:
+
+```text
+maintainedNames
+historicalNames
+```
+
+Historical names are validated only if they are still present. This preserves wrapper-target checks while allowing future deletion of archived diagnostics.
 
 Current interpretation:
 
 ```text
-These files are no longer primary maintained workflows, but they still have documentation and test references.
-The next cleanup should update or reduce those references before deleting code.
-```
-
-Next safe action:
-
-```text
-Review tests/run_all_smoke_tests.m to determine whether it is intentionally preserving historical diagnostics or simply stale.
+The test layer no longer blocks historical diagnostic deletion.
+Documentation and compatibility references still need to be addressed before deleting files.
 ```
 
 Before any deletion, each candidate still requires local reference checks:
@@ -208,6 +215,7 @@ rehash toolboxcache
 startup
 
 test_acoustoelastic_iop_hgo_short_entrypoints
+run_all_smoke_tests
 ```
 
 ### Recommended retention workflow
@@ -272,6 +280,7 @@ rehash toolboxcache
 startup
 
 test_acoustoelastic_iop_hgo_short_entrypoints
+run_all_smoke_tests
 ```
 
 If a deleted script had a legacy alias or wrapper relationship, run the relevant maintained entrypoint before deletion.
@@ -291,12 +300,11 @@ This keeps the history auditable.
 
 ### Current recommendation
 
-Do not attempt a complete repository-wide cleanup in one pass.
+The test layer has been prepared for deletion of archived diagnostics.
 
 Recommended next concrete step:
 
 ```text
-Review tests/run_all_smoke_tests.m to identify stale historical-diagnostic calls.
+Re-run reference checks after syncing the latest test cleanup.
+If only documentation and compatibility maps remain for a candidate, update those docs first, then delete in a small batch.
 ```
-
-Only after that review should code deletion be considered.
