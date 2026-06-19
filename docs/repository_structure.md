@@ -122,16 +122,19 @@ For acoustoelastic IOP/HGO examples, sweeps, and diagnostics, the folder already
 run_atlas_branch
 sweep_iop
 sweep_mu
+compare_atlasA0_vs_raw_branch1
+validate_atlas_raw_grid
+diagnose_raw_branch_corner
+diagnose_branch_families
+diagnose_sweep_reliability
+diagnose_atlas_truncation
+diagnose_idA0_plausibility
 validate_idA0_score_grid
 validate_idA0_grid
-diagnose_branch_policy
-diagnose_sweep_reliability
-diagnose_truncation_cases
-diagnose_branch_persistence
-diagnose_atlas_truncation
-diagnose_landscape_failure
 diagnose_idA0_score
-diagnose_idA0_plausibility
+diagnose_modal_atlas
+diagnose_modal_atlas_lowfreq
+track_raw_branch1
 ```
 
 rather than repeating `acoustoelastic_iop_hgo` in the filename.
