@@ -260,6 +260,38 @@ Interpretation:
 
 This grid snapshot supports using `atlasA0` as the conservative official output while focusing future diagnostics on `mu = 25 kPa`, especially `IOP = 35 mmHg`.
 
+### Corner validation snapshot: 35 mmHg, mu 25 kPa
+
+The first completed corner diagnostic used nine raw-atlas configurations around the difficult case `IOP = 35 mmHg`, `mu = 25 kPa`.
+
+Aggregate result:
+
+| Configurations | Min raw valid fraction | Median raw valid fraction | Max raw valid fraction | Median raw median rank | Min atlas/raw overlap fraction | Median atlas/raw rel. error | Median reference/raw rel. error | Max reference/raw rel. error | Configs with raw weakness | Configs with reference mismatch |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 9 | 0.73125 | 0.75625 | 0.92500 | 5 | 0.66216 | 0.0019818 | 0 | 0.44767 | 6 | 5 |
+
+Configuration-level summary:
+
+| Config | NumY | TopN | Max log-y jump | Raw valid fraction | Raw median rank | Atlas valid fraction | Identity valid fraction | Atlas/raw overlap | Reference/raw overlap | First reference/raw mismatch [kHz] | Median atlas/raw rel. error | Median reference/raw rel. error | Max reference/raw rel. error | Classification |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| `base` | 900 | 16 | 0.075 | 0.73125 | 4 | 0.61250 | 0.67500 | 0.72650 | 1.00000 | NaN | 0.0019818 | 0 | 0 | `raw_branch_weak` |
+| `strict_jump` | 900 | 16 | 0.050 | 0.73125 | 4 | 0.61250 | 0.67500 | 0.72650 | 1.00000 | NaN | 0.0019818 | 0 | 0 | `raw_branch_weak` |
+| `loose_jump` | 900 | 16 | 0.110 | 0.73125 | 4 | 0.61250 | 0.67500 | 0.72650 | 1.00000 | 30.204 | 0.0019818 | 0 | 0.18921 | `raw_weak_and_selection_sensitive` |
+| `top24` | 900 | 24 | 0.075 | 0.81875 | 6 | 0.61250 | 0.67500 | 0.71756 | 0.94872 | NaN | 0.0019963 | 0 | 0.14711 | `stable_raw_and_aligned` |
+| `top32` | 900 | 32 | 0.075 | 0.92500 | 8.5 | 0.61250 | 0.67500 | 0.66216 | 0.97436 | 18.709 | 0.0019963 | 0 | 0.17248 | `raw_weak_and_selection_sensitive` |
+| `fine1400` | 1400 | 16 | 0.075 | 0.73125 | 5 | 0.61250 | 0.67500 | 0.76923 | 0.82906 | 21.680 | 0.0015085 | 0.0022206 | 0.24860 | `raw_weak_and_selection_sensitive` |
+| `fine_top24` | 1400 | 24 | 0.075 | 0.85625 | 6 | 0.61250 | 0.67500 | 0.69343 | 0.94017 | 18.709 | 0.0015551 | 0.0022696 | 0.084739 | `raw_selection_sensitive` |
+| `fine_loose` | 1400 | 24 | 0.110 | 0.86250 | 6 | 0.61250 | 0.67500 | 0.68841 | 0.93162 | 16.146 | 0.0015551 | 0.0022411 | 0.44767 | `raw_selection_sensitive` |
+| `coarse600` | 600 | 16 | 0.075 | 0.75625 | 5 | 0.61250 | 0.67500 | 0.76033 | 0.86325 | NaN | 0.0029709 | 0.0031444 | 0.070733 | `raw_branch_weak` |
+
+Interpretation:
+
+- The corner is not a simple atlas-resolution failure. Increasing `TopNMinimaPerFrequency` improves raw coverage from about 0.73 to as high as 0.925, but it also raises the selected raw branch median rank up to 8.5 and can introduce selection sensitivity.
+- The official `atlasA0` remains locally aligned with whichever selected raw branch is used over the overlapping valid region; the median atlas/raw relative error stays around 0.0015-0.0030 in all configurations.
+- The unstable quantity is the selected `raw_branch1` reference itself. Five of nine configurations show a first reference/raw mismatch frequency, and the maximum reference/raw relative error reaches 0.44767.
+- Therefore, the `IOP = 35 mmHg`, `mu = 25 kPa` corner should not be used as a production-policy validation reference without additional modal-shape or branch-family evidence.
+- The conservative official `atlasA0` truncation is appropriate in this corner until the physical modal identity is resolved by a stronger criterion than residual-branch linking alone.
+
 ### Interpretation
 
 Use this diagnostic to decide whether the current `atlasA0` selection is consistent with the globally persistent modal-atlas branch. A result classified as `atlas_branch_switch_suspected` or `identity_extension_modal_mismatch` should trigger manual inspection of the point-level table and plots before any solver-policy change is considered.
