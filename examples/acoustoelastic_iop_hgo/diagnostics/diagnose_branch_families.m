@@ -333,8 +333,8 @@ families.TopNMinimaPerFrequency = repmat(config.TopNMinimaPerFrequency, height(f
 families.MaxLogYJumpForRawBranch = repmat(config.MaxLogYJumpForRawBranch, height(families), 1);
 families.IOP_mmHg = repmat(params.IOP_mmHg, height(families), 1);
 families.Mu_kPa = repmat(params.mu/1e3, height(families), 1);
-families.SigmaTheta_kPa = repmat(getStateValue(state, 'sigmaTheta')/1e3, height(families), 1);
-families.LambdaTheta = repmat(getStateValue(state, 'lambdaTheta'), height(families), 1);
+families.SigmaTheta_kPa = repmat(getStateValue(state, 'sigma')/1e3, height(families), 1);
+families.LambdaTheta = repmat(getStateValue(state, 'lambda'), height(families), 1);
 end
 
 function x = normalizeMetric(x)
