@@ -40,6 +40,8 @@ FALSE_POSITIVE_TEST_FIXTURE
 KEEP_OFFICIAL_ASSIGNMENT
 KEEP_SOLVER_ASSIGNMENT
 KEEP_DIAGNOSTIC_SOLVER_VALIDCP
+DIRECT_MAINTAINED_ENTRYPOINT
+LEGACY_ALIAS_TO_SHORT
 ```
 
 ### Priority 1: output path cleanup
@@ -54,6 +56,18 @@ This should be triaged into:
 4. tests that intentionally verify legacy compatibility.
 
 Do not change official numerical outputs while doing this cleanup.
+
+Initial cleanup action completed:
+
+```text
+examples/acoustoelastic_iop_hgo/basic/run_atlas_branch.m
+  DIRECT_MAINTAINED_ENTRYPOINT
+  Now calls solveAcoustoelasticIOPHGOAtlasBranch directly and writes under Results/ae_iop_hgo/atlas_branch.
+
+examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_atlas_branch.m
+  LEGACY_ALIAS_TO_SHORT
+  Now delegates to run_atlas_branch for compatibility.
+```
 
 ### Priority 2: mutation flag review completed
 
@@ -143,4 +157,4 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 
 Do not start a broad deletion pass yet.
 
-The next safe cleanup step is output-path triage for files flagged as `WritesLegacyResults`.
+The next safe cleanup step is output-path triage for files flagged as `WritesLegacyResults`, starting with maintained short entrypoints that still depend on legacy bridges.
