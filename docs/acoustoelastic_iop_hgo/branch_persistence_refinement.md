@@ -1,13 +1,20 @@
 ### Branch-persistence refinement for atlasA0
 
-This diagnostic layer evaluates whether the maintained `atlasA0` branch has locally defensible continuation candidates after high-frequency truncation.
+This document records the historical branch-persistence refinement diagnostic used during `atlasA0` validation.
+
+The executable diagnostic entrypoints were removed from the maintained examples tree after the conservative `atlasA0` policy was established. The reusable helper layer remains available and tested:
+
+```matlab
+aeAnalyzeBranchPersistenceCandidates
+aeRefineAtlasA0BranchPersistence
+```
 
 The maintained solver output remains unchanged:
 
 - `result.Cp`
 - `result.validCp`
 
-The refinement is returned separately:
+The refinement candidate is diagnostic only and remains separate from official solver output:
 
 - `refinement.CpCandidate`
 - `refinement.validCandidate`
@@ -16,41 +23,17 @@ The refinement is returned separately:
 - `refinement.classification`
 - `refinement.summary`
 
-The candidate branch is diagnostic only. It must not automatically replace `result.Cp`.
+The candidate branch must not automatically replace `result.Cp`.
 
-### Result-location policy
+### Historical result-location policy
 
-Sweep and diagnostic scripts should be launched from the folder where the user wants the `Results` directory to be created. For example, if MATLAB is currently in `E:\`, outputs are written under:
-
-`E:\Results\ae_iop_hgo\branch_persistence`
-
-The repository only needs to be on the MATLAB path through `startup`; results do not need to be stored inside the repository checkout.
-
-### Intended use
-
-Run this diagnostic after generating the IOP and shear-modulus sweeps from the same launch folder:
-
-```matlab
-sweep_iop
-sweep_mu
-diagnose_branch_persistence
-```
-
-Legacy descriptive commands remain available:
-
-```matlab
-sweep_acoustoelastic_iop_hgo_iop
-sweep_acoustoelastic_iop_hgo_mu
-diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement
-```
-
-Preferred diagnostic output folder:
+Historical runs of the removed diagnostic wrote to:
 
 ```text
 Results/ae_iop_hgo/branch_persistence
 ```
 
-Short-path output files:
+Short-path output files were:
 
 ```text
 branch_persistence_summary.csv
@@ -59,22 +42,24 @@ branch_persistence_workspace.mat
 <case>_candidates.csv
 ```
 
-Legacy output folder from earlier runs may still exist under:
+Legacy output folders from earlier runs may also exist under:
 
 ```text
 Results/acoustoelastic_iop_hgo_branch_persistence_refinement
 ```
 
-### Classification
+These folders are retained only as historical output locations. New routine workflows should not depend on them.
 
-The diagnostic classification uses:
+### Historical classification
+
+The diagnostic classification used:
 
 - `not_recommended`
 - `weak_partial_extension`
 - `caution_low_rank_branch`
 - `accepted_contiguous_extension`
 
-The classification order is conservative:
+The classification order was conservative:
 
 1. no accepted continuation is `not_recommended`;
 2. very short, low-bandwidth, or non-contiguous continuation is `weak_partial_extension`;
@@ -83,11 +68,13 @@ The classification order is conservative:
 
 These classes are reporting labels only. The official branch policy remains:
 
-`options.atlasBranchPolicy = "atlasA0";`
+```matlab
+options.atlasBranchPolicy = "atlasA0";
+```
 
 ### Validation snapshot
 
-The current validation snapshot uses the maintained `atlasA0` output and the branch-persistence diagnostic. The candidate branch remains separate from the official branch.
+The validation snapshot used the maintained `atlasA0` output and the branch-persistence diagnostic. The candidate branch remained separate from the official branch.
 
 | Case | Official valid points | Added diagnostic points | Extension [kHz] | Median accepted rank | Classification | Interpretation |
 |---|---:|---:|---:|---:|---|---|
@@ -95,4 +82,21 @@ The current validation snapshot uses the maintained `atlasA0` output and the bra
 | `iop_25mmHg` | 104 | 1 | 0.803 | 4 | `weak_partial_extension` | Only one local continuation point is accepted. This is not enough to support a branch extension. |
 | `mu_25kPa` | 92 | 0 | 0 | NaN | `not_recommended` | No accepted continuation survives the persistence gates. Keep high-frequency values as `NaN`. |
 
-The validation supports keeping `atlasA0` as the maintained conservative result while exposing `CpCandidate` only for diagnostics.
+The validation supports keeping `atlasA0` as the maintained conservative result while exposing persistence candidates only as diagnostic evidence.
+
+### Current executable status
+
+The historical scripts:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_branch_persistence.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m
+```
+
+were removed from the maintained examples tree.
+
+The helper behavior remains covered by:
+
+```matlab
+test_acoustoelastic_iop_hgo_branch_persistence_refinement
+```
