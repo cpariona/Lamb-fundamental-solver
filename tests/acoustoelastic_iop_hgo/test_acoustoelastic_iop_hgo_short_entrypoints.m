@@ -2,6 +2,8 @@ function test_acoustoelastic_iop_hgo_short_entrypoints()
 %TEST_ACOUSTOELASTIC_IOP_HGO_SHORT_ENTRYPOINTS Verify short AE entrypoints are on path.
 %
 % This is a path-level smoke test only. It does not execute heavy diagnostics.
+% It also checks that any remaining aeRunLegacyScript wrappers point to an
+% existing script file.
 
 requiredNames = [ ...
     "aeOutputFolder", ...
@@ -34,8 +36,36 @@ requiredNames = [ ...
     ];
 
 for i = 1:numel(requiredNames)
-    assert(~isempty(which(requiredNames(i))), 'Missing short AE entrypoint/helper on MATLAB path: %s', requiredNames(i));
+    entryPath = which(requiredNames(i));
+    assert(~isempty(entryPath), 'Missing short AE entrypoint/helper on MATLAB path: %s', requiredNames(i));
+    validateLegacyTargetIfPresent(requiredNames(i), entryPath);
 end
 
-fprintf('Short acoustoelastic IOP/HGO entrypoint path test passed.\n');
+fprintf('Short acoustoelastic IOP/HGO entrypoint path test passed. Legacy wrapper targets verified where present.\n');
+end
+
+function validateLegacyTargetIfPresent(entryName, entryPath)
+%VALIDATELEGACYTARGETIFPRESENT Check static aeRunLegacyScript target paths.
+
+[~, ~, ext] = fileparts(entryPath);
+if ext ~= ".m"
+    return;
+end
+
+text = fileread(entryPath);
+if ~contains(text, 'aeRunLegacyScript')
+    return;
+end
+
+expr = "fullfile\(thisFolder,\s*'([^']+\.m)'\)";
+tokens = regexp(text, expr, 'tokens');
+assert(~isempty(tokens), 'Short entrypoint %s calls aeRunLegacyScript but no static legacy target was parsed.', entryName);
+
+entryFolder = fileparts(entryPath);
+for j = 1:numel(tokens)
+    targetName = tokens{j}{1};
+    targetPath = fullfile(entryFolder, targetName);
+    assert(exist(targetPath, 'file') == 2, ...
+        'Short entrypoint %s points to missing legacy target: %s', entryName, targetPath);
+end
 end
