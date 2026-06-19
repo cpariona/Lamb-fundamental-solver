@@ -31,7 +31,6 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 | `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | direct maintained implementation; legacy file is alias to short entrypoint |
 | `diagnose_branch_policy` | `diagnose_acoustoelastic_iop_hgo_branch_policy` | historical compatibility entrypoint |
 | `diagnose_sweep_reliability` | `diagnose_acoustoelastic_iop_hgo_sweep_reliability` | direct maintained implementation; legacy file is alias to short entrypoint |
-| `diagnose_branch_persistence` | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement` | direct maintained implementation; legacy file is alias to short entrypoint |
 | `diagnose_atlas_truncation` | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | direct maintained implementation; legacy file is alias to short entrypoint |
 | `diagnose_atlas_resolution` | `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity` | direct maintained implementation; legacy file is alias to short entrypoint |
 
@@ -53,14 +52,13 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 | `diagnose_modal_atlas_lowfreq` | `diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas` | historical thesis-analysis diagnostic; short entrypoint writes to short output path |
 | `track_raw_branch1` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate` | historical raw-branch diagnostic retained for traceability |
 
-### Deleted archived diagnostics
-
-The following historical diagnostics were deleted after being removed from the maintained surface and after local smoke tests passed:
+### Archived diagnostics removed from examples
 
 | Removed short entrypoint | Removed legacy/descriptive file | Replacement or retained evidence |
 |---|---|---|
 | `diagnose_truncation_cases` | `diagnose_acoustoelastic_iop_hgo_truncation_cases` | use `diagnose_atlas_truncation`; see `docs/acoustoelastic_iop_hgo/atlasA0_truncation_validation.md` |
 | `diagnose_landscape_failure` | `diagnose_acoustoelastic_iop_hgo_failure_landscape` | use `diagnose_atlas_truncation`; see `docs/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md` |
+| `diagnose_branch_persistence` | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement` | helper behavior retained in `aeAnalyzeBranchPersistenceCandidates`, `aeRefineAtlasA0BranchPersistence`, and `test_acoustoelastic_iop_hgo_branch_persistence_refinement` |
 
 ### New diagnostics without legacy counterpart
 
