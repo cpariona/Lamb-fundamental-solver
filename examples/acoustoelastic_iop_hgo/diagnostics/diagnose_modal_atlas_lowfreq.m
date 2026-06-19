@@ -20,7 +20,7 @@ sourceText = strrep(sourceText, plotLine, ...
     '        if makeInteractivePlots, plotLowFrequencyAtlasCase(atlas, condition); end');
 
 oldLine = "outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_low_frequency_modal_atlas');";
-newLine = "outputFolder = aeOutputFolder(launchFolder, 'modal_atlas_lowfreq');";
+newLine = "outputFolder = aeOutputFolder(pwd, 'modal_atlas_lowfreq');";
 if ~contains(sourceText, oldLine)
     error('Expected low-frequency modal-atlas output-folder line not found.');
 end
@@ -37,5 +37,5 @@ if fid < 0
 end
 cleanupObj = onCleanup(@() fclose(fid)); %#ok<NASGU>
 launchFolderEscaped = strrep(launchFolder, '''', '''''');
-fprintf(fid, 'cd(''%s'');\nlaunchFolder = ''%s'';\nmakeInteractivePlots = false;\n%s', launchFolderEscaped, launchFolderEscaped, sourceText);
+fprintf(fid, 'cd(''%s'');\nmakeInteractivePlots = false;\n%s', launchFolderEscaped, sourceText);
 end
