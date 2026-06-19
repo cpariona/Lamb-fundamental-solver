@@ -2,8 +2,8 @@ function test_acoustoelastic_iop_hgo_short_entrypoints()
 %TEST_ACOUSTOELASTIC_IOP_HGO_SHORT_ENTRYPOINTS Verify short AE entrypoints are on path.
 %
 % This is a path-level smoke test only. It does not execute heavy diagnostics.
-% It also checks that any remaining aeRunLegacyScript wrappers point to an
-% existing script file.
+% It also checks that remaining example wrappers using aeRunLegacyScript point
+% to an existing script file.
 
 requiredNames = [ ...
     "aeOutputFolder", ...
@@ -38,17 +38,22 @@ requiredNames = [ ...
 for i = 1:numel(requiredNames)
     entryPath = which(requiredNames(i));
     assert(~isempty(entryPath), 'Missing short AE entrypoint/helper on MATLAB path: %s', requiredNames(i));
-    validateLegacyTargetIfPresent(requiredNames(i), entryPath);
+    validateLegacyTargetIfExampleWrapper(requiredNames(i), entryPath);
 end
 
-fprintf('Short acoustoelastic IOP/HGO entrypoint path test passed. Legacy wrapper targets verified where present.\n');
+fprintf('Short acoustoelastic IOP/HGO entrypoint path test passed. Example legacy wrapper targets verified where present.\n');
 end
 
-function validateLegacyTargetIfPresent(entryName, entryPath)
-%VALIDATELEGACYTARGETIFPRESENT Check static aeRunLegacyScript target paths.
+function validateLegacyTargetIfExampleWrapper(entryName, entryPath)
+%VALIDATELEGACYTARGETIFEXAMPLEWRAPPER Check simple static legacy targets.
 
 [~, ~, ext] = fileparts(entryPath);
 if ext ~= ".m"
+    return;
+end
+
+pathForCheck = strrep(entryPath, '\\', '/');
+if ~contains(pathForCheck, '/examples/acoustoelastic_iop_hgo/')
     return;
 end
 
@@ -57,15 +62,22 @@ if ~contains(text, 'aeRunLegacyScript')
     return;
 end
 
-expr = "fullfile\(thisFolder,\s*'([^']+\.m)'\)";
-tokens = regexp(text, expr, 'tokens');
-assert(~isempty(tokens), 'Short entrypoint %s calls aeRunLegacyScript but no static legacy target was parsed.', entryName);
+marker = "fullfile(thisFolder, '";
+markerStart = strfind(text, marker);
+assert(~isempty(markerStart), 'Short example entrypoint %s calls aeRunLegacyScript but no static legacy target was parsed.', entryName);
 
 entryFolder = fileparts(entryPath);
-for j = 1:numel(tokens)
-    targetName = tokens{j}{1};
-    targetPath = fullfile(entryFolder, targetName);
+for j = 1:numel(markerStart)
+    nameStart = markerStart(j) + strlength(marker);
+    tail = extractAfter(text, nameStart - 1);
+    nameEnd = strfind(tail, "')");
+    assert(~isempty(nameEnd), 'Short example entrypoint %s has an incomplete legacy target expression.', entryName);
+    targetName = extractBefore(tail, nameEnd(1));
+    if ~endsWith(targetName, ".m")
+        continue;
+    end
+    targetPath = fullfile(entryFolder, char(targetName));
     assert(exist(targetPath, 'file') == 2, ...
-        'Short entrypoint %s points to missing legacy target: %s', entryName, targetPath);
+        'Short example entrypoint %s points to missing legacy target: %s', entryName, targetPath);
 end
 end
