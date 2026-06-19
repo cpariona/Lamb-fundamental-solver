@@ -68,6 +68,7 @@ Do not execute long legacy scripts directly unless reproducing historical behavi
 | `naming_and_paths_convention.md` | Short-name and result-path convention. |
 | `legacy_entrypoint_map.md` | Mapping from maintained short entrypoints to legacy descriptive scripts. |
 | `remaining_wrapper_inventory.md` | Remaining wrapper inventory after partial consolidation. |
+| `output_path_audit.md` | Current audit of short result paths, legacy fallback reads, and remaining output-path cleanup candidates. |
 | `modal_atlas_wrapper_review.md` | Focused review of modal-atlas wrapper cleanup risks and plan. |
 | `validation_grid_wrapper_review.md` | Focused review of identity-A0 validation-grid wrappers. |
 | `framework_hygiene_status.md` | Current framework structure, naming, and cleanup status. |
