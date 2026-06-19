@@ -36,6 +36,10 @@ CONSOLIDATE
 DELETE_AFTER_REFERENCE_CHECK
 MIGRATE_OUTPUT_PATH
 REVIEW_MUTATION_FLAG
+FALSE_POSITIVE_TEST_FIXTURE
+KEEP_OFFICIAL_ASSIGNMENT
+KEEP_SOLVER_ASSIGNMENT
+KEEP_DIAGNOSTIC_SOLVER_VALIDCP
 ```
 
 ### Priority 1: output path cleanup
@@ -51,21 +55,33 @@ This should be triaged into:
 
 Do not change official numerical outputs while doing this cleanup.
 
-### Priority 2: mutation flag review
+### Priority 2: mutation flag review completed
 
 The audit reports `MutatesOfficialCp = 5`.
 
-These files should be inspected manually before changing anything:
+These files were reviewed in:
 
 ```text
-models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticAtlasBranch.m
-models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticComplexCDispersion.m
-models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticDispersion.m
-tests/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_branch_persistence_refinement.m
-tests/acoustoelastic_iop_hgo/test_ae_analyze_truncation_recovery.m
+docs/acoustoelastic_iop_hgo/official_cp_mutation_review.md
 ```
 
-The solver files may legitimately assign `result.Cp` or `result.validCp`. The review should distinguish valid official-output assignment from accidental diagnostic mutation.
+Classification:
+
+```text
+models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticAtlasBranch.m              KEEP_OFFICIAL_ASSIGNMENT
+models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticDispersion.m               KEEP_SOLVER_ASSIGNMENT
+models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticComplexCDispersion.m       KEEP_DIAGNOSTIC_SOLVER_VALIDCP
+
+tests/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_branch_persistence_refinement.m   FALSE_POSITIVE_TEST_FIXTURE
+tests/acoustoelastic_iop_hgo/test_ae_analyze_truncation_recovery.m                         FALSE_POSITIVE_TEST_FIXTURE
+```
+
+Conclusion:
+
+```text
+No code change is required for the current MutatesOfficialCp flags.
+The flags are either legitimate solver-result construction, diagnostic-solver validCp construction, or synthetic test fixtures.
+```
 
 ### Priority 3: legacy script classification
 
@@ -118,14 +134,13 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 
 ### Recommended next cleanup order
 
-1. Review the five `MutatesOfficialCp` files.
-2. Separate true legacy output writes from compatibility references.
-3. Convert maintained short wrappers to short implementation files only when needed.
-4. Delete only obsolete scripts that are unreferenced and superseded.
-5. Update `legacy_entrypoint_map.md` after each consolidation.
+1. Separate true legacy output writes from compatibility references.
+2. Convert maintained short wrappers to short implementation files only when needed.
+3. Delete only obsolete scripts that are unreferenced and superseded.
+4. Update `legacy_entrypoint_map.md` after each consolidation.
 
 ### Current decision
 
 Do not start a broad deletion pass yet.
 
-The next safe cleanup step is an audit-driven classification table for flagged files, followed by small commits for one cleanup category at a time.
+The next safe cleanup step is output-path triage for files flagged as `WritesLegacyResults`.
