@@ -15,14 +15,14 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `run_atlas_branch` | `run_acoustoelastic_iop_hgo_atlas_branch` | maintained short entrypoint |
+| `run_atlas_branch` | `run_acoustoelastic_iop_hgo_atlas_branch` | direct maintained implementation; legacy file is alias to short entrypoint |
 
 ### Sweeps
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `sweep_iop` | `sweep_acoustoelastic_iop_hgo_iop` | maintained short entrypoint |
-| `sweep_mu` | `sweep_acoustoelastic_iop_hgo_mu` | maintained short entrypoint |
+| `sweep_iop` | `sweep_acoustoelastic_iop_hgo_iop` | direct maintained implementation; legacy file is alias to short entrypoint |
+| `sweep_mu` | `sweep_acoustoelastic_iop_hgo_mu` | direct maintained implementation; legacy file is alias to short entrypoint |
 
 ### Branch policy and tracking diagnostics
 
