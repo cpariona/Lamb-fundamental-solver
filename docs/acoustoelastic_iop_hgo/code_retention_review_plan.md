@@ -57,11 +57,15 @@ DIAGNOSTIC_ARCHIVE
   Diagnostic that already answered a historical question and is no longer part of routine work.
   Move out of the maintained entrypoint list. Keep temporarily for traceability.
 
-LEGACY_ALIAS
-  Long descriptive script retained only for backward compatibility.
-  Keep only if referenced, recently used, or safer than deletion.
+KEEP_FOR_THESIS_ANALYSIS
+  Diagnostic is not a routine workflow but may still support interpretation, figures, or thesis discussion.
+  Keep outside the primary maintained list.
 
-DELETE_CANDIDATE
+KEEP_AS_COMPATIBILITY
+  Short or long script exists mainly to avoid breaking older commands.
+  Keep until references are checked and the command is no longer needed.
+
+DELETE_CANDIDATE_AFTER_GREP
   Superseded, unreferenced, redundant, or broken script that no longer contributes to tests, documentation, or current analysis.
   Delete only after reference checks and local tests.
 ```
@@ -120,37 +124,73 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_branch_persistence
 diagnose_idA0_plausibility
 ```
 
 Rationale: they document why `atlasA0` is conservative, where it truncates, and why the low-mu/high-IOP corner remains ambiguous.
 
-#### Candidate archive diagnostics
+### Historical diagnostic retention matrix
 
-These may no longer need to remain in the maintained entrypoint list if their conclusions are already captured in documentation.
+This is the first explicit classification pass for short historical diagnostics that were moved out of the primary maintained-entrypoint list.
+
+| Entrypoint | Classification | Rationale | Action |
+|---|---|---|---|
+| `compare_branch_policies` | `DIAGNOSTIC_ARCHIVE` | Useful during branch-policy selection; current policy is now `atlasA0`. | Keep as historical evidence for now; not a routine workflow. |
+| `diagnose_branch_policy` | `KEEP_AS_COMPATIBILITY` | Thin compatibility command around branch-policy comparison history. | Keep until branch-policy historical scripts are reviewed together. |
+| `diagnose_atlas_resolution` | `DIAGNOSTIC_ARCHIVE` | Resolution sensitivity already informed atlas settings; expensive to run. | Keep as archive; delete only after documentation captures necessary conclusions. |
+| `diagnose_idA0_score` | `KEEP_FOR_THESIS_ANALYSIS` | May still help explain identity-score behavior and why diagnostic branches are not official outputs. | Keep outside primary maintained list. |
+| `validate_idA0_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy grid validation; supports documentation that `identityA0Diagnostic` preserves official outputs. | Keep, but not as a routine workflow. |
+| `validate_idA0_score_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy score-grid validation; may support methodological discussion. | Keep, but not as a routine workflow. |
+| `diagnose_modal_atlas` | `KEEP_FOR_THESIS_ANALYSIS` | Useful visual/diagnostic evidence for modal-family ambiguity; now writes to short output path. | Keep for thesis-level interpretation; not routine. |
+| `diagnose_modal_atlas_lowfreq` | `KEEP_FOR_THESIS_ANALYSIS` | Useful for low-frequency modal-family interpretation; now writes to short output path. | Keep for thesis-level interpretation; not routine. |
+| `track_raw_branch1` | `DIAGNOSTIC_ARCHIVE` | Raw branch1 was useful for comparison but is not official output. | Keep until raw-branch historical docs are consolidated. |
+| `diagnose_truncation_cases` | `DIAGNOSTIC_ARCHIVE` | Superseded in part by `diagnose_atlas_truncation` and related docs. | Candidate for later deletion after grep/reference checks. |
+| `diagnose_landscape_failure` | `DIAGNOSTIC_ARCHIVE` | Exploratory failure-landscape diagnostic; likely redundant after modal/family docs. | Candidate for later deletion after grep/reference checks. |
+| `diagnose_branch_persistence` | `DIAGNOSTIC_ARCHIVE` | Branch-persistence ideas contributed to truncation interpretation; may be redundant now. | Keep temporarily; candidate for archive/deletion review with truncation diagnostics. |
+
+### First deletion-candidate subset
+
+No file is approved for deletion yet.
+
+The first candidates for focused `git grep` and local test review are:
 
 ```text
-compare_branch_policies
-diagnose_branch_policy
-diagnose_atlas_resolution
-diagnose_idA0_score
-validate_idA0_grid
-validate_idA0_score_grid
-diagnose_modal_atlas
-diagnose_modal_atlas_lowfreq
-track_raw_branch1
 diagnose_truncation_cases
 diagnose_landscape_failure
+diagnose_branch_persistence
+track_raw_branch1
 ```
 
-Rationale: these are more exploratory, expensive, historical, or redundant after the policy closure. They should be reviewed before deletion. Some may still be useful as archived analyses.
+Reason:
+
+```text
+They appear to be exploratory or superseded by the current maintained diagnostic evidence layer.
+They are not primary thesis workflows.
+They have shorter or more current diagnostics that capture the main conclusions.
+```
+
+Before deletion, each candidate requires:
+
+```bash
+git grep "<candidate_basename>"
+git grep "<candidate_filename>"
+```
+
+and then at minimum:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+
+test_acoustoelastic_iop_hgo_short_entrypoints
+```
 
 ### Recommended retention workflow
 
 #### Phase 1: freeze maintained surface
 
-Create a shorter public list:
+The primary maintained acoustoelastic surface is:
 
 ```text
 run_atlas_branch
@@ -165,11 +205,11 @@ diagnose_atlas_truncation
 diagnose_idA0_plausibility
 ```
 
-Everything outside this list becomes either `DIAGNOSTIC_ARCHIVE`, `LEGACY_ALIAS`, or `DELETE_CANDIDATE` unless there is a specific reason to keep it maintained.
+Everything outside this list is either `DIAGNOSTIC_ARCHIVE`, `KEEP_FOR_THESIS_ANALYSIS`, `KEEP_AS_COMPATIBILITY`, or `DELETE_CANDIDATE_AFTER_GREP` unless there is a specific reason to keep it maintained.
 
-#### Phase 2: move historical diagnostics out of the maintained entrypoint list
+#### Phase 2: keep historical diagnostics out of the primary maintained-entrypoint list
 
-Do not delete first. First update documentation so users are not encouraged to run old diagnostics.
+Do not delete first. First update documentation so users are not encouraged to run old diagnostics routinely.
 
 Examples:
 
@@ -182,17 +222,7 @@ diagnose_modal_atlas_lowfreq
 track_raw_branch1
 ```
 
-#### Phase 3: add an archive section
-
-Add a documentation section called:
-
-```text
-Historical diagnostics retained for traceability
-```
-
-This allows keeping scripts temporarily without treating them as active public API.
-
-#### Phase 4: deletion pass
+#### Phase 3: deletion pass
 
 Only after a script is moved out of maintained status:
 
@@ -208,7 +238,7 @@ archive in docs and delete code;
 or keep code as historical diagnostic with no maintained guarantee.
 ```
 
-#### Phase 5: test and commit in small batches
+#### Phase 4: test and commit in small batches
 
 For every deletion batch:
 
@@ -242,11 +272,11 @@ Do not attempt a complete repository-wide cleanup in one pass.
 Recommended next concrete step:
 
 ```text
-Update docs/maintained_entrypoints.md to distinguish:
-  1. maintained public workflows;
-  2. maintained diagnostic evidence;
-  3. historical diagnostics retained for traceability;
-  4. legacy aliases.
+Run reference checks for the first deletion-candidate subset:
+  diagnose_truncation_cases
+  diagnose_landscape_failure
+  diagnose_branch_persistence
+  track_raw_branch1
 ```
 
-Then remove historical diagnostics from the primary maintained-entrypoint list before deleting any code.
+Then decide whether to remove, keep as archived code, or fold the conclusions into documentation before deletion.
