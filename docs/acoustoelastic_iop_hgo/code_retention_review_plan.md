@@ -80,7 +80,7 @@ test_ae_analyze_truncation_recovery
 | `validate_idA0_score_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy score-grid validation for branch-identity scoring. | Keep outside routine workflow. |
 | `diagnose_modal_atlas` | `KEEP_FOR_THESIS_ANALYSIS` | Useful evidence for modal-family ambiguity. | Keep outside routine workflow. |
 | `diagnose_modal_atlas_lowfreq` | `KEEP_FOR_THESIS_ANALYSIS` | Useful low-frequency modal-family interpretation. | Keep outside routine workflow. |
-| `track_raw_branch1` | `DIAGNOSTIC_ARCHIVE` | Raw branch1 was useful for comparison but is not official output. | Keep until raw-branch historical docs are consolidated. |
+| `track_raw_branch1` | `RETAIN_FOR_COMPARISON_REPRODUCIBILITY` | Produces `Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv`, which is the input consumed by `compare_atlasA0_vs_raw_branch1`. | Keep until the maintained comparison no longer depends on this generated curve. |
 | `diagnose_truncation_cases` | `DELETED_AFTER_TESTS` | Superseded by `diagnose_atlas_truncation` and retained truncation docs. | Removed with legacy implementation. |
 | `diagnose_landscape_failure` | `DELETED_AFTER_TESTS` | Superseded by `diagnose_atlas_truncation` and retained failure-landscape docs. | Removed with legacy implementation. |
 | `diagnose_branch_persistence` | `DELETED_AFTER_TESTS` | Executable diagnostic superseded; reusable helper behavior remains tested. | Removed with legacy implementation. |
@@ -115,6 +115,16 @@ aeRefineAtlasA0BranchPersistence
 test_acoustoelastic_iop_hgo_branch_persistence_refinement
 ```
 
+### Raw branch tracker retention note
+
+`compare_atlasA0_vs_raw_branch1` is maintained diagnostic evidence. It reads:
+
+```text
+Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv
+```
+
+`track_raw_branch1` is the retained generator for that file. It remains historical and diagnostic-only, but should not be deleted while `compare_atlasA0_vs_raw_branch1` depends on the raw-branch curve input.
+
 ### Test policy
 
 `run_all_smoke_tests` verifies only the maintained API, public workflows, maintained diagnostic evidence, and tests.
@@ -134,12 +144,6 @@ run_all_smoke_tests
 
 ### Current recommendation
 
-Do not delete more files until the previous deletion batch passes locally.
+Do not delete `track_raw_branch1` yet.
 
-After that, the next review target is:
-
-```text
-track_raw_branch1
-```
-
-because it is still related to `compare_atlasA0_vs_raw_branch1` and should not be removed without checking whether the maintained comparison still needs it.
+The next cleanup target should be a low-risk historical diagnostic that is not required as input to maintained diagnostic evidence, such as branch-policy history or atlas-resolution history.
