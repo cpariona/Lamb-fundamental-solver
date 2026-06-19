@@ -116,10 +116,10 @@ validate_idA0_score_grid
 diagnose_modal_atlas
 diagnose_modal_atlas_lowfreq
 track_raw_branch1
-diagnose_truncation_cases
-diagnose_landscape_failure
 diagnose_branch_persistence
 ```
+
+Deleted archived diagnostics are recorded in `docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md` and `docs/acoustoelastic_iop_hgo/code_retention_review_plan.md`.
 
 ### Acoustoelastic legacy aliases and descriptive scripts
 
