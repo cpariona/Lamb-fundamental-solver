@@ -1,6 +1,6 @@
-%DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_BRANCH_POLICY Maintained clean entrypoint for branch-policy diagnostics.
+%DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_BRANCH_POLICY Legacy compatibility alias.
 %
-% This script delegates to the original development diagnostic while providing
-% an author-neutral name for routine use.
+% Prefer the maintained short entrypoint:
+%   diagnose_branch_policy
 
-diagnose_acoustoelastic_iop_hgo_atlas_branch_policy
+ diagnose_branch_policy
