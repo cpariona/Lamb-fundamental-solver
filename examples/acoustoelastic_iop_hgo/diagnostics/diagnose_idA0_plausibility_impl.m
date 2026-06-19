@@ -2,8 +2,8 @@ clear; clc; close all;
 launchFolder = pwd;
 startup
 
-%DIAGNOSE_ACOUSTOELASTIC_IOP_HGO_IDENTITYA0_PHYSICAL_PLAUSIBILITY
-% Legacy descriptive implementation for identityA0Diagnostic plausibility.
+%DIAGNOSE_IDA0_PLAUSIBILITY_IMPL Implementation for identityA0 plausibility diagnostic.
+% Diagnostic implementation for identityA0Diagnostic plausibility.
 % Prefer the short entrypoint:
 %   diagnose_idA0_plausibility
 %
