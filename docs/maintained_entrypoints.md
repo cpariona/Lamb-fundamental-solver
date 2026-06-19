@@ -76,34 +76,54 @@ aeRefineAtlasA0BranchPersistence
 aeClassifyAmbiguityRegime
 ```
 
-Recommended short example, sweep, diagnostic, comparison, and validation entrypoints:
+### Acoustoelastic maintained public workflows
+
+These are the current user-facing workflows for routine execution and parameter sweeps.
 
 ```matlab
 run_atlas_branch
 sweep_iop
 sweep_mu
-validate_idA0_score_grid
-validate_idA0_grid
-compare_branch_policies
+```
+
+### Acoustoelastic maintained diagnostic evidence
+
+These diagnostics remain maintained because they support the current `atlasA0` policy, explain truncation behavior, or document the remaining low-stiffness/high-IOP ambiguity.
+
+```matlab
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
 diagnose_raw_branch_corner
 diagnose_branch_families
-diagnose_branch_policy
 diagnose_sweep_reliability
-diagnose_truncation_cases
-diagnose_branch_persistence
 diagnose_atlas_truncation
-diagnose_atlas_resolution
-diagnose_landscape_failure
-diagnose_idA0_score
 diagnose_idA0_plausibility
+```
+
+### Acoustoelastic historical diagnostics retained for traceability
+
+These scripts are not primary maintained workflows. They are retained because they document historical solver-development questions, alternative diagnostics, or exploratory validation passes.
+
+Do not delete them without a focused reference check and test pass.
+
+```matlab
+compare_branch_policies
+diagnose_branch_policy
+diagnose_atlas_resolution
+diagnose_idA0_score
+validate_idA0_grid
+validate_idA0_score_grid
 diagnose_modal_atlas
 diagnose_modal_atlas_lowfreq
 track_raw_branch1
+diagnose_truncation_cases
+diagnose_landscape_failure
+diagnose_branch_persistence
 ```
 
-Legacy descriptive scripts remain available for backward compatibility and implementation detail, but new user-facing commands should prefer the short entrypoints above.
+### Acoustoelastic legacy aliases and descriptive scripts
+
+Legacy descriptive scripts remain available for backward compatibility, implementation history, or reproducibility. New user-facing commands should prefer short entrypoints.
 
 Legacy examples and diagnostics still present include:
 
@@ -127,7 +147,7 @@ sweep_acoustoelastic_iop_hgo_iop
 sweep_acoustoelastic_iop_hgo_mu
 ```
 
-Maintained tests:
+### Acoustoelastic maintained tests
 
 ```matlab
 test_acoustoelastic_iop_hgo_branch_policy_aliases
@@ -135,9 +155,10 @@ test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_strictA0_smoke
 test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 test_acoustoelastic_iop_hgo_short_entrypoints
+test_acoustoelastic_iop_hgo_branch_persistence_refinement
 ```
 
-See `docs/acoustoelastic_iop_hgo_public_api.md` for the public API list. Naming guidance is documented in `docs/naming_strategy.md`, and the short acoustoelastic path convention is documented in `docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md`.
+See `docs/acoustoelastic_iop_hgo_public_api.md` for the public API list. Naming guidance is documented in `docs/naming_strategy.md`, the short acoustoelastic path convention is documented in `docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md`, and retention decisions are staged in `docs/acoustoelastic_iop_hgo/code_retention_review_plan.md`.
 
 ## mRLFE model
 
@@ -189,6 +210,10 @@ docs/acoustoelastic_iop_hgo/identityA0_physical_plausibility_diagnostic.md
 docs/acoustoelastic_iop_hgo/atlas_vs_raw_branch1_diagnostic.md
 docs/acoustoelastic_iop_hgo/branch_families_diagnostic.md
 docs/acoustoelastic_iop_hgo/solver_optimization_status.md
+docs/acoustoelastic_iop_hgo/code_retention_review_plan.md
+docs/acoustoelastic_iop_hgo/remaining_wrapper_inventory.md
+docs/acoustoelastic_iop_hgo/modal_atlas_wrapper_review.md
+docs/acoustoelastic_iop_hgo/validation_grid_wrapper_review.md
 docs/parametric_sweeps.md
 docs/mrlfe_tracker_diagnostic_summary.md
 ```
