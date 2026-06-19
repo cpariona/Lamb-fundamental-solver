@@ -68,6 +68,7 @@ Do not execute long legacy scripts directly unless reproducing historical behavi
 | `naming_and_paths_convention.md` | Short-name and result-path convention. |
 | `legacy_entrypoint_map.md` | Mapping from maintained short entrypoints to legacy descriptive scripts. |
 | `framework_hygiene_status.md` | Current framework structure, naming, and cleanup status. |
+| `post_rename_audit.md` | Post-renaming audit status and remaining naming decision. |
 | `phase_closure_atlasA0.md` | Formal closure note for the `atlasA0` optimization phase. |
 | `solver_optimization_status.md` | Current solver policy, ambiguity boundary, and closure status. |
 | `atlas_vs_raw_branch1_diagnostic.md` | Validation snapshots comparing `atlasA0`, `identityA0Diagnostic`, and raw branches. |
