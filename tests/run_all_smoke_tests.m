@@ -25,7 +25,11 @@ assertFunctionsOnPath({ ...
     'guiRunSweep', ...
     'guiRunMRLFESweep', ...
     'guiNormalizeMRLFESweep', ...
-    'guiPlotSweepResult'}, ...
+    'guiPlotSweepResult', ...
+    'guiGetSweepRegistry', ...
+    'guiGetSweepFamilyConfig', ...
+    'guiGetSweepParameterConfig', ...
+    'guiFormatSweepValues'}, ...
     'GUI adapter/helper');
 
 %% Rayleigh-Lamb primary API path checks
@@ -105,11 +109,14 @@ assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol,
 assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
     'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
 
-fprintf('\n[1/8] GUI normalized adapters smoke test\n');
+fprintf('\n[1/9] GUI normalized adapters smoke test\n');
 test_gui_normalized_adapters_smoke;
 
-fprintf('\n[2/8] GUI sweep adapters smoke test\n');
+fprintf('\n[2/9] GUI sweep adapters smoke test\n');
 test_gui_sweep_adapters_smoke;
+
+fprintf('\n[3/9] GUI sweep registry smoke test\n');
+test_gui_sweep_registry_smoke;
 
 %% Acoustoelastic maintained API and entrypoint checks
 fprintf('\nChecking maintained acoustoelastic IOP/HGO API functions...\n');
@@ -178,22 +185,22 @@ assertFunctionsOnPath({ ...
     'test_ae_analyze_truncation_recovery'}, ...
     'Acoustoelastic maintained test');
 
-fprintf('\n[3/8] Acoustoelastic atlas branch policy validation test\n');
+fprintf('\n[4/9] Acoustoelastic atlas branch policy validation test\n');
 test_acoustoelastic_iop_hgo_branch_policy_validation;
 
-fprintf('\n[4/8] Acoustoelastic truncation recovery helper unit test\n');
+fprintf('\n[5/9] Acoustoelastic truncation recovery helper unit test\n');
 test_ae_analyze_truncation_recovery;
 
-fprintf('\n[5/8] Acoustoelastic branch-persistence refinement unit test\n');
+fprintf('\n[6/9] Acoustoelastic branch-persistence refinement unit test\n');
 test_acoustoelastic_iop_hgo_branch_persistence_refinement;
 
-fprintf('\n[6/8] Acoustoelastic IOP/HGO constitutive identity test\n');
+fprintf('\n[7/9] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_acoustoelastic_iop_hgo_constitutive_identity;
 
-fprintf('\n[7/8] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
+fprintf('\n[8/9] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
 test_acoustoelastic_iop_hgo_atlasA0_smoke;
 
-fprintf('\n[8/8] mRLFE smoke test\n');
+fprintf('\n[9/9] mRLFE smoke test\n');
 assertFunctionsOnPath({ ...
     'computeMRLFE', ...
     'run_mrlfe_prototype', ...

@@ -1,6 +1,6 @@
 ### GUI adapter architecture
 
-This document summarizes the current GUI architecture after the refactor that introduced normalized adapter outputs. The goal is to keep the interactive app usable while progressively decoupling plotting and export logic from backend-specific raw solver structures.
+This document summarizes the current GUI architecture after the refactor that introduced normalized adapter outputs and the sweep registry. The goal is to keep the interactive app usable while progressively decoupling plotting and export logic from backend-specific raw solver structures.
 
 ### Current high-level flow
 
@@ -28,6 +28,41 @@ GuiResults.branches
 ```
 
 The GUI still keeps the raw result in `lastResults` for compatibility with existing diagnostics, raw workspace export, and legacy fallback logic. In parallel, it keeps the normalized adapter result in `lastGuiResult`.
+
+### Sweep GUI flow
+
+`app/SweepTool_GUI.m` now uses a registry-driven flow:
+
+```text
+SweepTool_GUI.m
+        |
+        v
+app/sweep/guiGetSweepRegistry.m
+        |
+        v
+app/sweep/guiGetSweepFamilyConfig.m
+app/sweep/guiGetSweepParameterConfig.m
+        |
+        v
+app/sweep/guiBuildSweepRequest.m
+        |
+        v
+app/sweep/guiRunSweep.m
+        |
+        v
+app/adapters/guiRunMRLFESweep.m
+        |
+        v
+analysis/runParametricSweep.m
+        |
+        v
+app/adapters/guiNormalizeMRLFESweep.m
+        |
+        v
+app/sweep/guiPlotSweepResult.m
+```
+
+The sweep GUI no longer hardcodes parameter defaults, display units, or display-to-solver scaling inside the parameter-change callback. Those values are provided by `guiGetSweepRegistry`.
 
 ### Main GUI state
 
@@ -64,6 +99,57 @@ app/adapters/guiRunAcoustoelasticIOPHGOModel.m
 `guiRunMRLFEModel` prepares the Rayleigh-Lamb seed branches and mRLFE options, calls the maintained mRLFE workflow through the existing `rl*` surface, and returns a normalized GUI result.
 
 `guiRunAcoustoelasticIOPHGOModel` exists as the GUI-facing entrypoint for the acoustoelastic IOP/HGO model. At this stage, it is available on the path but is not yet connected to controls in the main GUI.
+
+The sweep-specific adapter entrypoints are:
+
+```text
+app/adapters/guiRunMRLFESweep.m
+app/adapters/guiNormalizeMRLFESweep.m
+```
+
+New sweep-capable model families should follow the same pair pattern:
+
+```text
+app/adapters/guiRun<ModelFamily>Sweep.m
+app/adapters/guiNormalize<ModelFamily>Sweep.m
+```
+
+### Sweep registry
+
+The registry entrypoint is:
+
+```text
+app/sweep/guiGetSweepRegistry.m
+```
+
+Current registry contents:
+
+```text
+modelFamily = "mrlfe"
+model labels = ["Viscoelastic real-k", "Elastic real-k"]
+branches = ["A0Like", "S0Like"]
+robustness presets = ["Fast", "Balanced", "Robust"]
+parameters = ["etaS", "E", "thickness"]
+```
+
+Each parameter config provides:
+
+```matlab
+parameter.id
+parameter.label
+parameter.defaultValuesDisplay
+parameter.displayUnit
+parameter.displayScale
+parameter.helpText
+```
+
+`displayScale` converts displayed GUI values to solver units. For example:
+
+```text
+etaS       display Pa*s -> solver Pa*s   scale 1
+E          display kPa  -> solver Pa     scale 1e3
+thickness  display mm   -> solver m      scale 1e-3
+```
 
 ### Shared raw-result normalization
 
@@ -176,6 +262,21 @@ kThickness
 
 `LambFundamental_GUI.m` now attempts to plot from `lastGuiResult.branches` first. If no normalized result is available, it falls back to the legacy raw plotting path.
 
+The sweep plot helper is:
+
+```text
+app/sweep/guiPlotSweepResult.m
+```
+
+It consumes only normalized sweep curves:
+
+```matlab
+normalized.curves(i).frequency_Hz
+normalized.curves(i).Cp_mps
+normalized.curves(i).validMask
+normalized.curves(i).label
+```
+
 ### Normalized export helpers
 
 The normalized export helpers are:
@@ -208,7 +309,7 @@ PointStatus
 
 `guiNormalizedBranchesToTables` converts all branches in `GuiResults.branches` into a struct of tables keyed by valid MATLAB field names.
 
-The GUI export currently sends the following objects to the MATLAB base workspace:
+The main GUI export currently sends the following objects to the MATLAB base workspace:
 
 ```matlab
 LambResults
@@ -218,6 +319,18 @@ GuiBranchTables
 
 `LambResults` is the raw result. `GuiResults` is the normalized adapter result. `GuiBranchTables` is the table-oriented normalized export.
 
+The sweep GUI export currently sends:
+
+```matlab
+SweepToolOutput
+SweepToolRequest
+SweepToolNormalized
+SweepToolResults
+SweepToolSummary
+SweepToolModelName
+SweepToolBranchName
+```
+
 ### Cache behavior
 
 The GUI contains cache paths for avoiding unnecessary recomputation:
@@ -226,73 +339,4 @@ The GUI contains cache paths for avoiding unnecessary recomputation:
 cache: reused previous results
 cache: reused selected Rayleigh-Lamb seed(s)
 cache: reused selected elastic mRLFE branch(es)
-```
-
-After the normalized plotting refactor, cache paths regenerate `lastGuiResult` from the updated `lastResults` using:
-
-```matlab
-guiNormalizeRawResult(lastResults, "cache...")
-```
-
-This preserves normalized plotting/export even when the backend computation is partially reused.
-
-### Current tests
-
-The adapter architecture is covered by:
-
-```text
-tests/test_gui_normalized_adapters_smoke.m
-```
-
-This smoke test validates:
-
-```text
-guiRunRayleighLambModel
-guiRunMRLFEModel
-guiNormalizeRawResult
-guiGetNormalizedBranchPlotData
-guiNormalizedBranchesToTables
-```
-
-It checks that Rayleigh-Lamb produces normalized `A0` and `S0` branches, that mRLFE elastic produces an `A0Like` branch, that mRLFE does not duplicate the elastic branch under the compatibility alias `mRLFERealK`, that plot data are valid, and that normalized branch tables contain the expected core columns.
-
-The test is called from:
-
-```text
-tests/run_all_smoke_tests.m
-```
-
-### Current architectural status
-
-The current state is a stable transition architecture:
-
-```text
-GUI controls
-    -> model adapters
-        -> maintained backend solvers
-            -> raw results
-                -> normalized GUI result
-                    -> plotting/export/tests
-```
-
-Raw-result compatibility has not been removed. This is intentional. It reduces risk while the GUI migrates toward normalized plotting/export.
-
-### Next planned GUI step
-
-The next functional step is to connect the acoustoelastic IOP/HGO model to the GUI through:
-
-```text
-app/adapters/guiRunAcoustoelasticIOPHGOModel.m
-```
-
-That step should be done after confirming that the current normalized Rayleigh-Lamb and mRLFE GUI paths remain stable.
-
-The expected direction is:
-
-```text
-1. Add minimal acoustoelastic GUI controls.
-2. Build a GUI request for the acoustoelastic adapter.
-3. Normalize the acoustoelastic branch output to the same branch schema.
-4. Reuse the existing normalized plotting and export paths.
-5. Add an acoustoelastic GUI adapter smoke test.
 ```
