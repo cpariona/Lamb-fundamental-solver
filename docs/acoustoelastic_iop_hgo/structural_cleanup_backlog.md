@@ -59,8 +59,6 @@ ARCHIVED_REMOVED
 
 ### Priority 1: output path cleanup
 
-Many scripts matched `WritesLegacyResults` in the old audit.
-
 Current triage from the refreshed audit:
 
 ```text
@@ -85,10 +83,6 @@ Completed output-path cleanup actions:
 examples/acoustoelastic_iop_hgo/basic/run_atlas_branch.m
   DIRECT_MAINTAINED_ENTRYPOINT
   Now calls solveAcoustoelasticIOPHGOAtlasBranch directly and writes under Results/ae_iop_hgo/atlas_branch.
-
-examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_atlas_branch.m
-  LEGACY_ALIAS_TO_SHORT
-  Now delegates to run_atlas_branch for compatibility.
 
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
   DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
@@ -156,23 +150,17 @@ This should be done case by case, not as a broad rename sweep.
 
 A conservative wrapper inspection of `examples/acoustoelastic_iop_hgo/basic/`, `examples/acoustoelastic_iop_hgo/sweeps/`, and `examples/acoustoelastic_iop_hgo/diagnostics/` found no missing `aeRunLegacyScript` targets in the maintained short-wrapper layer.
 
-Converted earlier to direct maintained implementations, with the legacy descriptive file changed to a compatibility alias:
+Converted earlier to direct maintained implementations, with retained implementation files or documented compatibility status:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_sweep_reliability.m
   CONVERT_SHORT_TO_DIRECT
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
-  LEGACY_ALIAS_TO_SHORT
 
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_score.m
   CONVERT_SHORT_TO_DIRECT
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_identity_score.m
-  LEGACY_ALIAS_TO_SHORT
 
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_atlas_truncation.m
   CONVERT_SHORT_TO_DIRECT
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
-  LEGACY_ALIAS_TO_SHORT
 
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
   DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
@@ -183,6 +171,15 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
   DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
   MIGRATE_OUTPUT_PATH
+```
+
+Group A simple compatibility aliases archived after reference checks:
+
+```text
+run_acoustoelastic_iop_hgo_atlas_branch.m
+diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
+diagnose_acoustoelastic_iop_hgo_branch_identity_score.m
+diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
 ```
 
 Archived executable diagnostics removed after reference checks and retained documentation coverage:
@@ -255,14 +252,13 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 
 ### Recommended next cleanup order
 
-1. Review and delete Group A simple compatibility aliases from `structural_audit_refresh.md` only after candidate-specific `git grep` checks.
-2. Update docs that still mention deleted aliases as runnable commands.
-3. Run `test_acoustoelastic_iop_hgo_short_entrypoints` and `run_all_smoke_tests`.
-4. Only then consider the Group B identity-A0 compatibility alias.
-5. Keep validation-grid wrappers and `track_raw_branch1` for now.
+1. Pull the Group A alias-removal commits locally.
+2. Run `test_acoustoelastic_iop_hgo_short_entrypoints` and `run_all_smoke_tests`.
+3. Only then consider the Group B identity-A0 compatibility alias.
+4. Keep validation-grid wrappers and `track_raw_branch1` for now.
 
 ### Current decision
 
 Do not start a broad deletion pass.
 
-The next safe cleanup step is the focused deletion-review pass for Group A simple compatibility aliases listed in `structural_audit_refresh.md`.
+The next safe cleanup step is local validation of the Group A alias-removal batch, followed by a focused Group B review if validation passes.
