@@ -6,13 +6,15 @@ This note documents the validation outcome for the acoustoelastic IOP/HGO `atlas
 
 The validation focused on high-frequency truncation of the maintained `atlasA0` branch in IOP and shear-modulus sweeps. The goal was to determine whether missing high-frequency portions are caused by physical/model limitations, residual-landscape ambiguity, conservative branch tracking, or a failure mode of the branch-selection algorithm.
 
-The validated workspaces were generated from:
+The validated workspaces were generated from maintained short entrypoints:
 
 ```matlab
-sweep_acoustoelastic_iop_hgo_iop
-sweep_acoustoelastic_iop_hgo_mu
-diagnose_acoustoelastic_iop_hgo_truncation_cases
+sweep_iop
+sweep_mu
+diagnose_atlas_truncation
 ```
+
+The older descriptive aliases used during early validation have been archived.
 
 ### Maintained solver decision
 
@@ -137,28 +139,3 @@ iop_20mmHg: likely conservative continuity threshold / branch persistence limita
 iop_25mmHg: partial threshold sensitivity but still unstable at higher frequency
 mu_25kPa: not solved by threshold relaxation; likely stronger modal ambiguity or real-valued branch limitation
 ```
-
-Therefore, the current issue should close with `atlasA0` retained as official and threshold-relaxed branches archived as diagnostic outputs.
-
-### Next technical direction
-
-The next solver improvement should not simply relax the global continuity threshold. A better next step is an adaptive branch-persistence strategy that refines local branch decisions only near truncation zones.
-
-The recommended next issue is:
-
-```text
-Implement adaptive A0 branch persistence refinement for acoustoelastic IOP/HGO atlas tracking
-```
-
-The proposed strategy is:
-
-```text
-1. Keep atlasA0 unchanged as the baseline branch.
-2. Detect the first contiguous truncation region.
-3. Inspect nearby local minima at and after the break.
-4. Apply local adaptive refinement or persistence scoring only in that region.
-5. Accept an extension only if it passes continuity, local-minimum quality, and branch-persistence criteria.
-6. Keep rejected candidates as diagnostic outputs.
-```
-
-This avoids promoting globally relaxed thresholds while targeting the case where a real algorithmic improvement is most plausible: the high-frequency truncation of `iop_20mmHg`.
