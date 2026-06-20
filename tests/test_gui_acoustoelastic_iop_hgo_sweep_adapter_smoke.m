@@ -1,7 +1,8 @@
 %TEST_GUI_ACOUSTOELASTIC_IOP_HGO_SWEEP_ADAPTER_SMOKE Smoke test for AE GUI sweep adapter.
 %
-% This validates the non-interactive GUI sweep adapter path without exposing the
-% Acoustoelastic IOP/HGO family in SweepTool_GUI controls yet.
+% This validates the non-interactive GUI sweep adapter path. It does not require
+% a valid official Cp curve because the conservative AE policy invalidates
+% fallback-selected atlas branches.
 
 fprintf('Running Acoustoelastic IOP/HGO GUI sweep adapter smoke test...\n');
 
@@ -62,8 +63,11 @@ assert(numel(sweepOutput.normalized.curves) == 2, ...
 assert(~isempty(sweepOutput.normalized.dispersionTable), ...
     'AE normalized output must expose the dispersion table.');
 
+fallbackInvalidationObserved = false;
 for i = 1:numel(sweepOutput.normalized.curves)
     curve = sweepOutput.normalized.curves(i);
+    rawResult = sweepOutput.rawResults.conditions(i).result;
+
     assert(~isempty(curve.frequency_Hz), 'AE normalized curve must include frequency_Hz.');
     assert(~isempty(curve.Cp_mps), 'AE normalized curve must include Cp_mps.');
     assert(~isempty(curve.validMask), 'AE normalized curve must include validMask.');
@@ -71,7 +75,19 @@ for i = 1:numel(sweepOutput.normalized.curves)
         'AE normalized frequency and Cp vectors must match.');
     assert(isequal(size(curve.Cp_mps), size(curve.validMask)), ...
         'AE normalized Cp and validity vectors must match.');
-    assert(any(curve.validMask), 'AE normalized curve must contain at least one valid point.');
+    assert(isequal(curve.validMask(:), rawResult.validCp(:)), ...
+        'AE normalized validMask must mirror raw validCp.');
+
+    if isfield(rawResult, 'fallbackCandidateCp')
+        fallbackInvalidationObserved = true;
+        assert(all(~rawResult.validCp), ...
+            'Fallback-invalidated raw result must not expose official validCp points.');
+        assert(any(isfinite(rawResult.fallbackCandidateCp)), ...
+            'Fallback-invalidated raw result must preserve diagnostic candidate Cp.');
+    end
 end
+
+assert(fallbackInvalidationObserved || any([sweepOutput.normalized.curves.validMask]), ...
+    'AE sweep adapter must either expose valid official points or preserved fallback diagnostics.');
 
 fprintf('Acoustoelastic IOP/HGO GUI sweep adapter smoke test passed.\n');
