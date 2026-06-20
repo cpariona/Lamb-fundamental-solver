@@ -54,6 +54,27 @@ Under this policy, the solver:
 6. Does not interpolate or reconnect missing high-frequency portions by default.
 7. Reports missing or untraceable portions as `NaN` in `result.Cp` and `false` in `result.validCp`.
 
+## Internal tracking grid versus output grid
+
+The IOP/HGO wrapper separates branch identity selection from the requested output grid:
+
+```matlab
+options.useInternalAtlasTrackingGrid = true;
+options.atlasInitializationMinFrequency_Hz = 300;
+options.atlasInitializationNumFrequencyPoints = 50;
+```
+
+This means:
+
+```text
+internal tracking grid = used to identify and link the atlas-A0 branch
+requested output grid  = frequencies returned to GUI/users in result.Cp and result.validCp
+```
+
+The internal grid prevents the first requested output frequency from becoming the identity anchor of the branch. This is necessary because very low requested frequencies can be dominated by near-degenerate minima, while high requested starting frequencies can start after the A0-like identity region has already been skipped.
+
+The output is still reported only on the requested frequencies. Frequencies below the internal initialization range are marked as not reported rather than being used to anchor the branch identity.
+
 ## A0-like start filter
 
 A branch is considered A0-like only if it passes the hard start filter:
@@ -103,6 +124,23 @@ result.pointStatus(k) = "missingSelectedBranch";
 ```
 
 This is a reliability statement, not necessarily a physical claim that the mode disappears. It means that, under the current matrix formulation and objective-landscape tracking criteria, the branch is not numerically identifiable with enough evidence to report a continuous phase speed.
+
+## Fallback invalidation
+
+If no branch satisfies the A0-like start filters and the atlas solver falls back to an unfiltered selection, the IOP/HGO wrapper invalidates that fallback as official output:
+
+```matlab
+result.Cp(:) = NaN;
+result.validCp(:) = false;
+result.pointStatus(:) = "fallbackRejectedA0StartFilter";
+```
+
+The fallback candidate is retained only for diagnostics:
+
+```matlab
+result.fallbackCandidateCp
+result.fallbackCandidateValidCp
+```
 
 ## Reliability outputs
 
