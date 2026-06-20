@@ -6,7 +6,13 @@ This document records remaining cleanup work after the targeted identity-A0 plau
 
 The critical MATLAB filename issue is resolved, but the repository still contains cleanup candidates.
 
-Current audit signals from the last recorded audit were:
+The latest operational cleanup audit is recorded in:
+
+```text
+docs/acoustoelastic_iop_hgo/structural_audit_refresh.md
+```
+
+Older audit counters were:
 
 ```text
 Over63Chars = 0
@@ -19,7 +25,7 @@ UsesAeResolveResultFile = 7
 MutatesOfficialCp = 5
 ```
 
-These values are stale after archived-diagnostic deletions and the modal-atlas output-path migrations. Re-run the structural audit before using the counts as current evidence.
+Those values are stale after archived-diagnostic deletions and the modal-atlas output-path migrations. Use `structural_audit_refresh.md` for current cleanup decisions.
 
 ### Interpretation
 
@@ -46,20 +52,30 @@ DIRECT_MAINTAINED_ENTRYPOINT
 LEGACY_ALIAS_TO_SHORT
 DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION
 DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
+COMPATIBILITY_ALIAS_CANDIDATE
 RETAIN_FOR_COMPARISON_REPRODUCIBILITY
 ARCHIVED_REMOVED
 ```
 
 ### Priority 1: output path cleanup
 
-Many scripts still match `WritesLegacyResults` in the old audit.
+Many scripts matched `WritesLegacyResults` in the old audit.
 
-This should be triaged into:
+Current triage from the refreshed audit:
 
-1. true legacy output writes that should be migrated to `aeOutputFolder`;
-2. compatibility fallback reads through `aeResolveResultFile`;
-3. text-only documentation references;
-4. tests that intentionally verify legacy compatibility.
+```text
+true legacy output writes requiring immediate migration
+  none identified in maintained modal-atlas paths after cleanup
+
+compatibility fallback reads
+  track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
+
+documentation or migration notes
+  remaining Results/acoustoelastic_iop_hgo... references in docs
+
+tests or compatibility behavior
+  keep until candidate-specific review
+```
 
 Do not change official numerical outputs while doing this cleanup.
 
@@ -93,7 +109,7 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_
 
 ### Priority 2: mutation flag review completed
 
-The audit reported `MutatesOfficialCp = 5`.
+The old audit reported `MutatesOfficialCp = 5`.
 
 These files were reviewed in:
 
@@ -190,8 +206,10 @@ Remaining wrappers and reasons:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
   KEEP_AS_WRAPPER: target is the renamed implementation file, not a legacy descriptive script.
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
+  COMPATIBILITY_ALIAS_CANDIDATE: older identityA0-facing name; review references before deletion.
 
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
@@ -237,13 +255,14 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 
 ### Recommended next cleanup order
 
-1. Keep validation-grid wrappers unless their heavy implementations are intentionally modified and executed.
-2. Keep `track_raw_branch1` while the maintained atlas-vs-raw comparison depends on its generated curve.
-3. Review the remaining identity-A0 plausibility wrappers only as a focused compatibility-alias pass.
-4. Re-run the structural audit before deleting additional scripts based on old audit counts.
+1. Review and delete Group A simple compatibility aliases from `structural_audit_refresh.md` only after candidate-specific `git grep` checks.
+2. Update docs that still mention deleted aliases as runnable commands.
+3. Run `test_acoustoelastic_iop_hgo_short_entrypoints` and `run_all_smoke_tests`.
+4. Only then consider the Group B identity-A0 compatibility alias.
+5. Keep validation-grid wrappers and `track_raw_branch1` for now.
 
 ### Current decision
 
 Do not start a broad deletion pass.
 
-The next safe cleanup step is a focused compatibility-alias review for the identity-A0 plausibility wrappers, or a refreshed structural audit if broader cleanup decisions are needed.
+The next safe cleanup step is the focused deletion-review pass for Group A simple compatibility aliases listed in `structural_audit_refresh.md`.
