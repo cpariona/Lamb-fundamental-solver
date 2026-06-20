@@ -10,6 +10,7 @@ addpath(projectRoot);
 addpath(genpath(fullfile(projectRoot, 'app')));
 addpath(genpath(fullfile(projectRoot, 'models')));
 addpath(genpath(fullfile(projectRoot, 'analysis')));
+addpath(genpath(fullfile(projectRoot, 'examples', 'rayleigh_lamb')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'acoustoelastic_iop_hgo')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'mrlfe')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'validation')));
