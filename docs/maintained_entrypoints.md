@@ -121,17 +121,15 @@ Deleted archived diagnostics and aliases are recorded in `docs/acoustoelastic_io
 
 ### Acoustoelastic retained exploratory scripts
 
-These scripts are present but are not maintained public workflows. They are retained for exploratory solver-development evidence and future archival review.
+Only one exploratory script remains retained for future review:
 
 ```matlab
-run_acoustoelastic_iop_hgo_A0_backward
 run_acoustoelastic_iop_hgo_A0_complexC
-compare_acoustoelastic_iop_hgo_tracking_strategies
-diagnose_acoustoelastic_iop_hgo_grid_convergence
-sweep_acoustoelastic_iop_hgo_A0_backward
 ```
 
 Archived E1 direct-matrix exploratory scripts and their retained conclusions are documented in `docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md`.
+
+Archived E2 A0-backward/tracking exploratory scripts and their retained conclusions are documented in `docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md`.
 
 Current retained exploratory classification and future archival groups are documented in `docs/acoustoelastic_iop_hgo/exploratory_diagnostic_review.md`.
 
@@ -215,6 +213,7 @@ docs/acoustoelastic_iop_hgo/validation_grid_wrapper_review.md
 docs/acoustoelastic_iop_hgo/exploratory_diagnostic_review.md
 docs/acoustoelastic_iop_hgo/retained_diagnostic_dependency_review.md
 docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
+docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
 docs/parametric_sweeps.md
 docs/mrlfe_tracker_diagnostic_summary.md
 ```
