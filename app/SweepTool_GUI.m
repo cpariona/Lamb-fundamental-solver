@@ -1,5 +1,5 @@
 function SweepTool_GUI(baseParams, baseOptions)
-%SWEEPTOOL_GUI Standalone GUI for one-parameter mRLFE parametric sweeps.
+%SWEEPTOOL_GUI Standalone GUI for one-parameter parametric sweeps.
 %
 % Usage:
 %   SweepTool_GUI
@@ -38,14 +38,23 @@ root.ColumnSpacing = 10;
 
 controlPanel = uipanel(root, 'Title', 'Sweep setup');
 controlPanel.Layout.Column = 1;
-cg = uigridlayout(controlPanel, [19 2]);
+cg = uigridlayout(controlPanel, [20 2]);
 cg.ColumnWidth = {145, '1x'};
-cg.RowHeight = {24, 30, 24, 30, 24, 30, 24, 30, 24, 30, 24, 30, 24, 30, 24, 34, 34, '1x', 28};
+cg.RowHeight = [repmat({24, 30}, 1, 8), {34, 34, '1x', 28}];
 cg.Padding = [10 8 10 8];
 cg.RowSpacing = 4;
 cg.ColumnSpacing = 8;
 
 row = 1;
+addLabel(cg, row, [1 2], 'Model family', 'FontWeight', 'bold');
+row = row + 1;
+familyDrop = uidropdown(cg, ...
+    'Items', cellstr([registry.modelFamilies.label]), ...
+    'Value', char(activeFamily.label), ...
+    'ValueChangedFcn', @(~,~)onFamilyChanged());
+setGridPosition(familyDrop, row, [1 2]);
+
+row = row + 1;
 addLabel(cg, row, [1 2], 'Sweep parameter', 'FontWeight', 'bold');
 row = row + 1;
 parameterDrop = uidropdown(cg, ...
@@ -137,6 +146,26 @@ summaryTableUI = uitable(rg);
 summaryTableUI.Layout.Row = 2;
 
 onParameterChanged();
+updateFamilySpecificControls();
+
+    function onFamilyChanged()
+        activeModelFamily = getFamilyIdFromLabel(string(familyDrop.Value));
+        activeFamily = guiGetSweepFamilyConfig(registry, activeModelFamily);
+
+        fig.Name = char(activeFamily.figureTitle);
+        parameterDrop.Items = cellstr([activeFamily.parameters.id]);
+        parameterDrop.Value = char(activeFamily.defaultParameter);
+        modelDrop.Items = cellstr(activeFamily.modelLabels);
+        modelDrop.Value = char(activeFamily.defaultModelLabel);
+        branchDrop.Items = cellstr(activeFamily.branchNames);
+        branchDrop.Value = char(activeFamily.defaultBranchName);
+        robustnessDrop.Items = cellstr(activeFamily.robustnessPresets);
+        robustnessDrop.Value = char(activeFamily.defaultRobustness);
+
+        onParameterChanged();
+        updateFamilySpecificControls();
+        setStatus({sprintf('Status: selected model family: %s.', activeFamily.label)});
+    end
 
     function onParameterChanged()
         parameterConfig = guiGetSweepParameterConfig(activeFamily, string(parameterDrop.Value));
@@ -154,11 +183,7 @@ onParameterChanged();
                 error('Enter at least one numeric sweep value.');
             end
 
-            controls = struct();
-            controls.robustness = string(robustnessDrop.Value);
-            controls.etaS = etaSEdit.Value;
-            controls.fluidDensity = fluidDensityEdit.Value;
-            controls.fluidSoundSpeed = fluidSoundEdit.Value;
+            controls = buildControlsForActiveFamily();
 
             request = guiBuildSweepRequest(activeModelFamily, ...
                 'modelLabel', string(modelDrop.Value), ...
@@ -174,7 +199,7 @@ onParameterChanged();
                 'outputMode', "workspace", ...
                 'outputTaskName', activeFamily.outputTaskName);
 
-            setStatus({sprintf('Status: running %s sweep...', sweepParameter)}); drawnow;
+            setStatus({sprintf('Status: running %s / %s sweep...', activeFamily.label, sweepParameter)}); drawnow;
             lastSweepOutput = guiRunSweep(request);
             lastSweepResults = lastSweepOutput.rawResults;
             lastSweepSummary = lastSweepOutput.summaryTable;
@@ -186,7 +211,7 @@ onParameterChanged();
             summaryTableUI.ColumnName = lastSweepSummary.Properties.VariableNames;
 
             setStatus({sprintf('Status: complete. %d sweep cases.', numel(lastSweepOutput.sweepSpec.values)), ...
-                sprintf('Model: %s | Branch: %s', lastModelName, lastBranchName)});
+                sprintf('Family: %s | Model: %s | Branch: %s', activeFamily.label, lastModelName, lastBranchName)});
         catch ME
             setStatus({['Status: error: ', ME.message]});
             uialert(fig, ME.message, 'Sweep error');
@@ -206,6 +231,48 @@ onParameterChanged();
         assignin('base', 'SweepToolModelName', lastModelName);
         assignin('base', 'SweepToolBranchName', lastBranchName);
         setStatus({'Status: exported to workspace as SweepToolOutput, SweepToolResults, and SweepToolSummary.'});
+    end
+
+    function controls = buildControlsForActiveFamily()
+        controls = struct();
+        controls.robustness = string(robustnessDrop.Value);
+
+        switch activeModelFamily
+            case "mrlfe"
+                controls.etaS = etaSEdit.Value;
+                controls.fluidDensity = fluidDensityEdit.Value;
+                controls.fluidSoundSpeed = fluidSoundEdit.Value;
+            otherwise
+                controls.M54_variant = "corrected";
+                controls.normalizeRows = false;
+                controls.usePhysicalCpWindow = false;
+                controls.atlasBranchPolicy = "atlasA0";
+                if string(robustnessDrop.Value) == "Balanced"
+                    controls.atlasNumYPoints = 600;
+                    controls.atlasTopNMinima = 16;
+                else
+                    controls.atlasNumYPoints = 300;
+                    controls.atlasTopNMinima = 12;
+                end
+        end
+    end
+
+    function updateFamilySpecificControls()
+        isMRLFE = activeModelFamily == "mrlfe";
+        etaSEdit.Enable = matlab.lang.OnOffSwitchState(isMRLFE);
+        fluidDensityEdit.Enable = matlab.lang.OnOffSwitchState(isMRLFE);
+        fluidSoundEdit.Enable = matlab.lang.OnOffSwitchState(isMRLFE);
+    end
+
+    function familyId = getFamilyIdFromLabel(label)
+        families = registry.modelFamilies;
+        for iFamily = 1:numel(families)
+            if string(families(iFamily).label) == string(label)
+                familyId = string(families(iFamily).id);
+                return;
+            end
+        end
+        error('Unknown sweep model family label: %s', string(label));
     end
 
     function setStatus(lines)
