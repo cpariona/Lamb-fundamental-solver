@@ -79,7 +79,7 @@ test_ae_analyze_truncation_recovery
 |---|---|---|---|
 | `compare_branch_policies` | `DELETED_AFTER_TESTS` | Branch-policy selection is closed; `atlasA0` policy is documented. | Removed with aliases. |
 | `diagnose_branch_policy` | `DELETED_AFTER_TESTS` | Thin alias around removed branch-policy comparison. | Removed with legacy alias. |
-| `diagnose_atlas_resolution` | `DELETED_AFTER_TESTS` | Resolution-sensitivity conclusions are retained in `docs/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md`; executable batch was expensive and no longer part of the maintained surface. | Removed with legacy alias. |
+| `diagnose_atlas_resolution` | `DELETED_AFTER_TESTS` | Resolution-sensitivity conclusions are retained in maintained truncation diagnostics and `atlasA0_truncation_validation.md`. | Removed with legacy alias. |
 | `diagnose_idA0_score` | `KEEP_FOR_THESIS_ANALYSIS` | Helps explain identity-score behavior and diagnostic-only branches. | Keep outside primary maintained list. |
 | `validate_idA0_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy grid validation for `identityA0Diagnostic` official-output preservation. | Keep outside routine workflow. |
 | `validate_idA0_score_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy score-grid validation for branch-identity scoring. | Keep outside routine workflow. |
@@ -88,7 +88,7 @@ test_ae_analyze_truncation_recovery
 | `track_raw_branch1` | `RETAIN_FOR_COMPARISON_REPRODUCIBILITY` | Produces `Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv` through `aeExtractRawBranch1Candidate`; this curve is consumed by `compare_atlasA0_vs_raw_branch1`. | Keep. |
 | `diagnose_truncation_cases` | `DELETED_AFTER_TESTS` | Superseded by `diagnose_atlas_truncation` and retained truncation docs. | Removed with legacy implementation. |
 | `diagnose_landscape_failure` | `DELETED_AFTER_TESTS` | Superseded by `diagnose_atlas_truncation` and retained failure-landscape docs. | Removed with legacy implementation. |
-| `diagnose_branch_persistence` | `DELETED_AFTER_TESTS` | Executable diagnostic superseded; reusable helper behavior remains tested. | Removed with legacy implementation. |
+| `diagnose_branch_persistence` | `DELETED_AFTER_TESTS` | Executable diagnostic superseded; reusable helper behavior remains tested and truncation conclusions remain in `atlasA0_truncation_validation.md`. | Removed with legacy implementation. |
 
 ### Simple compatibility aliases removed
 
@@ -143,7 +143,6 @@ docs/acoustoelastic_iop_hgo/solver_optimization_status.md
 diagnose_atlas_truncation
 docs/acoustoelastic_iop_hgo/atlasA0_truncation_validation.md
 docs/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md
-docs/acoustoelastic_iop_hgo/branch_persistence_refinement.md
 ```
 
 The branch-persistence executable diagnostic was removed, but the reusable helper behavior remains in:
