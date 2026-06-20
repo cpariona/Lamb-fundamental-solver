@@ -94,6 +94,7 @@ track_raw_branch1
 ## Maintained tests
 
 ```matlab
+test_acoustoelastic_iop_hgo_branch_policy_validation
 test_acoustoelastic_iop_hgo_atlasA0_smoke
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
