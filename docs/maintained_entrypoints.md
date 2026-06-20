@@ -16,6 +16,37 @@ rehash toolboxcache
 startup
 ```
 
+## GUI entrypoints
+
+Maintained GUI launchers:
+
+```matlab
+runApp
+LambFundamental_GUI
+SweepTool_GUI
+```
+
+Maintained SweepTool helpers:
+
+```matlab
+guiGetSweepRegistry
+guiBuildSweepRequest
+guiRunSweep
+guiPlotSweepResult
+guiRunMRLFESweep
+guiNormalizeMRLFESweep
+guiRunAcoustoelasticIOPHGOSweep
+guiNormalizeAcoustoelasticIOPHGOSweep
+```
+
+See:
+
+```text
+docs/sweep_tool_usage.md
+docs/gui_adapter_architecture.md
+docs/gui_integration_audit.md
+```
+
 ## Rayleigh-Lamb base solver
 
 Maintained Rayleigh-Lamb implementation entrypoints use the `rl*` API:
@@ -178,7 +209,7 @@ test_mrlfe_smoke
 
 ## Smoke-test scope
 
-`run_all_smoke_tests` verifies maintained Rayleigh-Lamb checks, minimal Rayleigh-Lamb fixtures, author-neutral acoustoelastic IOP/HGO tests, and the mRLFE smoke test.
+`run_all_smoke_tests` verifies maintained GUI adapter checks, Rayleigh-Lamb checks, minimal Rayleigh-Lamb fixtures, author-neutral acoustoelastic IOP/HGO tests, and the mRLFE smoke test.
 
 Recommended validation command:
 
@@ -195,6 +226,9 @@ docs/repository_structure.md
 docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
+docs/sweep_tool_usage.md
+docs/gui_adapter_architecture.md
+docs/gui_integration_audit.md
 ```
 
 Rayleigh-Lamb docs:
@@ -218,10 +252,4 @@ docs/acoustoelastic_iop_hgo/documentation_index.md
 docs/acoustoelastic_iop_hgo/public_api.md
 docs/acoustoelastic_iop_hgo/branch_policy.md
 docs/acoustoelastic_iop_hgo/sweep_workflow.md
-```
-
-Other active docs:
-
-```text
-docs/parametric_sweeps.md
 ```

@@ -9,7 +9,7 @@ modelFamily = lower(string(request.modelFamily));
 switch modelFamily
     case "mrlfe"
         sweepOutput = guiRunMRLFESweep(request);
-    case {"ae_iop", "acoustoelastic_iop_hgo", "acoustoelasticiophgo"}
+    case {"ae_iop_hgo", "ae_iop", "acoustoelastic_iop_hgo", "acoustoelasticiophgo"}
         sweepOutput = guiRunAcoustoelasticIOPHGOSweep(request);
     otherwise
         error('Unsupported GUI sweep model family: %s', string(request.modelFamily));
