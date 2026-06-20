@@ -1,9 +1,9 @@
 function sweepOutput = guiRunMRLFESweep(request)
 %GUIRUNMRLFESWEEP Run an mRLFE one-parameter sweep from a GUI request.
 %
-% The adapter owns mRLFE-specific options, unit conversion, solver calls, and
-% summary generation. SweepTool_GUI should not call runParametricSweep or
-% summarizeParametricSweepBranch directly.
+% The adapter owns mRLFE-specific options, solver calls, and summary generation.
+% Display-to-solver conversion is taken from the normalized sweep request so
+% future model families can share the same registry/request pattern.
 
 params = request.baseParams;
 params.numFrequencyPoints = "auto";
@@ -30,7 +30,7 @@ options.mrlfeComputeA0Like = branchName == "A0Like";
 options.mrlfeComputeS0Like = branchName == "S0Like";
 
 [modelName, options] = configureMRLFEModelOptions(options, string(request.modelLabel), string(request.sweepField));
-[valuesSolver, displayScale, units] = convertMRLFEDisplayValues(string(request.sweepField), request.sweepValuesDisplay);
+[valuesSolver, displayScale, units] = convertRequestDisplayValues(request);
 
 sweepSpec = struct();
 sweepSpec.parameter = string(request.sweepField);
@@ -77,21 +77,16 @@ else
 end
 end
 
-function [valuesSolver, displayScale, units] = convertMRLFEDisplayValues(parameter, valuesDisplayed)
-switch string(parameter)
-    case "etaS"
-        valuesSolver = valuesDisplayed;
-        displayScale = 1;
-        units = "Pa*s";
-    case "E"
-        valuesSolver = valuesDisplayed * 1e3;
-        displayScale = 1e3;
-        units = "kPa";
-    case "thickness"
-        valuesSolver = valuesDisplayed * 1e-3;
-        displayScale = 1e-3;
-        units = "mm";
-    otherwise
-        error('Unsupported mRLFE sweep parameter: %s', string(parameter));
+function [valuesSolver, displayScale, units] = convertRequestDisplayValues(request)
+displayScale = getRequestField(request, 'displayScale', 1);
+units = string(getRequestField(request, 'displayUnit', ""));
+valuesSolver = request.sweepValuesDisplay .* displayScale;
+end
+
+function value = getRequestField(request, fieldName, defaultValue)
+if isstruct(request) && isfield(request, fieldName) && ~isempty(request.(fieldName))
+    value = request.(fieldName);
+else
+    value = defaultValue;
 end
 end
