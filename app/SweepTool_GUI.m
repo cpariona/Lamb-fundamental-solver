@@ -5,8 +5,8 @@ function SweepTool_GUI(baseParams, baseOptions)
 %   SweepTool_GUI
 %   SweepTool_GUI(params, options)
 %
-% The tool reuses runParametricSweep and summarizeParametricSweepBranch, but
-% keeps sweep exploration separate from the main single-case GUI.
+% The tool builds a normalized GUI sweep request and dispatches it through
+% guiRunSweep. Model-specific solver details live in app/adapters.
 
 if nargin < 1 || isempty(baseParams)
     baseParams = rlDefaultParams();
@@ -18,6 +18,7 @@ if ~isfield(baseOptions, 'mrlfeParams') || isempty(baseOptions.mrlfeParams)
     baseOptions.mrlfeParams = defaultMRLFEParams();
 end
 
+lastSweepOutput = [];
 lastSweepResults = [];
 lastSweepSummary = [];
 lastModelName = "";
@@ -146,47 +147,37 @@ onParameterChanged();
                 error('Enter at least one numeric sweep value.');
             end
 
-            params = baseParams;
-            params.numFrequencyPoints = "auto";
-            params.frequencySpacing = "hybrid";
+            controls = struct();
+            controls.robustness = string(robustnessDrop.Value);
+            controls.etaS = etaSEdit.Value;
+            controls.fluidDensity = fluidDensityEdit.Value;
+            controls.fluidSoundSpeed = fluidSoundEdit.Value;
 
-            options = rlDefaultOptions(string(robustnessDrop.Value));
-            options.computeMRLFEComplexK = false;
-            options.mrlfeParams = defaultMRLFEParams();
-            options.mrlfeParams.fluidDensity = fluidDensityEdit.Value;
-            options.mrlfeParams.fluidSoundSpeed = fluidSoundEdit.Value;
-            options.mrlfeParams.etaS = etaSEdit.Value;
-            options.mrlfeParams.etaL = 0;
-            options.mrlfeParams.useComplexLambda = false;
-
-            branchName = string(branchDrop.Value);
-            options.computeA0 = branchName == "A0Like";
-            options.computeS0 = branchName == "S0Like";
-            options.mrlfeComputeA0Like = branchName == "A0Like";
-            options.mrlfeComputeS0Like = branchName == "S0Like";
-
-            [modelName, options] = configureModelOptions(options, string(modelDrop.Value), sweepParameter);
-            [valuesSolver, displayScale, units] = convertDisplayedValues(sweepParameter, valuesDisplayed);
-
-            sweepSpec = struct();
-            sweepSpec.parameter = sweepParameter;
-            sweepSpec.values = valuesSolver;
-            sweepSpec.label = sweepParameter;
-            sweepSpec.units = units;
-            sweepSpec.displayScale = displayScale;
+            request = guiBuildSweepRequest("mrlfe", ...
+                'modelLabel', string(modelDrop.Value), ...
+                'branchName', string(branchDrop.Value), ...
+                'sweepField', sweepParameter, ...
+                'sweepLabel', sweepParameter, ...
+                'sweepValuesDisplay', valuesDisplayed, ...
+                'baseParams', baseParams, ...
+                'baseOptions', baseOptions, ...
+                'controls', controls, ...
+                'outputMode', "workspace", ...
+                'outputTaskName', "mrlfe_sweep");
 
             setStatus({sprintf('Status: running %s sweep...', sweepParameter)}); drawnow;
-            lastSweepResults = runParametricSweep(params, options, sweepSpec);
-            lastModelName = modelName;
-            lastBranchName = branchName;
-            lastSweepSummary = summarizeParametricSweepBranch(lastSweepResults, modelName, branchName, 'Print', false);
+            lastSweepOutput = guiRunSweep(request);
+            lastSweepResults = lastSweepOutput.rawResults;
+            lastSweepSummary = lastSweepOutput.summaryTable;
+            lastModelName = lastSweepOutput.modelName;
+            lastBranchName = lastSweepOutput.branchName;
 
-            plotSweepOnAxes(lastSweepResults, modelName, branchName, ax);
+            guiPlotSweepResult(lastSweepOutput.normalized, ax);
             summaryTableUI.Data = lastSweepSummary;
             summaryTableUI.ColumnName = lastSweepSummary.Properties.VariableNames;
 
-            setStatus({sprintf('Status: complete. %d sweep cases.', numel(valuesSolver)), ...
-                sprintf('Model: %s | Branch: %s', modelName, branchName)});
+            setStatus({sprintf('Status: complete. %d sweep cases.', numel(lastSweepOutput.sweepSpec.values)), ...
+                sprintf('Model: %s | Branch: %s', lastModelName, lastBranchName)});
         catch ME
             setStatus({['Status: error: ', ME.message]});
             uialert(fig, ME.message, 'Sweep error');
@@ -194,15 +185,18 @@ onParameterChanged();
     end
 
     function onExportSweep()
-        if isempty(lastSweepResults)
+        if isempty(lastSweepOutput)
             uialert(fig, 'No sweep results to export yet.', 'Export error');
             return;
         end
+        assignin('base', 'SweepToolOutput', lastSweepOutput);
+        assignin('base', 'SweepToolRequest', lastSweepOutput.request);
+        assignin('base', 'SweepToolNormalized', lastSweepOutput.normalized);
         assignin('base', 'SweepToolResults', lastSweepResults);
         assignin('base', 'SweepToolSummary', lastSweepSummary);
         assignin('base', 'SweepToolModelName', lastModelName);
         assignin('base', 'SweepToolBranchName', lastBranchName);
-        setStatus({'Status: exported to workspace as SweepToolResults and SweepToolSummary.'});
+        setStatus({'Status: exported to workspace as SweepToolOutput, SweepToolResults, and SweepToolSummary.'});
     end
 
     function setStatus(lines)
@@ -212,40 +206,6 @@ onParameterChanged();
             statusBox.Value = lines;
         end
     end
-end
-
-function [modelName, options] = configureModelOptions(options, modelLabel, sweepParameter)
-if modelLabel == "Elastic real-k"
-    if sweepParameter == "etaS"
-        error('etaS only affects the viscoelastic real-k model. Select Viscoelastic real-k or sweep E/thickness.');
-    end
-    options.computeMRLFERealK = true;
-    options.computeMRLFEHanViscoRealK = false;
-    modelName = "mRLFEElasticRealK";
-else
-    options.computeMRLFERealK = true;
-    options.computeMRLFEHanViscoRealK = true;
-    modelName = "mRLFEHanViscoRealK";
-end
-end
-
-function [valuesSolver, displayScale, units] = convertDisplayedValues(parameter, valuesDisplayed)
-switch string(parameter)
-    case "etaS"
-        valuesSolver = valuesDisplayed;
-        displayScale = 1;
-        units = "Pa*s";
-    case "E"
-        valuesSolver = valuesDisplayed * 1e3;
-        displayScale = 1e3;
-        units = "kPa";
-    case "thickness"
-        valuesSolver = valuesDisplayed * 1e-3;
-        displayScale = 1e-3;
-        units = "mm";
-    otherwise
-        error('Unsupported sweep parameter: %s', string(parameter));
-end
 end
 
 function values = parseNumericList(txt)
@@ -270,72 +230,6 @@ if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, fieldName)
     value = options.mrlfeParams.(fieldName);
 else
     value = defaultValue;
-end
-end
-
-function plotSweepOnAxes(sweepResults, modelName, branchName, ax)
-cla(ax); hold(ax, 'on'); grid(ax, 'on');
-n = numel(sweepResults.results);
-legendText = strings(1, n);
-
-for i = 1:n
-    branch = extractSweepBranch(sweepResults.results{i}, modelName, branchName);
-    if isempty(branch)
-        continue;
-    end
-    valid = getBranchValidityMask(branch);
-    xRaw = branch.frequency(:);
-    yRaw = branch.Cp(:);
-    valid = valid & isfinite(xRaw) & isfinite(yRaw);
-    x = xRaw; y = yRaw;
-    x(~valid) = nan; y(~valid) = nan;
-    lineHandle = plot(ax, x, y, 'LineWidth', 1.8);
-    legendText(i) = makeLegendLabel(sweepResults, i);
-
-    if any(valid)
-        lastIdx = find(valid, 1, 'last');
-        plot(ax, xRaw(lastIdx), yRaw(lastIdx), 'o', ...
-            'MarkerSize', 7, 'LineWidth', 1.4, ...
-            'Color', lineHandle.Color, 'MarkerFaceColor', lineHandle.Color, ...
-            'HandleVisibility', 'off');
-    end
-end
-
-xlabel(ax, 'frequency [Hz]');
-ylabel(ax, 'Phase velocity Cp [m/s]');
-title(ax, sprintf('%s %s sweep', modelName, branchName), 'Interpreter', 'none');
-legend(ax, legendText(legendText ~= ""), 'Location', 'best', 'Interpreter', 'none');
-hold(ax, 'off');
-end
-
-function branch = extractSweepBranch(result, modelName, branchName)
-branch = [];
-modelName = string(modelName);
-branchName = string(branchName);
-if isfield(result, 'models') && isfield(result.models, char(modelName)) && ...
-        isfield(result.models.(char(modelName)), 'branches') && ...
-        isfield(result.models.(char(modelName)).branches, char(branchName))
-    branch = result.models.(char(modelName)).branches.(char(branchName));
-end
-end
-
-function valid = getBranchValidityMask(branch)
-if isfield(branch, 'validCp')
-    valid = branch.validCp(:) & isfinite(branch.Cp(:));
-elseif isfield(branch, 'valid')
-    valid = branch.valid(:) & isfinite(branch.Cp(:));
-else
-    valid = isfinite(branch.Cp(:));
-end
-end
-
-function txt = makeLegendLabel(sweepResults, idx)
-spec = sweepResults.spec;
-value = sweepResults.displayValues(idx);
-if isfield(spec, 'units') && strlength(string(spec.units)) > 0
-    txt = sprintf('%s = %.4g %s', string(spec.label), value, string(spec.units));
-else
-    txt = sprintf('%s = %.4g', string(spec.label), value);
 end
 end
 
