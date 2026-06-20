@@ -6,7 +6,7 @@ This document defines the current maintained atlas-based policy used by the acou
 
 The policy is intentionally conservative. Its goal is to avoid fabricating high-frequency continuity when the selected branch is no longer explicitly traceable in the numerical objective landscape.
 
-Recent IOP and shear-modulus sweeps showed that this atlas-based A0 policy is the most robust working strategy currently available in the repository. It gives smoother and more physically plausible A0-like curves than the earlier corrected + A0 + backward globalScan diagnostic workflow.
+IOP and shear-modulus sweeps showed that this atlas-based A0 policy is the most robust working strategy currently available in the repository. It gives smoother and more physically plausible A0-like curves than earlier exploratory corrected + A0 + backward global-scan workflows, which have now been archived.
 
 ## Current canonical policy: `atlasA0`
 
@@ -107,30 +107,50 @@ result.reliability.ValidityNote
 
 For high-IOP cases, the recommended interpretation is to use `LastValidFrequency_kHz` as the upper frequency limit of the reported atlas-A0 curve.
 
+## Diagnostic evidence
+
+The earlier executable branch-policy comparison scripts have been archived. Current evidence is maintained through short diagnostics and documentation.
+
+Maintained diagnostics:
+
+```matlab
+compare_atlasA0_vs_raw_branch1
+validate_atlas_raw_grid
+diagnose_raw_branch_corner
+diagnose_branch_families
+diagnose_sweep_reliability
+diagnose_atlas_truncation
+```
+
+Important supporting documents:
+
+```text
+docs/acoustoelastic_iop_hgo/solver_optimization_status.md
+docs/acoustoelastic_iop_hgo/phase_closure_atlasA0.md
+docs/acoustoelastic_iop_hgo/atlas_vs_raw_branch1_diagnostic.md
+docs/acoustoelastic_iop_hgo/branch_families_diagnostic.md
+docs/acoustoelastic_iop_hgo/identityA0_diagnostic_policy.md
+docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+```
+
+Archived branch-policy and A0-backward exploratory scripts should not be restored as workflows. Their retained conclusions are preserved in:
+
+```text
+docs/acoustoelastic_iop_hgo/code_retention_review_plan.md
+docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+```
+
 ## Diagnostic alternatives
 
-The script
+Diagnostic alternatives such as identity-A0 extension, raw-branch comparison, branch-family mapping, and historical A0-backward tracking are evidence-gathering tools only. They should not be treated as final output policies unless they are validated against physical continuity, monotonicity with IOP, and branch-consistency metrics.
 
-```matlab
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_policy.m
+The current diagnostic policy is:
+
+```text
+identityA0Diagnostic = diagnostic extension only
+raw_branch1 = modal-identity diagnostic only
+branch_families = ambiguity diagnostic only
 ```
-
-compares atlas policy behavior against diagnostic alternatives such as:
-
-- `strict`
-- `smallGapInterpolation`
-- `softJumpStrict`
-- `monotoneReconnectDiagnostic`
-
-The script
-
-```matlab
-examples/acoustoelastic_iop_hgo/diagnostics/compare_acoustoelastic_iop_hgo_branch_policies.m
-```
-
-compares the maintained `atlasA0` path against the earlier `legacy_backward_global_scan` diagnostic strategy.
-
-These alternatives are intended for evidence gathering only. They should not be treated as final output policies unless they are validated against physical continuity, monotonicity with IOP, and branch-consistency metrics.
 
 ## Current recommendation
 
