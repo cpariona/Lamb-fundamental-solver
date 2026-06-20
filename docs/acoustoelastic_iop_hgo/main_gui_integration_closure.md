@@ -27,9 +27,33 @@ This is intentional for the initial integration because the AE model uses differ
 - AE-specific fields are kept in the AE tab: IOP, R, k1, k2, rhoF, fluid bulk modulus.
 - The main GUI calls the maintained AE adapter, not example scripts.
 - Results are stored in LambResults, GuiResults, GuiBranchTables, and AcoustoelasticIOPHGOResults.
-- Basic normalized plotting works for the AE branch output.
+- Basic normalized plotting works for the AE branch output when the official branch is valid.
+- Fallback-selected atlas branches are now invalidated as official output and preserved as diagnostic candidates.
 - A main-adapter smoke test exists: tests/test_gui_acoustoelastic_iop_hgo_main_adapter_smoke.m.
+- A fallback-invalidation policy test exists: tests/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_fallback_invalidation.m.
 ```
+
+### Current conservative fallback policy
+
+If the atlas solver only finds a branch by falling back to an unfiltered selection after the A0-like start filters fail, the IOP/HGO wrapper now invalidates the official output:
+
+```text
+result.Cp      -> NaN
+result.validCp -> false
+pointStatus    -> fallbackRejectedA0StartFilter
+```
+
+The rejected fallback curve is preserved for diagnostics under:
+
+```text
+result.fallbackCandidateCp
+result.fallbackCandidateValidCp
+result.fallbackCandidateBranchExistsAtFrequency
+result.fallbackCandidateInterpolatedCp
+result.fallbackCandidatePointStatus
+```
+
+This means the GUI should no longer show an apparently valid AE curve when the selected branch failed the maintained A0-like start filters.
 
 ### Known non-closure items
 
@@ -147,4 +171,4 @@ Advanced:
   compare Fast, Balanced, Robust
 ```
 
-When reviewing the result, check not only whether the curve exists, but also whether the selected branch is physically plausible and robust to the requested frequency range.
+When reviewing the result, check not only whether the curve exists, but also whether the selected branch is physically plausible and robust to the requested frequency range. If the solver rejects a fallback branch, the absence of a plotted curve is the expected conservative behavior, not a GUI failure.
