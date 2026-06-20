@@ -116,7 +116,7 @@ examples/acoustoelastic_iop_hgo/
 
 Rayleigh-Lamb examples and validation scripts live under `examples/rayleigh_lamb/`. The old top-level `examples/basic/` folder has been removed.
 
-The old top-level `examples/validation/` folder has been removed. Rayleigh-Lamb validation scripts now live under `examples/rayleigh_lamb/validation/`, and mRLFE stress tests now live under `examples/mrlfe/diagnostics/`.
+The old top-level validation folder has been removed. Rayleigh-Lamb validation scripts now live under `examples/rayleigh_lamb/validation/`, and mRLFE stress tests now live under `examples/mrlfe/diagnostics/`.
 
 Maintained examples are intended to exercise active APIs only. Archived example material is not part of the active documentation set.
 
