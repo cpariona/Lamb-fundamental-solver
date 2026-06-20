@@ -23,11 +23,10 @@ options.atlasBranchPolicy = "identityA0Diagnostic";
 result = solveAcoustoelasticIOPHGOBranch(params, options);
 ```
 
-The legacy and official policies remain:
+The official production policy remains:
 
 ```matlab
 options.atlasBranchPolicy = "atlasA0";
-options.atlasBranchPolicy = "strictA0"; % legacy alias for atlasA0
 ```
 
 ### Output fields
