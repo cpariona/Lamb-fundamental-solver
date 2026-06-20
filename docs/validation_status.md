@@ -47,6 +47,16 @@ tests/acoustoelastic_iop_hgo/
 
 The maintained acoustoelastic tests exercise author-neutral IOP/HGO entrypoints and are included by `tests/run_all_smoke_tests.m`.
 
+Current policy-sensitive tests include:
+
+```text
+test_acoustoelastic_iop_hgo_atlasA0_smoke
+test_acoustoelastic_iop_hgo_fallback_invalidation
+test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
+```
+
+`test_acoustoelastic_iop_hgo_fallback_invalidation` verifies that a fallback-selected atlas branch is preserved as diagnostic data but invalidated as official `Cp/validCp` output.
+
 For API, branch-policy, and module documentation, see:
 
 ```text
@@ -54,6 +64,7 @@ docs/acoustoelastic_iop_hgo/public_api.md
 docs/acoustoelastic_iop_hgo/branch_policy.md
 docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/documentation_index.md
+docs/acoustoelastic_iop_hgo/main_gui_integration_closure.md
 ```
 
 ## Recommended validation command
