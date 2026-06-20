@@ -66,7 +66,7 @@ modal_atlas
 modal_atlas_lowfreq
 ```
 
-The search did not reveal external code consumers of the legacy modal-atlas CSV filenames. References are concentrated in:
+The search did not reveal external code consumers of the legacy modal-atlas CSV filenames. References were concentrated in:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
@@ -77,29 +77,35 @@ docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md
 docs/acoustoelastic_iop_hgo/remaining_wrapper_inventory.md
 ```
 
-### Remaining modal-atlas legacy-output pattern
+### Modal-atlas migration status
 
-A separate search for the legacy modal-atlas output string found:
-
-```text
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
-```
+The standard modal-atlas short entrypoint is now migrated.
 
 Current behavior:
 
 ```text
 diagnose_modal_atlas.m
-  patches a temporary copy of the legacy implementation so the short entrypoint writes to Results/ae_iop_hgo/modal_atlas.
-  The wrapper is now migration-tolerant: it accepts either the old legacy output-folder line or an already migrated aeOutputFolder line.
+  delegates directly to diagnose_acoustoelastic_iop_hgo_modal_atlas.m.
 
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
-  still contains the original legacy output-folder line.
+  writes directly to Results/ae_iop_hgo/modal_atlas through aeOutputFolder.
 ```
 
-This means routine use of the short entrypoint writes to the short result tree, but the legacy descriptive implementation still contains a legacy output-root line.
+The previous temporary-copy output patch is no longer required for `diagnose_modal_atlas`.
 
-### Interpretation
+User-reported MATLAB validation passed for:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+
+diagnose_modal_atlas
+test_acoustoelastic_iop_hgo_short_entrypoints
+run_all_smoke_tests
+```
+
+### Remaining output-path notes
 
 The remaining legacy-path references are not broad uncontrolled writes.
 
@@ -111,28 +117,31 @@ track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
   Keep while raw_branch1 reproducibility is required.
 
 diagnose_modal_atlas.m
-  SHORT_ENTRYPOINT_TEMP_PATCH_MIGRATION_TOLERANT
-  Safe in routine use and tolerant of a future direct migration of the legacy implementation output line, but not a final ownership inversion.
+  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION
+  The short entrypoint no longer patches a temporary copy.
 
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
-  LEGACY_IMPLEMENTATION_OUTPUT_LINE
-  Candidate for focused modal-atlas wrapper cleanup.
+  MIGRATED_SHORT_OUTPUT_PATH
+  Writes through aeOutputFolder(pwd, 'modal_atlas').
+
+diagnose_modal_atlas_lowfreq.m
+  SEPARATE_TEMP_PATCH_PATTERN
+  Review separately only with diagnose_modal_atlas_lowfreq execution.
 ```
 
 ### Recommended next cleanup
 
-Do not change modal-atlas implementation ownership without running the modal-atlas diagnostics.
+Do not modify `diagnose_modal_atlas_lowfreq.m` by analogy unless the low-frequency diagnostic is also executed, because that wrapper uses a separate temporary-copy patching pattern.
 
-A focused modal-atlas cleanup may do the following:
+A focused low-frequency modal-atlas cleanup may do the following:
 
 ```text
-1. Move the short output-folder assignment directly into diagnose_acoustoelastic_iop_hgo_modal_atlas.m.
-2. Simplify diagnose_modal_atlas.m so it delegates without temporary patching.
-3. Run diagnose_modal_atlas in MATLAB.
-4. Run test_acoustoelastic_iop_hgo_short_entrypoints and run_all_smoke_tests.
+1. Run dependency searches for diagnose_modal_atlas_lowfreq and diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.
+2. Move the short output-folder and noninteractive plotting edits directly into the low-frequency implementation if safe.
+3. Simplify diagnose_modal_atlas_lowfreq.m so it delegates without temporary patching.
+4. Run diagnose_modal_atlas_lowfreq in MATLAB.
+5. Run test_acoustoelastic_iop_hgo_short_entrypoints and run_all_smoke_tests.
 ```
-
-The same pass should not modify `diagnose_modal_atlas_lowfreq.m` unless it also runs `diagnose_modal_atlas_lowfreq`, because that wrapper uses a separate temporary-copy patching pattern.
 
 ### Do not change yet
 
@@ -151,4 +160,4 @@ track_raw_branch1 produces Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv,
 
 ### Current conclusion
 
-The next executable cleanup should remain a focused modal-atlas wrapper pass, not a broad legacy-output rewrite.
+The standard modal-atlas output-path migration is closed. The remaining executable cleanup candidate in this area is the separate low-frequency modal-atlas wrapper pattern.
