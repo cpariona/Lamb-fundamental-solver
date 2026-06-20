@@ -60,6 +60,12 @@ options.complexCDisplay = "off";
 %                            identity-scored candidate branch in result.identityA0.
 options.atlasBranchPolicy = "atlasA0";
 
+% Conservative official-output handling. If the selected atlas branch only
+% exists because the atlas solver fell back to an unfiltered selection after
+% the A0-like start filters failed, keep the diagnostics but invalidate the
+% official Cp/validCp curve.
+options.invalidateAtlasFallbackOutput = true;
+
 % Branch-selection mode.
 %   "band"   : restrict candidate minima by dimensionless Cp bands.
 %   "global" : use all local minima in the Cp grid.
