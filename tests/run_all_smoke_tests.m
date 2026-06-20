@@ -111,19 +111,19 @@ assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol,
 assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
     'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
 
-fprintf('\n[1/12] GUI normalized adapters smoke test\n');
+fprintf('\n[1/13] GUI normalized adapters smoke test\n');
 test_gui_normalized_adapters_smoke;
 
-fprintf('\n[2/12] GUI sweep adapters smoke test\n');
+fprintf('\n[2/13] GUI sweep adapters smoke test\n');
 test_gui_sweep_adapters_smoke;
 
-fprintf('\n[3/12] GUI sweep registry smoke test\n');
+fprintf('\n[3/13] GUI sweep registry smoke test\n');
 test_gui_sweep_registry_smoke;
 
-fprintf('\n[4/12] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
+fprintf('\n[4/13] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke;
 
-fprintf('\n[5/12] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
+fprintf('\n[5/13] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_main_adapter_smoke;
 
 %% Acoustoelastic maintained API and entrypoint checks
@@ -188,31 +188,35 @@ assertFunctionsOnPath({ ...
     'test_acoustoelastic_iop_hgo_constitutive_identity', ...
     'test_acoustoelastic_iop_hgo_atlasA0_smoke', ...
     'test_acoustoelastic_iop_hgo_fallback_invalidation', ...
+    'test_acoustoelastic_iop_hgo_internal_tracking_grid', ...
     'test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy', ...
     'test_acoustoelastic_iop_hgo_short_entrypoints', ...
     'test_acoustoelastic_iop_hgo_branch_persistence_refinement', ...
     'test_ae_analyze_truncation_recovery'}, ...
     'Acoustoelastic maintained test');
 
-fprintf('\n[6/12] Acoustoelastic atlas branch policy validation test\n');
+fprintf('\n[6/13] Acoustoelastic atlas branch policy validation test\n');
 test_acoustoelastic_iop_hgo_branch_policy_validation;
 
-fprintf('\n[7/12] Acoustoelastic fallback invalidation policy test\n');
+fprintf('\n[7/13] Acoustoelastic fallback invalidation policy test\n');
 test_acoustoelastic_iop_hgo_fallback_invalidation;
 
-fprintf('\n[8/12] Acoustoelastic truncation recovery helper unit test\n');
+fprintf('\n[8/13] Acoustoelastic internal tracking grid test\n');
+test_acoustoelastic_iop_hgo_internal_tracking_grid;
+
+fprintf('\n[9/13] Acoustoelastic truncation recovery helper unit test\n');
 test_ae_analyze_truncation_recovery;
 
-fprintf('\n[9/12] Acoustoelastic branch-persistence refinement unit test\n');
+fprintf('\n[10/13] Acoustoelastic branch-persistence refinement unit test\n');
 test_acoustoelastic_iop_hgo_branch_persistence_refinement;
 
-fprintf('\n[10/12] Acoustoelastic IOP/HGO constitutive identity test\n');
+fprintf('\n[11/13] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_acoustoelastic_iop_hgo_constitutive_identity;
 
-fprintf('\n[11/12] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
+fprintf('\n[12/13] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
 test_acoustoelastic_iop_hgo_atlasA0_smoke;
 
-fprintf('\n[12/12] mRLFE smoke test\n');
+fprintf('\n[13/13] mRLFE smoke test\n');
 assertFunctionsOnPath({ ...
     'computeMRLFE', ...
     'run_mrlfe_prototype', ...
