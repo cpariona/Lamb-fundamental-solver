@@ -166,11 +166,12 @@ modal-atlas long implementations remain intentionally retained
 some documentation may still mention archived names as historical context
 ```
 
-The active backlog and refreshed audit are recorded in:
+The current cleanup/refactor status is recorded in:
 
 ```text
-docs/acoustoelastic_iop_hgo/structural_cleanup_backlog.md
 docs/acoustoelastic_iop_hgo/structural_audit_refresh.md
+docs/acoustoelastic_iop_hgo/examples_inventory.md
+docs/acoustoelastic_iop_hgo/retained_diagnostic_dependency_review.md
 ```
 
 ### What is considered closed
@@ -185,6 +186,7 @@ The following items are closed:
 6. Exploratory example archival passes E1-E3.
 7. Raw-branch helper extraction into `analysis/`.
 8. Documentation landing-page simplification and curated index creation.
+9. Removal of superseded wrapper/backlog documents.
 
 ### What is not yet closed
 
@@ -230,4 +232,4 @@ git grep "<candidate_name>"
 
 ### Current conclusion
 
-The framework is stable enough to build on. Critical renaming, modal-atlas output-path cleanup, simple alias deletion, exploratory archival, raw-branch helper extraction, and documentation indexing are closed. Remaining cleanup should be limited to heavy validation wrappers or modal-atlas implementation extraction unless a new concrete duplication or stale dependency is found.
+The framework is stable enough to build on. Critical renaming, modal-atlas output-path cleanup, simple alias deletion, exploratory archival, raw-branch helper extraction, documentation indexing, and removal of superseded wrapper/backlog documents are closed. Remaining cleanup should be limited to heavy validation wrappers or modal-atlas implementation extraction unless a new concrete duplication or stale dependency is found.
