@@ -19,14 +19,14 @@ retained exploratory basic examples
 
 ### Summary decision
 
-No additional code deletion is recommended in this pass.
+The simple compatibility-alias cleanup is complete. The E1 direct-matrix exploratory group has now also been archived after preserving its conclusions in documentation.
 
 Current conclusion:
 
 ```text
 The remaining short wrappers are intentional.
-The remaining long descriptive files contain implementation, heavy validation, exploratory diagnostic, or reproducibility logic.
-The simple alias cleanup is complete.
+The remaining long descriptive files contain implementation, heavy validation, retained exploratory diagnostic, or reproducibility logic.
+The archived E1 exploratory files are documented in direct_matrix_landscape_archive.md.
 ```
 
 ### Raw-branch comparison pipeline
@@ -142,19 +142,38 @@ They generate diagnostic evidence for modal-family ambiguity.
 They already write to Results/ae_iop_hgo/modal_atlas and Results/ae_iop_hgo/modal_atlas_lowfreq through aeOutputFolder.
 ```
 
+### Archived E1 exploratory diagnostics
+
+The following direct-matrix exploratory scripts were archived after preserving their conclusions in `direct_matrix_landscape_archive.md`:
+
+```text
+examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_dimensionless_A1.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_matrix_variants.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_residual_landscape.m
+```
+
+Decision:
+
+```text
+ARCHIVED_AFTER_DOCUMENTATION
+```
+
+Reason:
+
+```text
+These scripts isolated direct alpha-beta-gamma behavior, M54 variant checks, dimensionless A1-style diagnostics, and residual landscapes. Their conclusions are now preserved in documentation, and the underlying solver/model options remain in the implementation.
+```
+
 ### Retained exploratory examples
 
-Reviewed long descriptive examples and diagnostics still present as exploratory or historical development scripts:
+Remaining long descriptive examples and diagnostics still present as exploratory or historical development scripts:
 
 ```text
 examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_A0_backward.m
 examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_A0_complexC.m
-examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma.m
 examples/acoustoelastic_iop_hgo/diagnostics/compare_acoustoelastic_iop_hgo_tracking_strategies.m
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_grid_convergence.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_dimensionless_A1.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_matrix_variants.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_residual_landscape.m
 examples/acoustoelastic_iop_hgo/sweeps/sweep_acoustoelastic_iop_hgo_A0_backward.m
 ```
 
@@ -168,7 +187,7 @@ Reason:
 
 ```text
 These are not simple aliases.
-They encode historical solver-development questions: direct alpha-beta-gamma behavior, M54 variant checks, dimensionless A1-style diagnostics, residual landscapes, grid convergence, tracking-strategy comparison, and complex-C continuation.
+They encode remaining historical solver-development questions: A0 backward behavior, grid convergence, tracking-strategy comparison, historical sweep behavior, and complex-C continuation.
 Some contain conclusions or visual checks that may still be useful for thesis traceability.
 ```
 
@@ -188,23 +207,17 @@ Archive or consolidate exploratory examples only after confirming their conclusi
 Suggested future order:
 
 ```text
-1. Review direct alpha-beta-gamma and matrix-variant diagnostics together.
-2. Review residual-landscape and dimensionless-A1 diagnostics together.
-3. Review A0 backward, tracking strategies, and complex-C continuation together.
-4. Review A0 backward sweep last, because it may overlap with historical sweep/truncation evidence.
+1. Review A0 backward, grid convergence, and tracking strategies together.
+2. Review the A0 backward sweep after confirming it no longer supports retained sweep/truncation evidence.
+3. Review complex-C continuation separately, because it may still be a future solver direction.
 ```
 
 ### Current action recommendation
 
-Do not delete more code now.
+Do not delete another exploratory group until the E1 deletion batch has passed local validation.
 
-Recommended next step:
+Recommended next step after validation:
 
 ```text
-Perform a documentation-only pass for exploratory diagnostics:
-- mark them explicitly as retained exploratory scripts;
-- remove them from any “maintained public workflow” wording if present;
-- ensure each has a retained-evidence document or clear reason for retention.
+Review E2: A0 backward, grid convergence, tracking strategies, and historical A0 backward sweep.
 ```
-
-Only after that should code archival be considered.
