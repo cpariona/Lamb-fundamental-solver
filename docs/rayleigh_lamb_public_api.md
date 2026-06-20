@@ -37,6 +37,25 @@ For new user-facing Rayleigh-Lamb code, start with these primary entrypoints:
 
 These names should be used for maintained examples, documentation, application code, and analysis scripts that call the base Rayleigh-Lamb implementation directly.
 
+## Maintained examples
+
+Rayleigh-Lamb examples and validation scripts live under:
+
+```text
+examples/rayleigh_lamb/
+```
+
+Current example scripts:
+
+```matlab
+run_default_A0
+run_default_A0_S0
+sweep_thickness_A0_S0
+check_default_outputs
+```
+
+These scripts are user-facing examples built on the `rl*` API. They are not compatibility wrappers.
+
 ## Internal/helper entrypoints
 
 Residual, validation, geometry/material, frequency-vector, branch-spec, and tracking helpers are maintained but primarily support the higher-level entrypoints listed above. Direct calls to these helpers may be appropriate for focused diagnostics, tests, or advanced workflows.
