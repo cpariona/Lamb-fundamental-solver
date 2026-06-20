@@ -2,9 +2,8 @@ clear; clc;
 startup
 
 % Test conservative official-output policy for fallback-selected atlasA0 branches.
-% If the A0-like start filters fail and the atlas solver falls back to an
-% unfiltered branch, the wrapper must preserve the fallback candidate as
-% diagnostic data but invalidate official Cp/validCp output.
+% This test disables the internal tracking grid deliberately, so the fixture
+% still exercises the fallback-invalidation path directly.
 
 params = struct();
 params.R = 7.8e-3;
@@ -26,6 +25,7 @@ options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 options.invalidateAtlasFallbackOutput = true;
+options.useInternalAtlasTrackingGrid = false;
 
 result = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
 
