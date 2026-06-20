@@ -19,8 +19,8 @@ Rayleigh-Lamb validation is maintained through the `rl*` smoke and regression ch
 For API details, see:
 
 ```text
-docs/rayleigh_lamb_public_api.md
-docs/rayleigh_lamb_overview.md
+docs/rayleigh_lamb/public_api.md
+docs/rayleigh_lamb/overview.md
 ```
 
 ## mRLFE validation coverage
@@ -34,7 +34,7 @@ tests/mrlfe/
 The maintained mRLFE smoke coverage is included by `tests/run_all_smoke_tests.m`. Additional diagnostic context for tracker behavior is documented in:
 
 ```text
-docs/mrlfe_tracker_diagnostic_summary.md
+docs/mrlfe/tracker_diagnostic_summary.md
 ```
 
 ## Acoustoelastic IOP/HGO validation coverage
@@ -50,8 +50,8 @@ The maintained acoustoelastic tests exercise author-neutral IOP/HGO entrypoints 
 For API, branch-policy, and module documentation, see:
 
 ```text
-docs/acoustoelastic_iop_hgo_public_api.md
-docs/acoustoelastic_iop_hgo_branch_policy.md
+docs/acoustoelastic_iop_hgo/public_api.md
+docs/acoustoelastic_iop_hgo/branch_policy.md
 docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/documentation_index.md
 ```
