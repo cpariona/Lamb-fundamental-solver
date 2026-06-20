@@ -18,10 +18,10 @@ MATLAB project for computing and plotting fundamental Lamb-wave phase velocity c
 app/                                  Main MATLAB GUI and UI helper files.
 analysis/                             Analysis utilities and model-specific summaries.
 docs/                                 Active repository, API, validation, and workflow documentation.
-examples/basic/                       Basic Rayleigh-Lamb examples.
-examples/validation/                  Maintained validation and stress-test scripts.
+examples/rayleigh_lamb/               Maintained Rayleigh-Lamb examples and validation scripts.
 examples/mrlfe/                       Maintained mRLFE examples, sweeps, and diagnostics.
 examples/acoustoelastic_iop_hgo/      Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
+examples/validation/                  Temporary legacy validation folder pending final migration.
 models/rayleigh_lamb/                 Clean Rayleigh-Lamb implementation using `rl*` functions.
 models/mrlfe/                         Modified Rayleigh-Lamb fluid-loaded model.
 models/acoustoelastic_iop_hgo/        Acoustoelastic model using IOP prestress and HGO constitutive response.
@@ -78,12 +78,14 @@ analysis/
 models/rayleigh_lamb/
 models/mrlfe/
 models/acoustoelastic_iop_hgo/
-examples/basic/
-examples/validation/
+examples/rayleigh_lamb/
 examples/mrlfe/
 examples/acoustoelastic_iop_hgo/
+examples/validation/
 tests/
 ```
+
+`examples/validation/` is retained temporarily because it still contains mRLFE stress-test scripts that should be migrated separately into the mRLFE example tree.
 
 Historical archived examples have been removed; `startup.m` adds only maintained example folders.
 
@@ -160,65 +162,4 @@ Useful diagnostics:
 diagnose_mrlfe_han_visco_validity_breakdown
 diagnose_mrlfe_han_visco_residual_landscape
 compare_mrlfe_tracker_vs_condition_peaks
-```
-
-## Acoustoelastic IOP/HGO workflow
-
-The acoustoelastic IOP/HGO model is organized in:
-
-```text
-models/acoustoelastic_iop_hgo/core/
-models/acoustoelastic_iop_hgo/constitutive/
-models/acoustoelastic_iop_hgo/solvers/
-models/acoustoelastic_iop_hgo/options/
-examples/acoustoelastic_iop_hgo/
-```
-
-Recommended author-neutral entrypoints:
-
-```matlab
-solveAcoustoelasticIOPHGOBranch
-defaultAcoustoelasticIOPHGOOptions
-run_atlas_branch
-diagnose_sweep_reliability
-```
-
-The old author-specific compatibility wrappers have been removed; maintained acoustoelastic code should use the author-neutral Acoustoelastic IOP/HGO API and the short example/diagnostic entrypoints.
-
-The current official branch policy is `atlasA0`. It selects a conservative A0-like branch and reports non-traceable high-frequency portions as `NaN` instead of reconnecting them automatically.
-
-See:
-
-```text
-docs/acoustoelastic_iop_hgo_branch_policy.md
-```
-
-## Maintained tests
-
-Run this sequence after refactors:
-
-```matlab
-clear functions
-rehash toolboxcache
-startup
-
-run_all_smoke_tests
-```
-
-## Maintained examples
-
-Acoustoelastic IOP/HGO examples are in:
-
-```text
-examples/acoustoelastic_iop_hgo/basic/
-examples/acoustoelastic_iop_hgo/sweeps/
-examples/acoustoelastic_iop_hgo/diagnostics/
-```
-
-mRLFE examples are in:
-
-```text
-examples/mrlfe/basic/
-examples/mrlfe/sweeps/
-examples/mrlfe/diagnostics/
 ```
