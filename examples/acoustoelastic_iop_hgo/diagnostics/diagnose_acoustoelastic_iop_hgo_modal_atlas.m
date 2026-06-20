@@ -108,7 +108,7 @@ end
 plotBranchPersistenceSummary(allBranches);
 plotConditionMinimaDensity(conditionSummary);
 
-outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_modal_atlas');
+outputFolder = aeOutputFolder(pwd, 'modal_atlas');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
