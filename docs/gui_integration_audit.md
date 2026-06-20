@@ -9,15 +9,17 @@ This audit records the current state of the MATLAB GUI integration and proposes 
 | `runApp.m` | Launch wrapper that calls `startup()` and then `LambFundamental_GUI()`. |
 | `app/LambFundamental_GUI.m` | Main single-case GUI. Owns UI callbacks, reads controls into Rayleigh-Lamb parameter/options structs, runs Rayleigh-Lamb and mRLFE computations, plots results, exports workspace variables, and shows diagnostics. |
 | `app/SweepTool_GUI.m` | Standalone one-parameter sweep GUI. It reads selectable sweep metadata from `guiGetSweepRegistry`, builds a normalized sweep request, dispatches through `guiRunSweep`, plots normalized sweep curves, and exports raw plus normalized outputs. |
-| `app/sweep/guiGetSweepRegistry.m` | Declarative registry of sweep model families, model labels, branches, robustness presets, sweep parameters, defaults, display units, and solver-unit scales. |
+| `app/sweep/guiGetSweepRegistry.m` | Declarative registry of sweep model families, model labels, branches, robustness presets, sweep parameters, defaults, display units, and solver-unit scales. Current visible family: `mrlfe`. |
 | `app/sweep/guiGetSweepFamilyConfig.m` | Model-neutral registry lookup for one sweep model family. |
 | `app/sweep/guiGetSweepParameterConfig.m` | Model-neutral registry lookup for one sweep parameter inside a model family. |
 | `app/sweep/guiFormatSweepValues.m` | Formats default numeric sweep values for text controls. |
 | `app/sweep/guiBuildSweepRequest.m` | Model-neutral request builder used by sweep GUIs before dispatching to adapters. |
-| `app/sweep/guiRunSweep.m` | Model-neutral sweep dispatcher. Current implemented family: `mrlfe`. |
+| `app/sweep/guiRunSweep.m` | Model-neutral sweep dispatcher. Current implemented families: `mrlfe` and non-visible `acoustoelastic_iop_hgo`. |
 | `app/sweep/guiPlotSweepResult.m` | Model-neutral plot helper that consumes normalized sweep curves. |
 | `app/adapters/guiRunMRLFESweep.m` | mRLFE sweep adapter. Owns mRLFE option construction, `runParametricSweep`, and summary generation. Display-to-solver conversion comes from the request populated by the registry. |
 | `app/adapters/guiNormalizeMRLFESweep.m` | mRLFE normalizer that converts raw mRLFE sweep branches into model-neutral curve records. |
+| `app/adapters/guiRunAcoustoelasticIOPHGOSweep.m` | Acoustoelastic IOP/HGO sweep adapter. Calls `aeRunSweep` and `aeSummarizeSweep`; not yet exposed through visible SweepTool controls. |
+| `app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m` | Acoustoelastic IOP/HGO sweep normalizer. Converts official `result.Cp`/`result.validCp` outputs into normalized curves. |
 | `app/createSetupTab.m` | Builds material, geometry, and frequency controls shared by the main GUI. |
 | `app/createModelTabs.m` | Builds Rayleigh-Lamb and mRLFE model-selection controls. |
 | `app/createAdvancedTab.m` | Builds robustness preset controls and numerical-settings notes. |
@@ -63,7 +65,7 @@ guiGetSweepParameterConfig
 guiFormatSweepValues
 ```
 
-Its run path uses the sweep adapter layer:
+Its visible mRLFE run path uses:
 
 ```matlab
 guiBuildSweepRequest
@@ -80,32 +82,44 @@ runParametricSweep
 summarizeParametricSweepBranch
 ```
 
-The sweep GUI does not currently call Acoustoelastic IOP/HGO functions.
+The Acoustoelastic IOP/HGO sweep adapter path exists for non-interactive requests:
+
+```matlab
+guiBuildSweepRequest
+guiRunSweep
+guiRunAcoustoelasticIOPHGOSweep
+aeRunSweep
+aeSummarizeSweep
+guiNormalizeAcoustoelasticIOPHGOSweep
+```
+
+However, Acoustoelastic IOP/HGO is not yet registered as a visible model family in `guiGetSweepRegistry` and is not selectable in `SweepTool_GUI` controls.
 
 ## Current assumptions
 
 - The GUI assumes `startup()` has placed `app/`, `analysis/`, and the active `models/` tree on the MATLAB path. `runApp.m` satisfies this for the standard launch path.
 - The main GUI assumes the Rayleigh-Lamb result shape returned by `rlComputeFundamentalLambModes`, including `results.grid`, `results.material`, `results.geometry`, `results.modes`, optional `results.approximations`, and optional `results.models`.
-- The mRLFE sweep GUI now reads selectable sweep metadata from `guiGetSweepRegistry` and plots normalized curves returned by `guiNormalizeMRLFESweep`.
+- The mRLFE sweep GUI reads selectable sweep metadata from `guiGetSweepRegistry` and plots normalized curves returned by `guiNormalizeMRLFESweep`.
+- The Acoustoelastic IOP/HGO sweep adapter uses official `result.Cp` and `result.validCp` from `aeRunSweep` conditions and does not expose diagnostic branches as production curves.
 - The mRLFE sweep adapter still depends on raw model result fields named `mRLFEElasticRealK` and `mRLFEHanViscoRealK`, with branches named `A0Like` and `S0Like`.
 - The main GUI still maintains a compatibility `mRLFE` result alias in `updateModelAliases`. This is internal to the GUI result struct and is not an `ae*` alias, but it is a compatibility assumption worth removing or formalizing in a future GUI adapter PR.
 - `app/createPlotTab.m` keeps backward-compatible plot-control aliases `showMRLFEA0` and `showMRLFES0` for older GUI code paths. These aliases are local UI-handle aliases, not model API aliases.
 - `app/createAdvancedTab.m` says detailed numerical tuning is configured in `defaultOptions.m`; that appears stale relative to the current `rlDefaultOptions` naming and should be cleaned up in a later app-text-only PR.
-- The current GUI exposes Rayleigh-Lamb and mRLFE controls, but it has no Acoustoelastic IOP/HGO tab or callback path.
+- The current GUI exposes Rayleigh-Lamb and mRLFE controls, but it has no Acoustoelastic IOP/HGO visible tab or callback path.
 
 ## Potential breakpoints
 
 - **Main-GUI solver logic is still mixed into UI callbacks.** `app/LambFundamental_GUI.m` contains nested callback code that builds solver options, manages result caching, configures mRLFE real-k/Han options, calls model functions, plots, exports, and formats diagnostics. This makes future model integration riskier because UI state, solver policy, and plotting schema are tightly coupled.
 - **Sweep GUI mRLFE logic is now isolated behind registry and adapters.** `app/SweepTool_GUI.m` reads selectable values from `guiGetSweepRegistry`, builds a request, and calls `guiRunSweep`; mRLFE-specific solver calls and raw-branch extraction live behind `guiRunMRLFESweep` and `guiNormalizeMRLFESweep`.
+- **Acoustoelastic sweep adapter exists but is not visible in the UI.** The non-interactive adapter path is covered by smoke test before exposing new controls.
 - **Plotting logic remains mixed in the main GUI.** The sweep GUI now uses normalized sweep curves, but the main GUI still plots directly from the raw solver result struct.
 - **mRLFE policy remains embedded in the main GUI.** The main GUI has nested helper functions that set detailed mRLFE tracker/scoring options. Those are application policy choices and should move behind a GUI adapter or an app-level model service before broadening the GUI to more models.
-- **Acoustoelastic IOP/HGO is not reachable from the GUI.** The maintained long author-neutral API exists, but no current app controls call `defaultAcoustoelasticIOPHGOOptions`, `solveAcoustoelasticIOPHGOBranch`, `solveAcoustoelasticIOPHGOAtlasBranch`, or `solveAcoustoelasticIOPHGODispersion`.
 - **Stale text references can confuse maintenance.** The `defaultOptions.m` mention in `createAdvancedTab.m` should be changed to `rlDefaultOptions` when app UI copy is next touched.
-- **Path dependence is implicit.** Direct function calls are fine after `startup()`, but future adapters should include a small path smoke check to verify the GUI can resolve all active model entrypoints without relying on `examples/` scripts.
+- **Path dependence is implicit.** Direct function calls are fine after `startup()`, but future adapters should include a small path smoke check to verify the GUI can resolve all active model entrypoints without relying on `examples` scripts.
 
 ## Direct example-script usage
 
-No files under `app/` currently call scripts from `examples/` directly. The sweep GUI dispatches through `app/sweep/guiRunSweep`, whose current mRLFE adapter calls `analysis/runParametricSweep` and `analysis/summarizeParametricSweepBranch`.
+No files under `app/` currently call scripts from `examples/` directly. The visible sweep GUI dispatches through `app/sweep/guiRunSweep`, whose current mRLFE adapter calls `analysis/runParametricSweep` and `analysis/summarizeParametricSweepBranch`. The non-visible Acoustoelastic IOP/HGO sweep adapter calls maintained model/analysis APIs directly: `aeRunSweep` and `aeSummarizeSweep`.
 
 ## Current model accessibility
 
@@ -113,7 +127,7 @@ No files under `app/` currently call scripts from `examples/` directly. The swee
 | --- | --- | --- |
 | Rayleigh-Lamb | Yes | Main GUI directly calls `rlDefaultParams`, `rlDefaultOptions`, and `rlComputeFundamentalLambModes`. |
 | mRLFE | Yes | Main GUI uses `defaultMRLFEParams` and `computeMRLFE`; sweep GUI uses `guiGetSweepRegistry` → `guiRunSweep` → `guiRunMRLFESweep` → analysis sweep utilities. The main GUI only exposes elastic real-k and Han-style viscoelastic real-k workflows. |
-| Acoustoelastic IOP/HGO | No | No current app tab, adapter, callback, or plotting path calls the maintained acoustoelastic API. |
+| Acoustoelastic IOP/HGO | Adapter only | Non-interactive sweep adapter path exists through `guiRunSweep`; no visible app tab or selectable SweepTool registry family yet. |
 
 ## Recommended GUI integration architecture
 
@@ -134,6 +148,8 @@ app/
 ├─ adapters/
 │  ├─ guiRunMRLFESweep.m
 │  ├─ guiNormalizeMRLFESweep.m
+│  ├─ guiRunAcoustoelasticIOPHGOSweep.m
+│  ├─ guiNormalizeAcoustoelasticIOPHGOSweep.m
 │  ├─ guiRunRayleighLambModel.m
 │  ├─ guiRunMRLFEModel.m
 │  └─ guiRunAcoustoelasticIOPHGOModel.m
@@ -230,9 +246,8 @@ normalized.summaryTable
 
 ## Recommended next PRs
 
-1. **Add Acoustoelastic IOP/HGO sweep adapter.** Implement `guiRunAcoustoelasticIOPHGOSweep` against `aeRunSweep`/`aeSummarizeSweep` and the long author-neutral API without creating `ae*` aliases.
-2. **Extend the sweep registry with Acoustoelastic IOP/HGO.** Add IOP and mu parameter configs after the adapter is covered by smoke tests.
-3. **Add Acoustoelastic IOP/HGO UI controls.** Add a focused sweep UI path for IOP and mu after registry + adapter coverage. Keep the first UI limited to known sweep workflows.
-4. **Move main GUI compute paths behind adapters.** Refactor `app/LambFundamental_GUI.m` so callbacks create GUI request structs and adapters own solver calls/caching policy. Keep numerical behavior unchanged and preserve existing public model function names.
-5. **Normalize main GUI plotting.** Update main GUI plotting/export code to consume normalized branch results while keeping raw solver output available for diagnostics/export during transition.
-6. **Clean stale UI copy and compatibility aliases.** Replace stale `defaultOptions.m` wording and decide whether internal `mRLFE` result aliases and old plot-control aliases are still needed.
+1. **Extend the sweep registry with Acoustoelastic IOP/HGO.** Add IOP and mu parameter configs after the adapter is covered by smoke tests.
+2. **Add Acoustoelastic IOP/HGO UI controls.** Add a focused sweep UI path for IOP and mu after registry + adapter coverage. Keep the first UI limited to known sweep workflows.
+3. **Move main GUI compute paths behind adapters.** Refactor `app/LambFundamental_GUI.m` so callbacks create GUI request structs and adapters own solver calls/caching policy. Keep numerical behavior unchanged and preserve existing public model function names.
+4. **Normalize main GUI plotting.** Update main GUI plotting/export code to consume normalized branch results while keeping raw solver output available for diagnostics/export during transition.
+5. **Clean stale UI copy and compatibility aliases.** Replace stale `defaultOptions.m` wording and decide whether internal `mRLFE` result aliases and old plot-control aliases are still needed.
