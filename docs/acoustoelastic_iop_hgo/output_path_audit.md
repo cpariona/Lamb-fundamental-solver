@@ -73,6 +73,8 @@ The search did not reveal external code consumers of the legacy modal-atlas CSV 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
 docs/acoustoelastic_iop_hgo/output_path_audit.md
 docs/acoustoelastic_iop_hgo/modal_atlas_wrapper_review.md
 docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md
@@ -81,7 +83,7 @@ docs/acoustoelastic_iop_hgo/remaining_wrapper_inventory.md
 
 ### Modal-atlas migration status
 
-The standard modal-atlas short entrypoint is now migrated.
+Both maintained modal-atlas short entrypoints are now migrated.
 
 Current behavior:
 
@@ -91,23 +93,20 @@ diagnose_modal_atlas.m
 
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
   writes to Results/ae_iop_hgo/modal_atlas through aeOutputFolder, relative to the preserved launch folder.
+
+diagnose_modal_atlas_lowfreq.m
+  delegates to diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m while preserving the MATLAB launch folder.
+
+diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
+  writes to Results/ae_iop_hgo/modal_atlas_lowfreq through aeOutputFolder, relative to the preserved launch folder.
+  Routine interactive plotting is disabled in the implementation.
 ```
 
-The previous temporary-copy output patch is no longer required for `diagnose_modal_atlas`.
+The previous temporary-copy output patch is no longer required for either maintained modal-atlas short entrypoint.
 
-A follow-up correction was applied after detecting that `run(fullfile(...))` can execute relative to the script folder and create `Results/` under `examples/acoustoelastic_iop_hgo/diagnostics/`. The short entrypoint now adds the diagnostics folder to the MATLAB path temporarily and calls the descriptive script by name so that `pwd` remains the user launch folder.
+A follow-up correction was applied after detecting that `run(fullfile(...))` can execute relative to the script folder and create `Results/` under `examples/acoustoelastic_iop_hgo/diagnostics/`. The short entrypoints now add the diagnostics folder to the MATLAB path temporarily and call the descriptive scripts by name so that `pwd` remains the user launch folder.
 
-User-reported MATLAB validation passed for the migration before the launch-folder correction. Re-run the same checks after pulling the correction:
-
-```matlab
-clear functions
-rehash toolboxcache
-startup
-
-diagnose_modal_atlas
-test_acoustoelastic_iop_hgo_short_entrypoints
-run_all_smoke_tests
-```
+User-reported MATLAB validation passed for both modal-atlas entrypoints and the smoke tests.
 
 ### Remaining output-path notes
 
@@ -129,22 +128,12 @@ diagnose_acoustoelastic_iop_hgo_modal_atlas.m
   Writes through aeOutputFolder(pwd, 'modal_atlas'); `pwd` is preserved by the maintained short entrypoint.
 
 diagnose_modal_atlas_lowfreq.m
-  SEPARATE_TEMP_PATCH_PATTERN
-  Review separately only with diagnose_modal_atlas_lowfreq execution.
-```
+  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
+  The short entrypoint no longer patches a temporary copy and preserves the MATLAB launch folder for output placement.
 
-### Recommended next cleanup
-
-Do not modify `diagnose_modal_atlas_lowfreq.m` by analogy unless the low-frequency diagnostic is also executed, because that wrapper uses a separate temporary-copy patching pattern.
-
-A focused low-frequency modal-atlas cleanup may do the following:
-
-```text
-1. Run dependency searches for diagnose_modal_atlas_lowfreq and diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.
-2. Move the short output-folder and noninteractive plotting edits directly into the low-frequency implementation if safe.
-3. Simplify diagnose_modal_atlas_lowfreq.m so it delegates without temporary patching while preserving the MATLAB launch folder.
-4. Run diagnose_modal_atlas_lowfreq in MATLAB.
-5. Run test_acoustoelastic_iop_hgo_short_entrypoints and run_all_smoke_tests.
+diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
+  MIGRATED_SHORT_OUTPUT_PATH
+  Writes through aeOutputFolder(pwd, 'modal_atlas_lowfreq'); `pwd` is preserved by the maintained short entrypoint.
 ```
 
 ### Do not change yet
@@ -164,4 +153,4 @@ track_raw_branch1 produces Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv,
 
 ### Current conclusion
 
-The standard modal-atlas output-path migration is closed, with launch-folder output placement corrected in the short entrypoint. The remaining executable cleanup candidate in this area is the separate low-frequency modal-atlas wrapper pattern.
+The standard and low-frequency modal-atlas output-path migrations are closed. Remaining cleanup should move back to the broader wrapper inventory and legacy-script classification, not additional modal-atlas output-path work.
