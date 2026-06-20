@@ -22,7 +22,13 @@ The E1 direct-matrix exploratory group has been archived after preserving its co
 docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
 ```
 
-No additional exploratory group should be archived in the same pass.
+The E2 A0-backward/tracking exploratory group has been archived after preserving its conclusions in:
+
+```text
+docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+```
+
+Do not archive E3 in the same pass.
 
 ### Classification summary
 
@@ -32,10 +38,10 @@ No additional exploratory group should be archived in the same pass.
 | `diagnose_acoustoelastic_iop_hgo_matrix_variants.m` | `ARCHIVED_EXPLORATORY_MATRIX_CHECK` | Compared paper and corrected `M54` variants. Purpose and conclusions preserved in `direct_matrix_landscape_archive.md`. | Removed. |
 | `diagnose_acoustoelastic_iop_hgo_dimensionless_A1.m` | `ARCHIVED_EXPLORATORY_DIMENSIONLESS_CHECK` | Recreated an Appendix-A1-style dimensionless diagnostic for the direct solver shape. Purpose and conclusions preserved in `direct_matrix_landscape_archive.md`. | Removed. |
 | `diagnose_acoustoelastic_iop_hgo_residual_landscape.m` | `ARCHIVED_EXPLORATORY_LANDSCAPE_CHECK` | Mapped objective minima over dimensionless phase velocity and frequency. Purpose and conclusions preserved in `direct_matrix_landscape_archive.md`. | Removed. |
-| `diagnose_acoustoelastic_iop_hgo_grid_convergence.m` | `RETAIN_EXPLORATORY_GRID_CONVERGENCE` | Checks Cp grid sensitivity and branch-map behavior. Overlaps with later modal-atlas diagnostics but still documents early solver-development reasoning. | Keep for now. |
-| `compare_acoustoelastic_iop_hgo_tracking_strategies.m` | `RETAIN_EXPLORATORY_TRACKING_COMPARISON` | Compares global scan, predictive continuation, singular-vector tracking, A0High, and complex-C diagnostic routes. | Keep for now. |
-| `run_acoustoelastic_iop_hgo_A0_backward.m` | `RETAIN_EXPLORATORY_A0_BACKWARD_EXAMPLE` | Demonstrates the earlier corrected-M54 A0 backward global-scan workflow. It is superseded by `run_atlas_branch` for routine use but remains useful for historical solver tracing. | Keep for now. |
-| `sweep_acoustoelastic_iop_hgo_A0_backward.m` | `RETAIN_EXPLORATORY_A0_BACKWARD_SWEEP` | Historical A0 backward sweep. Superseded by `sweep_iop`/`sweep_mu` for routine use but may still support comparison with earlier validation notes. | Keep for now. |
+| `diagnose_acoustoelastic_iop_hgo_grid_convergence.m` | `ARCHIVED_EXPLORATORY_GRID_CONVERGENCE` | Checked Cp grid sensitivity and branch-map behavior. Purpose and conclusions preserved in `a0_backward_tracking_archive.md`. | Removed. |
+| `compare_acoustoelastic_iop_hgo_tracking_strategies.m` | `ARCHIVED_EXPLORATORY_TRACKING_COMPARISON` | Compared global scan, predictive continuation, singular-vector tracking, A0High, and complex-C diagnostic routes. Purpose and conclusions preserved in `a0_backward_tracking_archive.md`. | Removed. |
+| `run_acoustoelastic_iop_hgo_A0_backward.m` | `ARCHIVED_EXPLORATORY_A0_BACKWARD_EXAMPLE` | Demonstrated the earlier corrected-M54 A0 backward global-scan workflow. Purpose and conclusions preserved in `a0_backward_tracking_archive.md`. | Removed. |
+| `sweep_acoustoelastic_iop_hgo_A0_backward.m` | `ARCHIVED_EXPLORATORY_A0_BACKWARD_SWEEP` | Historical A0 backward sweep. Purpose and conclusions preserved in `a0_backward_tracking_archive.md`. | Removed. |
 | `run_acoustoelastic_iop_hgo_A0_complexC.m` | `RETAIN_EXPLORATORY_COMPLEX_C` | Tests complex phase-velocity continuation as a diagnostic route. Not part of official `atlasA0` output. | Keep for now. |
 
 ### Not maintained public workflows
@@ -86,7 +92,7 @@ threshold-relaxed continuation
 
 into official solver outputs.
 
-### Archived exploratory group
+### Archived exploratory groups
 
 #### Group E1: Direct matrix and M54 evidence
 
@@ -111,11 +117,9 @@ Reason:
 The direct matrix behavior, M54 variant reasoning, dimensionless diagnostic behavior, and residual landscape conclusions are now represented in documentation. The underlying solver/model options remain in the model implementation.
 ```
 
-### Candidate future archival groups
-
-If future cleanup is desired, review the remaining exploratory scripts in groups, not individually.
-
 #### Group E2: Tracking and A0 backward evidence
+
+Archived files:
 
 ```text
 run_acoustoelastic_iop_hgo_A0_backward.m
@@ -124,11 +128,19 @@ compare_acoustoelastic_iop_hgo_tracking_strategies.m
 diagnose_acoustoelastic_iop_hgo_grid_convergence.m
 ```
 
-Suggested condition before archival:
+Archive evidence:
 
 ```text
-Confirm that `atlasA0` closure, sweep reliability, grid-convergence reasoning, and branch-tracking decisions are fully represented by maintained diagnostics and retained documentation.
+docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
 ```
+
+Reason:
+
+```text
+The A0 backward route, historical sweep, tracking comparison, and grid-convergence conclusions are now represented in documentation. Current maintained workflows and diagnostics provide stronger coverage for atlasA0 behavior and modal ambiguity.
+```
+
+### Candidate future archival groups
 
 #### Group E3: Complex-C continuation
 
@@ -166,6 +178,4 @@ If the candidate group has a maintained replacement entrypoint, run that maintai
 
 ### Current recommendation
 
-Do not archive another exploratory group until the E1 deletion batch has passed local validation.
-
-The next possible cleanup group is E2, but only after confirming that branch-tracking and grid-convergence conclusions are fully represented by retained documentation.
+Do not archive E3 until the E2 deletion batch has passed local validation and a clear decision has been made about whether complex-C continuation remains a future solver direction.
