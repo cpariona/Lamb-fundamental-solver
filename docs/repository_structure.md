@@ -1,11 +1,11 @@
 # Repository structure
 
-This document describes the active repository layout for GUI-focused development. The current MATLAB implementation is organized around the clean Rayleigh-Lamb `rl*` API, the mRLFE model, and the author-neutral acoustoelastic IOP/HGO API. Naming guidance is documented in `docs/naming_strategy.md` and the acoustoelastic short-path convention is summarized in `docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md`.
+This document describes the active repository layout for GUI-focused development. The current MATLAB implementation is organized around the clean Rayleigh-Lamb `rl*` API, the mRLFE model, the author-neutral acoustoelastic IOP/HGO API, and a GUI adapter layer. Naming guidance is documented in `docs/naming_strategy.md` and the acoustoelastic short-path convention is summarized in `docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md`.
 
 ## Active top-level areas
 
 ```text
-app/                         MATLAB GUI entrypoints and UI helper files.
+app/                         MATLAB GUI entrypoints, UI helpers, adapters, and sweep helpers.
 analysis/                    Generic analysis utilities plus model-specific analysis helpers.
 docs/                        Active repository, API, validation, and workflow documentation.
 docs/rayleigh_lamb/          Rayleigh-Lamb model documentation.
@@ -33,6 +33,24 @@ Recommended setup sequence:
 clear functions
 rehash toolboxcache
 startup
+```
+
+## App folders
+
+```text
+app/
+├─ LambFundamental_GUI.m
+├─ SweepTool_GUI.m
+├─ adapters/
+└─ sweep/
+```
+
+`app/adapters/` contains GUI-facing model and sweep adapters. GUI callbacks should call adapters rather than calling model internals directly.
+
+`app/sweep/` contains the SweepTool registry, request builder, dispatcher, and plotting helpers. The visible SweepTool families are documented in:
+
+```text
+docs/sweep_tool_usage.md
 ```
 
 ## Model folders
@@ -176,6 +194,10 @@ Maintained tests are stored in:
 
 ```text
 tests/run_all_smoke_tests.m
+tests/test_gui_normalized_adapters_smoke.m
+tests/test_gui_sweep_adapters_smoke.m
+tests/test_gui_sweep_registry_smoke.m
+tests/test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke.m
 tests/mrlfe/
 tests/acoustoelastic_iop_hgo/
 ```
