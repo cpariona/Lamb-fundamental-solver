@@ -43,8 +43,7 @@ The old backlog counters are stale. The important current structural conclusions
 No known namelengthmax blocker remains.
 The standard modal-atlas wrapper cleanup is closed.
 The low-frequency modal-atlas wrapper cleanup is closed.
-The Group A simple compatibility aliases were archived after reference checks.
-The Group B identity-A0 compatibility alias was archived after reference checks.
+The simple compatibility aliases were archived after reference checks.
 The remaining aeRunLegacyScript users are intentional wrappers, not missing-target errors.
 The remaining legacy output references are either documentation, compatibility fallback reads, or migrated short-output implementations.
 ```
@@ -81,41 +80,33 @@ track_raw_branch1.m
   Needed while compare_atlasA0_vs_raw_branch1 consumes raw_branch1_curve.csv.
 ```
 
-### Group A simple aliases archived
+### Simple compatibility aliases archived
 
 The following long descriptive aliases were archived after reference checks showed no executable dependency outside documentation and the alias files themselves:
 
 ```text
 examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_atlas_branch.m
+examples/acoustoelastic_iop_hgo/sweeps/sweep_acoustoelastic_iop_hgo_iop.m
+examples/acoustoelastic_iop_hgo/sweeps/sweep_acoustoelastic_iop_hgo_mu.m
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_identity_score.m
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
 ```
 
 Use the maintained short entrypoints instead:
 
 ```matlab
 run_atlas_branch
+sweep_iop
+sweep_mu
 diagnose_sweep_reliability
 diagnose_idA0_score
 diagnose_atlas_truncation
-```
-
-### Group B identity-A0 compatibility alias archived
-
-The following older compatibility alias was archived after reference checks showed no executable dependency outside documentation and the alias file itself:
-
-```text
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
-```
-
-Use the maintained short entrypoint instead:
-
-```matlab
 diagnose_idA0_plausibility
 ```
 
-This diagnostic is not a standalone smoke-test command. It consumes:
+`diagnose_idA0_plausibility` is not a standalone smoke-test command. It consumes:
 
 ```text
 Results/ae_iop_hgo/idA0_grid/idA0_grid_workspace.mat
@@ -197,7 +188,7 @@ compare_atlasA0_vs_raw_branch1 consumes that file.
 Use small batches:
 
 ```text
-1. Pull the Group B alias-removal commit locally.
+1. Pull the latest alias-removal commits locally.
 2. Run test_acoustoelastic_iop_hgo_short_entrypoints and run_all_smoke_tests.
 3. Run diagnose_idA0_plausibility only if an idA0_grid workspace already exists, or run validate_idA0_grid first.
 4. Do not touch Groups C or D unless the heavy validations or raw-branch comparison are intentionally reworked.
