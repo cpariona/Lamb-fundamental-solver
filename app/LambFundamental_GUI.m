@@ -7,12 +7,12 @@ lastResults = [];
 lastGuiResult = [];
 lastOptions = [];
 lastParams = [];
-lastComputeCacheMessage = "";
 inputsAreDirty = false;
 colors.A0 = [0.0000 0.4470 0.7410];
 colors.S0 = [1.0000 0.0000 0.0000];
 colors.HanA0 = [0.0000 0.4470 0.7410];
 colors.HanS0 = [1.0000 0.0000 0.0000];
+colors.AE = [0.4940 0.1840 0.5560];
 
 fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[80 80 1460 860]);
 root = uigridlayout(fig,[1 2]);
@@ -102,29 +102,12 @@ updateAxisFieldState();
             params = readParamsFromGui();
             options = readOptionsFromGui();
 
-            lastComputeCacheMessage = "";
-            if canReuseCompleteResults(params, options)
-                if isempty(lastGuiResult)
-                    lastGuiResult = guiNormalizeRawResult(lastResults, "cacheComplete");
-                end
-                lastComputeCacheMessage = "cache: reused previous results";
-            elseif canReuseElasticForHan(params, options)
-                lastResults = computeHanWithCachedElastic(lastResults, options);
-                lastGuiResult = guiNormalizeRawResult(lastResults, "cacheHan");
-                lastComputeCacheMessage = "cache: reused selected elastic mRLFE branch(es)";
-            elseif canReuseBaseForMRLFE(params, options)
-                lastResults = computeMRLFEWithCachedBase(lastResults, options);
-                lastGuiResult = guiNormalizeRawResult(lastResults, "cacheBase");
-                lastComputeCacheMessage = "cache: reused selected Rayleigh-Lamb seed(s)";
-            else
-                [lastResults, lastGuiResult] = runModelRequestThroughAdapter(params, options);
-            end
+            [lastResults, lastGuiResult] = runModelRequestThroughAdapter(params, options);
 
             lastOptions = options;
             lastParams = params;
             inputsAreDirty = false;
-            plotControls.showA0.Value = isfield(lastResults.modes,'A0');
-            plotControls.showS0.Value = isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp));
+            updatePlotCheckboxesFromResults();
             updatePlot();
             updateLabels();
         catch ME
@@ -135,6 +118,20 @@ updateAxisFieldState();
 
     function options = readOptionsFromGui()
         options = rlDefaultOptions(string(advanced.robustness.Value));
+        options.computeAcoustoelasticIOPHGO = logical(modelControls.ae.computeAtlasA0.Value);
+
+        if options.computeAcoustoelasticIOPHGO
+            options.computeA0 = false;
+            options.computeS0 = false;
+            options.computeMRLFERealK = false;
+            options.computeMRLFEHanViscoRealK = false;
+            options.computeMRLFEComplexK = false;
+            options.mrlfeComputeA0Like = false;
+            options.mrlfeComputeS0Like = false;
+            options.acoustoelasticOptions = readAcoustoelasticOptionsFromGui();
+            return;
+        end
+
         options.computeA0 = logical(modelControls.rl.computeA0.Value);
         options.computeS0 = logical(modelControls.rl.computeS0.Value);
         options.computeMRLFERealK = logical(modelControls.mrlfe.computeRealK.Value);
@@ -180,8 +177,54 @@ updateAxisFieldState();
         mrlfeParams.useComplexLambda = false;
     end
 
+    function aeParams = readAcoustoelasticParamsFromGui(baseParams, options)
+        aeParams = struct();
+        aeParams.R = modelControls.ae.R.Value * 1e-3;
+        aeParams.thickness = baseParams.thickness;
+        aeParams.IOP = modelControls.ae.IOP.Value * 133.322;
+        aeParams.mu = baseParams.mu;
+        aeParams.k1 = modelControls.ae.k1.Value * 1e3;
+        aeParams.k2 = modelControls.ae.k2.Value;
+        aeParams.rho = baseParams.rho;
+        aeParams.rhoF = modelControls.ae.rhoF.Value;
+        aeParams.fluidBulkModulus = modelControls.ae.fluidBulkModulus.Value * 1e9;
+        aeParams.frequency = buildAcoustoelasticFrequencyVector(baseParams, options);
+    end
+
+    function aeOptions = readAcoustoelasticOptionsFromGui()
+        aeOptions = defaultAcoustoelasticIOPHGOOptions();
+        aeOptions.M54_variant = "corrected";
+        aeOptions.normalizeRows = false;
+        aeOptions.usePhysicalCpWindow = false;
+        aeOptions.atlasBranchPolicy = "atlasA0";
+        aeOptions.atlasNumYPoints = round(modelControls.ae.atlasNumYPoints.Value);
+        aeOptions.atlasTopNMinima = round(modelControls.ae.atlasTopNMinima.Value);
+    end
+
+    function frequency = buildAcoustoelasticFrequencyVector(params, options)
+        switch string(options.robustness)
+            case "Fast"
+                n = 35;
+            case "Robust"
+                n = 70;
+            otherwise
+                n = 50;
+        end
+        frequency = logspace(log10(params.fmin), log10(params.fmax), n);
+    end
+
     function [results, guiResult] = runModelRequestThroughAdapter(params, options)
         guiRequest = struct();
+
+        if getOptionValue(options, 'computeAcoustoelasticIOPHGO', false)
+            aeParams = readAcoustoelasticParamsFromGui(params, options);
+            guiRequest.params = aeParams;
+            guiRequest.options = options.acoustoelasticOptions;
+            guiResult = guiRunAcoustoelasticIOPHGOModel(guiRequest);
+            results = guiResult.metadata.rawResult;
+            return;
+        end
+
         guiRequest.params = params;
         guiRequest.options = options;
 
@@ -192,243 +235,17 @@ updateAxisFieldState();
         if options.computeMRLFERealK || options.computeMRLFEHanViscoRealK
             guiRequest.computeElastic = options.computeMRLFERealK || options.computeMRLFEHanViscoRealK;
             guiRequest.computeHan = options.computeMRLFEHanViscoRealK;
-            adapterResult = guiRunMRLFEModel(guiRequest);
+            guiResult = guiRunMRLFEModel(guiRequest);
         else
-            adapterResult = guiRunRayleighLambModel(guiRequest);
+            guiResult = guiRunRayleighLambModel(guiRequest);
         end
-
-        % Keep the existing GUI plotting/export code unchanged for this step.
-        % Preserve the normalized adapter result for export and future plotting.
-        guiResult = adapterResult;
-        results = adapterResult.metadata.rawResult;
+        results = guiResult.metadata.rawResult;
     end
 
-    function tf = canReuseCompleteResults(params, options)
-        tf = false;
-        if isempty(lastResults) || isempty(lastOptions) || isempty(lastParams)
-            return;
-        end
-        if ~sameBaseInputs(params, lastParams, options, lastOptions)
-            return;
-        end
-        if ~sameRequestedModels(options, lastOptions)
-            return;
-        end
-        if ~sameFullMRLFEInputs(options, lastOptions)
-            return;
-        end
-        tf = hasRequestedResults(lastResults, options);
-    end
-
-    function tf = canReuseElasticForHan(params, options)
-        tf = false;
-        if isempty(lastResults) || isempty(lastOptions) || isempty(lastParams)
-            return;
-        end
-        if ~options.computeMRLFEHanViscoRealK
-            return;
-        end
-        if ~isfield(lastResults, 'models') || ~isfield(lastResults.models, 'mRLFEElasticRealK')
-            return;
-        end
-        if ~sameBaseInputs(params, lastParams, options, lastOptions)
-            return;
-        end
-        if ~sameElasticMRLFEInputs(options, lastOptions)
-            return;
-        end
-        tf = hasRequestedMRLFEBranches(lastResults.models.mRLFEElasticRealK, options);
-    end
-
-    function tf = canReuseBaseForMRLFE(params, options)
-        tf = false;
-        if isempty(lastResults) || isempty(lastOptions) || isempty(lastParams)
-            return;
-        end
-        if ~(options.computeMRLFERealK || options.computeMRLFEHanViscoRealK)
-            return;
-        end
-        if ~sameBaseInputs(params, lastParams, options, lastOptions)
-            return;
-        end
-        tf = true;
-        if options.mrlfeComputeA0Like
-            tf = tf && isfield(lastResults.modes, 'A0');
-        end
-        if options.mrlfeComputeS0Like
-            tf = tf && isfield(lastResults.modes, 'S0');
-        end
-    end
-
-    function results = computeMRLFEWithCachedBase(cachedResults, options)
-        results = cachedResults;
-        results.models = struct();
-        mrlfeParams = readMRLFEParamsFromGui();
-
-        elasticParams = mrlfeParams;
-        elasticParams.solveComplexK = false;
-        elasticParams.etaS = 0;
-        elasticParams.etaL = 0;
-        elasticParams.useComplexLambda = false;
-        elasticOptions = makeElasticRealKOptionsForGUI(options);
-        elasticResult = computeMRLFE(results.grid.frequency, results.material, results.geometry, ...
-            results.modes, elasticParams, elasticOptions);
-
-        if options.computeMRLFERealK
-            results.models.mRLFEElasticRealK = elasticResult;
-            results.models.mRLFERealK = results.models.mRLFEElasticRealK;
-        end
-
-        if options.computeMRLFEHanViscoRealK
-            hanParams = mrlfeParams;
-            hanParams.solveComplexK = false;
-            hanParams.etaL = 0;
-            hanParams.useComplexLambda = false;
-            hanOptions = makeHanRealKOptionsForGUI(options);
-            results.models.mRLFEHanViscoRealK = computeMRLFE(results.grid.frequency, results.material, ...
-                results.geometry, elasticResult.branches, hanParams, hanOptions);
-        end
-        results = updateModelAliases(results);
-    end
-
-    function results = computeHanWithCachedElastic(cachedResults, options)
-        results = cachedResults;
-        elasticSeed = cachedResults.models.mRLFEElasticRealK;
-        mrlfeParams = readMRLFEParamsFromGui();
-        mrlfeParams.solveComplexK = false;
-        mrlfeParams.etaL = 0;
-        mrlfeParams.useComplexLambda = false;
-        hanOptions = makeHanRealKOptionsForGUI(options);
-        results.models.mRLFEHanViscoRealK = computeMRLFE(results.grid.frequency, results.material, ...
-            results.geometry, elasticSeed.branches, mrlfeParams, hanOptions);
-        if ~options.computeMRLFERealK && isfield(results.models, 'mRLFEElasticRealK')
-            results.models = rmfield(results.models, 'mRLFEElasticRealK');
-        end
-        if isfield(results.models, 'mRLFERealK')
-            results.models = rmfield(results.models, 'mRLFERealK');
-        end
-        results = updateModelAliases(results);
-    end
-
-    function results = updateModelAliases(results)
-        if isfield(results.models, 'mRLFE')
-            results.models = rmfield(results.models, 'mRLFE');
-        end
-        if isfield(results.models, 'mRLFEElasticRealK')
-            results.models.mRLFE = results.models.mRLFEElasticRealK;
-        elseif isfield(results.models, 'mRLFEHanViscoRealK')
-            results.models.mRLFE = results.models.mRLFEHanViscoRealK;
-        end
-    end
-
-    function elasticOptions = makeElasticRealKOptionsForGUI(options)
-        elasticOptions = options;
-        elasticOptions.mrlfeA0UseDPTracker = true;
-        elasticOptions.mrlfeRealKAnchorToSeed = true;
-        elasticOptions.mrlfeRealKHardReferenceWindow = true;
-        elasticOptions.mrlfeRealKScoreMode = "modal";
-        elasticOptions.mrlfeRealKRequireLocalMinimum = true;
-        elasticOptions.mrlfeRealKReferenceWeight = 80.0;
-        elasticOptions.mrlfeRealKPredictionWeight = 4.0;
-        elasticOptions.mrlfeRealKMaxRelativeKDrift = 0.30;
-        elasticOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.35;
-        elasticOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.35;
-        elasticOptions.mrlfeResidualTolerance = max(getOptionValue(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
-    end
-
-    function hanOptions = makeHanRealKOptionsForGUI(options)
-        hanOptions = options;
-        hanOptions.mrlfeA0UseDPTracker = false;
-        hanOptions.mrlfeRealKAnchorToSeed = true;
-        hanOptions.mrlfeRealKHardReferenceWindow = false;
-        hanOptions.mrlfeRealKScoreMode = "modal";
-        hanOptions.mrlfeRealKRequireLocalMinimum = true;
-        hanOptions.mrlfeRealKUseModalCpWindow = getOptionValue(options, 'mrlfeHanUseModalLocalTracker', true);
-        hanOptions.mrlfeRealKStopAtFirstMissingModalMinimum = getOptionValue(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', true);
-        hanOptions.mrlfeRealKReferenceWeight = 120.0;
-        hanOptions.mrlfeRealKPredictionWeight = 6.0;
-        hanOptions.mrlfeRealKPreviousCpWeight = getOptionValue(options, 'mrlfeHanPreviousCpWeight', 80.0);
-        hanOptions.mrlfeRealKPreviousKWeight = getOptionValue(options, 'mrlfeHanPreviousKWeight', 0.0);
-        hanOptions.mrlfeRealKPreviousCpMaxRelativeJump = getOptionValue(options, 'mrlfeHanPreviousCpMaxRelativeJump', inf);
-        hanOptions.mrlfeRealKMaxRelativeKDrift = inf;
-        hanOptions.mrlfeRealKValidationMaxRelativeKDrift = inf;
-        hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = inf;
-        hanOptions.mrlfeResidualTolerance = max(getOptionValue(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
-    end
-
-    function tf = sameBaseInputs(paramsA, paramsB, optionsA, optionsB)
-        tf = string(paramsA.modelType) == string(paramsB.modelType) && ...
-            sameNumber(paramsA.rho, paramsB.rho) && sameNumber(paramsA.E, paramsB.E) && ...
-            sameNumber(paramsA.nu, paramsB.nu) && sameNumber(paramsA.CL, paramsB.CL) && ...
-            sameNumber(paramsA.lambda, paramsB.lambda) && sameNumber(paramsA.mu, paramsB.mu) && ...
-            sameNumber(paramsA.thickness, paramsB.thickness) && sameNumber(paramsA.fmin, paramsB.fmin) && ...
-            sameNumber(paramsA.fmax, paramsB.fmax) && string(paramsA.frequencySpacing) == string(paramsB.frequencySpacing) && ...
-            string(paramsA.numFrequencyPoints) == string(paramsB.numFrequencyPoints) && string(optionsA.robustness) == string(optionsB.robustness);
-    end
-
-    function tf = sameRequestedModels(optionsA, optionsB)
-        tf = logical(optionsA.computeA0) == logical(optionsB.computeA0) && ...
-            logical(optionsA.computeS0) == logical(optionsB.computeS0) && ...
-            logical(optionsA.computeMRLFERealK) == logical(optionsB.computeMRLFERealK) && ...
-            logical(optionsA.computeMRLFEHanViscoRealK) == logical(optionsB.computeMRLFEHanViscoRealK) && ...
-            logical(optionsA.mrlfeComputeA0Like) == logical(getOptionValue(optionsB, 'mrlfeComputeA0Like', true)) && ...
-            logical(optionsA.mrlfeComputeS0Like) == logical(getOptionValue(optionsB, 'mrlfeComputeS0Like', true));
-    end
-
-    function tf = sameElasticMRLFEInputs(optionsA, optionsB)
-        if ~isfield(optionsA, 'mrlfeParams') || ~isfield(optionsB, 'mrlfeParams')
-            tf = false;
-            return;
-        end
-        a = optionsA.mrlfeParams;
-        b = optionsB.mrlfeParams;
-        tf = sameNumber(a.fluidDensity, b.fluidDensity) && sameNumber(a.fluidSoundSpeed, b.fluidSoundSpeed);
-    end
-
-    function tf = sameFullMRLFEInputs(optionsA, optionsB)
-        if ~(optionsA.computeMRLFERealK || optionsA.computeMRLFEHanViscoRealK || optionsB.computeMRLFERealK || optionsB.computeMRLFEHanViscoRealK)
-            tf = true;
-            return;
-        end
-        if ~sameElasticMRLFEInputs(optionsA, optionsB)
-            tf = false;
-            return;
-        end
-        tf = sameNumber(optionsA.mrlfeParams.etaS, optionsB.mrlfeParams.etaS);
-    end
-
-    function tf = hasRequestedResults(results, options)
-        tf = true;
-        if options.computeA0, tf = tf && isfield(results.modes, 'A0'); end
-        if options.computeS0, tf = tf && isfield(results.modes, 'S0'); end
-        if options.computeMRLFERealK
-            tf = tf && isfield(results.models, 'mRLFEElasticRealK') && hasRequestedMRLFEBranches(results.models.mRLFEElasticRealK, options);
-        end
-        if options.computeMRLFEHanViscoRealK
-            tf = tf && isfield(results.models, 'mRLFEHanViscoRealK') && hasRequestedMRLFEBranches(results.models.mRLFEHanViscoRealK, options);
-        end
-    end
-
-    function tf = hasRequestedMRLFEBranches(modelResult, options)
-        tf = isfield(modelResult, 'branches');
-        if options.mrlfeComputeA0Like
-            tf = tf && isfield(modelResult.branches, 'A0Like');
-        end
-        if options.mrlfeComputeS0Like
-            tf = tf && isfield(modelResult.branches, 'S0Like');
-        end
-    end
-
-    function tf = sameNumber(a, b)
-        scale = max([1, abs(double(a)), abs(double(b))]);
-        tf = isfinite(double(a)) && isfinite(double(b)) && abs(double(a) - double(b)) <= 1e-12 * scale;
-    end
-
-    function value = getOptionValue(optionsStruct, fieldName, defaultValue)
-        if isfield(optionsStruct, fieldName)
-            value = optionsStruct.(fieldName);
-        else
-            value = defaultValue;
+    function updatePlotCheckboxesFromResults()
+        if isstruct(lastResults) && isfield(lastResults, 'modes')
+            plotControls.showA0.Value = isfield(lastResults.modes,'A0');
+            plotControls.showS0.Value = isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp));
         end
     end
 
@@ -467,11 +284,13 @@ updateAxisFieldState();
         if tryPlotNormalizedResults(xSel)
             return;
         end
-        if plotControls.showA0.Value && isfield(lastResults.modes,'A0')
-            plotCount = plotCount + plotMode(lastResults.modes.A0, '-', 'A0', colors.A0, xSel);
-        end
-        if plotControls.showS0.Value && isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp))
-            plotCount = plotCount + plotMode(lastResults.modes.S0, '-', 'S0', colors.S0, xSel);
+        if isstruct(lastResults) && isfield(lastResults, 'modes')
+            if plotControls.showA0.Value && isfield(lastResults.modes,'A0')
+                plotCount = plotCount + plotMode(lastResults.modes.A0, '-', 'A0', colors.A0, xSel);
+            end
+            if plotControls.showS0.Value && isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp))
+                plotCount = plotCount + plotMode(lastResults.modes.S0, '-', 'S0', colors.S0, xSel);
+            end
         end
         if isfield(plotControls, 'showMRLFEElasticA0') && plotControls.showMRLFEElasticA0.Value
             plotCount = plotCount + plotMRLFEBranch('mRLFEElasticRealK', 'A0Like', ':', 'mRLFE elastic A0-like', colors.HanA0, xSel);
@@ -485,24 +304,20 @@ updateAxisFieldState();
         if isfield(plotControls, 'showMRLFEHanS0') && plotControls.showMRLFEHanS0.Value
             plotCount = plotCount + plotMRLFEBranch('mRLFEHanViscoRealK', 'S0Like', '-.', 'mRLFE Han visco S0-like', colors.HanS0, xSel);
         end
-        if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
-            plotCount = plotCount + plotMode(lastResults.approximations.A0ThinPlate, '--', 'A0 thin plate', colors.A0, xSel);
-        end
-        if plotControls.showS0Ext.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'S0Extensional')
-            plotCount = plotCount + plotMode(lastResults.approximations.S0Extensional, '--', 'S0 extensional', colors.S0, xSel);
+        if isstruct(lastResults) && isfield(lastResults, 'approximations')
+            if plotControls.showA0Thin.Value && isfield(lastResults.approximations, 'A0ThinPlate')
+                plotCount = plotCount + plotMode(lastResults.approximations.A0ThinPlate, '--', 'A0 thin plate', colors.A0, xSel);
+            end
+            if plotControls.showS0Ext.Value && isfield(lastResults.approximations, 'S0Extensional')
+                plotCount = plotCount + plotMode(lastResults.approximations.S0Extensional, '--', 'S0 extensional', colors.S0, xSel);
+            end
         end
         xlabel(ax, getXLabel(xSel)); ylabel(ax, 'Phase velocity Cp [m/s]');
         title(ax, 'Fundamental Lamb modes (Cp)'); grid(ax,'on');
         if plotCount > 0, legend(ax,'Location','best'); else, legend(ax,'off'); end
-        if plotControls.autoAxes.Value
-            xlim(ax,'auto'); ylim(ax,'auto');
-        else
-            if plotControls.xmax.Value > plotControls.xmin.Value, xlim(ax,[plotControls.xmin.Value plotControls.xmax.Value]); end
-            if plotControls.ymax.Value > plotControls.ymin.Value, ylim(ax,[plotControls.ymin.Value plotControls.ymax.Value]); end
-        end
+        applyAxisLimits();
         hold(ax,'off');
     end
-
 
     function didPlot = tryPlotNormalizedResults(xSel)
         didPlot = false;
@@ -534,11 +349,13 @@ updateAxisFieldState();
             end
         end
 
-        if plotControls.showA0Thin.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'A0ThinPlate')
-            plotCount = plotCount + plotMode(lastResults.approximations.A0ThinPlate, '--', 'A0 thin plate', colors.A0, xSel);
-        end
-        if plotControls.showS0Ext.Value && isfield(lastResults, 'approximations') && isfield(lastResults.approximations, 'S0Extensional')
-            plotCount = plotCount + plotMode(lastResults.approximations.S0Extensional, '--', 'S0 extensional', colors.S0, xSel);
+        if isstruct(lastResults) && isfield(lastResults, 'approximations')
+            if plotControls.showA0Thin.Value && isfield(lastResults.approximations, 'A0ThinPlate')
+                plotCount = plotCount + plotMode(lastResults.approximations.A0ThinPlate, '--', 'A0 thin plate', colors.A0, xSel);
+            end
+            if plotControls.showS0Ext.Value && isfield(lastResults.approximations, 'S0Extensional')
+                plotCount = plotCount + plotMode(lastResults.approximations.S0Extensional, '--', 'S0 extensional', colors.S0, xSel);
+            end
         end
 
         if plotCount <= 0
@@ -572,6 +389,8 @@ updateAxisFieldState();
             tf = isfield(plotControls, 'showMRLFEHanA0') && plotControls.showMRLFEHanA0.Value;
         elseif modelName == "mRLFEHanViscoRealK" && branchName == "S0Like"
             tf = isfield(plotControls, 'showMRLFEHanS0') && plotControls.showMRLFEHanS0.Value;
+        elseif modelName == "AcoustoelasticIOPHGO"
+            tf = true;
         end
     end
 
@@ -589,6 +408,8 @@ updateAxisFieldState();
             displayName = 'mRLFE Han visco A0-like';
         elseif modelName == "mRLFEHanViscoRealK" && branchName == "S0Like"
             displayName = 'mRLFE Han visco S0-like';
+        elseif modelName == "AcoustoelasticIOPHGO"
+            displayName = 'AE IOP/HGO atlasA0';
         else
             displayName = char(strtrim(modelName + " " + branchName));
         end
@@ -608,7 +429,9 @@ updateAxisFieldState();
     function colorValue = normalizedBranchColor(branch)
         modelName = string(branch.modelName);
         branchName = string(branch.branchName);
-        if branchName == "A0" || branchName == "A0Like"
+        if modelName == "AcoustoelasticIOPHGO"
+            colorValue = colors.AE;
+        elseif branchName == "A0" || branchName == "A0Like"
             if startsWith(modelName, "mRLFE")
                 colorValue = colors.HanA0;
             else
@@ -638,7 +461,7 @@ updateAxisFieldState();
     end
 
     function didPlot = plotMode(mode, lineStyle, displayName, colorValue, xSel)
-        x = getModeX(mode,lastResults.grid,xSel); y = mode.Cp;
+        x = getModeX(mode,getGridData(lastResults),xSel); y = mode.Cp;
         plot(ax, x, y, lineStyle, 'LineWidth', 2, 'Color', colorValue, 'DisplayName', displayName);
         didPlot = 1;
     end
@@ -647,7 +470,7 @@ updateAxisFieldState();
         didPlot = 0;
         if isfield(lastResults, 'models') && isfield(lastResults.models, modelName) && isfield(lastResults.models.(modelName).branches, branchName)
             mode = lastResults.models.(modelName).branches.(branchName);
-            validMask = getModePlotMask(mode); x = getModeX(mode,lastResults.grid,xSel); y = mode.Cp;
+            validMask = getModePlotMask(mode); x = getModeX(mode,getGridData(lastResults),xSel); y = mode.Cp;
             x(~validMask) = nan; y(~validMask) = nan;
             if any(isfinite(y))
                 plot(ax, x, y, lineStyle, 'LineWidth', 2, 'Color', colorValue, 'DisplayName', displayName);
@@ -658,10 +481,16 @@ updateAxisFieldState();
 
     function updateLabels()
         if isempty(lastResults) || isempty(lastOptions), return; end
-        m = lastResults.material; thickness = lastResults.geometry.thickness; halfThickness = thickness/2;
-        materialInfo.Text = sprintf('E %.4g kPa | nu %.5f | CL %.2f m/s | CT %.2f m/s\nthick %.4g m | half %.4g m', m.E/1e3, m.nu, m.CL, m.CT, thickness, halfThickness);
-        statusLines = {sprintf('%s | N=%d', string(lastOptions.robustness), numel(lastResults.grid.frequency))};
-        if strlength(lastComputeCacheMessage) > 0, statusLines{end+1} = char(lastComputeCacheMessage); end %#ok<AGROW>
+        if getOptionValue(lastOptions, 'computeAcoustoelasticIOPHGO', false)
+            updateAcoustoelasticLabels();
+            return;
+        end
+
+        if isfield(lastResults, 'material') && isfield(lastResults, 'geometry')
+            m = lastResults.material; thickness = lastResults.geometry.thickness; halfThickness = thickness/2;
+            materialInfo.Text = sprintf('E %.4g kPa | nu %.5f | CL %.2f m/s | CT %.2f m/s\nthick %.4g m | half %.4g m', m.E/1e3, m.nu, m.CL, m.CT, thickness, halfThickness);
+        end
+        statusLines = {sprintf('%s | N=%d', string(lastOptions.robustness), numel(getGridData(lastResults).frequency))};
         rlLine = buildRLStatusLine(); if strlength(rlLine) > 0, statusLines{end+1} = char(rlLine); end %#ok<AGROW>
         elasticLine = buildMRLFEStatusLine('mRLFEElasticRealK', 'elastic'); if strlength(elasticLine) > 0, statusLines{end+1} = char(elasticLine); end %#ok<AGROW>
         hanLine = buildMRLFEStatusLine('mRLFEHanViscoRealK', 'Han'); if strlength(hanLine) > 0, statusLines{end+1} = char(hanLine); end %#ok<AGROW>
@@ -669,10 +498,27 @@ updateAxisFieldState();
         setStatusText(statusLines);
     end
 
+    function updateAcoustoelasticLabels()
+        aeParams = lastGuiResult.metadata.params;
+        materialInfo.Text = sprintf('AE IOP/HGO | mu %.4g kPa | rho %.4g kg/m^3 | h %.4g mm\nIOP %.4g mmHg | R %.4g mm | k1 %.4g kPa | k2 %.4g', ...
+            aeParams.mu/1e3, aeParams.rho, aeParams.thickness*1e3, aeParams.IOP/133.322, aeParams.R*1e3, aeParams.k1/1e3, aeParams.k2);
+        statusLines = {sprintf('AE IOP/HGO | atlasA0 | N=%d', numel(aeParams.frequency))};
+        if isfield(lastResults, 'validCp')
+            statusLines{end+1} = sprintf('Cp valid %d/%d', nnz(lastResults.validCp), numel(lastResults.validCp)); %#ok<AGROW>
+        end
+        if isfield(lastResults, 'reliability') && isfield(lastResults.reliability, 'LastValidFrequency_kHz')
+            statusLines{end+1} = sprintf('last valid %.3f kHz', lastResults.reliability.LastValidFrequency_kHz); %#ok<AGROW>
+        end
+        if inputsAreDirty, statusLines{end+1} = 'inputs changed'; end %#ok<AGROW>
+        setStatusText(statusLines);
+    end
+
     function line = buildRLStatusLine()
         parts = strings(0);
-        if isfield(lastResults.modes,'A0'), a0 = lastResults.modes.A0; parts(end+1) = sprintf('A0 %d/%d', sum(a0.valid), numel(a0.valid)); end %#ok<AGROW>
-        if isfield(lastResults.modes,'S0'), s0 = lastResults.modes.S0; parts(end+1) = sprintf('S0 %d/%d', sum(s0.valid), numel(s0.valid)); end %#ok<AGROW>
+        if isfield(lastResults, 'modes')
+            if isfield(lastResults.modes,'A0'), a0 = lastResults.modes.A0; parts(end+1) = sprintf('A0 %d/%d', sum(a0.valid), numel(a0.valid)); end %#ok<AGROW>
+            if isfield(lastResults.modes,'S0'), s0 = lastResults.modes.S0; parts(end+1) = sprintf('S0 %d/%d', sum(s0.valid), numel(s0.valid)); end %#ok<AGROW>
+        end
         line = strjoin(parts, ' | ');
     end
 
@@ -698,6 +544,11 @@ updateAxisFieldState();
     end
 
     function txt = buildDiagnosticsText()
+        if getOptionValue(lastOptions, 'computeAcoustoelasticIOPHGO', false)
+            txt = buildAcoustoelasticDiagnosticsText();
+            return;
+        end
+
         lines = {}; m = lastResults.material;
         lines{end+1} = 'Material'; %#ok<AGROW>
         lines{end+1} = sprintf('  E        = %.6g Pa', m.E); %#ok<AGROW>
@@ -707,14 +558,51 @@ updateAxisFieldState();
         lines{end+1} = sprintf('  CL       = %.6g m/s', m.CL); %#ok<AGROW>
         lines{end+1} = sprintf('  CT       = %.6g m/s', m.CT); %#ok<AGROW>
         lines{end+1} = ''; %#ok<AGROW>
+        gridData = getGridData(lastResults);
         lines{end+1} = 'Grid'; %#ok<AGROW>
-        lines{end+1} = sprintf('  frequency points = %d', numel(lastResults.grid.frequency)); %#ok<AGROW>
-        lines{end+1} = sprintf('  fmin/fmax        = %.6g / %.6g Hz', min(lastResults.grid.frequency), max(lastResults.grid.frequency)); %#ok<AGROW>
+        lines{end+1} = sprintf('  frequency points = %d', numel(gridData.frequency)); %#ok<AGROW>
+        lines{end+1} = sprintf('  fmin/fmax        = %.6g / %.6g Hz', min(gridData.frequency), max(gridData.frequency)); %#ok<AGROW>
         lines{end+1} = ''; %#ok<AGROW>
-        if isfield(lastResults.modes,'A0'), lines = appendModeDiagnostics(lines, 'A0', lastResults.modes.A0); end
-        if isfield(lastResults.modes,'S0'), lines = appendModeDiagnostics(lines, 'S0', lastResults.modes.S0); end
+        if isfield(lastResults, 'modes')
+            if isfield(lastResults.modes,'A0'), lines = appendModeDiagnostics(lines, 'A0', lastResults.modes.A0); end
+            if isfield(lastResults.modes,'S0'), lines = appendModeDiagnostics(lines, 'S0', lastResults.modes.S0); end
+        end
         lines = appendMRLFEDiagnostics(lines, 'mRLFEElasticRealK');
         lines = appendMRLFEDiagnostics(lines, 'mRLFEHanViscoRealK');
+        txt = lines(:);
+    end
+
+    function txt = buildAcoustoelasticDiagnosticsText()
+        lines = {};
+        p = lastGuiResult.metadata.params;
+        lines{end+1} = 'AE IOP/HGO'; %#ok<AGROW>
+        lines{end+1} = sprintf('  IOP      = %.6g Pa', p.IOP); %#ok<AGROW>
+        lines{end+1} = sprintf('  R        = %.6g m', p.R); %#ok<AGROW>
+        lines{end+1} = sprintf('  h        = %.6g m', p.thickness); %#ok<AGROW>
+        lines{end+1} = sprintf('  mu       = %.6g Pa', p.mu); %#ok<AGROW>
+        lines{end+1} = sprintf('  k1       = %.6g Pa', p.k1); %#ok<AGROW>
+        lines{end+1} = sprintf('  k2       = %.6g', p.k2); %#ok<AGROW>
+        lines{end+1} = sprintf('  rho      = %.6g kg/m^3', p.rho); %#ok<AGROW>
+        lines{end+1} = sprintf('  rhoF     = %.6g kg/m^3', p.rhoF); %#ok<AGROW>
+        lines{end+1} = ''; %#ok<AGROW>
+        lines{end+1} = 'Grid'; %#ok<AGROW>
+        lines{end+1} = sprintf('  frequency points = %d', numel(p.frequency)); %#ok<AGROW>
+        lines{end+1} = sprintf('  fmin/fmax        = %.6g / %.6g Hz', min(p.frequency), max(p.frequency)); %#ok<AGROW>
+        if isfield(lastResults, 'validCp')
+            lines{end+1} = sprintf('  Cp valid         = %d / %d', nnz(lastResults.validCp), numel(lastResults.validCp)); %#ok<AGROW>
+        end
+        if isfield(lastResults, 'reliability')
+            lines{end+1} = ''; %#ok<AGROW>
+            lines{end+1} = 'Reliability'; %#ok<AGROW>
+            r = lastResults.reliability;
+            fields = fieldnames(r);
+            for i = 1:numel(fields)
+                v = r.(fields{i});
+                if isnumeric(v) || islogical(v) || isstring(v) || ischar(v)
+                    lines{end+1} = sprintf('  %s = %s', fields{i}, string(v)); %#ok<AGROW>
+                end
+            end
+        end
         txt = lines(:);
     end
 
@@ -752,8 +640,13 @@ updateAxisFieldState();
             assignin('base','GuiResults',GuiResults);
             assignin('base','GuiBranchTables',GuiBranchTables);
         end
-        if isfield(lastResults.modes,'A0'), assignin('base','A0_table',modeToTable(lastResults.modes.A0)); end
-        if isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp)), assignin('base','S0_table',modeToTable(lastResults.modes.S0)); end
+        if getOptionValue(lastOptions, 'computeAcoustoelasticIOPHGO', false)
+            assignin('base', 'AcoustoelasticIOPHGOResults', lastResults);
+        end
+        if isfield(lastResults, 'modes')
+            if isfield(lastResults.modes,'A0'), assignin('base','A0_table',modeToTable(lastResults.modes.A0)); end
+            if isfield(lastResults.modes,'S0') && any(isfinite(lastResults.modes.S0.Cp)), assignin('base','S0_table',modeToTable(lastResults.modes.S0)); end
+        end
         if isfield(lastResults, 'approximations'), assignin('base', 'ApproximationResults', lastResults.approximations); end
         if isfield(lastResults, 'models')
             if isfield(lastResults.models, 'mRLFEElasticRealK'), assignin('base', 'MRLFEElasticRealKResults', lastResults.models.mRLFEElasticRealK); end
@@ -768,6 +661,18 @@ function txt = onOff(flag)
 if flag, txt = 'on'; else, txt = 'off'; end
 end
 
+function gridData = getGridData(results)
+if isfield(results, 'grid')
+    gridData = results.grid;
+elseif isfield(results, 'frequency')
+    gridData = struct();
+    gridData.frequency = results.frequency(:);
+    gridData.omega = 2*pi*gridData.frequency;
+else
+    gridData = struct('frequency', [], 'omega', []);
+end
+end
+
 function x = getModeX(mode, gridData, xSel)
 switch xSel
     case "frequency"
@@ -775,9 +680,9 @@ switch xSel
     case "angularFrequency"
         if isfield(mode,'omega'), x = mode.omega; else, x = gridData.omega; end
     case "wavenumber"
-        if isfield(mode, 'kReal'), x = mode.kReal; else, x = real(mode.k); end
+        if isfield(mode, 'kReal'), x = mode.kReal; elseif isfield(mode, 'k'), x = real(mode.k); else, x = nan(size(mode.Cp)); end
     case "kThickness"
-        x = mode.kThickness;
+        if isfield(mode, 'kThickness'), x = mode.kThickness; else, x = nan(size(mode.Cp)); end
     otherwise
         x = gridData.frequency;
 end
