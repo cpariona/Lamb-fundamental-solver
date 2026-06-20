@@ -1,6 +1,6 @@
 ### Acoustoelastic IOP/HGO code retention review plan
 
-This document records the current retention policy for the acoustoelastic IOP/HGO module after the `atlasA0` policy closure, archived-diagnostic cleanup, modal-atlas output-path migration, simple compatibility-alias cleanup, exploratory archival passes E1-E3, and raw-branch helper extraction.
+This document records the current retention policy for the acoustoelastic IOP/HGO module after the `atlasA0` policy closure, archived-diagnostic cleanup, modal-atlas output-path migration, simple compatibility-alias cleanup, exploratory archival passes E1-E3, raw-branch helper extraction, and branch-policy alias removal.
 
 ### Retention principle
 
@@ -64,9 +64,8 @@ diagnose_idA0_plausibility
 #### Regression tests
 
 ```matlab
-test_acoustoelastic_iop_hgo_branch_policy_aliases
+test_acoustoelastic_iop_hgo_atlasA0_smoke
 test_acoustoelastic_iop_hgo_constitutive_identity
-test_acoustoelastic_iop_hgo_strictA0_smoke
 test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 test_acoustoelastic_iop_hgo_short_entrypoints
 test_acoustoelastic_iop_hgo_branch_persistence_refinement
@@ -114,6 +113,27 @@ diagnose_sweep_reliability
 diagnose_idA0_score
 diagnose_atlas_truncation
 diagnose_idA0_plausibility
+```
+
+### Branch-policy aliases removed
+
+The legacy `strictA0` branch-policy alias and its alias-specific tests were removed. The maintained production branch policy is now only:
+
+```matlab
+options.atlasBranchPolicy = "atlasA0";
+```
+
+Removed tests:
+
+```text
+test_acoustoelastic_iop_hgo_branch_policy_aliases.m
+test_acoustoelastic_iop_hgo_strictA0_smoke.m
+```
+
+Replacement test:
+
+```text
+test_acoustoelastic_iop_hgo_atlasA0_smoke.m
 ```
 
 ### Removed archived diagnostics
@@ -264,4 +284,4 @@ compare_atlasA0_vs_raw_branch1
 
 Do not delete heavy validation wrappers or retained long modal-atlas implementation files solely because they look similar to short entrypoints.
 
-The simple alias cleanup, exploratory archival passes E1-E3, and raw-branch helper extraction are complete. No exploratory example scripts remain as retained public or semi-public workflows.
+The simple alias cleanup, branch-policy alias cleanup, exploratory archival passes E1-E3, and raw-branch helper extraction are complete. No exploratory example scripts remain as retained public or semi-public workflows.
