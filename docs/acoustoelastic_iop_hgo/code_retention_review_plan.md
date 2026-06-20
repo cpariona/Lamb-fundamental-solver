@@ -64,6 +64,7 @@ diagnose_idA0_plausibility
 #### Regression tests
 
 ```matlab
+test_acoustoelastic_iop_hgo_branch_policy_validation
 test_acoustoelastic_iop_hgo_atlasA0_smoke
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
@@ -130,9 +131,10 @@ test_acoustoelastic_iop_hgo_branch_policy_aliases.m
 test_acoustoelastic_iop_hgo_strictA0_smoke.m
 ```
 
-Replacement test:
+Replacement tests:
 
 ```text
+test_acoustoelastic_iop_hgo_branch_policy_validation.m
 test_acoustoelastic_iop_hgo_atlasA0_smoke.m
 ```
 
