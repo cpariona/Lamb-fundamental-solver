@@ -6,7 +6,7 @@ The current convention is:
 
 ```text
 Use short entrypoints for user-facing execution.
-Keep long descriptive scripts only for compatibility or implementation history.
+Keep long descriptive scripts only for implementation history or heavy retained diagnostics.
 ```
 
 Do not call long legacy scripts directly unless there is a specific reason to inspect historical behavior.
@@ -47,7 +47,7 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 |---|---|---|
 | `diagnose_modal_atlas` | `diagnose_acoustoelastic_iop_hgo_modal_atlas` | historical thesis-analysis diagnostic; short entrypoint writes to short output path |
 | `diagnose_modal_atlas_lowfreq` | `diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas` | historical thesis-analysis diagnostic; short entrypoint writes to short output path |
-| `track_raw_branch1` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate` | historical raw-branch diagnostic retained for traceability |
+| `track_raw_branch1` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate` | archived implementation; use `track_raw_branch1` or `aeExtractRawBranch1Candidate` |
 
 ### Archived diagnostics and aliases removed from examples
 
@@ -60,6 +60,7 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 | `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | same file | use `diagnose_idA0_score` |
 | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | same file | use `diagnose_atlas_truncation` |
 | `diagnose_identityA0_plausibility` | same file | use `diagnose_idA0_plausibility` |
+| `track_acoustoelastic_iop_hgo_raw_branch1_candidate` | same file | use `track_raw_branch1`; implementation moved to `aeExtractRawBranch1Candidate` |
 | `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | `atlasA0` policy closure is documented in `docs/acoustoelastic_iop_hgo/phase_closure_atlasA0.md` and `docs/acoustoelastic_iop_hgo/solver_optimization_status.md` |
 | `diagnose_branch_policy` | `diagnose_acoustoelastic_iop_hgo_branch_policy` | branch-policy comparison history retained in documentation; use maintained `atlasA0` policy |
 | `diagnose_atlas_resolution` | `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity` | resolution-sensitivity conclusions retained in `docs/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md` |
@@ -71,7 +72,7 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `compare_atlasA0_vs_raw_branch1` | none | maintained diagnostic |
+| `compare_atlasA0_vs_raw_branch1` | none | maintained diagnostic; regenerates raw_branch1 curve if needed |
 | `validate_atlas_raw_grid` | none | maintained diagnostic |
 | `diagnose_raw_branch_corner` | none | maintained diagnostic |
 | `diagnose_branch_families` | none | maintained diagnostic |
