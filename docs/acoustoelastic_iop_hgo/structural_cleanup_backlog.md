@@ -19,7 +19,7 @@ UsesAeResolveResultFile = 7
 MutatesOfficialCp = 5
 ```
 
-These values may be stale after the archived-diagnostic deletions. Re-run the structural audit before using the counts as current evidence.
+These values are stale after archived-diagnostic deletions and the standard modal-atlas output-path migration. Re-run the structural audit before using the counts as current evidence.
 
 ### Interpretation
 
@@ -44,6 +44,7 @@ KEEP_SOLVER_ASSIGNMENT
 KEEP_DIAGNOSTIC_SOLVER_VALIDCP
 DIRECT_MAINTAINED_ENTRYPOINT
 LEGACY_ALIAS_TO_SHORT
+DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION
 RETAIN_FOR_COMPARISON_REPRODUCIBILITY
 ARCHIVED_REMOVED
 ```
@@ -61,7 +62,7 @@ This should be triaged into:
 
 Do not change official numerical outputs while doing this cleanup.
 
-Initial cleanup action completed:
+Completed output-path cleanup actions:
 
 ```text
 examples/acoustoelastic_iop_hgo/basic/run_atlas_branch.m
@@ -71,6 +72,14 @@ examples/acoustoelastic_iop_hgo/basic/run_atlas_branch.m
 examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_atlas_branch.m
   LEGACY_ALIAS_TO_SHORT
   Now delegates to run_atlas_branch for compatibility.
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
+  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION
+  Now delegates directly to diagnose_acoustoelastic_iop_hgo_modal_atlas without temporary patching.
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
+  MIGRATE_OUTPUT_PATH
+  Now writes to Results/ae_iop_hgo/modal_atlas through aeOutputFolder.
 ```
 
 ### Priority 2: mutation flag review completed
@@ -139,6 +148,11 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_atlas_truncation.m
   CONVERT_SHORT_TO_DIRECT
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
   LEGACY_ALIAS_TO_SHORT
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
+  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
+  MIGRATE_OUTPUT_PATH
 ```
 
 Archived executable diagnostics removed after reference checks and retained documentation coverage:
@@ -171,9 +185,6 @@ examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
 
 examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
   RETAIN_FOR_COMPARISON_REPRODUCIBILITY: required while compare_atlasA0_vs_raw_branch1 consumes raw_branch1_curve.csv.
-
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
-  KEEP_AS_WRAPPER: target exists but has additional result-copy compatibility behavior in the short wrapper.
 
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
   SPECIAL_CASE_DEFER: wrapper edits a temporary copy of a long legacy diagnostic rather than using a simple aeRunLegacyScript target.
@@ -215,13 +226,13 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 
 ### Recommended next cleanup order
 
-1. Separate true legacy output writes from compatibility references.
-2. Keep validation-grid and modal-atlas wrappers until a focused pass can execute their diagnostics.
-3. Keep `track_raw_branch1` while the maintained atlas-vs-raw comparison depends on its generated curve.
+1. Keep validation-grid wrappers unless their heavy implementations are intentionally modified and executed.
+2. Keep `track_raw_branch1` while the maintained atlas-vs-raw comparison depends on its generated curve.
+3. Review `diagnose_modal_atlas_lowfreq` only in a focused pass with dependency searches and MATLAB execution of the low-frequency diagnostic.
 4. Re-run the structural audit before deleting additional scripts based on old audit counts.
 
 ### Current decision
 
 Do not start a broad deletion pass.
 
-The next safe cleanup step is a refreshed output-path audit, because the old `WritesLegacyResults` counts predate several archived-diagnostic removals.
+The next safe cleanup step is the focused low-frequency modal-atlas wrapper review, or a refreshed structural audit if broader cleanup decisions are needed.
