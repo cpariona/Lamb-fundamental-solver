@@ -8,11 +8,11 @@ This document describes the active repository layout for GUI-focused development
 app/                         MATLAB GUI entrypoints and UI helper files.
 analysis/                    Generic analysis utilities plus model-specific analysis helpers.
 docs/                        Active repository, API, validation, and workflow documentation.
-examples/basic/              Basic Rayleigh-Lamb examples.
-examples/validation/         Maintained validation and stress-test scripts.
+examples/rayleigh_lamb/      Maintained Rayleigh-Lamb examples and validation scripts.
 examples/mrlfe/              Maintained mRLFE examples, sweeps, and diagnostics.
 examples/acoustoelastic_iop_hgo/
                              Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
+examples/validation/         Temporary legacy validation folder pending final mRLFE stress-test migration.
 models/rayleigh_lamb/        Clean Rayleigh-Lamb implementation using `rl*` functions.
 models/mrlfe/                Modified Rayleigh-Lamb fluid-loaded model implementation.
 models/acoustoelastic_iop_hgo/
@@ -102,8 +102,9 @@ aeBuildIdentityA0DiagnosticBranch
 ## Example folders
 
 ```text
-examples/basic/
-examples/validation/
+examples/rayleigh_lamb/
+├─ basic/
+└─ validation/
 examples/mrlfe/
 ├─ basic/
 ├─ sweeps/
@@ -113,6 +114,10 @@ examples/acoustoelastic_iop_hgo/
 ├─ sweeps/
 └─ diagnostics/
 ```
+
+Rayleigh-Lamb examples should live under `examples/rayleigh_lamb/`. The old top-level `examples/basic/` folder has been removed.
+
+`examples/validation/` remains temporarily only because it still contains mRLFE stress-test scripts from an older layout. Those scripts should be migrated into `examples/mrlfe/diagnostics/` in a focused follow-up pass.
 
 Maintained examples are intended to exercise active APIs only. Archived example material is not part of the active documentation set.
 
