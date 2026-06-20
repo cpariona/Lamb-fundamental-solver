@@ -138,8 +138,6 @@ diagnose_acoustoelastic_iop_hgo_modal_atlas
 diagnose_acoustoelastic_iop_hgo_residual_landscape
 track_acoustoelastic_iop_hgo_raw_branch1_candidate
 sweep_acoustoelastic_iop_hgo_A0_backward
-sweep_acoustoelastic_iop_hgo_iop
-sweep_acoustoelastic_iop_hgo_mu
 ```
 
 ### Acoustoelastic maintained tests
