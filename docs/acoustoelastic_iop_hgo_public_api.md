@@ -2,7 +2,7 @@
 
 The supported acoustoelastic IOP/HGO API is author-neutral. Maintained code, examples, tests, GUI callbacks, and analysis scripts should call the `Acoustoelastic` / `AcoustoelasticIOPHGO` entrypoints listed below.
 
-The former author-specific compatibility layer has been removed. Do not add new compatibility wrappers or call removed author-specific names from active MATLAB code.
+The former author-specific compatibility layer and legacy branch-policy aliases have been removed. Do not add new compatibility wrappers or call removed names from active MATLAB code.
 
 ## Primary solver entrypoints
 
@@ -94,9 +94,8 @@ track_raw_branch1
 ## Maintained tests
 
 ```matlab
-test_acoustoelastic_iop_hgo_branch_policy_aliases
+test_acoustoelastic_iop_hgo_atlasA0_smoke
 test_acoustoelastic_iop_hgo_constitutive_identity
-test_acoustoelastic_iop_hgo_strictA0_smoke
 test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 test_acoustoelastic_iop_hgo_short_entrypoints
 test_acoustoelastic_iop_hgo_branch_persistence_refinement
@@ -108,7 +107,6 @@ test_ae_analyze_truncation_recovery
 - GUI code should call model APIs, not scripts in `examples/`.
 - Maintained examples should use short task-oriented script names under `examples/acoustoelastic_iop_hgo/`.
 - Active tests should validate author-neutral names only.
-- The maintained atlas A0 policy name is `"atlasA0"`.
-- The legacy policy name `"strictA0"` remains accepted as an alias.
-- Removed compatibility names are not part of the supported API.
+- The only maintained production atlas-A0 policy name is `"atlasA0"`.
+- Removed compatibility and legacy branch-policy names are not part of the supported API.
 - `identityA0Diagnostic`, `raw_branch1`, and `branch_families` are diagnostic-only and should not replace `result.Cp` or `result.validCp`.
