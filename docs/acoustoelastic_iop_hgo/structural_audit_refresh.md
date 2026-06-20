@@ -1,6 +1,6 @@
 ### Refreshed structural audit
 
-This document refreshes the structural cleanup audit after the archived-diagnostic removals and the standard/low-frequency modal-atlas output-path migrations.
+This document refreshes the structural cleanup audit after the archived-diagnostic removals, modal-atlas output-path migrations, exploratory archival passes, and raw-branch helper extraction.
 
 ### Scope
 
@@ -44,6 +44,8 @@ No known namelengthmax blocker remains.
 The standard modal-atlas wrapper cleanup is closed.
 The low-frequency modal-atlas wrapper cleanup is closed.
 The simple compatibility aliases were archived after reference checks.
+Exploratory example scripts E1-E3 were archived after documentation preservation.
+raw_branch1 generation is now helper-backed through aeExtractRawBranch1Candidate.
 The remaining aeRunLegacyScript users are intentional wrappers, not missing-target errors.
 The remaining legacy output references are either documentation, compatibility fallback reads, or migrated short-output implementations.
 ```
@@ -56,7 +58,6 @@ Current remaining executable `aeRunLegacyScript` users in the example layer:
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
-examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
 ```
 
 Current classification:
@@ -74,11 +75,9 @@ validate_idA0_grid.m
 validate_idA0_score_grid.m
   KEEP_AS_WRAPPER
   Short maintained name for a heavy validation implementation.
-
-track_raw_branch1.m
-  RETAIN_FOR_COMPARISON_REPRODUCIBILITY
-  Needed while compare_atlasA0_vs_raw_branch1 consumes raw_branch1_curve.csv.
 ```
+
+`track_raw_branch1.m` no longer uses `aeRunLegacyScript`; it calls `aeExtractRawBranch1Candidate` directly.
 
 ### Simple compatibility aliases archived
 
@@ -116,35 +115,44 @@ or the legacy fallback workspace. Run `validate_idA0_grid` first if that workspa
 
 ### Legacy descriptive implementation files still required
 
-The following long descriptive files are not simple duplicates; they are implementation targets or retained diagnostic implementations:
+The following long descriptive files are not simple duplicates; they are implementation targets or retained heavy-validation implementations:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_acoustoelastic_iop_hgo_branch_identity_score_grid.m
-examples/acoustoelastic_iop_hgo/diagnostics/track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
 ```
 
-Do not delete these as duplicate-looking files. They contain actual implementation logic or reproducibility logic.
+Do not delete these as duplicate-looking files. They contain actual implementation or heavy-validation logic.
+
+The previous raw-branch long implementation script was removed after its logic was moved to:
+
+```text
+analysis/acoustoelastic_iop_hgo/aeExtractRawBranch1Candidate.m
+```
 
 ### Output-path status
 
 Current legacy output-path search findings:
 
 ```text
-track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
+aeExtractRawBranch1Candidate.m
   contains a legacy fallback read path for old low-frequency modal-atlas outputs.
   It does not create a new legacy output folder.
+
+track_raw_branch1.m
+  calls aeExtractRawBranch1Candidate and writes maintained raw_branch1 outputs.
+
+compare_atlasA0_vs_raw_branch1.m
+  reads maintained short-path raw_branch1 output when present.
+  If raw_branch1_curve.csv is missing, it regenerates it through aeExtractRawBranch1Candidate.
 
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
   uses aeOutputFolder for Results/ae_iop_hgo/modal_atlas.
 
 diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
   uses aeOutputFolder for Results/ae_iop_hgo/modal_atlas_lowfreq.
-
-compare_atlasA0_vs_raw_branch1.m
-  reads maintained short-path raw_branch1 output.
 ```
 
 The remaining `Results/acoustoelastic_iop_hgo...` occurrences in documentation are historical notes, migration notes, or compatibility descriptions.
@@ -167,20 +175,23 @@ They are maintained short names for heavy validations.
 The long descriptive files contain actual implementation code.
 ```
 
-#### Group D: raw-branch reproducibility
+#### Group D: modal-atlas implementation extraction
 
 Do not delete in the next deletion pass:
 
 ```text
-examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
-examples/acoustoelastic_iop_hgo/diagnostics/track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
 ```
 
 Rationale:
 
 ```text
-track_raw_branch1 generates raw_branch1_curve.csv.
-compare_atlasA0_vs_raw_branch1 consumes that file.
+The short files preserve launch-folder behavior.
+The long files contain retained modal-atlas implementation logic.
+Any consolidation should be a dedicated helper-extraction design pass.
 ```
 
 ### Recommended next order
@@ -188,13 +199,13 @@ compare_atlasA0_vs_raw_branch1 consumes that file.
 Use small batches:
 
 ```text
-1. Pull the latest alias-removal commits locally.
+1. Pull the latest commits locally.
 2. Run test_acoustoelastic_iop_hgo_short_entrypoints and run_all_smoke_tests.
 3. Run diagnose_idA0_plausibility only if an idA0_grid workspace already exists, or run validate_idA0_grid first.
-4. Do not touch Groups C or D unless the heavy validations or raw-branch comparison are intentionally reworked.
-5. Next cleanup should focus on documentation-only references or a fresh local grep audit, not immediate deletion of implementation files.
+4. Do not touch Groups C or D unless the heavy validations or modal-atlas implementations are intentionally reworked.
+5. Next cleanup should focus on documentation consistency or a fresh local grep audit, not immediate deletion of implementation files.
 ```
 
 ### Current conclusion
 
-The simple compatibility-alias cleanup is complete. Remaining executable wrappers are intentional and should not be deleted as duplicates without a separate design decision.
+The simple compatibility-alias cleanup, exploratory archival, raw-branch helper extraction, and documentation index creation are complete. Remaining executable wrappers are intentional and should not be deleted as duplicates without a separate design decision.
