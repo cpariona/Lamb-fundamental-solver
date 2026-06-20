@@ -100,7 +100,7 @@ assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol,
 assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
     'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
 
-fprintf('\n[1/6] GUI normalized adapters smoke test\n');
+fprintf('\n[1/7] GUI normalized adapters smoke test\n');
 test_gui_normalized_adapters_smoke;
 
 %% Acoustoelastic maintained API and entrypoint checks
@@ -161,6 +161,7 @@ assertFunctionsOnPath({ ...
 
 fprintf('\nChecking maintained acoustoelastic tests...\n');
 assertFunctionsOnPath({ ...
+    'test_acoustoelastic_iop_hgo_branch_policy_validation', ...
     'test_acoustoelastic_iop_hgo_constitutive_identity', ...
     'test_acoustoelastic_iop_hgo_atlasA0_smoke', ...
     'test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy', ...
@@ -169,19 +170,22 @@ assertFunctionsOnPath({ ...
     'test_ae_analyze_truncation_recovery'}, ...
     'Acoustoelastic maintained test');
 
-fprintf('\n[2/6] Acoustoelastic truncation recovery helper unit test\n');
+fprintf('\n[2/7] Acoustoelastic atlas branch policy validation test\n');
+test_acoustoelastic_iop_hgo_branch_policy_validation;
+
+fprintf('\n[3/7] Acoustoelastic truncation recovery helper unit test\n');
 test_ae_analyze_truncation_recovery;
 
-fprintf('\n[3/6] Acoustoelastic branch-persistence refinement unit test\n');
+fprintf('\n[4/7] Acoustoelastic branch-persistence refinement unit test\n');
 test_acoustoelastic_iop_hgo_branch_persistence_refinement;
 
-fprintf('\n[4/6] Acoustoelastic IOP/HGO constitutive identity test\n');
+fprintf('\n[5/7] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_acoustoelastic_iop_hgo_constitutive_identity;
 
-fprintf('\n[5/6] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
+fprintf('\n[6/7] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
 test_acoustoelastic_iop_hgo_atlasA0_smoke;
 
-fprintf('\n[6/6] mRLFE smoke test\n');
+fprintf('\n[7/7] mRLFE smoke test\n');
 assertFunctionsOnPath({ ...
     'computeMRLFE', ...
     'run_mrlfe_prototype', ...
