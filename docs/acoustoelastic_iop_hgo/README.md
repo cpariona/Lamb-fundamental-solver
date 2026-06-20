@@ -69,6 +69,7 @@ Do not execute long legacy scripts directly unless reproducing historical behavi
 | `legacy_entrypoint_map.md` | Mapping from maintained short entrypoints to legacy descriptive scripts. |
 | `remaining_wrapper_inventory.md` | Remaining wrapper inventory after partial consolidation. |
 | `structural_audit_refresh.md` | Refreshed cleanup audit and deletion-review candidate groups. |
+| `retained_diagnostic_dependency_review.md` | Review of retained wrappers, raw-branch dependency, validation grids, and exploratory diagnostics. |
 | `output_path_audit.md` | Current audit of short result paths, legacy fallback reads, and remaining output-path cleanup candidates. |
 | `modal_atlas_wrapper_review.md` | Focused review of modal-atlas wrapper cleanup risks and plan. |
 | `validation_grid_wrapper_review.md` | Focused review of identity-A0 validation-grid wrappers. |
@@ -115,6 +116,6 @@ Results/ae_iop_hgo/<task>                     generated outputs
 The framework currently has two layers:
 
 1. Maintained short entrypoints.
-2. Legacy descriptive scripts retained for compatibility.
+2. Retained long descriptive implementations or diagnostics.
 
-This is intentional. New user-facing work should extend the maintained short-entrypoint layer, not the legacy long-name layer.
+Simple compatibility aliases that only redirected to short entrypoints have been archived. New user-facing work should extend the maintained short-entrypoint layer, not the legacy long-name layer.
