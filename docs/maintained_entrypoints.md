@@ -126,16 +126,14 @@ These scripts are present but are not maintained public workflows. They are reta
 ```matlab
 run_acoustoelastic_iop_hgo_A0_backward
 run_acoustoelastic_iop_hgo_A0_complexC
-run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma
 compare_acoustoelastic_iop_hgo_tracking_strategies
 diagnose_acoustoelastic_iop_hgo_grid_convergence
-diagnose_acoustoelastic_iop_hgo_dimensionless_A1
-diagnose_acoustoelastic_iop_hgo_matrix_variants
-diagnose_acoustoelastic_iop_hgo_residual_landscape
 sweep_acoustoelastic_iop_hgo_A0_backward
 ```
 
-Their classification and future archival groups are documented in `docs/acoustoelastic_iop_hgo/exploratory_diagnostic_review.md`.
+Archived E1 direct-matrix exploratory scripts and their retained conclusions are documented in `docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md`.
+
+Current retained exploratory classification and future archival groups are documented in `docs/acoustoelastic_iop_hgo/exploratory_diagnostic_review.md`.
 
 ### Acoustoelastic retained long implementation targets
 
@@ -216,6 +214,7 @@ docs/acoustoelastic_iop_hgo/modal_atlas_wrapper_review.md
 docs/acoustoelastic_iop_hgo/validation_grid_wrapper_review.md
 docs/acoustoelastic_iop_hgo/exploratory_diagnostic_review.md
 docs/acoustoelastic_iop_hgo/retained_diagnostic_dependency_review.md
+docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
 docs/parametric_sweeps.md
 docs/mrlfe_tracker_diagnostic_summary.md
 ```
