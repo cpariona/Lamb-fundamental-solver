@@ -129,7 +129,8 @@ validate_acoustoelastic_iop_hgo_branch_identity_score_grid
 Notes:
 
 ```text
-- atlasA0 is the official conservative production policy.
+- atlasA0 is the only maintained production atlas-A0 branch policy.
+- Legacy branch-policy aliases are not part of the maintained API.
 - identityA0Diagnostic, raw_branch1, and branch_families are diagnostic-only.
 - No exploratory example scripts remain as retained public or semi-public workflows.
 - The previous raw-branch long implementation script has been replaced by aeExtractRawBranch1Candidate.
