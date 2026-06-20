@@ -140,7 +140,7 @@ These long descriptive files remain because they are implementation targets, not
 
 ```matlab
 diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas
- diagnose_acoustoelastic_iop_hgo_modal_atlas
+diagnose_acoustoelastic_iop_hgo_modal_atlas
 validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 validate_acoustoelastic_iop_hgo_branch_identity_score_grid
 ```
