@@ -211,6 +211,6 @@ function assertNumericClose(actual, expected, tol, message)
 if isempty(actual) && isempty(expected)
     return;
 end
-assert(isequal(size(actual), expected), message);
+assert(isequal(size(actual), size(expected)), message);
 assert(max(abs(actual(:) - expected(:))) < tol, message);
 end
