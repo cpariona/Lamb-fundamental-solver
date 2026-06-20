@@ -19,6 +19,20 @@ result.validCp
 
 Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, and branch-family outputs are not production outputs.
 
+### Naming clarification
+
+There is one maintained production atlas policy:
+
+```text
+atlasA0
+```
+
+`strictA0` is only a legacy alias for `atlasA0`; it is not a second atlas implementation.
+
+`raw_branch1` is not a better production branch. It is an independent diagnostic reference extracted from the corrected raw modal atlas. It is kept only to test whether the official atlas-A0 curve is aligned with a globally persistent raw branch where that raw branch itself is reliable.
+
+`identityA0Diagnostic` is not a second atlas either. It is a separate candidate extension used to inspect missing high-frequency points while preserving the official fields.
+
 ### Current official policy
 
 The recommended official policy is:
@@ -75,7 +89,7 @@ The current ambiguity boundary is the low-stiffness/high-IOP corner, especially:
 
 ```matlab
 IOP_mmHg = 35;
-mu_kPa = 25;
+Mu_kPa = 25;
 k1_kPa = 25;
 k2 = 100;
 thickness_um = 550;
@@ -156,6 +170,4 @@ The next work should not be a broad rewrite of the solver. Recommended next acti
 
 ### Current conclusion
 
-The solver is near closure for the current optimization phase.
-
-Remaining work is mainly boundary documentation and optional ambiguity reporting. The current evidence does not support making the production tracker more permissive.
+The solver is near closure for the current optimization phase. There is one maintained production branch policy, `atlasA0`; the other branches and branch families are retained only as diagnostics and validation references.
