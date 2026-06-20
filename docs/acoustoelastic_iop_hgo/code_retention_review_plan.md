@@ -1,6 +1,6 @@
 ### Acoustoelastic IOP/HGO code retention review plan
 
-This document records the current retention policy for the acoustoelastic IOP/HGO module after the `atlasA0` policy closure, archived-diagnostic cleanup, modal-atlas output-path migration, simple compatibility-alias cleanup, and E1 direct-matrix exploratory archival pass.
+This document records the current retention policy for the acoustoelastic IOP/HGO module after the `atlasA0` policy closure, archived-diagnostic cleanup, modal-atlas output-path migration, simple compatibility-alias cleanup, E1 direct-matrix exploratory archival, and E2 tracking exploratory archival passes.
 
 ### Retention principle
 
@@ -168,6 +168,23 @@ Retained evidence:
 docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
 ```
 
+### Archived E2 exploratory diagnostics
+
+The following A0-backward/tracking exploratory scripts were removed after reference checks and documentation archival:
+
+```text
+run_acoustoelastic_iop_hgo_A0_backward.m
+sweep_acoustoelastic_iop_hgo_A0_backward.m
+compare_acoustoelastic_iop_hgo_tracking_strategies.m
+diagnose_acoustoelastic_iop_hgo_grid_convergence.m
+```
+
+Retained evidence:
+
+```text
+docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+```
+
 ### Raw branch tracker retention note
 
 `compare_atlasA0_vs_raw_branch1` is maintained diagnostic evidence. It reads:
@@ -201,4 +218,4 @@ Do not delete `track_raw_branch1` yet.
 
 Do not delete heavy validation wrappers or retained long implementation files solely because they look similar to short entrypoints.
 
-The simple alias cleanup and E1 exploratory archival are complete. The next cleanup target should be selected from retained historical diagnostics only after focused reference checks and confirmation that the relevant conclusions are represented in retained documentation.
+The simple alias cleanup, E1 exploratory archival, and E2 exploratory archival are complete. The only remaining exploratory script is the complex-C continuation example, which should be reviewed separately because it may represent a future solver direction.
