@@ -10,14 +10,15 @@ if nargin < 1 || isempty(policy)
     return;
 end
 
-policy = string(policy);
+rawPolicy = string(policy);
+normalizedKey = lower(strtrim(rawPolicy));
 
-switch lower(strtrim(policy))
+switch normalizedKey
     case "atlasa0"
         policy = "atlasA0";
     case "identitya0diagnostic"
         policy = "identityA0Diagnostic";
     otherwise
-        policy = string(policy);
+        error('Unsupported acoustoelastic atlas branch policy: %s. Use "atlasA0" for the maintained production policy or "identityA0Diagnostic" for diagnostic extension.', rawPolicy);
 end
 end
