@@ -8,6 +8,40 @@ The policy is intentionally conservative. Its goal is to avoid fabricating high-
 
 IOP and shear-modulus sweeps showed that this atlas-based A0 policy is the most robust working strategy currently available in the repository. It gives smoother and more physically plausible A0-like curves than earlier exploratory corrected + A0 + backward global-scan workflows, which have now been archived.
 
+## Nomenclature
+
+There is only one maintained production atlas policy:
+
+```text
+atlasA0
+```
+
+For user-facing interpretation, `atlasA0` should be read as the official atlas-selected A0-like branch. It is not competing with another production atlas branch.
+
+The name is kept explicit because the solver may later expose other modal branches or diagnostic atlas families. In text, it is acceptable to call it the official atlas-A0 branch. In code, keep using:
+
+```matlab
+options.atlasBranchPolicy = "atlasA0";
+```
+
+The older name:
+
+```matlab
+options.atlasBranchPolicy = "strictA0";
+```
+
+is only a legacy alias for backward compatibility. It is not a second maintained atlas policy.
+
+Diagnostic objects have different roles:
+
+```text
+identityA0Diagnostic = separate diagnostic extension candidate
+raw_branch1 = independent modal-atlas reference used for validation
+branch_families = ambiguity diagnostic for difficult regimes
+```
+
+They should not be described as alternative official atlas policies.
+
 ## Current canonical policy: `atlasA0`
 
 The maintained solver option is:
@@ -16,13 +50,7 @@ The maintained solver option is:
 options.atlasBranchPolicy = "atlasA0";
 ```
 
-The previous name:
-
-```matlab
-options.atlasBranchPolicy = "strictA0";
-```
-
-is retained as a legacy alias for backward compatibility with existing scripts, workspaces, and diagnostic outputs. New maintained examples and sweeps should use `"atlasA0"`.
+New maintained examples and sweeps should use `"atlasA0"`.
 
 Under this policy, the solver:
 
