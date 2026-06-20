@@ -16,7 +16,7 @@ SweepTool_GUI
 | Family | Parameters | Branches | Notes |
 | --- | --- | --- | --- |
 | `mRLFE` | `etaS`, `E`, `thickness` | `A0Like`, `S0Like` | Uses the mRLFE sweep adapter and `runParametricSweep`. |
-| `AE IOP` | `IOP`, `mu` | `atlasA0` | Uses the AE sweep adapter and the maintained atlas branch policy. |
+| `AE IOP/HGO` | `IOP`, `mu` | `atlasA0` | Uses the AE IOP/HGO sweep adapter and the maintained atlas branch policy. |
 
 ## Recommended quick checks
 
@@ -39,41 +39,41 @@ Expected outcome:
 - The summary table has two rows.
 - `SweepToolOutput`, `SweepToolRequest`, `SweepToolNormalized`, `SweepToolResults`, and `SweepToolSummary` export to the base workspace.
 
-### AE IOP check
+### AE IOP/HGO IOP check
 
 Use:
 
 ```text
-Model family: AE IOP
+Model family: AE IOP/HGO
 Sweep parameter: IOP
 Values: 10, 15
-Model: AE IOP
+Model: AE IOP/HGO
 Branch: atlasA0
 Robustness: Fast
 ```
 
 Expected outcome:
 
-- The sweep runs through `guiRunSweep` and the AE adapter.
+- The sweep runs through `guiRunSweep` and the AE IOP/HGO adapter.
 - The summary table has two rows.
 - The normalized output has one curve per sweep value.
 
-### AE mu check
+### AE IOP/HGO mu check
 
 Use:
 
 ```text
-Model family: AE IOP
+Model family: AE IOP/HGO
 Sweep parameter: mu
 Values: 25, 50
-Model: AE IOP
+Model: AE IOP/HGO
 Branch: atlasA0
 Robustness: Fast
 ```
 
 Expected outcome:
 
-- The sweep runs through the same AE adapter.
+- The sweep runs through the same AE IOP/HGO adapter.
 - The values are interpreted in kPa and converted to solver units by the registry scale.
 
 ## Architecture contract
