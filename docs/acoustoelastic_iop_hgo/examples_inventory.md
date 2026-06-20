@@ -6,7 +6,7 @@ This document records the final post-cleanup inventory of executable files under
 examples/acoustoelastic_iop_hgo/
 ```
 
-It separates public workflows, maintained diagnostic evidence, retained historical diagnostics, and long implementation targets.
+It separates public workflows, maintained diagnostic evidence, retained historical diagnostics, and temporary investigation diagnostics.
 
 ### Summary
 
@@ -17,8 +17,9 @@ Current retained executable layers:
 ```text
 1. Public workflows
 2. Maintained diagnostic evidence
-3. Historical diagnostics retained for thesis/traceability
-4. Long implementation targets for short wrappers
+3. Temporary investigation diagnostics
+4. Historical diagnostics retained for thesis/traceability
+5. Long implementation targets for short wrappers
 ```
 
 The raw-branch extraction logic has been moved to:
@@ -74,6 +75,14 @@ These diagnostics support the current `atlasA0` policy, ambiguity interpretation
 | `diagnostics/diagnose_atlas_truncation.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE` | Writes to `Results/ae_iop_hgo/atlas_truncation`. Requires sweep workspaces. | Keep. |
 | `diagnostics/diagnose_idA0_plausibility.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE_WRAPPER` | Delegates to `diagnose_idA0_plausibility_impl.m`; requires `idA0_grid` workspace. | Keep. |
 | `diagnostics/diagnose_idA0_plausibility_impl.m` | `MAINTAINED_DIAGNOSTIC_IMPLEMENTATION` | Writes to `Results/ae_iop_hgo/idA0_plausibility`. | Keep as implementation target. |
+
+### Temporary investigation diagnostics
+
+These scripts exist to investigate current solver-interface behavior. They must be promoted, migrated, deleted, or archived after their conclusions are captured.
+
+| File | Classification | Output behavior | Action |
+|---|---|---|---|
+| `diagnostics/diagnose_grid_start_sensitivity.m` | `TEMPORARY_INVESTIGATION_DIAGNOSTIC` | Writes to `Results/ae_iop_hgo/grid_start_sensitivity`. Tests atlasA0 sensitivity to frequency start and output density. | Review after solver fix; do not keep indefinitely as temporary code. |
 
 ### Historical diagnostics retained for traceability
 
@@ -133,6 +142,7 @@ The next possible cleanup actions are design decisions, not mechanical cleanup:
 ```text
 1. Decide whether to consolidate heavy validation wrappers into their short files.
 2. Decide whether modal-atlas long implementations should remain script implementations or be migrated into helper functions.
+3. Decide whether diagnose_grid_start_sensitivity should be promoted, migrated, archived, or deleted after solver-interface conclusions are documented.
 ```
 
 Each action requires its own focused design and validation pass.
