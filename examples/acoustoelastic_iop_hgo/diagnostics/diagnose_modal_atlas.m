@@ -3,8 +3,15 @@ clear; clc; close all;
 %DIAGNOSE_MODAL_ATLAS Short AE IOP/HGO modal-atlas diagnostic entrypoint.
 %
 % Delegates to the descriptive modal-atlas implementation. The implementation
-% now writes directly to Results/ae_iop_hgo/modal_atlas.
+% writes to Results/ae_iop_hgo/modal_atlas relative to the MATLAB launch folder.
 
+launchFolder = pwd;
 thisFile = mfilename('fullpath');
 thisFolder = fileparts(thisFile);
-run(fullfile(thisFolder, 'diagnose_acoustoelastic_iop_hgo_modal_atlas.m'));
+
+pathCleanup = onCleanup(@() path(originalPath));
+originalPath = path;
+addpath(thisFolder);
+cd(launchFolder);
+
+diagnose_acoustoelastic_iop_hgo_modal_atlas;
