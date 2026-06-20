@@ -56,7 +56,6 @@ options.complexCDisplay = "off";
 
 % Atlas branch-selection policy.
 %   "atlasA0"              : maintained atlas-based A0 branch policy.
-%   "strictA0"             : legacy alias accepted by aeNormalizeBranchPolicy.
 %   "identityA0Diagnostic" : keeps atlasA0 official output and adds a separate
 %                            identity-scored candidate branch in result.identityA0.
 options.atlasBranchPolicy = "atlasA0";
@@ -142,8 +141,8 @@ for i = 1:2:numel(varargin)
     options.(name) = varargin{i+1};
 end
 
-% Normalize branch-policy names after overrides so legacy callers can still
-% pass "strictA0" while maintained workflows report the canonical "atlasA0".
+% Normalize branch-policy names after overrides so maintained workflows report
+% the canonical "atlasA0" spelling and diagnostic policy names consistently.
 if isfield(options, 'atlasBranchPolicy')
     options.atlasBranchPolicy = aeNormalizeBranchPolicy(options.atlasBranchPolicy);
 end
