@@ -12,6 +12,7 @@ official Cp mutation review closed
 auto-detected missing aeRunLegacyScript targets closed
 basic example and sweep short entrypoints converted to direct maintained implementations
 six diagnostic short entrypoints converted to direct maintained implementations
+standard modal-atlas short entrypoint converted to direct delegation
 archived branch-policy, truncation-case, failure-landscape, branch-persistence, and atlas-resolution executable diagnostics removed
 ```
 
@@ -31,7 +32,6 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
 ```
 
 A separate wrapper pattern also exists in:
@@ -41,6 +41,14 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
 ```
 
 That script is not a simple one-line `aeRunLegacyScript` wrapper. It creates or edits a temporary diagnostic copy and should be handled separately.
+
+The standard modal-atlas short entrypoint is no longer listed as a remaining wrapper:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
+```
+
+It now delegates directly to the descriptive implementation, which writes to `Results/ae_iop_hgo/modal_atlas`.
 
 ### Classification
 
@@ -66,8 +74,8 @@ track_raw_branch1.m
   Generates the raw_branch1 curve consumed by compare_atlasA0_vs_raw_branch1. Do not delete until that comparison no longer depends on the generated curve.
 
 diagnose_modal_atlas.m
-  KEEP_AS_WRAPPER
-  Short wrapper has additional result-copy compatibility behavior. Do not convert mechanically without preserving that behavior.
+  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION
+  No temporary patching remains. User-reported MATLAB execution passed after migration.
 
 diagnose_modal_atlas_lowfreq.m
   SPECIAL_CASE_DEFER
@@ -102,7 +110,7 @@ Recommended order:
 ```text
 1. Keep validate_idA0_grid.m and validate_idA0_score_grid.m as wrappers unless their heavy implementations are intentionally modified and executed.
 2. Keep track_raw_branch1.m while compare_atlasA0_vs_raw_branch1 depends on raw_branch1_curve.csv.
-3. Review diagnose_modal_atlas.m and diagnose_modal_atlas_lowfreq.m only in a focused pass with MATLAB execution of both diagnostics.
+3. Review diagnose_modal_atlas_lowfreq.m only in a focused pass with MATLAB execution of the low-frequency diagnostic.
 ```
 
 ### Deletion policy
