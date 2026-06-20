@@ -115,12 +115,13 @@ Superseded documents removed from the active set:
 remaining_wrapper_inventory.md
 structural_cleanup_backlog.md
 ../acoustoelastic_iop_hgo_overview.md
+exploratory_diagnostic_review.md
 ```
 
 Reason:
 
 ```text
-Their current roles are covered by README.md, examples_inventory.md, retained_diagnostic_dependency_review.md, structural_audit_refresh.md, framework_hygiene_status.md, repository_structure.md, and code_retention_review_plan.md.
+Their current roles are covered by README.md, examples_inventory.md, retained_diagnostic_dependency_review.md, structural_audit_refresh.md, framework_hygiene_status.md, repository_structure.md, code_retention_review_plan.md, and the specific archive documents.
 ```
 
 ### Archived exploratory diagnostics
@@ -129,7 +130,6 @@ These documents preserve conclusions from scripts that were removed from `exampl
 
 | Document | Archived topic |
 |---|---|
-| `exploratory_diagnostic_review.md` | Summary of E1-E3 exploratory archival. |
 | `direct_matrix_landscape_archive.md` | Direct alpha-beta-gamma, M54, dimensionless A1, residual landscape. |
 | `a0_backward_tracking_archive.md` | A0 backward tracking, sweep, strategy comparison, grid convergence. |
 | `complex_c_continuation_archive.md` | Complex-C continuation example. |
@@ -153,7 +153,6 @@ The following documents are allowed to be longer because they preserve audit, re
 code_retention_review_plan.md
 legacy_entrypoint_map.md
 structural_audit_refresh.md
-exploratory_diagnostic_review.md
 *_archive.md
 ```
 
@@ -186,7 +185,6 @@ examples_inventory.md
 When archiving exploratory diagnostics, update:
 
 ```text
-exploratory_diagnostic_review.md
 code_retention_review_plan.md
 legacy_entrypoint_map.md
 ```
