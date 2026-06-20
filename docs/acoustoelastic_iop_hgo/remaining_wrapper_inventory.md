@@ -12,7 +12,7 @@ official Cp mutation review closed
 auto-detected missing aeRunLegacyScript targets closed
 basic example and sweep short entrypoints converted to direct maintained implementations
 six diagnostic short entrypoints converted to direct maintained implementations
-standard modal-atlas short entrypoint converted to direct delegation
+standard and low-frequency modal-atlas short entrypoints converted to direct delegation
 archived branch-policy, truncation-case, failure-landscape, branch-persistence, and atlas-resolution executable diagnostics removed
 ```
 
@@ -34,21 +34,14 @@ examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
 ```
 
-A separate wrapper pattern also exists in:
-
-```text
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
-```
-
-That script is not a simple one-line `aeRunLegacyScript` wrapper. It creates or edits a temporary diagnostic copy and should be handled separately.
-
-The standard modal-atlas short entrypoint is no longer listed as a remaining wrapper:
+The modal-atlas short entrypoints are no longer listed as remaining wrappers:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
 ```
 
-It now delegates directly to the descriptive implementation, which writes to `Results/ae_iop_hgo/modal_atlas`.
+They now delegate directly to their descriptive implementations, which write to the short result tree while preserving the user's MATLAB launch folder.
 
 ### Classification
 
@@ -74,12 +67,12 @@ track_raw_branch1.m
   Generates the raw_branch1 curve consumed by compare_atlasA0_vs_raw_branch1. Do not delete until that comparison no longer depends on the generated curve.
 
 diagnose_modal_atlas.m
-  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION
+  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
   No temporary patching remains. User-reported MATLAB execution passed after migration.
 
 diagnose_modal_atlas_lowfreq.m
-  SPECIAL_CASE_DEFER
-  Uses temporary-copy behavior rather than a simple static wrapper. Review manually before any consolidation.
+  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
+  No temporary patching remains. User-reported MATLAB execution passed after migration.
 ```
 
 ### Archived wrappers removed
@@ -110,7 +103,7 @@ Recommended order:
 ```text
 1. Keep validate_idA0_grid.m and validate_idA0_score_grid.m as wrappers unless their heavy implementations are intentionally modified and executed.
 2. Keep track_raw_branch1.m while compare_atlasA0_vs_raw_branch1 depends on raw_branch1_curve.csv.
-3. Review diagnose_modal_atlas_lowfreq.m only in a focused pass with MATLAB execution of the low-frequency diagnostic.
+3. Review the remaining identity-A0 plausibility wrappers only as a focused compatibility-alias pass.
 ```
 
 ### Deletion policy
