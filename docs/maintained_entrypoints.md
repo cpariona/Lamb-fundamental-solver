@@ -119,11 +119,9 @@ track_raw_branch1
 
 Deleted archived diagnostics and aliases are recorded in `docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md` and `docs/acoustoelastic_iop_hgo/code_retention_review_plan.md`.
 
-### Acoustoelastic legacy descriptive scripts still present
+### Acoustoelastic retained exploratory scripts
 
-Legacy descriptive scripts remain available only when they are implementation targets, exploratory diagnostics, or reproducibility scripts. New user-facing commands should prefer short entrypoints.
-
-Legacy examples and diagnostics still present include:
+These scripts are present but are not maintained public workflows. They are retained for exploratory solver-development evidence and future archival review.
 
 ```matlab
 run_acoustoelastic_iop_hgo_A0_backward
@@ -132,12 +130,21 @@ run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma
 compare_acoustoelastic_iop_hgo_tracking_strategies
 diagnose_acoustoelastic_iop_hgo_grid_convergence
 diagnose_acoustoelastic_iop_hgo_dimensionless_A1
-diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas
 diagnose_acoustoelastic_iop_hgo_matrix_variants
-diagnose_acoustoelastic_iop_hgo_modal_atlas
 diagnose_acoustoelastic_iop_hgo_residual_landscape
-track_acoustoelastic_iop_hgo_raw_branch1_candidate
 sweep_acoustoelastic_iop_hgo_A0_backward
+```
+
+Their classification and future archival groups are documented in `docs/acoustoelastic_iop_hgo/exploratory_diagnostic_review.md`.
+
+### Acoustoelastic retained long implementation targets
+
+These long descriptive files remain because they are implementation targets or reproducibility scripts, not because they are preferred command names.
+
+```matlab
+diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas
+diagnose_acoustoelastic_iop_hgo_modal_atlas
+track_acoustoelastic_iop_hgo_raw_branch1_candidate
 ```
 
 ### Acoustoelastic maintained tests
@@ -207,6 +214,8 @@ docs/acoustoelastic_iop_hgo/code_retention_review_plan.md
 docs/acoustoelastic_iop_hgo/remaining_wrapper_inventory.md
 docs/acoustoelastic_iop_hgo/modal_atlas_wrapper_review.md
 docs/acoustoelastic_iop_hgo/validation_grid_wrapper_review.md
+docs/acoustoelastic_iop_hgo/exploratory_diagnostic_review.md
+docs/acoustoelastic_iop_hgo/retained_diagnostic_dependency_review.md
 docs/parametric_sweeps.md
 docs/mrlfe_tracker_diagnostic_summary.md
 ```
