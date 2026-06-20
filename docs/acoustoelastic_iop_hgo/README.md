@@ -2,6 +2,12 @@
 
 This folder collects module-specific documentation for the acoustoelastic IOP/HGO branch of the Lamb fundamental solver.
 
+For the curated documentation map, start with:
+
+```text
+documentation_index.md
+```
+
 ### Current status
 
 The current official production policy is:
@@ -25,7 +31,12 @@ raw_branch1
 branch_families
 ```
 
-See `solver_optimization_status.md` for the current validation status and closure criteria.
+See:
+
+```text
+solver_optimization_status.md
+phase_closure_atlasA0.md
+```
 
 ### Recommended user-facing commands
 
@@ -50,47 +61,29 @@ sweep_iop
 sweep_mu
 ```
 
-Validation and diagnostics:
+Maintained diagnostics:
 
 ```matlab
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
 diagnose_raw_branch_corner
 diagnose_branch_families
+diagnose_sweep_reliability
+diagnose_atlas_truncation
 ```
 
 Do not execute long legacy scripts directly unless reproducing historical behavior.
 
-### Documentation map
+### Most relevant documents
 
 | Document | Purpose |
 |---|---|
-| `examples_inventory.md` | Current post-cleanup inventory of executable files under `examples/acoustoelastic_iop_hgo/`. |
+| `documentation_index.md` | Curated map of active docs, evidence docs, cleanup records, and archives. |
+| `examples_inventory.md` | Current executable inventory under `examples/acoustoelastic_iop_hgo/`. |
+| `solver_optimization_status.md` | Current solver policy, validation status, and ambiguity boundary. |
 | `naming_and_paths_convention.md` | Short-name and result-path convention. |
-| `legacy_entrypoint_map.md` | Mapping from maintained short entrypoints to legacy descriptive scripts. |
-| `remaining_wrapper_inventory.md` | Remaining wrapper inventory after partial consolidation. |
-| `structural_audit_refresh.md` | Refreshed cleanup audit and deletion-review candidate groups. |
-| `retained_diagnostic_dependency_review.md` | Review of retained wrappers, raw-branch dependency, validation grids, and exploratory diagnostics. |
-| `exploratory_diagnostic_review.md` | Classification of retained exploratory diagnostics and future archival groups. |
-| `direct_matrix_landscape_archive.md` | Archived direct-matrix, M54, dimensionless, and residual-landscape exploratory conclusions. |
-| `a0_backward_tracking_archive.md` | Archived A0-backward, tracking, sweep, and grid-convergence exploratory conclusions. |
-| `complex_c_continuation_archive.md` | Archived complex-C continuation example conclusions; model-level complex-C solver remains retained. |
-| `output_path_audit.md` | Current audit of short result paths, legacy fallback reads, and remaining output-path cleanup candidates. |
-| `modal_atlas_wrapper_review.md` | Focused review of modal-atlas wrapper cleanup risks and plan. |
-| `validation_grid_wrapper_review.md` | Focused review of identity-A0 validation-grid wrappers. |
-| `framework_hygiene_status.md` | Current framework structure, naming, and cleanup status. |
-| `post_rename_audit.md` | Post-renaming audit status and remaining naming decision. |
-| `phase_closure_atlasA0.md` | Formal closure note for the `atlasA0` optimization phase. |
-| `solver_optimization_status.md` | Current solver policy, ambiguity boundary, and closure status. |
-| `atlas_vs_raw_branch1_diagnostic.md` | Validation snapshots comparing `atlasA0`, `identityA0Diagnostic`, and raw branches. |
-| `branch_families_diagnostic.md` | Competing branch-family analysis for the low-stiffness/high-IOP corner. |
-| `identityA0_diagnostic_policy.md` | Policy for keeping `identityA0Diagnostic` diagnostic-only. |
-| `identityA0_diagnostic_grid_validation.md` | Grid validation of the identity-A0 diagnostic branch. |
-| `identityA0_physical_plausibility_diagnostic.md` | Physical plausibility checks for the diagnostic identity-A0 candidate. |
-| `branch_identity_score_diagnostic.md` | Branch identity score diagnostic. |
-| `branch_identity_score_grid_validation.md` | Grid validation for branch identity scoring. |
-| `branch_persistence_refinement.md` | Branch persistence refinement notes. |
-| `atlasA0_truncation_validation.md` | Historical atlas-A0 truncation validation notes. |
+| `retained_diagnostic_dependency_review.md` | Current retained dependencies, including raw_branch1 helper-backed regeneration. |
+| `framework_hygiene_status.md` | Current framework cleanup state. |
 
 Module-level public API and overview documents live one level up:
 
@@ -123,4 +116,4 @@ The framework currently has two layers:
 1. Maintained short entrypoints.
 2. Retained long descriptive implementations or diagnostics.
 
-Simple compatibility aliases that only redirected to short entrypoints have been archived. New user-facing work should extend the maintained short-entrypoint layer, not the legacy long-name layer.
+Simple compatibility aliases and exploratory example scripts have been archived. New user-facing work should extend the maintained short-entrypoint layer, not the legacy long-name layer.
