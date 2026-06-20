@@ -19,9 +19,8 @@ app/                                  Main MATLAB GUI and UI helper files.
 analysis/                             Analysis utilities and model-specific summaries.
 docs/                                 Active repository, API, validation, and workflow documentation.
 examples/rayleigh_lamb/               Maintained Rayleigh-Lamb examples and validation scripts.
-examples/mrlfe/                       Maintained mRLFE examples, sweeps, and diagnostics.
+examples/mrlfe/                       Maintained mRLFE examples, sweeps, diagnostics, and stress tests.
 examples/acoustoelastic_iop_hgo/      Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
-examples/validation/                  Temporary legacy validation folder pending final migration.
 models/rayleigh_lamb/                 Clean Rayleigh-Lamb implementation using `rl*` functions.
 models/mrlfe/                         Modified Rayleigh-Lamb fluid-loaded model.
 models/acoustoelastic_iop_hgo/        Acoustoelastic model using IOP prestress and HGO constitutive response.
@@ -81,11 +80,8 @@ models/acoustoelastic_iop_hgo/
 examples/rayleigh_lamb/
 examples/mrlfe/
 examples/acoustoelastic_iop_hgo/
-examples/validation/
 tests/
 ```
-
-`examples/validation/` is retained temporarily because it still contains mRLFE stress-test scripts that should be migrated separately into the mRLFE example tree.
 
 Historical archived examples have been removed; `startup.m` adds only maintained example folders.
 
@@ -162,4 +158,6 @@ Useful diagnostics:
 diagnose_mrlfe_han_visco_validity_breakdown
 diagnose_mrlfe_han_visco_residual_landscape
 compare_mrlfe_tracker_vs_condition_peaks
+stress_test_mrlfe_elastic_range
+stress_test_mrlfe_han_visco_range
 ```
