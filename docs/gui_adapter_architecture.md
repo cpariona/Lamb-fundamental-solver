@@ -1,138 +1,41 @@
 ### GUI adapter architecture
 
-This document summarizes the current GUI architecture after the refactor that introduced normalized adapter outputs, the sweep registry, and the first Acoustoelastic IOP/HGO sweep adapter. The goal is to keep the interactive app usable while progressively decoupling plotting and export logic from backend-specific raw solver structures.
+This document records the maintained GUI adapter structure after the SweepTool refactor.
 
-### Current high-level flow
-
-```text
-LambFundamental_GUI.m
-        |
-        v
-GUI request struct
-        |
-        v
-app/adapters/guiRun*Model.m
-        |
-        v
-raw solver result
-        |
-        v
-app/adapters/guiNormalizeRawResult.m
-        |
-        v
-GuiResults.branches
-        |
-        +--> normalized plotting
-        +--> normalized export tables
-        +--> smoke tests
-```
-
-The GUI still keeps the raw result in `lastResults` for compatibility with existing diagnostics, raw workspace export, and legacy fallback logic. In parallel, it keeps the normalized adapter result in `lastGuiResult`.
-
-### Sweep GUI flow
-
-`app/SweepTool_GUI.m` now uses a registry-driven flow:
+### Main GUI flow
 
 ```text
-SweepTool_GUI.m
-        |
-        v
-app/sweep/guiGetSweepRegistry.m
-        |
-        v
-app/sweep/guiGetSweepFamilyConfig.m
-app/sweep/guiGetSweepParameterConfig.m
-        |
-        v
-app/sweep/guiBuildSweepRequest.m
-        |
-        v
-app/sweep/guiRunSweep.m
-        |
-        v
-app/adapters/guiRunMRLFESweep.m
-        |
-        v
-analysis/runParametricSweep.m
-        |
-        v
-app/adapters/guiNormalizeMRLFESweep.m
-        |
-        v
-app/sweep/guiPlotSweepResult.m
+LambFundamental_GUI
+    -> GUI request struct
+    -> app/adapters/guiRun*Model
+    -> raw solver result
+    -> app/adapters/guiNormalizeRawResult
+    -> normalized branches
+    -> plotting/export
 ```
 
-The sweep GUI no longer hardcodes parameter defaults, display units, or display-to-solver scaling inside the parameter-change callback. Those values are provided by `guiGetSweepRegistry`.
-
-The Acoustoelastic IOP/HGO sweep adapter is available behind the same dispatcher but is not yet exposed in `guiGetSweepRegistry` or in visible SweepTool controls:
-
-```text
-guiRunSweep(request.modelFamily = "acoustoelastic_iop_hgo")
-        |
-        v
-app/adapters/guiRunAcoustoelasticIOPHGOSweep.m
-        |
-        v
-models/acoustoelastic_iop_hgo/solvers/aeRunSweep.m
-        |
-        v
-analysis/acoustoelastic_iop_hgo/aeSummarizeSweep.m
-        |
-        v
-app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m
-```
-
-### Main GUI state
-
-`app/LambFundamental_GUI.m` currently maintains two complementary result states:
+The main GUI keeps both raw and normalized result states:
 
 ```matlab
 lastResults
 lastGuiResult
 ```
 
-`lastResults` is the raw solver result returned by the maintained backend. It preserves the historical schema used by earlier plotting, diagnostics, and export code.
+`lastResults` is kept for compatibility and diagnostics. `lastGuiResult` is the preferred GUI-facing structure for plotting and table export.
 
-`lastGuiResult` is the normalized GUI-facing result. It contains a common branch schema independent of whether the source model is Rayleigh-Lamb or mRLFE.
-
-The current transition state is intentional:
+### SweepTool flow
 
 ```text
-lastResults     -> compatibility, diagnostics, legacy fallback, raw export
-lastGuiResult   -> normalized plotting, normalized tables, future GUI model integration
+SweepTool_GUI
+    -> guiGetSweepRegistry
+    -> guiBuildSweepRequest
+    -> guiRunSweep
+    -> model-specific sweep adapter
+    -> model-specific sweep normalizer
+    -> guiPlotSweepResult
 ```
 
-### Adapter entrypoints
-
-The GUI-facing adapter entrypoints are:
-
-```text
-app/adapters/guiRunRayleighLambModel.m
-app/adapters/guiRunMRLFEModel.m
-app/adapters/guiRunAcoustoelasticIOPHGOModel.m
-```
-
-`guiRunRayleighLambModel` prepares Rayleigh-Lamb parameters/options, calls the maintained `rl*` API, and returns a normalized GUI result.
-
-`guiRunMRLFEModel` prepares the Rayleigh-Lamb seed branches and mRLFE options, calls the maintained mRLFE workflow through the existing `rl*` surface, and returns a normalized GUI result.
-
-`guiRunAcoustoelasticIOPHGOModel` exists as the GUI-facing entrypoint for the acoustoelastic IOP/HGO model. At this stage, it is available on the path but is not yet connected to controls in the main GUI.
-
-The sweep-specific adapter entrypoints are:
-
-```text
-app/adapters/guiRunMRLFESweep.m
-app/adapters/guiNormalizeMRLFESweep.m
-app/adapters/guiRunAcoustoelasticIOPHGOSweep.m
-app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m
-```
-
-New sweep-capable model families should follow the same pair pattern:
-
-```text
-app/adapters/guiRun<ModelFamily>Sweep.m
-app/adapters/guiNormalize<ModelFamily>Sweep.m
-```
+`SweepTool_GUI` should not call scripts under `examples/` directly.
 
 ### Sweep registry
 
@@ -142,219 +45,54 @@ The registry entrypoint is:
 app/sweep/guiGetSweepRegistry.m
 ```
 
-Current visible registry contents:
+Visible families:
 
 ```text
-modelFamily = "mrlfe"
-model labels = ["Viscoelastic real-k", "Elastic real-k"]
-branches = ["A0Like", "S0Like"]
-robustness presets = ["Fast", "Balanced", "Robust"]
-parameters = ["etaS", "E", "thickness"]
+mRLFE
+    parameters: etaS, E, thickness
+    branches: A0Like, S0Like
+
+AE IOP/HGO
+    parameters: IOP, mu
+    branch: atlasA0
 ```
 
-The Acoustoelastic IOP/HGO sweep adapter is intentionally not registered as a visible GUI family yet. It should be added to the registry only after adapter smoke testing is stable and the first UI controls are defined.
+The registry owns GUI-facing labels, default values, display units, and display-to-solver scales.
 
-Each parameter config provides:
+### Sweep adapters
 
-```matlab
-parameter.id
-parameter.label
-parameter.defaultValuesDisplay
-parameter.displayUnit
-parameter.displayScale
-parameter.helpText
-```
-
-`displayScale` converts displayed GUI values to solver units. For example:
+Current sweep adapters:
 
 ```text
-etaS       display Pa*s -> solver Pa*s   scale 1
-E          display kPa  -> solver Pa     scale 1e3
-thickness  display mm   -> solver m      scale 1e-3
-IOP        display mmHg -> solver Pa     scale 133.322
-mu         display kPa  -> solver Pa     scale 1e3
+app/adapters/guiRunMRLFESweep.m
+app/adapters/guiNormalizeMRLFESweep.m
+app/adapters/guiRunAcoustoelasticIOPHGOSweep.m
+app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m
 ```
 
-### Shared raw-result normalization
-
-The common normalization helper is:
+All new sweep-capable families should follow the same pair pattern:
 
 ```text
-app/adapters/guiNormalizeRawResult.m
+guiRun<ModelFamily>Sweep
+guiNormalize<ModelFamily>Sweep
 ```
 
-Its role is to convert maintained raw solver outputs into the normalized GUI schema.
+### Normalized sweep curve schema
 
-For Rayleigh-Lamb results, it reads:
+`guiPlotSweepResult` expects:
 
 ```matlab
-rawResult.modes.A0
-rawResult.modes.S0
-```
-
-and converts them to normalized branches with:
-
-```matlab
-modelName = "RayleighLamb"
-branchName = "A0" or "S0"
-```
-
-For mRLFE results, it reads:
-
-```matlab
-rawResult.models.mRLFEElasticRealK.branches
-rawResult.models.mRLFEHanViscoRealK.branches
-```
-
-and converts them to normalized branches such as:
-
-```matlab
-modelName = "mRLFEElasticRealK"
-branchName = "A0Like" or "S0Like"
-
-modelName = "mRLFEHanViscoRealK"
-branchName = "A0Like" or "S0Like"
-```
-
-For Acoustoelastic IOP/HGO sweep results, `guiNormalizeAcoustoelasticIOPHGOSweep` reads official solver fields from each `aeRunSweep` condition:
-
-```matlab
-condition.result.frequency
-condition.result.Cp
-condition.result.validCp
-condition.result.reliability
-```
-
-and converts them to normalized curves for the official `atlasA0` branch. Diagnostic branches such as raw branch candidates or identity diagnostics are not plotted by this sweep normalizer.
-
-The compatibility alias `mRLFERealK` is deliberately excluded when `mRLFEElasticRealK` exists, to avoid duplicated elastic branches in normalized plotting and export.
-
-### Normalized branch schema
-
-Each normalized branch follows this common structure:
-
-```matlab
-branch.modelName
-branch.branchName
-branch.frequency
-branch.phaseVelocity
-branch.wavenumber
-branch.kThickness
-branch.metadata
-branch.diagnostics
-```
-
-The common physical quantities are:
-
-```text
-frequency       frequency vector [Hz]
-phaseVelocity   phase velocity Cp [m/s]
-wavenumber      wavenumber k [1/m]
-kThickness      nondimensional k * thickness [-]
-```
-
-Diagnostics may include fields such as:
-
-```matlab
-branch.diagnostics.valid
-branch.diagnostics.validCp
-branch.diagnostics.residual
-branch.diagnostics.objective
-branch.diagnostics.pointStatus
-```
-
-Not every backend provides every diagnostic field. Plotting and table export helpers should therefore treat diagnostic fields as optional.
-
-### Normalized plotting helpers
-
-The main plotting helper is:
-
-```text
-app/adapters/guiGetNormalizedBranchPlotData.m
-```
-
-It converts one normalized branch into plot-ready data:
-
-```matlab
-plotData.x
-plotData.y
-plotData.validMask
-plotData.xLabel
-plotData.yLabel
-plotData.modelName
-plotData.branchName
-plotData.displayName
-```
-
-It supports the same x-axis modes exposed by the GUI:
-
-```text
-frequency
-angularFrequency
-wavenumber
-kThickness
-```
-
-`LambFundamental_GUI.m` now attempts to plot from `lastGuiResult.branches` first. If no normalized result is available, it falls back to the legacy raw plotting path.
-
-The sweep plot helper is:
-
-```text
-app/sweep/guiPlotSweepResult.m
-```
-
-It consumes only normalized sweep curves:
-
-```matlab
+normalized.curves(i).label
 normalized.curves(i).frequency_Hz
 normalized.curves(i).Cp_mps
 normalized.curves(i).validMask
-normalized.curves(i).label
+normalized.curves(i).lastValidFrequency_Hz
+normalized.summaryTable
 ```
 
-### Normalized export helpers
+### Export contract
 
-The normalized export helpers are:
-
-```text
-app/adapters/guiNormalizedBranchToTable.m
-app/adapters/guiNormalizedBranchesToTables.m
-```
-
-`guiNormalizedBranchToTable` converts one branch into a table with core columns:
-
-```matlab
-ModelName
-BranchName
-Frequency_Hz
-PhaseVelocity_mps
-Wavenumber_1_per_m
-kThickness
-```
-
-When diagnostics are available, extra columns can be added, for example:
-
-```matlab
-Valid
-ValidCp
-Residual
-Objective
-PointStatus
-```
-
-`guiNormalizedBranchesToTables` converts all branches in `GuiResults.branches` into a struct of tables keyed by valid MATLAB field names.
-
-The main GUI export currently sends the following objects to the MATLAB base workspace:
-
-```matlab
-LambResults
-GuiResults
-GuiBranchTables
-```
-
-`LambResults` is the raw result. `GuiResults` is the normalized adapter result. `GuiBranchTables` is the table-oriented normalized export.
-
-The sweep GUI export currently sends:
+SweepTool exports:
 
 ```matlab
 SweepToolOutput
@@ -366,12 +104,4 @@ SweepToolModelName
 SweepToolBranchName
 ```
 
-### Cache behavior
-
-The GUI contains cache paths for avoiding unnecessary recomputation:
-
-```text
-cache: reused previous results
-cache: reused selected Rayleigh-Lamb seed(s)
-cache: reused selected elastic mRLFE branch(es)
-```
+`SweepToolNormalized` is preferred for app-level plotting and downstream workflows. `SweepToolResults` is preserved for raw diagnostics and compatibility.
