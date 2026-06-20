@@ -68,7 +68,29 @@ No model-specific numerical knobs unless there is a documented physical or numer
 
 The current AE result may still be sensitive to the starting frequency or to the selected frequency grid. A suspicious symptom is a nearly constant or incorrectly tracked branch in some cases.
 
-This needs solver-level investigation before further UI optimization. The investigation should check whether:
+A temporary diagnostic was added for this investigation:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_grid_start_sensitivity.m
+```
+
+Output path:
+
+```text
+Results/ae_iop_hgo/grid_start_sensitivity
+```
+
+Cleanup decision required after the solver issue is understood:
+
+```text
+- promote the diagnostic to maintained diagnostic evidence, or
+- migrate reusable logic into analysis/acoustoelastic_iop_hgo/, or
+- delete/archive the temporary diagnostic after preserving conclusions in documentation.
+```
+
+This file must not remain indefinitely as unclassified temporary code.
+
+The investigation should check whether:
 
 ```text
 - atlasA0 tracking is actually initialized from sufficiently low frequency;
@@ -122,3 +144,18 @@ screen-size-aware defaults
 ```
 
 This should be treated as a UI layout task, separate from model integration.
+
+## 7. Split large GUI files into smaller components
+
+`LambFundamental_GUI.m` is becoming too large. Future GUI work should avoid adding more solver-specific logic directly to this file.
+
+Recommended direction:
+
+```text
+- Move AE GUI read/build logic into a small app helper or adapter-facing helper.
+- Keep GUI callback code thin.
+- Keep solver-specific options outside the main GUI file where possible.
+- Prefer model-specific request builders over adding more nested functions to LambFundamental_GUI.m.
+```
+
+This should be done after the AE solver-interface behavior is clarified, so the helper structure reflects the final contract rather than the transitional one.
