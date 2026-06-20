@@ -12,9 +12,10 @@ For normal use, read in this order:
 1. README.md
 2. public_api.md
 3. solver_optimization_status.md
-4. examples_inventory.md
-5. naming_and_paths_convention.md
-6. retained_diagnostic_dependency_review.md
+4. main_gui_integration_closure.md
+5. examples_inventory.md
+6. naming_and_paths_convention.md
+7. retained_diagnostic_dependency_review.md
 ```
 
 For branch-policy reasoning, read:
@@ -23,20 +24,22 @@ For branch-policy reasoning, read:
 1. phase_closure_atlasA0_only.md
 2. branch_policy.md
 3. solver_optimization_status.md
-4. phase_closure_atlasA0.md
-5. atlas_vs_raw_branch1_diagnostic.md
-6. branch_families_diagnostic.md
-7. identityA0_diagnostic_policy.md
+4. main_gui_integration_closure.md
+5. phase_closure_atlasA0.md
+6. atlas_vs_raw_branch1_diagnostic.md
+7. branch_families_diagnostic.md
+8. identityA0_diagnostic_policy.md
 ```
 
 For cleanup or refactor work, read:
 
 ```text
 1. framework_hygiene_status.md
-2. examples_inventory.md
-3. retained_diagnostic_dependency_review.md
-4. code_retention_review_plan.md
-5. structural_audit_refresh.md
+2. main_gui_integration_closure.md
+3. examples_inventory.md
+4. retained_diagnostic_dependency_review.md
+5. code_retention_review_plan.md
+6. structural_audit_refresh.md
 ```
 
 ### Active operational documentation
@@ -48,6 +51,7 @@ These documents should remain concise and current. They are the first layer for 
 | `README.md` | Module landing page and short command summary. |
 | `public_api.md` | Public API list. |
 | `sweep_workflow.md` | Sweep workflow documentation. |
+| `main_gui_integration_closure.md` | Closure note for the first main-GUI integration and handoff into solver-interface work. |
 | `examples_inventory.md` | Current executable inventory under `examples/acoustoelastic_iop_hgo/`. |
 | `naming_and_paths_convention.md` | Short-name and output-path convention for the module. |
 | `solver_optimization_status.md` | Current solver status and official `atlasA0` policy. |
@@ -64,6 +68,7 @@ These documents support why `atlasA0` is official and why `identityA0Diagnostic`
 | `phase_closure_atlasA0_only.md` | Final closure note for the single production `atlasA0` policy and legacy alias removal. |
 | `phase_closure_atlasA0.md` | Earlier closure note for the `atlasA0` optimization phase. |
 | `solver_optimization_status.md` | Current validation status and ambiguity boundary. |
+| `main_gui_integration_closure.md` | Records current GUI integration status and the required solver-interface corrections. |
 | `atlas_vs_raw_branch1_diagnostic.md` | Comparison of official `atlasA0`, diagnostic `identityA0Diagnostic`, and `raw_branch1`. |
 | `branch_families_diagnostic.md` | Competing branch-family analysis in the difficult corner. |
 | `atlasA0_truncation_validation.md` | Historical atlas-A0 truncation validation notes. |
@@ -138,6 +143,7 @@ README.md
 public_api.md
 sweep_workflow.md
 solver_optimization_status.md
+main_gui_integration_closure.md
 examples_inventory.md
 naming_and_paths_convention.md
 ```
@@ -169,6 +175,7 @@ When changing solver policy, update:
 solver_optimization_status.md
 phase_closure_atlasA0_only.md
 branch_policy.md
+main_gui_integration_closure.md
 ```
 
 When changing output paths, update:
@@ -177,11 +184,4 @@ When changing output paths, update:
 naming_and_paths_convention.md
 output_path_audit.md
 examples_inventory.md
-```
-
-When archiving exploratory diagnostics, update:
-
-```text
-code_retention_review_plan.md
-legacy_entrypoint_map.md
 ```
