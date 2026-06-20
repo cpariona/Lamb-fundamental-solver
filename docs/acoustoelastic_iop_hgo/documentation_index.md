@@ -10,21 +10,23 @@ For normal use, read in this order:
 
 ```text
 1. README.md
-2. solver_optimization_status.md
-3. examples_inventory.md
-4. naming_and_paths_convention.md
-5. retained_diagnostic_dependency_review.md
+2. public_api.md
+3. solver_optimization_status.md
+4. examples_inventory.md
+5. naming_and_paths_convention.md
+6. retained_diagnostic_dependency_review.md
 ```
 
 For branch-policy reasoning, read:
 
 ```text
 1. phase_closure_atlasA0_only.md
-2. solver_optimization_status.md
-3. phase_closure_atlasA0.md
-4. atlas_vs_raw_branch1_diagnostic.md
-5. branch_families_diagnostic.md
-6. identityA0_diagnostic_policy.md
+2. branch_policy.md
+3. solver_optimization_status.md
+4. phase_closure_atlasA0.md
+5. atlas_vs_raw_branch1_diagnostic.md
+6. branch_families_diagnostic.md
+7. identityA0_diagnostic_policy.md
 ```
 
 For cleanup or refactor work, read:
@@ -44,23 +46,13 @@ These documents should remain concise and current. They are the first layer for 
 | Document | Role |
 |---|---|
 | `README.md` | Module landing page and short command summary. |
+| `public_api.md` | Public API list. |
+| `sweep_workflow.md` | Sweep workflow documentation. |
 | `examples_inventory.md` | Current executable inventory under `examples/acoustoelastic_iop_hgo/`. |
 | `naming_and_paths_convention.md` | Short-name and output-path convention for the module. |
 | `solver_optimization_status.md` | Current solver status and official `atlasA0` policy. |
 | `retained_diagnostic_dependency_review.md` | Current retained dependencies, especially raw_branch1 and heavy validation wrappers. |
 | `framework_hygiene_status.md` | Current framework status after cleanup and refactor passes. |
-
-### Module-level public API and workflow docs
-
-These live one level up in `docs/` because they describe public API or workflow boundaries across the repository documentation layer.
-
-| Document | Role |
-|---|---|
-| `../acoustoelastic_iop_hgo_public_api.md` | Public API list. |
-| `../acoustoelastic_iop_hgo_branch_policy.md` | Branch policy summary. |
-| `../acoustoelastic_iop_hgo_sweep_workflow.md` | Sweep workflow documentation. |
-
-The previous root-level `../acoustoelastic_iop_hgo_overview.md` was removed because its role is covered by this index, `README.md`, `examples_inventory.md`, and `repository_structure.md`.
 
 ### Solver-policy closure and branch ambiguity evidence
 
@@ -68,6 +60,7 @@ These documents support why `atlasA0` is official and why `identityA0Diagnostic`
 
 | Document | Role |
 |---|---|
+| `branch_policy.md` | Branch policy summary and official atlas-A0 selection rule. |
 | `phase_closure_atlasA0_only.md` | Final closure note for the single production `atlasA0` policy and legacy alias removal. |
 | `phase_closure_atlasA0.md` | Earlier closure note for the `atlasA0` optimization phase. |
 | `solver_optimization_status.md` | Current validation status and ambiguity boundary. |
@@ -123,7 +116,7 @@ post_rename_audit.md
 Reason:
 
 ```text
-Their current roles are covered by README.md, examples_inventory.md, retained_diagnostic_dependency_review.md, structural_audit_refresh.md, framework_hygiene_status.md, repository_structure.md, naming_strategy.md, code_retention_review_plan.md, and the specific archive documents.
+Their current roles are covered by README.md, public_api.md, examples_inventory.md, retained_diagnostic_dependency_review.md, structural_audit_refresh.md, framework_hygiene_status.md, repository_structure.md, naming_strategy.md, code_retention_review_plan.md, and the specific archive documents.
 ```
 
 ### Archived exploratory diagnostics
@@ -142,6 +135,8 @@ The following documents should stay concise and should link outward rather than 
 
 ```text
 README.md
+public_api.md
+sweep_workflow.md
 solver_optimization_status.md
 examples_inventory.md
 naming_and_paths_convention.md
@@ -164,7 +159,7 @@ When adding or deleting an executable file under `examples/acoustoelastic_iop_hg
 
 ```text
 examples_inventory.md
-maintained_entrypoints.md
+../maintained_entrypoints.md
 code_retention_review_plan.md
 ```
 
@@ -173,7 +168,7 @@ When changing solver policy, update:
 ```text
 solver_optimization_status.md
 phase_closure_atlasA0_only.md
-../acoustoelastic_iop_hgo_branch_policy.md
+branch_policy.md
 ```
 
 When changing output paths, update:
