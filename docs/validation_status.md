@@ -47,12 +47,13 @@ tests/acoustoelastic_iop_hgo/
 
 The maintained acoustoelastic tests exercise author-neutral IOP/HGO entrypoints and are included by `tests/run_all_smoke_tests.m`.
 
-For API and branch-policy details, see:
+For API, branch-policy, and module documentation, see:
 
 ```text
 docs/acoustoelastic_iop_hgo_public_api.md
-docs/acoustoelastic_iop_hgo_overview.md
 docs/acoustoelastic_iop_hgo_branch_policy.md
+docs/acoustoelastic_iop_hgo/README.md
+docs/acoustoelastic_iop_hgo/documentation_index.md
 ```
 
 ## Recommended validation command
