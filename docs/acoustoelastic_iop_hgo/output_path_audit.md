@@ -30,6 +30,8 @@ using:
 aeOutputFolder(launchFolder, taskName)
 ```
 
+Here `launchFolder` means the MATLAB working directory from which the user calls the maintained entrypoint. It should not be assumed to be the repository root.
+
 Fallback reads from legacy result folders are allowed only when needed for migration or historical reproducibility.
 
 ### Search summary
@@ -85,15 +87,17 @@ Current behavior:
 
 ```text
 diagnose_modal_atlas.m
-  delegates directly to diagnose_acoustoelastic_iop_hgo_modal_atlas.m.
+  delegates to diagnose_acoustoelastic_iop_hgo_modal_atlas.m while preserving the MATLAB launch folder.
 
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
-  writes directly to Results/ae_iop_hgo/modal_atlas through aeOutputFolder.
+  writes to Results/ae_iop_hgo/modal_atlas through aeOutputFolder, relative to the preserved launch folder.
 ```
 
 The previous temporary-copy output patch is no longer required for `diagnose_modal_atlas`.
 
-User-reported MATLAB validation passed for:
+A follow-up correction was applied after detecting that `run(fullfile(...))` can execute relative to the script folder and create `Results/` under `examples/acoustoelastic_iop_hgo/diagnostics/`. The short entrypoint now adds the diagnostics folder to the MATLAB path temporarily and calls the descriptive script by name so that `pwd` remains the user launch folder.
+
+User-reported MATLAB validation passed for the migration before the launch-folder correction. Re-run the same checks after pulling the correction:
 
 ```matlab
 clear functions
@@ -117,12 +121,12 @@ track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
   Keep while raw_branch1 reproducibility is required.
 
 diagnose_modal_atlas.m
-  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION
-  The short entrypoint no longer patches a temporary copy.
+  DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
+  The short entrypoint no longer patches a temporary copy and preserves the MATLAB launch folder for output placement.
 
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
   MIGRATED_SHORT_OUTPUT_PATH
-  Writes through aeOutputFolder(pwd, 'modal_atlas').
+  Writes through aeOutputFolder(pwd, 'modal_atlas'); `pwd` is preserved by the maintained short entrypoint.
 
 diagnose_modal_atlas_lowfreq.m
   SEPARATE_TEMP_PATCH_PATTERN
@@ -138,7 +142,7 @@ A focused low-frequency modal-atlas cleanup may do the following:
 ```text
 1. Run dependency searches for diagnose_modal_atlas_lowfreq and diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.
 2. Move the short output-folder and noninteractive plotting edits directly into the low-frequency implementation if safe.
-3. Simplify diagnose_modal_atlas_lowfreq.m so it delegates without temporary patching.
+3. Simplify diagnose_modal_atlas_lowfreq.m so it delegates without temporary patching while preserving the MATLAB launch folder.
 4. Run diagnose_modal_atlas_lowfreq in MATLAB.
 5. Run test_acoustoelastic_iop_hgo_short_entrypoints and run_all_smoke_tests.
 ```
@@ -160,4 +164,4 @@ track_raw_branch1 produces Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv,
 
 ### Current conclusion
 
-The standard modal-atlas output-path migration is closed. The remaining executable cleanup candidate in this area is the separate low-frequency modal-atlas wrapper pattern.
+The standard modal-atlas output-path migration is closed, with launch-folder output placement corrected in the short entrypoint. The remaining executable cleanup candidate in this area is the separate low-frequency modal-atlas wrapper pattern.
