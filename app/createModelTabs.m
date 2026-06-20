@@ -83,6 +83,82 @@ h.mrlfe.computeComplexK = struct('Value', false);
 h.mrlfe.etaL = struct('Value', 0);
 h.mrlfe.useComplexLambda = struct('Value', false);
 
+tabAE = uitab(tg, 'Title', 'AE IOP/HGO');
+gAE = uigridlayout(tabAE, [9 4]);
+gAE.ColumnWidth = {115, '1x', 115, '1x'};
+gAE.RowHeight = {22, 24, 24, 24, 24, 24, 24, 24, '1x'};
+gAE.Padding = [10 6 10 6];
+gAE.RowSpacing = 2;
+gAE.ColumnSpacing = 6;
+
+label = uilabel(gAE, 'Text', 'Acoustoelastic atlas-A0 setup', 'FontWeight', 'bold', 'FontSize', 11);
+label.Layout.Row = 1;
+label.Layout.Column = [1 4];
+
+h.ae.computeAtlasA0 = uicheckbox(gAE, 'Text', 'Compute AE atlasA0', 'Value', false, 'ValueChangedFcn', callbacks.markDirty);
+h.ae.computeAtlasA0.Layout.Row = 2;
+h.ae.computeAtlasA0.Layout.Column = [1 4];
+
+label = uilabel(gAE, 'Text', 'IOP [mmHg]');
+label.Layout.Row = 3;
+label.Layout.Column = 1;
+h.ae.IOP = uieditfield(gAE, 'numeric', 'Value', 15, 'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
+h.ae.IOP.Layout.Row = 3;
+h.ae.IOP.Layout.Column = 2;
+
+label = uilabel(gAE, 'Text', 'R [mm]');
+label.Layout.Row = 3;
+label.Layout.Column = 3;
+h.ae.R = uieditfield(gAE, 'numeric', 'Value', 7.8, 'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
+h.ae.R.Layout.Row = 3;
+h.ae.R.Layout.Column = 4;
+
+label = uilabel(gAE, 'Text', 'k1 [kPa]');
+label.Layout.Row = 4;
+label.Layout.Column = 1;
+h.ae.k1 = uieditfield(gAE, 'numeric', 'Value', 25, 'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
+h.ae.k1.Layout.Row = 4;
+h.ae.k1.Layout.Column = 2;
+
+label = uilabel(gAE, 'Text', 'k2 [-]');
+label.Layout.Row = 4;
+label.Layout.Column = 3;
+h.ae.k2 = uieditfield(gAE, 'numeric', 'Value', 100, 'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
+h.ae.k2.Layout.Row = 4;
+h.ae.k2.Layout.Column = 4;
+
+label = uilabel(gAE, 'Text', 'rhoF [kg/m^3]');
+label.Layout.Row = 5;
+label.Layout.Column = [1 2];
+h.ae.rhoF = uieditfield(gAE, 'numeric', 'Value', 1000, 'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
+h.ae.rhoF.Layout.Row = 5;
+h.ae.rhoF.Layout.Column = [3 4];
+
+label = uilabel(gAE, 'Text', 'fluid bulk [GPa]');
+label.Layout.Row = 6;
+label.Layout.Column = [1 2];
+h.ae.fluidBulkModulus = uieditfield(gAE, 'numeric', 'Value', 2.2, 'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
+h.ae.fluidBulkModulus.Layout.Row = 6;
+h.ae.fluidBulkModulus.Layout.Column = [3 4];
+
+label = uilabel(gAE, 'Text', 'atlas y-points');
+label.Layout.Row = 7;
+label.Layout.Column = [1 2];
+h.ae.atlasNumYPoints = uieditfield(gAE, 'numeric', 'Value', 300, 'Limits', [50 Inf], 'RoundFractionalValues', 'on', 'ValueChangedFcn', callbacks.markDirty);
+h.ae.atlasNumYPoints.Layout.Row = 7;
+h.ae.atlasNumYPoints.Layout.Column = [3 4];
+
+label = uilabel(gAE, 'Text', 'atlas minima');
+label.Layout.Row = 8;
+label.Layout.Column = [1 2];
+h.ae.atlasTopNMinima = uieditfield(gAE, 'numeric', 'Value', 12, 'Limits', [1 Inf], 'RoundFractionalValues', 'on', 'ValueChangedFcn', callbacks.markDirty);
+h.ae.atlasTopNMinima.Layout.Row = 8;
+h.ae.atlasTopNMinima.Layout.Column = [3 4];
+
+note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, fmin, and fmax. This avoids duplicating material controls across model tabs.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note.Layout.Row = 9;
+note.Layout.Column = [1 4];
+
 h.panel = panel;
 h.tabGroup = tg;
 
