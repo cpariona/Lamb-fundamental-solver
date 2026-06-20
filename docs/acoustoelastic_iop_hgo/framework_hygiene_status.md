@@ -1,18 +1,20 @@
 ### Framework hygiene status
 
-This document records the framework-structure status after closing the `atlasA0` solver optimization phase, the targeted naming cleanup, the modal-atlas output-path cleanup, and the simple compatibility-alias cleanup.
+This document records the framework-structure status after closing the `atlasA0` solver optimization phase, targeted naming cleanup, modal-atlas output-path cleanup, simple compatibility-alias cleanup, exploratory archival passes, and raw-branch helper extraction.
 
 ### Overall status
 
-The critical MATLAB naming risk is closed, and the simple compatibility-alias cleanup is closed. Broader structural cleanup remains open only for retained implementation diagnostics and heavy validation wrappers.
+The critical MATLAB naming risk is closed, the simple compatibility-alias cleanup is closed, exploratory example archival is closed, and raw_branch1 generation now lives in `analysis/`.
 
 ```text
 Solver status: closed for the current atlasA0 optimization phase
 Critical naming status: closed; Over63Chars = 0 after targeted rename
 Simple alias cleanup status: closed after reference checks and smoke-test validation
-Framework cleanup status: partially complete; retained diagnostics remain by design
-Legacy status: retained only for implementation history, heavy validation, or reproducibility
-Recommended next work: documentation consistency and focused retained-diagnostic review only
+Exploratory examples status: archived after documentation preservation
+Raw branch status: helper-backed via aeExtractRawBranch1Candidate
+Framework cleanup status: partially complete; heavy validation wrappers and modal-atlas implementations remain by design
+Legacy status: retained only for implementation history, heavy validation, or diagnostic traceability
+Recommended next work: documentation consistency or focused heavy-wrapper/modal-atlas refactor only
 ```
 
 ### Current structure
@@ -53,21 +55,36 @@ track_raw_branch1
 
 This is the layer that should be used in examples, documentation, and future workflows.
 
+### Reusable analysis helper layer
+
+Raw-branch extraction now lives in:
+
+```matlab
+aeExtractRawBranch1Candidate
+```
+
+located at:
+
+```text
+analysis/acoustoelastic_iop_hgo/aeExtractRawBranch1Candidate.m
+```
+
+`track_raw_branch1` calls this helper directly. `compare_atlasA0_vs_raw_branch1` can regenerate `raw_branch1_curve.csv` through this helper if the CSV artifact is missing.
+
 ### Legacy and retained implementation layer
 
-The simple legacy aliases that only redirected to short entrypoints have been archived. Long descriptive files that remain should be treated as implementation targets, retained diagnostics, heavy validation scripts, or reproducibility scripts, not as preferred user-facing commands.
+The simple legacy aliases that only redirected to short entrypoints have been archived. Long descriptive files that remain should be treated as implementation targets, retained diagnostics, or heavy validation scripts, not as preferred user-facing commands.
 
-Remaining long descriptive examples include:
+Remaining long descriptive implementation targets include:
 
 ```text
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
 diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
 validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid.m
 validate_acoustoelastic_iop_hgo_branch_identity_score_grid.m
-track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
 ```
 
-Do not delete these solely because they look similar to short entrypoints. They contain implementation or reproducibility logic.
+Do not delete these solely because they look similar to short entrypoints. They contain retained implementation or heavy-validation logic.
 
 The mapping from short entrypoints to retained or archived legacy files is maintained in:
 
@@ -75,10 +92,16 @@ The mapping from short entrypoints to retained or archived legacy files is maint
 docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md
 ```
 
-The refreshed cleanup audit is maintained in:
+The current executable inventory is maintained in:
 
 ```text
-docs/acoustoelastic_iop_hgo/structural_audit_refresh.md
+docs/acoustoelastic_iop_hgo/examples_inventory.md
+```
+
+The curated documentation index is maintained in:
+
+```text
+docs/acoustoelastic_iop_hgo/documentation_index.md
 ```
 
 ### Naming status
@@ -133,13 +156,13 @@ Legacy result folders may remain available for fallback reads, but new work shou
 
 ### Remaining cleanup signals
 
-The old structural counters are stale after the alias cleanup and modal-atlas migrations.
+The old structural counters are stale after the alias cleanup, exploratory archival, modal-atlas migrations, and raw-branch helper extraction.
 
 Current remaining cleanup signals are qualitative:
 
 ```text
 heavy validation wrappers remain intentionally retained
-raw_branch1 reproducibility path remains intentionally retained
+modal-atlas long implementations remain intentionally retained
 some documentation may still mention archived names as historical context
 ```
 
@@ -159,20 +182,22 @@ The following items are closed:
 3. Documentation indexing for the post-renaming audit.
 4. Standard and low-frequency modal-atlas output-path migration.
 5. Simple compatibility-alias deletion after reference checks.
-6. Documentation cleanup of aliases that were incorrectly listed as present or recommended commands.
+6. Exploratory example archival passes E1-E3.
+7. Raw-branch helper extraction into `analysis/`.
+8. Documentation landing-page simplification and curated index creation.
 
 ### What is not yet closed
 
 The following items are not yet closed:
 
 1. Optional consolidation of heavy validation wrappers.
-2. Long-term decision on whether `track_raw_branch1` should remain required by `compare_atlasA0_vs_raw_branch1`.
-3. Optional simplification of historical diagnostics that are still useful for thesis analysis.
+2. Optional migration of modal-atlas implementation code into reusable helpers.
+3. Long-term decision on whether retained historical diagnostics should remain script-based.
 4. Occasional documentation-only stale references that may be found by future broad grep passes.
 
 ### Cleanup policy
 
-Future cleanup should start from the audit reports, not from manual inspection alone.
+Future cleanup should start from the curated documentation index and current executable inventory, not from manual filename inspection alone.
 
 Use dedicated commits for:
 
@@ -189,6 +214,14 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 run_all_smoke_tests
 ```
 
+For raw-branch work, also run:
+
+```matlab
+diagnose_modal_atlas_lowfreq
+track_raw_branch1
+compare_atlasA0_vs_raw_branch1
+```
+
 For deletions or consolidation, also run:
 
 ```bash
@@ -197,4 +230,4 @@ git grep "<candidate_name>"
 
 ### Current conclusion
 
-The framework is stable enough to build on. Critical renaming, modal-atlas output-path cleanup, and simple alias deletion are closed. Remaining cleanup should be limited to retained diagnostics and documentation consistency unless a new concrete duplication or stale dependency is found.
+The framework is stable enough to build on. Critical renaming, modal-atlas output-path cleanup, simple alias deletion, exploratory archival, raw-branch helper extraction, and documentation indexing are closed. Remaining cleanup should be limited to heavy validation wrappers or modal-atlas implementation extraction unless a new concrete duplication or stale dependency is found.
