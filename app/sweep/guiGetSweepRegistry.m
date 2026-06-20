@@ -38,18 +38,18 @@ end
 
 function family = makeAEFamily()
 family = emptyModelFamily();
-family.id = "ae_iop";
-family.label = "AE IOP";
+family.id = "ae_iop_hgo";
+family.label = "AE IOP/HGO";
 family.figureTitle = "Parametric Sweep Tool";
-family.description = "One-parameter AE sweeps.";
+family.description = "One-parameter AE IOP/HGO sweeps.";
 family.defaultParameter = "IOP";
-family.defaultModelLabel = "AE IOP";
+family.defaultModelLabel = "AE IOP/HGO";
 family.defaultBranchName = "atlasA0";
 family.defaultRobustness = "Fast";
-family.modelLabels = "AE IOP";
+family.modelLabels = "AE IOP/HGO";
 family.branchNames = "atlasA0";
 family.robustnessPresets = ["Fast", "Balanced"];
-family.outputTaskName = "ae_iop_sweep";
+family.outputTaskName = "ae_iop_hgo_sweep";
 family.parameters = [ ...
     makeParameter("IOP", "IOP", [5, 10, 15, 20, 25], "mmHg", 133.322, ...
         "Values use IOP units [mmHg]. The adapter converts to Pa."), ...
