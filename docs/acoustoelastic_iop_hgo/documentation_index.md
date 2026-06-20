@@ -105,7 +105,6 @@ These documents are primarily for maintainers. They should not be treated as use
 | `code_retention_review_plan.md` | Retention policy and archival history. |
 | `legacy_entrypoint_map.md` | Mapping from short entrypoints to archived or retained descriptive files. |
 | `structural_audit_refresh.md` | Refreshed cleanup audit and candidate-group history. |
-| `post_rename_audit.md` | Post-renaming audit status. |
 | `validation_grid_wrapper_review.md` | Review of heavy validation wrappers. |
 | `output_path_audit.md` | Output-path cleanup and fallback reads. |
 
@@ -116,12 +115,13 @@ remaining_wrapper_inventory.md
 structural_cleanup_backlog.md
 ../acoustoelastic_iop_hgo_overview.md
 exploratory_diagnostic_review.md
+post_rename_audit.md
 ```
 
 Reason:
 
 ```text
-Their current roles are covered by README.md, examples_inventory.md, retained_diagnostic_dependency_review.md, structural_audit_refresh.md, framework_hygiene_status.md, repository_structure.md, code_retention_review_plan.md, and the specific archive documents.
+Their current roles are covered by README.md, examples_inventory.md, retained_diagnostic_dependency_review.md, structural_audit_refresh.md, framework_hygiene_status.md, repository_structure.md, naming_strategy.md, code_retention_review_plan.md, and the specific archive documents.
 ```
 
 ### Archived exploratory diagnostics
