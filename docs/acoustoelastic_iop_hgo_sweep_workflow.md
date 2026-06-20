@@ -21,7 +21,7 @@ The branch policy belongs in solver options:
 options.atlasBranchPolicy = "atlasA0";
 ```
 
-`"atlasA0"` is the canonical maintained name for the current atlas-based A0 branch policy. The previous name `"strictA0"` remains accepted as a legacy alias for backward compatibility.
+`"atlasA0"` is the only maintained production atlas-A0 policy name.
 
 ## Maintained files
 
