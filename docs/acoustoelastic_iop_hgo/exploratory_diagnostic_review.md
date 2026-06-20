@@ -16,19 +16,21 @@ candidate for future archival
 
 ### Current decision
 
-The E1 direct-matrix exploratory group has been archived after preserving its conclusions in:
+All exploratory example/diagnostic groups E1-E3 have been archived after preserving their conclusions in documentation.
+
+Archive evidence:
 
 ```text
 docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
+docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+docs/acoustoelastic_iop_hgo/complex_c_continuation_archive.md
 ```
 
-The E2 A0-backward/tracking exploratory group has been archived after preserving its conclusions in:
+The model-level complex-C solver capability remains retained in:
 
 ```text
-docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticComplexCDispersion.m
 ```
-
-Do not archive E3 in the same pass.
 
 ### Classification summary
 
@@ -42,11 +44,11 @@ Do not archive E3 in the same pass.
 | `compare_acoustoelastic_iop_hgo_tracking_strategies.m` | `ARCHIVED_EXPLORATORY_TRACKING_COMPARISON` | Compared global scan, predictive continuation, singular-vector tracking, A0High, and complex-C diagnostic routes. Purpose and conclusions preserved in `a0_backward_tracking_archive.md`. | Removed. |
 | `run_acoustoelastic_iop_hgo_A0_backward.m` | `ARCHIVED_EXPLORATORY_A0_BACKWARD_EXAMPLE` | Demonstrated the earlier corrected-M54 A0 backward global-scan workflow. Purpose and conclusions preserved in `a0_backward_tracking_archive.md`. | Removed. |
 | `sweep_acoustoelastic_iop_hgo_A0_backward.m` | `ARCHIVED_EXPLORATORY_A0_BACKWARD_SWEEP` | Historical A0 backward sweep. Purpose and conclusions preserved in `a0_backward_tracking_archive.md`. | Removed. |
-| `run_acoustoelastic_iop_hgo_A0_complexC.m` | `RETAIN_EXPLORATORY_COMPLEX_C` | Tests complex phase-velocity continuation as a diagnostic route. Not part of official `atlasA0` output. | Keep for now. |
+| `run_acoustoelastic_iop_hgo_A0_complexC.m` | `ARCHIVED_EXPLORATORY_COMPLEX_C` | Tested complex phase-velocity continuation as a diagnostic route. Purpose and conclusions preserved in `complex_c_continuation_archive.md`; the model-level solver remains retained. | Removed. |
 
 ### Not maintained public workflows
 
-The retained exploratory scripts above should not be presented as routine commands. Routine acoustoelastic workflows remain:
+The archived exploratory scripts above should not be presented as routine commands. Routine acoustoelastic workflows remain:
 
 ```matlab
 run_atlas_branch
@@ -74,7 +76,7 @@ The official branch policy remains:
 atlasA0
 ```
 
-Retained exploratory diagnostics must not mutate or replace:
+Archived exploratory diagnostics must not be used to mutate or replace:
 
 ```matlab
 result.Cp
@@ -140,30 +142,29 @@ Reason:
 The A0 backward route, historical sweep, tracking comparison, and grid-convergence conclusions are now represented in documentation. Current maintained workflows and diagnostics provide stronger coverage for atlasA0 behavior and modal ambiguity.
 ```
 
-### Candidate future archival groups
-
 #### Group E3: Complex-C continuation
+
+Archived file:
 
 ```text
 run_acoustoelastic_iop_hgo_A0_complexC.m
 ```
 
-Suggested condition before archival:
+Archive evidence:
 
 ```text
-Decide whether complex-C continuation remains a future solver direction. If yes, keep. If no, document why it is diagnostic-only before archival.
+docs/acoustoelastic_iop_hgo/complex_c_continuation_archive.md
 ```
 
-### Required checks before archiving any exploratory group
+Reason:
 
-For every candidate group:
-
-```bash
-git grep "<script_basename>"
-git grep "<script_filename>"
+```text
+The long example script was diagnostic-only. The complex-C solver capability remains retained in the model/API layer and can be revisited as a future solver direction without restoring the archived example.
 ```
 
-Then run:
+### Required checks after archival
+
+After exploratory archival batches, run:
 
 ```matlab
 clear functions
@@ -174,8 +175,6 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 run_all_smoke_tests
 ```
 
-If the candidate group has a maintained replacement entrypoint, run that maintained replacement as well.
-
 ### Current recommendation
 
-Do not archive E3 until the E2 deletion batch has passed local validation and a clear decision has been made about whether complex-C continuation remains a future solver direction.
+No exploratory example scripts remain as retained public or semi-public workflows. Future cleanup should focus on documentation consistency, retained historical wrappers, or implementation-target consolidation only after a separate design decision.
