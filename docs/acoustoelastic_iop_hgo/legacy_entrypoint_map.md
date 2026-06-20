@@ -15,7 +15,7 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `run_atlas_branch` | `run_acoustoelastic_iop_hgo_atlas_branch` | direct maintained implementation; legacy file is alias to short entrypoint |
+| `run_atlas_branch` | `run_acoustoelastic_iop_hgo_atlas_branch` | archived alias; use the maintained short entrypoint |
 
 ### Sweeps
 
@@ -28,8 +28,8 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `diagnose_sweep_reliability` | `diagnose_acoustoelastic_iop_hgo_sweep_reliability` | direct maintained implementation; legacy file is alias to short entrypoint |
-| `diagnose_atlas_truncation` | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | direct maintained implementation; legacy file is alias to short entrypoint |
+| `diagnose_sweep_reliability` | `diagnose_acoustoelastic_iop_hgo_sweep_reliability` | archived alias; use the maintained short entrypoint |
+| `diagnose_atlas_truncation` | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | archived alias; use the maintained short entrypoint |
 
 ### Identity-A0 diagnostics
 
@@ -37,7 +37,7 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 |---|---|---|
 | `validate_idA0_score_grid` | `validate_acoustoelastic_iop_hgo_branch_identity_score_grid` | historical wrapper; target exists; consolidation deferred |
 | `validate_idA0_grid` | `validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid` | historical wrapper; target exists; consolidation deferred |
-| `diagnose_idA0_score` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | direct maintained implementation; legacy file is alias to short entrypoint |
+| `diagnose_idA0_score` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | archived alias; use the maintained short entrypoint |
 | `diagnose_idA0_plausibility` | `diagnose_idA0_plausibility_impl` | maintained short entrypoint |
 | `diagnose_identityA0_plausibility` | `diagnose_idA0_plausibility_impl` | compatibility alias; prefer `diagnose_idA0_plausibility` |
 
