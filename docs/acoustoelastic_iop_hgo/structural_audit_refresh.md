@@ -1,0 +1,262 @@
+### Refreshed structural audit
+
+This document refreshes the structural cleanup audit after the archived-diagnostic removals and the standard/low-frequency modal-atlas output-path migrations.
+
+### Scope
+
+The audit focuses on the acoustoelastic IOP/HGO module structure:
+
+```text
+analysis/acoustoelastic_iop_hgo/
+models/acoustoelastic_iop_hgo/
+examples/acoustoelastic_iop_hgo/basic/
+examples/acoustoelastic_iop_hgo/sweeps/
+examples/acoustoelastic_iop_hgo/diagnostics/
+tests/acoustoelastic_iop_hgo/
+docs/acoustoelastic_iop_hgo/
+```
+
+The goal is to identify safe next cleanup targets before deleting or consolidating scripts.
+
+### Method
+
+The refresh used repository searches equivalent to focused `git grep` checks for:
+
+```text
+aeRunLegacyScript
+Results/acoustoelastic_iop_hgo
+Results', 'acoustoelastic_iop_hgo
+diagnose_acoustoelastic_iop_hgo_
+validate_acoustoelastic_iop_hgo_
+run_acoustoelastic_iop_hgo_
+modal_atlas
+modal_atlas_lowfreq
+```
+
+This is an operational cleanup audit, not a full MATLAB-executed structural analyzer. Before deleting any executable script, run the exact candidate-specific `git grep` checks and the relevant MATLAB entrypoint.
+
+### Updated high-level status
+
+The old backlog counters are stale. The important current structural conclusions are:
+
+```text
+No known namelengthmax blocker remains.
+The standard modal-atlas wrapper cleanup is closed.
+The low-frequency modal-atlas wrapper cleanup is closed.
+The remaining aeRunLegacyScript users are intentional wrappers or compatibility aliases, not missing-target errors.
+The remaining legacy output references are either documentation, compatibility fallback reads, or migrated short-output implementations.
+```
+
+### Remaining aeRunLegacyScript users
+
+Current remaining executable `aeRunLegacyScript` users in the example layer:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
+examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
+examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
+examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
+```
+
+Current classification:
+
+```text
+diagnose_idA0_plausibility.m
+  KEEP_AS_WRAPPER
+  Short maintained name pointing to diagnose_idA0_plausibility_impl.m.
+
+diagnose_identityA0_plausibility.m
+  COMPATIBILITY_ALIAS_CANDIDATE
+  Older identityA0-facing name. May be removable after checking references.
+
+validate_idA0_grid.m
+  KEEP_AS_WRAPPER
+  Short maintained name for a heavy validation implementation.
+
+validate_idA0_score_grid.m
+  KEEP_AS_WRAPPER
+  Short maintained name for a heavy validation implementation.
+
+track_raw_branch1.m
+  RETAIN_FOR_COMPARISON_REPRODUCIBILITY
+  Needed while compare_atlasA0_vs_raw_branch1 consumes raw_branch1_curve.csv.
+```
+
+### Legacy descriptive aliases already reduced to simple delegations
+
+The following long descriptive files are already simple compatibility aliases:
+
+```text
+examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_atlas_branch.m
+  delegates to run_atlas_branch
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
+  delegates to diagnose_sweep_reliability
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_identity_score.m
+  delegates to diagnose_idA0_score
+
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
+  delegates to diagnose_atlas_truncation
+```
+
+These are likely duplicate-version candidates from a user-facing perspective. They should not be deleted blindly because they preserve old command names, but they are safe to review as a batch.
+
+### Legacy descriptive implementation files still required
+
+The following long descriptive files are not simple duplicates; they are implementation targets or retained diagnostic implementations:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
+examples/acoustoelastic_iop_hgo/diagnostics/validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid.m
+examples/acoustoelastic_iop_hgo/diagnostics/validate_acoustoelastic_iop_hgo_branch_identity_score_grid.m
+examples/acoustoelastic_iop_hgo/diagnostics/track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
+```
+
+Do not delete these as duplicate-looking files. They contain actual implementation logic or reproducibility logic.
+
+### Output-path status
+
+Current legacy output-path search findings:
+
+```text
+track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
+  contains a legacy fallback read path for old low-frequency modal-atlas outputs.
+  It does not create a new legacy output folder.
+
+diagnose_acoustoelastic_iop_hgo_modal_atlas.m
+  uses aeOutputFolder for Results/ae_iop_hgo/modal_atlas.
+
+diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
+  uses aeOutputFolder for Results/ae_iop_hgo/modal_atlas_lowfreq.
+
+compare_atlasA0_vs_raw_branch1.m
+  reads maintained short-path raw_branch1 output.
+```
+
+The remaining `Results/acoustoelastic_iop_hgo...` occurrences in documentation are historical notes, migration notes, or compatibility descriptions.
+
+### Candidate deletion/consolidation groups
+
+#### Group A: simple compatibility aliases
+
+Likely first deletion-review candidates:
+
+```text
+examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_atlas_branch.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_branch_identity_score.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
+```
+
+Rationale:
+
+```text
+They are short alias files, not implementation files.
+Their short entrypoints are already maintained.
+They look like duplicate versions from the user-facing command layer.
+```
+
+Before deletion:
+
+```bash
+git grep "run_acoustoelastic_iop_hgo_atlas_branch"
+git grep "diagnose_acoustoelastic_iop_hgo_sweep_reliability"
+git grep "diagnose_acoustoelastic_iop_hgo_branch_identity_score"
+git grep "diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause"
+```
+
+Then run:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+
+test_acoustoelastic_iop_hgo_short_entrypoints
+run_all_smoke_tests
+```
+
+#### Group B: identity-A0 compatibility name
+
+Candidate:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
+```
+
+Rationale:
+
+```text
+The maintained short name is diagnose_idA0_plausibility.
+The identityA0 name is a compatibility-facing alias.
+```
+
+Before deletion:
+
+```bash
+git grep "diagnose_identityA0_plausibility"
+git grep "identityA0_plausibility"
+```
+
+Then run:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+
+diagnose_idA0_plausibility
+test_acoustoelastic_iop_hgo_short_entrypoints
+run_all_smoke_tests
+```
+
+#### Group C: heavy validation wrappers
+
+Do not delete in the first deletion pass:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
+examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
+```
+
+Rationale:
+
+```text
+They are maintained short names for heavy validations.
+The long descriptive files contain actual implementation code.
+```
+
+#### Group D: raw-branch reproducibility
+
+Do not delete in the first deletion pass:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
+examples/acoustoelastic_iop_hgo/diagnostics/track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
+```
+
+Rationale:
+
+```text
+track_raw_branch1 generates raw_branch1_curve.csv.
+compare_atlasA0_vs_raw_branch1 consumes that file.
+```
+
+### Recommended deletion order
+
+Use small deletion batches:
+
+```text
+1. Delete Group A only after candidate-specific git grep shows no executable dependency.
+2. Update docs that still mention deleted long aliases as runnable commands.
+3. Run test_acoustoelastic_iop_hgo_short_entrypoints and run_all_smoke_tests.
+4. Only then consider Group B.
+5. Do not touch Groups C or D in the same pass.
+```
+
+### Current conclusion
+
+The best next cleanup step is a focused deletion-review pass for Group A simple compatibility aliases. These files are the most likely source of the user's observation that several scripts look like versions of the same thing.
