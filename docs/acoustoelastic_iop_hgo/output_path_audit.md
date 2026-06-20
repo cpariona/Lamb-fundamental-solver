@@ -54,6 +54,29 @@ legacyInputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_lo
 
 It does not create a new legacy output folder. It allows `track_raw_branch1` to read older low-frequency modal-atlas outputs when the short-path output is not available.
 
+### Modal-atlas dependency review
+
+Before modifying the modal-atlas wrapper layer, the following dependency searches were reviewed:
+
+```text
+diagnose_modal_atlas
+diagnose_acoustoelastic_iop_hgo_modal_atlas
+acoustoelastic_iop_hgo_modal_atlas
+modal_atlas
+modal_atlas_lowfreq
+```
+
+The search did not reveal external code consumers of the legacy modal-atlas CSV filenames. References are concentrated in:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
+docs/acoustoelastic_iop_hgo/output_path_audit.md
+docs/acoustoelastic_iop_hgo/modal_atlas_wrapper_review.md
+docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md
+docs/acoustoelastic_iop_hgo/remaining_wrapper_inventory.md
+```
+
 ### Remaining modal-atlas legacy-output pattern
 
 A separate search for the legacy modal-atlas output string found:
@@ -68,6 +91,7 @@ Current behavior:
 ```text
 diagnose_modal_atlas.m
   patches a temporary copy of the legacy implementation so the short entrypoint writes to Results/ae_iop_hgo/modal_atlas.
+  The wrapper is now migration-tolerant: it accepts either the old legacy output-folder line or an already migrated aeOutputFolder line.
 
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
   still contains the original legacy output-folder line.
@@ -87,8 +111,8 @@ track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
   Keep while raw_branch1 reproducibility is required.
 
 diagnose_modal_atlas.m
-  SHORT_ENTRYPOINT_TEMP_PATCH
-  Safe in routine use, but not a final ownership inversion.
+  SHORT_ENTRYPOINT_TEMP_PATCH_MIGRATION_TOLERANT
+  Safe in routine use and tolerant of a future direct migration of the legacy implementation output line, but not a final ownership inversion.
 
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
   LEGACY_IMPLEMENTATION_OUTPUT_LINE
@@ -127,4 +151,4 @@ track_raw_branch1 produces Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv,
 
 ### Current conclusion
 
-The next executable cleanup should be a focused modal-atlas wrapper pass, not a broad legacy-output rewrite.
+The next executable cleanup should remain a focused modal-atlas wrapper pass, not a broad legacy-output rewrite.
