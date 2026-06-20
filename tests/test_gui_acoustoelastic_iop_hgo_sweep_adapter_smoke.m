@@ -1,8 +1,4 @@
 %TEST_GUI_ACOUSTOELASTIC_IOP_HGO_SWEEP_ADAPTER_SMOKE Smoke test for AE GUI sweep adapter.
-%
-% This validates the non-interactive GUI sweep adapter path. It does not require
-% a valid official Cp curve because the conservative AE policy invalidates
-% fallback-selected atlas branches.
 
 fprintf('Running Acoustoelastic IOP/HGO GUI sweep adapter smoke test...\n');
 
@@ -49,21 +45,15 @@ assert(isfield(sweepOutput, 'rawResults'), 'AE sweep output must include rawResu
 assert(isfield(sweepOutput, 'summary'), 'AE sweep output must include summary.');
 assert(isfield(sweepOutput, 'summaryTable'), 'AE sweep output must include summaryTable.');
 assert(isfield(sweepOutput, 'normalized'), 'AE sweep output must include normalized output.');
-
-assert(isequal(sweepOutput.sweepSpec.values, [10 15] * 133.322), ...
-    'IOP display values must be converted from mmHg to Pa.');
-assert(string(sweepOutput.sweepSpec.units) == "mmHg", ...
-    'IOP display unit must propagate to sweepSpec units.');
-assert(numel(sweepOutput.rawResults.conditions) == 2, ...
-    'AE sweep must run one condition per requested value.');
-assert(height(sweepOutput.summaryTable) == 2, ...
-    'AE summary table must have one row per requested value.');
-assert(numel(sweepOutput.normalized.curves) == 2, ...
-    'AE normalized output must have one curve per requested value.');
-assert(~isempty(sweepOutput.normalized.dispersionTable), ...
-    'AE normalized output must expose the dispersion table.');
+assert(isequal(sweepOutput.sweepSpec.values, [10 15] * 133.322), 'IOP display values must be converted from mmHg to Pa.');
+assert(string(sweepOutput.sweepSpec.units) == "mmHg", 'IOP display unit must propagate to sweepSpec units.');
+assert(numel(sweepOutput.rawResults.conditions) == 2, 'AE sweep must run one condition per requested value.');
+assert(height(sweepOutput.summaryTable) == 2, 'AE summary table must have one row per requested value.');
+assert(numel(sweepOutput.normalized.curves) == 2, 'AE normalized output must have one curve per requested value.');
+assert(~isempty(sweepOutput.normalized.dispersionTable), 'AE normalized output must expose the dispersion table.');
 
 fallbackInvalidationObserved = false;
+officialValidPointObserved = false;
 for i = 1:numel(sweepOutput.normalized.curves)
     curve = sweepOutput.normalized.curves(i);
     rawResult = sweepOutput.rawResults.conditions(i).result;
@@ -71,23 +61,20 @@ for i = 1:numel(sweepOutput.normalized.curves)
     assert(~isempty(curve.frequency_Hz), 'AE normalized curve must include frequency_Hz.');
     assert(~isempty(curve.Cp_mps), 'AE normalized curve must include Cp_mps.');
     assert(~isempty(curve.validMask), 'AE normalized curve must include validMask.');
-    assert(isequal(size(curve.frequency_Hz), size(curve.Cp_mps)), ...
-        'AE normalized frequency and Cp vectors must match.');
-    assert(isequal(size(curve.Cp_mps), size(curve.validMask)), ...
-        'AE normalized Cp and validity vectors must match.');
-    assert(isequal(curve.validMask(:), rawResult.validCp(:)), ...
-        'AE normalized validMask must mirror raw validCp.');
+    assert(isequal(size(curve.frequency_Hz), size(curve.Cp_mps)), 'AE normalized frequency and Cp vectors must match.');
+    assert(isequal(size(curve.Cp_mps), size(curve.validMask)), 'AE normalized Cp and validity vectors must match.');
+    assert(isequal(curve.validMask(:), rawResult.validCp(:)), 'AE normalized validMask must mirror raw validCp.');
+
+    officialValidPointObserved = officialValidPointObserved || any(curve.validMask(:));
 
     if isfield(rawResult, 'fallbackCandidateCp')
         fallbackInvalidationObserved = true;
-        assert(all(~rawResult.validCp), ...
-            'Fallback-invalidated raw result must not expose official validCp points.');
-        assert(any(isfinite(rawResult.fallbackCandidateCp)), ...
-            'Fallback-invalidated raw result must preserve diagnostic candidate Cp.');
+        assert(all(~rawResult.validCp), 'Fallback-invalidated raw result must not expose official validCp points.');
+        assert(any(isfinite(rawResult.fallbackCandidateCp)), 'Fallback-invalidated raw result must preserve diagnostic candidate Cp.');
     end
 end
 
-assert(fallbackInvalidationObserved || any([sweepOutput.normalized.curves.validMask]), ...
+assert(fallbackInvalidationObserved || officialValidPointObserved, ...
     'AE sweep adapter must either expose valid official points or preserved fallback diagnostics.');
 
 fprintf('Acoustoelastic IOP/HGO GUI sweep adapter smoke test passed.\n');
