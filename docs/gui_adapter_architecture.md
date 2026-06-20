@@ -1,6 +1,6 @@
 ### GUI adapter architecture
 
-This document summarizes the current GUI architecture after the refactor that introduced normalized adapter outputs and the sweep registry. The goal is to keep the interactive app usable while progressively decoupling plotting and export logic from backend-specific raw solver structures.
+This document summarizes the current GUI architecture after the refactor that introduced normalized adapter outputs, the sweep registry, and the first Acoustoelastic IOP/HGO sweep adapter. The goal is to keep the interactive app usable while progressively decoupling plotting and export logic from backend-specific raw solver structures.
 
 ### Current high-level flow
 
@@ -64,6 +64,24 @@ app/sweep/guiPlotSweepResult.m
 
 The sweep GUI no longer hardcodes parameter defaults, display units, or display-to-solver scaling inside the parameter-change callback. Those values are provided by `guiGetSweepRegistry`.
 
+The Acoustoelastic IOP/HGO sweep adapter is available behind the same dispatcher but is not yet exposed in `guiGetSweepRegistry` or in visible SweepTool controls:
+
+```text
+guiRunSweep(request.modelFamily = "acoustoelastic_iop_hgo")
+        |
+        v
+app/adapters/guiRunAcoustoelasticIOPHGOSweep.m
+        |
+        v
+models/acoustoelastic_iop_hgo/solvers/aeRunSweep.m
+        |
+        v
+analysis/acoustoelastic_iop_hgo/aeSummarizeSweep.m
+        |
+        v
+app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m
+```
+
 ### Main GUI state
 
 `app/LambFundamental_GUI.m` currently maintains two complementary result states:
@@ -105,6 +123,8 @@ The sweep-specific adapter entrypoints are:
 ```text
 app/adapters/guiRunMRLFESweep.m
 app/adapters/guiNormalizeMRLFESweep.m
+app/adapters/guiRunAcoustoelasticIOPHGOSweep.m
+app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m
 ```
 
 New sweep-capable model families should follow the same pair pattern:
@@ -122,7 +142,7 @@ The registry entrypoint is:
 app/sweep/guiGetSweepRegistry.m
 ```
 
-Current registry contents:
+Current visible registry contents:
 
 ```text
 modelFamily = "mrlfe"
@@ -131,6 +151,8 @@ branches = ["A0Like", "S0Like"]
 robustness presets = ["Fast", "Balanced", "Robust"]
 parameters = ["etaS", "E", "thickness"]
 ```
+
+The Acoustoelastic IOP/HGO sweep adapter is intentionally not registered as a visible GUI family yet. It should be added to the registry only after adapter smoke testing is stable and the first UI controls are defined.
 
 Each parameter config provides:
 
@@ -149,6 +171,8 @@ parameter.helpText
 etaS       display Pa*s -> solver Pa*s   scale 1
 E          display kPa  -> solver Pa     scale 1e3
 thickness  display mm   -> solver m      scale 1e-3
+IOP        display mmHg -> solver Pa     scale 133.322
+mu         display kPa  -> solver Pa     scale 1e3
 ```
 
 ### Shared raw-result normalization
@@ -191,6 +215,17 @@ branchName = "A0Like" or "S0Like"
 modelName = "mRLFEHanViscoRealK"
 branchName = "A0Like" or "S0Like"
 ```
+
+For Acoustoelastic IOP/HGO sweep results, `guiNormalizeAcoustoelasticIOPHGOSweep` reads official solver fields from each `aeRunSweep` condition:
+
+```matlab
+condition.result.frequency
+condition.result.Cp
+condition.result.validCp
+condition.result.reliability
+```
+
+and converts them to normalized curves for the official `atlasA0` branch. Diagnostic branches such as raw branch candidates or identity diagnostics are not plotted by this sweep normalizer.
 
 The compatibility alias `mRLFERealK` is deliberately excluded when `mRLFEElasticRealK` exists, to avoid duplicated elastic branches in normalized plotting and export.
 
