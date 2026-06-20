@@ -18,7 +18,7 @@ and does not rerun the solver.
 
 ### Runnable script
 
-Use the short MATLAB-compatible entrypoint:
+Use the maintained short entrypoint:
 
 ```matlab
 cd('E:\')
@@ -27,7 +27,7 @@ diagnose_idA0_plausibility
 AcoustoelasticIOPHGOIdentityA0PhysicalPlausibilityAggregate
 ```
 
-`diagnose_identityA0_plausibility` is also available as a maintained wrapper. The longer descriptive script filename exceeds MATLAB's 63-character name limit and should not be called directly.
+The older compatibility command `diagnose_identityA0_plausibility` has been archived. The longer descriptive implementation filename exceeds MATLAB's 63-character name limit and should not be called directly.
 
 Preferred input:
 
