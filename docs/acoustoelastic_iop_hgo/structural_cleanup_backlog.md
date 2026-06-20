@@ -52,7 +52,6 @@ DIRECT_MAINTAINED_ENTRYPOINT
 LEGACY_ALIAS_TO_SHORT
 DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION
 DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
-COMPATIBILITY_ALIAS_CANDIDATE
 RETAIN_FOR_COMPARISON_REPRODUCIBILITY
 ARCHIVED_REMOVED
 ```
@@ -140,12 +139,6 @@ Each legacy script should be classified as:
 - obsolete diagnostic superseded by a maintained short entrypoint;
 - safe removal candidate after reference checks.
 
-### Priority 4: wrapper consolidation
-
-Short wrappers are useful, but wrappers that only call legacy scripts may eventually point to shorter implementation files when the implementation is still maintained.
-
-This should be done case by case, not as a broad rename sweep.
-
 ### Wrapper consolidation and archived-diagnostic cleanup status
 
 A conservative wrapper inspection of `examples/acoustoelastic_iop_hgo/basic/`, `examples/acoustoelastic_iop_hgo/sweeps/`, and `examples/acoustoelastic_iop_hgo/diagnostics/` found no missing `aeRunLegacyScript` targets in the maintained short-wrapper layer.
@@ -173,13 +166,14 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_
   MIGRATE_OUTPUT_PATH
 ```
 
-Group A simple compatibility aliases archived after reference checks:
+Simple compatibility aliases archived after reference checks:
 
 ```text
 run_acoustoelastic_iop_hgo_atlas_branch.m
 diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
 diagnose_acoustoelastic_iop_hgo_branch_identity_score.m
 diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
+diagnose_identityA0_plausibility.m
 ```
 
 Archived executable diagnostics removed after reference checks and retained documentation coverage:
@@ -205,20 +199,15 @@ Remaining wrappers and reasons:
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
   KEEP_AS_WRAPPER: target is the renamed implementation file, not a legacy descriptive script.
 
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
-  COMPATIBILITY_ALIAS_CANDIDATE: older identityA0-facing name; review references before deletion.
-
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
   KEEP_AS_WRAPPER: targets exist and write to clean output helpers; the implementations are heavy validation grids.
 
 examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
-  RETAIN_FOR_COMPARISON_REPRODUCIBILITY: required while compare_atlasA0_vs_raw_branch1 consumes raw_branch1_curve.csv.
+  RETAIN_FOR_COMPARISON_REPRODUCIBILITY: required while compare_atlasA0_vs_raw comparison depends on raw_branch1_curve.csv.
 ```
 
-Wrapper consolidation is partially complete; legacy cleanup remains open.
-
-### Priority 5: documentation consistency
+### Documentation consistency
 
 Documentation should distinguish:
 
@@ -252,13 +241,13 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 
 ### Recommended next cleanup order
 
-1. Pull the Group A alias-removal commits locally.
-2. Run `test_acoustoelastic_iop_hgo_short_entrypoints` and `run_all_smoke_tests`.
-3. Only then consider the Group B identity-A0 compatibility alias.
-4. Keep validation-grid wrappers and `track_raw_branch1` for now.
+1. Pull the identity alias-removal commit locally.
+2. Run `diagnose_idA0_plausibility`, `test_acoustoelastic_iop_hgo_short_entrypoints`, and `run_all_smoke_tests`.
+3. Keep validation-grid wrappers and `track_raw_branch1` for now.
+4. Next cleanup should focus on documentation-only references or a fresh local grep audit, not immediate deletion of implementation files.
 
 ### Current decision
 
 Do not start a broad deletion pass.
 
-The next safe cleanup step is local validation of the Group A alias-removal batch, followed by a focused Group B review if validation passes.
+The simple compatibility-alias cleanup is complete. Remaining executable wrappers are intentional and should not be deleted as duplicates without a separate design decision.
