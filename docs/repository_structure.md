@@ -8,6 +8,9 @@ This document describes the active repository layout for GUI-focused development
 app/                         MATLAB GUI entrypoints and UI helper files.
 analysis/                    Generic analysis utilities plus model-specific analysis helpers.
 docs/                        Active repository, API, validation, and workflow documentation.
+docs/rayleigh_lamb/          Rayleigh-Lamb model documentation.
+docs/mrlfe/                  mRLFE model documentation.
+docs/acoustoelastic_iop_hgo/ Acoustoelastic IOP/HGO model documentation.
 examples/rayleigh_lamb/      Maintained Rayleigh-Lamb examples and validation scripts.
 examples/mrlfe/              Maintained mRLFE examples, sweeps, diagnostics, and stress tests.
 examples/acoustoelastic_iop_hgo/
@@ -44,7 +47,7 @@ models/rayleigh_lamb/
 └─ tracking/
 ```
 
-Maintained Rayleigh-Lamb implementation functions use the `rl*` API. See `docs/rayleigh_lamb_public_api.md` for the public function list and `docs/rayleigh_lamb_overview.md` for model context.
+Maintained Rayleigh-Lamb implementation functions use the `rl*` API. See `docs/rayleigh_lamb/public_api.md` for the public function list and `docs/rayleigh_lamb/overview.md` for model context.
 
 ### mRLFE model
 
@@ -59,6 +62,12 @@ The high-level mRLFE entrypoint is:
 
 ```matlab
 computeMRLFE
+```
+
+The mRLFE tracker diagnostic summary is documented in:
+
+```text
+docs/mrlfe/tracker_diagnostic_summary.md
 ```
 
 ### Acoustoelastic IOP/HGO model
@@ -80,7 +89,7 @@ solveAcoustoelasticIOPHGODispersion
 defaultAcoustoelasticIOPHGOOptions
 ```
 
-GUI code, examples, diagnostics, tests, and analysis scripts should call the author-neutral acoustoelastic IOP/HGO API documented in `docs/acoustoelastic_iop_hgo_public_api.md`.
+GUI code, examples, diagnostics, tests, and analysis scripts should call the author-neutral acoustoelastic IOP/HGO API documented in `docs/acoustoelastic_iop_hgo/public_api.md`.
 
 Model-specific analysis helpers for diagnostics and output paths live in:
 
