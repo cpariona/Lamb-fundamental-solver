@@ -95,7 +95,6 @@ examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_
 docs/acoustoelastic_iop_hgo/output_path_audit.md
 docs/acoustoelastic_iop_hgo/modal_atlas_wrapper_review.md
 docs/acoustoelastic_iop_hgo/legacy_entrypoint_map.md
-docs/acoustoelastic_iop_hgo/remaining_wrapper_inventory.md
 ```
 
 ### Modal-atlas migration status
