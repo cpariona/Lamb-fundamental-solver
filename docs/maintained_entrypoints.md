@@ -140,7 +140,7 @@ These long descriptive files remain because they are implementation targets, not
 
 ```matlab
 diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas
-diagnose_acoustoelastic_iop_hgo_modal_atlas
+ diagnose_acoustoelastic_iop_hgo_modal_atlas
 validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 validate_acoustoelastic_iop_hgo_branch_identity_score_grid
 ```
@@ -212,7 +212,6 @@ docs/acoustoelastic_iop_hgo/atlas_vs_raw_branch1_diagnostic.md
 docs/acoustoelastic_iop_hgo/branch_families_diagnostic.md
 docs/acoustoelastic_iop_hgo/solver_optimization_status.md
 docs/acoustoelastic_iop_hgo/code_retention_review_plan.md
-docs/acoustoelastic_iop_hgo/remaining_wrapper_inventory.md
 docs/acoustoelastic_iop_hgo/modal_atlas_wrapper_review.md
 docs/acoustoelastic_iop_hgo/validation_grid_wrapper_review.md
 docs/acoustoelastic_iop_hgo/exploratory_diagnostic_review.md
