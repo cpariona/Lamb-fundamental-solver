@@ -28,9 +28,28 @@ rlComputeAnalyticalApproximations
 
 Advanced workflows and tests may also call the lower-level `rl*` helpers documented in the public API reference.
 
+## Examples
+
+Maintained Rayleigh-Lamb examples and validation scripts live under:
+
+```text
+examples/rayleigh_lamb/
+```
+
+Current scripts:
+
+```matlab
+run_default_A0
+run_default_A0_S0
+sweep_thickness_A0_S0
+check_default_outputs
+```
+
+The old top-level example folders were removed. Rayleigh-Lamb examples should remain grouped by model under `examples/rayleigh_lamb/`.
+
 ## Startup/path behavior
 
-`startup.m` adds the repository root and the `models/` tree so the primary `rl*` API resolves from any maintained script or test. It does not add old top-level Rayleigh-Lamb folders, and there is no legacy Rayleigh-Lamb compatibility folder to add.
+`startup.m` adds the repository root, the `models/` tree, and the maintained model-specific example folders so the primary `rl*` API and Rayleigh-Lamb examples resolve from any maintained script or test. It does not add old top-level Rayleigh-Lamb folders, and there is no legacy Rayleigh-Lamb compatibility folder to add.
 
 ## Tests and validation
 
