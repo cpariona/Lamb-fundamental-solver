@@ -13,7 +13,6 @@ Use physical or workflow names instead:
 ```matlab
 sweep_iop
 sweep_mu
-compare_acoustoelastic_iop_hgo_branch_policies
 ```
 
 The branch policy belongs in solver options:
@@ -33,7 +32,7 @@ examples/acoustoelastic_iop_hgo/sweeps/sweep_iop.m
 examples/acoustoelastic_iop_hgo/sweeps/sweep_mu.m
 ```
 
-Legacy descriptive implementations remain available:
+The previous descriptive sweep aliases have been archived:
 
 ```text
 examples/acoustoelastic_iop_hgo/sweeps/sweep_acoustoelastic_iop_hgo_iop.m
@@ -129,12 +128,6 @@ Run:
 sweep_iop
 ```
 
-Legacy command:
-
-```matlab
-sweep_acoustoelastic_iop_hgo_iop
-```
-
 Default campaign:
 
 ```matlab
@@ -170,12 +163,6 @@ Run:
 sweep_mu
 ```
 
-Legacy command:
-
-```matlab
-sweep_acoustoelastic_iop_hgo_mu
-```
-
 Default campaign:
 
 ```matlab
@@ -205,46 +192,10 @@ Results/acoustoelastic_iop_hgo_mu_sweep/
 
 ## Branch-policy diagnostic comparison
 
-Run:
-
-```matlab
-compare_acoustoelastic_iop_hgo_branch_policies
-```
-
-This diagnostic compares the current atlas policy with the earlier backward global-scan strategy.
-
-Default legacy output folder:
+The earlier executable branch-policy comparison has been archived. Current branch-policy status and retained evidence are documented in:
 
 ```text
-Results/acoustoelastic_iop_hgo_branch_policy_comparison/
+docs/acoustoelastic_iop_hgo/phase_closure_atlasA0.md
+docs/acoustoelastic_iop_hgo/solver_optimization_status.md
+docs/acoustoelastic_iop_hgo_branch_policy.md
 ```
-
-Generated files:
-
-```text
-acoustoelastic_iop_hgo_branch_policy_comparison_summary.csv
-acoustoelastic_iop_hgo_branch_policy_comparison_workspace.mat
-```
-
-## Interpretation guidance
-
-Use the reliability fields before interpreting any phase-speed curve:
-
-```matlab
-ValidFraction
-ValidPoints
-MissingPoints
-LastValidFrequency_kHz
-FirstMissingFrequency_kHz
-A0StartFilterPassed
-SelectionFallbackUsed
-YStart
-StartRank
-MaxBranchRelativeCpDrop
-```
-
-A missing high-frequency segment should be interpreted as a numerical traceability limit of the current solver/policy, not as proof that the physical mode disappears.
-
-## Future renaming stage
-
-The current migration keeps legacy descriptive scripts for backward compatibility. A later cleanup may remove or archive legacy names once short entrypoints and short result paths have been validated across the workflow.
