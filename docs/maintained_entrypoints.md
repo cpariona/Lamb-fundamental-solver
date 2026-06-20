@@ -38,6 +38,15 @@ rlComputeS0ExtensionalApproximation
 rlSolveFundamentalBranch
 ```
 
+Maintained Rayleigh-Lamb examples and validation scripts live under `examples/rayleigh_lamb/`:
+
+```matlab
+run_default_A0
+run_default_A0_S0
+sweep_thickness_A0_S0
+check_default_outputs
+```
+
 See:
 
 ```text
@@ -153,7 +162,7 @@ Main high-level function:
 computeMRLFE
 ```
 
-Useful examples and diagnostics:
+Useful examples, sweeps, diagnostics, and stress tests:
 
 ```matlab
 run_mrlfe_prototype
@@ -162,6 +171,8 @@ sweep_mrlfe_shear_viscosity_phase_velocity
 diagnose_mrlfe_han_visco_validity_breakdown
 diagnose_mrlfe_han_visco_residual_landscape
 compare_mrlfe_tracker_vs_condition_peaks
+stress_test_mrlfe_elastic_range
+stress_test_mrlfe_han_visco_range
 test_mrlfe_smoke
 ```
 
