@@ -1,6 +1,6 @@
 ### Acoustoelastic IOP/HGO code retention review plan
 
-This document records the current retention policy for the acoustoelastic IOP/HGO module after the `atlasA0` policy closure, archived-diagnostic cleanup, modal-atlas output-path migration, and simple compatibility-alias cleanup passes.
+This document records the current retention policy for the acoustoelastic IOP/HGO module after the `atlasA0` policy closure, archived-diagnostic cleanup, modal-atlas output-path migration, simple compatibility-alias cleanup, and E1 direct-matrix exploratory archival pass.
 
 ### Retention principle
 
@@ -151,6 +151,23 @@ aeRefineAtlasA0BranchPersistence
 test_acoustoelastic_iop_hgo_branch_persistence_refinement
 ```
 
+### Archived E1 exploratory diagnostics
+
+The following direct-matrix exploratory scripts were removed after reference checks and documentation archival:
+
+```text
+run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma.m
+diagnose_acoustoelastic_iop_hgo_matrix_variants.m
+diagnose_acoustoelastic_iop_hgo_dimensionless_A1.m
+diagnose_acoustoelastic_iop_hgo_residual_landscape.m
+```
+
+Retained evidence:
+
+```text
+docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
+```
+
 ### Raw branch tracker retention note
 
 `compare_atlasA0_vs_raw_branch1` is maintained diagnostic evidence. It reads:
@@ -184,4 +201,4 @@ Do not delete `track_raw_branch1` yet.
 
 Do not delete heavy validation wrappers or retained long implementation files solely because they look similar to short entrypoints.
 
-The simple alias cleanup is complete. The next cleanup target should be selected from retained historical diagnostics only after focused reference checks and confirmation that the relevant conclusions are represented in retained documentation.
+The simple alias cleanup and E1 exploratory archival are complete. The next cleanup target should be selected from retained historical diagnostics only after focused reference checks and confirmation that the relevant conclusions are represented in retained documentation.
