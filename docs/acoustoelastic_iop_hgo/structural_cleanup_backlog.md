@@ -170,6 +170,8 @@ Simple compatibility aliases archived after reference checks:
 
 ```text
 run_acoustoelastic_iop_hgo_atlas_branch.m
+sweep_acoustoelastic_iop_hgo_iop.m
+sweep_acoustoelastic_iop_hgo_mu.m
 diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
 diagnose_acoustoelastic_iop_hgo_branch_identity_score.m
 diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
@@ -241,7 +243,7 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 
 ### Recommended next cleanup order
 
-1. Pull the identity alias-removal commit locally.
+1. Pull the latest alias-removal commits locally.
 2. Run `test_acoustoelastic_iop_hgo_short_entrypoints` and `run_all_smoke_tests`.
 3. Run `diagnose_idA0_plausibility` only if an idA0_grid workspace already exists in the MATLAB launch folder, or run `validate_idA0_grid` first.
 4. Keep validation-grid wrappers and `track_raw_branch1` for now.
