@@ -39,7 +39,7 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 | `validate_idA0_grid` | `validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid` | historical wrapper; target exists; consolidation deferred |
 | `diagnose_idA0_score` | `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | archived alias; use the maintained short entrypoint |
 | `diagnose_idA0_plausibility` | `diagnose_idA0_plausibility_impl` | maintained short entrypoint |
-| `diagnose_identityA0_plausibility` | `diagnose_idA0_plausibility_impl` | compatibility alias; prefer `diagnose_idA0_plausibility` |
+| `diagnose_identityA0_plausibility` | `diagnose_idA0_plausibility_impl` | archived alias; use `diagnose_idA0_plausibility` |
 
 ### Modal atlas and raw-branch diagnostics
 
