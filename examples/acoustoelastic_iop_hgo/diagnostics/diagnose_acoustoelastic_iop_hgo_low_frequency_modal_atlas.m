@@ -89,11 +89,11 @@ for c = 1:numel(conditionList)
         key = matlab.lang.makeValidName(sprintf('%s_IOP_%g', condition.label, atlasIOP_mmHg(i)));
         atlasMaps.(key) = atlas;
 
-        plotLowFrequencyAtlasCase(atlas, condition);
+        % plotLowFrequencyAtlasCase(atlas, condition); % disabled for routine short-entrypoint execution
     end
 end
 
-outputFolder = fullfile(pwd, 'Results', 'acoustoelastic_iop_hgo_low_frequency_modal_atlas');
+outputFolder = aeOutputFolder(pwd, 'modal_atlas_lowfreq');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
