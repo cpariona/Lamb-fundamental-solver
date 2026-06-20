@@ -28,12 +28,13 @@ assertUnsupportedPolicyFails("raw_branch1");
 fprintf('test_acoustoelastic_iop_hgo_branch_policy_validation passed. atlasA0 is the only production policy.\n');
 
 function assertUnsupportedPolicyFails(policy)
+policyText = char(string(policy));
 try
     aeNormalizeBranchPolicy(policy);
 catch ME
     assert(contains(ME.message, 'Unsupported acoustoelastic atlas branch policy'), ...
-        'Unsupported policy %s failed with an unexpected error: %s', string(policy), ME.message);
+        'Unsupported policy %s failed with an unexpected error: %s', policyText, ME.message);
     return;
 end
-error('Unsupported policy %s did not fail.', string(policy));
+error('Unsupported policy %s did not fail.', policyText);
 end
