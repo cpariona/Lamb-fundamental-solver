@@ -44,7 +44,8 @@ No known namelengthmax blocker remains.
 The standard modal-atlas wrapper cleanup is closed.
 The low-frequency modal-atlas wrapper cleanup is closed.
 The Group A simple compatibility aliases were archived after reference checks.
-The remaining aeRunLegacyScript users are intentional wrappers or compatibility aliases, not missing-target errors.
+The Group B identity-A0 compatibility alias was archived after reference checks.
+The remaining aeRunLegacyScript users are intentional wrappers, not missing-target errors.
 The remaining legacy output references are either documentation, compatibility fallback reads, or migrated short-output implementations.
 ```
 
@@ -54,7 +55,6 @@ Current remaining executable `aeRunLegacyScript` users in the example layer:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
@@ -66,10 +66,6 @@ Current classification:
 diagnose_idA0_plausibility.m
   KEEP_AS_WRAPPER
   Short maintained name pointing to diagnose_idA0_plausibility_impl.m.
-
-diagnose_identityA0_plausibility.m
-  COMPATIBILITY_ALIAS_CANDIDATE
-  Older identityA0-facing name. May be removable after checking references.
 
 validate_idA0_grid.m
   KEEP_AS_WRAPPER
@@ -102,6 +98,20 @@ run_atlas_branch
 diagnose_sweep_reliability
 diagnose_idA0_score
 diagnose_atlas_truncation
+```
+
+### Group B identity-A0 compatibility alias archived
+
+The following older compatibility alias was archived after reference checks showed no executable dependency outside documentation and the alias file itself:
+
+```text
+examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
+```
+
+Use the maintained short entrypoint instead:
+
+```matlab
+diagnose_idA0_plausibility
 ```
 
 ### Legacy descriptive implementation files still required
@@ -139,41 +149,7 @@ compare_atlasA0_vs_raw_branch1.m
 
 The remaining `Results/acoustoelastic_iop_hgo...` occurrences in documentation are historical notes, migration notes, or compatibility descriptions.
 
-### Candidate deletion/consolidation groups
-
-#### Group B: identity-A0 compatibility name
-
-Candidate:
-
-```text
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
-```
-
-Rationale:
-
-```text
-The maintained short name is diagnose_idA0_plausibility.
-The identityA0 name is a compatibility-facing alias.
-```
-
-Before deletion:
-
-```bash
-git grep "diagnose_identityA0_plausibility"
-git grep "identityA0_plausibility"
-```
-
-Then run:
-
-```matlab
-clear functions
-rehash toolboxcache
-startup
-
-diagnose_idA0_plausibility
-test_acoustoelastic_iop_hgo_short_entrypoints
-run_all_smoke_tests
-```
+### Remaining cleanup groups
 
 #### Group C: heavy validation wrappers
 
@@ -207,18 +183,17 @@ track_raw_branch1 generates raw_branch1_curve.csv.
 compare_atlasA0_vs_raw_branch1 consumes that file.
 ```
 
-### Recommended deletion order
+### Recommended next order
 
-Use small deletion batches:
+Use small batches:
 
 ```text
-1. Run Group B candidate-specific git grep.
-2. Delete only the identity-A0 compatibility alias if no executable dependency is found.
-3. Update docs that still mention the deleted alias as a runnable command.
-4. Run diagnose_idA0_plausibility, test_acoustoelastic_iop_hgo_short_entrypoints, and run_all_smoke_tests.
-5. Do not touch Groups C or D in the same pass.
+1. Pull the Group B alias-removal commit locally.
+2. Run diagnose_idA0_plausibility, test_acoustoelastic_iop_hgo_short_entrypoints, and run_all_smoke_tests.
+3. Do not touch Groups C or D unless the heavy validations or raw-branch comparison are intentionally reworked.
+4. Next cleanup should focus on documentation-only references or a fresh local grep audit, not immediate deletion of implementation files.
 ```
 
 ### Current conclusion
 
-The Group A simple alias cleanup is complete. The next safe cleanup step is a focused review of the Group B identity-A0 compatibility alias.
+The simple compatibility-alias cleanup is complete. Remaining executable wrappers are intentional and should not be deleted as duplicates without a separate design decision.
