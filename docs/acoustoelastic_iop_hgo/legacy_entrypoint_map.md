@@ -21,8 +21,8 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `sweep_iop` | `sweep_acoustoelastic_iop_hgo_iop` | direct maintained implementation; legacy file is alias to short entrypoint |
-| `sweep_mu` | `sweep_acoustoelastic_iop_hgo_mu` | direct maintained implementation; legacy file is alias to short entrypoint |
+| `sweep_iop` | `sweep_acoustoelastic_iop_hgo_iop` | archived alias; use the maintained short entrypoint |
+| `sweep_mu` | `sweep_acoustoelastic_iop_hgo_mu` | archived alias; use the maintained short entrypoint |
 
 ### Branch policy and tracking diagnostics
 
@@ -49,10 +49,17 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 | `diagnose_modal_atlas_lowfreq` | `diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas` | historical thesis-analysis diagnostic; short entrypoint writes to short output path |
 | `track_raw_branch1` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate` | historical raw-branch diagnostic retained for traceability |
 
-### Archived diagnostics removed from examples
+### Archived diagnostics and aliases removed from examples
 
-| Removed short entrypoint | Removed legacy/descriptive file | Replacement or retained evidence |
+| Removed short entrypoint or alias | Removed legacy/descriptive file | Replacement or retained evidence |
 |---|---|---|
+| `run_acoustoelastic_iop_hgo_atlas_branch` | same file | use `run_atlas_branch` |
+| `sweep_acoustoelastic_iop_hgo_iop` | same file | use `sweep_iop` |
+| `sweep_acoustoelastic_iop_hgo_mu` | same file | use `sweep_mu` |
+| `diagnose_acoustoelastic_iop_hgo_sweep_reliability` | same file | use `diagnose_sweep_reliability` |
+| `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | same file | use `diagnose_idA0_score` |
+| `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | same file | use `diagnose_atlas_truncation` |
+| `diagnose_identityA0_plausibility` | same file | use `diagnose_idA0_plausibility` |
 | `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | `atlasA0` policy closure is documented in `docs/acoustoelastic_iop_hgo/phase_closure_atlasA0.md` and `docs/acoustoelastic_iop_hgo/solver_optimization_status.md` |
 | `diagnose_branch_policy` | `diagnose_acoustoelastic_iop_hgo_branch_policy` | branch-policy comparison history retained in documentation; use maintained `atlasA0` policy |
 | `diagnose_atlas_resolution` | `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity` | resolution-sensitivity conclusions retained in `docs/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md` |
