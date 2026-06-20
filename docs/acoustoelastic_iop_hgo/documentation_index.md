@@ -55,10 +55,11 @@ These live one level up in `docs/` because they describe public API or workflow 
 
 | Document | Role |
 |---|---|
-| `../acoustoelastic_iop_hgo_overview.md` | High-level model overview. |
 | `../acoustoelastic_iop_hgo_public_api.md` | Public API list. |
 | `../acoustoelastic_iop_hgo_branch_policy.md` | Branch policy summary. |
 | `../acoustoelastic_iop_hgo_sweep_workflow.md` | Sweep workflow documentation. |
+
+The previous root-level `../acoustoelastic_iop_hgo_overview.md` was removed because its role is covered by this index, `README.md`, `examples_inventory.md`, and `repository_structure.md`.
 
 ### Solver-policy closure and branch ambiguity evidence
 
@@ -113,12 +114,13 @@ Superseded documents removed from the active set:
 ```text
 remaining_wrapper_inventory.md
 structural_cleanup_backlog.md
+../acoustoelastic_iop_hgo_overview.md
 ```
 
 Reason:
 
 ```text
-Their current roles are covered by examples_inventory.md, retained_diagnostic_dependency_review.md, structural_audit_refresh.md, framework_hygiene_status.md, and code_retention_review_plan.md.
+Their current roles are covered by README.md, examples_inventory.md, retained_diagnostic_dependency_review.md, structural_audit_refresh.md, framework_hygiene_status.md, repository_structure.md, and code_retention_review_plan.md.
 ```
 
 ### Archived exploratory diagnostics
