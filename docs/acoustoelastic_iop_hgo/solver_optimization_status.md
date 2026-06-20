@@ -27,11 +27,9 @@ There is one maintained production atlas policy:
 atlasA0
 ```
 
-`strictA0` is only a legacy alias for `atlasA0`; it is not a second atlas implementation.
-
 `raw_branch1` is not a better production branch. It is an independent diagnostic reference extracted from the corrected raw modal atlas. It is kept only to test whether the official atlas-A0 curve is aligned with a globally persistent raw branch where that raw branch itself is reliable.
 
-`identityA0Diagnostic` is not a second atlas either. It is a separate candidate extension used to inspect missing high-frequency points while preserving the official fields.
+`identityA0Diagnostic` is not a second atlas. It is a separate candidate extension used to inspect missing high-frequency points while preserving the official fields.
 
 ### Current official policy
 
