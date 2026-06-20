@@ -1,6 +1,6 @@
 ### Retained diagnostic dependency review
 
-This document records the review performed after the simple compatibility-alias cleanup and local smoke-test validation.
+This document records the review performed after the simple compatibility-alias cleanup, exploratory archival passes, and raw-branch helper extraction.
 
 ### Scope
 
@@ -14,24 +14,23 @@ compare_atlasA0_vs_raw_branch1
 validate_idA0_grid
 validate_idA0_score_grid
 retained long descriptive diagnostic implementations
-retained exploratory basic examples
 ```
 
 ### Summary decision
 
-The simple compatibility-alias cleanup is complete. The E1 direct-matrix exploratory group has now also been archived after preserving its conclusions in documentation.
+The simple compatibility-alias cleanup is complete. Exploratory groups E1-E3 have been archived after preserving their conclusions in documentation. The raw-branch candidate extraction logic has been moved into a reusable analysis helper.
 
 Current conclusion:
 
 ```text
 The remaining short wrappers are intentional.
-The remaining long descriptive files contain implementation, heavy validation, retained exploratory diagnostic, or reproducibility logic.
-The archived E1 exploratory files are documented in direct_matrix_landscape_archive.md.
+The remaining long descriptive files contain modal-atlas implementation logic or heavy validation logic.
+raw_branch1 generation no longer depends on a long implementation script.
 ```
 
 ### Raw-branch comparison pipeline
 
-The dependency is real and should be retained for now.
+The raw-branch dependency is now explicit and reusable.
 
 Pipeline:
 
@@ -39,21 +38,25 @@ Pipeline:
 diagnose_modal_atlas_lowfreq
   -> Results/ae_iop_hgo/modal_atlas_lowfreq
 
-track_raw_branch1
+aeExtractRawBranch1Candidate
   -> reads modal_atlas_lowfreq outputs
   -> writes Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv
 
+track_raw_branch1
+  -> short entrypoint that calls aeExtractRawBranch1Candidate
+
 compare_atlasA0_vs_raw_branch1
-  -> reads Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv
+  -> reads Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv when present
+  -> regenerates raw_branch1_curve.csv via aeExtractRawBranch1Candidate when missing
   -> compares raw_branch1, atlasA0, and identityA0Diagnostic
 ```
 
 Relevant files:
 
 ```text
+analysis/acoustoelastic_iop_hgo/aeExtractRawBranch1Candidate.m
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
 examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
-examples/acoustoelastic_iop_hgo/diagnostics/track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
 examples/acoustoelastic_iop_hgo/diagnostics/compare_atlasA0_vs_raw_branch1.m
 ```
 
@@ -61,23 +64,20 @@ Decision:
 
 ```text
 KEEP track_raw_branch1
-KEEP track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
+KEEP aeExtractRawBranch1Candidate
 ```
 
 Reason:
 
 ```text
-compare_atlasA0_vs_raw_branch1 still depends on raw_branch1_curve.csv.
-Removing the generator would make the maintained comparison depend on an undocumented external artifact.
+compare_atlasA0_vs_raw_branch1 still uses raw_branch1_curve.csv as comparison evidence, but it can now regenerate the file from modal_atlas_lowfreq outputs if the raw_branch1 artifact is missing.
 ```
 
-Future simplification option:
+The removed long implementation script was:
 
 ```text
-Move raw-branch candidate extraction into an analysis helper, then let both track_raw_branch1 and compare_atlasA0_vs_raw_branch1 call the helper or share an explicit generated workspace contract.
+examples/acoustoelastic_iop_hgo/diagnostics/track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
 ```
-
-Do not do this as a mechanical cleanup. It would change diagnostic workflow structure.
 
 ### Validation-grid wrappers
 
@@ -142,82 +142,32 @@ They generate diagnostic evidence for modal-family ambiguity.
 They already write to Results/ae_iop_hgo/modal_atlas and Results/ae_iop_hgo/modal_atlas_lowfreq through aeOutputFolder.
 ```
 
-### Archived E1 exploratory diagnostics
+### Archived exploratory diagnostics
 
-The following direct-matrix exploratory scripts were archived after preserving their conclusions in `direct_matrix_landscape_archive.md`:
+Exploratory groups E1-E3 were archived after preserving conclusions in documentation.
 
-```text
-examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_dimensionless_A1.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_matrix_variants.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_residual_landscape.m
-```
-
-Decision:
+Archive documents:
 
 ```text
-ARCHIVED_AFTER_DOCUMENTATION
-```
-
-Reason:
-
-```text
-These scripts isolated direct alpha-beta-gamma behavior, M54 variant checks, dimensionless A1-style diagnostics, and residual landscapes. Their conclusions are now preserved in documentation, and the underlying solver/model options remain in the implementation.
-```
-
-### Retained exploratory examples
-
-Remaining long descriptive examples and diagnostics still present as exploratory or historical development scripts:
-
-```text
-examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_A0_backward.m
-examples/acoustoelastic_iop_hgo/basic/run_acoustoelastic_iop_hgo_A0_complexC.m
-examples/acoustoelastic_iop_hgo/diagnostics/compare_acoustoelastic_iop_hgo_tracking_strategies.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_grid_convergence.m
-examples/acoustoelastic_iop_hgo/sweeps/sweep_acoustoelastic_iop_hgo_A0_backward.m
-```
-
-Decision:
-
-```text
-KEEP_AS_EXPLORATORY_FOR_NOW
-```
-
-Reason:
-
-```text
-These are not simple aliases.
-They encode remaining historical solver-development questions: A0 backward behavior, grid convergence, tracking-strategy comparison, historical sweep behavior, and complex-C continuation.
-Some contain conclusions or visual checks that may still be useful for thesis traceability.
-```
-
-Caveat:
-
-```text
-These should not be presented as maintained public workflows.
-They should remain outside routine execution and outside smoke-test expectations.
-```
-
-Future cleanup option:
-
-```text
-Archive or consolidate exploratory examples only after confirming their conclusions are fully represented in documentation.
-```
-
-Suggested future order:
-
-```text
-1. Review A0 backward, grid convergence, and tracking strategies together.
-2. Review the A0 backward sweep after confirming it no longer supports retained sweep/truncation evidence.
-3. Review complex-C continuation separately, because it may still be a future solver direction.
+docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
+docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+docs/acoustoelastic_iop_hgo/complex_c_continuation_archive.md
 ```
 
 ### Current action recommendation
 
-Do not delete another exploratory group until the E1 deletion batch has passed local validation.
+Do not delete another retained diagnostic group until the raw-branch helper extraction has passed local validation.
 
-Recommended next step after validation:
+Recommended validation:
 
-```text
-Review E2: A0 backward, grid convergence, tracking strategies, and historical A0 backward sweep.
+```matlab
+clear functions
+rehash toolboxcache
+startup
+
+diagnose_modal_atlas_lowfreq
+track_raw_branch1
+compare_atlasA0_vs_raw_branch1
+test_acoustoelastic_iop_hgo_short_entrypoints
+run_all_smoke_tests
 ```
