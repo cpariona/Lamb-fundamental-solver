@@ -19,11 +19,12 @@ For normal use, read in this order:
 For branch-policy reasoning, read:
 
 ```text
-1. solver_optimization_status.md
-2. phase_closure_atlasA0.md
-3. atlas_vs_raw_branch1_diagnostic.md
-4. branch_families_diagnostic.md
-5. identityA0_diagnostic_policy.md
+1. phase_closure_atlasA0_only.md
+2. solver_optimization_status.md
+3. phase_closure_atlasA0.md
+4. atlas_vs_raw_branch1_diagnostic.md
+5. branch_families_diagnostic.md
+6. identityA0_diagnostic_policy.md
 ```
 
 For cleanup or refactor work, read:
@@ -67,7 +68,8 @@ These documents support why `atlasA0` is official and why `identityA0Diagnostic`
 
 | Document | Role |
 |---|---|
-| `phase_closure_atlasA0.md` | Formal closure note for the `atlasA0` optimization phase. |
+| `phase_closure_atlasA0_only.md` | Final closure note for the single production `atlasA0` policy and legacy alias removal. |
+| `phase_closure_atlasA0.md` | Earlier closure note for the `atlasA0` optimization phase. |
 | `solver_optimization_status.md` | Current validation status and ambiguity boundary. |
 | `atlas_vs_raw_branch1_diagnostic.md` | Comparison of official `atlasA0`, diagnostic `identityA0Diagnostic`, and `raw_branch1`. |
 | `branch_families_diagnostic.md` | Competing branch-family analysis in the difficult corner. |
@@ -170,7 +172,7 @@ When changing solver policy, update:
 
 ```text
 solver_optimization_status.md
-phase_closure_atlasA0.md
+phase_closure_atlasA0_only.md
 ../acoustoelastic_iop_hgo_branch_policy.md
 ```
 
