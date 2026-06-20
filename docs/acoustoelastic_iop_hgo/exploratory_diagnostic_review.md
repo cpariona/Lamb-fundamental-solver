@@ -4,29 +4,34 @@ This document classifies retained exploratory acoustoelastic IOP/HGO scripts aft
 
 ### Purpose
 
-The goal is not to remove code immediately. The goal is to distinguish:
+The goal is to distinguish:
 
 ```text
 maintained public workflow
 maintained diagnostic evidence
 retained historical/exploratory diagnostic
+archived exploratory diagnostic
 candidate for future archival
 ```
 
 ### Current decision
 
-No additional executable scripts should be deleted in this pass.
+The E1 direct-matrix exploratory group has been archived after preserving its conclusions in:
 
-The remaining long descriptive scripts listed here are not simple aliases. They contain exploratory solver-development logic, direct model checks, or historical evidence for branch-selection decisions.
+```text
+docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
+```
+
+No additional exploratory group should be archived in the same pass.
 
 ### Classification summary
 
 | File | Classification | Reason | Current action |
 |---|---|---|---|
-| `run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma.m` | `RETAIN_EXPLORATORY_DIRECT_MODEL_CHECK` | Bypasses IOP/HGO and solves the direct alpha-beta-gamma matrix problem. Useful for isolating matrix/dispersion behavior from constitutive prestress. | Keep for now. |
-| `diagnose_acoustoelastic_iop_hgo_matrix_variants.m` | `RETAIN_EXPLORATORY_MATRIX_CHECK` | Compares paper and corrected `M54` variants. Supports the documented suspicion around the matrix entry. | Keep for now. |
-| `diagnose_acoustoelastic_iop_hgo_dimensionless_A1.m` | `RETAIN_EXPLORATORY_DIMENSIONLESS_CHECK` | Recreates an Appendix-A1-style dimensionless diagnostic for the direct solver shape. | Keep for now. |
-| `diagnose_acoustoelastic_iop_hgo_residual_landscape.m` | `RETAIN_EXPLORATORY_LANDSCAPE_CHECK` | Maps objective minima over dimensionless phase velocity and frequency. Useful for explaining modal ambiguity. | Keep for now. |
+| `run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma.m` | `ARCHIVED_EXPLORATORY_DIRECT_MODEL_CHECK` | Bypassed IOP/HGO and solved the direct alpha-beta-gamma matrix problem. Purpose and conclusions preserved in `direct_matrix_landscape_archive.md`. | Removed. |
+| `diagnose_acoustoelastic_iop_hgo_matrix_variants.m` | `ARCHIVED_EXPLORATORY_MATRIX_CHECK` | Compared paper and corrected `M54` variants. Purpose and conclusions preserved in `direct_matrix_landscape_archive.md`. | Removed. |
+| `diagnose_acoustoelastic_iop_hgo_dimensionless_A1.m` | `ARCHIVED_EXPLORATORY_DIMENSIONLESS_CHECK` | Recreated an Appendix-A1-style dimensionless diagnostic for the direct solver shape. Purpose and conclusions preserved in `direct_matrix_landscape_archive.md`. | Removed. |
+| `diagnose_acoustoelastic_iop_hgo_residual_landscape.m` | `ARCHIVED_EXPLORATORY_LANDSCAPE_CHECK` | Mapped objective minima over dimensionless phase velocity and frequency. Purpose and conclusions preserved in `direct_matrix_landscape_archive.md`. | Removed. |
 | `diagnose_acoustoelastic_iop_hgo_grid_convergence.m` | `RETAIN_EXPLORATORY_GRID_CONVERGENCE` | Checks Cp grid sensitivity and branch-map behavior. Overlaps with later modal-atlas diagnostics but still documents early solver-development reasoning. | Keep for now. |
 | `compare_acoustoelastic_iop_hgo_tracking_strategies.m` | `RETAIN_EXPLORATORY_TRACKING_COMPARISON` | Compares global scan, predictive continuation, singular-vector tracking, A0High, and complex-C diagnostic routes. | Keep for now. |
 | `run_acoustoelastic_iop_hgo_A0_backward.m` | `RETAIN_EXPLORATORY_A0_BACKWARD_EXAMPLE` | Demonstrates the earlier corrected-M54 A0 backward global-scan workflow. It is superseded by `run_atlas_branch` for routine use but remains useful for historical solver tracing. | Keep for now. |
@@ -35,7 +40,7 @@ The remaining long descriptive scripts listed here are not simple aliases. They 
 
 ### Not maintained public workflows
 
-The scripts above should not be presented as routine commands. Routine acoustoelastic workflows remain:
+The retained exploratory scripts above should not be presented as routine commands. Routine acoustoelastic workflows remain:
 
 ```matlab
 run_atlas_branch
@@ -63,7 +68,7 @@ The official branch policy remains:
 atlasA0
 ```
 
-These exploratory diagnostics must not mutate or replace:
+Retained exploratory diagnostics must not mutate or replace:
 
 ```matlab
 result.Cp
@@ -81,11 +86,11 @@ threshold-relaxed continuation
 
 into official solver outputs.
 
-### Candidate future archival groups
-
-If future cleanup is desired, review the exploratory scripts in groups, not individually.
+### Archived exploratory group
 
 #### Group E1: Direct matrix and M54 evidence
+
+Archived files:
 
 ```text
 run_acoustoelastic_iop_hgo_direct_alpha_beta_gamma.m
@@ -94,11 +99,21 @@ diagnose_acoustoelastic_iop_hgo_dimensionless_A1.m
 diagnose_acoustoelastic_iop_hgo_residual_landscape.m
 ```
 
-Suggested condition before archival:
+Archive evidence:
 
 ```text
-Confirm that direct matrix behavior, M54 variant reasoning, dimensionless diagnostic behavior, and residual landscape conclusions are fully represented in documentation.
+docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
 ```
+
+Reason:
+
+```text
+The direct matrix behavior, M54 variant reasoning, dimensionless diagnostic behavior, and residual landscape conclusions are now represented in documentation. The underlying solver/model options remain in the model implementation.
+```
+
+### Candidate future archival groups
+
+If future cleanup is desired, review the remaining exploratory scripts in groups, not individually.
 
 #### Group E2: Tracking and A0 backward evidence
 
@@ -106,12 +121,13 @@ Confirm that direct matrix behavior, M54 variant reasoning, dimensionless diagno
 run_acoustoelastic_iop_hgo_A0_backward.m
 sweep_acoustoelastic_iop_hgo_A0_backward.m
 compare_acoustoelastic_iop_hgo_tracking_strategies.m
+diagnose_acoustoelastic_iop_hgo_grid_convergence.m
 ```
 
 Suggested condition before archival:
 
 ```text
-Confirm that `atlasA0` closure, sweep reliability, and branch-tracking decisions are fully represented by maintained diagnostics and retained documentation.
+Confirm that `atlasA0` closure, sweep reliability, grid-convergence reasoning, and branch-tracking decisions are fully represented by maintained diagnostics and retained documentation.
 ```
 
 #### Group E3: Complex-C continuation
@@ -150,12 +166,6 @@ If the candidate group has a maintained replacement entrypoint, run that maintai
 
 ### Current recommendation
 
-Do not archive the exploratory scripts yet.
+Do not archive another exploratory group until the E1 deletion batch has passed local validation.
 
-The next safe step is documentation alignment:
-
-```text
-1. Ensure public docs list them only as retained exploratory scripts.
-2. Ensure no README or workflow doc recommends them for routine execution.
-3. Preserve the official `atlasA0` boundary.
-```
+The next possible cleanup group is E2, but only after confirming that branch-tracking and grid-convergence conclusions are fully represented by retained documentation.
