@@ -13,7 +13,6 @@ addpath(genpath(fullfile(projectRoot, 'analysis')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'rayleigh_lamb')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'acoustoelastic_iop_hgo')));
 addpath(genpath(fullfile(projectRoot, 'examples', 'mrlfe')));
-addpath(genpath(fullfile(projectRoot, 'examples', 'validation')));
 addpath(genpath(fullfile(projectRoot, 'tests')));
 
 fprintf('Lamb Fundamental Solver active paths added from:\n%s\n', projectRoot);
