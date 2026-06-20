@@ -2,8 +2,6 @@ function policy = aeNormalizeBranchPolicy(policy)
 %AENORMALIZEBRANCHPOLICY Normalize acoustoelastic atlas branch-policy names.
 %
 %   "atlasA0" is the maintained atlas-based A0 branch-selection policy.
-%   "strictA0" remains accepted for backward compatibility and maps to
-%   "atlasA0".
 %   "identityA0Diagnostic" keeps the official atlasA0 output unchanged and
 %   writes an identity-scored candidate branch under result.identityA0.
 
@@ -15,8 +13,6 @@ end
 policy = string(policy);
 
 switch lower(strtrim(policy))
-    case "stricta0"
-        policy = "atlasA0";
     case "atlasa0"
         policy = "atlasA0";
     case "identitya0diagnostic"
