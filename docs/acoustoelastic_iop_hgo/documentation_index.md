@@ -103,12 +103,23 @@ These documents are primarily for maintainers. They should not be treated as use
 |---|---|
 | `code_retention_review_plan.md` | Retention policy and archival history. |
 | `legacy_entrypoint_map.md` | Mapping from short entrypoints to archived or retained descriptive files. |
-| `remaining_wrapper_inventory.md` | Remaining wrapper inventory after consolidation passes. |
 | `structural_audit_refresh.md` | Refreshed cleanup audit and candidate-group history. |
 | `structural_cleanup_backlog.md` | Cleanup backlog and historical status. |
 | `post_rename_audit.md` | Post-renaming audit status. |
 | `validation_grid_wrapper_review.md` | Review of heavy validation wrappers. |
 | `output_path_audit.md` | Output-path cleanup and fallback reads. |
+
+Superseded document removed from the active set:
+
+```text
+remaining_wrapper_inventory.md
+```
+
+Reason:
+
+```text
+Its current role is covered by examples_inventory.md, retained_diagnostic_dependency_review.md, structural_audit_refresh.md, and code_retention_review_plan.md.
+```
 
 ### Archived exploratory diagnostics
 
