@@ -64,7 +64,8 @@ end
 
 fMax = max(requestedFrequency);
 initMin = getOptionValue(options, 'atlasInitializationMinFrequency_Hz', 300);
-initMin = min(max(initMin, min(requestedFrequency)), fMax);
+initMin = max(initMin, eps);
+initMin = min(initMin, fMax);
 
 nInit = round(getOptionValue(options, 'atlasInitializationNumFrequencyPoints', 50));
 nInit = max(nInit, 2);
