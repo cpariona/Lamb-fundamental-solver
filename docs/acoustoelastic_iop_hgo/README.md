@@ -73,6 +73,7 @@ Do not execute long legacy scripts directly unless reproducing historical behavi
 | `exploratory_diagnostic_review.md` | Classification of retained exploratory diagnostics and future archival groups. |
 | `direct_matrix_landscape_archive.md` | Archived direct-matrix, M54, dimensionless, and residual-landscape exploratory conclusions. |
 | `a0_backward_tracking_archive.md` | Archived A0-backward, tracking, sweep, and grid-convergence exploratory conclusions. |
+| `complex_c_continuation_archive.md` | Archived complex-C continuation example conclusions; model-level complex-C solver remains retained. |
 | `output_path_audit.md` | Current audit of short result paths, legacy fallback reads, and remaining output-path cleanup candidates. |
 | `modal_atlas_wrapper_review.md` | Focused review of modal-atlas wrapper cleanup risks and plan. |
 | `validation_grid_wrapper_review.md` | Focused review of identity-A0 validation-grid wrappers. |
