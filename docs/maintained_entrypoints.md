@@ -50,8 +50,8 @@ check_default_outputs
 See:
 
 ```text
-docs/rayleigh_lamb_public_api.md
-docs/rayleigh_lamb_overview.md
+docs/rayleigh_lamb/public_api.md
+docs/rayleigh_lamb/overview.md
 ```
 
 ## Acoustoelastic IOP/HGO model
@@ -148,9 +148,9 @@ Notes:
 See:
 
 ```text
-docs/acoustoelastic_iop_hgo_public_api.md
-docs/acoustoelastic_iop_hgo_branch_policy.md
-docs/acoustoelastic_iop_hgo_sweep_workflow.md
+docs/acoustoelastic_iop_hgo/public_api.md
+docs/acoustoelastic_iop_hgo/branch_policy.md
+docs/acoustoelastic_iop_hgo/sweep_workflow.md
 docs/acoustoelastic_iop_hgo/README.md
 ```
 
@@ -200,23 +200,28 @@ docs/maintained_entrypoints.md
 Rayleigh-Lamb docs:
 
 ```text
-docs/rayleigh_lamb_overview.md
-docs/rayleigh_lamb_public_api.md
+docs/rayleigh_lamb/overview.md
+docs/rayleigh_lamb/public_api.md
+```
+
+mRLFE docs:
+
+```text
+docs/mrlfe/tracker_diagnostic_summary.md
 ```
 
 Acoustoelastic docs:
 
 ```text
-docs/acoustoelastic_iop_hgo_public_api.md
-docs/acoustoelastic_iop_hgo_branch_policy.md
-docs/acoustoelastic_iop_hgo_sweep_workflow.md
 docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/documentation_index.md
+docs/acoustoelastic_iop_hgo/public_api.md
+docs/acoustoelastic_iop_hgo/branch_policy.md
+docs/acoustoelastic_iop_hgo/sweep_workflow.md
 ```
 
 Other active docs:
 
 ```text
 docs/parametric_sweeps.md
-docs/mrlfe_tracker_diagnostic_summary.md
 ```
