@@ -65,6 +65,7 @@ Do not execute long legacy scripts directly unless reproducing historical behavi
 
 | Document | Purpose |
 |---|---|
+| `examples_inventory.md` | Current post-cleanup inventory of executable files under `examples/acoustoelastic_iop_hgo/`. |
 | `naming_and_paths_convention.md` | Short-name and result-path convention. |
 | `legacy_entrypoint_map.md` | Mapping from maintained short entrypoints to legacy descriptive scripts. |
 | `remaining_wrapper_inventory.md` | Remaining wrapper inventory after partial consolidation. |
