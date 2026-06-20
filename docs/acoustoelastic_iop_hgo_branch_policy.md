@@ -24,14 +24,6 @@ The name is kept explicit because the solver may later expose other modal branch
 options.atlasBranchPolicy = "atlasA0";
 ```
 
-The older name:
-
-```matlab
-options.atlasBranchPolicy = "strictA0";
-```
-
-is only a legacy alias for backward compatibility. It is not a second maintained atlas policy.
-
 Diagnostic objects have different roles:
 
 ```text
