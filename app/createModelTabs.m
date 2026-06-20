@@ -144,18 +144,18 @@ h.ae.fluidBulkModulus.Layout.Column = [3 4];
 label = uilabel(gAE, 'Text', 'atlas y-points');
 label.Layout.Row = 7;
 label.Layout.Column = [1 2];
-h.ae.atlasNumYPoints = uieditfield(gAE, 'numeric', 'Value', 300, 'Limits', [50 Inf], 'RoundFractionalValues', 'on', 'ValueChangedFcn', callbacks.markDirty);
+h.ae.atlasNumYPoints = uieditfield(gAE, 'numeric', 'Value', 600, 'Limits', [50 Inf], 'RoundFractionalValues', 'on', 'Enable', 'off');
 h.ae.atlasNumYPoints.Layout.Row = 7;
 h.ae.atlasNumYPoints.Layout.Column = [3 4];
 
 label = uilabel(gAE, 'Text', 'atlas minima');
 label.Layout.Row = 8;
 label.Layout.Column = [1 2];
-h.ae.atlasTopNMinima = uieditfield(gAE, 'numeric', 'Value', 12, 'Limits', [1 Inf], 'RoundFractionalValues', 'on', 'ValueChangedFcn', callbacks.markDirty);
+h.ae.atlasTopNMinima = uieditfield(gAE, 'numeric', 'Value', 16, 'Limits', [1 Inf], 'RoundFractionalValues', 'on', 'Enable', 'off');
 h.ae.atlasTopNMinima.Layout.Row = 8;
 h.ae.atlasTopNMinima.Layout.Column = [3 4];
 
-note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, fmin, and fmax. This avoids duplicating material controls across model tabs.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, fmin, and fmax. Atlas values are derived from the Advanced robustness preset.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Row = 9;
 note.Layout.Column = [1 4];
 
