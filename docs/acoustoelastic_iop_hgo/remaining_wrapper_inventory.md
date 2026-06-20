@@ -13,6 +13,8 @@ auto-detected missing aeRunLegacyScript targets closed
 basic example and sweep short entrypoints converted to direct maintained implementations
 six diagnostic short entrypoints converted to direct maintained implementations
 standard and low-frequency modal-atlas short entrypoints converted to direct delegation
+Group A simple compatibility aliases archived
+identityA0 plausibility compatibility alias archived
 archived branch-policy, truncation-case, failure-landscape, branch-persistence, and atlas-resolution executable diagnostics removed
 ```
 
@@ -28,7 +30,6 @@ The current remaining example-layer wrappers are intentional. They are not known
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_identityA0_plausibility.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/track_raw_branch1.m
@@ -49,10 +50,6 @@ They now delegate directly to their descriptive implementations, which write to 
 diagnose_idA0_plausibility.m
   KEEP_AS_WRAPPER
   Target is diagnose_idA0_plausibility_impl.m, a renamed implementation file rather than a legacy descriptive script.
-
-diagnose_identityA0_plausibility.m
-  KEEP_AS_COMPATIBILITY_ALIAS
-  Compatibility alias for diagnose_idA0_plausibility. It preserves the old user-facing identityA0 name.
 
 validate_idA0_grid.m
   KEEP_AS_WRAPPER
@@ -92,6 +89,11 @@ diagnose_branch_persistence.m
 diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m
 diagnose_atlas_resolution.m
 diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity.m
+run_acoustoelastic_iop_hgo_atlas_branch.m
+diagnose_acoustoelastic_iop_hgo_sweep_reliability.m
+diagnose_acoustoelastic_iop_hgo_branch_identity_score.m
+diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause.m
+diagnose_identityA0_plausibility.m
 ```
 
 ### Next safe cleanup pass
@@ -103,7 +105,7 @@ Recommended order:
 ```text
 1. Keep validate_idA0_grid.m and validate_idA0_score_grid.m as wrappers unless their heavy implementations are intentionally modified and executed.
 2. Keep track_raw_branch1.m while compare_atlasA0_vs_raw_branch1 depends on raw_branch1_curve.csv.
-3. Review the remaining identity-A0 plausibility wrappers only as a focused compatibility-alias pass.
+3. Review possible documentation-only references to archived aliases.
 ```
 
 ### Deletion policy
