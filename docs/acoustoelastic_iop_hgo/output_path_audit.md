@@ -1,6 +1,6 @@
 ### Output path audit
 
-This document records the current output-path cleanup status for the acoustoelastic IOP/HGO example and diagnostic layer after the archived-diagnostic cleanup passes.
+This document records the current output-path cleanup status for the acoustoelastic IOP/HGO example and diagnostic layer after the archived-diagnostic cleanup passes and raw-branch helper extraction.
 
 ### Scope
 
@@ -34,27 +34,44 @@ Here `launchFolder` means the MATLAB working directory from which the user calls
 
 Fallback reads from legacy result folders are allowed only when needed for migration or historical reproducibility.
 
-### Search summary
+### Raw-branch output status
 
-A focused search for direct code references matching:
+The raw-branch candidate extraction logic now lives in:
 
 ```text
-fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo
+analysis/acoustoelastic_iop_hgo/aeExtractRawBranch1Candidate.m
 ```
 
-found only one remaining code path:
+It writes maintained outputs to:
+
+```text
+Results/ae_iop_hgo/raw_branch1
+```
+
+and retains a fallback read for older low-frequency modal-atlas outputs:
+
+```text
+Results/acoustoelastic_iop_hgo_low_frequency_modal_atlas
+```
+
+This fallback is an input migration path only. It does not create new legacy output folders.
+
+The previous long implementation script was removed:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
 ```
 
-That reference is a fallback input path:
+Current behavior:
 
-```matlab
-legacyInputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_low_frequency_modal_atlas');
+```text
+track_raw_branch1
+  calls aeExtractRawBranch1Candidate directly
+
+compare_atlasA0_vs_raw_branch1
+  reads Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv when present
+  regenerates raw_branch1_curve.csv through aeExtractRawBranch1Candidate when missing
 ```
-
-It does not create a new legacy output folder. It allows `track_raw_branch1` to read older low-frequency modal-atlas outputs when the short-path output is not available.
 
 ### Modal-atlas dependency review
 
@@ -110,14 +127,23 @@ User-reported MATLAB validation passed for both modal-atlas entrypoints and the 
 
 ### Remaining output-path notes
 
-The remaining legacy-path references are not broad uncontrolled writes.
+The remaining legacy-path references are controlled fallback reads or historical documentation.
 
 Current classification:
 
 ```text
-track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
+aeExtractRawBranch1Candidate.m
   COMPATIBILITY_FALLBACK_READ
-  Keep while raw_branch1 reproducibility is required.
+  Reads old modal_atlas_lowfreq output only if the maintained short output is unavailable.
+  Writes to Results/ae_iop_hgo/raw_branch1.
+
+track_raw_branch1.m
+  DIRECT_HELPER_ENTRYPOINT
+  Calls aeExtractRawBranch1Candidate and writes maintained short-path outputs.
+
+compare_atlasA0_vs_raw_branch1.m
+  DIRECT_HELPER_FALLBACK
+  Can regenerate raw_branch1_curve.csv from modal_atlas_lowfreq outputs if needed.
 
 diagnose_modal_atlas.m
   DIRECT_DELEGATION_TO_MIGRATED_IMPLEMENTATION_WITH_LAUNCH_FOLDER_PRESERVATION
@@ -136,21 +162,6 @@ diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
   Writes through aeOutputFolder(pwd, 'modal_atlas_lowfreq'); `pwd` is preserved by the maintained short entrypoint.
 ```
 
-### Do not change yet
-
-Do not remove:
-
-```text
-track_raw_branch1
-track_acoustoelastic_iop_hgo_raw_branch1_candidate.m
-```
-
-Reason:
-
-```text
-track_raw_branch1 produces Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv, which is consumed by compare_atlasA0_vs_raw_branch1.
-```
-
 ### Current conclusion
 
-The standard and low-frequency modal-atlas output-path migrations are closed. Remaining cleanup should move back to the broader wrapper inventory and legacy-script classification, not additional modal-atlas output-path work.
+The standard and low-frequency modal-atlas output-path migrations are closed. The raw_branch1 output path is now helper-backed and reproducible from modal_atlas_lowfreq outputs. Remaining cleanup should focus on heavy validation wrappers or modal-atlas implementation extraction only after a separate design decision.
