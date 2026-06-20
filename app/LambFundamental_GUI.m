@@ -216,7 +216,7 @@ updateAxisFieldState();
     function [results, guiResult] = runModelRequestThroughAdapter(params, options)
         guiRequest = struct();
 
-        if getOptionValue(options, 'computeAcoustoelasticIOPHGO', false)
+        if getOptionValueLocal(options, 'computeAcoustoelasticIOPHGO', false)
             aeParams = readAcoustoelasticParamsFromGui(params, options);
             guiRequest.params = aeParams;
             guiRequest.options = options.acoustoelasticOptions;
@@ -481,7 +481,7 @@ updateAxisFieldState();
 
     function updateLabels()
         if isempty(lastResults) || isempty(lastOptions), return; end
-        if getOptionValue(lastOptions, 'computeAcoustoelasticIOPHGO', false)
+        if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
             updateAcoustoelasticLabels();
             return;
         end
@@ -532,6 +532,14 @@ updateAxisFieldState();
         end
     end
 
+    function value = getOptionValueLocal(optionsStruct, fieldName, defaultValue)
+        if isstruct(optionsStruct) && isfield(optionsStruct, fieldName) && ~isempty(optionsStruct.(fieldName))
+            value = optionsStruct.(fieldName);
+        else
+            value = defaultValue;
+        end
+    end
+
     function setStatusText(lines)
         if ischar(lines) || isstring(lines), statusBox.Value = cellstr(lines); else, statusBox.Value = lines; end
     end
@@ -544,7 +552,7 @@ updateAxisFieldState();
     end
 
     function txt = buildDiagnosticsText()
-        if getOptionValue(lastOptions, 'computeAcoustoelasticIOPHGO', false)
+        if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
             txt = buildAcoustoelasticDiagnosticsText();
             return;
         end
@@ -640,7 +648,7 @@ updateAxisFieldState();
             assignin('base','GuiResults',GuiResults);
             assignin('base','GuiBranchTables',GuiBranchTables);
         end
-        if getOptionValue(lastOptions, 'computeAcoustoelasticIOPHGO', false)
+        if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
             assignin('base', 'AcoustoelasticIOPHGOResults', lastResults);
         end
         if isfield(lastResults, 'modes')
