@@ -66,6 +66,14 @@ options.atlasBranchPolicy = "atlasA0";
 % official Cp/validCp curve.
 options.invalidateAtlasFallbackOutput = true;
 
+% Internal atlas tracking grid. This decouples branch identity initialization
+% from the user-requested output grid. The wrapper builds a hidden tracking
+% grid beginning near a stable low-frequency range and then reports Cp only
+% on the requested output frequencies.
+options.useInternalAtlasTrackingGrid = true;
+options.atlasInitializationMinFrequency_Hz = 300;
+options.atlasInitializationNumFrequencyPoints = 50;
+
 % Branch-selection mode.
 %   "band"   : restrict candidate minima by dimensionless Cp bands.
 %   "global" : use all local minima in the Cp grid.
