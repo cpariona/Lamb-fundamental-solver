@@ -1,17 +1,37 @@
 # mRLFE tracker diagnostic summary
 
-This note summarizes the diagnostic evidence from `examples/mrlfe/diagnostics/compare_mrlfe_tracker_vs_condition_peaks.m`.
+This note summarizes the diagnostic evidence from `examples/mrlfe/diagnostics/compare_mrlfe_tracker_vs_condition_peaks.m` and records the maintained mRLFE stress-test diagnostics.
 
-The diagnostic compares the current tracked mRLFE branch against a brute-force residual/condition scan over phase velocity `Cp`. It is intended to answer four questions:
+The tracker diagnostic compares the current tracked mRLFE branch against a brute-force residual/condition scan over phase velocity `Cp`. It is intended to answer four questions:
 
 1. Is the tracked branch continuous?
 2. Does the tracked branch lie near a true local residual minimum?
 3. Does the global residual minimum select the correct modal branch?
 4. Is brute-force scanning a practical replacement for the tracker?
 
+## Maintained diagnostic scripts
+
+The maintained mRLFE diagnostic scripts live under:
+
+```text
+examples/mrlfe/diagnostics/
+```
+
+Current diagnostics:
+
+```matlab
+diagnose_mrlfe_han_visco_validity_breakdown
+diagnose_mrlfe_han_visco_residual_landscape
+compare_mrlfe_tracker_vs_condition_peaks
+stress_test_mrlfe_elastic_range
+stress_test_mrlfe_han_visco_range
+```
+
+The two stress-test scripts were moved from the old top-level validation folder into the mRLFE diagnostics tree. They are model-specific diagnostics, not Rayleigh-Lamb validation scripts.
+
 ## Diagnostic configuration
 
-Reference case used in the tests:
+Reference case used in the tracker comparison tests:
 
 | Parameter | Value |
 |---|---:|
@@ -105,16 +125,10 @@ For elastic cases, the current tracker is faster than the estimated full brute-f
 
 ## Recommended use
 
-Run the diagnostic from the repository root after `startup`:
+Run the tracker diagnostic from the repository root after `startup`:
 
 ```matlab
 compare_mrlfe_tracker_vs_condition_peaks
-```
-
-The script is maintained under:
-
-```text
-examples/mrlfe/diagnostics/
 ```
 
 Edit the case at the top of the script:
@@ -152,6 +166,15 @@ modelName  = "mRLFEElasticRealK";
 ```
 
 This gives a stable baseline case when the diagnostic is opened or run without editing.
+
+Use the stress tests for broader range checks:
+
+```matlab
+stress_test_mrlfe_elastic_range
+stress_test_mrlfe_han_visco_range
+```
+
+These scripts are heavier than smoke tests and should be run manually when mRLFE tracking, material ranges, or viscoelastic branch behavior changes.
 
 ## Recommended wording for discussion
 
