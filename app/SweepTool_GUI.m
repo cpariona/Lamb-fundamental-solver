@@ -6,7 +6,8 @@ function SweepTool_GUI(baseParams, baseOptions)
 %   SweepTool_GUI(params, options)
 %
 % The tool builds a normalized GUI sweep request and dispatches it through
-% guiRunSweep. Model-specific solver details live in app/adapters.
+% guiRunSweep. Model-specific solver details live in app/adapters, while
+% selectable sweep metadata lives in app/sweep/guiGetSweepRegistry.
 
 if nargin < 1 || isempty(baseParams)
     baseParams = rlDefaultParams();
@@ -18,13 +19,18 @@ if ~isfield(baseOptions, 'mrlfeParams') || isempty(baseOptions.mrlfeParams)
     baseOptions.mrlfeParams = defaultMRLFEParams();
 end
 
+registry = guiGetSweepRegistry();
+activeModelFamily = string(registry.defaultModelFamily);
+activeFamily = guiGetSweepFamilyConfig(registry, activeModelFamily);
+activeParameter = guiGetSweepParameterConfig(activeFamily, activeFamily.defaultParameter);
+
 lastSweepOutput = [];
 lastSweepResults = [];
 lastSweepSummary = [];
 lastModelName = "";
 lastBranchName = "";
 
-fig = uifigure('Name', 'mRLFE Parametric Sweep Tool', 'Position', [140 100 1320 780]);
+fig = uifigure('Name', char(activeFamily.figureTitle), 'Position', [140 100 1320 780]);
 root = uigridlayout(fig, [1 2]);
 root.ColumnWidth = {390, '1x'};
 root.Padding = [8 8 8 8];
@@ -42,32 +48,40 @@ cg.ColumnSpacing = 8;
 row = 1;
 addLabel(cg, row, [1 2], 'Sweep parameter', 'FontWeight', 'bold');
 row = row + 1;
-parameterDrop = uidropdown(cg, 'Items', {'etaS', 'E', 'thickness'}, 'Value', 'etaS', ...
+parameterDrop = uidropdown(cg, ...
+    'Items', cellstr([activeFamily.parameters.id]), ...
+    'Value', char(activeFamily.defaultParameter), ...
     'ValueChangedFcn', @(~,~)onParameterChanged());
 setGridPosition(parameterDrop, row, [1 2]);
 
 row = row + 1;
 addLabel(cg, row, [1 2], 'Values', 'FontWeight', 'bold');
 row = row + 1;
-valuesEdit = uieditfield(cg, 'text', 'Value', '0, 0.01, 0.05, 0.10, 0.20, 0.30, 0.50');
+valuesEdit = uieditfield(cg, 'text', 'Value', guiFormatSweepValues(activeParameter.defaultValuesDisplay));
 setGridPosition(valuesEdit, row, [1 2]);
 
 row = row + 1;
 addLabel(cg, row, [1 2], 'Model', 'FontWeight', 'bold');
 row = row + 1;
-modelDrop = uidropdown(cg, 'Items', {'Viscoelastic real-k', 'Elastic real-k'}, 'Value', 'Viscoelastic real-k');
+modelDrop = uidropdown(cg, ...
+    'Items', cellstr(activeFamily.modelLabels), ...
+    'Value', char(activeFamily.defaultModelLabel));
 setGridPosition(modelDrop, row, [1 2]);
 
 row = row + 1;
 addLabel(cg, row, [1 2], 'Branch', 'FontWeight', 'bold');
 row = row + 1;
-branchDrop = uidropdown(cg, 'Items', {'A0Like', 'S0Like'}, 'Value', 'A0Like');
+branchDrop = uidropdown(cg, ...
+    'Items', cellstr(activeFamily.branchNames), ...
+    'Value', char(activeFamily.defaultBranchName));
 setGridPosition(branchDrop, row, [1 2]);
 
 row = row + 1;
 addLabel(cg, row, [1 2], 'Robustness', 'FontWeight', 'bold');
 row = row + 1;
-robustnessDrop = uidropdown(cg, 'Items', {'Fast', 'Balanced', 'Robust'}, 'Value', 'Fast');
+robustnessDrop = uidropdown(cg, ...
+    'Items', cellstr(activeFamily.robustnessPresets), ...
+    'Value', char(activeFamily.defaultRobustness));
 setGridPosition(robustnessDrop, row, [1 2]);
 
 row = row + 1;
@@ -101,7 +115,7 @@ statusBox = uitextarea(cg, 'Value', {'Status: ready.'}, 'Editable', 'off', 'Font
 setGridPosition(statusBox, row, [1 2]);
 
 row = row + 1;
-helpLabel = uilabel(cg, 'Text', 'Tip: values use displayed units: etaS [Pa*s], E [kPa], thickness [mm].', ...
+helpLabel = uilabel(cg, 'Text', char(activeParameter.helpText), ...
     'WordWrap', 'on', 'FontSize', 10);
 setGridPosition(helpLabel, row, [1 2]);
 
@@ -125,23 +139,16 @@ summaryTableUI.Layout.Row = 2;
 onParameterChanged();
 
     function onParameterChanged()
-        switch string(parameterDrop.Value)
-            case "etaS"
-                valuesEdit.Value = '0, 0.01, 0.05, 0.10, 0.20, 0.30, 0.50';
-                helpLabel.Text = 'Values use etaS units [Pa*s]. etaS sweeps require the viscoelastic real-k model.';
-            case "E"
-                valuesEdit.Value = '50, 100, 300, 500, 1000, 1500';
-                helpLabel.Text = 'Values use Young''s modulus units [kPa]. Base etaS remains fixed.';
-            case "thickness"
-                valuesEdit.Value = '0.3, 0.5, 0.7, 1.0';
-                helpLabel.Text = 'Values use thickness units [mm]. Base etaS remains fixed.';
-        end
+        parameterConfig = guiGetSweepParameterConfig(activeFamily, string(parameterDrop.Value));
+        valuesEdit.Value = guiFormatSweepValues(parameterConfig.defaultValuesDisplay);
+        helpLabel.Text = char(parameterConfig.helpText);
     end
 
     function onRunSweep()
         try
             setStatus({'Status: preparing sweep...'}); drawnow;
             sweepParameter = string(parameterDrop.Value);
+            parameterConfig = guiGetSweepParameterConfig(activeFamily, sweepParameter);
             valuesDisplayed = parseNumericList(valuesEdit.Value);
             if isempty(valuesDisplayed)
                 error('Enter at least one numeric sweep value.');
@@ -153,17 +160,19 @@ onParameterChanged();
             controls.fluidDensity = fluidDensityEdit.Value;
             controls.fluidSoundSpeed = fluidSoundEdit.Value;
 
-            request = guiBuildSweepRequest("mrlfe", ...
+            request = guiBuildSweepRequest(activeModelFamily, ...
                 'modelLabel', string(modelDrop.Value), ...
                 'branchName', string(branchDrop.Value), ...
                 'sweepField', sweepParameter, ...
-                'sweepLabel', sweepParameter, ...
+                'sweepLabel', parameterConfig.label, ...
                 'sweepValuesDisplay', valuesDisplayed, ...
+                'displayUnit', parameterConfig.displayUnit, ...
+                'displayScale', parameterConfig.displayScale, ...
                 'baseParams', baseParams, ...
                 'baseOptions', baseOptions, ...
                 'controls', controls, ...
                 'outputMode', "workspace", ...
-                'outputTaskName', "mrlfe_sweep");
+                'outputTaskName', activeFamily.outputTaskName);
 
             setStatus({sprintf('Status: running %s sweep...', sweepParameter)}); drawnow;
             lastSweepOutput = guiRunSweep(request);
