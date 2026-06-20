@@ -72,6 +72,7 @@ end
 
 updateMaterialInputState();
 updateAxisFieldState();
+updateAcoustoelasticPresetPreview();
 
     function onMaterialModelChanged()
         updateMaterialInputState();
@@ -88,12 +89,22 @@ updateAxisFieldState();
     end
 
     function markDirty()
+        updateAcoustoelasticPresetPreview();
         inputsAreDirty = true;
         if isempty(lastResults)
             setStatusText({'Status: ready. Press Compute.'});
         else
             setStatusText({'Status: inputs changed. Press Compute to update.'});
         end
+    end
+
+    function updateAcoustoelasticPresetPreview()
+        if ~isfield(modelControls, 'ae')
+            return;
+        end
+        [atlasNumYPoints, atlasTopNMinima] = getAcoustoelasticAtlasPreset(string(advanced.robustness.Value));
+        modelControls.ae.atlasNumYPoints.Value = atlasNumYPoints;
+        modelControls.ae.atlasTopNMinima.Value = atlasTopNMinima;
     end
 
     function onCompute()
@@ -128,7 +139,7 @@ updateAxisFieldState();
             options.computeMRLFEComplexK = false;
             options.mrlfeComputeA0Like = false;
             options.mrlfeComputeS0Like = false;
-            options.acoustoelasticOptions = readAcoustoelasticOptionsFromGui();
+            options.acoustoelasticOptions = readAcoustoelasticOptionsFromGui(options.robustness);
             return;
         end
 
@@ -191,14 +202,27 @@ updateAxisFieldState();
         aeParams.frequency = buildAcoustoelasticFrequencyVector(baseParams, options);
     end
 
-    function aeOptions = readAcoustoelasticOptionsFromGui()
+    function aeOptions = readAcoustoelasticOptionsFromGui(robustness)
         aeOptions = defaultAcoustoelasticIOPHGOOptions();
         aeOptions.M54_variant = "corrected";
         aeOptions.normalizeRows = false;
         aeOptions.usePhysicalCpWindow = false;
         aeOptions.atlasBranchPolicy = "atlasA0";
-        aeOptions.atlasNumYPoints = round(modelControls.ae.atlasNumYPoints.Value);
-        aeOptions.atlasTopNMinima = round(modelControls.ae.atlasTopNMinima.Value);
+        [aeOptions.atlasNumYPoints, aeOptions.atlasTopNMinima] = getAcoustoelasticAtlasPreset(robustness);
+    end
+
+    function [atlasNumYPoints, atlasTopNMinima] = getAcoustoelasticAtlasPreset(robustness)
+        switch string(robustness)
+            case "Fast"
+                atlasNumYPoints = 300;
+                atlasTopNMinima = 12;
+            case "Robust"
+                atlasNumYPoints = 900;
+                atlasTopNMinima = 20;
+            otherwise
+                atlasNumYPoints = 600;
+                atlasTopNMinima = 16;
+        end
     end
 
     function frequency = buildAcoustoelasticFrequencyVector(params, options)
