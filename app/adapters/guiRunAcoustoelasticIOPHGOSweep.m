@@ -60,10 +60,10 @@ end
 end
 
 function options = buildAcoustoelasticOptions(request)
-if isfield(request, 'baseOptions') && ~isempty(request.baseOptions)
-    options = request.baseOptions;
-else
-    options = defaultAcoustoelasticIOPHGOOptions();
+options = defaultAcoustoelasticIOPHGOOptions();
+
+if isfield(request, 'baseOptions') && isstruct(request.baseOptions) && isfield(request.baseOptions, 'atlasBranchPolicy')
+    options = mergeStructFields(options, request.baseOptions);
 end
 
 controls = getRequestField(request, 'controls', struct());
@@ -79,6 +79,13 @@ end
 function params = fillParamDefault(params, fieldName, defaultValue)
 if ~isfield(params, fieldName) || isempty(params.(fieldName))
     params.(fieldName) = defaultValue;
+end
+end
+
+function target = mergeStructFields(target, source)
+fields = fieldnames(source);
+for i = 1:numel(fields)
+    target.(fields{i}) = source.(fields{i});
 end
 end
 
