@@ -2,9 +2,8 @@ clear; clc;
 startup
 
 % Smoke test for the maintained Acoustoelastic IOP/HGO atlas-A0 branch solver.
-% This test intentionally passes the legacy policy name "strictA0" to verify
-% backward compatibility. The resolved policy is expected to normalize to the
-% canonical maintained name "atlasA0".
+% The maintained production policy is atlasA0. Legacy strictA0 alias testing has
+% been removed so the test surface reflects the single official policy.
 
 params = struct();
 params.R = 7.8e-3;
@@ -24,7 +23,7 @@ options.normalizeRows = false;
 options.usePhysicalCpWindow = false;
 options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
-options.atlasBranchPolicy = "strictA0"; % legacy alias intentionally tested
+options.atlasBranchPolicy = "atlasA0";
 
 result = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
 resolvedOptions = result.options;
@@ -37,8 +36,8 @@ assert(isfield(result, 'options'), 'Result must contain resolved solver options.
 assert(numel(result.Cp) == numel(params.frequency), 'Cp length must match frequency length.');
 assert(numel(result.validCp) == numel(params.frequency), 'validCp length must match frequency length.');
 assert(any(result.validCp), 'At least one phase-speed point must be valid.');
-assert(resolvedOptions.atlasBranchPolicy == "atlasA0", 'Legacy strictA0 input must normalize to atlasA0.');
-assert(result.reliability.PolicyName == "atlasA0", 'Reliability PolicyName must report canonical atlasA0.');
+assert(resolvedOptions.atlasBranchPolicy == "atlasA0", 'Resolved policy must be atlasA0.');
+assert(result.reliability.PolicyName == "atlasA0", 'Reliability PolicyName must report atlasA0.');
 assert(result.reliability.ValidPoints == nnz(result.validCp), 'Reliability valid-point count mismatch.');
 assert(result.reliability.ValidFraction > 0, 'ValidFraction must be positive.');
 assert(result.reliability.A0StartFilterPassed == true, 'Selected branch must pass the A0 start filter.');
@@ -46,5 +45,5 @@ assert(result.reliability.SelectionFallbackUsed == false, 'Smoke test should not
 assert(result.reliability.YStart <= resolvedOptions.atlasMaxStartY, 'YStart must satisfy atlas-A0 filter.');
 assert(result.reliability.StartRank <= resolvedOptions.atlasMaxStartRank, 'StartRank must satisfy atlas-A0 filter.');
 
-fprintf('test_acoustoelastic_iop_hgo_strictA0_smoke passed. Legacy strictA0 normalized to %s. Valid points: %d/%d. Last valid frequency: %.3f kHz.\n', ...
+fprintf('test_acoustoelastic_iop_hgo_strictA0_smoke passed. Maintained policy: %s. Valid points: %d/%d. Last valid frequency: %.3f kHz.\n', ...
     string(result.reliability.PolicyName), result.reliability.ValidPoints, result.reliability.TotalPoints, result.reliability.LastValidFrequency_kHz);
