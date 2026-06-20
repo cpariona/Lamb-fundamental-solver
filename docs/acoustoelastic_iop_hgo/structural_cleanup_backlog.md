@@ -197,7 +197,7 @@ Remaining wrappers and reasons:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_idA0_plausibility.m
-  KEEP_AS_WRAPPER: target is the renamed implementation file, not a legacy descriptive script.
+  KEEP_AS_WRAPPER: target is the renamed implementation file, not a legacy descriptive script. Requires the idA0_grid workspace produced by validate_idA0_grid.
 
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_idA0_score_grid.m
@@ -242,9 +242,10 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 ### Recommended next cleanup order
 
 1. Pull the identity alias-removal commit locally.
-2. Run `diagnose_idA0_plausibility`, `test_acoustoelastic_iop_hgo_short_entrypoints`, and `run_all_smoke_tests`.
-3. Keep validation-grid wrappers and `track_raw_branch1` for now.
-4. Next cleanup should focus on documentation-only references or a fresh local grep audit, not immediate deletion of implementation files.
+2. Run `test_acoustoelastic_iop_hgo_short_entrypoints` and `run_all_smoke_tests`.
+3. Run `diagnose_idA0_plausibility` only if an idA0_grid workspace already exists in the MATLAB launch folder, or run `validate_idA0_grid` first.
+4. Keep validation-grid wrappers and `track_raw_branch1` for now.
+5. Next cleanup should focus on documentation-only references or a fresh local grep audit, not immediate deletion of implementation files.
 
 ### Current decision
 
