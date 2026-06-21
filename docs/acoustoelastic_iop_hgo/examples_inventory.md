@@ -39,10 +39,11 @@ analysis/acoustoelastic_iop_hgo/aeWriteSweepOutputs.m
 analysis/acoustoelastic_iop_hgo/aePlotSweepCp.m
 analysis/acoustoelastic_iop_hgo/aePlotGridSweepCp.m
 analysis/acoustoelastic_iop_hgo/aePlotGridSweepCpByAxis.m
+analysis/acoustoelastic_iop_hgo/aePlotGridSweepCpSurface.m
 analysis/acoustoelastic_iop_hgo/aeSaveExampleFigure.m
 ```
 
-No additional mechanical file deletion is recommended from this inventory pass.
+Generated figures, local results, MAT files, CSV files, and image exports are ignored by the repository-level `.gitignore`.
 
 ### Basic examples
 
@@ -67,7 +68,7 @@ No basic alias file remains.
 |---|---|---|---|
 | `sweeps/sweep_iop.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/iop_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/iop_sweep`. | Keep. |
 | `sweeps/sweep_mu.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/mu_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_sweep`. | Keep. |
-| `sweeps/sweep_mu_iop.m` | `PUBLIC_WORKFLOW` | Runs a combined mu-IOP case-study grid sweep with `mu = 60:5:80 kPa` and `IOP = [12.5, 15, 17.5] mmHg`. Writes tables/workspace to `Results/ae_iop_hgo/mu_iop_sweep`; shows one Cp figure per IOP and saves grouped `.fig`/`.png` files under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_iop_sweep`. | Keep. |
+| `sweeps/sweep_mu_iop.m` | `PUBLIC_WORKFLOW` | Runs a combined mu-IOP case-study grid sweep with `mu = 60:5:80 kPa` and `IOP = [12.5, 15, 17.5] mmHg`. Writes tables/workspace to `Results/ae_iop_hgo/mu_iop_sweep`; shows one Cp figure per IOP and one 3D Cp surface at 5 kHz; saves `.fig`/`.png` files under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_iop_sweep`. | Keep. |
 
 Notes:
 
@@ -76,7 +77,7 @@ Legacy sweep aliases and historical A0-backward sweep examples have been archive
 No sweep alias file remains.
 Public sweep examples should define the sweep variable and campaign metadata only.
 Reusable setup, solver options, output writing, plotting, and figure saving should live in analysis/acoustoelastic_iop_hgo/ helpers.
-Generated files under sweeps/figures and sweeps/results are ignored by the local .gitignore.
+Generated files are ignored by the repository-level .gitignore.
 ```
 
 ### Maintained diagnostic evidence
