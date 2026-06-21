@@ -24,6 +24,11 @@ sweepConfig.Unit = "mmHg";
 sweepConfig.ValueScale = 133.322;
 sweepConfig.ValueFormatter = "%.1f";
 
+sweepMetadata = struct();
+sweepMetadata.IOP_mmHg = IOP_mmHg;
+sweepMetadata.IOP_Pa = IOP_Pa;
+sweepMetadata.sweepConfig = sweepConfig;
+
 fprintf('\nAcoustoelastic IOP/HGO IOP sweep\n');
 fprintf('Launch folder: %s\n', launchFolder);
 fprintf('IOP values: %s mmHg\n', mat2str(IOP_mmHg));
@@ -34,7 +39,7 @@ sweepResult = aeRunSweep(baseParams, "IOP", IOP_Pa, options, sweepConfig);
 summary = aeSummarizeSweep(sweepResult);
 
 outputFolder = aeWriteSweepOutputs(launchFolder, "iop_sweep", "iop_sweep", ...
-    baseParams, options, IOP_mmHg, IOP_Pa, sweepResult, summary);
+    baseParams, options, sweepMetadata, sweepResult, summary);
 
 fig = aePlotSweepCp(sweepResult, "Title", "AE IOP/HGO A0-like sensitivity to IOP");
 figureFolder = aeSaveExampleFigure(fig, scriptFile, "iop_sweep", "iop_sweep_cp");
