@@ -25,6 +25,7 @@ end
 xlabel(ax, 'Frequency [kHz]');
 ylabel(ax, 'Phase velocity Cp [m/s]');
 grid(ax, 'on');
+setAxesOriginLimits(ax);
 legend(ax, 'Location', 'bestoutside');
 
 if strlength(string(p.Results.Title)) > 0
