@@ -1,7 +1,14 @@
-function outputFolder = aeWriteSweepOutputs(launchFolder, taskName, filePrefix, baseParams, options, sweepValuesDisplay, sweepValuesSI, sweepResult, summary)
+function outputFolder = aeWriteSweepOutputs(launchFolder, taskName, filePrefix, baseParams, options, sweepMetadata, sweepResult, summary)
 %AEWRITESWEEPOUTPUTS Write standard AE IOP/HGO sweep outputs.
+%
+% sweepMetadata may be any structure describing the sweep campaign.
+
+if nargin < 6 || isempty(sweepMetadata)
+    sweepMetadata = struct();
+end
 
 outputFolder = aeOutputFolder(launchFolder, taskName);
+filePrefix = string(filePrefix);
 
 writetable(summary.conditionTable, fullfile(outputFolder, filePrefix + "_condition_summary.csv"));
 writetable(summary.dispersionTable, fullfile(outputFolder, filePrefix + "_dispersion_table.csv"));
@@ -10,5 +17,5 @@ if isfield(summary, 'branchTable') && ~isempty(summary.branchTable)
 end
 
 save(fullfile(outputFolder, filePrefix + "_workspace.mat"), ...
-    'baseParams', 'options', 'sweepValuesDisplay', 'sweepValuesSI', 'sweepResult', 'summary', 'launchFolder', '-v7.3');
+    'baseParams', 'options', 'sweepMetadata', 'sweepResult', 'summary', 'launchFolder', '-v7.3');
 end
