@@ -20,7 +20,6 @@ startup
 baseParams = aeDefaultSweepParams();
 options = aeDefaultSweepOptions("Robust");
 
-targetSurfaceFrequency_Hz = 5e3;
 mu_kPa = [60, 65, 70, 75, 80];
 IOP_mmHg = [12.5, 15, 17.5];
 
@@ -56,7 +55,6 @@ sweepConfig.Label = "mu and IOP";
 sweepMetadata = struct();
 sweepMetadata.mu_kPa = mu_kPa;
 sweepMetadata.IOP_mmHg = IOP_mmHg;
-sweepMetadata.targetSurfaceFrequency_Hz = targetSurfaceFrequency_Hz;
 sweepMetadata.sweepAxes = sweepAxes;
 sweepMetadata.sweepConfig = sweepConfig;
 
@@ -65,7 +63,6 @@ fprintf('Launch folder: %s\n', launchFolder);
 fprintf('mu values: %s kPa\n', mat2str(mu_kPa));
 fprintf('IOP values: %s mmHg\n', mat2str(IOP_mmHg));
 fprintf('Frequency range: %.3g Hz to %.3g kHz\n', min(baseParams.frequency), max(baseParams.frequency)/1e3);
-fprintf('Surface frequency: %.3g kHz\n', targetSurfaceFrequency_Hz/1e3);
 fprintf('Conditions: %d\n', numel(mu_kPa) * numel(IOP_mmHg));
 fprintf('Branch policy: %s\n\n', string(options.atlasBranchPolicy));
 
@@ -82,10 +79,6 @@ for i = 1:numel(figs)
     filePrefix = "mu_iop_sweep_cp_iop_" + replace(sprintf('%.1f', IOP_mmHg(i)), '.', 'p') + "mmHg";
     figureFolder = aeSaveExampleFigure(figs(i), scriptFile, "mu_iop_sweep", filePrefix);
 end
-
-surfaceFig = aePlotGridSweepCpSurface(sweepResult, "mu", "IOP", targetSurfaceFrequency_Hz, ...
-    "Title", sprintf('AE IOP/HGO A0-like Cp surface at %.1f kHz', targetSurfaceFrequency_Hz/1e3));
-figureFolder = aeSaveExampleFigure(surfaceFig, scriptFile, "mu_iop_sweep", "mu_iop_sweep_cp_surface_5kHz");
 
 interactiveSurfaceFig = aePlotGridSweepFrequencySurfaceInteractive(sweepResult, "mu", "IOP", ...
     "TitlePrefix", "AE IOP/HGO A0-like Cp(f, IOP)");
