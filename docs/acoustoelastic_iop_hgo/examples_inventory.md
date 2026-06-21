@@ -44,6 +44,7 @@ analysis/acoustoelastic_iop_hgo/aePlotGridSweepCpByAxis.m
 analysis/acoustoelastic_iop_hgo/aePlotGridSweepCpSurface.m
 analysis/acoustoelastic_iop_hgo/aePlotGridSweepFrequencySurfaceInteractive.m
 analysis/acoustoelastic_iop_hgo/aeSaveExampleFigure.m
+analysis/acoustoelastic_iop_hgo/aeDeleteExampleFigure.m
 ```
 
 Generated figures, local results, MAT files, CSV files, and image exports are ignored by the repository-level `.gitignore`.
@@ -73,7 +74,7 @@ No basic alias file remains.
 |---|---|---|---|
 | `sweeps/sweep_iop.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/iop_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/iop_sweep`. | Keep. |
 | `sweeps/sweep_mu.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/mu_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_sweep`. | Keep. |
-| `sweeps/sweep_mu_iop.m` | `PUBLIC_WORKFLOW` | Runs a combined mu-IOP case-study grid sweep with `mu = 60:5:80 kPa` and `IOP = [12.5, 15, 17.5] mmHg`. Writes tables/workspace to `Results/ae_iop_hgo/mu_iop_sweep`; shows one Cp figure per IOP and one interactive Cp(f, IOP) surface with a mu slider. Static `.fig`/`.png` curve figures are saved under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_iop_sweep`; the interactive surface is displayed only and is not saved automatically. | Keep. |
+| `sweeps/sweep_mu_iop.m` | `PUBLIC_WORKFLOW` | Runs a combined mu-IOP case-study grid sweep with `mu = 60:5:80 kPa` and `IOP = [12.5, 15, 17.5] mmHg`. Writes tables/workspace to `Results/ae_iop_hgo/mu_iop_sweep`; shows one Cp figure per IOP and one interactive Cp(f, IOP) surface with a mu slider. Static `.fig`/`.png` curve figures are saved under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_iop_sweep`; obsolete `mu_iop_sweep_cp_surface_5kHz` files are deleted if present; the interactive surface is displayed only and is not saved automatically. | Keep. |
 
 Notes:
 
