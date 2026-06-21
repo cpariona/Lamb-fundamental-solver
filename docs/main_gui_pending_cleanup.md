@@ -66,7 +66,16 @@ No model-specific numerical knobs unless there is a documented physical or numer
 
 ## 4. Investigate AE branch selection sensitivity
 
-The current AE result may still be sensitive to the starting frequency or to the selected frequency grid. A suspicious symptom is a nearly constant or incorrectly tracked branch in some cases.
+Status: partially resolved for output-grid start sensitivity.
+
+The AE IOP/HGO wrapper now separates:
+
+```text
+internal atlas tracking grid
+requested output frequency grid
+```
+
+The GUI receives `result.Cp` and `result.validCp` only on the requested output grid. Internal branch identity is selected on `result.trackingFrequency`.
 
 A temporary diagnostic was added for this investigation:
 
@@ -90,43 +99,40 @@ Cleanup decision required after the solver issue is understood:
 
 This file must not remain indefinitely as unclassified temporary code.
 
-The investigation should check whether:
+Remaining investigation items:
 
 ```text
-- atlasA0 tracking is actually initialized from sufficiently low frequency;
-- branch selection depends on the first frequency point;
-- a constant or spurious branch is being selected under some parameter sets;
-- robust mode only increases search density but does not increase the plotted/output frequency grid enough;
-- frequency sampling is being fixed internally instead of following the GUI/requested resolution;
-- branch identity diagnostics still agree with the official atlasA0 output.
-```
-
-Expected cleanup direction:
-
-```text
-- The GUI should pass a clear requested frequency grid or resolution policy.
-- The solver should return output on that requested grid, unless an internal refinement grid is explicitly documented.
-- Internal atlas search density should be decoupled from user-facing output resolution.
-- The official output should not depend unexpectedly on where the requested frequency vector starts.
+- whether branch identity diagnostics still agree with the official atlasA0 output;
+- whether the internal tracking grid is sufficient outside the current baseline case;
+- whether the temporary diagnostic should become maintained evidence.
 ```
 
 ## 5. Standardize numerical-resolution policy across models
 
-All model families should use structurally similar numerical controls unless a divergence is strictly necessary and documented.
+Status: partially resolved for the main GUI AE output curve.
 
-Current concern:
+The main GUI AE path now uses the shared frequency-vector builder:
 
-```text
-Rayleigh-Lamb and mRLFE use a general frequency setup and robustness options.
-AE IOP/HGO exposes atlas-specific internals and may use fixed output point counts.
+```matlab
+rlBuildFrequencyVector(params)
 ```
 
-Required direction:
+rather than a model-specific 35/50/70 point logspace rule. This means the plotted AE curve uses the same requested output-grid density policy as Rayleigh-Lamb and mRLFE.
+
+Current direction:
 
 ```text
 Use shared controls for frequency range and output resolution.
 Use robustness only as a preset for solver tolerances/search density.
 Keep solver-specific internal parameters out of the GUI.
+```
+
+Remaining cleanup:
+
+```text
+- remove atlas y-points and atlas minima from visible GUI controls;
+- move AE request-building logic out of the large main GUI file;
+- decide whether output frequency resolution should become an explicit GUI control instead of always using auto hybrid spacing.
 ```
 
 ## 6. Improve responsive layout
