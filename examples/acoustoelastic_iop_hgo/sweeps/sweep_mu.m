@@ -1,11 +1,15 @@
 clear; clc; close all;
 launchFolder = pwd;
+scriptFile = mfilename('fullpath');
 startup
 
 %SWEEP_MU Maintained shear-modulus sweep for the acoustoelastic IOP/HGO model.
 %
-% Outputs are written to:
+% Tables/workspace are written to:
 %   Results/ae_iop_hgo/mu_sweep
+%
+% Figures are written next to this script under:
+%   figures/mu_sweep
 
 baseParams = aeDefaultSweepParams();
 options = aeDefaultSweepOptions("Robust");
@@ -33,10 +37,15 @@ summary = aeSummarizeSweep(sweepResult);
 outputFolder = aeWriteSweepOutputs(launchFolder, "mu_sweep", "mu_sweep", ...
     baseParams, options, mu_kPa, mu_Pa, sweepResult, summary);
 
+fig = aePlotSweepCp(sweepResult, "Title", "AE IOP/HGO A0-like sensitivity to shear modulus");
+figureFolder = aeSaveExampleFigure(fig, scriptFile, "mu_sweep", "mu_sweep_cp");
+
 fprintf('\nCondition summary\n');
 disp(summary.conditionTable);
 fprintf('\nData files written to:\n%s\n', outputFolder);
+fprintf('Figure files written to:\n%s\n', figureFolder);
 
 assignin('base', 'AcoustoelasticIOPHGOMuSweepResult', sweepResult);
 assignin('base', 'AcoustoelasticIOPHGOMuSweepSummary', summary);
 assignin('base', 'AcoustoelasticIOPHGOMuSweepOutputFolder', outputFolder);
+assignin('base', 'AcoustoelasticIOPHGOMuSweepFigureFolder', figureFolder);
