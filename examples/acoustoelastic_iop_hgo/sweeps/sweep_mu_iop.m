@@ -39,6 +39,12 @@ sweepConfig = struct();
 sweepConfig.Name = "mu_iop";
 sweepConfig.Label = "mu and IOP";
 
+sweepMetadata = struct();
+sweepMetadata.mu_kPa = mu_kPa;
+sweepMetadata.IOP_mmHg = IOP_mmHg;
+sweepMetadata.sweepAxes = sweepAxes;
+sweepMetadata.sweepConfig = sweepConfig;
+
 fprintf('\nAcoustoelastic IOP/HGO combined mu-IOP sweep\n');
 fprintf('Launch folder: %s\n', launchFolder);
 fprintf('mu values: %s kPa\n', mat2str(mu_kPa));
@@ -51,7 +57,7 @@ sweepResult = aeRunGridSweep(baseParams, sweepAxes, options, sweepConfig);
 summary = aeSummarizeGridSweep(sweepResult);
 
 outputFolder = aeWriteSweepOutputs(launchFolder, "mu_iop_sweep", "mu_iop_sweep", ...
-    baseParams, options, [mu_kPa(:), nan(numel(mu_kPa),1)], [IOP_mmHg(:), nan(numel(mu_kPa),1)], sweepResult, summary);
+    baseParams, options, sweepMetadata, sweepResult, summary);
 
 fig = aePlotGridSweepCp(sweepResult, "Title", "AE IOP/HGO A0-like combined sensitivity to mu and IOP");
 figureFolder = aeSaveExampleFigure(fig, scriptFile, "mu_iop_sweep", "mu_iop_sweep_cp");
