@@ -4,21 +4,24 @@ function setSweepPlotLimits(ax, varargin)
 % Policy:
 %   - The Cp axis starts at zero.
 %   - Non-Cp axes use data-driven limits with padding.
+%   - Pass CpLimits to enforce a common Cp axis across multiple figures.
 %   - This helper is intended for sweep visualizations, not for general plots.
 
 p = inputParser();
 addParameter(p, 'CpAxis', 'y', @(x)ischar(x) || isstring(x));
+addParameter(p, 'CpLimits', [], @(x)isnumeric(x) && (isempty(x) || numel(x) == 2));
 addParameter(p, 'PaddingFraction', 0.05, @(x)isnumeric(x) && isscalar(x) && x >= 0);
 parse(p, varargin{:});
 
 cpAxis = lower(string(p.Results.CpAxis));
+cpLimits = p.Results.CpLimits;
 paddingFraction = p.Results.PaddingFraction;
 
 axisNames = ["x", "y", "z"];
 for i = 1:numel(axisNames)
     axisName = axisNames(i);
     if axisName == cpAxis
-        setCpAxisLimit(ax, axisName, paddingFraction);
+        setCpAxisLimit(ax, axisName, paddingFraction, cpLimits);
     elseif isAxisAvailable(ax, axisName)
         setDataAxisLimit(ax, axisName, paddingFraction);
     end
@@ -36,7 +39,16 @@ switch axisName
 end
 end
 
-function setCpAxisLimit(ax, axisName, paddingFraction)
+function setCpAxisLimit(ax, axisName, paddingFraction, cpLimits)
+if ~isempty(cpLimits)
+    limits = double(cpLimits(:).');
+    if numel(limits) ~= 2 || any(~isfinite(limits)) || limits(2) <= limits(1)
+        error('CpLimits must be a finite two-element vector with increasing values.');
+    end
+    applyAxisLimits(ax, axisName, limits);
+    return;
+end
+
 values = collectAxisData(ax, axisName);
 finiteValues = values(isfinite(values));
 if isempty(finiteValues)
