@@ -84,18 +84,18 @@ h.mrlfe.etaL = struct('Value', 0);
 h.mrlfe.useComplexLambda = struct('Value', false);
 
 tabAE = uitab(tg, 'Title', 'AE IOP/HGO');
-gAE = uigridlayout(tabAE, [9 4]);
+gAE = uigridlayout(tabAE, [7 4]);
 gAE.ColumnWidth = {115, '1x', 115, '1x'};
-gAE.RowHeight = {22, 24, 24, 24, 24, 24, 24, 24, '1x'};
+gAE.RowHeight = {22, 24, 24, 24, 24, 24, '1x'};
 gAE.Padding = [10 6 10 6];
 gAE.RowSpacing = 2;
 gAE.ColumnSpacing = 6;
 
-label = uilabel(gAE, 'Text', 'Acoustoelastic atlas-A0 setup', 'FontWeight', 'bold', 'FontSize', 11);
+label = uilabel(gAE, 'Text', 'Acoustoelastic A0-like setup', 'FontWeight', 'bold', 'FontSize', 11);
 label.Layout.Row = 1;
 label.Layout.Column = [1 4];
 
-h.ae.computeAtlasA0 = uicheckbox(gAE, 'Text', 'Compute AE atlasA0', 'Value', false, 'ValueChangedFcn', callbacks.markDirty);
+h.ae.computeAtlasA0 = uicheckbox(gAE, 'Text', 'Compute AE A0-like', 'Value', false, 'ValueChangedFcn', callbacks.markDirty);
 h.ae.computeAtlasA0.Layout.Row = 2;
 h.ae.computeAtlasA0.Layout.Column = [1 4];
 
@@ -141,23 +141,15 @@ h.ae.fluidBulkModulus = uieditfield(gAE, 'numeric', 'Value', 2.2, 'Limits', [0 I
 h.ae.fluidBulkModulus.Layout.Row = 6;
 h.ae.fluidBulkModulus.Layout.Column = [3 4];
 
-label = uilabel(gAE, 'Text', 'atlas y-points');
-label.Layout.Row = 7;
-label.Layout.Column = [1 2];
-h.ae.atlasNumYPoints = uieditfield(gAE, 'numeric', 'Value', 600, 'Limits', [50 Inf], 'RoundFractionalValues', 'on', 'Enable', 'off');
-h.ae.atlasNumYPoints.Layout.Row = 7;
-h.ae.atlasNumYPoints.Layout.Column = [3 4];
-
-label = uilabel(gAE, 'Text', 'atlas minima');
-label.Layout.Row = 8;
-label.Layout.Column = [1 2];
-h.ae.atlasTopNMinima = uieditfield(gAE, 'numeric', 'Value', 16, 'Limits', [1 Inf], 'RoundFractionalValues', 'on', 'Enable', 'off');
-h.ae.atlasTopNMinima.Layout.Row = 8;
-h.ae.atlasTopNMinima.Layout.Column = [3 4];
-
-note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, fmin, and fmax. Atlas values are derived from the Advanced robustness preset.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
-note.Layout.Row = 9;
+note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, fmin, and fmax. Internal atlas settings are derived from the Advanced robustness preset.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note.Layout.Row = 7;
 note.Layout.Column = [1 4];
+
+% Compatibility placeholders for the current main-GUI callback layer. These
+% fields are no longer user-facing controls; remove them after AE request
+% building is moved fully out of LambFundamental_GUI.m.
+h.ae.atlasNumYPoints = struct('Value', 600);
+h.ae.atlasTopNMinima = struct('Value', 16);
 
 h.panel = panel;
 h.tabGroup = tg;
