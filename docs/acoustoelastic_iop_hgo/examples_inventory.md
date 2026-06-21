@@ -10,7 +10,7 @@ It separates public workflows, maintained diagnostic evidence, retained historic
 
 ### Summary
 
-After the compatibility-alias cleanup and exploratory archival passes E1-E3, no long exploratory example scripts remain as retained public or semi-public workflows.
+After the compatibility-alias cleanup, exploratory archival passes E1-E3, and the first sweep-helper refactor, no long exploratory example scripts remain as retained public or semi-public workflows.
 
 Current retained executable layers:
 
@@ -26,6 +26,14 @@ The raw-branch extraction logic has been moved to:
 
 ```text
 analysis/acoustoelastic_iop_hgo/aeExtractRawBranch1Candidate.m
+```
+
+Reusable sweep helper logic lives in:
+
+```text
+analysis/acoustoelastic_iop_hgo/aeDefaultSweepParams.m
+analysis/acoustoelastic_iop_hgo/aeDefaultSweepOptions.m
+analysis/acoustoelastic_iop_hgo/aeWriteSweepOutputs.m
 ```
 
 No additional mechanical file deletion is recommended from this inventory pass.
@@ -51,14 +59,16 @@ No basic alias file remains.
 
 | File | Classification | Output behavior | Action |
 |---|---|---|---|
-| `sweeps/sweep_iop.m` | `PUBLIC_WORKFLOW` | Writes to `Results/ae_iop_hgo/iop_sweep`. | Keep. |
-| `sweeps/sweep_mu.m` | `PUBLIC_WORKFLOW` | Writes to `Results/ae_iop_hgo/mu_sweep`. | Keep. |
+| `sweeps/sweep_iop.m` | `PUBLIC_WORKFLOW` | Writes to `Results/ae_iop_hgo/iop_sweep` using reusable analysis helpers for default parameters, options, and output writing. | Keep. |
+| `sweeps/sweep_mu.m` | `PUBLIC_WORKFLOW` | Writes to `Results/ae_iop_hgo/mu_sweep` using reusable analysis helpers for default parameters, options, and output writing. | Keep. |
 
 Notes:
 
 ```text
 Legacy sweep aliases and historical A0-backward sweep examples have been archived.
 No sweep alias file remains.
+Public sweep examples should define the sweep variable and campaign metadata only.
+Reusable setup, solver options, and output writing should live in analysis/acoustoelastic_iop_hgo/ helpers.
 ```
 
 ### Maintained diagnostic evidence
