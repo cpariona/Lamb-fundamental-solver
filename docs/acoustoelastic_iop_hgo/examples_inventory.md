@@ -31,6 +31,7 @@ analysis/acoustoelastic_iop_hgo/aeExtractRawBranch1Candidate.m
 Reusable sweep helper logic lives in:
 
 ```text
+analysis/setAxesOriginLimits.m
 analysis/acoustoelastic_iop_hgo/aeDefaultSweepParams.m
 analysis/acoustoelastic_iop_hgo/aeDefaultSweepOptions.m
 analysis/acoustoelastic_iop_hgo/aeRunGridSweep.m
@@ -46,6 +47,8 @@ analysis/acoustoelastic_iop_hgo/aeSaveExampleFigure.m
 ```
 
 Generated figures, local results, MAT files, CSV files, and image exports are ignored by the repository-level `.gitignore`.
+
+Sweep plots use a visual-origin convention: frequency, phase velocity, and positive-valued sweep axes start at zero even when the computed data begin above zero. The interactive 3D sweep surface keeps fixed axis limits and preserves the current camera view when the slider is moved.
 
 ### Basic examples
 
