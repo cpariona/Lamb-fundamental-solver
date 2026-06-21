@@ -16,47 +16,51 @@ The optional-field helper now lives locally inside `LambFundamental_GUI.m` as `g
 
 ## 2. Rename atlas-related GUI labels
 
-Current visible labels include:
+Status: partially resolved.
+
+The visible AE checkbox was changed from an atlas-policy name to a physical-result label:
 
 ```text
-Compute AE atlasA0
-atlas y-points
-atlas minima
+Compute AE A0-like
 ```
 
-These names are functional but not ideal. `atlasA0` is a branch-selection or solution strategy, not a physical wave mode name. The UI should later distinguish:
+The visible panel title is now:
 
 ```text
-physical branch/result: A0-like phase-velocity curve
-solver strategy: atlas tracking / atlas branch policy
-numerical resolution: model-wide resolution preset
+Acoustoelastic A0-like setup
 ```
 
-The labels should be revised after the numerical-control convention is defined.
+Remaining naming cleanup:
+
+```text
+- move remaining atlas-policy wording into diagnostics/help text only;
+- keep user-facing labels focused on the physical A0-like phase-velocity output;
+- keep solver-policy names such as atlasA0 inside options, diagnostics, and documentation.
+```
 
 ## 3. Remove raw atlas numerical controls from the GUI
 
-Current controls:
+Status: resolved for visible controls.
+
+The following user-facing controls were removed from the AE IOP/HGO tab:
 
 ```text
 atlas y-points
 atlas minima
 ```
 
-These controls must be removed from the user-facing GUI. They are solver-internal tuning variables and should not appear as independent model parameters.
+The atlas settings are now derived internally from the Advanced robustness preset. This preserves the solver behavior while keeping solver-internal tuning variables out of the visible GUI.
 
-The main GUI should expose model-neutral numerical controls consistent with the other models, for example:
+Temporary compatibility placeholders remain inside `createModelTabs.m`:
 
-```text
-robustness preset
-frequency range
-frequency resolution
-tracking/solver strictness, only if needed
+```matlab
+h.ae.atlasNumYPoints = struct('Value', 600);
+h.ae.atlasTopNMinima = struct('Value', 16);
 ```
 
-The acoustoelastic implementation may still use internal atlas parameters, but they should be derived internally from the same model-neutral controls used by the rest of the app.
+These are not visible controls. They exist only because `LambFundamental_GUI.m` still contains legacy callback logic that expects those fields. Remove these placeholders after AE request building is moved fully out of the large main GUI file.
 
-Target behavior:
+Target behavior remains:
 
 ```text
 No raw atlasNumYPoints field in the GUI.
@@ -107,6 +111,12 @@ Remaining investigation items:
 - whether the temporary diagnostic should become maintained evidence.
 ```
 
+Solver-side residual waviness is tracked separately in:
+
+```text
+docs/acoustoelastic_iop_hgo/solver_pending_work.md
+```
+
 ## 5. Standardize numerical-resolution policy across models
 
 Status: partially resolved for the main GUI AE output curve.
@@ -130,8 +140,8 @@ Keep solver-specific internal parameters out of the GUI.
 Remaining cleanup:
 
 ```text
-- remove atlas y-points and atlas minima from visible GUI controls;
 - move AE request-building logic out of the large main GUI file;
+- remove temporary compatibility placeholders for atlasNumYPoints and atlasTopNMinima;
 - decide whether output frequency resolution should become an explicit GUI control instead of always using auto hybrid spacing.
 ```
 
