@@ -79,6 +79,7 @@ for i = 1:numel(figs)
     filePrefix = "mu_iop_sweep_cp_iop_" + replace(sprintf('%.1f', IOP_mmHg(i)), '.', 'p') + "mmHg";
     figureFolder = aeSaveExampleFigure(figs(i), scriptFile, "mu_iop_sweep", filePrefix);
 end
+aeDeleteExampleFigure(scriptFile, "mu_iop_sweep", "mu_iop_sweep_cp_surface_5kHz");
 
 interactiveSurfaceFig = aePlotGridSweepFrequencySurfaceInteractive(sweepResult, "mu", "IOP", ...
     "TitlePrefix", "AE IOP/HGO A0-like Cp(f, IOP)");
