@@ -38,6 +38,7 @@ end
 
 xlabel(ax, 'frequency [Hz]');
 ylabel(ax, 'Phase velocity Cp [m/s]');
+setAxesOriginLimits(ax);
 title(ax, sprintf('%s %s sweep', normalizedSweep.modelName, normalizedSweep.branchName), 'Interpreter', 'none');
 legend(ax, legendText(legendText ~= ""), 'Location', 'best', 'Interpreter', 'none');
 hold(ax, 'off');
