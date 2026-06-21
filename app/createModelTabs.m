@@ -145,12 +145,6 @@ note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, 
 note.Layout.Row = 7;
 note.Layout.Column = [1 4];
 
-% Compatibility placeholders for the current main-GUI callback layer. These
-% fields are no longer user-facing controls; remove them after AE request
-% building is moved fully out of LambFundamental_GUI.m.
-h.ae.atlasNumYPoints = struct('Value', 600);
-h.ae.atlasTopNMinima = struct('Value', 16);
-
 h.panel = panel;
 h.tabGroup = tg;
 
