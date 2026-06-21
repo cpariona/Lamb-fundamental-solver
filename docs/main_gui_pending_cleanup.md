@@ -40,7 +40,7 @@ Remaining naming cleanup:
 
 ## 3. Remove raw atlas numerical controls from the GUI
 
-Status: resolved for visible controls.
+Status: resolved.
 
 The following user-facing controls were removed from the AE IOP/HGO tab:
 
@@ -49,16 +49,13 @@ atlas y-points
 atlas minima
 ```
 
-The atlas settings are now derived internally from the Advanced robustness preset. This preserves the solver behavior while keeping solver-internal tuning variables out of the visible GUI.
+The atlas settings are now derived internally from the Advanced robustness preset through:
 
-Temporary compatibility placeholders remain inside `createModelTabs.m`:
-
-```matlab
-h.ae.atlasNumYPoints = struct('Value', 600);
-h.ae.atlasTopNMinima = struct('Value', 16);
+```text
+app/adapters/guiBuildAcoustoelasticIOPHGOOptions.m
 ```
 
-These are not visible controls. They exist only because `LambFundamental_GUI.m` still contains legacy callback logic that expects those fields. Remove these placeholders after AE request building is moved fully out of the large main GUI file.
+The temporary non-visible compatibility placeholders were also removed from `createModelTabs.m` after AE request construction was moved out of `LambFundamental_GUI.m`.
 
 Target behavior remains:
 
@@ -121,10 +118,10 @@ docs/acoustoelastic_iop_hgo/solver_pending_work.md
 
 Status: partially resolved for the main GUI AE output curve.
 
-The main GUI AE path now uses the shared frequency-vector builder:
+The main GUI AE path now uses the shared frequency-vector builder through:
 
-```matlab
-rlBuildFrequencyVector(params)
+```text
+app/adapters/guiBuildAcoustoelasticIOPHGORequest.m
 ```
 
 rather than a model-specific 35/50/70 point logspace rule. This means the plotted AE curve uses the same requested output-grid density policy as Rayleigh-Lamb and mRLFE.
@@ -140,9 +137,8 @@ Keep solver-specific internal parameters out of the GUI.
 Remaining cleanup:
 
 ```text
-- move AE request-building logic out of the large main GUI file;
-- remove temporary compatibility placeholders for atlasNumYPoints and atlasTopNMinima;
-- decide whether output frequency resolution should become an explicit GUI control instead of always using auto hybrid spacing.
+- decide whether output frequency resolution should become an explicit GUI control instead of always using auto hybrid spacing;
+- continue reducing model-specific logic inside LambFundamental_GUI.m when additional model families are added.
 ```
 
 ## 6. Improve responsive layout
@@ -163,15 +159,22 @@ This should be treated as a UI layout task, separate from model integration.
 
 ## 7. Split large GUI files into smaller components
 
-`LambFundamental_GUI.m` is becoming too large. Future GUI work should avoid adding more solver-specific logic directly to this file.
+Status: partially resolved for AE request construction.
+
+AE-specific request and option construction now live in:
+
+```text
+app/adapters/guiBuildAcoustoelasticIOPHGORequest.m
+app/adapters/guiBuildAcoustoelasticIOPHGOOptions.m
+```
+
+`LambFundamental_GUI.m` still contains plotting, status, diagnostics, export, and some model-routing logic. Future GUI work should avoid adding more solver-specific logic directly to this file.
 
 Recommended direction:
 
 ```text
-- Move AE GUI read/build logic into a small app helper or adapter-facing helper.
 - Keep GUI callback code thin.
 - Keep solver-specific options outside the main GUI file where possible.
 - Prefer model-specific request builders over adding more nested functions to LambFundamental_GUI.m.
+- Consider splitting diagnostics/export/status formatting into helpers after current behavior is stable.
 ```
-
-This should be done after the AE solver-interface behavior is clarified, so the helper structure reflects the final contract rather than the transitional one.
