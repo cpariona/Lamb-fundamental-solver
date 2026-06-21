@@ -24,6 +24,11 @@ sweepConfig.Unit = "kPa";
 sweepConfig.ValueScale = 1e3;
 sweepConfig.ValueFormatter = "%.1f";
 
+sweepMetadata = struct();
+sweepMetadata.mu_kPa = mu_kPa;
+sweepMetadata.mu_Pa = mu_Pa;
+sweepMetadata.sweepConfig = sweepConfig;
+
 fprintf('\nAcoustoelastic IOP/HGO mu sweep\n');
 fprintf('Launch folder: %s\n', launchFolder);
 fprintf('mu values: %s kPa\n', mat2str(mu_kPa));
@@ -35,7 +40,7 @@ sweepResult = aeRunSweep(baseParams, "mu", mu_Pa, options, sweepConfig);
 summary = aeSummarizeSweep(sweepResult);
 
 outputFolder = aeWriteSweepOutputs(launchFolder, "mu_sweep", "mu_sweep", ...
-    baseParams, options, mu_kPa, mu_Pa, sweepResult, summary);
+    baseParams, options, sweepMetadata, sweepResult, summary);
 
 fig = aePlotSweepCp(sweepResult, "Title", "AE IOP/HGO A0-like sensitivity to shear modulus");
 figureFolder = aeSaveExampleFigure(fig, scriptFile, "mu_sweep", "mu_sweep_cp");
