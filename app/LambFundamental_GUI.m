@@ -339,16 +339,11 @@ updateAcoustoelasticPresetPreview();
             if ~shouldPlotNormalizedBranch(branch)
                 continue;
             end
-            [frequency, Cp, valid] = guiGetNormalizedBranchPlotData(branch);
-            if isempty(frequency)
-                continue;
-            end
-            if nargin('plot') == 0 %#ok<NARGIN>
-            end
-            frequency = frequency(:);
-            Cp = Cp(:);
-            valid = valid(:) & isfinite(frequency) & isfinite(Cp);
-            if ~any(valid)
+            plotData = guiGetNormalizedBranchPlotData(branch);
+            frequency = plotData.x(:);
+            Cp = plotData.y(:);
+            valid = plotData.validMask(:) & isfinite(frequency) & isfinite(Cp);
+            if isempty(frequency) || ~any(valid)
                 continue;
             end
             plot(ax, frequency(valid), Cp(valid), '-', 'Color', normalizedBranchColor(branch), ...

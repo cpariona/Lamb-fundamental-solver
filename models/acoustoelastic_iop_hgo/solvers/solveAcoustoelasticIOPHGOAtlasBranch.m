@@ -70,9 +70,12 @@ initMin = min(initMin, fMax);
 nInit = round(getOptionValue(options, 'atlasInitializationNumFrequencyPoints', 50));
 nInit = max(nInit, 2);
 
+% The internal initialization grid anchors branch identity. The requested
+% output grid is also included explicitly, so reported Cp values are computed
+% by the residual atlas at the GUI frequencies rather than filled by display
+% interpolation or previous-point holds.
 initFrequency = logspace(log10(initMin), log10(fMax), nInit);
-requestedForTracking = requestedFrequency(requestedFrequency >= initMin);
-trackingFrequency = unique([initFrequency(:); requestedForTracking(:)], 'sorted').';
+trackingFrequency = unique([initFrequency(:); requestedFrequency(:)], 'sorted').';
 end
 
 function result = restrictResultToRequestedFrequency(trackingResult, requestedFrequency, trackingFrequency, options)
