@@ -37,7 +37,7 @@ hold(ax, 'off');
 xlabel(ax, makeAxisLabel(sweepResult, xAxisName));
 ylabel(ax, makeAxisLabel(sweepResult, yAxisName));
 zlabel(ax, 'Phase velocity Cp [m/s]');
-setAxesOriginLimits(ax, 'IncludeZ', true);
+setSweepPlotLimits(ax, 'CpAxis', 'z');
 grid(ax, 'on');
 view(ax, 45, 28);
 colorbar(ax);
