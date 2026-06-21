@@ -15,7 +15,7 @@ startup
 % Static figures are written next to this script under:
 %   figures/mu_iop_sweep
 %
-% Interactive figures are displayed only and are not saved automatically.
+% The interactive surface is displayed only and is not saved automatically.
 
 baseParams = aeDefaultSweepParams();
 options = aeDefaultSweepOptions("Robust");
@@ -89,18 +89,15 @@ figureFolder = aeSaveExampleFigure(surfaceFig, scriptFile, "mu_iop_sweep", "mu_i
 
 interactiveSurfaceFig = aePlotGridSweepFrequencySurfaceInteractive(sweepResult, "mu", "IOP", ...
     "TitlePrefix", "AE IOP/HGO A0-like Cp(f, IOP)");
-interactiveHeatmapFig = aePlotGridSweepCpHeatmapInteractive(sweepResult, "mu", "IOP", ...
-    "TitlePrefix", "AE IOP/HGO A0-like Cp heatmap", "ColorScale", "fixed");
 
 fprintf('\nCondition summary\n');
 disp(summary.conditionTable);
 fprintf('\nData files written to:\n%s\n', outputFolder);
 fprintf('Static figure files written to:\n%s\n', figureFolder);
-fprintf('Interactive figures are open in MATLAB and were not saved automatically.\n');
+fprintf('Interactive surface is open in MATLAB and was not saved automatically.\n');
 
 assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepResult', sweepResult);
 assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepSummary', summary);
 assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepOutputFolder', outputFolder);
 assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepFigureFolder', figureFolder);
 assignin('base', 'AcoustoelasticIOPHGOMuIOPInteractiveSurfaceFigure', interactiveSurfaceFig);
-assignin('base', 'AcoustoelasticIOPHGOMuIOPInteractiveHeatmapFigure', interactiveHeatmapFig);
