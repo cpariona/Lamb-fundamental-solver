@@ -34,6 +34,8 @@ Reusable sweep helper logic lives in:
 analysis/acoustoelastic_iop_hgo/aeDefaultSweepParams.m
 analysis/acoustoelastic_iop_hgo/aeDefaultSweepOptions.m
 analysis/acoustoelastic_iop_hgo/aeWriteSweepOutputs.m
+analysis/acoustoelastic_iop_hgo/aePlotSweepCp.m
+analysis/acoustoelastic_iop_hgo/aeSaveExampleFigure.m
 ```
 
 No additional mechanical file deletion is recommended from this inventory pass.
@@ -59,8 +61,8 @@ No basic alias file remains.
 
 | File | Classification | Output behavior | Action |
 |---|---|---|---|
-| `sweeps/sweep_iop.m` | `PUBLIC_WORKFLOW` | Writes to `Results/ae_iop_hgo/iop_sweep` using reusable analysis helpers for default parameters, options, and output writing. | Keep. |
-| `sweeps/sweep_mu.m` | `PUBLIC_WORKFLOW` | Writes to `Results/ae_iop_hgo/mu_sweep` using reusable analysis helpers for default parameters, options, and output writing. | Keep. |
+| `sweeps/sweep_iop.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/iop_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/iop_sweep`. | Keep. |
+| `sweeps/sweep_mu.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/mu_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_sweep`. | Keep. |
 
 Notes:
 
@@ -68,7 +70,8 @@ Notes:
 Legacy sweep aliases and historical A0-backward sweep examples have been archived.
 No sweep alias file remains.
 Public sweep examples should define the sweep variable and campaign metadata only.
-Reusable setup, solver options, and output writing should live in analysis/acoustoelastic_iop_hgo/ helpers.
+Reusable setup, solver options, output writing, plotting, and figure saving should live in analysis/acoustoelastic_iop_hgo/ helpers.
+Generated files under sweeps/figures and sweeps/results are ignored by the local .gitignore.
 ```
 
 ### Maintained diagnostic evidence
@@ -99,7 +102,7 @@ These scripts exist to investigate current solver-interface behavior. They must 
 These scripts are retained because they support thesis traceability or heavy validation, but they are not routine workflows.
 
 | File | Classification | Output behavior | Action |
-|---|---|---|---|
+|---|---|---|
 | `diagnostics/diagnose_idA0_score.m` | `HISTORICAL_DIAGNOSTIC_RETAINED` | Writes to `Results/ae_iop_hgo/idA0_score`. Requires sweep workspaces. | Keep. |
 | `diagnostics/validate_idA0_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
 | `diagnostics/validate_idA0_score_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
