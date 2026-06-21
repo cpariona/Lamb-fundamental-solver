@@ -1,11 +1,15 @@
 clear; clc; close all;
 launchFolder = pwd;
+scriptFile = mfilename('fullpath');
 startup
 
 %SWEEP_IOP Maintained IOP sweep for the acoustoelastic IOP/HGO model.
 %
-% Outputs are written to:
+% Tables/workspace are written to:
 %   Results/ae_iop_hgo/iop_sweep
+%
+% Figures are written next to this script under:
+%   figures/iop_sweep
 
 baseParams = aeDefaultSweepParams();
 options = aeDefaultSweepOptions("Robust");
@@ -32,10 +36,15 @@ summary = aeSummarizeSweep(sweepResult);
 outputFolder = aeWriteSweepOutputs(launchFolder, "iop_sweep", "iop_sweep", ...
     baseParams, options, IOP_mmHg, IOP_Pa, sweepResult, summary);
 
+fig = aePlotSweepCp(sweepResult, "Title", "AE IOP/HGO A0-like sensitivity to IOP");
+figureFolder = aeSaveExampleFigure(fig, scriptFile, "iop_sweep", "iop_sweep_cp");
+
 fprintf('\nCondition summary\n');
 disp(summary.conditionTable);
 fprintf('\nData files written to:\n%s\n', outputFolder);
+fprintf('Figure files written to:\n%s\n', figureFolder);
 
 assignin('base', 'AcoustoelasticIOPHGOIOPSweepResult', sweepResult);
 assignin('base', 'AcoustoelasticIOPHGOIOPSweepSummary', summary);
 assignin('base', 'AcoustoelasticIOPHGOIOPSweepOutputFolder', outputFolder);
+assignin('base', 'AcoustoelasticIOPHGOIOPSweepFigureFolder', figureFolder);
