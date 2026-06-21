@@ -3,15 +3,17 @@ function fig = aePlotGridSweepFrequencySurfaceInteractive(sweepResult, sliderAxi
 
 p = inputParser();
 addParameter(p, 'TitlePrefix', '', @(x)ischar(x) || isstring(x));
+addParameter(p, 'PaddingFraction', 0.05, @(x)isnumeric(x) && isscalar(x) && x >= 0);
 parse(p, varargin{:});
 
 sliderAxisName = char(sliderAxisName);
 yAxisName = char(yAxisName);
+paddingFraction = p.Results.PaddingFraction;
 cube = aeBuildGridSweepCpCube(sweepResult, sliderAxisName, yAxisName);
 
-frequencyLimits = originFiniteLimits(cube.frequency_kHz, [0 1]);
-yLimits = originFiniteLimits(cube.yValues, [0 1]);
-cpLimits = originFiniteLimits(cube.Cp(:), [0 1]);
+frequencyLimits = paddedFiniteLimits(cube.frequency_kHz, paddingFraction, [0 1]);
+yLimits = paddedFiniteLimits(cube.yValues, paddingFraction, [0 1]);
+cpLimits = cpFiniteLimits(cube.Cp(:), paddingFraction, [0 1]);
 
 fig = figure('Name', 'AE IOP/HGO interactive Cp frequency surface', 'Color', 'w', ...
     'Units', 'normalized', 'Position', [0.12 0.12 0.74 0.72]);
@@ -60,7 +62,7 @@ updatePlot(1, false);
     end
 end
 
-function limits = originFiniteLimits(values, fallback)
+function limits = cpFiniteLimits(values, paddingFraction, fallback)
 finiteValues = values(isfinite(values));
 if isempty(finiteValues)
     limits = fallback;
@@ -71,10 +73,26 @@ if ~isfinite(upper) || upper <= 0
     limits = fallback;
     return;
 end
-limits = [0 upper];
+limits = [0 upper * (1 + paddingFraction)];
 if limits(1) == limits(2)
     limits(2) = limits(2) + 1;
 end
+end
+
+function limits = paddedFiniteLimits(values, paddingFraction, fallback)
+finiteValues = values(isfinite(values));
+if isempty(finiteValues)
+    limits = fallback;
+    return;
+end
+lo = min(finiteValues(:));
+hi = max(finiteValues(:));
+if lo == hi
+    delta = max(abs(lo) * paddingFraction, 0.5);
+else
+    delta = (hi - lo) * paddingFraction;
+end
+limits = [lo - delta, hi + delta];
 end
 
 function cameraState = captureCamera(ax, preserveCamera)
