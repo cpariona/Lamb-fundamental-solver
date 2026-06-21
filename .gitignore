@@ -1,0 +1,22 @@
+# MATLAB generated files
+*.asv
+*.fig
+
+# Generated figures and local results
+figures/
+results/
+Results/
+
+# Generated sweep/data artifacts
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*.gif
+*.csv
+*.mat
+
+# OS/editor artifacts
+.DS_Store
+Thumbs.db
