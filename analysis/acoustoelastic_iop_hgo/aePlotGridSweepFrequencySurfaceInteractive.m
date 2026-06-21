@@ -9,6 +9,10 @@ sliderAxisName = char(sliderAxisName);
 yAxisName = char(yAxisName);
 cube = aeBuildGridSweepCpCube(sweepResult, sliderAxisName, yAxisName);
 
+frequencyLimits = finiteLimits(cube.frequency_kHz, [0 1]);
+yLimits = finiteLimits(cube.yValues, [0 1]);
+cpLimits = finiteLimits(cube.Cp(:), [0 1]);
+
 fig = figure('Name', 'AE IOP/HGO interactive Cp frequency surface', 'Color', 'w', ...
     'Units', 'normalized', 'Position', [0.12 0.12 0.74 0.72]);
 ax = axes('Parent', fig, 'Position', [0.10 0.22 0.72 0.68]);
@@ -35,6 +39,10 @@ updatePlot(1);
         xlabel(ax, 'Frequency [kHz]');
         ylabel(ax, cube.yLabel);
         zlabel(ax, 'Phase velocity Cp [m/s]');
+        xlim(ax, frequencyLimits);
+        ylim(ax, yLimits);
+        zlim(ax, cpLimits);
+        caxis(ax, cpLimits);
         grid(ax, 'on');
         view(ax, 45, 28);
         colorbar(ax);
@@ -46,6 +54,19 @@ updatePlot(1);
             title(ax, "Cp(f," + string(cube.yAxisName) + ") | " + sliderValueText);
         end
     end
+end
+
+function limits = finiteLimits(values, fallback)
+finiteValues = values(isfinite(values));
+if isempty(finiteValues)
+    limits = fallback;
+    return;
+end
+limits = [min(finiteValues(:)), max(finiteValues(:))];
+if limits(1) == limits(2)
+    delta = max(abs(limits(1))*0.05, 0.5);
+    limits = limits + [-delta, delta];
+end
 end
 
 function step = sliderStep(n)
