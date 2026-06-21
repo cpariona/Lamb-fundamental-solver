@@ -62,7 +62,7 @@ end
 
 xlabel(ax, 'frequency [Hz]');
 ylabel(ax, 'Phase velocity Cp [m/s]');
-setAxesOriginLimits(ax);
+setSweepPlotLimits(ax, 'CpAxis', 'y');
 
 if strlength(string(p.Results.Title)) > 0
     title(ax, string(p.Results.Title));
