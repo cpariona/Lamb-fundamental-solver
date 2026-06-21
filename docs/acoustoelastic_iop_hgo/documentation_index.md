@@ -12,10 +12,11 @@ For normal use, read in this order:
 1. README.md
 2. public_api.md
 3. solver_optimization_status.md
-4. main_gui_integration_closure.md
-5. examples_inventory.md
-6. naming_and_paths_convention.md
-7. retained_diagnostic_dependency_review.md
+4. solver_pending_work.md
+5. main_gui_integration_closure.md
+6. examples_inventory.md
+7. naming_and_paths_convention.md
+8. retained_diagnostic_dependency_review.md
 ```
 
 For branch-policy reasoning, read:
@@ -55,6 +56,7 @@ These documents should remain concise and current. They are the first layer for 
 | `examples_inventory.md` | Current executable inventory under `examples/acoustoelastic_iop_hgo/`. |
 | `naming_and_paths_convention.md` | Short-name and output-path convention for the module. |
 | `solver_optimization_status.md` | Current solver status and official `atlasA0` policy. |
+| `solver_pending_work.md` | Pending solver-side numerical work, including continuous local refinement for residual waviness. |
 | `retained_diagnostic_dependency_review.md` | Current retained dependencies, especially raw_branch1 and heavy validation wrappers. |
 | `framework_hygiene_status.md` | Current framework status after cleanup and refactor passes. |
 
@@ -143,6 +145,7 @@ README.md
 public_api.md
 sweep_workflow.md
 solver_optimization_status.md
+solver_pending_work.md
 main_gui_integration_closure.md
 examples_inventory.md
 naming_and_paths_convention.md
