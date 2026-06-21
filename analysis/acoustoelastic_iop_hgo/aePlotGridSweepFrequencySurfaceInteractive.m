@@ -9,9 +9,9 @@ sliderAxisName = char(sliderAxisName);
 yAxisName = char(yAxisName);
 cube = aeBuildGridSweepCpCube(sweepResult, sliderAxisName, yAxisName);
 
-frequencyLimits = finiteLimits(cube.frequency_kHz, [0 1]);
-yLimits = finiteLimits(cube.yValues, [0 1]);
-cpLimits = finiteLimits(cube.Cp(:), [0 1]);
+frequencyLimits = originFiniteLimits(cube.frequency_kHz, [0 1]);
+yLimits = originFiniteLimits(cube.yValues, [0 1]);
+cpLimits = originFiniteLimits(cube.Cp(:), [0 1]);
 
 fig = figure('Name', 'AE IOP/HGO interactive Cp frequency surface', 'Color', 'w', ...
     'Units', 'normalized', 'Position', [0.12 0.12 0.74 0.72]);
@@ -24,11 +24,15 @@ slider = uicontrol(fig, 'Style', 'slider', 'Units', 'normalized', ...
     'Value', 1, 'SliderStep', sliderStep(numel(cube.xValues)));
 
 slider.Callback = @(src, ~)updatePlot(round(src.Value));
-updatePlot(1);
+updatePlot(1, false);
 
-    function updatePlot(index)
+    function updatePlot(index, preserveCamera)
+        if nargin < 2
+            preserveCamera = true;
+        end
         index = max(1, min(numel(cube.xValues), index));
         slider.Value = index;
+        cameraState = captureCamera(ax, preserveCamera);
         cla(ax);
         Z = squeeze(cube.Cp(:, index, :));
         [F, Y] = meshgrid(cube.frequency_kHz, cube.yValues);
@@ -44,8 +48,8 @@ updatePlot(1);
         zlim(ax, cpLimits);
         caxis(ax, cpLimits);
         grid(ax, 'on');
-        view(ax, 45, 28);
         colorbar(ax);
+        restoreCamera(ax, cameraState);
         sliderValueText = string(cube.xAxisName) + " = " + string(sprintf('%.3g', cube.xValues(index)));
         labelText.String = char(sliderValueText);
         if strlength(string(p.Results.TitlePrefix)) > 0
@@ -56,17 +60,53 @@ updatePlot(1);
     end
 end
 
-function limits = finiteLimits(values, fallback)
+function limits = originFiniteLimits(values, fallback)
 finiteValues = values(isfinite(values));
 if isempty(finiteValues)
     limits = fallback;
     return;
 end
-limits = [min(finiteValues(:)), max(finiteValues(:))];
-if limits(1) == limits(2)
-    delta = max(abs(limits(1))*0.05, 0.5);
-    limits = limits + [-delta, delta];
+upper = max(finiteValues(:));
+if ~isfinite(upper) || upper <= 0
+    limits = fallback;
+    return;
 end
+limits = [0 upper];
+if limits(1) == limits(2)
+    limits(2) = limits(2) + 1;
+end
+end
+
+function cameraState = captureCamera(ax, preserveCamera)
+if ~preserveCamera || isempty(ax.Children)
+    cameraState = struct('hasState', false);
+    return;
+end
+cameraState = struct();
+cameraState.hasState = true;
+cameraState.CameraPosition = ax.CameraPosition;
+cameraState.CameraTarget = ax.CameraTarget;
+cameraState.CameraUpVector = ax.CameraUpVector;
+cameraState.CameraViewAngle = ax.CameraViewAngle;
+cameraState.CameraPositionMode = ax.CameraPositionMode;
+cameraState.CameraTargetMode = ax.CameraTargetMode;
+cameraState.CameraUpVectorMode = ax.CameraUpVectorMode;
+cameraState.CameraViewAngleMode = ax.CameraViewAngleMode;
+end
+
+function restoreCamera(ax, cameraState)
+if ~isstruct(cameraState) || ~isfield(cameraState, 'hasState') || ~cameraState.hasState
+    view(ax, 45, 28);
+    return;
+end
+ax.CameraPosition = cameraState.CameraPosition;
+ax.CameraTarget = cameraState.CameraTarget;
+ax.CameraUpVector = cameraState.CameraUpVector;
+ax.CameraViewAngle = cameraState.CameraViewAngle;
+ax.CameraPositionMode = cameraState.CameraPositionMode;
+ax.CameraTargetMode = cameraState.CameraTargetMode;
+ax.CameraUpVectorMode = cameraState.CameraUpVectorMode;
+ax.CameraViewAngleMode = cameraState.CameraViewAngleMode;
 end
 
 function step = sliderStep(n)
