@@ -10,7 +10,7 @@ It separates public workflows, maintained diagnostic evidence, retained historic
 
 ### Summary
 
-After the compatibility-alias cleanup, exploratory archival passes E1-E3, and the first sweep-helper refactor, no long exploratory example scripts remain as retained public or semi-public workflows.
+After the compatibility-alias cleanup, exploratory archival passes E1-E3, and the sweep-helper refactor, no long exploratory example scripts remain as retained public or semi-public workflows.
 
 Current retained executable layers:
 
@@ -33,8 +33,11 @@ Reusable sweep helper logic lives in:
 ```text
 analysis/acoustoelastic_iop_hgo/aeDefaultSweepParams.m
 analysis/acoustoelastic_iop_hgo/aeDefaultSweepOptions.m
+analysis/acoustoelastic_iop_hgo/aeRunGridSweep.m
+analysis/acoustoelastic_iop_hgo/aeSummarizeGridSweep.m
 analysis/acoustoelastic_iop_hgo/aeWriteSweepOutputs.m
 analysis/acoustoelastic_iop_hgo/aePlotSweepCp.m
+analysis/acoustoelastic_iop_hgo/aePlotGridSweepCp.m
 analysis/acoustoelastic_iop_hgo/aeSaveExampleFigure.m
 ```
 
@@ -63,6 +66,7 @@ No basic alias file remains.
 |---|---|---|---|
 | `sweeps/sweep_iop.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/iop_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/iop_sweep`. | Keep. |
 | `sweeps/sweep_mu.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/mu_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_sweep`. | Keep. |
+| `sweeps/sweep_mu_iop.m` | `PUBLIC_WORKFLOW` | Runs a combined mu-IOP grid sweep. Writes tables/workspace to `Results/ae_iop_hgo/mu_iop_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_iop_sweep`. | Keep. |
 
 Notes:
 
@@ -102,7 +106,7 @@ These scripts exist to investigate current solver-interface behavior. They must 
 These scripts are retained because they support thesis traceability or heavy validation, but they are not routine workflows.
 
 | File | Classification | Output behavior | Action |
-|---|---|---|
+|---|---|---|---|
 | `diagnostics/diagnose_idA0_score.m` | `HISTORICAL_DIAGNOSTIC_RETAINED` | Writes to `Results/ae_iop_hgo/idA0_score`. Requires sweep workspaces. | Keep. |
 | `diagnostics/validate_idA0_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
 | `diagnostics/validate_idA0_score_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
