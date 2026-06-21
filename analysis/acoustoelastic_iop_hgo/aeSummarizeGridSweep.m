@@ -82,15 +82,17 @@ for i = 1:numel(sweepResult.conditions)
     T.SweepName = repmat(string(getStructField(sweepResult, 'name', "")), height(T), 1);
 
     names = fieldnames(condition.axisValues);
+    displayVars = cell(size(names));
     for n = 1:numel(names)
         name = names{n};
+        displayName = [name 'Display'];
         T.(name) = repmat(condition.axisValues.(name), height(T), 1);
-        T.(name + "Display") = repmat(string(condition.axisValueDisplays.(name)), height(T), 1);
+        T.(displayName) = repmat(string(condition.axisValueDisplays.(name)), height(T), 1);
+        displayVars{n} = displayName;
     end
 
     firstVars = [{'ConditionIndex','SweepName'}, names(:).'];
-    displayVars = strcat(names(:).', 'Display');
-    T = movevars(T, [firstVars, displayVars], 'Before', 1);
+    T = movevars(T, [firstVars, displayVars(:).'], 'Before', 1);
     branchTable = [branchTable; T]; %#ok<AGROW>
 end
 end
@@ -100,7 +102,7 @@ names = fieldnames(condition.axisValues);
 for n = 1:numel(names)
     name = names{n};
     row.(name) = condition.axisValues.(name);
-    row.(name + "Display") = string(condition.axisValueDisplays.(name));
+    row.([name 'Display']) = string(condition.axisValueDisplays.(name));
 end
 end
 
