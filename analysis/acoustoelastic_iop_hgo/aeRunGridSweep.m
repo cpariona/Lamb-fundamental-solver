@@ -33,9 +33,10 @@ for idx = 1:numConditions
 
     for a = 1:numel(sweepAxes)
         value = gridArrays{a}(idx);
+        axisName = char(sweepAxes(a).Name);
         params = setNestedField(params, sweepAxes(a).Field, value);
-        axisValuesStruct.(sweepAxes(a).Name) = value;
-        axisDisplayStruct.(sweepAxes(a).Name) = formatAxisValue(value, sweepAxes(a));
+        axisValuesStruct.(axisName) = value;
+        axisDisplayStruct.(axisName) = formatAxisValue(value, sweepAxes(a));
     end
 
     result = solveAcoustoelasticIOPHGOBranch(params, options);
@@ -84,7 +85,7 @@ for i = 1:numel(axesOut)
     if ~isfield(axesOut(i), 'Name') || isempty(axesOut(i).Name)
         axesOut(i).Name = matlab.lang.makeValidName(char(axesOut(i).Field));
     end
-    axesOut(i).Name = matlab.lang.makeValidName(char(axesOut(i).Name));
+    axesOut(i).Name = string(matlab.lang.makeValidName(char(axesOut(i).Name)));
     if ~isfield(axesOut(i), 'Label') || isempty(axesOut(i).Label)
         axesOut(i).Label = string(axesOut(i).Name);
     end
@@ -131,10 +132,10 @@ rel = result.reliability;
 row = struct();
 row.ConditionIndex = index;
 for a = 1:numel(axesSpec)
-    name = axesSpec(a).Name;
+    name = char(axesSpec(a).Name);
     row.(name) = axisValues.(name);
-    row.(name + "Scaled") = axisValues.(name) ./ axesSpec(a).ValueScale;
-    row.(name + "Display") = axisDisplays.(name);
+    row.([name 'Scaled']) = axisValues.(name) ./ axesSpec(a).ValueScale;
+    row.([name 'Display']) = axisDisplays.(name);
 end
 row.PolicyName = getStructField(rel, 'PolicyName', string(missing));
 row.ValidFraction = getStructField(rel, 'ValidFraction', nan);
