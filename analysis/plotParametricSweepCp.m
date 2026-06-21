@@ -20,7 +20,8 @@ if p.Results.NewFigure
 else
     fig = gcf;
 end
-hold on; grid on;
+ax = gca;
+hold(ax, 'on'); grid(ax, 'on');
 
 n = numel(sweepResults.results);
 legendText = strings(1, n);
@@ -44,12 +45,12 @@ for i = 1:n
     x(~valid) = nan;
     y(~valid) = nan;
 
-    lineHandle = plot(x, y, 'LineWidth', 1.8);
+    lineHandle = plot(ax, x, y, 'LineWidth', 1.8);
     legendText(i) = makeLegendLabel(sweepResults, i);
 
     if p.Results.ShowLastValidPoint && any(valid)
         lastValidIdx = find(valid, 1, 'last');
-        markerHandle = plot(xRaw(lastValidIdx), yRaw(lastValidIdx), 'o', ...
+        markerHandle = plot(ax, xRaw(lastValidIdx), yRaw(lastValidIdx), 'o', ...
             'MarkerSize', p.Results.LastValidPointMarkerSize, ...
             'LineWidth', 1.4, ...
             'Color', lineHandle.Color, ...
@@ -59,22 +60,23 @@ for i = 1:n
     end
 end
 
-xlabel('frequency [Hz]');
-ylabel('Phase velocity Cp [m/s]');
+xlabel(ax, 'frequency [Hz]');
+ylabel(ax, 'Phase velocity Cp [m/s]');
+setAxesOriginLimits(ax);
 
 if strlength(string(p.Results.Title)) > 0
-    title(string(p.Results.Title));
+    title(ax, string(p.Results.Title));
 else
-    title(sprintf('%s %s Cp sweep', string(modelName), string(branchName)), 'Interpreter', 'none');
+    title(ax, sprintf('%s %s Cp sweep', string(modelName), string(branchName)), 'Interpreter', 'none');
 end
 
-legend(legendText(legendText ~= ""), 'Location', 'best', 'Interpreter', 'none');
+legend(ax, legendText(legendText ~= ""), 'Location', 'best', 'Interpreter', 'none');
 
 if p.Results.ShowLastValidPoint && ~isempty(lastPointHandles)
-    addLastValidPointNote();
+    addLastValidPointNote(ax);
 end
 
-hold off;
+hold(ax, 'off');
 end
 
 function branch = extractSweepBranch(result, modelName, branchName)
@@ -117,8 +119,7 @@ else
 end
 end
 
-function addLastValidPointNote()
-ax = gca;
+function addLastValidPointNote(ax)
 xl = xlim(ax);
 yl = ylim(ax);
 text(ax, xl(1) + 0.02 * diff(xl), yl(2) - 0.06 * diff(yl), ...
