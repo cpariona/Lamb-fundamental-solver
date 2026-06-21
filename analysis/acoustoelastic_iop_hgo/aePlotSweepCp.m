@@ -33,7 +33,7 @@ end
 xlabel(ax, 'Frequency [kHz]');
 ylabel(ax, 'Phase velocity Cp [m/s]');
 grid(ax, 'on');
-setAxesOriginLimits(ax);
+setSweepPlotLimits(ax, 'CpAxis', 'y');
 legend(ax, 'Location', 'best');
 
 if strlength(string(p.Results.Title)) > 0
