@@ -8,20 +8,24 @@ parse(p, varargin{:});
 xAxisName = char(xAxisName);
 yAxisName = char(yAxisName);
 
-xValues = collectAxisValues(sweepResult, xAxisName);
-yValues = collectAxisValues(sweepResult, yAxisName);
-Z = nan(numel(yValues), numel(xValues));
+xScale = getAxisScale(sweepResult, xAxisName);
+yScale = getAxisScale(sweepResult, yAxisName);
+xRawValues = collectAxisValues(sweepResult, xAxisName);
+yRawValues = collectAxisValues(sweepResult, yAxisName);
+xPlotValues = xRawValues ./ xScale;
+yPlotValues = yRawValues ./ yScale;
+Z = nan(numel(yRawValues), numel(xRawValues));
 
 for i = 1:numel(sweepResult.conditions)
     condition = sweepResult.conditions(i);
-    x = condition.axisValues.(xAxisName);
-    y = condition.axisValues.(yAxisName);
-    ix = find(xValues == x, 1, 'first');
-    iy = find(yValues == y, 1, 'first');
+    xRaw = condition.axisValues.(xAxisName);
+    yRaw = condition.axisValues.(yAxisName);
+    ix = find(xRawValues == xRaw, 1, 'first');
+    iy = find(yRawValues == yRaw, 1, 'first');
     Z(iy, ix) = interpolateCpAtFrequency(condition.result, targetFrequency_Hz);
 end
 
-[X, Y] = meshgrid(xValues, yValues);
+[X, Y] = meshgrid(xPlotValues, yPlotValues);
 
 fig = figure('Name', 'AE IOP/HGO grid sweep Cp surface', 'Color', 'w');
 ax = axes(fig);
@@ -65,6 +69,20 @@ if nnz(valid) < 2
     return;
 end
 Cp = interp1(frequency(valid), CpValues(valid), targetFrequency_Hz, 'linear', nan);
+end
+
+function scale = getAxisScale(sweepResult, axisName)
+scale = 1;
+if ~isfield(sweepResult, 'axes')
+    return;
+end
+for i = 1:numel(sweepResult.axes)
+    axisSpec = sweepResult.axes(i);
+    if string(axisSpec.Name) == string(axisName) && isfield(axisSpec, 'ValueScale') && ~isempty(axisSpec.ValueScale)
+        scale = axisSpec.ValueScale;
+        return;
+    end
+end
 end
 
 function label = makeAxisLabel(sweepResult, axisName)
