@@ -1,0 +1,6 @@
+figures/
+results/
+*.fig
+*.png
+*.mat
+*.csv
