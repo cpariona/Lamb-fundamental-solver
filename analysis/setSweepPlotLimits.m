@@ -2,7 +2,7 @@ function setSweepPlotLimits(ax, varargin)
 %SETSWEEPPLOTLIMITS Apply consistent visual limits for sweep plots.
 %
 % Policy:
-%   - Cp axes start at zero.
+%   - The Cp axis starts at zero.
 %   - Non-Cp axes use data-driven limits with padding.
 %   - This helper is intended for sweep visualizations, not for general plots.
 
@@ -18,18 +18,16 @@ axisNames = ["x", "y", "z"];
 for i = 1:numel(axisNames)
     axisName = axisNames(i);
     if axisName == cpAxis
-        setAxisLimitFromZero(ax, axisName, paddingFraction);
+        setCpAxisLimit(ax, axisName, paddingFraction);
     elseif isAxisAvailable(ax, axisName)
-        setAxisLimitWithPadding(ax, axisName, paddingFraction);
+        setDataAxisLimit(ax, axisName, paddingFraction);
     end
 end
 end
 
 function tf = isAxisAvailable(ax, axisName)
 switch axisName
-    case "x"
-        tf = true;
-    case "y"
+    case {"x", "y"}
         tf = true;
     case "z"
         tf = ~isempty(findobj(ax.Children, '-property', 'ZData'));
@@ -38,7 +36,7 @@ switch axisName
 end
 end
 
-function setAxisLimitFromZero(ax, axisName, paddingFraction)
+function setCpAxisLimit(ax, axisName, paddingFraction)
 values = collectAxisData(ax, axisName);
 finiteValues = values(isfinite(values));
 if isempty(finiteValues)
@@ -53,7 +51,7 @@ upper = upper * (1 + paddingFraction);
 applyAxisLimits(ax, axisName, [0 upper]);
 end
 
-function setAxisLimitWithPadding(ax, axisName, paddingFraction)
+function setDataAxisLimit(ax, axisName, paddingFraction)
 values = collectAxisData(ax, axisName);
 finiteValues = values(isfinite(values));
 if isempty(finiteValues)
@@ -74,7 +72,7 @@ values = [];
 children = ax.Children;
 for i = 1:numel(children)
     child = children(i);
-    propertyName = upper(axisName) + "Data";
+    propertyName = char(upper(axisName) + "Data");
     if isprop(child, propertyName)
         childValues = child.(propertyName);
         values = [values; childValues(:)]; %#ok<AGROW>
