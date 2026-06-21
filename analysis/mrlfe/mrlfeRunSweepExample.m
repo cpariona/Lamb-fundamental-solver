@@ -24,7 +24,7 @@ options = mrlfeDefaultSweepOptions(branchName, 'EtaS', caseInfo.fixedEtaS);
 sweepResults = runParametricSweep(params, options, sweepSpec);
 
 plotTitle = sprintf('Viscoelastic %s Cp sensitivity to %s', ...
-    branchName, caseInfo.titleParameter);
+    char(branchName), char(caseInfo.titleParameter));
 
 plotParametricSweepCp(sweepResults, caseInfo.modelName, branchName, ...
     'Title', plotTitle, ...
@@ -53,15 +53,15 @@ switch sweepName
     case "thickness"
         prefix = "ThicknessSweep";
     otherwise
-        error('Unsupported mRLFE sweepName "%s".', sweepName);
+        error('Unsupported mRLFE sweepName "%s".', char(sweepName));
 end
 
 if branchName == "A0Like" && sweepName == "viscosity"
-    resultName = "ViscositySweepResults";
-    summaryName = "ViscositySweepSummary";
+    resultName = 'ViscositySweepResults';
+    summaryName = 'ViscositySweepSummary';
     return;
 end
 
-resultName = sprintf('%s%sResults', prefix, branchName);
-summaryName = sprintf('%s%sSummary', prefix, branchName);
+resultName = char(prefix + branchName + "Results");
+summaryName = char(prefix + branchName + "Summary");
 end
