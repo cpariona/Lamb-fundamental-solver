@@ -3,7 +3,11 @@ launchFolder = pwd;
 scriptFile = mfilename('fullpath');
 startup
 
-%SWEEP_MU_IOP Combined mu and IOP sweep for the AE IOP/HGO model.
+%SWEEP_MU_IOP Combined mu and IOP case-study sweep for the AE IOP/HGO model.
+%
+% Case-study intent:
+%   Evaluate how a small physiological IOP range changes the A0-like curve
+%   across a narrow biomechanical shear-modulus range.
 %
 % Tables/workspace are written to:
 %   Results/ae_iop_hgo/mu_iop_sweep
@@ -14,8 +18,8 @@ startup
 baseParams = aeDefaultSweepParams();
 options = aeDefaultSweepOptions("Robust");
 
-mu_kPa = [25, 50, 75, 100];
-IOP_mmHg = [5, 15, 25];
+mu_kPa = [60, 65, 70, 75, 80];
+IOP_mmHg = [12.5, 15, 17.5];
 
 sweepAxes = repmat(struct( ...
     'Field', "", ...
@@ -52,7 +56,7 @@ sweepMetadata.IOP_mmHg = IOP_mmHg;
 sweepMetadata.sweepAxes = sweepAxes;
 sweepMetadata.sweepConfig = sweepConfig;
 
-fprintf('\nAcoustoelastic IOP/HGO combined mu-IOP sweep\n');
+fprintf('\nAcoustoelastic IOP/HGO combined mu-IOP case-study sweep\n');
 fprintf('Launch folder: %s\n', launchFolder);
 fprintf('mu values: %s kPa\n', mat2str(mu_kPa));
 fprintf('IOP values: %s mmHg\n', mat2str(IOP_mmHg));
@@ -66,8 +70,13 @@ summary = aeSummarizeGridSweep(sweepResult);
 outputFolder = aeWriteSweepOutputs(launchFolder, "mu_iop_sweep", "mu_iop_sweep", ...
     baseParams, options, sweepMetadata, sweepResult, summary);
 
-fig = aePlotGridSweepCp(sweepResult, "Title", "AE IOP/HGO A0-like combined sensitivity to mu and IOP");
-figureFolder = aeSaveExampleFigure(fig, scriptFile, "mu_iop_sweep", "mu_iop_sweep_cp");
+figs = aePlotGridSweepCpByAxis(sweepResult, "IOP", "mu", ...
+    "TitlePrefix", "AE IOP/HGO A0-like sensitivity to mu");
+figureFolder = "";
+for i = 1:numel(figs)
+    filePrefix = "mu_iop_sweep_cp_iop_" + replace(sprintf('%.1f', IOP_mmHg(i)), '.', 'p') + "mmHg";
+    figureFolder = aeSaveExampleFigure(figs(i), scriptFile, "mu_iop_sweep", filePrefix);
+end
 
 fprintf('\nCondition summary\n');
 disp(summary.conditionTable);
