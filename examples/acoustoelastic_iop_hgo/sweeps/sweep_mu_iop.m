@@ -17,7 +17,15 @@ options = aeDefaultSweepOptions("Robust");
 mu_kPa = [25, 50, 75, 100];
 IOP_mmHg = [5, 15, 25];
 
-sweepAxes(1) = struct();
+sweepAxes = repmat(struct( ...
+    'Field', "", ...
+    'Values', [], ...
+    'Name', "", ...
+    'Label', "", ...
+    'Unit', "", ...
+    'ValueScale', 1, ...
+    'ValueFormatter', "%.6g"), 1, 2);
+
 sweepAxes(1).Field = "mu";
 sweepAxes(1).Values = mu_kPa * 1e3;
 sweepAxes(1).Name = "mu";
@@ -26,7 +34,6 @@ sweepAxes(1).Unit = "kPa";
 sweepAxes(1).ValueScale = 1e3;
 sweepAxes(1).ValueFormatter = "%.1f";
 
-sweepAxes(2) = struct();
 sweepAxes(2).Field = "IOP";
 sweepAxes(2).Values = IOP_mmHg * 133.322;
 sweepAxes(2).Name = "IOP";
