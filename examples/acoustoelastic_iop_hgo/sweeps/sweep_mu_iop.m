@@ -1,0 +1,67 @@
+clear; clc; close all;
+launchFolder = pwd;
+scriptFile = mfilename('fullpath');
+startup
+
+%SWEEP_MU_IOP Combined mu and IOP sweep for the AE IOP/HGO model.
+%
+% Tables/workspace are written to:
+%   Results/ae_iop_hgo/mu_iop_sweep
+%
+% Figures are written next to this script under:
+%   figures/mu_iop_sweep
+
+baseParams = aeDefaultSweepParams();
+options = aeDefaultSweepOptions("Robust");
+
+mu_kPa = [25, 50, 75, 100];
+IOP_mmHg = [5, 15, 25];
+
+sweepAxes(1) = struct();
+sweepAxes(1).Field = "mu";
+sweepAxes(1).Values = mu_kPa * 1e3;
+sweepAxes(1).Name = "mu";
+sweepAxes(1).Label = "Shear modulus mu";
+sweepAxes(1).Unit = "kPa";
+sweepAxes(1).ValueScale = 1e3;
+sweepAxes(1).ValueFormatter = "%.1f";
+
+sweepAxes(2) = struct();
+sweepAxes(2).Field = "IOP";
+sweepAxes(2).Values = IOP_mmHg * 133.322;
+sweepAxes(2).Name = "IOP";
+sweepAxes(2).Label = "IOP";
+sweepAxes(2).Unit = "mmHg";
+sweepAxes(2).ValueScale = 133.322;
+sweepAxes(2).ValueFormatter = "%.1f";
+
+sweepConfig = struct();
+sweepConfig.Name = "mu_iop";
+sweepConfig.Label = "mu and IOP";
+
+fprintf('\nAcoustoelastic IOP/HGO combined mu-IOP sweep\n');
+fprintf('Launch folder: %s\n', launchFolder);
+fprintf('mu values: %s kPa\n', mat2str(mu_kPa));
+fprintf('IOP values: %s mmHg\n', mat2str(IOP_mmHg));
+fprintf('Frequency range: %.3g Hz to %.3g kHz\n', min(baseParams.frequency), max(baseParams.frequency)/1e3);
+fprintf('Conditions: %d\n', numel(mu_kPa) * numel(IOP_mmHg));
+fprintf('Branch policy: %s\n\n', string(options.atlasBranchPolicy));
+
+sweepResult = aeRunGridSweep(baseParams, sweepAxes, options, sweepConfig);
+summary = aeSummarizeGridSweep(sweepResult);
+
+outputFolder = aeWriteSweepOutputs(launchFolder, "mu_iop_sweep", "mu_iop_sweep", ...
+    baseParams, options, [mu_kPa(:), nan(numel(mu_kPa),1)], [IOP_mmHg(:), nan(numel(mu_kPa),1)], sweepResult, summary);
+
+fig = aePlotGridSweepCp(sweepResult, "Title", "AE IOP/HGO A0-like combined sensitivity to mu and IOP");
+figureFolder = aeSaveExampleFigure(fig, scriptFile, "mu_iop_sweep", "mu_iop_sweep_cp");
+
+fprintf('\nCondition summary\n');
+disp(summary.conditionTable);
+fprintf('\nData files written to:\n%s\n', outputFolder);
+fprintf('Figure files written to:\n%s\n', figureFolder);
+
+assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepResult', sweepResult);
+assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepSummary', summary);
+assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepOutputFolder', outputFolder);
+assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepFigureFolder', figureFolder);
