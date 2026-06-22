@@ -67,10 +67,10 @@ if logical(p.Results.AssignToBase)
     assignin('base', resultName, sweepResults);
     assignin('base', summaryName, sweepSummary);
     if strlength(string(outputFolder)) > 0
-        assignin('base', resultName + "OutputFolder", outputFolder);
+        assignin('base', [resultName 'OutputFolder'], outputFolder);
     end
     if strlength(string(figureFolder)) > 0
-        assignin('base', resultName + "FigureFolder", figureFolder);
+        assignin('base', [resultName 'FigureFolder'], figureFolder);
     end
 end
 end
