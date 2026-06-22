@@ -11,9 +11,33 @@ models/rayleigh_lamb/core/
 models/rayleigh_lamb/equations/
 models/rayleigh_lamb/approximations/
 models/rayleigh_lamb/tracking/
+models/materials/
 ```
 
-These folders contain the active Rayleigh-Lamb implementation. The sweep-helper cleanup did not change numerical algorithms, equations, tolerances, tracking behavior, output structures, or public `rl*` signatures.
+These folders contain the active Rayleigh-Lamb implementation and shared isotropic elastic-material helpers. The material input contract is now `ShearPoisson` for soft-material workflows and `LameParameters` for explicit Lamé diagnostics.
+
+## Material inputs
+
+Maintained Rayleigh-Lamb and mRLFE workflows should use:
+
+```matlab
+params.modelType = "ShearPoisson";
+params.mu = ...;
+params.nu = ...;
+params.rho = ...;
+```
+
+The solver derives:
+
+```text
+E
+lambda_Lame
+K
+CT
+CL
+```
+
+through `elasticFromMuNu`. The explicit `LameParameters` model remains available for formulation checks. The previous `YoungPoissonFixedCL` strategy is no longer part of the maintained route.
 
 ## Public API
 
@@ -115,7 +139,7 @@ This keeps the public sweep examples short while aligning Rayleigh-Lamb sweep na
 
 ## Tests and validation
 
-`tests/run_all_smoke_tests.m` validates the modern Rayleigh-Lamb API by checking that the primary `rl*` entrypoints and sweep helpers are on the MATLAB path, then running minimal A0/S0 numerical regression fixtures. The same smoke suite continues to include non-Rayleigh-Lamb mRLFE and Acoustoelastic IOP/HGO smoke coverage.
+`tests/run_all_smoke_tests.m` validates the modern Rayleigh-Lamb API by checking that the primary `rl*` entrypoints, shared material helpers, and sweep helpers are on the MATLAB path, then running minimal A0/S0 numerical regression fixtures. The same smoke suite continues to include non-Rayleigh-Lamb mRLFE and Acoustoelastic IOP/HGO smoke coverage.
 
 Recommended local validation from the repository root:
 
@@ -131,7 +155,7 @@ run_all_smoke_tests
 
 ## GUI development guidance
 
-GUI and app code should depend on the `rl*` API only. Prefer high-level calls to `rlDefaultParams`, `rlDefaultOptions`, and `rlComputeFundamentalLambModes` for user-facing workflows. Keep UI code separated from solver internals where possible, and avoid adding compatibility aliases for removed historical names.
+GUI and app code should expose `mu`, `nu`, `rho`, and full thickness `2h` as primary soft-material inputs. Derived fields such as `E`, `lambda_Lame`, `K`, `CT`, and `CL` should be displayed but not treated as primary inputs in the maintained soft-material route.
 
 ## Removed legacy compatibility layer
 
