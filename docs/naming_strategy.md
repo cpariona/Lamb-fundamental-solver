@@ -58,6 +58,39 @@ Results/acoustoelastic_iop_hgo_identityA0_physical_plausibility
 
 Legacy long folders may remain valid for fallback reads, but new scripts should write to the short result root.
 
+## Mechanical parameter convention
+
+For soft-material and OCE-facing examples, use shear modulus `mu` as the canonical user-facing elastic parameter.
+
+Rationale:
+
+- mRLFE and AE/OCE workflows are naturally expressed in terms of shear stiffness for nearly incompressible materials.
+- Sweeps and plots should expose comparable parameters across Rayleigh-Lamb, mRLFE, and acoustoelastic models.
+- Rayleigh-Lamb may still solve internally from `E` and `nu`, or from Lamé parameters, but those should be treated as derived/internal representations when the workflow is comparing soft-material models.
+
+Recommended external sweep parameters:
+
+```text
+mu          shear modulus, user-facing elastic stiffness
+2h          full thickness
+rho         density
+etaS        shear viscosity, when the model is viscoelastic
+IOP         pressure/loading parameter, when the model is acoustoelastic
+```
+
+Recommended internal conversions for linear isotropic elastic models:
+
+```matlab
+E      = 2*mu*(1 + nu)
+lambda = 2*mu*nu/(1 - 2*nu)
+```
+
+For nearly incompressible reference cases, `nu` may be fixed close to 0.5. Avoid exposing `E` as the primary sweep variable for soft-material comparisons unless the goal is specifically an engineering-stress/Young-modulus study.
+
+Current transition note: some Rayleigh-Lamb and mRLFE sweep helpers still implement `mu` through `E = 3*mu`, which is the incompressible approximation of `E = 2*mu*(1 + nu)`. A later cleanup should replace this with explicit conversion through a small shared elastic-parameter helper, while keeping the public sweep variable as `mu`.
+
+Lamé parameters are acceptable inside solver kernels and derivations, but they should not be the primary user-facing sweep parameters unless the script is specifically validating the Lamé formulation.
+
 ## Helper functions for paths and legacy execution
 
 Use:
@@ -94,6 +127,8 @@ only when a short entrypoint still needs to execute a retained legacy implementa
 
 * Use `rl*` for model functions.
 * Existing `rl*` API remains the reference style.
+* Rayleigh-Lamb examples should keep basic runs under `examples/rayleigh_lamb/basic/`, sweeps under `examples/rayleigh_lamb/sweeps/`, and validation scripts under `examples/rayleigh_lamb/validation/`.
+* For soft-material comparisons, expose `mu` in sweeps and derive the solver-required elastic representation internally.
 
 ## mRLFE
 
@@ -101,6 +136,7 @@ only when a short entrypoint still needs to execute a retained legacy implementa
 * Existing public names such as `computeMRLFE`, `solveMRLFEBranch`, and `refineMRLFERealKRoot` may remain.
 * Future public mRLFE functions should prefer `computeMRLFE...`, `solveMRLFE...`, or `refineMRLFE...`.
 * Avoid “prototype” in maintained example names.
+* For maintained sweeps, expose `mu`, `etaS`, and `2h` rather than `E` when comparing against Rayleigh-Lamb or AE/OCE workflows.
 
 ## Acoustoelastic IOP/HGO
 
