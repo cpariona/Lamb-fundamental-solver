@@ -11,7 +11,7 @@ docs/                        Active repository, API, validation, and workflow do
 docs/rayleigh_lamb/          Rayleigh-Lamb model documentation.
 docs/mrlfe/                  mRLFE model documentation.
 docs/acoustoelastic_iop_hgo/ Acoustoelastic IOP/HGO model documentation.
-examples/rayleigh_lamb/      Maintained Rayleigh-Lamb examples and validation scripts.
+examples/rayleigh_lamb/      Maintained Rayleigh-Lamb examples, sweeps, and validation scripts.
 examples/mrlfe/              Maintained mRLFE examples, sweeps, diagnostics, and stress tests.
 examples/acoustoelastic_iop_hgo/
                              Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
@@ -130,6 +130,7 @@ aeBuildIdentityA0DiagnosticBranch
 ```text
 examples/rayleigh_lamb/
 ├─ basic/
+├─ sweeps/
 └─ validation/
 examples/mrlfe/
 ├─ basic/
@@ -141,7 +142,7 @@ examples/acoustoelastic_iop_hgo/
 └─ diagnostics/
 ```
 
-Rayleigh-Lamb examples and validation scripts live under `examples/rayleigh_lamb/`. The old top-level `examples/basic/` folder has been removed.
+Rayleigh-Lamb examples and validation scripts live under `examples/rayleigh_lamb/`. The old top-level `examples/basic/` folder has been removed. Within each model folder, `basic/` is reserved for minimal default runs, `sweeps/` for parametric sweeps, `validation/` for validation checks, and `diagnostics/` for diagnostic investigations.
 
 The old top-level validation folder has been removed. Rayleigh-Lamb validation scripts now live under `examples/rayleigh_lamb/validation/`, and mRLFE stress tests now live under `examples/mrlfe/diagnostics/`.
 
