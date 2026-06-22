@@ -47,6 +47,41 @@ docs/gui_adapter_architecture.md
 docs/gui_integration_audit.md
 ```
 
+## Shared sweep helpers
+
+Generic sweep helpers:
+
+```matlab
+runParametricSweep
+plotParametricSweepCp
+summarizeParametricSweepBranch
+```
+
+mRLFE sweep helpers:
+
+```matlab
+mrlfeDefaultSweepParams
+mrlfeDefaultSweepOptions
+mrlfeMakeSweepSpec
+mrlfeRunSweepExample
+```
+
+Rayleigh-Lamb sweep helper:
+
+```matlab
+rlRunThicknessSweepExample
+```
+
+These helpers support short public examples. They should not change solver equations, branch policies, or numerical tracking behavior.
+
+See:
+
+```text
+docs/parametric_sweeps.md
+docs/mrlfe/sweep_refactor_status.md
+docs/rayleigh_lamb/sweep_helper_status.md
+```
+
 ## Rayleigh-Lamb base solver
 
 Maintained Rayleigh-Lamb implementation entrypoints use the `rl*` API:
@@ -69,12 +104,17 @@ rlComputeS0ExtensionalApproximation
 rlSolveFundamentalBranch
 ```
 
-Maintained Rayleigh-Lamb examples and validation scripts live under `examples/rayleigh_lamb/`:
+Maintained Rayleigh-Lamb public/basic examples live under `examples/rayleigh_lamb/basic/`:
 
 ```matlab
 run_default_A0
 run_default_A0_S0
 sweep_thickness_A0_S0
+```
+
+Maintained Rayleigh-Lamb validation scripts live under `examples/rayleigh_lamb/validation/`:
+
+```matlab
 check_default_outputs
 ```
 
@@ -83,6 +123,7 @@ See:
 ```text
 docs/rayleigh_lamb/public_api.md
 docs/rayleigh_lamb/overview.md
+docs/rayleigh_lamb/sweep_helper_status.md
 ```
 
 ## Acoustoelastic IOP/HGO model
@@ -193,7 +234,18 @@ Main high-level function:
 computeMRLFE
 ```
 
-Useful examples, sweeps, diagnostics, and stress tests:
+Maintained public sweep wrappers:
+
+```matlab
+sweep_viscosity_A0Like_viscoelastic
+sweep_viscosity_S0Like_viscoelastic
+sweep_stiffness_A0Like_viscoelastic
+sweep_stiffness_S0Like_viscoelastic
+sweep_thickness_A0Like_viscoelastic
+sweep_thickness_S0Like_viscoelastic
+```
+
+Useful examples, diagnostics, and stress tests:
 
 ```matlab
 run_mrlfe_prototype
@@ -205,6 +257,13 @@ compare_mrlfe_tracker_vs_condition_peaks
 stress_test_mrlfe_elastic_range
 stress_test_mrlfe_han_visco_range
 test_mrlfe_smoke
+```
+
+See:
+
+```text
+docs/mrlfe/tracker_diagnostic_summary.md
+docs/mrlfe/sweep_refactor_status.md
 ```
 
 ## Smoke-test scope
@@ -226,6 +285,7 @@ docs/repository_structure.md
 docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
+docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
 docs/gui_integration_audit.md
@@ -236,12 +296,14 @@ Rayleigh-Lamb docs:
 ```text
 docs/rayleigh_lamb/overview.md
 docs/rayleigh_lamb/public_api.md
+docs/rayleigh_lamb/sweep_helper_status.md
 ```
 
 mRLFE docs:
 
 ```text
 docs/mrlfe/tracker_diagnostic_summary.md
+docs/mrlfe/sweep_refactor_status.md
 ```
 
 Acoustoelastic docs:
