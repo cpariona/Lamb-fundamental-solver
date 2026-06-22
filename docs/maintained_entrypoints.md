@@ -54,7 +54,7 @@ Rayleigh-Lamb sweep helpers:
 rlDefaultSweepParams
 rlDefaultSweepOptions
 rlMakeSweepSpec
-rlRunThicknessSweepExample
+rlRunSweepExample
 rlOutputFolder
 rlWriteSweepOutputs
 rlSaveExampleFigure
@@ -87,7 +87,8 @@ Maintained Rayleigh-Lamb examples:
 ```matlab
 run_default_A0
 run_default_A0_S0
-sweep_thickness_A0_S0
+sweep_thickness_A0_elastic
+sweep_thickness_S0_elastic
 check_default_outputs
 ```
 
