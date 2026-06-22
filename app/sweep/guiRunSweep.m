@@ -9,6 +9,8 @@ modelFamily = lower(string(request.modelFamily));
 switch modelFamily
     case "mrlfe"
         sweepOutput = guiRunMRLFESweep(request);
+    case {"rayleigh_lamb", "rayleighlamb", "rl"}
+        sweepOutput = guiRunRLSweep(request);
     case {"ae_iop_hgo", "ae_iop", "acoustoelastic_iop_hgo", "acoustoelasticiophgo"}
         sweepOutput = guiRunAcoustoelasticIOPHGOSweep(request);
     otherwise
