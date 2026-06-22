@@ -39,17 +39,28 @@ These names should be used for maintained examples, documentation, application c
 
 ## Maintained examples
 
-Rayleigh-Lamb public/basic examples live under:
+Rayleigh-Lamb basic examples live under:
 
 ```text
 examples/rayleigh_lamb/basic/
 ```
 
-Current public/basic scripts:
+Current basic scripts:
 
 ```matlab
 run_default_A0
 run_default_A0_S0
+```
+
+Rayleigh-Lamb sweep examples live under:
+
+```text
+examples/rayleigh_lamb/sweeps/
+```
+
+Current sweep scripts:
+
+```matlab
 sweep_thickness_A0_elastic
 sweep_thickness_S0_elastic
 ```
