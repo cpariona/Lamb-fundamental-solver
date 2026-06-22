@@ -36,25 +36,38 @@ Maintained Rayleigh-Lamb examples and validation scripts live under:
 examples/rayleigh_lamb/
 ```
 
-Current public/basic scripts:
+Current basic scripts:
 
 ```matlab
 run_default_A0
 run_default_A0_S0
+```
+
+Basic scripts live under:
+
+```text
+examples/rayleigh_lamb/basic/
+```
+
+and are reserved for minimal default runs without parametric sweeps.
+
+Current sweep scripts:
+
+```matlab
 sweep_thickness_A0_elastic
 sweep_thickness_S0_elastic
+```
+
+Sweep scripts live under:
+
+```text
+examples/rayleigh_lamb/sweeps/
 ```
 
 Current validation script:
 
 ```matlab
 check_default_outputs
-```
-
-The public scripts live under:
-
-```text
-examples/rayleigh_lamb/basic/
 ```
 
 The validation script lives under:
@@ -94,7 +107,7 @@ plotParametricSweepCp
 summarizeParametricSweepBranch
 ```
 
-This keeps the public examples short while aligning Rayleigh-Lamb sweep naming and outputs with the maintained mRLFE and AE examples.
+This keeps the public sweep examples short while aligning Rayleigh-Lamb sweep naming and outputs with the maintained mRLFE and AE examples.
 
 ## Startup/path behavior
 
