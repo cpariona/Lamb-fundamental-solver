@@ -13,7 +13,7 @@ models/rayleigh_lamb/approximations/
 models/rayleigh_lamb/tracking/
 ```
 
-These folders contain the active Rayleigh-Lamb implementation. This cleanup did not change numerical algorithms, equations, tolerances, tracking behavior, output structures, or public `rl*` signatures.
+These folders contain the active Rayleigh-Lamb implementation. The sweep-helper cleanup did not change numerical algorithms, equations, tolerances, tracking behavior, output structures, or public `rl*` signatures.
 
 ## Public API
 
@@ -36,20 +36,67 @@ Maintained Rayleigh-Lamb examples and validation scripts live under:
 examples/rayleigh_lamb/
 ```
 
-Current scripts:
+Current public/basic scripts:
 
 ```matlab
 run_default_A0
 run_default_A0_S0
 sweep_thickness_A0_S0
+```
+
+Current validation script:
+
+```matlab
 check_default_outputs
+```
+
+The public scripts live under:
+
+```text
+examples/rayleigh_lamb/basic/
+```
+
+The validation script lives under:
+
+```text
+examples/rayleigh_lamb/validation/
 ```
 
 The old top-level example folders were removed. Rayleigh-Lamb examples should remain grouped by model under `examples/rayleigh_lamb/`.
 
+## Sweep helper layer
+
+The maintained thickness sweep entrypoint is:
+
+```matlab
+sweep_thickness_A0_S0
+```
+
+It delegates reusable setup to:
+
+```matlab
+rlRunThicknessSweepExample
+```
+
+The helper lives under:
+
+```text
+analysis/rayleigh_lamb/
+```
+
+It reuses the generic parametric sweep utilities:
+
+```matlab
+runParametricSweep
+plotParametricSweepCp
+summarizeParametricSweepBranch
+```
+
+This keeps the public example short while preserving the previous thickness values, solver options, and A0/S0 output behavior.
+
 ## Startup/path behavior
 
-`startup.m` adds the repository root, the `models/` tree, and the maintained model-specific example folders so the primary `rl*` API and Rayleigh-Lamb examples resolve from any maintained script or test. It does not add old top-level Rayleigh-Lamb folders, and there is no legacy Rayleigh-Lamb compatibility folder to add.
+`startup.m` adds the repository root, the `models/` tree, the `analysis/` tree, and the maintained model-specific example folders so the primary `rl*` API, Rayleigh-Lamb helpers, and Rayleigh-Lamb examples resolve from any maintained script or test. It does not add old top-level Rayleigh-Lamb folders, and there is no legacy Rayleigh-Lamb compatibility folder to add.
 
 ## Tests and validation
 
@@ -61,6 +108,8 @@ Recommended local validation from the repository root:
 clear functions
 rehash toolboxcache
 startup
+sweep_thickness_A0_S0
+check_default_outputs
 run_all_smoke_tests
 ```
 
