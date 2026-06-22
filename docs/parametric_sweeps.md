@@ -69,13 +69,26 @@ Figures are saved as `.fig` and `.png`.
 
 ## Maintained Rayleigh-Lamb examples
 
-The maintained Rayleigh-Lamb thickness sweeps live under:
+Basic Rayleigh-Lamb examples live under:
 
 ```text
 examples/rayleigh_lamb/basic/
 ```
 
-Current scripts:
+and are reserved for minimal default runs such as:
+
+```matlab
+run_default_A0
+run_default_A0_S0
+```
+
+Maintained Rayleigh-Lamb sweeps live under:
+
+```text
+examples/rayleigh_lamb/sweeps/
+```
+
+Current sweep scripts:
 
 ```matlab
 sweep_thickness_A0_elastic
@@ -118,7 +131,7 @@ Rayleigh-Lamb plots use AE-style two-line titles, frequency in kHz, and axes sta
 
 ```text
 Results/rayleigh_lamb/thickness_sweep/
-examples/rayleigh_lamb/basic/figures/thickness_sweep/
+examples/rayleigh_lamb/sweeps/figures/thickness_sweep/
 ```
 
 Figures are saved as `.fig` and `.png`.
