@@ -144,12 +144,22 @@ The high-level mRLFE function is:
 computeMRLFE
 ```
 
+Maintained mRLFE sweeps:
+
+```matlab
+sweep_mu_A0Like_viscoelastic
+sweep_mu_S0Like_viscoelastic
+sweep_etaS_A0Like_viscoelastic
+sweep_etaS_S0Like_viscoelastic
+sweep_thickness_A0Like_viscoelastic
+sweep_thickness_S0Like_viscoelastic
+```
+
 Useful maintained examples:
 
 ```matlab
 run_mrlfe_prototype
 compare_mrlfe_elastic_vs_han_visco_cp
-sweep_mrlfe_shear_viscosity_phase_velocity
 ```
 
 Useful diagnostics:
