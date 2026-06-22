@@ -1,25 +1,19 @@
 # mRLFE pending cleanup
 
-## Use `mu` as the primary material parameter
+## Material-parameter cleanup status
 
 Current status:
 
-- The maintained mRLFE and Rayleigh-Lamb sweep examples expose shear modulus `mu` to the user.
-- Internally, the current Rayleigh-Lamb/mRLFE parameter structures still use `E` and `nu`.
-- The current transition implements `mu` as `E = 3*mu` for the near-incompressible reference case.
+- Rayleigh-Lamb and mRLFE maintained sweeps now expose `mu` as the primary elastic stiffness parameter.
+- The maintained linear-isotropic material contract is `ShearPoisson`: `mu`, `nu`, and `rho` are primary inputs.
+- `E`, `lambda_Lame`, `K`, `CT`, and `CL` are derived through shared helpers under `models/materials/`.
+- The previous `E = 3*mu` transition approximation has been removed from maintained sweep helpers.
 
-Pending cleanup:
+Remaining cleanup:
 
-- Add shared elastic-parameter conversion for Rayleigh-Lamb and mRLFE workflows.
-- Keep `mu` as the primary user-facing input for soft incompressible materials.
-- Derive `E` explicitly as `E = 2*mu*(1 + nu)` when a solver still needs `E` and `nu`.
-- Treat Lamé parameters as derived/internal quantities unless a diagnostic specifically validates the Lamé formulation.
-- Update GUI/request metadata, examples, and documentation so `mu` is the primary input for soft incompressible materials.
-- Preserve backward compatibility for existing scripts that still provide `E`.
-
-Rationale:
-
-Most soft-tissue and OCE literature reports shear modulus rather than Young's modulus. The maintained examples already follow that convention at the user-facing level, but the lower-level solver parameterization should eventually match it through an explicit conversion instead of relying on an implicit incompressible approximation.
+- Review old diagnostics and archived scripts that may still discuss `E`-based sweeps historically.
+- Keep `E` as a displayed/derived quantity, not as a primary soft-material sweep variable.
+- Keep `LameParameters` available for explicit formulation diagnostics.
 
 ## Collapse elastic and viscoelastic mRLFE variants
 
