@@ -10,8 +10,6 @@ lastParams = [];
 inputsAreDirty = false;
 colors.A0 = [0.0000 0.4470 0.7410];
 colors.S0 = [1.0000 0.0000 0.0000];
-colors.HanA0 = [0.0000 0.4470 0.7410];
-colors.HanS0 = [1.0000 0.0000 0.0000];
 colors.AE = [0.4940 0.1840 0.5560];
 
 fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[80 80 1460 860]);
@@ -90,7 +88,10 @@ updateAxisFieldState();
         spOn = string(setup.model.Value) == "ShearPoisson";
         setup.nulabel.Enable = onOff(spOn); setup.nu.Enable = onOff(spOn);
         setup.lambdalabel.Enable = onOff(~spOn); setup.lambda.Enable = onOff(~spOn);
-        setup.E.Enable = 'off'; setup.K.Enable = 'off'; setup.CT.Enable = 'off'; setup.CL.Enable = 'off';
+        setup.E.Enable = 'off';
+        setup.K.Enable = 'off';
+        setup.CT.Enable = 'off';
+        setup.CL.Enable = 'off';
     end
 
     function updateDerivedMaterialFields()
@@ -109,7 +110,7 @@ updateAxisFieldState();
             setup.CT.Value = elastic.CT;
             setup.CL.Value = elastic.CL;
         catch
-            % Leave current derived values in place until validation reports the issue.
+            % Validation during compute reports invalid inputs.
         end
     end
 
@@ -485,23 +486,113 @@ updateAxisFieldState();
         txt = strjoin(lines, newline);
     end
 
+    function onExport()
+        if isempty(lastResults)
+            uialert(fig,'Compute first.','No results');
+            return;
+        end
+        defaultName = ['LambResults_', datestr(now,'yyyymmdd_HHMMSS'), '.mat'];
+        [file,path] = uiputfile('*.mat','Save results',defaultName);
+        if isequal(file,0)
+            return;
+        end
+        LambResults = lastResults; %#ok<NASGU>
+        GuiResults = []; %#ok<NASGU>
+        GuiBranchTables = []; %#ok<NASGU>
+        AcoustoelasticIOPHGOResults = []; %#ok<NASGU>
+        if ~isempty(lastGuiResult)
+            GuiResults = lastGuiResult; %#ok<NASGU>
+            GuiBranchTables = guiNormalizedBranchesToTables(lastGuiResult.branches); %#ok<NASGU>
+        end
+        if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
+            AcoustoelasticIOPHGOResults = lastResults; %#ok<NASGU>
+        end
+        save(fullfile(path,file),'LambResults','GuiResults','GuiBranchTables','AcoustoelasticIOPHGOResults','lastParams','lastOptions');
+        setStatusText({['Status: saved ', fullfile(path,file)]});
+    end
+
     function setStatusText(lines)
-        statusBox.Value = lines;
+        statusBox.Value = lines(:);
+    end
+
+    function onAutoAxesChanged()
+        updateAxisFieldState();
+        refreshPlotOnly();
+    end
+
+    function updateAxisFieldState()
+        isAuto = logical(plotControls.autoAxes.Value);
+        enable = onOff(~isAuto);
+        plotControls.xmin.Enable = enable; plotControls.xmax.Enable = enable;
+        plotControls.ymin.Enable = enable; plotControls.ymax.Enable = enable;
+    end
+
+    function resetAxes()
+        if ~isempty(lastResults)
+            updatePlot();
+        else
+            axis(ax,'auto');
+        end
+    end
+
+    function useCurrentAxes()
+        xl = xlim(ax); yl = ylim(ax);
+        plotControls.xmin.Value = xl(1); plotControls.xmax.Value = xl(2);
+        plotControls.ymin.Value = yl(1); plotControls.ymax.Value = yl(2);
+        plotControls.autoAxes.Value = false;
+        updateAxisFieldState();
+    end
+
+    function applyAxisLimits()
+        if logical(plotControls.autoAxes.Value)
+            axis(ax,'auto');
+            return;
+        end
+        if plotControls.xmax.Value > plotControls.xmin.Value
+            xlim(ax,[plotControls.xmin.Value plotControls.xmax.Value]);
+        end
+        if plotControls.ymax.Value > plotControls.ymin.Value
+            ylim(ax,[plotControls.ymin.Value plotControls.ymax.Value]);
+        end
     end
 
     function value = getOptionValueLocal(s, name, defaultValue)
-        if isstruct(s) && isfield(s, name)
+        if isstruct(s) && isfield(s, name) && ~isempty(s.(name))
             value = s.(name);
         else
             value = defaultValue;
         end
     end
+end
 
-    function value = onOff(tf)
-        if tf
-            value = 'on';
-        else
-            value = 'off';
-        end
-    end
+function y = onOff(tf)
+if tf
+    y = 'on';
+else
+    y = 'off';
+end
+end
+
+function geom = getGeometryData(results)
+if isfield(results,'geometry')
+    geom = results.geometry;
+else
+    geom = [];
+end
+end
+
+function mat = getMaterialData(results)
+if isfield(results,'material')
+    mat = results.material;
+else
+    mat = [];
+end
+end
+
+function gridData = getGridData(results)
+if isfield(results,'grid')
+    gridData = results.grid;
+else
+    gridData = [];
+end
 end
