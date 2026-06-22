@@ -67,18 +67,25 @@ examples/mrlfe/sweeps/figures/thickness_sweep/
 
 Figures are saved as `.fig` and `.png`.
 
-## Maintained Rayleigh-Lamb example
+## Maintained Rayleigh-Lamb examples
 
-The maintained Rayleigh-Lamb thickness sweep lives under:
+The maintained Rayleigh-Lamb thickness sweeps live under:
 
 ```text
-examples/rayleigh_lamb/basic/sweep_thickness_A0_S0.m
+examples/rayleigh_lamb/basic/
 ```
 
-It delegates to:
+Current scripts:
 
 ```matlab
-rlRunThicknessSweepExample
+sweep_thickness_A0_elastic
+sweep_thickness_S0_elastic
+```
+
+Both scripts delegate to:
+
+```matlab
+rlRunSweepExample
 ```
 
 and shared helpers under:
@@ -147,7 +154,8 @@ sweep_etaS_A0Like_viscoelastic
 sweep_etaS_S0Like_viscoelastic
 sweep_thickness_A0Like_viscoelastic
 sweep_thickness_S0Like_viscoelastic
-sweep_thickness_A0_S0
+sweep_thickness_A0_elastic
+sweep_thickness_S0_elastic
 
 run_all_smoke_tests
 ```
