@@ -35,6 +35,8 @@ guiRunSweep
 guiPlotSweepResult
 guiRunMRLFESweep
 guiNormalizeMRLFESweep
+guiRunRLSweep
+guiNormalizeRLSweep
 guiRunAcoustoelasticIOPHGOSweep
 guiNormalizeAcoustoelasticIOPHGOSweep
 ```
