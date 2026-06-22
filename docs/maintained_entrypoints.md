@@ -155,7 +155,6 @@ Useful examples, diagnostics, and stress tests:
 ```matlab
 run_mrlfe_prototype
 compare_mrlfe_elastic_vs_han_visco_cp
-sweep_mrlfe_shear_viscosity_phase_velocity
 diagnose_mrlfe_han_visco_validity_breakdown
 diagnose_mrlfe_han_visco_residual_landscape
 compare_mrlfe_tracker_vs_condition_peaks
@@ -186,6 +185,7 @@ docs/rayleigh_lamb/public_api.md
 docs/rayleigh_lamb/sweep_helper_status.md
 docs/mrlfe/tracker_diagnostic_summary.md
 docs/mrlfe/current_sweeps.md
+docs/mrlfe/pending_cleanup.md
 docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/documentation_index.md
 docs/acoustoelastic_iop_hgo/public_api.md
