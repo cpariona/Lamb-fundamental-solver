@@ -18,8 +18,10 @@ sweep_thickness_S0_elastic
 They live under:
 
 ```text
-examples/rayleigh_lamb/basic/
+examples/rayleigh_lamb/sweeps/
 ```
+
+The `basic` folder is reserved for minimal default runs. Parametric sweeps belong under `examples/rayleigh_lamb/sweeps/`.
 
 The previous combined wrapper `sweep_thickness_A0_S0` was removed from the maintained surface.
 
@@ -103,7 +105,7 @@ Results/rayleigh_lamb/thickness_sweep/
 Figures are written next to the script under:
 
 ```text
-examples/rayleigh_lamb/basic/figures/thickness_sweep/
+examples/rayleigh_lamb/sweeps/figures/thickness_sweep/
 ```
 
 Each branch figure is saved as both `.fig` and `.png`.
