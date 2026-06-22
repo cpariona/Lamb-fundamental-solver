@@ -7,9 +7,10 @@ registry.modelFamilies = makeModelFamilies();
 end
 
 function modelFamilies = makeModelFamilies()
-modelFamilies = repmat(emptyModelFamily(), 1, 2);
+modelFamilies = repmat(emptyModelFamily(), 1, 3);
 modelFamilies(1) = makeMRLFEFamily();
-modelFamilies(2) = makeAEFamily();
+modelFamilies(2) = makeRLFamily();
+modelFamilies(3) = makeAEFamily();
 end
 
 function family = makeMRLFEFamily()
@@ -33,6 +34,28 @@ family.parameters = [ ...
         "Values use Young's modulus units [kPa]. Base etaS remains fixed."), ...
     makeParameter("thickness", "thickness", [0.3, 0.5, 0.7, 1.0], "mm", 1e-3, ...
         "Values use thickness units [mm]. Base etaS remains fixed.") ...
+    ];
+end
+
+function family = makeRLFamily()
+family = emptyModelFamily();
+family.id = "rayleigh_lamb";
+family.label = "Rayleigh-Lamb";
+family.figureTitle = "Parametric Sweep Tool";
+family.description = "One-parameter Rayleigh-Lamb A0/S0 sweeps.";
+family.defaultParameter = "thickness";
+family.defaultModelLabel = "Rayleigh-Lamb";
+family.defaultBranchName = "A0";
+family.defaultRobustness = "Balanced";
+family.modelLabels = "Rayleigh-Lamb";
+family.branchNames = ["A0", "S0"];
+family.robustnessPresets = ["Fast", "Balanced", "Robust"];
+family.outputTaskName = "rayleigh_lamb_sweep";
+family.parameters = [ ...
+    makeParameter("thickness", "thickness", [0.1, 0.2, 0.3, 0.4, 0.5], "mm", 1e-3, ...
+        "Values use thickness units [mm]."), ...
+    makeParameter("E", "E", [50, 100, 300, 500, 1000, 1500], "kPa", 1e3, ...
+        "Values use Young's modulus units [kPa].") ...
     ];
 end
 
