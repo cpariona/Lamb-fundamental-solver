@@ -50,7 +50,8 @@ Current public/basic scripts:
 ```matlab
 run_default_A0
 run_default_A0_S0
-sweep_thickness_A0_S0
+sweep_thickness_A0_elastic
+sweep_thickness_S0_elastic
 ```
 
 Rayleigh-Lamb validation scripts live under:
@@ -69,10 +70,10 @@ These scripts are user-facing examples or validation scripts built on the `rl*` 
 
 ## Sweep helper
 
-The maintained Rayleigh-Lamb thickness sweep wrapper delegates to:
+The maintained Rayleigh-Lamb thickness sweep wrappers delegate to:
 
 ```matlab
-rlRunThicknessSweepExample
+rlRunSweepExample
 ```
 
 This helper lives under:
@@ -81,7 +82,7 @@ This helper lives under:
 analysis/rayleigh_lamb/
 ```
 
-It is a workflow helper, not a replacement for the `rl*` solver API. Use it for the maintained thickness sweep example or for creating similar short examples.
+It is a workflow helper, not a replacement for the `rl*` solver API. Use it for maintained branch-specific sweep examples or for creating similar short examples.
 
 ## Internal/helper entrypoints
 
