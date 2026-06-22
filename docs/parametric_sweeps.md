@@ -26,9 +26,9 @@ All six scripts delegate to `mrlfeRunSweepExample` and share helpers under `anal
 Current mRLFE reference settings:
 
 ```text
-mu = 70 kPa, implemented internally as E = 3*mu = 210 kPa
+mu = 75 kPa, implemented internally as E = 3*mu = 225 kPa
 etaS = 0.05 Pa*s
-thickness = 0.5 mm
+2h = 0.5 mm
 fmin = 100 Hz
 fmax = 16000 Hz
 frequencySpacing = hybrid
@@ -45,21 +45,12 @@ Current sweep values:
 ```matlab
 mu = [60, 65, 70, 75, 80] kPa
 etaS = [0, 0.1, 0.2, 0.3, 0.4, 0.5] Pa*s
-thickness = [0.3, 0.4, 0.5, 0.6, 0.7] mm
+2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
 ```
 
-The `mu` sweep is displayed in kPa but solved through `E = 3*mu`, because the current mRLFE base parameterization uses `E` and `nu`.
+The `mu` sweep is displayed in kPa but solved through `E = 3*mu`, because the current mRLFE base parameterization uses `E` and `nu`. This cleanup is tracked in `docs/mrlfe/pending_cleanup.md`.
 
-mRLFE plots use AE-style titles:
-
-```text
-mRLFE A0-like sensitivity to shear modulus
-mRLFE S0-like sensitivity to shear modulus
-mRLFE A0-like sensitivity to shear viscosity
-mRLFE S0-like sensitivity to shear viscosity
-mRLFE A0-like sensitivity to full thickness
-mRLFE S0-like sensitivity to full thickness
-```
+mRLFE plots use AE-style two-line titles. The first line gives the sweep target and the second line gives fixed reference parameters without overloading the legend.
 
 mRLFE figures use frequency in kHz. The frequency and Cp axes start at zero.
 
@@ -88,7 +79,7 @@ summarizeParametricSweepBranch
 
 `runParametricSweep` changes one scalar solver parameter. It supports optional `displayValues`, used by the mRLFE `mu` sweep to display `mu` while solving through `E`.
 
-`plotParametricSweepCp` plots `Cp(f)` for one model/branch pair and supports frequency scaling plus zero-start frequency limits.
+`plotParametricSweepCp` plots `Cp(f)` for one model/branch pair and supports frequency scaling, zero-start frequency limits, and multiline titles.
 
 `summarizeParametricSweepBranch` reports branch validity, frequency range, Cp range, and elapsed time for each sweep case.
 
