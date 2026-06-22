@@ -16,6 +16,7 @@ SweepTool_GUI
 | Family | Parameters | Branches | Notes |
 | --- | --- | --- | --- |
 | `mRLFE` | `etaS`, `E`, `thickness` | `A0Like`, `S0Like` | Uses the mRLFE sweep adapter and `runParametricSweep`. |
+| `Rayleigh-Lamb` | `thickness`, `E` | `A0`, `S0` | Uses the Rayleigh-Lamb sweep adapter and the maintained `rl*` API. |
 | `AE IOP/HGO` | `IOP`, `mu` | `atlasA0` | Uses the AE IOP/HGO sweep adapter and the maintained atlas branch policy. |
 
 ## Recommended quick checks
@@ -38,6 +39,44 @@ Expected outcome:
 - The sweep runs without an adapter error.
 - The summary table has two rows.
 - `SweepToolOutput`, `SweepToolRequest`, `SweepToolNormalized`, `SweepToolResults`, and `SweepToolSummary` export to the base workspace.
+
+### Rayleigh-Lamb thickness check
+
+Use:
+
+```text
+Model family: Rayleigh-Lamb
+Sweep parameter: thickness
+Values: 0.1, 0.2
+Model: Rayleigh-Lamb
+Branch: A0
+Robustness: Balanced
+```
+
+Expected outcome:
+
+- The sweep runs through `guiRunSweep` and the Rayleigh-Lamb adapter.
+- The values are interpreted in mm and converted to solver units by the registry scale.
+- The summary table has two rows.
+- The normalized output has one A0 curve per sweep value.
+
+### Rayleigh-Lamb stiffness check
+
+Use:
+
+```text
+Model family: Rayleigh-Lamb
+Sweep parameter: E
+Values: 50, 100
+Model: Rayleigh-Lamb
+Branch: A0
+Robustness: Balanced
+```
+
+Expected outcome:
+
+- The sweep runs through the same Rayleigh-Lamb adapter.
+- The values are interpreted in kPa and converted to solver units by the registry scale.
 
 ### AE IOP/HGO IOP check
 
@@ -88,6 +127,22 @@ SweepTool_GUI
     -> model-specific sweep adapter
     -> model-specific normalizer
     -> guiPlotSweepResult
+```
+
+Current model adapters:
+
+```matlab
+guiRunMRLFESweep
+guiRunRLSweep
+guiRunAcoustoelasticIOPHGOSweep
+```
+
+Current model normalizers:
+
+```matlab
+guiNormalizeMRLFESweep
+guiNormalizeRLSweep
+guiNormalizeAcoustoelasticIOPHGOSweep
 ```
 
 The GUI should not call scripts under `examples/` directly. Example scripts and GUI callbacks should share maintained backend utilities or model APIs through adapters.
