@@ -4,21 +4,24 @@ This note records the current Rayleigh-Lamb sweep-helper layer.
 
 ## Scope
 
-The Rayleigh-Lamb solver remains on the maintained `rl*` API. This sweep cleanup does not change Rayleigh-Lamb equations, branch tracking, tolerances, or core output structures. It only aligns the public sweep example with the AE and mRLFE example structure.
+The Rayleigh-Lamb solver remains on the maintained `rl*` API. This sweep cleanup does not change Rayleigh-Lamb equations, branch tracking, tolerances, or core output structures. It only aligns the public sweep examples with the AE and mRLFE example structure.
 
-## Public sweep wrapper
+## Public sweep wrappers
 
-The maintained thickness sweep entrypoint is:
+The maintained thickness sweep entrypoints are branch-specific:
 
 ```matlab
-sweep_thickness_A0_S0
+sweep_thickness_A0_elastic
+sweep_thickness_S0_elastic
 ```
 
-It lives under:
+They live under:
 
 ```text
 examples/rayleigh_lamb/basic/
 ```
+
+The previous combined wrapper `sweep_thickness_A0_S0` was removed from the maintained surface.
 
 The validation script remains under:
 
@@ -28,10 +31,10 @@ examples/rayleigh_lamb/validation/check_default_outputs.m
 
 ## Helper layer
 
-The public thickness sweep wrapper delegates to:
+The public thickness sweep wrappers delegate to:
 
 ```matlab
-rlRunThicknessSweepExample
+rlRunSweepExample
 ```
 
 Reusable Rayleigh-Lamb sweep helpers live under:
@@ -46,7 +49,7 @@ Current helpers:
 rlDefaultSweepParams
 rlDefaultSweepOptions
 rlMakeSweepSpec
-rlRunThicknessSweepExample
+rlRunSweepExample
 rlOutputFolder
 rlWriteSweepOutputs
 rlSaveExampleFigure
@@ -82,11 +85,11 @@ frequencySpacing = hybrid
 robustness preset = Balanced
 ```
 
-The helper computes both `A0` and `S0`:
+Each public wrapper computes one branch only:
 
 ```matlab
-options.computeA0 = true;
-options.computeS0 = true;
+sweep_thickness_A0_elastic  % A0
+sweep_thickness_S0_elastic  % S0
 ```
 
 ## Outputs
@@ -114,7 +117,8 @@ clear functions
 rehash toolboxcache
 startup
 
-sweep_thickness_A0_S0
+sweep_thickness_A0_elastic
+sweep_thickness_S0_elastic
 check_default_outputs
 run_all_smoke_tests
 ```
