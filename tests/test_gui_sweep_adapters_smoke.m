@@ -14,7 +14,7 @@ function testMRLFEAdapter()
 params = rlDefaultParams();
 params.fmin = 100;
 params.fmax = 300;
-params.numFrequencyPoints = 8;
+params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
 controls = struct();
@@ -57,7 +57,7 @@ function testRLAdapter()
 params = rlDefaultParams();
 params.fmin = 100;
 params.fmax = 300;
-params.numFrequencyPoints = 8;
+params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
 controls = struct();
