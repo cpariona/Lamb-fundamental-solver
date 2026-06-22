@@ -39,22 +39,49 @@ These names should be used for maintained examples, documentation, application c
 
 ## Maintained examples
 
-Rayleigh-Lamb examples and validation scripts live under:
+Rayleigh-Lamb public/basic examples live under:
 
 ```text
-examples/rayleigh_lamb/
+examples/rayleigh_lamb/basic/
 ```
 
-Current example scripts:
+Current public/basic scripts:
 
 ```matlab
 run_default_A0
 run_default_A0_S0
 sweep_thickness_A0_S0
+```
+
+Rayleigh-Lamb validation scripts live under:
+
+```text
+examples/rayleigh_lamb/validation/
+```
+
+Current validation script:
+
+```matlab
 check_default_outputs
 ```
 
-These scripts are user-facing examples built on the `rl*` API. They are not compatibility wrappers.
+These scripts are user-facing examples or validation scripts built on the `rl*` API. They are not compatibility wrappers.
+
+## Sweep helper
+
+The maintained Rayleigh-Lamb thickness sweep wrapper delegates to:
+
+```matlab
+rlRunThicknessSweepExample
+```
+
+This helper lives under:
+
+```text
+analysis/rayleigh_lamb/
+```
+
+It is a workflow helper, not a replacement for the `rl*` solver API. Use it for the maintained thickness sweep example or for creating similar short examples.
 
 ## Internal/helper entrypoints
 
