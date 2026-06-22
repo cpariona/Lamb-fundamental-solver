@@ -60,7 +60,7 @@ assert(strcmp(guiFormatSweepValues([50, 100, 300]), '50, 100, 300'), ...
 params = rlDefaultParams();
 params.fmin = 100;
 params.fmax = 300;
-params.numFrequencyPoints = 8;
+params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
 controls = struct();
