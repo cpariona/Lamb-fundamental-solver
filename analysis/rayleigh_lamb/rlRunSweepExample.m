@@ -20,7 +20,7 @@ branchName = string(p.Results.branchName);
 baseParams = rlDefaultSweepParams();
 options = rlDefaultSweepOptions(branchName);
 
-referenceMu_kPa = baseParams.E / 3 / 1e3;
+referenceMu_kPa = baseParams.mu / 1e3;
 referenceThickness_mm = baseParams.thickness * 1e3;
 
 fprintf('\nRayleigh-Lamb %s sweep\n', char(sweepName));
