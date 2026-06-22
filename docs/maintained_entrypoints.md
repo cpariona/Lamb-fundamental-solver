@@ -48,10 +48,16 @@ mrlfeWriteSweepOutputs
 mrlfeSaveExampleFigure
 ```
 
-Rayleigh-Lamb sweep helper:
+Rayleigh-Lamb sweep helpers:
 
 ```matlab
+rlDefaultSweepParams
+rlDefaultSweepOptions
+rlMakeSweepSpec
 rlRunThicknessSweepExample
+rlOutputFolder
+rlWriteSweepOutputs
+rlSaveExampleFigure
 ```
 
 ## Rayleigh-Lamb base solver
