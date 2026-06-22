@@ -6,7 +6,7 @@ function sweepResults = runParametricSweep(baseParams, baseOptions, sweepSpec)
 %   values    : numeric vector of values in solver units
 %
 % Optional sweepSpec fields:
-%   label, units, displayScale
+%   label, units, displayScale, displayValues
 
 paramName = char(sweepSpec.parameter);
 values = sweepSpec.values(:).';
@@ -21,12 +21,20 @@ end
 if ~isfield(sweepSpec, 'displayScale') || isempty(sweepSpec.displayScale)
     sweepSpec.displayScale = 1;
 end
+if isfield(sweepSpec, 'displayValues') && ~isempty(sweepSpec.displayValues)
+    displayValues = sweepSpec.displayValues(:).';
+    if numel(displayValues) ~= n
+        error('sweepSpec.displayValues must have the same number of entries as sweepSpec.values.');
+    end
+else
+    displayValues = values ./ sweepSpec.displayScale;
+end
 
 sweepResults = struct();
 sweepResults.spec = sweepSpec;
 sweepResults.parameter = string(paramName);
 sweepResults.values = values;
-sweepResults.displayValues = values ./ sweepSpec.displayScale;
+sweepResults.displayValues = displayValues;
 sweepResults.results = cell(1, n);
 sweepResults.params = cell(1, n);
 sweepResults.options = cell(1, n);
