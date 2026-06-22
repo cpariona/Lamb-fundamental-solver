@@ -22,11 +22,12 @@ options = mrlfeDefaultSweepOptions(branchName, 'EtaS', caseInfo.fixedEtaS);
 
 referenceMu_kPa = baseParams.E / 3 / 1e3;
 referenceThickness_mm = baseParams.thickness * 1e3;
+referenceEtaS = caseInfo.fixedEtaS;
 
 fprintf('\nmRLFE %s sweep\n', char(sweepName));
 fprintf('Launch folder: %s\n', char(string(p.Results.LaunchFolder)));
 fprintf('%s values: %s %s\n', char(string(sweepSpec.label)), mat2str(sweepResultsDisplayValues(sweepSpec)), char(string(sweepSpec.units)));
-fprintf('Fixed reference: mu = %.1f kPa, 2h = %.1f mm\n', referenceMu_kPa, referenceThickness_mm);
+fprintf('Fixed reference: mu = %.1f kPa, etaS = %.3g Pa*s, 2h = %.1f mm\n', referenceMu_kPa, referenceEtaS, referenceThickness_mm);
 fprintf('Frequency range: %.3g Hz to %.3g kHz\n', baseParams.fmin, baseParams.fmax / 1e3);
 fprintf('Branch: %s\n\n', char(branchName));
 
@@ -35,7 +36,7 @@ sweepSummary = summarizeParametricSweepBranch(sweepResults, ...
     caseInfo.modelName, branchName);
 
 plotTitle = composeMrlfeSweepTitle(branchName, caseInfo.titleParameter, ...
-    sweepName, referenceMu_kPa, referenceThickness_mm);
+    sweepName, referenceMu_kPa, referenceEtaS, referenceThickness_mm);
 
 fig = plotParametricSweepCp(sweepResults, caseInfo.modelName, branchName, ...
     'Title', plotTitle, ...
@@ -52,7 +53,7 @@ if logical(p.Results.WriteOutputs)
     sweepMetadata.branchName = branchName;
     sweepMetadata.sweepSpec = sweepSpec;
     sweepMetadata.referenceMu_kPa = referenceMu_kPa;
-    sweepMetadata.referenceEtaS_Pa_s = caseInfo.fixedEtaS;
+    sweepMetadata.referenceEtaS_Pa_s = referenceEtaS;
     sweepMetadata.referenceThickness_mm = referenceThickness_mm;
 
     outputFolder = mrlfeWriteSweepOutputs(p.Results.LaunchFolder, ...
@@ -79,15 +80,15 @@ if logical(p.Results.AssignToBase)
 end
 end
 
-function titleText = composeMrlfeSweepTitle(branchName, titleParameter, sweepName, referenceMu_kPa, referenceThickness_mm)
+function titleText = composeMrlfeSweepTitle(branchName, titleParameter, sweepName, referenceMu_kPa, referenceEtaS, referenceThickness_mm)
 mainTitle = sprintf('mRLFE %s sensitivity to %s', ...
     char(formatBranchForTitle(branchName)), char(titleParameter));
 
 switch lower(string(sweepName))
     case "mu"
-        fixedText = sprintf('Fixed: 2h = %.1f mm', referenceThickness_mm);
+        fixedText = sprintf('Fixed: etaS = %.3g Pa*s, 2h = %.1f mm', referenceEtaS, referenceThickness_mm);
     case "thickness"
-        fixedText = sprintf('Fixed: mu = %.1f kPa', referenceMu_kPa);
+        fixedText = sprintf('Fixed: mu = %.1f kPa, etaS = %.3g Pa*s', referenceMu_kPa, referenceEtaS);
     otherwise
         fixedText = sprintf('Fixed: mu = %.1f kPa, 2h = %.1f mm', ...
             referenceMu_kPa, referenceThickness_mm);
