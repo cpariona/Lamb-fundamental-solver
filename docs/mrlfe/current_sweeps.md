@@ -11,7 +11,7 @@ sweep_thickness_A0Like_viscoelastic
 sweep_thickness_S0Like_viscoelastic
 ```
 
-Reference values: `mu = 70 kPa`, `etaS = 0.05 Pa*s`, `2h = 0.5 mm`, `fmin = 100 Hz`, `fmax = 16000 Hz`.
+Reference values: `mu = 75 kPa`, `etaS = 0.05 Pa*s`, `2h = 0.5 mm`, `fmin = 100 Hz`, `fmax = 16000 Hz`.
 
 Sweep values:
 
@@ -21,6 +21,6 @@ etaS = [0, 0.1, 0.2, 0.3, 0.4, 0.5] Pa*s
 2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
 ```
 
-The `mu` sweep is displayed as shear modulus but solved internally as `E = 3*mu`.
+The `mu` sweep is displayed as shear modulus but solved internally as `E = 3*mu`. This parameterization cleanup is tracked in `docs/mrlfe/pending_cleanup.md`.
 
-Plots use AE-style titles, frequency in kHz, and axes starting at zero. Data are written under `Results/mrlfe/<taskName>/`; figures are written under `examples/mrlfe/sweeps/figures/<taskName>/` as `.fig` and `.png`.
+Plots use AE-style two-line titles, frequency in kHz, and axes starting at zero. Data are written under `Results/mrlfe/<taskName>/`; figures are written under `examples/mrlfe/sweeps/figures/<taskName>/` as `.fig` and `.png`.
