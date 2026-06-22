@@ -20,9 +20,13 @@ branchName = string(p.Results.branchName);
 baseParams = mrlfeDefaultSweepParams();
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', caseInfo.fixedEtaS);
 
+referenceMu_kPa = baseParams.E / 3 / 1e3;
+referenceThickness_mm = baseParams.thickness * 1e3;
+
 fprintf('\nmRLFE %s sweep\n', char(sweepName));
 fprintf('Launch folder: %s\n', char(string(p.Results.LaunchFolder)));
 fprintf('%s values: %s %s\n', char(string(sweepSpec.label)), mat2str(sweepResultsDisplayValues(sweepSpec)), char(string(sweepSpec.units)));
+fprintf('Fixed reference: mu = %.1f kPa, 2h = %.1f mm\n', referenceMu_kPa, referenceThickness_mm);
 fprintf('Frequency range: %.3g Hz to %.3g kHz\n', baseParams.fmin, baseParams.fmax / 1e3);
 fprintf('Branch: %s\n\n', char(branchName));
 
@@ -30,8 +34,8 @@ sweepResults = runParametricSweep(baseParams, options, sweepSpec);
 sweepSummary = summarizeParametricSweepBranch(sweepResults, ...
     caseInfo.modelName, branchName);
 
-plotTitle = sprintf('mRLFE %s sensitivity to %s', ...
-    char(formatBranchForTitle(branchName)), char(caseInfo.titleParameter));
+plotTitle = composeMrlfeSweepTitle(branchName, caseInfo.titleParameter, ...
+    sweepName, referenceMu_kPa, referenceThickness_mm);
 
 fig = plotParametricSweepCp(sweepResults, caseInfo.modelName, branchName, ...
     'Title', plotTitle, ...
@@ -47,9 +51,9 @@ if logical(p.Results.WriteOutputs)
     sweepMetadata.sweepName = sweepName;
     sweepMetadata.branchName = branchName;
     sweepMetadata.sweepSpec = sweepSpec;
-    sweepMetadata.referenceMu_kPa = baseParams.E / 3 / 1e3;
+    sweepMetadata.referenceMu_kPa = referenceMu_kPa;
     sweepMetadata.referenceEtaS_Pa_s = caseInfo.fixedEtaS;
-    sweepMetadata.referenceThickness_mm = baseParams.thickness * 1e3;
+    sweepMetadata.referenceThickness_mm = referenceThickness_mm;
 
     outputFolder = mrlfeWriteSweepOutputs(p.Results.LaunchFolder, ...
         caseInfo.taskName, caseInfo.taskName, baseParams, options, ...
@@ -73,6 +77,23 @@ if logical(p.Results.AssignToBase)
         assignin('base', [resultName 'FigureFolder'], figureFolder);
     end
 end
+end
+
+function titleText = composeMrlfeSweepTitle(branchName, titleParameter, sweepName, referenceMu_kPa, referenceThickness_mm)
+mainTitle = sprintf('mRLFE %s sensitivity to %s', ...
+    char(formatBranchForTitle(branchName)), char(titleParameter));
+
+switch lower(string(sweepName))
+    case "mu"
+        fixedText = sprintf('Fixed: 2h = %.1f mm', referenceThickness_mm);
+    case "thickness"
+        fixedText = sprintf('Fixed: mu = %.1f kPa', referenceMu_kPa);
+    otherwise
+        fixedText = sprintf('Fixed: mu = %.1f kPa, 2h = %.1f mm', ...
+            referenceMu_kPa, referenceThickness_mm);
+end
+
+titleText = string({mainTitle; fixedText});
 end
 
 function values = sweepResultsDisplayValues(sweepSpec)
