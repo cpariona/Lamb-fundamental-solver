@@ -18,3 +18,20 @@ Pending cleanup:
 Rationale:
 
 Most soft-tissue and OCE literature reports shear modulus rather than Young's modulus. The maintained mRLFE examples already follow that convention at the user-facing level, but the lower-level solver parameterization should eventually match it directly.
+
+## Collapse elastic and viscoelastic mRLFE variants
+
+Current status:
+
+- The code still exposes separate elastic and viscoelastic real-k model labels in some workflows.
+- The maintained sweep examples use the viscoelastic real-k branch family and sweep or fix `etaS` explicitly.
+
+Pending cleanup:
+
+- Treat mRLFE as a single model family with `etaS` as the controlling viscous parameter.
+- Interpret `etaS = 0` as the elastic limit of the same mRLFE model instead of routing to a separate elastic model label.
+- Update examples, GUI/request metadata, normalizers, and documentation after the solver-side parameter contract is clarified.
+
+Rationale:
+
+This would better match the intended physical interpretation: the elastic case should be the zero-viscosity limit of the same model rather than a separate user-facing model variant.
