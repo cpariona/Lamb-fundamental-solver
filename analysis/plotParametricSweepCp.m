@@ -7,7 +7,7 @@ function fig = plotParametricSweepCp(sweepResults, modelName, branchName, vararg
 %   plotParametricSweepCp(S, "RayleighLamb", "A0")
 
 p = inputParser;
-addParameter(p, 'Title', "", @(x)ischar(x) || isstring(x));
+addParameter(p, 'Title', "", @(x)ischar(x) || isstring(x) || iscellstr(x));
 addParameter(p, 'NewFigure', true, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'ShowLastValidPoint', false, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'LastValidPointMarkerSize', 7, @(x)isnumeric(x) && isscalar(x));
@@ -68,8 +68,9 @@ if logical(p.Results.StartFrequencyAtZero)
     setFrequencyAxisFromZero(ax);
 end
 
-if strlength(string(p.Results.Title)) > 0
-    title(ax, string(p.Results.Title));
+requestedTitle = string(p.Results.Title);
+if any(strlength(requestedTitle(:)) > 0)
+    title(ax, requestedTitle, 'Interpreter', 'none');
 else
     title(ax, sprintf('%s %s Cp sweep', string(modelName), string(branchName)), 'Interpreter', 'none');
 end
