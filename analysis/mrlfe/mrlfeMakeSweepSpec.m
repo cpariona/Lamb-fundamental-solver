@@ -21,8 +21,8 @@ caseInfo.showLastValidPoint = false;
 switch sweepName
     case "mu"
         mu_kPa = [60, 65, 70, 75, 80];
-        sweepSpec.parameter = "E";
-        sweepSpec.values = 3 * mu_kPa * 1e3;
+        sweepSpec.parameter = "mu";
+        sweepSpec.values = mu_kPa * 1e3;
         sweepSpec.displayValues = mu_kPa;
         sweepSpec.label = "Shear modulus mu";
         sweepSpec.units = "kPa";
