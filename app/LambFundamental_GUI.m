@@ -30,6 +30,7 @@ globalTabs.Layout.Row = 1;
 
 callbacks = struct();
 callbacks.markDirty = @(~,~)markDirty();
+callbacks.onPrimaryMaterialChanged = @(~,~)onPrimaryMaterialChanged();
 callbacks.onMaterialModelChanged = @(~,~)onMaterialModelChanged();
 callbacks.refreshPlotOnly = @(~,~)refreshPlotOnly();
 callbacks.onAutoAxesChanged = @(~,~)onAutoAxesChanged();
@@ -71,20 +72,45 @@ catch
 end
 
 updateMaterialInputState();
+updateDerivedMaterialFields();
 updateAxisFieldState();
 
     function onMaterialModelChanged()
         updateMaterialInputState();
+        updateDerivedMaterialFields();
+        markDirty();
+    end
+
+    function onPrimaryMaterialChanged()
+        updateDerivedMaterialFields();
         markDirty();
     end
 
     function updateMaterialInputState()
-        ypOn = string(setup.model.Value) == "YoungPoissonFixedCL";
-        setup.Elabel.Enable = onOff(ypOn); setup.E.Enable = onOff(ypOn);
-        setup.nulabel.Enable = onOff(ypOn); setup.nu.Enable = onOff(ypOn);
-        setup.CLlabel.Enable = onOff(ypOn); setup.CL.Enable = onOff(ypOn);
-        setup.lambdalabel.Enable = onOff(~ypOn); setup.lambda.Enable = onOff(~ypOn);
-        setup.mulabel.Enable = onOff(~ypOn); setup.mu.Enable = onOff(~ypOn);
+        spOn = string(setup.model.Value) == "ShearPoisson";
+        setup.nulabel.Enable = onOff(spOn); setup.nu.Enable = onOff(spOn);
+        setup.lambdalabel.Enable = onOff(~spOn); setup.lambda.Enable = onOff(~spOn);
+        setup.E.Enable = 'off'; setup.K.Enable = 'off'; setup.CT.Enable = 'off'; setup.CL.Enable = 'off';
+    end
+
+    function updateDerivedMaterialFields()
+        try
+            rho = setup.rho.Value;
+            mu = setup.mu.Value * 1e3;
+            if string(setup.model.Value) == "ShearPoisson"
+                elastic = elasticFromMuNu(mu, setup.nu.Value, rho);
+                setup.lambda.Value = elastic.lambda / 1e6;
+            else
+                elastic = elasticFromLame(setup.lambda.Value * 1e6, mu, rho);
+                setup.nu.Value = elastic.nu;
+            end
+            setup.E.Value = elastic.E / 1e3;
+            setup.K.Value = elastic.K / 1e6;
+            setup.CT.Value = elastic.CT;
+            setup.CL.Value = elastic.CL;
+        catch
+            % Leave current derived values in place until validation reports the issue.
+        end
     end
 
     function markDirty()
@@ -156,16 +182,22 @@ updateAxisFieldState();
         params = rlDefaultParams();
         params.modelType = string(setup.model.Value);
         params.rho = setup.rho.Value;
-        params.E = setup.E.Value * 1e3;
-        params.nu = setup.nu.Value;
-        params.CL = setup.CL.Value;
-        params.lambda = setup.lambda.Value * 1e6;
         params.mu = setup.mu.Value * 1e3;
+        params.nu = setup.nu.Value;
+        params.lambda = setup.lambda.Value * 1e6;
         params.thickness = setup.thickness.Value * 1e-3;
         params.fmin = setup.fmin.Value;
         params.fmax = setup.fmax.Value;
         params.numFrequencyPoints = "auto";
         params.frequencySpacing = "hybrid";
+
+        material = rlComputeMaterial(params);
+        params.E = material.E;
+        params.K = material.K;
+        params.CL = material.CL;
+        params.CT = material.CT;
+        params.nu = material.nu;
+        params.lambda = material.lambda;
     end
 
     function mrlfeParams = readMRLFEParamsFromGui()
@@ -373,8 +405,8 @@ updateAxisFieldState();
             setStatusText({'Status: computed.'});
             return;
         end
-        materialInfo.Text = sprintf('rho %.1f kg/m^3 | h %.3f mm | mu %.2f kPa | lambda %.2f MPa\nCL %.2f m/s | CT %.2f m/s', ...
-            mat.rho, geom.thickness*1e3, mat.mu/1e3, mat.lambda/1e6, mat.CL, mat.CT);
+        materialInfo.Text = sprintf('rho %.1f kg/m^3 | 2h %.3f mm | mu %.2f kPa | nu %.5f | E %.2f kPa\nlambda_Lame %.2f MPa | K %.2f MPa | CL %.2f m/s | CT %.2f m/s', ...
+            mat.rho, geom.thickness*1e3, mat.mu/1e3, mat.nu, mat.E/1e3, mat.lambda/1e6, mat.K/1e6, mat.CL, mat.CT);
         if ~isempty(gridData) && isfield(gridData,'frequency')
             status = {sprintf('Status: computed %d frequency points.', numel(gridData.frequency))};
         else
@@ -428,136 +460,48 @@ updateAxisFieldState();
                 end
             end
         end
-        txt = strjoin(lines,newline);
+        txt = strjoin(lines, newline);
     end
 
     function txt = buildRayleighLambDiagnosticsText()
-        geom = getGeometryData(lastResults);
-        mat = getMaterialData(lastResults);
-        gridData = getGridData(lastResults);
         lines = strings(0,1);
-        lines(end+1) = "Rayleigh-Lamb diagnostics";
-        if ~isempty(geom)
-            lines(end+1) = sprintf("h = %.6g m", geom.thickness);
-            lines(end+1) = sprintf("h/2 = %.6g m", geom.halfThickness);
+        lines(end+1) = "Rayleigh-Lamb / mRLFE diagnostics";
+        if ~isempty(lastParams)
+            lines(end+1) = sprintf("modelType %s", string(lastParams.modelType));
+            lines(end+1) = sprintf("rho %.6g kg/m^3", lastParams.rho);
+            lines(end+1) = sprintf("mu %.6g Pa", lastParams.mu);
+            lines(end+1) = sprintf("nu %.6g", lastParams.nu);
+            lines(end+1) = sprintf("E %.6g Pa", lastParams.E);
+            lines(end+1) = sprintf("lambda_Lame %.6g Pa", lastParams.lambda);
+            lines(end+1) = sprintf("K %.6g Pa", lastParams.K);
+            lines(end+1) = sprintf("CL %.6g m/s", lastParams.CL);
+            lines(end+1) = sprintf("CT %.6g m/s", lastParams.CT);
+            lines(end+1) = sprintf("2h %.6g m", lastParams.thickness);
         end
-        if ~isempty(mat)
-            lines(end+1) = sprintf("rho = %.6g kg/m^3", mat.rho);
-            lines(end+1) = sprintf("lambda = %.6g Pa", mat.lambda);
-            lines(end+1) = sprintf("mu = %.6g Pa", mat.mu);
-            lines(end+1) = sprintf("CL = %.6g m/s", mat.CL);
-            lines(end+1) = sprintf("CT = %.6g m/s", mat.CT);
+        if isfield(lastResults, 'models')
+            names = fieldnames(lastResults.models);
+            lines(end+1) = sprintf("computed models: %s", strjoin(string(names), ", "));
         end
-        if ~isempty(gridData) && isfield(gridData,'frequency')
-            lines(end+1) = sprintf("frequency points = %d", numel(gridData.frequency));
-        end
-        txt = strjoin(lines,newline);
-    end
-
-    function onExport()
-        if isempty(lastResults)
-            uialert(fig,'Compute first.','No results');
-            return;
-        end
-        defaultName = ['LambResults_', datestr(now,'yyyymmdd_HHMMSS'), '.mat'];
-        [file,path] = uiputfile('*.mat','Save results',defaultName);
-        if isequal(file,0)
-            return;
-        end
-        LambResults = lastResults; %#ok<NASGU>
-        if ~isempty(lastGuiResult)
-            GuiResults = lastGuiResult; %#ok<NASGU>
-            GuiBranchTables = guiNormalizedBranchesToTables(lastGuiResult.branches); %#ok<NASGU>
-        end
-        if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
-            AcoustoelasticIOPHGOResults = lastResults; %#ok<NASGU>
-        end
-        save(fullfile(path,file),'LambResults','GuiResults','GuiBranchTables','AcoustoelasticIOPHGOResults','lastParams','lastOptions');
-        setStatusText({['Status: saved ', fullfile(path,file)]});
+        txt = strjoin(lines, newline);
     end
 
     function setStatusText(lines)
-        statusBox.Value = lines(:);
+        statusBox.Value = lines;
     end
 
-    function onAutoAxesChanged()
-        updateAxisFieldState();
-        refreshPlotOnly();
-    end
-
-    function updateAxisFieldState()
-        isAuto = logical(plotControls.autoAxes.Value);
-        enable = onOff(~isAuto);
-        plotControls.xmin.Enable = enable; plotControls.xmax.Enable = enable;
-        plotControls.ymin.Enable = enable; plotControls.ymax.Enable = enable;
-    end
-
-    function resetAxes()
-        if ~isempty(lastResults)
-            updatePlot();
-        else
-            axis(ax,'auto');
-        end
-    end
-
-    function useCurrentAxes()
-        xl = xlim(ax); yl = ylim(ax);
-        plotControls.xmin.Value = xl(1); plotControls.xmax.Value = xl(2);
-        plotControls.ymin.Value = yl(1); plotControls.ymax.Value = yl(2);
-        plotControls.autoAxes.Value = false;
-        updateAxisFieldState();
-    end
-
-    function applyAxisLimits()
-        if logical(plotControls.autoAxes.Value)
-            axis(ax,'auto');
-            return;
-        end
-        if plotControls.xmax.Value > plotControls.xmin.Value
-            xlim(ax,[plotControls.xmin.Value plotControls.xmax.Value]);
-        end
-        if plotControls.ymax.Value > plotControls.ymin.Value
-            ylim(ax,[plotControls.ymin.Value plotControls.ymax.Value]);
-        end
-    end
-
-    function value = getOptionValueLocal(optionsStruct, fieldName, defaultValue)
-        if isstruct(optionsStruct) && isfield(optionsStruct, fieldName) && ~isempty(optionsStruct.(fieldName))
-            value = optionsStruct.(fieldName);
+    function value = getOptionValueLocal(s, name, defaultValue)
+        if isstruct(s) && isfield(s, name)
+            value = s.(name);
         else
             value = defaultValue;
         end
     end
-end
 
-function y = onOff(tf)
-if tf
-    y = 'on';
-else
-    y = 'off';
-end
-end
-
-function geom = getGeometryData(results)
-if isfield(results,'geometry')
-    geom = results.geometry;
-else
-    geom = [];
-end
-end
-
-function mat = getMaterialData(results)
-if isfield(results,'material')
-    mat = results.material;
-else
-    mat = [];
-end
-end
-
-function gridData = getGridData(results)
-if isfield(results,'grid')
-    gridData = results.grid;
-else
-    gridData = [];
-end
+    function value = onOff(tf)
+        if tf
+            value = 'on';
+        else
+            value = 'off';
+        end
+    end
 end
