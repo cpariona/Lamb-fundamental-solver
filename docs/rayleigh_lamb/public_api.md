@@ -6,6 +6,30 @@ The `rl*` functions under `models/rayleigh_lamb/` are the supported Rayleigh-Lam
 
 For architecture, path behavior, validation, and GUI guidance, see [Rayleigh-Lamb solver overview](overview.md).
 
+## Material-parameter convention
+
+The maintained soft-material input model is:
+
+```matlab
+params.modelType = "ShearPoisson";
+params.mu = ...;   % shear modulus [Pa]
+params.nu = ...;   % Poisson ratio [-]
+params.rho = ...;  % density [kg/m^3]
+```
+
+`rlComputeMaterial` derives `E`, `lambda`, `K`, `CT`, and `CL` through the shared material helpers in `models/materials/`.
+
+The explicit Lamé route remains available for diagnostics and formulation checks:
+
+```matlab
+params.modelType = "LameParameters";
+params.lambda = ...;
+params.mu = ...;
+params.rho = ...;
+```
+
+The previous `YoungPoissonFixedCL` route is no longer part of the maintained material contract.
+
 ## Primary API table
 
 | Folder | Primary function | Purpose |
@@ -25,6 +49,8 @@ For architecture, path behavior, validation, and GUI guidance, see [Rayleigh-Lam
 | `models/rayleigh_lamb/approximations/` | `rlComputeS0ExtensionalApproximation` | Compute the S0 extensional analytical approximation. |
 | `models/rayleigh_lamb/approximations/` | `rlComputeAnalyticalApproximations` | Compute the maintained set of analytical Rayleigh-Lamb approximations. |
 | `models/rayleigh_lamb/tracking/` | `rlSolveFundamentalBranch` | Solve and track one fundamental Rayleigh-Lamb branch. |
+| `models/materials/` | `elasticFromMuNu` | Build equivalent isotropic elastic parameters from `mu`, `nu`, and `rho`. |
+| `models/materials/` | `elasticFromLame` | Build equivalent isotropic elastic parameters from Lamé constants and `rho`. |
 
 ## Recommended user-facing entrypoints
 
