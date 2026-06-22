@@ -15,8 +15,8 @@ SweepTool_GUI
 
 | Family | Parameters | Branches | Notes |
 | --- | --- | --- | --- |
-| `mRLFE` | `etaS`, `E`, `thickness` | `A0Like`, `S0Like` | Uses the mRLFE sweep adapter and `runParametricSweep`. |
-| `Rayleigh-Lamb` | `thickness`, `E` | `A0`, `S0` | Uses the Rayleigh-Lamb sweep adapter and the maintained `rl*` API. |
+| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Uses the mRLFE sweep adapter and `runParametricSweep`. |
+| `Rayleigh-Lamb` | `thickness`, `mu` | `A0`, `S0` | Uses the Rayleigh-Lamb sweep adapter and the maintained `rl*` API. |
 | `AE IOP/HGO` | `IOP`, `mu` | `atlasA0` | Uses the AE IOP/HGO sweep adapter and the maintained atlas branch policy. |
 
 ## Recommended quick checks
@@ -27,8 +27,8 @@ Use:
 
 ```text
 Model family: mRLFE
-Sweep parameter: E
-Values: 50, 100
+Sweep parameter: mu
+Values: 60, 75
 Model: Elastic real-k
 Branch: A0Like
 Robustness: Fast
@@ -37,6 +37,7 @@ Robustness: Fast
 Expected outcome:
 
 - The sweep runs without an adapter error.
+- The values are interpreted in kPa and converted to solver units by the registry scale.
 - The summary table has two rows.
 - `SweepToolOutput`, `SweepToolRequest`, `SweepToolNormalized`, `SweepToolResults`, and `SweepToolSummary` export to the base workspace.
 
@@ -47,7 +48,7 @@ Use:
 ```text
 Model family: Rayleigh-Lamb
 Sweep parameter: thickness
-Values: 0.1, 0.2
+Values: 0.3, 0.4
 Model: Rayleigh-Lamb
 Branch: A0
 Robustness: Balanced
@@ -66,8 +67,8 @@ Use:
 
 ```text
 Model family: Rayleigh-Lamb
-Sweep parameter: E
-Values: 50, 100
+Sweep parameter: mu
+Values: 60, 75
 Model: Rayleigh-Lamb
 Branch: A0
 Robustness: Balanced
@@ -77,6 +78,7 @@ Expected outcome:
 
 - The sweep runs through the same Rayleigh-Lamb adapter.
 - The values are interpreted in kPa and converted to solver units by the registry scale.
+- `E`, `lambda_Lame`, `K`, `CT`, and `CL` are derived by the material helper from `mu`, `nu`, and `rho`.
 
 ### AE IOP/HGO IOP check
 
