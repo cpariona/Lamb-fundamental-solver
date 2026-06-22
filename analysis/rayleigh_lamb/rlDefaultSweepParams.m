@@ -1,16 +1,14 @@
 function params = rlDefaultSweepParams()
 %RLDEFAULTSWEEPPARAMS Build the reference parameter set for Rayleigh-Lamb sweeps.
 %
-% The maintained Rayleigh-Lamb sweep examples use shear modulus as the
-% user-facing material reference while preserving the current E, nu solver
-% parameterization internally.
+% Maintained Rayleigh-Lamb sweep examples use shear modulus and Poisson ratio
+% as the user-facing elastic inputs. E and lambda are derived by rlComputeMaterial.
 
 params = rlDefaultParams();
-params.modelType = "YoungPoissonFixedCL";
+params.modelType = "ShearPoisson";
 params.rho = 1070;
-params.E = 3 * 75e3;
+params.mu = 75e3;
 params.nu = 0.4999;
-params.CL = 1500;
 params.thickness = 0.5e-3;
 params.fmin = 100;
 params.fmax = 16000;
