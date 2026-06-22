@@ -40,7 +40,7 @@ fluidSoundSpeed = 1500 m/s
 robustness preset = Fast
 ```
 
-Current sweep values:
+Current mRLFE sweep values:
 
 ```matlab
 mu = [60, 65, 70, 75, 80] kPa
@@ -67,23 +67,7 @@ examples/mrlfe/sweeps/figures/thickness_sweep/
 
 Figures are saved as `.fig` and `.png`.
 
-## Generic sweep utilities
-
-Generic helpers live under `analysis/`:
-
-```matlab
-runParametricSweep
-plotParametricSweepCp
-summarizeParametricSweepBranch
-```
-
-`runParametricSweep` changes one scalar solver parameter. It supports optional `displayValues`, used by the mRLFE `mu` sweep to display `mu` while solving through `E`.
-
-`plotParametricSweepCp` plots `Cp(f)` for one model/branch pair and supports frequency scaling, zero-start frequency limits, and multiline titles.
-
-`summarizeParametricSweepBranch` reports branch validity, frequency range, Cp range, and elapsed time for each sweep case.
-
-## Rayleigh-Lamb sweep example
+## Maintained Rayleigh-Lamb example
 
 The maintained Rayleigh-Lamb thickness sweep lives under:
 
@@ -96,6 +80,57 @@ It delegates to:
 ```matlab
 rlRunThicknessSweepExample
 ```
+
+and shared helpers under:
+
+```text
+analysis/rayleigh_lamb/
+```
+
+Current Rayleigh-Lamb reference settings:
+
+```text
+mu = 75 kPa, implemented internally as E = 3*mu = 225 kPa
+2h = 0.5 mm
+fmin = 100 Hz
+fmax = 16000 Hz
+frequencySpacing = hybrid
+rho = 1070 kg/m^3
+nu = 0.4999
+CL = 1500 m/s
+robustness preset = Balanced
+```
+
+Current Rayleigh-Lamb sweep values:
+
+```matlab
+2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
+```
+
+Rayleigh-Lamb plots use AE-style two-line titles, frequency in kHz, and axes starting at zero. Outputs follow:
+
+```text
+Results/rayleigh_lamb/thickness_sweep/
+examples/rayleigh_lamb/basic/figures/thickness_sweep/
+```
+
+Figures are saved as `.fig` and `.png`.
+
+## Generic sweep utilities
+
+Generic helpers live under `analysis/`:
+
+```matlab
+runParametricSweep
+plotParametricSweepCp
+summarizeParametricSweepBranch
+```
+
+`runParametricSweep` changes one scalar solver parameter. It supports optional `displayValues`, used by the mRLFE and Rayleigh-Lamb examples to display `2h` or `mu` while preserving current internal solver fields.
+
+`plotParametricSweepCp` plots `Cp(f)` for one model/branch pair and supports frequency scaling, zero-start frequency limits, and multiline titles.
+
+`summarizeParametricSweepBranch` reports branch validity, frequency range, Cp range, and elapsed time for each sweep case.
 
 ## Validation
 
@@ -112,6 +147,7 @@ sweep_etaS_A0Like_viscoelastic
 sweep_etaS_S0Like_viscoelastic
 sweep_thickness_A0Like_viscoelastic
 sweep_thickness_S0Like_viscoelastic
+sweep_thickness_A0_S0
 
 run_all_smoke_tests
 ```
