@@ -2,11 +2,14 @@ function [sweepSpec, caseInfo] = mrlfeMakeSweepSpec(sweepName)
 %MRLFEMAKESWEEPSPEC Build maintained one-parameter mRLFE sweep specs.
 %
 % Supported sweepName values:
+%   "mu"         -> shear-modulus sweep, displayed in kPa
 %   "viscosity"  -> etaS sweep, displayed in Pa*s
-%   "stiffness"  -> E sweep, displayed in kPa
-%   "thickness"  -> thickness sweep, displayed in mm
+%   "thickness"  -> full-thickness 2h sweep, displayed in mm
 
 sweepName = lower(string(sweepName));
+if sweepName == "stiffness"
+    sweepName = "mu";
+end
 
 sweepSpec = struct();
 caseInfo = struct();
@@ -16,38 +19,44 @@ caseInfo.fixedEtaS = 0.05;
 caseInfo.showLastValidPoint = false;
 
 switch sweepName
+    case "mu"
+        mu_kPa = [60, 65, 70, 75, 80];
+        sweepSpec.parameter = "E";
+        sweepSpec.values = 3 * mu_kPa * 1e3;
+        sweepSpec.displayValues = mu_kPa;
+        sweepSpec.label = "Shear modulus mu";
+        sweepSpec.units = "kPa";
+        sweepSpec.displayScale = 1e3;
+        caseInfo.fixedEtaS = 0.05;
+        caseInfo.titleParameter = "shear modulus";
+        caseInfo.taskName = "mu_sweep";
+        caseInfo.filePrefix = "mu_sweep_cp";
+
     case "viscosity"
         sweepSpec.parameter = "etaS";
-        sweepSpec.values = [0, 0.01, 0.05, 0.10, 0.20, 0.30, 0.50];
+        sweepSpec.values = [0, 0.1, 0.2, 0.3, 0.4, 0.5];
         sweepSpec.label = "etaS";
         sweepSpec.units = "Pa*s";
         sweepSpec.displayScale = 1;
         caseInfo.fixedEtaS = 0;
-        caseInfo.titleParameter = "etaS";
-        caseInfo.titleNoun = "shear viscosity etaS";
-
-    case "stiffness"
-        sweepSpec.parameter = "E";
-        sweepSpec.values = [50, 100, 300, 500, 1000, 1500] * 1e3;
-        sweepSpec.label = "E";
-        sweepSpec.units = "kPa";
-        sweepSpec.displayScale = 1e3;
-        caseInfo.fixedEtaS = 0.05;
-        caseInfo.titleParameter = "stiffness E";
-        caseInfo.titleNoun = "stiffness E";
+        caseInfo.titleParameter = "shear viscosity";
+        caseInfo.taskName = "etaS_sweep";
+        caseInfo.filePrefix = "etaS_sweep_cp";
 
     case "thickness"
+        thickness_mm = [0.3, 0.4, 0.5, 0.6, 0.7];
         sweepSpec.parameter = "thickness";
-        sweepSpec.values = [0.3, 0.5, 0.7, 1.0] * 1e-3;
-        sweepSpec.label = "thickness";
+        sweepSpec.values = thickness_mm * 1e-3;
+        sweepSpec.displayValues = thickness_mm;
+        sweepSpec.label = "Full thickness 2h";
         sweepSpec.units = "mm";
         sweepSpec.displayScale = 1e-3;
         caseInfo.fixedEtaS = 0.05;
-        caseInfo.titleParameter = "thickness";
-        caseInfo.titleNoun = "thickness";
-        caseInfo.showLastValidPoint = true;
+        caseInfo.titleParameter = "full thickness";
+        caseInfo.taskName = "thickness_sweep";
+        caseInfo.filePrefix = "thickness_sweep_cp";
 
     otherwise
-        error('Unsupported mRLFE sweepName "%s". Use "viscosity", "stiffness", or "thickness".', sweepName);
+        error('Unsupported mRLFE sweepName "%s". Use "mu", "viscosity", or "thickness".', char(sweepName));
 end
 end
