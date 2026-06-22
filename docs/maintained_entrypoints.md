@@ -189,7 +189,6 @@ docs/gui_adapter_architecture.md
 docs/gui_integration_audit.md
 docs/rayleigh_lamb/overview.md
 docs/rayleigh_lamb/public_api.md
-docs/rayleigh_lamb/sweep_helper_status.md
 docs/mrlfe/tracker_diagnostic_summary.md
 docs/mrlfe/current_sweeps.md
 docs/mrlfe/pending_cleanup.md
