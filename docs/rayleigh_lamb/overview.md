@@ -41,7 +41,8 @@ Current public/basic scripts:
 ```matlab
 run_default_A0
 run_default_A0_S0
-sweep_thickness_A0_S0
+sweep_thickness_A0_elastic
+sweep_thickness_S0_elastic
 ```
 
 Current validation script:
@@ -66,16 +67,17 @@ The old top-level example folders were removed. Rayleigh-Lamb examples should re
 
 ## Sweep helper layer
 
-The maintained thickness sweep entrypoint is:
+The maintained thickness sweep entrypoints are branch-specific:
 
 ```matlab
-sweep_thickness_A0_S0
+sweep_thickness_A0_elastic
+sweep_thickness_S0_elastic
 ```
 
-It delegates reusable setup to:
+They delegate reusable setup to:
 
 ```matlab
-rlRunThicknessSweepExample
+rlRunSweepExample
 ```
 
 The helper lives under:
@@ -92,7 +94,7 @@ plotParametricSweepCp
 summarizeParametricSweepBranch
 ```
 
-This keeps the public example short while preserving the previous thickness values, solver options, and A0/S0 output behavior.
+This keeps the public examples short while aligning Rayleigh-Lamb sweep naming and outputs with the maintained mRLFE and AE examples.
 
 ## Startup/path behavior
 
@@ -100,7 +102,7 @@ This keeps the public example short while preserving the previous thickness valu
 
 ## Tests and validation
 
-`tests/run_all_smoke_tests.m` validates the modern Rayleigh-Lamb API by checking that the primary `rl*` entrypoints are on the MATLAB path and by running minimal A0/S0 numerical regression fixtures. The same smoke suite continues to include non-Rayleigh-Lamb mRLFE and Acoustoelastic IOP/HGO smoke coverage.
+`tests/run_all_smoke_tests.m` validates the modern Rayleigh-Lamb API by checking that the primary `rl*` entrypoints and sweep helpers are on the MATLAB path, then running minimal A0/S0 numerical regression fixtures. The same smoke suite continues to include non-Rayleigh-Lamb mRLFE and Acoustoelastic IOP/HGO smoke coverage.
 
 Recommended local validation from the repository root:
 
@@ -108,7 +110,8 @@ Recommended local validation from the repository root:
 clear functions
 rehash toolboxcache
 startup
-sweep_thickness_A0_S0
+sweep_thickness_A0_elastic
+sweep_thickness_S0_elastic
 check_default_outputs
 run_all_smoke_tests
 ```
