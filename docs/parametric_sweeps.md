@@ -2,17 +2,17 @@
 
 This document summarizes the maintained parametric sweep workflow for the Lamb Fundamental Solver.
 
-The sweep tools are intended for quick sensitivity studies of the mRLFE real-k branches. They reuse the same backend as the GUI and export both plotted curves and quantitative validity summaries.
+The sweep tools are intended for quick sensitivity studies of Rayleigh-Lamb and mRLFE branches. They reuse the same backend as the GUI where applicable and export plotted curves plus quantitative validity summaries.
 
-## Sweep script location
+## Sweep script locations
 
-The maintained mRLFE sweep scripts live under:
+Maintained mRLFE sweep wrappers live under:
 
 ```text
 examples/mrlfe/sweeps/
 ```
 
-Maintained sweep scripts:
+Maintained mRLFE sweep scripts:
 
 ```text
 examples/mrlfe/sweeps/sweep_viscosity_A0Like_viscoelastic.m
@@ -23,7 +23,19 @@ examples/mrlfe/sweeps/sweep_thickness_A0Like_viscoelastic.m
 examples/mrlfe/sweeps/sweep_thickness_S0Like_viscoelastic.m
 ```
 
-Because `startup.m` adds `examples/mrlfe/` recursively, these scripts can be called directly by function/script name after running `startup`.
+The maintained Rayleigh-Lamb thickness sweep wrapper lives under:
+
+```text
+examples/rayleigh_lamb/basic/sweep_thickness_A0_S0.m
+```
+
+The Rayleigh-Lamb manual validation script lives under:
+
+```text
+examples/rayleigh_lamb/validation/check_default_outputs.m
+```
+
+Because `startup.m` adds maintained example folders recursively, these scripts can be called directly by function/script name after running `startup`.
 
 ## Core sweep utilities
 
@@ -61,12 +73,15 @@ sweepResults = runParametricSweep(params, options, sweepSpec);
 
 Plots `Cp(f)` for one model/branch pair extracted from the sweep results.
 
-Example:
+Examples:
 
 ```matlab
 plotParametricSweepCp(sweepResults, "mRLFEHanViscoRealK", "A0Like", ...
     "Title", "Viscoelastic A0-like Cp sensitivity to etaS", ...
     "ShowLastValidPoint", true);
+
+plotParametricSweepCp(sweepResults, "RayleighLamb", "A0", ...
+    "Title", "Rayleigh-Lamb A0 thickness sweep");
 ```
 
 The option `ShowLastValidPoint` marks the last valid `Cp` point on each curve. This is useful for conservative real-k branches because curves may terminate before the requested `fmax`.
@@ -75,11 +90,14 @@ The option `ShowLastValidPoint` marks the last valid `Cp` point on each curve. T
 
 Creates a table summarizing branch validity and range for each sweep case.
 
-Example:
+Examples:
 
 ```matlab
 sweepSummary = summarizeParametricSweepBranch(sweepResults, ...
     "mRLFEHanViscoRealK", "A0Like");
+
+a0Summary = summarizeParametricSweepBranch(sweepResults, ...
+    "RayleighLamb", "A0");
 ```
 
 The summary table includes:
@@ -102,7 +120,78 @@ LastValidCp_mps
 ElapsedSeconds
 ```
 
-## Maintained sweep scripts
+## mRLFE sweep helper layer
+
+The public mRLFE sweep scripts are short wrappers. Shared setup lives in:
+
+```text
+analysis/mrlfe/
+```
+
+Current helper layer:
+
+```matlab
+mrlfeDefaultSweepParams
+mrlfeDefaultSweepOptions
+mrlfeMakeSweepSpec
+mrlfeRunSweepExample
+```
+
+Use the wrappers for normal execution:
+
+```matlab
+sweep_viscosity_A0Like_viscoelastic
+sweep_viscosity_S0Like_viscoelastic
+sweep_stiffness_A0Like_viscoelastic
+sweep_stiffness_S0Like_viscoelastic
+sweep_thickness_A0Like_viscoelastic
+sweep_thickness_S0Like_viscoelastic
+```
+
+Use the helper only when creating or adapting a maintained sweep:
+
+```matlab
+[sweepResults, sweepSummary] = mrlfeRunSweepExample( ...
+    "viscosity", "A0Like", "AssignToBase", true);
+```
+
+The helper layer centralizes reference parameters, solver options, sweep values, plotting, summaries, and workspace-output names. It does not change the mRLFE solver, equations, or branch-tracking logic.
+
+## Rayleigh-Lamb sweep helper layer
+
+The maintained Rayleigh-Lamb thickness sweep wrapper is:
+
+```matlab
+sweep_thickness_A0_S0
+```
+
+It delegates to:
+
+```matlab
+rlRunThicknessSweepExample
+```
+
+The helper lives under:
+
+```text
+analysis/rayleigh_lamb/
+```
+
+It computes A0 and S0 on the preserved thickness grid:
+
+```matlab
+thickness = [0.1 0.2 0.3 0.4 0.5] mm
+```
+
+and assigns these workspace outputs when called through the public wrapper:
+
+```matlab
+RayleighLambThicknessSweepResults
+RayleighLambThicknessSweepA0Summary
+RayleighLambThicknessSweepS0Summary
+```
+
+## Maintained mRLFE sweep scripts
 
 Run all scripts from the repository root after `startup`.
 
@@ -252,11 +341,26 @@ For `mRLFEHanViscoRealK`, a branch cut should not be interpreted as a plotting e
 
 ## Creating a new sweep
 
-A new one-parameter sweep usually requires only these changes:
+A new one-parameter mRLFE sweep should usually add or update metadata in:
 
 ```matlab
-sweepSpec.parameter = "parameterName";
-sweepSpec.values = [...];
-sweepSpec.label = "display label";
-sweepSpec.units = "display units";
+mrlfeMakeSweepSpec
+```
+
+and expose a short wrapper under:
+
+```text
+examples/mrlfe/sweeps/
+```
+
+A new Rayleigh-Lamb sweep should keep the public script under:
+
+```text
+examples/rayleigh_lamb/basic/
+```
+
+and move reusable setup into:
+
+```text
+analysis/rayleigh_lamb/
 ```
