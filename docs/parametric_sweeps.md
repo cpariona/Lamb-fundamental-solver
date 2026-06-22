@@ -26,19 +26,20 @@ All six scripts delegate to `mrlfeRunSweepExample` and share helpers under `anal
 Current mRLFE reference settings:
 
 ```text
-mu = 75 kPa, implemented internally as E = 3*mu = 225 kPa
+mu = 75 kPa
+nu = 0.4999
 etaS = 0.05 Pa*s
 2h = 0.5 mm
 fmin = 100 Hz
 fmax = 16000 Hz
 frequencySpacing = hybrid
 rho = 1070 kg/m^3
-nu = 0.4999
-CL = 1500 m/s
 fluidDensity = 1000 kg/m^3
 fluidSoundSpeed = 1500 m/s
 robustness preset = Fast
 ```
+
+`E`, `lambda_Lame`, `K`, `CT`, and `CL` are derived from `mu`, `nu`, and `rho` through the shared elastic-material helpers.
 
 Current mRLFE sweep values:
 
@@ -47,8 +48,6 @@ mu = [60, 65, 70, 75, 80] kPa
 etaS = [0, 0.1, 0.2, 0.3, 0.4, 0.5] Pa*s
 2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
 ```
-
-The `mu` sweep is displayed in kPa but solved through `E = 3*mu`, because the current mRLFE base parameterization uses `E` and `nu`. This cleanup is tracked in `docs/mrlfe/pending_cleanup.md`.
 
 mRLFE plots use AE-style two-line titles. The first line gives the sweep target and the second line gives fixed reference parameters without overloading the legend.
 
@@ -110,16 +109,17 @@ analysis/rayleigh_lamb/
 Current Rayleigh-Lamb reference settings:
 
 ```text
-mu = 75 kPa, implemented internally as E = 3*mu = 225 kPa
+mu = 75 kPa
+nu = 0.4999
 2h = 0.5 mm
 fmin = 100 Hz
 fmax = 16000 Hz
 frequencySpacing = hybrid
 rho = 1070 kg/m^3
-nu = 0.4999
-CL = 1500 m/s
 robustness preset = Balanced
 ```
+
+`E`, `lambda_Lame`, `K`, `CT`, and `CL` are derived from `mu`, `nu`, and `rho`.
 
 Current Rayleigh-Lamb sweep values:
 
