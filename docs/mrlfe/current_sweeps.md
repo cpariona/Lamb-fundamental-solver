@@ -24,3 +24,11 @@ etaS = [0, 0.1, 0.2, 0.3, 0.4, 0.5] Pa*s
 The `mu` sweep is displayed as shear modulus but solved internally as `E = 3*mu`. This parameterization cleanup is tracked in `docs/mrlfe/pending_cleanup.md`.
 
 Plots use AE-style two-line titles, frequency in kHz, and axes starting at zero. Data are written under `Results/mrlfe/<taskName>/`; figures are written under `examples/mrlfe/sweeps/figures/<taskName>/` as `.fig` and `.png`.
+
+Legacy compatibility wrapper:
+
+```matlab
+sweep_mrlfe_shear_viscosity_phase_velocity
+```
+
+This wrapper is retained temporarily because the file still exists under `examples/mrlfe/sweeps/`. It no longer performs the old etaS phase-velocity sweep. It delegates to the maintained full-thickness workflow and runs both A0-like and S0-like sweeps for `2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm` with fixed `mu = 75 kPa` and `etaS = 0.05 Pa*s`.
