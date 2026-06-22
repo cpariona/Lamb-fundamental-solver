@@ -5,14 +5,15 @@ function fig = plotParametricSweepCp(sweepResults, modelName, branchName, vararg
 %   plotParametricSweepCp(S, "mRLFEHanViscoRealK", "A0Like")
 %   plotParametricSweepCp(S, "mRLFEElasticRealK", "S0Like")
 %   plotParametricSweepCp(S, "RayleighLamb", "A0")
-%   plotParametricSweepCp(S, "mRLFEHanViscoRealK", "A0Like", ...
-%       "ShowLastValidPoint", true)
 
 p = inputParser;
 addParameter(p, 'Title', "", @(x)ischar(x) || isstring(x));
 addParameter(p, 'NewFigure', true, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'ShowLastValidPoint', false, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'LastValidPointMarkerSize', 7, @(x)isnumeric(x) && isscalar(x));
+addParameter(p, 'FrequencyScale', 1, @(x)isnumeric(x) && isscalar(x) && x > 0);
+addParameter(p, 'FrequencyUnit', "Hz", @(x)ischar(x) || isstring(x));
+addParameter(p, 'StartFrequencyAtZero', false, @(x)islogical(x) || isnumeric(x));
 parse(p, varargin{:});
 
 if p.Results.NewFigure
@@ -36,7 +37,7 @@ for i = 1:n
     end
 
     valid = getBranchValidityMask(branch);
-    xRaw = branch.frequency(:);
+    xRaw = branch.frequency(:) ./ p.Results.FrequencyScale;
     yRaw = branch.Cp(:);
     valid = valid & isfinite(xRaw) & isfinite(yRaw);
 
@@ -60,9 +61,12 @@ for i = 1:n
     end
 end
 
-xlabel(ax, 'frequency [Hz]');
+xlabel(ax, "Frequency [" + string(p.Results.FrequencyUnit) + "]");
 ylabel(ax, 'Phase velocity Cp [m/s]');
 setSweepPlotLimits(ax, 'CpAxis', 'y');
+if logical(p.Results.StartFrequencyAtZero)
+    setFrequencyAxisFromZero(ax);
+end
 
 if strlength(string(p.Results.Title)) > 0
     title(ax, string(p.Results.Title));
@@ -117,6 +121,27 @@ if isfield(spec, 'units') && strlength(string(spec.units)) > 0
 else
     txt = sprintf('%s = %.4g', string(spec.label), value);
 end
+end
+
+function setFrequencyAxisFromZero(ax)
+values = [];
+children = ax.Children;
+for i = 1:numel(children)
+    child = children(i);
+    if isprop(child, 'XData')
+        values = [values; child.XData(:)]; %#ok<AGROW>
+    end
+end
+finiteValues = values(isfinite(values));
+if isempty(finiteValues)
+    upper = 1;
+else
+    upper = max(finiteValues(:));
+end
+if ~isfinite(upper) || upper <= 0
+    upper = 1;
+end
+xlim(ax, [0 upper * 1.05]);
 end
 
 function addLastValidPointNote(ax)
