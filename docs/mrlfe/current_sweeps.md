@@ -18,7 +18,9 @@ Sweep values:
 ```matlab
 mu = [60, 65, 70, 75, 80] kPa
 etaS = [0, 0.1, 0.2, 0.3, 0.4, 0.5] Pa*s
-thickness = [0.3, 0.4, 0.5, 0.6, 0.7] mm
+2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
 ```
 
-Outputs follow the AE example pattern: data under `Results/mrlfe/<taskName>/` and figures under `examples/mrlfe/sweeps/figures/<taskName>/` as `.fig` and `.png`.
+The `mu` sweep is displayed as shear modulus but solved internally as `E = 3*mu`.
+
+Plots use AE-style titles, frequency in kHz, and axes starting at zero. Data are written under `Results/mrlfe/<taskName>/`; figures are written under `examples/mrlfe/sweeps/figures/<taskName>/` as `.fig` and `.png`.
