@@ -50,22 +50,19 @@ end
 
 modelType = string(params.modelType);
 switch modelType
-    case "YoungPoissonFixedCL"
-        requiredMaterialFields = {'E', 'nu', 'CL'};
+    case "ShearPoisson"
+        requiredMaterialFields = {'mu', 'nu'};
         for i = 1:numel(requiredMaterialFields)
             if ~isfield(params, requiredMaterialFields{i})
-                error('Missing required material field for YoungPoissonFixedCL: %s.', requiredMaterialFields{i});
+                error('Missing required material field for ShearPoisson: %s.', requiredMaterialFields{i});
             end
         end
 
-        if params.E <= 0
-            error('E must be positive.');
+        if params.mu <= 0
+            error('mu must be positive.');
         end
-        if params.nu < 0 || params.nu >= 0.5
-            error('nu must be in the range [0, 0.5).');
-        end
-        if params.CL <= 0
-            error('CL must be positive.');
+        if params.nu <= -1 || params.nu >= 0.5
+            error('nu must be in the range (-1, 0.5).');
         end
 
     case "LameParameters"
