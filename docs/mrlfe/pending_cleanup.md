@@ -79,10 +79,11 @@ Current status:
 - They report valid fraction, frequency span, Cp range, relative jumps, roughness, residual metrics, internal-grid usage, and a compact quality score.
 - `tests/mrlfe/test_mrlfe_tracking_quality_summary.m` protects the summary helper contract.
 - `tests/mrlfe/test_mrlfe_tracking_strategy_comparison.m` protects the direct/internal-grid comparison helper contract.
+- `tests/mrlfe/test_mrlfe_internal_grid_quality_guard.m` protects that the viscous internal-grid policy does not degrade severely relative to direct tracking in a representative A0-like case.
 
 Rationale:
 
-These helpers provide a permanent way to compare direct tracking and internal-grid tracking without keeping temporary optimization scripts in the repository.
+These helpers provide a permanent way to compare direct tracking and internal-grid tracking without keeping temporary optimization scripts in the repository. The quality guard is intentionally tolerant: it is a regression guard against severe degradation, not a claim that internal-grid tracking is always superior.
 
 ## Solver optimization guardrail
 
