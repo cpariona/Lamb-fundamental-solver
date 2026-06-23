@@ -8,7 +8,7 @@ startup
 params = rlDefaultParams();
 params.fmin = 500;
 params.fmax = 1200;
-params.numFrequencyPoints = 8;
+params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 params.E = 100e3;
 params.mu = params.E / (2 * (1 + params.nu));
