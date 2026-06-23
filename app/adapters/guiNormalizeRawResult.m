@@ -129,7 +129,7 @@ end
 function modelName = normalizeModelName(rawModelName)
 rawModelName = string(rawModelName);
 switch rawModelName
-    case {"mRLFERealK", "mRLFEViscoRealK", "mRLFEHanViscoRealK"}
+    case {"mRLFERealK", "mRLFEViscoRealK"}
         modelName = "mRLFERealK";
     otherwise
         modelName = rawModelName;
