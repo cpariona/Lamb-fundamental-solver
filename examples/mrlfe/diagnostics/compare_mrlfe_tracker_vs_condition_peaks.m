@@ -10,7 +10,7 @@
 startup();
 
 branchName = "A0Like";              % "A0Like" or "S0Like"
-modelName  = "mRLFEElasticRealK";   % "mRLFEElasticRealK" or "mRLFEHanViscoRealK"
+modelName  = "mRLFEElasticRealK";   % "mRLFEElasticRealK" or "mRLFEViscoRealK"
 
 params = rlDefaultParams();
 params.E = 100e3;
@@ -27,7 +27,7 @@ options = rlDefaultOptions("Balanced");
 options.computeA0 = branchName == "A0Like";
 options.computeS0 = branchName == "S0Like";
 options.computeMRLFERealK = true;
-options.computeMRLFEHanViscoRealK = modelName == "mRLFEHanViscoRealK";
+options.computeMRLFEViscoRealK = modelName == "mRLFEViscoRealK";
 options.computeMRLFEComplexK = false;
 options.mrlfeComputeA0Like = branchName == "A0Like";
 options.mrlfeComputeS0Like = branchName == "S0Like";
@@ -218,79 +218,10 @@ fprintf('  - Tight-window diagnostics ask whether a lower residual exists immedi
 fprintf('  - If tight-window best is at the edge, do not interpret it as a local modal minimum.\n');
 fprintf('  - Brute-force scanning is useful diagnostically, but expensive as a full solver.\n');
 
-MRLFETrackerDiagnosticResults = struct();
-MRLFETrackerDiagnosticResults.comparison = comparison;
-MRLFETrackerDiagnosticResults.continuity = continuity;
-MRLFETrackerDiagnosticResults.discreteMetrics = discreteMetrics;
-MRLFETrackerDiagnosticResults.tightWindowMetrics = tightMetrics;
-MRLFETrackerDiagnosticResults.globalMetrics = globalMetrics;
-MRLFETrackerDiagnosticResults.timingMetrics = timingMetrics;
-assignin('base','MRLFETrackerDiagnosticResults',MRLFETrackerDiagnosticResults);
-
-function continuity = computeContinuityMetrics(branch, validIndex)
-cp = branch.Cp(validIndex);
-f = branch.frequency(validIndex);
-segments = countValiditySegments(validIndex);
-absJump = abs(diff(cp));
-relJump = absJump ./ max(abs(cp(1:end-1)), eps);
-if isempty(absJump)
-    [maxAbsJump, maxRelJump, medianRelJump, maxCurvatureLike] = deal(0);
-    maxJumpPos = nan;
-else
-    [maxRelJump, maxJumpPos] = max(relJump);
-    maxAbsJump = absJump(maxJumpPos);
-    medianRelJump = median(relJump,'omitnan');
-    if numel(cp) >= 3
-        curvatureLike = abs(diff(cp,2)) ./ max(abs(cp(2:end-1)), eps);
-        maxCurvatureLike = max(curvatureLike,[],'omitnan');
-    else
-        maxCurvatureLike = 0;
-    end
-end
-if isfinite(maxJumpPos)
-    idxBefore = validIndex(maxJumpPos);
-    idxAfter = validIndex(maxJumpPos+1);
-    jumpTable = table(f(maxJumpPos), f(maxJumpPos+1), cp(maxJumpPos), cp(maxJumpPos+1), ...
-        maxAbsJump, maxRelJump, idxBefore, idxAfter, ...
-        'VariableNames', {'FrequencyBefore_Hz','FrequencyAfter_Hz','CpBefore','CpAfter', ...
-        'AbsCpJump','RelativeCpJump','IndexBefore','IndexAfter'});
-else
-    idxBefore = nan; idxAfter = nan;
-    jumpTable = table(nan,nan,nan,nan,nan,nan,nan,nan, ...
-        'VariableNames', {'FrequencyBefore_Hz','FrequencyAfter_Hz','CpBefore','CpAfter', ...
-        'AbsCpJump','RelativeCpJump','IndexBefore','IndexAfter'});
-end
-continuity.Table = table(numel(validIndex), numel(branch.frequency), segments, maxAbsJump, maxRelJump, ...
-    medianRelJump, maxCurvatureLike, 'VariableNames', {'ValidCpPoints','TotalBranchPoints', ...
-    'NumValiditySegments','MaxAbsCpJump','MaxRelativeCpJump','MedianRelativeCpJump','MaxCurvatureLikeChange'});
-continuity.JumpTable = jumpTable;
-continuity.MaxJumpIndexBefore = idxBefore;
-continuity.MaxJumpIndexAfter = idxAfter;
-end
-
-function nSegments = countValiditySegments(validIndex)
-if isempty(validIndex)
-    nSegments = 0;
-else
-    nSegments = 1 + sum(diff(validIndex) > 1);
-end
-end
-
-function mask = getValidMask(branch)
-if isfield(branch,'validCp')
-    mask = branch.validCp;
-elseif isfield(branch,'valid')
-    mask = branch.valid;
-else
-    mask = isfinite(branch.Cp);
-end
-mask = mask & isfinite(branch.Cp);
-end
-
-function tf = isLocalMinimum(x)
-tf = false(size(x));
-for i = 2:numel(x)-1
-    tf(i) = isfinite(x(i)) && x(i) < x(i-1) && x(i) < x(i+1);
+function tf = isLocalMinimum(y)
+tf = false(size(y));
+for k = 2:numel(y)-1
+    tf(k) = isfinite(y(k)) && y(k) < y(k-1) && y(k) < y(k+1);
 end
 end
 
@@ -298,12 +229,47 @@ function r = relativeDifference(a,b)
 r = abs(a-b) / max(abs(b), eps);
 end
 
-function y = maxOrNaN(x)
+function v = maxOrNaN(x)
 x = x(isfinite(x));
-if isempty(x), y = nan; else, y = max(x); end
+if isempty(x), v = nan; else, v = max(x); end
 end
 
-function y = medianOrNaN(x)
+function v = medianOrNaN(x)
 x = x(isfinite(x));
-if isempty(x), y = nan; else, y = median(x); end
+if isempty(x), v = nan; else, v = median(x); end
+end
+
+function valid = getValidMask(branch)
+if isfield(branch, 'validCp')
+    valid = branch.validCp(:);
+elseif isfield(branch, 'valid')
+    valid = branch.valid(:);
+else
+    valid = isfinite(branch.Cp(:));
+end
+end
+
+function continuity = computeContinuityMetrics(branch, validIndex)
+f = branch.frequency(:);
+cp = branch.Cp(:);
+idx = validIndex(:);
+continuity = struct();
+continuity.MaxJumpIndexBefore = nan;
+continuity.MaxJumpIndexAfter = nan;
+if numel(idx) < 2
+    continuity.Table = table(0, 0, nan, nan, nan, 1, 'VariableNames', ...
+        {'ValidPoints','NumSegments','MaxRelativeCpJump','MedianRelativeCpJump','FrequencyAtMaxJump_Hz','ValidFraction'});
+    continuity.JumpTable = table();
+    return;
+end
+relJump = abs(diff(cp(idx))) ./ max(abs(cp(idx(1:end-1))), eps);
+[maxJump, localPos] = max(relJump);
+medianJump = median(relJump(isfinite(relJump)));
+continuity.MaxJumpIndexBefore = idx(localPos);
+continuity.MaxJumpIndexAfter = idx(localPos+1);
+segments = 1 + sum(diff(idx) > 1);
+continuity.Table = table(numel(idx), segments, maxJump, medianJump, f(idx(localPos)), numel(idx)/numel(cp), ...
+    'VariableNames', {'ValidPoints','NumSegments','MaxRelativeCpJump','MedianRelativeCpJump','FrequencyAtMaxJump_Hz','ValidFraction'});
+continuity.JumpTable = table(f(idx(localPos)), f(idx(localPos+1)), cp(idx(localPos)), cp(idx(localPos+1)), maxJump, ...
+    'VariableNames', {'FrequencyBefore_Hz','FrequencyAfter_Hz','CpBefore','CpAfter','RelativeJump'});
 end
