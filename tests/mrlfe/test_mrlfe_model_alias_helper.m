@@ -1,25 +1,21 @@
 clear; clc;
 startup
 
-%TEST_MRLFE_MODEL_ALIAS_HELPER Contract test for centralized mRLFE model aliases.
+%TEST_MRLFE_MODEL_ALIAS_HELPER Contract test for canonical mRLFE model candidates.
 %
-% mRLFEViscoRealK is the maintained physical name. The author-labeled name is
-% retained only as a legacy fallback for old cached raw results and scripts.
-
-legacyViscoName = "mRLFE" + "Han" + "ViscoRealK";
-legacyComputeField = "computeMRLFE" + "Han" + "ViscoRealK";
+% The helper should expose only maintained physical model names.
 
 viscoNames = mrlfeModelCandidateNames("mRLFEViscoRealK");
-assert(viscoNames(1) == "mRLFEViscoRealK", ...
-    'mRLFEViscoRealK must be the primary viscoelastic model candidate.');
-assert(any(viscoNames == legacyViscoName), ...
-    'Legacy visco model name should remain only as a fallback candidate.');
+assert(isequal(viscoNames, "mRLFEViscoRealK"), ...
+    'mRLFEViscoRealK must be the only candidate for the viscoelastic model.');
 
 unifiedNames = mrlfeModelCandidateNames("mRLFERealK");
 assert(unifiedNames(1) == "mRLFERealK", ...
     'mRLFERealK must be the primary unified real-k model candidate.');
 assert(any(unifiedNames == "mRLFEViscoRealK"), ...
     'Unified mRLFE real-k candidates should include the physical viscoelastic name.');
+assert(any(unifiedNames == "mRLFEElasticRealK"), ...
+    'Unified mRLFE real-k candidates should include the physical elastic name.');
 
 elasticNames = mrlfeModelCandidateNames("mRLFEElasticRealK");
 assert(elasticNames(1) == "mRLFEElasticRealK", ...
@@ -39,8 +35,7 @@ options = rlDefaultOptions("Fast");
 options.computeA0 = true;
 options.computeS0 = false;
 options.computeMRLFERealK = false;
-options.computeMRLFEViscoRealK = false;
-options.(char(legacyComputeField)) = true;
+options.computeMRLFEViscoRealK = true;
 options.mrlfeComputeA0Like = true;
 options.mrlfeComputeS0Like = false;
 options.mrlfeParams = defaultMRLFEParams();
@@ -50,15 +45,10 @@ options.mrlfeParams.useComplexLambda = false;
 
 results = rlComputeFundamentalLambModes(params, options);
 assert(isfield(results.models, 'mRLFEViscoRealK'), ...
-    'Legacy visco compute flag must populate the physical mRLFEViscoRealK result.');
-assert(isfield(results.models, char(legacyViscoName)), ...
-    'Legacy visco result alias should remain available temporarily.');
+    'Visco compute flag must populate the physical mRLFEViscoRealK result.');
+assert(isfield(results.models, 'mRLFERealK'), ...
+    'Visco compute flag must populate the unified mRLFERealK result.');
+assert(~any(strcmp(fieldnames(results.models), 'mRLFEHanViscoRealK')), ...
+    'Author-labeled mRLFE result aliases must not be produced.');
 
-cpPhysical = results.models.mRLFEViscoRealK.branches.A0Like.Cp(:);
-cpLegacy = results.models.(char(legacyViscoName)).branches.A0Like.Cp(:);
-finiteMask = isfinite(cpPhysical) & isfinite(cpLegacy);
-assert(any(finiteMask), 'Physical and legacy visco aliases must share finite Cp values.');
-assert(max(abs(cpPhysical(finiteMask) - cpLegacy(finiteMask))) < 1e-12, ...
-    'Physical and legacy visco aliases must refer to numerically identical data.');
-
-fprintf('test_mrlfe_model_alias_helper passed. mRLFE legacy aliases are centralized.\n');
+fprintf('test_mrlfe_model_alias_helper passed. mRLFE model candidates are canonical.\n');
