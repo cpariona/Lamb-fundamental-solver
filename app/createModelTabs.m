@@ -20,7 +20,7 @@ gRL.RowSpacing = 2;
 uilabel(gRL, 'Text', 'Fundamental modes', 'FontWeight', 'bold', 'FontSize', 11);
 h.rl.computeA0 = uicheckbox(gRL, 'Text', 'A0', 'Value', opts0.computeA0, 'ValueChangedFcn', callbacks.markDirty);
 h.rl.computeS0 = uicheckbox(gRL, 'Text', 'S0', 'Value', opts0.computeS0, 'ValueChangedFcn', callbacks.markDirty);
-uilabel(gRL, 'Text', 'mRLFE forces only the seed branches required by the selected A0-like/S0-like branches.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+uilabel(gRL, 'Text', 'mRLFE forces the Rayleigh-Lamb seed branches required by the selected A0-like/S0-like branches.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 
 tabMRLFE = uitab(tg, 'Title', 'mRLFE');
 gM = uigridlayout(tabMRLFE, [8 4]);
@@ -30,20 +30,20 @@ gM.Padding = [10 6 10 6];
 gM.RowSpacing = 2;
 gM.ColumnSpacing = 6;
 
-label = uilabel(gM, 'Text', 'Fluid-loaded models', 'FontWeight', 'bold', 'FontSize', 11);
+label = uilabel(gM, 'Text', 'Fluid-loaded model', 'FontWeight', 'bold', 'FontSize', 11);
 label.Layout.Row = 1;
 label.Layout.Column = [1 4];
 
-h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'Elastic real-k', 'Value', false, 'ValueChangedFcn', callbacks.markDirty);
+h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'mRLFE real-k', 'Value', false, 'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.computeRealK.Layout.Row = 2;
-h.mrlfe.computeRealK.Layout.Column = [1 2];
+h.mrlfe.computeRealK.Layout.Column = [1 4];
 
-h.mrlfe.computeViscoRealK = uicheckbox(gM, 'Text', 'Viscoelastic real-k', 'Value', false, 'ValueChangedFcn', @onViscoChanged);
-h.mrlfe.computeViscoRealK.Layout.Row = 2;
-h.mrlfe.computeViscoRealK.Layout.Column = [3 4];
-
-% Temporary compatibility alias for older callbacks/tests.
-h.mrlfe.computeHanViscoRealK = h.mrlfe.computeViscoRealK;
+% Compatibility aliases for older callbacks/tests. These aliases point to the
+% single maintained mRLFE real-k control; etaS selects the elastic limit or the
+% viscoelastic case.
+h.mrlfe.computeElasticRealK = h.mrlfe.computeRealK;
+h.mrlfe.computeViscoRealK = h.mrlfe.computeRealK;
+h.mrlfe.computeHanViscoRealK = h.mrlfe.computeRealK;
 
 label = uilabel(gM, 'Text', 'Branches', 'FontWeight', 'bold', 'FontSize', 11);
 label.Layout.Row = 3;
@@ -78,7 +78,7 @@ h.mrlfe.etaS = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], 'ValueC
 h.mrlfe.etaS.Layout.Row = 7;
 h.mrlfe.etaS.Layout.Column = [3 4];
 
-note = uilabel(gM, 'Text', 'Selecting viscoelastic real-k automatically keeps elastic real-k available because it is the reference branch.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity, using the elastic real-k branch as the reference buffer.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Row = 8;
 note.Layout.Column = [1 4];
 
@@ -150,11 +150,4 @@ note.Layout.Column = [1 4];
 
 h.panel = panel;
 h.tabGroup = tg;
-
-    function onViscoChanged(~, ~)
-        if h.mrlfe.computeViscoRealK.Value
-            h.mrlfe.computeRealK.Value = true;
-        end
-        callbacks.markDirty();
-    end
 end
