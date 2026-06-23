@@ -146,6 +146,14 @@ Main high-level function:
 computeMRLFE
 ```
 
+Maintained analysis helpers:
+
+```matlab
+objectiveMRLFEResidual
+summarizeMRLFETrackingQuality
+compareMRLFETrackingStrategies
+```
+
 Maintained public sweep wrappers:
 
 ```matlab
@@ -157,18 +165,22 @@ sweep_thickness_A0Like_viscoelastic
 sweep_thickness_S0Like_viscoelastic
 ```
 
-Useful examples, diagnostics, and stress tests:
+Maintained mRLFE tests:
 
 ```matlab
-run_mrlfe_prototype
-compare_mrlfe_elastic_vs_han_visco_cp
-diagnose_mrlfe_han_visco_validity_breakdown
-diagnose_mrlfe_han_visco_residual_landscape
-compare_mrlfe_tracker_vs_condition_peaks
-stress_test_mrlfe_elastic_range
-stress_test_mrlfe_han_visco_range
 test_mrlfe_smoke
+test_mrlfe_etaS_zero_limit
+test_mrlfe_elastic_reference_buffer
+test_mrlfe_residual_objective_contract
+test_mrlfe_internal_tracking_grid
+test_mrlfe_internal_tracking_grid_with_buffer
+test_mrlfe_viscous_default_internal_tracking_grid
+test_mrlfe_tracking_quality_summary
+test_mrlfe_tracking_strategy_comparison
+test_mrlfe_internal_grid_quality_guard
 ```
+
+Historical mRLFE diagnostics that still contain author-dependent labels remain outside the maintained execution surface until they are renamed or retired.
 
 ## Smoke-test scope
 
@@ -189,7 +201,6 @@ docs/gui_adapter_architecture.md
 docs/gui_integration_audit.md
 docs/rayleigh_lamb/overview.md
 docs/rayleigh_lamb/public_api.md
-docs/mrlfe/tracker_diagnostic_summary.md
 docs/mrlfe/current_sweeps.md
 docs/mrlfe/pending_cleanup.md
 docs/acoustoelastic_iop_hgo/README.md
