@@ -31,7 +31,6 @@ options.mrlfeComputeS0Like = branchName == "S0Like";
 options.computeMRLFERealK = true;
 options.computeMRLFEElasticRealK = true;
 options.computeMRLFEViscoRealK = true;
-options.computeMRLFEHanViscoRealK = true;
 
 modelName = "mRLFERealK";
 summaryModelName = "mRLFERealK";
