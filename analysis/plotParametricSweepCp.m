@@ -2,7 +2,7 @@ function fig = plotParametricSweepCp(sweepResults, modelName, branchName, vararg
 %PLOTPARAMETRICSWEEPCP Plot Cp(f) curves from runParametricSweep output.
 %
 % Examples:
-%   plotParametricSweepCp(S, "mRLFEHanViscoRealK", "A0Like")
+%   plotParametricSweepCp(S, "mRLFEViscoRealK", "A0Like")
 %   plotParametricSweepCp(S, "mRLFEElasticRealK", "S0Like")
 %   plotParametricSweepCp(S, "RayleighLamb", "A0")
 
