@@ -75,12 +75,10 @@ end
 
 function tf = shouldComputeMRLFERealK(options)
 % Maintained real-k flags are computeMRLFEElasticRealK and
-% computeMRLFEViscoRealK. computeMRLFERealK and the author-labeled Han flag are
-% retained as compatibility aliases.
+% computeMRLFEViscoRealK. computeMRLFERealK remains a unified real-k selector.
 tf = getOption(options, 'computeMRLFERealK', false) || ...
     getOption(options, 'computeMRLFEElasticRealK', false) || ...
     getOption(options, 'computeMRLFEViscoRealK', false) || ...
-    getOption(options, 'computeMRLFEHanViscoRealK', false) || ...
     getOption(options, 'computeMRLFE', false);
 end
 
@@ -110,16 +108,9 @@ function results = registerMRLFERealKResults(results, realKResult, elasticRefere
 results.models.mRLFEElasticRealK = elasticReference;
 if isViscoelastic
     results.models.mRLFEViscoRealK = realKResult;
-    results = registerLegacyMRLFEViscoAliases(results, realKResult);
 end
 results.models.mRLFERealK = realKResult;
 results.models.mRLFE = realKResult;
-end
-
-function results = registerLegacyMRLFEViscoAliases(results, viscoResult)
-% Temporary compatibility alias for old scripts and cached results. New code
-% should read mRLFEViscoRealK or the unified mRLFERealK surface.
-results.models.mRLFEHanViscoRealK = viscoResult;
 end
 
 function result = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options)
@@ -215,13 +206,13 @@ viscoOptions.mrlfeRealKAnchorToSeed = true;
 viscoOptions.mrlfeRealKHardReferenceWindow = false;
 viscoOptions.mrlfeRealKScoreMode = "modal";
 viscoOptions.mrlfeRealKRequireLocalMinimum = true;
-viscoOptions.mrlfeRealKUseModalCpWindow = getOption(options, 'mrlfeViscoUseModalLocalTracker', getOption(options, 'mrlfeHanUseModalLocalTracker', true));
+viscoOptions.mrlfeRealKUseModalCpWindow = getOption(options, 'mrlfeViscoUseModalLocalTracker', true);
 viscoOptions.mrlfeRealKStopAtFirstMissingModalMinimum = getOption(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', true);
 viscoOptions.mrlfeRealKReferenceWeight = 120.0;
 viscoOptions.mrlfeRealKPredictionWeight = 6.0;
-viscoOptions.mrlfeRealKPreviousCpWeight = getOption(options, 'mrlfeViscoPreviousCpWeight', getOption(options, 'mrlfeHanPreviousCpWeight', 80.0));
-viscoOptions.mrlfeRealKPreviousKWeight = getOption(options, 'mrlfeViscoPreviousKWeight', getOption(options, 'mrlfeHanPreviousKWeight', 0.0));
-viscoOptions.mrlfeRealKPreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoPreviousCpMaxRelativeJump', getOption(options, 'mrlfeHanPreviousCpMaxRelativeJump', inf));
+viscoOptions.mrlfeRealKPreviousCpWeight = getOption(options, 'mrlfeViscoPreviousCpWeight', 80.0);
+viscoOptions.mrlfeRealKPreviousKWeight = getOption(options, 'mrlfeViscoPreviousKWeight', 0.0);
+viscoOptions.mrlfeRealKPreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoPreviousCpMaxRelativeJump', inf);
 viscoOptions.mrlfeRealKMaxRelativeKDrift = inf;
 viscoOptions.mrlfeRealKValidationMaxRelativeKDrift = inf;
 viscoOptions.mrlfeRealKValidationMaxRelativeCpDrift = inf;
