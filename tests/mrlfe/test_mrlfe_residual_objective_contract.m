@@ -9,7 +9,7 @@ startup
 params = rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 1000;
-params.numFrequencyPoints = 1;
+params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
 material = rlComputeMaterial(params);
