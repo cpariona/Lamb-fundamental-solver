@@ -42,4 +42,9 @@ oldExample = fullfile(repoRoot, 'examples', 'mrlfe', 'basic', 'compare_mrlfe_ela
 assert(isfile(renamedExample), 'Renamed mRLFE elastic-vs-visco example is missing.');
 assert(~isfile(oldExample), 'Old author-labeled elastic-vs-Han example should not remain.');
 
+renamedDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'diagnose_mrlfe_visco_validity_breakdown.m');
+oldDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'diagnose_mrlfe_han_visco_validity_breakdown.m');
+assert(isfile(renamedDiagnostic), 'Renamed mRLFE visco validity diagnostic is missing.');
+assert(~isfile(oldDiagnostic), 'Old author-labeled visco validity diagnostic should not remain.');
+
 fprintf('test_mrlfe_maintained_entrypoints_naming passed. Maintained mRLFE docs use physical naming.\n');
