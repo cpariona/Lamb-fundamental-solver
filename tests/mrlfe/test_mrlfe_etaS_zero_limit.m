@@ -19,7 +19,6 @@ options.computeMRLFE = false;
 options.computeMRLFERealK = true;
 options.computeMRLFEElasticRealK = false;
 options.computeMRLFEViscoRealK = false;
-options.computeMRLFEHanViscoRealK = false;
 options.computeMRLFEComplexK = false;
 options.mrlfeComputeA0Like = true;
 options.mrlfeComputeS0Like = true;
