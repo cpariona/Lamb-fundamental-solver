@@ -69,6 +69,19 @@ Rationale:
 
 This introduces the main architectural lesson from AE where it is most useful: the viscous real-k path can have competing residual valleys and benefits from tracking on a denser internal grid while preserving the requested output grid.
 
+## mRLFE tracking quality summary status
+
+Current status:
+
+- `summarizeMRLFETrackingQuality` is the maintained analysis helper for comparing mRLFE branch quality across tracking strategies.
+- The helper accepts full mRLFE result structs or individual branch structs.
+- It reports valid fraction, frequency span, Cp range, relative jumps, roughness, residual metrics, internal-grid usage, and a compact quality score.
+- `tests/mrlfe/test_mrlfe_tracking_quality_summary.m` protects the helper contract.
+
+Rationale:
+
+This helper provides a permanent way to compare direct tracking and internal-grid tracking without keeping temporary optimization scripts in the repository.
+
 ## Solver optimization guardrail
 
 Before changing branch tracking, objective functions, or internal grids, the maintained smoke suite must continue to pass:
