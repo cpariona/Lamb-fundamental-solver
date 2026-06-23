@@ -56,16 +56,18 @@ This mirrors the numerical lessons from the acoustoelastic solver: the determina
 
 Current status:
 
-- `options.mrlfeUseInternalTrackingGrid` enables an optional AE-style internal tracking grid for mRLFE real-k branches.
-- The option is disabled by default to preserve current GUI and sweep behavior.
+- `options.mrlfeUseInternalTrackingGrid` enables the AE-style internal tracking grid explicitly for mRLFE real-k branches.
+- `options.mrlfeUseInternalTrackingGridForViscousRealK` enables the internal grid automatically for the viscous `etaS > 0` path by default.
+- The direct tracker remains the default for the `etaS = 0` elastic limit unless `mrlfeUseInternalTrackingGrid` is explicitly enabled.
 - When enabled, mRLFE tracks on a denser internal frequency grid and resamples the branch back to the requested frequency grid.
 - Internal tracking metadata is stored in `mrlfeResults.tracking` and in each branch under `branch.internalTracking`.
 - `tests/mrlfe/test_mrlfe_internal_tracking_grid.m` protects the contract that the external branch output remains on the requested grid.
 - `tests/mrlfe/test_mrlfe_internal_tracking_grid_with_buffer.m` protects the same contract for the etaS > 0 path using a compatible etaS = 0 reference buffer.
+- `tests/mrlfe/test_mrlfe_viscous_default_internal_tracking_grid.m` protects the policy that etaS > 0 uses the internal tracking grid by default.
 
 Rationale:
 
-This introduces the main architectural lesson from AE without forcing it as the default strategy. It allows controlled comparison of standard tracking versus internal-grid tracking while keeping the public output shape unchanged. The buffered etaS > 0 contract covers the path that is most relevant for deciding whether the internal grid should later become the default viscous strategy.
+This introduces the main architectural lesson from AE where it is most useful: the viscous real-k path can have competing residual valleys and benefits from tracking on a denser internal grid while preserving the requested output grid.
 
 ## Solver optimization guardrail
 
