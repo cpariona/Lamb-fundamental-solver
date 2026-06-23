@@ -32,7 +32,7 @@ assert(isequal(unknownNames, "CustomModel"), ...
 params = rlDefaultParams();
 params.fmin = 500;
 params.fmax = 3000;
-params.numFrequencyPoints = 8;
+params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
 options = rlDefaultOptions("Fast");
