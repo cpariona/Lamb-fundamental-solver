@@ -105,6 +105,16 @@ assert(hasNormalizedBranch(viscoGuiResult, "mRLFERealK", "A0Like"), ...
 assert(~hasNormalizedBranch(viscoGuiResult, "mRLFEViscoRealK", "A0Like"), ...
     'mRLFE GUI adapter must not expose the viscous raw path as a separate normalized model.');
 
+%% Legacy raw-result alias normalization
+legacyRaw = viscoGuiResult.metadata.rawResult;
+legacyRaw.models = rmfield(legacyRaw.models, {'mRLFERealK', 'mRLFEViscoRealK'});
+legacyRaw.models.mRLFEHanViscoRealK = viscoGuiResult.metadata.rawResult.models.mRLFEViscoRealK;
+legacyNormalized = guiNormalizeRawResult(legacyRaw, "testLegacyHanAlias");
+assert(hasNormalizedBranch(legacyNormalized, "mRLFERealK", "A0Like"), ...
+    'Legacy mRLFEHanViscoRealK raw results must normalize to the unified mRLFERealK surface.');
+assert(~hasNormalizedBranch(legacyNormalized, "mRLFEHanViscoRealK", "A0Like"), ...
+    'Legacy mRLFEHanViscoRealK must not be exposed as a normalized GUI model.');
+
 fprintf('GUI normalized adapters smoke test passed.\n');
 
 function tf = hasNormalizedBranch(guiResult, modelName, branchName)
