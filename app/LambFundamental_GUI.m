@@ -10,6 +10,10 @@ lastParams = [];
 inputsAreDirty = false;
 colors.A0 = [0.0000 0.4470 0.7410];
 colors.S0 = [1.0000 0.0000 0.0000];
+colors.MRLFEElasticA0 = [0.0000 0.4470 0.7410];
+colors.MRLFEElasticS0 = [1.0000 0.0000 0.0000];
+colors.MRLFEHanA0 = [0.4660 0.6740 0.1880];
+colors.MRLFEHanS0 = [0.8500 0.3250 0.0980];
 colors.AE = [0.4940 0.1840 0.5560];
 
 fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[80 80 1460 860]);
@@ -228,7 +232,7 @@ updateAxisFieldState();
 
         if options.computeMRLFERealK || options.computeMRLFEHanViscoRealK
             guiRequest.computeElastic = options.computeMRLFERealK || options.computeMRLFEHanViscoRealK;
-            guiRequest.computeHanVisco = options.computeMRLFEHanViscoRealK;
+            guiRequest.computeHan = options.computeMRLFEHanViscoRealK;
             guiResult = guiRunMRLFEModel(guiRequest);
             results = guiResult.metadata.rawResult;
         else
@@ -261,9 +265,33 @@ updateAxisFieldState();
         end
         for i = 1:numel(lastGuiResult.branches)
             branch = lastGuiResult.branches(i);
-            if string(branch.modelName) == "AcoustoelasticIOPHGO"
-                plotControls.showA0.Value = true;
-                updated = true;
+            modelName = string(branch.modelName);
+            branchName = string(branch.branchName);
+            switch modelName
+                case "RayleighLamb"
+                    if branchName == "A0"
+                        plotControls.showA0.Value = true;
+                    elseif branchName == "S0"
+                        plotControls.showS0.Value = true;
+                    end
+                    updated = true;
+                case {"mRLFEElasticRealK", "mRLFERealK"}
+                    if branchName == "A0Like"
+                        plotControls.showMRLFEElasticA0.Value = true;
+                    elseif branchName == "S0Like"
+                        plotControls.showMRLFEElasticS0.Value = true;
+                    end
+                    updated = true;
+                case "mRLFEHanViscoRealK"
+                    if branchName == "A0Like"
+                        plotControls.showMRLFEHanA0.Value = true;
+                    elseif branchName == "S0Like"
+                        plotControls.showMRLFEHanS0.Value = true;
+                    end
+                    updated = true;
+                case "AcoustoelasticIOPHGO"
+                    plotControls.showA0.Value = true;
+                    updated = true;
             end
         end
     end
@@ -331,25 +359,79 @@ updateAxisFieldState();
     end
 
     function tf = shouldPlotNormalizedBranch(branch)
+        modelName = string(branch.modelName);
+        branchName = string(branch.branchName);
         tf = false;
-        if string(branch.modelName) == "AcoustoelasticIOPHGO"
-            tf = plotControls.showA0.Value;
+        switch modelName
+            case "RayleighLamb"
+                tf = (branchName == "A0" && plotControls.showA0.Value) || ...
+                     (branchName == "S0" && plotControls.showS0.Value);
+            case {"mRLFEElasticRealK", "mRLFERealK"}
+                tf = (branchName == "A0Like" && plotControls.showMRLFEElasticA0.Value) || ...
+                     (branchName == "S0Like" && plotControls.showMRLFEElasticS0.Value);
+            case "mRLFEHanViscoRealK"
+                tf = (branchName == "A0Like" && plotControls.showMRLFEHanA0.Value) || ...
+                     (branchName == "S0Like" && plotControls.showMRLFEHanS0.Value);
+            case "AcoustoelasticIOPHGO"
+                tf = plotControls.showA0.Value;
         end
     end
 
     function name = normalizedBranchDisplayName(branch)
-        if string(branch.modelName) == "AcoustoelasticIOPHGO"
-            name = 'AE IOP/HGO A0-like';
-        else
-            name = char(branch.branchName);
+        modelName = string(branch.modelName);
+        branchName = string(branch.branchName);
+        switch modelName
+            case "RayleighLamb"
+                name = char(branchName);
+            case {"mRLFEElasticRealK", "mRLFERealK"}
+                name = ['mRLFE elastic ', char(formatMRLFEBranchName(branchName))];
+            case "mRLFEHanViscoRealK"
+                name = ['mRLFE viscoelastic ', char(formatMRLFEBranchName(branchName))];
+            case "AcoustoelasticIOPHGO"
+                name = 'AE IOP/HGO A0-like';
+            otherwise
+                name = [char(modelName), ' ', char(branchName)];
         end
     end
 
     function color = normalizedBranchColor(branch)
-        if string(branch.modelName) == "AcoustoelasticIOPHGO"
-            color = colors.AE;
-        else
-            color = [0 0 0];
+        modelName = string(branch.modelName);
+        branchName = string(branch.branchName);
+        switch modelName
+            case "RayleighLamb"
+                if branchName == "A0"
+                    color = colors.A0;
+                else
+                    color = colors.S0;
+                end
+            case {"mRLFEElasticRealK", "mRLFERealK"}
+                if branchName == "A0Like"
+                    color = colors.MRLFEElasticA0;
+                else
+                    color = colors.MRLFEElasticS0;
+                end
+            case "mRLFEHanViscoRealK"
+                if branchName == "A0Like"
+                    color = colors.MRLFEHanA0;
+                else
+                    color = colors.MRLFEHanS0;
+                end
+            case "AcoustoelasticIOPHGO"
+                color = colors.AE;
+            otherwise
+                color = [0 0 0];
+        end
+    end
+
+    function txt = formatMRLFEBranchName(branchName)
+        branchName = string(branchName);
+        switch branchName
+            case "A0Like"
+                txt = "A0-like";
+            case "S0Like"
+                txt = "S0-like";
+            otherwise
+                txt = branchName;
         end
     end
 
