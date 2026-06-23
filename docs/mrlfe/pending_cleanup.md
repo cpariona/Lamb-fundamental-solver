@@ -52,6 +52,20 @@ Rationale:
 
 This mirrors the numerical lessons from the acoustoelastic solver: the determinant of a boundary-condition matrix can be poorly scaled, while a singular-value objective is more robust for branch tracking.
 
+## mRLFE internal tracking grid status
+
+Current status:
+
+- `options.mrlfeUseInternalTrackingGrid` enables an optional AE-style internal tracking grid for mRLFE real-k branches.
+- The option is disabled by default to preserve current GUI and sweep behavior.
+- When enabled, mRLFE tracks on a denser internal frequency grid and resamples the branch back to the requested frequency grid.
+- Internal tracking metadata is stored in `mrlfeResults.tracking` and in each branch under `branch.internalTracking`.
+- `tests/mrlfe/test_mrlfe_internal_tracking_grid.m` protects the contract that the external branch output remains on the requested grid.
+
+Rationale:
+
+This introduces the main architectural lesson from AE without forcing it as the default strategy. It allows controlled comparison of standard tracking versus internal-grid tracking while keeping the public output shape unchanged.
+
 ## Solver optimization guardrail
 
 Before changing branch tracking, objective functions, or internal grids, the maintained smoke suite must continue to pass:
