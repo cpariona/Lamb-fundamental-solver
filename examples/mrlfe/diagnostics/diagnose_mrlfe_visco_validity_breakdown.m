@@ -48,7 +48,7 @@ fprintf('etaS values: %.3g to %.3g Pa*s (%d cases)\n', ...
     min(etaSValues), max(etaSValues), numel(etaSValues));
 
 for iE = 1:numel(EValues)
-    params = setYoungModulusForShearPoisson(paramsBase, EValues(iE));
+    params = mrlfeSetYoungModulusForShearPoisson(paramsBase, EValues(iE));
     material = rlComputeMaterial(params);
     fprintf('\nE = %.6g kPa, mu = %.6g kPa, CT = %.6g m/s\n', ...
         material.E/1e3, material.mu/1e3, material.CT);
@@ -62,7 +62,7 @@ for iE = 1:numel(EValues)
         try
             results = rlComputeFundamentalLambModes(params, options);
             resultsByCase{iE,iEta} = results;
-            branches = selectRealKBranches(results, etaS);
+            branches = mrlfeSelectRealKBranches(results, etaS);
             rows = [rows; makeBreakdownRow(branches, 'A0Like', params, material, etaS)]; %#ok<AGROW>
             rows = [rows; makeBreakdownRow(branches, 'S0Like', params, material, etaS)]; %#ok<AGROW>
         catch ME
@@ -84,23 +84,6 @@ if ~isempty(mRLFEViscoValidityBreakdown)
     disp(mRLFEViscoValidityBreakdown(:, {'Branch','E_kPa','Mu_kPa','EtaS_Pa_s','FiniteCpPoints','ValidCpPoints','ValidResidualPoints','ValidReferencePoints','ValidSmoothPoints','FirstInvalidReason','FirstInvalidFrequency_Hz','MaxResidual','ResidualTolerance'}));
 end
 fprintf('\nWrote mRLFE_visco_validity_breakdown.csv\n');
-
-function params = setYoungModulusForShearPoisson(params, youngModulus)
-params.E = youngModulus;
-params.mu = youngModulus / (2 * (1 + params.nu));
-end
-
-function branches = selectRealKBranches(results, etaS)
-if etaS > 0 && isfield(results.models, 'mRLFEViscoRealK')
-    branches = results.models.mRLFEViscoRealK.branches;
-elseif isfield(results.models, 'mRLFERealK')
-    branches = results.models.mRLFERealK.branches;
-elseif isfield(results.models, 'mRLFEElasticRealK')
-    branches = results.models.mRLFEElasticRealK.branches;
-else
-    error('No mRLFE real-k branches were found in results.models.');
-end
-end
 
 function row = makeBreakdownRow(branches, branchName, params, material, etaS)
 row = makeEmptyRow(branchName, params, material, etaS);
