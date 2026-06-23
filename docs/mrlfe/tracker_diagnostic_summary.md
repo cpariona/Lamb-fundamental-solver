@@ -23,11 +23,10 @@ Current diagnostics:
 diagnose_mrlfe_visco_validity_breakdown
 diagnose_mrlfe_visco_residual_landscape
 compare_mrlfe_tracker_vs_condition_peaks
-stress_test_mrlfe_elastic_range
-stress_test_mrlfe_visco_range
+stress_test_mrlfe_real_k_range
 ```
 
-The two stress-test scripts were moved from the old top-level validation folder into the mRLFE diagnostics tree. They are model-specific diagnostics, not Rayleigh-Lamb validation scripts.
+The real-k range stress test is unified: `etaS = 0` covers the elastic limit and `etaS > 0` covers the viscoelastic real-k case. It replaces the former separate elastic and viscoelastic range scripts.
 
 ## Diagnostic configuration
 
@@ -35,9 +34,9 @@ Reference case used in the tracker comparison tests:
 
 | Parameter | Value |
 |---|---:|
-| `E` | `100 kPa` |
+| `E`-equivalent | `100 kPa` |
+| `mu` | `E/(2(1+nu))` |
 | `nu` | `0.4999` |
-| `CL` | `1500 m/s` |
 | `rho` | `1050 kg/m^3` |
 | `thickness` | `0.5 mm` |
 | Frequency range | `500–16000 Hz` |
@@ -167,14 +166,13 @@ modelName  = "mRLFEElasticRealK";
 
 This gives a stable baseline case when the diagnostic is opened or run without editing.
 
-Use the stress tests for broader range checks:
+Use the unified range stress test for broader range checks:
 
 ```matlab
-stress_test_mrlfe_elastic_range
-stress_test_mrlfe_visco_range
+stress_test_mrlfe_real_k_range
 ```
 
-These scripts are heavier than smoke tests and should be run manually when mRLFE tracking, material ranges, or viscoelastic branch behavior changes.
+This script is heavier than smoke tests and should be run manually when mRLFE tracking, material ranges, or viscoelastic branch behavior changes.
 
 ## Recommended wording for discussion
 
