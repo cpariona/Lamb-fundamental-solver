@@ -1,16 +1,14 @@
 function names = mrlfeModelCandidateNames(modelName)
-%MRLFEMODELCANDIDATENAMES Return primary mRLFE model name plus legacy aliases.
+%MRLFEMODELCANDIDATENAMES Return canonical mRLFE model candidate names.
 %
-% The maintained viscoelastic real-k model name is mRLFEViscoRealK. The
-% author-labeled Han name is retained only as a legacy alias for old cached
-% results or archived scripts.
+% This helper intentionally exposes only maintained physical model names.
 
 modelName = string(modelName);
 switch modelName
     case "mRLFEViscoRealK"
-        names = ["mRLFEViscoRealK", "mRLFEHanViscoRealK"];
+        names = "mRLFEViscoRealK";
     case "mRLFERealK"
-        names = ["mRLFERealK", "mRLFEViscoRealK", "mRLFEHanViscoRealK", "mRLFEElasticRealK"];
+        names = ["mRLFERealK", "mRLFEViscoRealK", "mRLFEElasticRealK"];
     case "mRLFEElasticRealK"
         names = ["mRLFEElasticRealK", "mRLFERealK"];
     otherwise
