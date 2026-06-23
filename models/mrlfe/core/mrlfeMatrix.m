@@ -1,18 +1,9 @@
 function M = mrlfeMatrix(k, omega, material, geometry, mrlfeParams)
 % Build the 5-by-5 modified Rayleigh-Lamb fluid-loaded matrix.
 %
-% The implementation follows the Han-style mRLFE formulation:
-% unknowns are [A, B, C, D, AF]. The input k can be real or complex.
-%
-% Convention:
-%   geometry.thickness is the total layer thickness.
-%   d = geometry.thickness / 2 is the half-thickness used by the mRLFE matrix.
-%
-% Han-style viscoelasticity:
-%   lambda is real by default.
-%   muStar = mu + 1i*omega*etaS.
-% A complex lambda can still be enabled internally for future formulations by
-% setting mrlfeParams.useComplexLambda = true and mrlfeParams.etaL > 0.
+% Unknowns are [A, B, C, D, AF]. The input k can be real or complex.
+% geometry.thickness is the total layer thickness and d is half-thickness.
+% The shear modulus can be complex: muStar = mu + 1i*omega*etaS.
 
 rhoS = material.rho;
 rhoF = mrlfeParams.fluidDensity;
