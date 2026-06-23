@@ -31,9 +31,6 @@ needMRLFE = computeMRLFERealK || computeComplexK;
 computeMRLFEA0Like = getOption(options, 'mrlfeComputeA0Like', true);
 computeMRLFES0Like = getOption(options, 'mrlfeComputeS0Like', true);
 
-% mRLFE branches are dependent on Rayleigh-Lamb seed branches. Force the seed
-% branches required by the selected A0-like/S0-like branches even when the RL
-% checkboxes are not selected explicitly in the GUI.
 computeA0 = options.computeA0 || (needMRLFE && computeMRLFEA0Like);
 computeS0 = options.computeS0 || (needMRLFE && computeMRLFES0Like);
 
@@ -83,15 +80,13 @@ if computeMRLFERealK
         viscoOptions = makeViscoRealKOptions(options);
         realKResult = computeMRLFE(frequency, material, results.geometry, elasticReference.branches, mrlfeParams, viscoOptions);
         results.models.mRLFEViscoRealK = realKResult;
-        results.models.mRLFEHanViscoRealK = realKResult; % legacy alias
+        results.models.mRLFEHanViscoRealK = realKResult;
     end
 
     results.models.mRLFERealK = realKResult;
     results.models.mRLFE = realKResult;
 end
 
-% Complex-k remains an experimental attenuation path. It is hidden from the
-% main GUI, but kept available for advanced scripts.
 if computeComplexK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
     mrlfeParams.solveComplexK = false;
@@ -174,9 +169,8 @@ end
 end
 
 function elasticOptions = makeElasticRealKOptions(options)
-% Elastic fluid-loaded mRLFE is seeded from Rayleigh-Lamb A0/S0. Modal scoring
-% prevents low-stiffness branches from switching to another residual valley.
 elasticOptions = options;
+elasticOptions.mrlfeUseInternalTrackingGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', false);
 elasticOptions.mrlfeA0UseDPTracker = true;
 elasticOptions.mrlfeRealKAnchorToSeed = true;
 elasticOptions.mrlfeRealKHardReferenceWindow = true;
@@ -191,10 +185,10 @@ elasticOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTol
 end
 
 function viscoOptions = makeViscoRealKOptions(options)
-% Viscous real-k is seeded from the etaS = 0 real-k result. It uses a
-% conservative modal-local tracker because viscosity can introduce competing
-% residual valleys and low-Cp edge minima.
 viscoOptions = options;
+useInternalGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', false) || ...
+    getOption(options, 'mrlfeUseInternalTrackingGridForViscousRealK', true);
+viscoOptions.mrlfeUseInternalTrackingGrid = useInternalGrid;
 viscoOptions.mrlfeA0UseDPTracker = false;
 viscoOptions.mrlfeRealKAnchorToSeed = true;
 viscoOptions.mrlfeRealKHardReferenceWindow = false;
