@@ -13,12 +13,15 @@ branchName = string(p.Results.branchName);
 
 options = rlDefaultOptions("Fast");
 options.computeMRLFERealK = true;
-options.computeMRLFEHanViscoRealK = true;
+options.computeMRLFEElasticRealK = true;
+options.computeMRLFEViscoRealK = true;
 options.computeMRLFEComplexK = false;
 options.mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams.fluidDensity = 1000;
 options.mrlfeParams.fluidSoundSpeed = 1500;
 options.mrlfeParams.etaS = p.Results.EtaS;
+options.mrlfeParams.etaL = 0;
+options.mrlfeParams.useComplexLambda = false;
 
 switch branchName
     case "A0Like"
