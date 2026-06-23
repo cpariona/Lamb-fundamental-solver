@@ -33,6 +33,10 @@ options.mrlfeComputeA0Like = true;
 options.mrlfeComputeS0Like = true;
 
 % Real-k mRLFE continuation and validation controls.
+options.computeMRLFEElasticRealK = false;
+options.computeMRLFEViscoRealK = false;
+options.computeMRLFERealK = false; % compatibility alias for elastic real-k
+options.computeMRLFEHanViscoRealK = false; % legacy compatibility alias
 options.mrlfeRealKReferenceWeight = 0.75;
 options.mrlfeRealKPredictionWeight = 0.0;
 options.mrlfeRealKResidualFloor = 1e-14;
@@ -53,14 +57,22 @@ options.mrlfeRealKPreviousCpWeight = 0.0;
 options.mrlfeRealKPreviousKWeight = 0.0;
 options.mrlfeRealKPreviousCpMaxRelativeJump = inf;
 
-% Han-style viscoelastic real-k modal-local tracker controls.  These are
-% enabled internally only for mRLFEHanViscoRealK by computeFundamentalLambModes.
-options.mrlfeHanUseModalLocalTracker = true;
-options.mrlfeHanA0ModalCpWindow = [0.35, 2.50];
-options.mrlfeHanS0ModalCpWindow = [0.70, 1.40];
-options.mrlfeHanPreviousCpWeight = 80.0;
-options.mrlfeHanPreviousKWeight = 0.0;
-options.mrlfeHanPreviousCpMaxRelativeJump = 0.18;
+% Viscoelastic real-k modal-local tracker controls. These are enabled
+% internally only for the viscoelastic real-k branch by rlComputeFundamentalLambModes.
+options.mrlfeViscoUseModalLocalTracker = true;
+options.mrlfeViscoA0ModalCpWindow = [0.35, 2.50];
+options.mrlfeViscoS0ModalCpWindow = [0.70, 1.40];
+options.mrlfeViscoPreviousCpWeight = 80.0;
+options.mrlfeViscoPreviousKWeight = 0.0;
+options.mrlfeViscoPreviousCpMaxRelativeJump = 0.18;
+
+% Legacy option aliases kept temporarily for older scripts.
+options.mrlfeHanUseModalLocalTracker = options.mrlfeViscoUseModalLocalTracker;
+options.mrlfeHanA0ModalCpWindow = options.mrlfeViscoA0ModalCpWindow;
+options.mrlfeHanS0ModalCpWindow = options.mrlfeViscoS0ModalCpWindow;
+options.mrlfeHanPreviousCpWeight = options.mrlfeViscoPreviousCpWeight;
+options.mrlfeHanPreviousKWeight = options.mrlfeViscoPreviousKWeight;
+options.mrlfeHanPreviousCpMaxRelativeJump = options.mrlfeViscoPreviousCpMaxRelativeJump;
 
 % Multicandidate dynamic-programming tracker for elastic A0-like mRLFE.
 % This is intended to suppress branch switching in soft A0-like cases.
