@@ -37,17 +37,19 @@ header = uilabel(g, 'Text', 'mRLFE viscoelastic real-k', 'FontWeight', 'bold', '
 header.Layout.Row = 5;
 header.Layout.Column = [1 4];
 
-h.showMRLFEHanA0 = uicheckbox(g, 'Text', 'Viscoelastic A0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
-h.showMRLFEHanA0.Layout.Row = 6;
-h.showMRLFEHanA0.Layout.Column = [1 2];
+h.showMRLFEViscoA0 = uicheckbox(g, 'Text', 'Viscoelastic A0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
+h.showMRLFEViscoA0.Layout.Row = 6;
+h.showMRLFEViscoA0.Layout.Column = [1 2];
 
-h.showMRLFEHanS0 = uicheckbox(g, 'Text', 'Viscoelastic S0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
-h.showMRLFEHanS0.Layout.Row = 6;
-h.showMRLFEHanS0.Layout.Column = [3 4];
+h.showMRLFEViscoS0 = uicheckbox(g, 'Text', 'Viscoelastic S0-like', 'Value', true, 'ValueChangedFcn', callbacks.refreshPlotOnly);
+h.showMRLFEViscoS0.Layout.Row = 6;
+h.showMRLFEViscoS0.Layout.Column = [3 4];
 
-% Backward-compatible aliases used by older GUI code paths.
+% Compatibility aliases for older callback code paths.
 h.showMRLFEA0 = h.showMRLFEElasticA0;
 h.showMRLFES0 = h.showMRLFEElasticS0;
+h.showMRLFEHanA0 = h.showMRLFEViscoA0;
+h.showMRLFEHanS0 = h.showMRLFEViscoS0;
 
 header = uilabel(g, 'Text', 'Approximations', 'FontWeight', 'bold', 'VerticalAlignment', 'center');
 header.Layout.Row = 7;
