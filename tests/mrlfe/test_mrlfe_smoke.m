@@ -16,7 +16,6 @@ options.computeA0 = true;
 options.computeS0 = true;
 options.computeMRLFE = true;
 options.computeMRLFERealK = false;
-options.computeMRLFEHanViscoRealK = false;
 
 mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams = mrlfeParams;
