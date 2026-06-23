@@ -44,17 +44,13 @@ options.mrlfeInternalTrackingMaxPoints = 400;
 
 % Real-k mRLFE continuation and validation controls.
 %
-% Maintained public compute flags:
+% Maintained compute flags:
 %   computeMRLFEElasticRealK   etaS = 0 elastic fluid-loaded real-k branch.
 %   computeMRLFEViscoRealK    etaS > 0 viscoelastic fluid-loaded real-k branch.
-%
-% Compatibility flags kept temporarily:
-%   computeMRLFERealK         historical alias for the unified real-k result.
-%   computeMRLFEHanViscoRealK legacy author-labeled alias for the visco branch.
+%   computeMRLFERealK         unified real-k selector.
 options.computeMRLFEElasticRealK = false;
 options.computeMRLFEViscoRealK = false;
 options.computeMRLFERealK = false;
-options.computeMRLFEHanViscoRealK = false;
 options.mrlfeRealKReferenceWeight = 0.75;
 options.mrlfeRealKPredictionWeight = 0.0;
 options.mrlfeRealKResidualFloor = 1e-14;
@@ -83,16 +79,6 @@ options.mrlfeViscoS0ModalCpWindow = [0.70, 1.40];
 options.mrlfeViscoPreviousCpWeight = 80.0;
 options.mrlfeViscoPreviousKWeight = 0.0;
 options.mrlfeViscoPreviousCpMaxRelativeJump = 0.18;
-
-% Legacy option aliases kept temporarily for older scripts. New code should set
-% the mrlfeVisco* fields above. Solver code reads visco fields first and falls
-% back to these only when needed for compatibility.
-options.mrlfeHanUseModalLocalTracker = options.mrlfeViscoUseModalLocalTracker;
-options.mrlfeHanA0ModalCpWindow = options.mrlfeViscoA0ModalCpWindow;
-options.mrlfeHanS0ModalCpWindow = options.mrlfeViscoS0ModalCpWindow;
-options.mrlfeHanPreviousCpWeight = options.mrlfeViscoPreviousCpWeight;
-options.mrlfeHanPreviousKWeight = options.mrlfeViscoPreviousKWeight;
-options.mrlfeHanPreviousCpMaxRelativeJump = options.mrlfeViscoPreviousCpMaxRelativeJump;
 
 % Multicandidate dynamic-programming tracker for elastic A0-like mRLFE.
 % This is intended to suppress branch switching in soft A0-like cases.
