@@ -6,11 +6,12 @@ function result = guiRunMRLFEModel(guiRequest)
 % and returns normalized mRLFE branch results.
 %
 % Expected optional guiRequest fields:
-%   params         - struct overlay for rlDefaultParams()
-%   options        - struct overlay for rlDefaultOptions()
-%   mrlfeParams    - struct overlay stored in options.mrlfeParams
-%   computeElastic - logical, default true
-%   computeHan     - logical, default false
+%   params           - struct overlay for rlDefaultParams()
+%   options          - struct overlay for rlDefaultOptions()
+%   mrlfeParams      - struct overlay stored in options.mrlfeParams
+%   computeElastic   - logical, default true
+%   computeHan       - logical, default false
+%   computeHanVisco  - logical alias for computeHan
 %
 % This adapter does not rename mRLFE model functions or change numerical
 % solver behavior. It centralizes GUI-facing model calls for later UI cleanup.
@@ -23,7 +24,7 @@ params = mergeStructs(rlDefaultParams(), getStructField(guiRequest, 'params', st
 options = mergeStructs(rlDefaultOptions(), getStructField(guiRequest, 'options', struct()));
 
 computeElastic = getStructField(guiRequest, 'computeElastic', true);
-computeHan = getStructField(guiRequest, 'computeHan', false);
+computeHan = getStructField(guiRequest, 'computeHan', getStructField(guiRequest, 'computeHanVisco', false));
 computeA0Like = getStructField(options, 'mrlfeComputeA0Like', true);
 computeS0Like = getStructField(options, 'mrlfeComputeS0Like', true);
 computeMRLFE = logical(computeElastic || computeHan);
