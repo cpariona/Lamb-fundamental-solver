@@ -20,11 +20,7 @@ results.modes = struct();
 results.approximations = rlComputeAnalyticalApproximations(frequency, material, results.geometry);
 results.models = struct();
 
-computeMRLFERealK = getOption(options, 'computeMRLFERealK', false) || ...
-    getOption(options, 'computeMRLFEElasticRealK', false) || ...
-    getOption(options, 'computeMRLFEViscoRealK', false) || ...
-    getOption(options, 'computeMRLFEHanViscoRealK', false) || ...
-    getOption(options, 'computeMRLFE', false);
+computeMRLFERealK = shouldComputeMRLFERealK(options);
 computeComplexK = getOption(options, 'computeMRLFEComplexK', false);
 needMRLFE = computeMRLFERealK || computeComplexK;
 
@@ -59,32 +55,8 @@ if computeS0
 end
 
 if computeMRLFERealK
-    mrlfeParams = buildMRLFEParamsFromOptions(options);
-    mrlfeParams.solveComplexK = false;
-    mrlfeParams.etaL = 0;
-    mrlfeParams.useComplexLambda = false;
-
-    if getOption(mrlfeParams, 'etaS', 0) <= 0
-        elasticResult = computeElasticMRLFERealK(frequency, material, results.geometry, results.modes, options);
-        realKResult = elasticResult;
-        results.models.mRLFEElasticRealK = elasticResult;
-    else
-        elasticReference = getElasticReferenceResult(options, frequency, results.modes);
-        if isempty(elasticReference)
-            elasticReference = computeElasticMRLFERealK(frequency, material, results.geometry, results.modes, options);
-            results.models.mRLFEElasticRealK = elasticReference;
-        else
-            results.models.mRLFEElasticRealK = elasticReference;
-        end
-
-        viscoOptions = makeViscoRealKOptions(options);
-        realKResult = computeMRLFE(frequency, material, results.geometry, elasticReference.branches, mrlfeParams, viscoOptions);
-        results.models.mRLFEViscoRealK = realKResult;
-        results.models.mRLFEHanViscoRealK = realKResult;
-    end
-
-    results.models.mRLFERealK = realKResult;
-    results.models.mRLFE = realKResult;
+    [realKResult, realKReference, isViscoelastic] = computeMRLFERealKModel(frequency, material, results.geometry, results.modes, options);
+    results = registerMRLFERealKResults(results, realKResult, realKReference, isViscoelastic);
 end
 
 if computeComplexK
@@ -99,6 +71,55 @@ if computeComplexK
         results.models.mRLFE = results.models.mRLFEComplexK;
     end
 end
+end
+
+function tf = shouldComputeMRLFERealK(options)
+% Maintained real-k flags are computeMRLFEElasticRealK and
+% computeMRLFEViscoRealK. computeMRLFERealK and the author-labeled Han flag are
+% retained as compatibility aliases.
+tf = getOption(options, 'computeMRLFERealK', false) || ...
+    getOption(options, 'computeMRLFEElasticRealK', false) || ...
+    getOption(options, 'computeMRLFEViscoRealK', false) || ...
+    getOption(options, 'computeMRLFEHanViscoRealK', false) || ...
+    getOption(options, 'computeMRLFE', false);
+end
+
+function [realKResult, elasticReference, isViscoelastic] = computeMRLFERealKModel(frequency, material, geometry, seedModes, options)
+mrlfeParams = buildMRLFEParamsFromOptions(options);
+mrlfeParams.solveComplexK = false;
+mrlfeParams.etaL = 0;
+mrlfeParams.useComplexLambda = false;
+isViscoelastic = getOption(mrlfeParams, 'etaS', 0) > 0;
+
+if ~isViscoelastic
+    elasticReference = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options);
+    realKResult = elasticReference;
+    return;
+end
+
+elasticReference = getElasticReferenceResult(options, frequency, seedModes);
+if isempty(elasticReference)
+    elasticReference = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options);
+end
+
+viscoOptions = makeViscoRealKOptions(options);
+realKResult = computeMRLFE(frequency, material, geometry, elasticReference.branches, mrlfeParams, viscoOptions);
+end
+
+function results = registerMRLFERealKResults(results, realKResult, elasticReference, isViscoelastic)
+results.models.mRLFEElasticRealK = elasticReference;
+if isViscoelastic
+    results.models.mRLFEViscoRealK = realKResult;
+    results = registerLegacyMRLFEViscoAliases(results, realKResult);
+end
+results.models.mRLFERealK = realKResult;
+results.models.mRLFE = realKResult;
+end
+
+function results = registerLegacyMRLFEViscoAliases(results, viscoResult)
+% Temporary compatibility alias for old scripts and cached results. New code
+% should read mRLFEViscoRealK or the unified mRLFERealK surface.
+results.models.mRLFEHanViscoRealK = viscoResult;
 end
 
 function result = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options)
