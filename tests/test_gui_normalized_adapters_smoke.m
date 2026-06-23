@@ -56,6 +56,8 @@ mrlfeOptions = rlOptions;
 mrlfeOptions.computeA0 = true;
 mrlfeOptions.computeS0 = false;
 mrlfeOptions.computeMRLFE = false;
+mrlfeOptions.computeMRLFEElasticRealK = true;
+mrlfeOptions.computeMRLFEViscoRealK = false;
 mrlfeOptions.computeMRLFERealK = true;
 mrlfeOptions.computeMRLFEHanViscoRealK = false;
 mrlfeOptions.mrlfeComputeA0Like = true;
@@ -71,7 +73,7 @@ mrlfeRequest.params = mrlfeParams;
 mrlfeRequest.options = mrlfeOptions;
 mrlfeRequest.mrlfeParams = mrlfeOptions.mrlfeParams;
 mrlfeRequest.computeElastic = true;
-mrlfeRequest.computeHan = false;
+mrlfeRequest.computeVisco = false;
 mrlfeGuiResult = guiRunMRLFEModel(mrlfeRequest);
 
 assert(isstruct(mrlfeGuiResult), 'mRLFE GUI adapter must return a struct.');
@@ -94,22 +96,21 @@ assert(isstruct(mrlfeBranchTables) && ~isempty(fieldnames(mrlfeBranchTables)), .
     'mRLFE normalized branch table export must return a non-empty struct.');
 assertBranchTablesAreValid(mrlfeBranchTables, 'mRLFE normalized branch tables are invalid.');
 
-%% mRLFE normalized adapter, viscoelastic real-k alias used by the main GUI
+%% mRLFE normalized adapter, viscoelastic real-k path used by the main GUI
 viscoRequest = mrlfeRequest;
+viscoRequest.options.computeMRLFEElasticRealK = true;
+viscoRequest.options.computeMRLFEViscoRealK = true;
 viscoRequest.options.computeMRLFERealK = true;
 viscoRequest.options.computeMRLFEHanViscoRealK = true;
 viscoRequest.options.mrlfeParams.etaS = 0.05;
 viscoRequest.mrlfeParams = viscoRequest.options.mrlfeParams;
 viscoRequest.computeElastic = true;
-viscoRequest.computeHanVisco = true;
-if isfield(viscoRequest, 'computeHan')
-    viscoRequest = rmfield(viscoRequest, 'computeHan');
-end
+viscoRequest.computeVisco = true;
 viscoGuiResult = guiRunMRLFEModel(viscoRequest);
 assert(hasNormalizedBranch(viscoGuiResult, "mRLFEViscoRealK", "A0Like"), ...
-    'mRLFE GUI adapter must accept computeHanVisco and return the author-neutral viscoelastic A0-like branch.');
-assert(hasRawModelBranch(viscoGuiResult, "mRLFEHanViscoRealK", "A0Like"), ...
-    'mRLFE GUI adapter must preserve the raw internal model name in metadata.');
+    'mRLFE GUI adapter must return the author-neutral viscoelastic A0-like branch.');
+assert(~hasNormalizedBranch(viscoGuiResult, "mRLFEHanViscoRealK", "A0Like"), ...
+    'mRLFE GUI adapter must not expose the legacy author-dependent model name as a normalized branch.');
 
 fprintf('GUI normalized adapters smoke test passed.\n');
 
@@ -121,20 +122,6 @@ end
 for i = 1:numel(guiResult.branches)
     branch = guiResult.branches(i);
     if string(branch.modelName) == string(modelName) && string(branch.branchName) == string(branchName)
-        tf = true;
-        return;
-    end
-end
-end
-
-function tf = hasRawModelBranch(guiResult, rawModelName, branchName)
-tf = false;
-if ~isfield(guiResult, 'branches') || isempty(guiResult.branches)
-    return;
-end
-for i = 1:numel(guiResult.branches)
-    branch = guiResult.branches(i);
-    if isfield(branch, 'rawModelName') && string(branch.rawModelName) == string(rawModelName) && string(branch.branchName) == string(branchName)
         tf = true;
         return;
     end
