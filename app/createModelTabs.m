@@ -43,7 +43,6 @@ h.mrlfe.computeRealK.Layout.Column = [1 4];
 % viscoelastic case.
 h.mrlfe.computeElasticRealK = h.mrlfe.computeRealK;
 h.mrlfe.computeViscoRealK = h.mrlfe.computeRealK;
-h.mrlfe.computeHanViscoRealK = h.mrlfe.computeRealK;
 
 label = uilabel(gM, 'Text', 'Branches', 'FontWeight', 'bold', 'FontSize', 11);
 label.Layout.Row = 3;
