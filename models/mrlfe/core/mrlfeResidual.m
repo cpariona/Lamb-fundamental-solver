@@ -1,20 +1,26 @@
-function residual = mrlfeResidual(k, omega, material, geometry, mrlfeParams)
-% Return a scale-normalized singular-value residual for the mRLFE matrix.
+function residual = mrlfeResidual(k, omega, material, geometry, mrlfeParams, options)
+%MRLFERESIDUAL Compatibility wrapper for the maintained mRLFE objective.
 %
-% residual = sigma_min(M) / sigma_max(M)
+% residual = mrlfeResidual(k, omega, material, geometry, mrlfeParams)
+% returns the maintained scale-normalized singular-value objective:
 %
-% This is numerically more stable than using det(M) directly.
+%   sigma_min(M) / sigma_max(M)
+%
+% residual = mrlfeResidual(..., options) can select the objective through
+% options.mrlfeResidualMethod. The maintained default is
+% "minSingularValueRatio".
 
-M = mrlfeMatrix(k, omega, material, geometry, mrlfeParams);
-if any(~isfinite(M(:)))
-    residual = inf;
-    return;
+if nargin < 6 || isempty(options)
+    options = struct();
+end
+method = getFieldOrDefault(options, 'mrlfeResidualMethod', "minSingularValueRatio");
+residual = objectiveMRLFEResidual(k, omega, material, geometry, mrlfeParams, 'Method', method);
 end
 
-s = svd(M);
-if isempty(s) || s(1) == 0 || ~isfinite(s(1))
-    residual = inf;
+function value = getFieldOrDefault(s, name, defaultValue)
+if isstruct(s) && isfield(s, name) && ~isempty(s.(name))
+    value = s.(name);
 else
-    residual = s(end) / s(1);
+    value = defaultValue;
 end
 end
