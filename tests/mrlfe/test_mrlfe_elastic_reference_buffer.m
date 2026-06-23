@@ -20,7 +20,6 @@ baseOptions.computeMRLFE = false;
 baseOptions.computeMRLFERealK = true;
 baseOptions.computeMRLFEElasticRealK = false;
 baseOptions.computeMRLFEViscoRealK = false;
-baseOptions.computeMRLFEHanViscoRealK = false;
 baseOptions.computeMRLFEComplexK = false;
 baseOptions.mrlfeComputeA0Like = true;
 baseOptions.mrlfeComputeS0Like = false;
