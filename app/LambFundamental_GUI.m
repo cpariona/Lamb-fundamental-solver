@@ -11,10 +11,8 @@ inputsAreDirty = false;
 
 colors.A0 = [0.0000 0.4470 0.7410];
 colors.S0 = [1.0000 0.0000 0.0000];
-colors.MRLFEElasticA0 = [0.0000 0.4470 0.7410];
-colors.MRLFEElasticS0 = [1.0000 0.0000 0.0000];
-colors.MRLFEViscoA0 = [0.4660 0.6740 0.1880];
-colors.MRLFEViscoS0 = [0.8500 0.3250 0.0980];
+colors.MRLFEA0 = [0.4660 0.6740 0.1880];
+colors.MRLFES0 = [0.8500 0.3250 0.0980];
 colors.AE = [0.4940 0.1840 0.5560];
 colors.Approx = [0.2500 0.2500 0.2500];
 
@@ -134,9 +132,11 @@ updateAxisFieldState();
     function onCompute()
         try
             setStatusText({'Status: computing...'}); drawnow;
-            lastParams = readParamsFromGui();
-            lastOptions = readOptionsFromGui();
-            [lastResults, lastGuiResult] = runModelRequestThroughAdapter(lastParams, lastOptions);
+            params = readParamsFromGui();
+            options = readOptionsFromGui(params);
+            [lastResults, lastGuiResult] = runModelRequestThroughAdapter(params, options);
+            lastParams = params;
+            lastOptions = options;
             inputsAreDirty = false;
             updatePlotCheckboxesFromResults();
             updatePlot();
@@ -147,17 +147,16 @@ updateAxisFieldState();
         end
     end
 
-    function options = readOptionsFromGui()
+    function options = readOptionsFromGui(params)
         options = rlDefaultOptions(string(advanced.robustness.Value));
         options.computeAcoustoelasticIOPHGO = logical(modelControls.ae.computeAtlasA0.Value);
 
         if options.computeAcoustoelasticIOPHGO
             options.computeA0 = false;
             options.computeS0 = false;
+            options.computeMRLFERealK = false;
             options.computeMRLFEElasticRealK = false;
             options.computeMRLFEViscoRealK = false;
-            options.computeMRLFERealK = false;
-            options.computeMRLFEHanViscoRealK = false;
             options.computeMRLFEComplexK = false;
             options.mrlfeComputeA0Like = false;
             options.mrlfeComputeS0Like = false;
@@ -167,15 +166,14 @@ updateAxisFieldState();
 
         options.computeA0 = logical(modelControls.rl.computeA0.Value);
         options.computeS0 = logical(modelControls.rl.computeS0.Value);
-        options.computeMRLFEElasticRealK = logical(modelControls.mrlfe.computeRealK.Value);
-        options.computeMRLFEViscoRealK = logical(modelControls.mrlfe.computeHanViscoRealK.Value);
-        options.computeMRLFERealK = options.computeMRLFEElasticRealK;
-        options.computeMRLFEHanViscoRealK = options.computeMRLFEViscoRealK;
+        options.computeMRLFERealK = logical(modelControls.mrlfe.computeRealK.Value);
+        options.computeMRLFEElasticRealK = options.computeMRLFERealK;
+        options.computeMRLFEViscoRealK = options.computeMRLFERealK;
         options.computeMRLFEComplexK = false;
         options.mrlfeComputeA0Like = logical(modelControls.mrlfe.computeA0Like.Value);
         options.mrlfeComputeS0Like = logical(modelControls.mrlfe.computeS0Like.Value);
 
-        if options.computeMRLFEElasticRealK || options.computeMRLFEViscoRealK
+        if options.computeMRLFERealK
             if ~options.mrlfeComputeA0Like && ~options.mrlfeComputeS0Like
                 error('Select at least one mRLFE branch: A0-like or S0-like.');
             end
@@ -183,12 +181,8 @@ updateAxisFieldState();
             options.computeS0 = options.computeS0 || options.mrlfeComputeS0Like;
             modelControls.rl.computeA0.Value = options.computeA0;
             modelControls.rl.computeS0.Value = options.computeS0;
-            if options.computeMRLFEViscoRealK
-                options.computeMRLFEElasticRealK = true;
-                options.computeMRLFERealK = true;
-                modelControls.mrlfe.computeRealK.Value = true;
-            end
             options.mrlfeParams = readMRLFEParamsFromGui();
+            options = attachCachedElasticReferenceIfUseful(options, params);
         end
     end
 
@@ -223,6 +217,74 @@ updateAxisFieldState();
         mrlfeParams.useComplexLambda = false;
     end
 
+    function options = attachCachedElasticReferenceIfUseful(options, params)
+        if ~isfield(options, 'mrlfeParams') || options.mrlfeParams.etaS <= 0
+            return;
+        end
+        cachedReference = getCachedElasticReference(params);
+        if ~isempty(cachedReference)
+            options.mrlfeElasticReferenceResult = cachedReference;
+        end
+    end
+
+    function reference = getCachedElasticReference(params)
+        reference = [];
+        if isempty(lastResults) || ~isstruct(lastResults) || ~isfield(lastResults, 'models')
+            return;
+        end
+        if isfield(lastResults.models, 'mRLFEElasticRealK')
+            candidate = lastResults.models.mRLFEElasticRealK;
+        elseif isfield(lastResults.models, 'mRLFERealK') && lastOptionsEtaSIsZero()
+            candidate = lastResults.models.mRLFERealK;
+        else
+            return;
+        end
+        if isCompatibleWithCurrentRequest(candidate, params)
+            reference = candidate;
+        end
+    end
+
+    function tf = lastOptionsEtaSIsZero()
+        tf = isstruct(lastOptions) && isfield(lastOptions, 'mrlfeParams') && ...
+            isfield(lastOptions.mrlfeParams, 'etaS') && lastOptions.mrlfeParams.etaS <= 0;
+    end
+
+    function tf = isCompatibleWithCurrentRequest(reference, params)
+        tf = false;
+        if ~isstruct(reference) || ~isfield(reference, 'branches') || isempty(lastResults)
+            return;
+        end
+        if ~isfield(lastResults, 'material') || ~isfield(lastResults, 'geometry') || ~isfield(lastResults, 'grid')
+            return;
+        end
+        material = rlComputeMaterial(params);
+        frequency = rlBuildFrequencyVector(params);
+        if ~numericClose(lastResults.material.mu, material.mu) || ...
+                ~numericClose(lastResults.material.nu, material.nu) || ...
+                ~numericClose(lastResults.material.rho, material.rho) || ...
+                ~numericClose(lastResults.geometry.thickness, params.thickness)
+            return;
+        end
+        if ~isfield(lastResults.grid, 'frequency') || numel(lastResults.grid.frequency) ~= numel(frequency)
+            return;
+        end
+        if max(abs(lastResults.grid.frequency(:) - frequency(:))) > 10 * eps(max(1, max(abs(frequency(:)))))
+            return;
+        end
+        if modelControls.mrlfe.computeA0Like.Value && ~isfield(reference.branches, 'A0Like')
+            return;
+        end
+        if modelControls.mrlfe.computeS0Like.Value && ~isfield(reference.branches, 'S0Like')
+            return;
+        end
+        tf = true;
+    end
+
+    function tf = numericClose(a, b)
+        scale = max([1, abs(a), abs(b)]);
+        tf = abs(a - b) <= 1e-10 * scale;
+    end
+
     function [results, guiResult] = runModelRequestThroughAdapter(params, options)
         if getOptionValueLocal(options, 'computeAcoustoelasticIOPHGO', false)
             guiRequest = guiBuildAcoustoelasticIOPHGORequest(params, modelControls.ae, options.robustness);
@@ -236,10 +298,9 @@ updateAxisFieldState();
             guiRequest.mrlfeParams = options.mrlfeParams;
         end
 
-        if options.computeMRLFEElasticRealK || options.computeMRLFEViscoRealK
-            guiRequest.computeElastic = options.computeMRLFEElasticRealK || options.computeMRLFEViscoRealK;
-            guiRequest.computeVisco = options.computeMRLFEViscoRealK;
-            guiRequest.computeHanVisco = options.computeMRLFEViscoRealK;
+        if options.computeMRLFERealK
+            guiRequest.computeElastic = true;
+            guiRequest.computeVisco = isfield(options, 'mrlfeParams') && options.mrlfeParams.etaS > 0;
             guiResult = guiRunMRLFEModel(guiRequest);
         else
             guiResult = guiRunRayleighLambModel(guiRequest);
@@ -281,15 +342,12 @@ updateAxisFieldState();
                         plotControls.showS0.Value = true;
                     end
                     updated = true;
-                case {"mRLFEElasticRealK", "mRLFERealK"}
+                case {"mRLFERealK", "mRLFEElasticRealK", "mRLFEViscoRealK"}
                     if branchName == "A0Like"
-                        plotControls.showMRLFEElasticA0.Value = true;
+                        plotControls.showMRLFEA0.Value = true;
                     elseif branchName == "S0Like"
-                        plotControls.showMRLFEElasticS0.Value = true;
+                        plotControls.showMRLFES0.Value = true;
                     end
-                    updated = true;
-                case "mRLFEViscoRealK"
-                    setViscoBranchVisible(branchName, true);
                     updated = true;
                 case "AcoustoelasticIOPHGO"
                     plotControls.showA0.Value = true;
@@ -347,13 +405,13 @@ updateAxisFieldState();
                 continue;
             end
             plotData = guiGetNormalizedBranchPlotData(branch, string(plotControls.xaxis.Value));
-            frequency = plotData.x(:);
+            x = plotData.x(:);
             Cp = plotData.y(:);
-            valid = plotData.validMask(:) & isfinite(frequency) & isfinite(Cp);
-            if isempty(frequency) || ~any(valid)
+            valid = plotData.validMask(:) & isfinite(x) & isfinite(Cp);
+            if isempty(x) || ~any(valid)
                 continue;
             end
-            plot(ax, frequency(valid), Cp(valid), '-', 'Color', normalizedBranchColor(branch), ...
+            plot(ax, x(valid), Cp(valid), '-', 'Color', normalizedBranchColor(branch), ...
                 'LineWidth', 2.0, 'DisplayName', normalizedBranchDisplayName(branch));
             plotted = true;
         end
@@ -393,11 +451,9 @@ updateAxisFieldState();
             case "RayleighLamb"
                 tf = (branchName == "A0" && plotControls.showA0.Value) || ...
                      (branchName == "S0" && plotControls.showS0.Value);
-            case {"mRLFEElasticRealK", "mRLFERealK"}
-                tf = (branchName == "A0Like" && plotControls.showMRLFEElasticA0.Value) || ...
-                     (branchName == "S0Like" && plotControls.showMRLFEElasticS0.Value);
-            case "mRLFEViscoRealK"
-                tf = isViscoBranchVisible(branchName);
+            case {"mRLFERealK", "mRLFEElasticRealK", "mRLFEViscoRealK"}
+                tf = (branchName == "A0Like" && plotControls.showMRLFEA0.Value) || ...
+                     (branchName == "S0Like" && plotControls.showMRLFES0.Value);
             case "AcoustoelasticIOPHGO"
                 tf = plotControls.showA0.Value;
         end
@@ -409,10 +465,8 @@ updateAxisFieldState();
         switch modelName
             case "RayleighLamb"
                 name = char(branchName);
-            case {"mRLFEElasticRealK", "mRLFERealK"}
-                name = ['mRLFE elastic ', char(formatMRLFEBranchName(branchName))];
-            case "mRLFEViscoRealK"
-                name = ['mRLFE viscoelastic ', char(formatMRLFEBranchName(branchName))];
+            case {"mRLFERealK", "mRLFEElasticRealK", "mRLFEViscoRealK"}
+                name = ['mRLFE real-k ', char(formatMRLFEBranchName(branchName))];
             case "AcoustoelasticIOPHGO"
                 name = 'AE IOP/HGO A0-like';
             otherwise
@@ -426,48 +480,12 @@ updateAxisFieldState();
         switch modelName
             case "RayleighLamb"
                 color = branchColor(branchName, colors.A0, colors.S0);
-            case {"mRLFEElasticRealK", "mRLFERealK"}
-                color = branchColor(branchName, colors.MRLFEElasticA0, colors.MRLFEElasticS0);
-            case "mRLFEViscoRealK"
-                color = branchColor(branchName, colors.MRLFEViscoA0, colors.MRLFEViscoS0);
+            case {"mRLFERealK", "mRLFEElasticRealK", "mRLFEViscoRealK"}
+                color = branchColor(branchName, colors.MRLFEA0, colors.MRLFES0);
             case "AcoustoelasticIOPHGO"
                 color = colors.AE;
             otherwise
                 color = [0 0 0];
-        end
-    end
-
-    function setViscoBranchVisible(branchName, value)
-        branchName = string(branchName);
-        if branchName == "A0Like"
-            if isfield(plotControls, 'showMRLFEViscoA0')
-                plotControls.showMRLFEViscoA0.Value = value;
-            elseif isfield(plotControls, 'showMRLFEHanA0')
-                plotControls.showMRLFEHanA0.Value = value;
-            end
-        elseif branchName == "S0Like"
-            if isfield(plotControls, 'showMRLFEViscoS0')
-                plotControls.showMRLFEViscoS0.Value = value;
-            elseif isfield(plotControls, 'showMRLFEHanS0')
-                plotControls.showMRLFEHanS0.Value = value;
-            end
-        end
-    end
-
-    function tf = isViscoBranchVisible(branchName)
-        branchName = string(branchName);
-        if branchName == "A0Like"
-            if isfield(plotControls, 'showMRLFEViscoA0')
-                tf = logical(plotControls.showMRLFEViscoA0.Value);
-            else
-                tf = logical(plotControls.showMRLFEHanA0.Value);
-            end
-        else
-            if isfield(plotControls, 'showMRLFEViscoS0')
-                tf = logical(plotControls.showMRLFEViscoS0.Value);
-            else
-                tf = logical(plotControls.showMRLFEHanS0.Value);
-            end
         end
     end
 
