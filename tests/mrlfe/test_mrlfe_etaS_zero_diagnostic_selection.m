@@ -10,8 +10,7 @@ params.fmin = 500;
 params.fmax = 1200;
 params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
-params.E = 100e3;
-params.mu = params.E / (2 * (1 + params.nu));
+params = mrlfeSetYoungModulusForShearPoisson(params, 100e3);
 
 options = rlDefaultOptions("Fast");
 options.computeA0 = true;
@@ -33,7 +32,9 @@ assert(isfield(results.models, 'mRLFEElasticRealK'), ...
 assert(~isfield(results.models, 'mRLFEViscoRealK'), ...
     'etaS = 0 diagnostic selection should not require mRLFEViscoRealK.');
 
-branches = selectRealKBranchesForDiagnostic(results, 0);
+[branches, selectedModelName] = mrlfeSelectRealKBranches(results, 0);
+assert(selectedModelName == "mRLFERealK", ...
+    'etaS = 0 diagnostic selection should prefer the unified mRLFERealK result.');
 assert(isfield(branches, 'A0Like'), ...
     'etaS = 0 diagnostic selection must return A0Like branches from real-k results.');
 
@@ -42,20 +43,10 @@ options.computeMRLFEViscoRealK = true;
 resultsVisco = rlComputeFundamentalLambModes(params, options);
 assert(isfield(resultsVisco.models, 'mRLFEViscoRealK'), ...
     'etaS > 0 diagnostic selection must expose mRLFEViscoRealK.');
-branchesVisco = selectRealKBranchesForDiagnostic(resultsVisco, options.mrlfeParams.etaS);
+[branchesVisco, selectedViscoModelName] = mrlfeSelectRealKBranches(resultsVisco, options.mrlfeParams.etaS);
+assert(selectedViscoModelName == "mRLFEViscoRealK", ...
+    'etaS > 0 diagnostic selection should prefer the physical viscoelastic real-k result.');
 assert(isfield(branchesVisco, 'A0Like'), ...
     'etaS > 0 diagnostic selection must return A0Like branches from visco real-k results.');
 
 fprintf('test_mrlfe_etaS_zero_diagnostic_selection passed. etaS = 0 diagnostics use elastic/unified real-k results.\n');
-
-function branches = selectRealKBranchesForDiagnostic(results, etaS)
-if etaS > 0 && isfield(results.models, 'mRLFEViscoRealK')
-    branches = results.models.mRLFEViscoRealK.branches;
-elseif isfield(results.models, 'mRLFERealK')
-    branches = results.models.mRLFERealK.branches;
-elseif isfield(results.models, 'mRLFEElasticRealK')
-    branches = results.models.mRLFEElasticRealK.branches;
-else
-    error('No mRLFE real-k branches were found in results.models.');
-end
-end
