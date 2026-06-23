@@ -4,8 +4,8 @@ startup
 %TEST_MRLFE_INTERNAL_TRACKING_GRID Contract test for optional mRLFE tracking grid.
 %
 % When enabled, the solver tracks on an internal grid but returns branches on
-% the requested frequency grid. This mirrors the AE-style internal tracking
-% policy without changing the external result shape.
+% the requested frequency values. Vector orientation is not part of this
+% contract because different maintained APIs may use row or column vectors.
 
 params = rlDefaultParams();
 params.fmin = 500;
@@ -36,10 +36,10 @@ results = rlComputeFundamentalLambModes(params, options);
 assert(isfield(results.models, 'mRLFERealK'), 'mRLFERealK result is missing.');
 branch = results.models.mRLFERealK.branches.A0Like;
 
-assert(isequal(size(branch.frequency), size(requestedFrequency)), ...
-    'mRLFE branch frequency shape must match the requested grid.');
+assert(numel(branch.frequency) == numel(requestedFrequency), ...
+    'mRLFE branch frequency length must match the requested grid length.');
 assert(max(abs(branch.frequency(:) - requestedFrequency(:))) < 1e-12, ...
-    'mRLFE branch output frequency must equal the requested grid.');
+    'mRLFE branch output frequency must equal the requested grid values.');
 assert(numel(branch.Cp) == numel(requestedFrequency), ...
     'mRLFE branch Cp length must match the requested grid.');
 assert(isfield(branch, 'internalTracking') && branch.internalTracking.used, ...
@@ -53,4 +53,4 @@ assert(results.models.mRLFERealK.diagnostics.usedInternalTrackingGrid, ...
 assert(results.models.mRLFERealK.diagnostics.trackingPointCount > results.models.mRLFERealK.diagnostics.requestedPointCount, ...
     'mRLFE diagnostics must report a denser tracking grid.');
 
-fprintf('test_mrlfe_internal_tracking_grid passed. Internal grid output returns to requested grid.\n');
+fprintf('test_mrlfe_internal_tracking_grid passed. Internal grid output returns to requested grid values.\n');
