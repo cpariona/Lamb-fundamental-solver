@@ -38,9 +38,12 @@ h.mrlfe.computeRealK = uicheckbox(gM, 'Text', 'Elastic real-k', 'Value', false, 
 h.mrlfe.computeRealK.Layout.Row = 2;
 h.mrlfe.computeRealK.Layout.Column = [1 2];
 
-h.mrlfe.computeHanViscoRealK = uicheckbox(gM, 'Text', 'Viscoelastic real-k', 'Value', false, 'ValueChangedFcn', @onHanViscoChanged);
-h.mrlfe.computeHanViscoRealK.Layout.Row = 2;
-h.mrlfe.computeHanViscoRealK.Layout.Column = [3 4];
+h.mrlfe.computeViscoRealK = uicheckbox(gM, 'Text', 'Viscoelastic real-k', 'Value', false, 'ValueChangedFcn', @onViscoChanged);
+h.mrlfe.computeViscoRealK.Layout.Row = 2;
+h.mrlfe.computeViscoRealK.Layout.Column = [3 4];
+
+% Temporary compatibility alias for older callbacks/tests.
+h.mrlfe.computeHanViscoRealK = h.mrlfe.computeViscoRealK;
 
 label = uilabel(gM, 'Text', 'Branches', 'FontWeight', 'bold', 'FontSize', 11);
 label.Layout.Row = 3;
@@ -148,8 +151,8 @@ note.Layout.Column = [1 4];
 h.panel = panel;
 h.tabGroup = tg;
 
-    function onHanViscoChanged(~, ~)
-        if h.mrlfe.computeHanViscoRealK.Value
+    function onViscoChanged(~, ~)
+        if h.mrlfe.computeViscoRealK.Value
             h.mrlfe.computeRealK.Value = true;
         end
         callbacks.markDirty();
