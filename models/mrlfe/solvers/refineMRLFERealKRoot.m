@@ -1,8 +1,8 @@
 function [bestK, bestResidual, bestScore] = refineMRLFERealKRoot(kSeed, omega, material, geometry, mrlfeParams, options, trackingReference)
 % Refine a real-k mRLFE root candidate around a predicted/reference wavenumber.
 %
-% The raw residual is sigma_min(M)/sigma_max(M). Candidate selection can be
-% residual-driven or modal-tracking driven. Modal scoring penalizes distance
+% The maintained residual is sigma_min(M)/sigma_max(M). Candidate selection can
+% be residual-driven or modal-tracking driven. Modal scoring penalizes distance
 % from the seed/predicted branch so the solver does not automatically switch
 % to a lower-residual valley that belongs to another modal family.
 %
@@ -11,8 +11,7 @@ function [bestK, bestResidual, bestScore] = refineMRLFERealKRoot(kSeed, omega, m
 % branch is cut instead of silently plotting the reference curve as a solution.
 %
 % Optional Cp-domain modal windows can be enabled through
-% mrlfeRealKUseModalCpWindow.  This is intended for Han real-k tracking, where
-% the global residual minimum may sit on a non-modal low-Cp edge valley.
+% mrlfeRealKUseModalCpWindow.
 %
 % Optional previous-point continuity penalties select between multiple modal
 % local minima without forcing a solution when the modal minimum disappears.
@@ -107,7 +106,7 @@ for s = 1:size(searchFactors, 1)
     end
 
     kGrid = linspace(kLow, kHigh, gridPoints);
-    rGrid = arrayfun(@(x) mrlfeResidual(x, omega, material, geometry, mrlfeParams), kGrid);
+    rGrid = arrayfun(@(x) mrlfeResidual(x, omega, material, geometry, mrlfeParams, options), kGrid);
     valid = isfinite(rGrid);
     kGrid = kGrid(valid);
     rGrid = rGrid(valid);
@@ -122,7 +121,7 @@ for s = 1:size(searchFactors, 1)
         if kRight <= kLeft
             continue;
         end
-        obj = @(x) mrlfeResidual(x, omega, material, geometry, mrlfeParams);
+        obj = @(x) mrlfeResidual(x, omega, material, geometry, mrlfeParams, options);
         try
             kCandidate = fminbnd(obj, kLeft, kRight);
             rCandidate = obj(kCandidate);
@@ -168,7 +167,7 @@ if isnan(bestK)
         return;
     end
     bestK = kSeed;
-    bestResidual = mrlfeResidual(bestK, omega, material, geometry, mrlfeParams);
+    bestResidual = mrlfeResidual(bestK, omega, material, geometry, mrlfeParams, options);
     relSeed = 0;
     cpCandidate = omega / bestK;
     bestScore = computeScore(bestResidual, relSeed, bestK, cpCandidate, previousK, previousCp, ...
