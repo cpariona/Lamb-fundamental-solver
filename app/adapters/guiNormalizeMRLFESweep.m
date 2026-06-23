@@ -57,9 +57,8 @@ end
 
 function branch = extractMRLFESweepBranch(result, modelName, branchName)
 branch = [];
-modelName = string(modelName);
 branchName = string(branchName);
-modelCandidates = modelCandidateNames(modelName);
+modelCandidates = mrlfeModelCandidateNames(modelName);
 
 if ~isfield(result, 'models')
     return;
@@ -72,17 +71,6 @@ for i = 1:numel(modelCandidates)
         branch = result.models.(candidate).branches.(char(branchName));
         return;
     end
-end
-end
-
-function names = modelCandidateNames(modelName)
-switch string(modelName)
-    case "mRLFEViscoRealK"
-        names = ["mRLFEViscoRealK", "mRLFEHanViscoRealK"];
-    case "mRLFEElasticRealK"
-        names = ["mRLFEElasticRealK", "mRLFERealK"];
-    otherwise
-        names = string(modelName);
 end
 end
 
