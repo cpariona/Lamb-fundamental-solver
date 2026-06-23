@@ -17,7 +17,7 @@ params.CT = elastic.CT;
 
 params.thickness = 0.50e-3;
 params.fmin = 10;
-params.fmax = 8000;
+params.fmax = 16000;
 params.numFrequencyPoints = "auto";
 params.frequencySpacing = "hybrid";
 end
