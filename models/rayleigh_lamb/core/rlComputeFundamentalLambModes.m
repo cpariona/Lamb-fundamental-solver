@@ -20,7 +20,24 @@ results.modes = struct();
 results.approximations = rlComputeAnalyticalApproximations(frequency, material, results.geometry);
 results.models = struct();
 
-if options.computeA0
+computeElasticSeedA0 = getOption(options, 'mrlfeComputeA0Like', true);
+computeElasticSeedS0 = getOption(options, 'mrlfeComputeS0Like', true);
+
+computeElasticRealK = getOption(options, 'computeMRLFEElasticRealK', false) || ...
+    getOption(options, 'computeMRLFERealK', false) || ...
+    getOption(options, 'computeMRLFE', false);
+computeViscoRealK = getOption(options, 'computeMRLFEViscoRealK', false) || ...
+    getOption(options, 'computeMRLFEHanViscoRealK', false);
+computeComplexK = getOption(options, 'computeMRLFEComplexK', false);
+
+% mRLFE branches are dependent on Rayleigh-Lamb seed branches. Force the seed
+% branches required by the selected A0-like/S0-like branches even when the RL
+% checkboxes are not selected explicitly in the GUI.
+needMRLFE = computeElasticRealK || computeViscoRealK || computeComplexK;
+computeA0 = options.computeA0 || (needMRLFE && computeElasticSeedA0);
+computeS0 = options.computeS0 || (needMRLFE && computeElasticSeedS0);
+
+if computeA0
     geometryForSpec = geometry;
     geometryForSpec.frequency0 = frequency(1);
     branchSpecA = rlMakeBranchSpec("A0", material, geometryForSpec);
@@ -33,7 +50,7 @@ if options.computeA0
     results.modes.A0 = packModeResults("A0", branchSpecA.family, frequency, omega, CpA0, kA0, geometry.thickness, residualA0);
 end
 
-if options.computeS0
+if computeS0
     branchSpecS = rlMakeBranchSpec("S0", material, geometry);
     solverOptionsS = applyBranchSpec(solverOptions, branchSpecS);
 
@@ -44,15 +61,8 @@ if options.computeS0
     results.modes.S0 = packModeResults("S0", branchSpecS.family, frequency, omega, CpS0, kS0, geometry.thickness, residualS0);
 end
 
-computeElasticRealK = isfield(options, 'computeMRLFERealK') && options.computeMRLFERealK;
-computeHanViscoRealK = isfield(options, 'computeMRLFEHanViscoRealK') && options.computeMRLFEHanViscoRealK;
-computeComplexK = isfield(options, 'computeMRLFEComplexK') && options.computeMRLFEComplexK;
-if isfield(options, 'computeMRLFE') && options.computeMRLFE
-    computeElasticRealK = true;
-end
-
 elasticResult = [];
-if computeElasticRealK || computeHanViscoRealK
+if computeElasticRealK || computeViscoRealK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
     mrlfeParams.solveComplexK = false;
     mrlfeParams.etaS = 0;
@@ -62,27 +72,27 @@ if computeElasticRealK || computeHanViscoRealK
     elasticOptions = makeElasticRealKOptions(options);
     elasticResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, elasticOptions);
 
-    % Han real-k uses this elastic real-k result as its modal reference.
-    % Keep it available even when Han was the only explicitly requested
-    % fluid-loaded model, so the reference branch can be plotted/exported.
+    % The viscoelastic real-k branch uses this elastic real-k result as its
+    % modal reference. Keep it available even when only the viscoelastic model
+    % was explicitly requested.
     results.models.mRLFEElasticRealK = elasticResult;
-    results.models.mRLFERealK = results.models.mRLFEElasticRealK;
+    results.models.mRLFERealK = results.models.mRLFEElasticRealK; % legacy alias
 end
 
-if computeHanViscoRealK
+if computeViscoRealK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
     mrlfeParams.solveComplexK = false;
     mrlfeParams.etaL = 0;
     mrlfeParams.useComplexLambda = false;
 
-    hanOptions = makeHanRealKOptions(options);
-    results.models.mRLFEHanViscoRealK = computeMRLFE(frequency, material, results.geometry, elasticResult.branches, mrlfeParams, hanOptions);
+    viscoOptions = makeViscoRealKOptions(options);
+    results.models.mRLFEViscoRealK = computeMRLFE(frequency, material, results.geometry, elasticResult.branches, mrlfeParams, viscoOptions);
+    results.models.mRLFEHanViscoRealK = results.models.mRLFEViscoRealK; % legacy alias
 end
 
 % Complex-k remains an experimental attenuation path. It is hidden from the
 % main GUI, but kept available for advanced scripts.
-realKNeededForComplexSeed = computeComplexK;
-if realKNeededForComplexSeed
+if computeComplexK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
     mrlfeParams.solveComplexK = false;
     mrlfeParams.etaL = 0;
@@ -95,8 +105,8 @@ end
 % Backward-compatible alias for scripts expecting results.models.mRLFE.
 if isfield(results.models, 'mRLFEElasticRealK')
     results.models.mRLFE = results.models.mRLFEElasticRealK;
-elseif isfield(results.models, 'mRLFEHanViscoRealK')
-    results.models.mRLFE = results.models.mRLFEHanViscoRealK;
+elseif isfield(results.models, 'mRLFEViscoRealK')
+    results.models.mRLFE = results.models.mRLFEViscoRealK;
 elseif isfield(results.models, 'mRLFEComplexK')
     results.models.mRLFE = results.models.mRLFEComplexK;
 end
@@ -114,10 +124,8 @@ end
 end
 
 function elasticOptions = makeElasticRealKOptions(options)
-% Elastic fluid-loaded mRLFE is seeded from Rayleigh-Lamb A0/S0.  Modal
-% scoring prevents low-stiffness branches from switching to another residual
-% valley merely because it has a smaller singular-value residual. A0-like is
-% additionally tracked with a multicandidate DP path selector.
+% Elastic fluid-loaded mRLFE is seeded from Rayleigh-Lamb A0/S0. Modal scoring
+% prevents low-stiffness branches from switching to another residual valley.
 elasticOptions = options;
 elasticOptions.mrlfeA0UseDPTracker = true;
 elasticOptions.mrlfeRealKAnchorToSeed = true;
@@ -132,27 +140,27 @@ elasticOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.35;
 elasticOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
 end
 
-function hanOptions = makeHanRealKOptions(options)
-% Han viscoelastic real-k is seeded from the elastic real-k result.  It uses a
+function viscoOptions = makeViscoRealKOptions(options)
+% Viscoelastic real-k is seeded from the elastic real-k result. It uses a
 % conservative modal-local tracker because viscosity can introduce strong
 % competing residual valleys and low-Cp edge minima.
-hanOptions = options;
-hanOptions.mrlfeA0UseDPTracker = false;
-hanOptions.mrlfeRealKAnchorToSeed = true;
-hanOptions.mrlfeRealKHardReferenceWindow = false;
-hanOptions.mrlfeRealKScoreMode = "modal";
-hanOptions.mrlfeRealKRequireLocalMinimum = true;
-hanOptions.mrlfeRealKUseModalCpWindow = getOption(options, 'mrlfeHanUseModalLocalTracker', true);
-hanOptions.mrlfeRealKStopAtFirstMissingModalMinimum = getOption(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', true);
-hanOptions.mrlfeRealKReferenceWeight = 120.0;
-hanOptions.mrlfeRealKPredictionWeight = 6.0;
-hanOptions.mrlfeRealKPreviousCpWeight = getOption(options, 'mrlfeHanPreviousCpWeight', 80.0);
-hanOptions.mrlfeRealKPreviousKWeight = getOption(options, 'mrlfeHanPreviousKWeight', 0.0);
-hanOptions.mrlfeRealKPreviousCpMaxRelativeJump = getOption(options, 'mrlfeHanPreviousCpMaxRelativeJump', inf);
-hanOptions.mrlfeRealKMaxRelativeKDrift = inf;
-hanOptions.mrlfeRealKValidationMaxRelativeKDrift = inf;
-hanOptions.mrlfeRealKValidationMaxRelativeCpDrift = inf;
-hanOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
+viscoOptions = options;
+viscoOptions.mrlfeA0UseDPTracker = false;
+viscoOptions.mrlfeRealKAnchorToSeed = true;
+viscoOptions.mrlfeRealKHardReferenceWindow = false;
+viscoOptions.mrlfeRealKScoreMode = "modal";
+viscoOptions.mrlfeRealKRequireLocalMinimum = true;
+viscoOptions.mrlfeRealKUseModalCpWindow = getOption(options, 'mrlfeViscoUseModalLocalTracker', getOption(options, 'mrlfeHanUseModalLocalTracker', true));
+viscoOptions.mrlfeRealKStopAtFirstMissingModalMinimum = getOption(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', true);
+viscoOptions.mrlfeRealKReferenceWeight = 120.0;
+viscoOptions.mrlfeRealKPredictionWeight = 6.0;
+viscoOptions.mrlfeRealKPreviousCpWeight = getOption(options, 'mrlfeViscoPreviousCpWeight', getOption(options, 'mrlfeHanPreviousCpWeight', 80.0));
+viscoOptions.mrlfeRealKPreviousKWeight = getOption(options, 'mrlfeViscoPreviousKWeight', getOption(options, 'mrlfeHanPreviousKWeight', 0.0));
+viscoOptions.mrlfeRealKPreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoPreviousCpMaxRelativeJump', getOption(options, 'mrlfeHanPreviousCpMaxRelativeJump', inf));
+viscoOptions.mrlfeRealKMaxRelativeKDrift = inf;
+viscoOptions.mrlfeRealKValidationMaxRelativeKDrift = inf;
+viscoOptions.mrlfeRealKValidationMaxRelativeCpDrift = inf;
+viscoOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
 end
 
 function solverOptions = buildSolverOptions(options, material)
@@ -195,7 +203,7 @@ mode = struct( ...
 end
 
 function value = getOption(options, fieldName, defaultValue)
-if isfield(options, fieldName)
+if isfield(options, fieldName) && ~isempty(options.(fieldName))
     value = options.(fieldName);
 else
     value = defaultValue;
