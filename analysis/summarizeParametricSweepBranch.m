@@ -9,7 +9,7 @@ function summaryTable = summarizeParametricSweepBranch(sweepResults, modelName, 
 % solver time.
 %
 % Examples:
-%   T = summarizeParametricSweepBranch(S, "mRLFEHanViscoRealK", "A0Like");
+%   T = summarizeParametricSweepBranch(S, "mRLFEViscoRealK", "A0Like");
 %   T = summarizeParametricSweepBranch(S, "mRLFEElasticRealK", "S0Like");
 %   T = summarizeParametricSweepBranch(S, "RayleighLamb", "A0");
 %
@@ -118,7 +118,6 @@ summaryTable.Properties.UserData = struct( ...
 
 if p.Results.Print
     fprintf('\nParametric sweep branch summary: %s / %s\n', modelName, branchName);
-    printSweepDescriptor(sweepResults);
     disp(summaryTable);
 end
 end
@@ -152,34 +151,16 @@ else
 end
 end
 
-function txt = getSweepFieldAsString(sweepResults, fieldName)
+function value = getSweepFieldAsString(sweepResults, fieldName)
+value = "";
 if isfield(sweepResults, fieldName)
-    txt = string(sweepResults.(fieldName));
-else
-    txt = "";
+    value = string(sweepResults.(fieldName));
 end
 end
 
-function txt = getSweepSpecFieldAsString(sweepResults, fieldName)
+function value = getSweepSpecFieldAsString(sweepResults, fieldName)
+value = "";
 if isfield(sweepResults, 'spec') && isfield(sweepResults.spec, fieldName)
-    txt = string(sweepResults.spec.(fieldName));
-else
-    txt = "";
-end
-end
-
-function printSweepDescriptor(sweepResults)
-label = getSweepSpecFieldAsString(sweepResults, 'label');
-units = getSweepSpecFieldAsString(sweepResults, 'units');
-parameter = getSweepFieldAsString(sweepResults, 'parameter');
-
-if strlength(label) == 0
-    label = parameter;
-end
-
-if strlength(units) > 0
-    fprintf('Sweep parameter: %s [%s]\n', label, units);
-else
-    fprintf('Sweep parameter: %s\n', label);
+    value = string(sweepResults.spec.(fieldName));
 end
 end
