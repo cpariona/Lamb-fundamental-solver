@@ -10,17 +10,15 @@
 %   limitation at high viscosity or low stiffness.
 %
 % Model:
-%   mRLFEViscoRealK
-%   lambda real
-%   muStar = mu + 1i*omega*etaS
-%   k real
+%   mRLFERealK, with etaS = 0 as the elastic limit and etaS > 0 as the
+%   viscoelastic real-k case.
 %
 % Output file:
 %   mRLFE_visco_validity_breakdown.csv
 
 startup();
 
-EValues = [50e3, 100e3, 300e3, 500e3, 1000e3, 1500e3]; % [Pa]
+EValues = [50e3, 100e3, 300e3, 500e3, 1000e3, 1500e3]; % [Pa], converted to mu through ShearPoisson
 etaSValues = [0, 0.01, 0.05, 0.1, 0.3, 0.5, 0.7, 1.0]; % [Pa*s]
 
 paramsBase = rlDefaultParams();
@@ -30,13 +28,11 @@ paramsBase.numFrequencyPoints = 160;
 paramsBase.frequencySpacing = "hybrid";
 paramsBase.thickness = 0.5e-3;
 paramsBase.nu = 0.4999;
-paramsBase.CL = 1500;
 
 optionsBase = rlDefaultOptions("Fast");
 optionsBase.computeA0 = true;
 optionsBase.computeS0 = true;
 optionsBase.computeMRLFERealK = true;
-optionsBase.computeMRLFEViscoRealK = true;
 optionsBase.computeMRLFEComplexK = false;
 
 rows = [];
@@ -46,27 +42,27 @@ fprintf('\nmRLFE viscoelastic validity breakdown diagnostic\n');
 fprintf('------------------------------------------------\n');
 fprintf('Frequency range: %.0f to %.0f Hz, N = %d\n', ...
     paramsBase.fmin, paramsBase.fmax, paramsBase.numFrequencyPoints);
-fprintf('E values: %.3g to %.3g kPa (%d cases)\n', ...
+fprintf('E-equivalent values: %.3g to %.3g kPa (%d cases)\n', ...
     min(EValues)/1e3, max(EValues)/1e3, numel(EValues));
 fprintf('etaS values: %.3g to %.3g Pa*s (%d cases)\n', ...
     min(etaSValues), max(etaSValues), numel(etaSValues));
 
 for iE = 1:numel(EValues)
-    params = paramsBase;
-    params.E = EValues(iE);
+    params = setYoungModulusForShearPoisson(paramsBase, EValues(iE));
     material = rlComputeMaterial(params);
     fprintf('\nE = %.6g kPa, mu = %.6g kPa, CT = %.6g m/s\n', ...
-        params.E/1e3, material.mu/1e3, material.CT);
+        material.E/1e3, material.mu/1e3, material.CT);
 
     for iEta = 1:numel(etaSValues)
         etaS = etaSValues(iEta);
         options = optionsBase;
+        options.computeMRLFEViscoRealK = etaS > 0;
         options.mrlfeParams = struct('etaS', etaS, 'etaL', 0, 'useComplexLambda', false);
         fprintf('  etaS = %.6g Pa*s\n', etaS);
         try
             results = rlComputeFundamentalLambModes(params, options);
             resultsByCase{iE,iEta} = results;
-            branches = results.models.mRLFEViscoRealK.branches;
+            branches = selectRealKBranches(results, etaS);
             rows = [rows; makeBreakdownRow(branches, 'A0Like', params, material, etaS)]; %#ok<AGROW>
             rows = [rows; makeBreakdownRow(branches, 'S0Like', params, material, etaS)]; %#ok<AGROW>
         catch ME
@@ -85,9 +81,26 @@ assignin('base', 'mRLFEViscoValidityBreakdownResults', resultsByCase);
 fprintf('\nmRLFE viscoelastic validity breakdown\n');
 fprintf('------------------------------------\n');
 if ~isempty(mRLFEViscoValidityBreakdown)
-    disp(mRLFEViscoValidityBreakdown(:, {'Branch','E_kPa','EtaS_Pa_s','FiniteCpPoints','ValidCpPoints','ValidResidualPoints','ValidReferencePoints','ValidSmoothPoints','FirstInvalidReason','FirstInvalidFrequency_Hz','MaxResidual','ResidualTolerance'}));
+    disp(mRLFEViscoValidityBreakdown(:, {'Branch','E_kPa','Mu_kPa','EtaS_Pa_s','FiniteCpPoints','ValidCpPoints','ValidResidualPoints','ValidReferencePoints','ValidSmoothPoints','FirstInvalidReason','FirstInvalidFrequency_Hz','MaxResidual','ResidualTolerance'}));
 end
 fprintf('\nWrote mRLFE_visco_validity_breakdown.csv\n');
+
+function params = setYoungModulusForShearPoisson(params, youngModulus)
+params.E = youngModulus;
+params.mu = youngModulus / (2 * (1 + params.nu));
+end
+
+function branches = selectRealKBranches(results, etaS)
+if etaS > 0 && isfield(results.models, 'mRLFEViscoRealK')
+    branches = results.models.mRLFEViscoRealK.branches;
+elseif isfield(results.models, 'mRLFERealK')
+    branches = results.models.mRLFERealK.branches;
+elseif isfield(results.models, 'mRLFEElasticRealK')
+    branches = results.models.mRLFEElasticRealK.branches;
+else
+    error('No mRLFE real-k branches were found in results.models.');
+end
+end
 
 function row = makeBreakdownRow(branches, branchName, params, material, etaS)
 row = makeEmptyRow(branchName, params, material, etaS);
@@ -132,7 +145,10 @@ if any(validCp)
 end
 if any(isfinite(residual))
     row.MaxResidual = max(residual(isfinite(residual)));
-    row.MaxResidualFiniteCp = max(residual(finiteCp & isfinite(residual)));
+    residualMask = finiteCp & isfinite(residual);
+    if any(residualMask)
+        row.MaxResidualFiniteCp = max(residual(residualMask));
+    end
 end
 
 row.ResidualTolerance = inferResidualTolerance(branch);
@@ -151,7 +167,7 @@ end
 function row = makeEmptyRow(branchName, params, material, etaS)
 row = struct();
 row.Branch = string(branchName);
-row.E_kPa = params.E/1e3;
+row.E_kPa = material.E/1e3;
 row.Mu_kPa = material.mu/1e3;
 row.CT_m_per_s = material.CT;
 row.EtaS_Pa_s = etaS;
@@ -195,8 +211,6 @@ tol = nan;
 if isfield(branch, 'dpOptions') && isfield(branch.dpOptions, 'residualTolerance')
     tol = branch.dpOptions.residualTolerance;
 end
-% Current code usually stores the threshold only in options, not in branch.
-% Keep NaN here rather than guessing from external state.
 end
 
 function [reason, fInvalid] = firstInvalidReason(frequency, finiteCp, validCp, validResidual, validReference, validSmooth)
