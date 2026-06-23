@@ -57,4 +57,22 @@ oldStressTest = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_t
 assert(isfile(renamedStressTest), 'Renamed mRLFE visco range stress test is missing.');
 assert(~isfile(oldStressTest), 'Old author-labeled visco range stress test should not remain.');
 
+analysisFiles = { ...
+    fullfile(repoRoot, 'analysis', 'plotParametricSweepCp.m'), ...
+    fullfile(repoRoot, 'analysis', 'summarizeParametricSweepBranch.m')};
+for i = 1:numel(analysisFiles)
+    fileText = fileread(analysisFiles{i});
+    assert(contains(fileText, 'mRLFEViscoRealK'), ...
+        'Maintained analysis helper should document mRLFEViscoRealK: %s', analysisFiles{i});
+    assert(~contains(fileText, 'mRLFEHanViscoRealK'), ...
+        'Maintained analysis helper should not document mRLFEHanViscoRealK: %s', analysisFiles{i});
+end
+
+trackerDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'compare_mrlfe_tracker_vs_condition_peaks.m');
+trackerText = fileread(trackerDiagnostic);
+assert(contains(trackerText, 'mRLFEViscoRealK'), ...
+    'Tracker diagnostic should use mRLFEViscoRealK as the selectable viscoelastic model.');
+assert(~contains(trackerText, 'mRLFEHanViscoRealK'), ...
+    'Tracker diagnostic should not expose mRLFEHanViscoRealK as a selectable model.');
+
 fprintf('test_mrlfe_maintained_entrypoints_naming passed. Maintained mRLFE docs use physical naming.\n');
