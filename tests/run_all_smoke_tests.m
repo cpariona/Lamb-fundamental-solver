@@ -280,7 +280,7 @@ assertFunctionsOnPath({ ...
     'test_mrlfe_tracking_strategy_comparison', ...
     'test_mrlfe_internal_grid_quality_guard', ...
     'test_mrlfe_maintained_entrypoints_naming', ...
-    'test_mrlfe_model_alias_helper'}, ...
+    'test_mrlfe_model_candidate_names'}, ...
     'mRLFE maintained test');
 
 fprintf('\n[13/24] mRLFE smoke test\n');
@@ -316,8 +316,8 @@ test_mrlfe_internal_grid_quality_guard;
 fprintf('\n[23/24] mRLFE maintained entrypoints naming guard test\n');
 test_mrlfe_maintained_entrypoints_naming;
 
-fprintf('\n[24/24] mRLFE model alias helper contract test\n');
-test_mrlfe_model_alias_helper;
+fprintf('\n[24/24] mRLFE model candidate names contract test\n');
+test_mrlfe_model_candidate_names;
 
 fprintf('\nAll maintained smoke tests passed.\n');
 
