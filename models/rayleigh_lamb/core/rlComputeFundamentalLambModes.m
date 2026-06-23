@@ -20,22 +20,22 @@ results.modes = struct();
 results.approximations = rlComputeAnalyticalApproximations(frequency, material, results.geometry);
 results.models = struct();
 
-computeElasticSeedA0 = getOption(options, 'mrlfeComputeA0Like', true);
-computeElasticSeedS0 = getOption(options, 'mrlfeComputeS0Like', true);
-
-computeElasticRealK = getOption(options, 'computeMRLFEElasticRealK', false) || ...
-    getOption(options, 'computeMRLFERealK', false) || ...
+computeMRLFERealK = getOption(options, 'computeMRLFERealK', false) || ...
+    getOption(options, 'computeMRLFEElasticRealK', false) || ...
+    getOption(options, 'computeMRLFEViscoRealK', false) || ...
+    getOption(options, 'computeMRLFEHanViscoRealK', false) || ...
     getOption(options, 'computeMRLFE', false);
-computeViscoRealK = getOption(options, 'computeMRLFEViscoRealK', false) || ...
-    getOption(options, 'computeMRLFEHanViscoRealK', false);
 computeComplexK = getOption(options, 'computeMRLFEComplexK', false);
+computeMRLFE = computeMRLFERealK || computeComplexK;
+
+computeMRLFEA0Like = getOption(options, 'mrlfeComputeA0Like', true);
+computeMRLFES0Like = getOption(options, 'mrlfeComputeS0Like', true);
 
 % mRLFE branches are dependent on Rayleigh-Lamb seed branches. Force the seed
 % branches required by the selected A0-like/S0-like branches even when the RL
 % checkboxes are not selected explicitly in the GUI.
-needMRLFE = computeElasticRealK || computeViscoRealK || computeComplexK;
-computeA0 = options.computeA0 || (needMRLFE && computeElasticSeedA0);
-computeS0 = options.computeS0 || (needMRLFE && computeElasticSeedS0);
+computeA0 = options.computeA0 || (computeMRLFE && computeMRLFEA0Like);
+computeS0 = options.computeS0 || (computeMRLFE && computeMRLFES0Like);
 
 if computeA0
     geometryForSpec = geometry;
@@ -61,33 +61,33 @@ if computeS0
     results.modes.S0 = packModeResults("S0", branchSpecS.family, frequency, omega, CpS0, kS0, geometry.thickness, residualS0);
 end
 
-elasticResult = [];
-if computeElasticRealK || computeViscoRealK
-    mrlfeParams = buildMRLFEParamsFromOptions(options);
-    mrlfeParams.solveComplexK = false;
-    mrlfeParams.etaS = 0;
-    mrlfeParams.etaL = 0;
-    mrlfeParams.useComplexLambda = false;
-
-    elasticOptions = makeElasticRealKOptions(options);
-    elasticResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, elasticOptions);
-
-    % The viscoelastic real-k branch uses this elastic real-k result as its
-    % modal reference. Keep it available even when only the viscoelastic model
-    % was explicitly requested.
-    results.models.mRLFEElasticRealK = elasticResult;
-    results.models.mRLFERealK = results.models.mRLFEElasticRealK; % legacy alias
-end
-
-if computeViscoRealK
+if computeMRLFERealK
     mrlfeParams = buildMRLFEParamsFromOptions(options);
     mrlfeParams.solveComplexK = false;
     mrlfeParams.etaL = 0;
     mrlfeParams.useComplexLambda = false;
 
-    viscoOptions = makeViscoRealKOptions(options);
-    results.models.mRLFEViscoRealK = computeMRLFE(frequency, material, results.geometry, elasticResult.branches, mrlfeParams, viscoOptions);
-    results.models.mRLFEHanViscoRealK = results.models.mRLFEViscoRealK; % legacy alias
+    if getOption(mrlfeParams, 'etaS', 0) <= 0
+        elasticResult = computeElasticMRLFERealK(frequency, material, results.geometry, results.modes, options);
+        realKResult = elasticResult;
+        results.models.mRLFEElasticRealK = elasticResult;
+    else
+        elasticReference = getElasticReferenceResult(options, frequency, results.modes);
+        if isempty(elasticReference)
+            elasticReference = computeElasticMRLFERealK(frequency, material, results.geometry, results.modes, options);
+            results.models.mRLFEElasticRealK = elasticReference;
+        else
+            results.models.mRLFEElasticRealK = elasticReference;
+        end
+
+        viscoOptions = makeViscoRealKOptions(options);
+        realKResult = computeMRLFE(frequency, material, results.geometry, elasticReference.branches, mrlfeParams, viscoOptions);
+        results.models.mRLFEViscoRealK = realKResult;
+        results.models.mRLFEHanViscoRealK = realKResult; % legacy alias
+    end
+
+    results.models.mRLFERealK = realKResult;
+    results.models.mRLFE = realKResult;
 end
 
 % Complex-k remains an experimental attenuation path. It is hidden from the
@@ -97,18 +97,68 @@ if computeComplexK
     mrlfeParams.solveComplexK = false;
     mrlfeParams.etaL = 0;
     mrlfeParams.useComplexLambda = false;
-    realKResult = computeMRLFE(frequency, material, results.geometry, results.modes, mrlfeParams, makeElasticRealKOptions(options));
+    realKSeed = computeElasticMRLFERealK(frequency, material, results.geometry, results.modes, options);
     mrlfeParams.solveComplexK = true;
-    results.models.mRLFEComplexK = computeMRLFE(frequency, material, results.geometry, realKResult.branches, mrlfeParams, options);
+    results.models.mRLFEComplexK = computeMRLFE(frequency, material, results.geometry, realKSeed.branches, mrlfeParams, options);
+    if ~isfield(results.models, 'mRLFE')
+        results.models.mRLFE = results.models.mRLFEComplexK;
+    end
+end
 end
 
-% Backward-compatible alias for scripts expecting results.models.mRLFE.
-if isfield(results.models, 'mRLFEElasticRealK')
-    results.models.mRLFE = results.models.mRLFEElasticRealK;
-elseif isfield(results.models, 'mRLFEViscoRealK')
-    results.models.mRLFE = results.models.mRLFEViscoRealK;
-elseif isfield(results.models, 'mRLFEComplexK')
-    results.models.mRLFE = results.models.mRLFEComplexK;
+function result = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options)
+mrlfeParams = buildMRLFEParamsFromOptions(options);
+mrlfeParams.solveComplexK = false;
+mrlfeParams.etaS = 0;
+mrlfeParams.etaL = 0;
+mrlfeParams.useComplexLambda = false;
+elasticOptions = makeElasticRealKOptions(options);
+result = computeMRLFE(frequency, material, geometry, seedModes, mrlfeParams, elasticOptions);
+end
+
+function elasticReference = getElasticReferenceResult(options, frequency, seedModes)
+elasticReference = [];
+if ~isfield(options, 'mrlfeElasticReferenceResult') || isempty(options.mrlfeElasticReferenceResult)
+    return;
+end
+candidate = options.mrlfeElasticReferenceResult;
+if ~isstruct(candidate) || ~isfield(candidate, 'branches') || ~isstruct(candidate.branches)
+    return;
+end
+if ~referenceHasRequiredBranches(candidate, seedModes)
+    return;
+end
+if ~referenceFrequencyMatches(candidate, frequency)
+    return;
+end
+elasticReference = candidate;
+end
+
+function tf = referenceHasRequiredBranches(referenceResult, seedModes)
+tf = true;
+if isfield(seedModes, 'A0') && ~isfield(referenceResult.branches, 'A0Like')
+    tf = false;
+end
+if isfield(seedModes, 'S0') && ~isfield(referenceResult.branches, 'S0Like')
+    tf = false;
+end
+end
+
+function tf = referenceFrequencyMatches(referenceResult, frequency)
+tf = true;
+branchNames = string(fieldnames(referenceResult.branches));
+if isempty(branchNames)
+    tf = false;
+    return;
+end
+for i = 1:numel(branchNames)
+    branch = referenceResult.branches.(char(branchNames(i)));
+    if isfield(branch, 'frequency') && numel(branch.frequency) == numel(frequency)
+        if max(abs(branch.frequency(:) - frequency(:))) > 10 * eps(max(1, max(abs(frequency(:)))))
+            tf = false;
+            return;
+        end
+    end
 end
 end
 
@@ -141,9 +191,9 @@ elasticOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTol
 end
 
 function viscoOptions = makeViscoRealKOptions(options)
-% Viscoelastic real-k is seeded from the elastic real-k result. It uses a
-% conservative modal-local tracker because viscosity can introduce strong
-% competing residual valleys and low-Cp edge minima.
+% Viscous real-k is seeded from the etaS = 0 real-k result. It uses a
+% conservative modal-local tracker because viscosity can introduce competing
+% residual valleys and low-Cp edge minima.
 viscoOptions = options;
 viscoOptions.mrlfeA0UseDPTracker = false;
 viscoOptions.mrlfeRealKAnchorToSeed = true;
@@ -203,7 +253,7 @@ mode = struct( ...
 end
 
 function value = getOption(options, fieldName, defaultValue)
-if isfield(options, fieldName) && ~isempty(options.(fieldName))
+if isstruct(options) && isfield(options, fieldName) && ~isempty(options.(fieldName))
     value = options.(fieldName);
 else
     value = defaultValue;
