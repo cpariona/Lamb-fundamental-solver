@@ -26,7 +26,7 @@ computeMRLFERealK = getOption(options, 'computeMRLFERealK', false) || ...
     getOption(options, 'computeMRLFEHanViscoRealK', false) || ...
     getOption(options, 'computeMRLFE', false);
 computeComplexK = getOption(options, 'computeMRLFEComplexK', false);
-computeMRLFE = computeMRLFERealK || computeComplexK;
+needMRLFE = computeMRLFERealK || computeComplexK;
 
 computeMRLFEA0Like = getOption(options, 'mrlfeComputeA0Like', true);
 computeMRLFES0Like = getOption(options, 'mrlfeComputeS0Like', true);
@@ -34,8 +34,8 @@ computeMRLFES0Like = getOption(options, 'mrlfeComputeS0Like', true);
 % mRLFE branches are dependent on Rayleigh-Lamb seed branches. Force the seed
 % branches required by the selected A0-like/S0-like branches even when the RL
 % checkboxes are not selected explicitly in the GUI.
-computeA0 = options.computeA0 || (computeMRLFE && computeMRLFEA0Like);
-computeS0 = options.computeS0 || (computeMRLFE && computeMRLFES0Like);
+computeA0 = options.computeA0 || (needMRLFE && computeMRLFEA0Like);
+computeS0 = options.computeS0 || (needMRLFE && computeMRLFES0Like);
 
 if computeA0
     geometryForSpec = geometry;
