@@ -38,6 +38,20 @@ Rationale:
 
 The elastic and viscous cases are not separate physical models. They are the same fluid-loaded real-k mRLFE model evaluated at different `etaS` values. The two mRLFE contract tests are kept as permanent regression tests because they define the unified model behavior; they are not temporary optimization diagnostics.
 
+## mRLFE residual objective status
+
+Current status:
+
+- `objectiveMRLFEResidual` is the maintained scalar objective helper for the 5-by-5 mRLFE matrix.
+- The maintained default objective is `minSingularValueRatio`, defined as `sigma_min(M)/sigma_max(M)`.
+- The determinant-based objective remains available only through the explicit `determinant` method for comparison or focused diagnostics.
+- `mrlfeResidual` remains as a compatibility wrapper around `objectiveMRLFEResidual`.
+- `tests/mrlfe/test_mrlfe_residual_objective_contract.m` protects the objective default and wrapper behavior.
+
+Rationale:
+
+This mirrors the numerical lessons from the acoustoelastic solver: the determinant of a boundary-condition matrix can be poorly scaled, while a singular-value objective is more robust for branch tracking.
+
 ## Solver optimization guardrail
 
 Before changing branch tracking, objective functions, or internal grids, the maintained smoke suite must continue to pass:
