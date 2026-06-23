@@ -29,7 +29,7 @@ options.computeS0 = branchName == "S0Like";
 options.mrlfeComputeA0Like = branchName == "A0Like";
 options.mrlfeComputeS0Like = branchName == "S0Like";
 
-[modelName, options] = configureMRLFEModelOptions(options, string(request.modelLabel), string(request.sweepField));
+[modelName, summaryModelName, options] = configureMRLFEModelOptions(options, string(request.modelLabel), string(request.sweepField));
 [valuesSolver, displayScale, units] = convertRequestDisplayValues(request);
 
 sweepSpec = struct();
@@ -40,13 +40,14 @@ sweepSpec.units = units;
 sweepSpec.displayScale = displayScale;
 
 rawResults = runParametricSweep(params, options, sweepSpec);
-summaryTable = summarizeParametricSweepBranch(rawResults, modelName, branchName, 'Print', false);
+summaryTable = summarizeParametricSweepBranch(rawResults, summaryModelName, branchName, 'Print', false);
 normalized = guiNormalizeMRLFESweep(rawResults, summaryTable, request, modelName, branchName);
 
 sweepOutput = struct();
 sweepOutput.request = request;
 sweepOutput.modelFamily = "mrlfe";
 sweepOutput.modelName = modelName;
+sweepOutput.rawModelName = summaryModelName;
 sweepOutput.branchName = branchName;
 sweepOutput.sweepSpec = sweepSpec;
 sweepOutput.rawResults = rawResults;
@@ -62,18 +63,24 @@ else
 end
 end
 
-function [modelName, options] = configureMRLFEModelOptions(options, modelLabel, sweepParameter)
+function [modelName, summaryModelName, options] = configureMRLFEModelOptions(options, modelLabel, sweepParameter)
 if modelLabel == "Elastic real-k"
     if sweepParameter == "etaS"
-        error('etaS only affects the viscoelastic real-k model. Select Viscoelastic real-k or sweep E/thickness.');
+        error('etaS only affects the viscoelastic real-k model. Select Viscoelastic real-k or sweep mu/thickness.');
     end
+    options.computeMRLFEElasticRealK = true;
+    options.computeMRLFEViscoRealK = false;
     options.computeMRLFERealK = true;
     options.computeMRLFEHanViscoRealK = false;
     modelName = "mRLFEElasticRealK";
+    summaryModelName = "mRLFEElasticRealK";
 else
+    options.computeMRLFEElasticRealK = true;
+    options.computeMRLFEViscoRealK = true;
     options.computeMRLFERealK = true;
     options.computeMRLFEHanViscoRealK = true;
-    modelName = "mRLFEHanViscoRealK";
+    modelName = "mRLFEViscoRealK";
+    summaryModelName = "mRLFEViscoRealK";
 end
 end
 
