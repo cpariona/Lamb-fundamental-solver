@@ -1,20 +1,20 @@
-% Stress-test elastic real-k mRLFE stability over a practical corneal range.
+% Stress-test elastic real-k mRLFE stability over stiffness range.
 %
-% This diagnostic focuses on the elastic/fluid-loaded model with etaS = 0.
-% It is intended to check whether A0-like and S0-like branches remain stable
-% up to 16 kHz over a broad equivalent Young's modulus range.
+% This diagnostic checks whether the etaS = 0 fluid-loaded mRLFE branch remains
+% trackable over practical elastic stiffness values.
 %
-% Notes:
-%   - E is swept directly because the GUI/material input is E, nu, rho.
-%   - For nearly incompressible materials, mu ~= E/(2*(1+nu)) ~= E/3.
-%   - The upper bound 1500 kPa is included as an extended diagnostic range.
-%   - SafeFmax_Hz is defined as the frequency before the first valid Cp jump
-%     exceeding largeJumpThreshold.
+% Model:
+%   mRLFEElasticRealK
+%   lambda real
+%   muStar = mu
+%   k real
+%
+% Output file:
+%   mRLFE_elastic_range_stability_summary.csv
 
 startup();
 
-EValues = [50e3, 75e3, 100e3, 150e3, 225e3, 300e3, 400e3, 500e3, ...
-           750e3, 1000e3, 1500e3]; % [Pa]
+EValues = [50e3, 100e3, 300e3, 500e3, 1000e3, 1500e3]; % [Pa]
 largeJumpThreshold = 0.15;
 
 paramsBase = rlDefaultParams();
@@ -30,7 +30,6 @@ optionsBase = rlDefaultOptions("Fast");
 optionsBase.computeA0 = true;
 optionsBase.computeS0 = true;
 optionsBase.computeMRLFERealK = true;
-optionsBase.computeMRLFEHanViscoRealK = false;
 optionsBase.computeMRLFEComplexK = false;
 
 summaryRows = [];
@@ -65,13 +64,9 @@ for iE = 1:numel(EValues)
     end
 end
 
-if isempty(summaryRows)
-    mRLFEElasticRangeStabilitySummary = table();
-else
-    mRLFEElasticRangeStabilitySummary = struct2table(summaryRows);
-end
-
+mRLFEElasticRangeStabilitySummary = rowsToTable(summaryRows);
 writetable(mRLFEElasticRangeStabilitySummary, 'mRLFE_elastic_range_stability_summary.csv');
+
 assignin('base', 'mRLFEElasticRangeStabilityResults', resultsByE);
 assignin('base', 'mRLFEElasticRangeStabilitySummary', mRLFEElasticRangeStabilitySummary);
 assignin('base', 'mRLFEElasticRangeStabilityEValues', EValues);
@@ -80,44 +75,12 @@ assignin('base', 'mRLFEElasticRangeStabilityLargeJumpThreshold', largeJumpThresh
 fprintf('\nElastic range stability summary\n');
 fprintf('-------------------------------\n');
 if ~isempty(mRLFEElasticRangeStabilitySummary)
-    disp(mRLFEElasticRangeStabilitySummary(:, {'Branch','E_kPa','Mu_kPa','ValidPoints','TotalPoints','ValidFmax_Hz','SafeFmax_Hz','MaxResidual','MaxRelativeCpJump','FirstLargeJumpRelative','HasWarning'}));
+    disp(mRLFEElasticRangeStabilitySummary(:, {'Branch','E_kPa','ValidPoints','TotalPoints','ValidFmax_Hz','SafeFmax_Hz','MaxResidual','MaxRelativeCpJump','FirstLargeJumpRelative','HasWarning'}));
 end
 fprintf('\nWrote mRLFE_elastic_range_stability_summary.csv\n');
 
-% Plot Cp curves for visual inspection.
-figure;
-hold on;
-for iE = 1:numel(EValues)
-    if isempty(resultsByE{iE})
-        continue;
-    end
-    branch = resultsByE{iE}.models.mRLFEElasticRealK.branches.A0Like;
-    [frequency, CpPlot] = branchPlotData(branch);
-    plot(frequency, CpPlot, 'LineWidth', 1.2, 'DisplayName', sprintf('E = %.0f kPa', EValues(iE)/1e3));
-end
-grid on;
-xlabel('frequency [Hz]');
-ylabel('Phase velocity Cp [m/s]');
-title('mRLFE elastic real-k A0-like stability sweep');
-legend('Location', 'best');
-hold off;
-
-figure;
-hold on;
-for iE = 1:numel(EValues)
-    if isempty(resultsByE{iE})
-        continue;
-    end
-    branch = resultsByE{iE}.models.mRLFEElasticRealK.branches.S0Like;
-    [frequency, CpPlot] = branchPlotData(branch);
-    plot(frequency, CpPlot, 'LineWidth', 1.2, 'DisplayName', sprintf('E = %.0f kPa', EValues(iE)/1e3));
-end
-grid on;
-xlabel('frequency [Hz]');
-ylabel('Phase velocity Cp [m/s]');
-title('mRLFE elastic real-k S0-like stability sweep');
-legend('Location', 'best');
-hold off;
+plotSafeFmaxSummary(mRLFEElasticRangeStabilitySummary, 'A0Like');
+plotSafeFmaxSummary(mRLFEElasticRangeStabilitySummary, 'S0Like');
 
 function row = printBranchSummary(branches, branchName, params, material, largeJumpThreshold)
 row = makeEmptyRow(branchName, params, material);
@@ -128,6 +91,7 @@ if ~isfield(branches, branchName)
     fprintf('  %s: not available\n', branchName);
     return;
 end
+
 branch = branches.(branchName);
 valid = getValidCp(branch);
 row.ValidPoints = sum(valid);
@@ -144,6 +108,7 @@ if any(valid)
     row.ValidFmax_Hz = max(fValid);
     row.FirstValidFrequency_Hz = fValid(1);
     row.LastValidFrequency_Hz = fValid(end);
+
     jumpInfo = computeJumpDiagnostics(branch, valid, largeJumpThreshold);
     row.MaxRelativeCpJump = jumpInfo.MaxRelativeCpJump;
     row.FrequencyBeforeMaxJump_Hz = jumpInfo.FrequencyBeforeMaxJump_Hz;
@@ -156,17 +121,11 @@ if any(valid)
     row.CpBeforeFirstLargeJump = jumpInfo.CpBeforeFirstLargeJump;
     row.CpAfterFirstLargeJump = jumpInfo.CpAfterFirstLargeJump;
     row.SafeFmax_Hz = jumpInfo.SafeFmax_Hz;
+
     fprintf('  %s Cp: %.6g to %.6g m/s\n', branchName, row.MinCp, row.MaxCp);
-    fprintf('  %s valid frequency range: %.6g to %.6g Hz; last valid %.6g Hz\n', ...
-        branchName, row.ValidFmin_Hz, row.ValidFmax_Hz, row.LastValidFrequency_Hz);
+    fprintf('  %s valid frequency range: %.6g to %.6g Hz; safe fmax %.6g Hz\n', ...
+        branchName, row.ValidFmin_Hz, row.ValidFmax_Hz, row.SafeFmax_Hz);
     fprintf('  %s max relative Cp jump: %.3g\n', branchName, row.MaxRelativeCpJump);
-    if isfinite(row.FirstLargeJumpRelative)
-        fprintf('  %s first jump > %.3g: %.3g at %.6g -> %.6g Hz; safe fmax %.6g Hz\n', ...
-            branchName, largeJumpThreshold, row.FirstLargeJumpRelative, ...
-            row.FrequencyBeforeFirstLargeJump_Hz, row.FrequencyAfterFirstLargeJump_Hz, row.SafeFmax_Hz);
-    else
-        fprintf('  %s safe fmax by jump threshold: %.6g Hz\n', branchName, row.SafeFmax_Hz);
-    end
 else
     row.HasWarning = true;
     row.WarningText = "no valid Cp points";
@@ -291,18 +250,36 @@ if ~isempty(firstLargeLocalIdx)
 end
 end
 
-function [frequency, CpPlot] = branchPlotData(branch)
-frequency = branch.frequency;
-valid = getValidCp(branch);
-CpPlot = branch.Cp;
-CpPlot(~valid) = nan;
-end
-
 function valid = getValidCp(branch)
 if isfield(branch, 'validCp')
     valid = branch.validCp;
 else
     valid = branch.valid;
 end
-valid = valid & isfinite(branch.Cp);
+valid = valid(:) & isfinite(branch.Cp(:));
+end
+
+function plotSafeFmaxSummary(summaryTable, branchName)
+if isempty(summaryTable)
+    return;
+end
+mask = summaryTable.Branch == string(branchName);
+if ~any(mask)
+    return;
+end
+T = summaryTable(mask, :);
+figure;
+plot(T.E_kPa, T.SafeFmax_Hz, '-o', 'LineWidth', 1.2);
+grid on;
+xlabel('E [kPa]');
+ylabel('Safe fmax [Hz]');
+title(sprintf('Elastic real-k %s safe fmax', branchName));
+end
+
+function T = rowsToTable(rows)
+if isempty(rows)
+    T = table();
+else
+    T = struct2table(rows);
+end
 end
