@@ -1,20 +1,15 @@
 function result = guiRunMRLFEModel(guiRequest)
 %GUIRUNMRLFEMODEL Run maintained mRLFE workflows for GUI usage.
 %
-% result = guiRunMRLFEModel(guiRequest) prepares Rayleigh-Lamb seed modes,
-% calls the maintained mRLFE solver surface through the existing rl* workflow,
-% and returns normalized mRLFE branch results.
-%
 % Expected optional guiRequest fields:
 %   params           - struct overlay for rlDefaultParams()
 %   options          - struct overlay for rlDefaultOptions()
 %   mrlfeParams      - struct overlay stored in options.mrlfeParams
 %   computeElastic   - logical, default true
-%   computeHan       - logical, default false
-%   computeHanVisco  - logical alias for computeHan
+%   computeVisco     - logical, default false
 %
-% This adapter does not rename mRLFE model functions or change numerical
-% solver behavior. It centralizes GUI-facing model calls for later UI cleanup.
+% Legacy request fields computeHan/computeHanVisco are still accepted as
+% compatibility aliases, but the normalized GUI surface uses viscoelastic names.
 
 if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
@@ -24,16 +19,19 @@ params = mergeStructs(rlDefaultParams(), getStructField(guiRequest, 'params', st
 options = mergeStructs(rlDefaultOptions(), getStructField(guiRequest, 'options', struct()));
 
 computeElastic = getStructField(guiRequest, 'computeElastic', true);
-computeHan = getStructField(guiRequest, 'computeHan', getStructField(guiRequest, 'computeHanVisco', false));
+computeVisco = getStructField(guiRequest, 'computeVisco', ...
+    getStructField(guiRequest, 'computeHan', getStructField(guiRequest, 'computeHanVisco', false)));
 computeA0Like = getStructField(options, 'mrlfeComputeA0Like', true);
 computeS0Like = getStructField(options, 'mrlfeComputeS0Like', true);
-computeMRLFE = logical(computeElastic || computeHan);
+computeMRLFE = logical(computeElastic || computeVisco);
 
 options.computeA0 = logical(getStructField(options, 'computeA0', true) || (computeMRLFE && computeA0Like));
 options.computeS0 = logical(getStructField(options, 'computeS0', true) || (computeMRLFE && computeS0Like));
 options.computeMRLFE = false;
-options.computeMRLFERealK = logical(computeElastic || computeHan);
-options.computeMRLFEHanViscoRealK = logical(computeHan);
+options.computeMRLFEElasticRealK = logical(computeElastic || computeVisco);
+options.computeMRLFEViscoRealK = logical(computeVisco);
+options.computeMRLFERealK = options.computeMRLFEElasticRealK;
+options.computeMRLFEHanViscoRealK = options.computeMRLFEViscoRealK;
 
 if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
     options.mrlfeParams = guiRequest.mrlfeParams;
