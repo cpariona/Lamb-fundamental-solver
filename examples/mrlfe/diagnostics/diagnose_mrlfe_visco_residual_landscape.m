@@ -43,7 +43,7 @@ fprintf('-------------------------------------------------\n');
 
 for iCase = 1:numel(cases)
     caseInfo = cases(iCase);
-    params = setYoungModulusForShearPoisson(paramsBase, caseInfo.E);
+    params = mrlfeSetYoungModulusForShearPoisson(paramsBase, caseInfo.E);
     material = rlComputeMaterial(params);
     geometry = rlComputeGeometry(params);
     geometryPublic = rmfield(geometry, 'halfThickness');
@@ -107,11 +107,6 @@ assignin('base', 'mRLFEViscoResidualLandscapeSamples', mRLFEViscoResidualLandsca
 fprintf('\nWrote:\n');
 fprintf('  mRLFE_visco_residual_landscape_summary.csv\n');
 fprintf('  mRLFE_visco_residual_landscape_samples.csv\n');
-
-function params = setYoungModulusForShearPoisson(params, youngModulus)
-params.E = youngModulus;
-params.mu = youngModulus / (2 * (1 + params.nu));
-end
 
 function residual = residualVsCp(CpScan, omega, material, geometry, mrlfeParams)
 residual = nan(size(CpScan));
