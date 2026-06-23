@@ -25,6 +25,8 @@ Current status:
 - The maintained normalized model name is `mRLFERealK`.
 - The solver keeps the etaS = 0 branch as an internal reference/buffer when computing etaS > 0.
 - The main GUI reuses a compatible cached etaS = 0 reference when available.
+- `tests/mrlfe/test_mrlfe_etaS_zero_limit.m` protects the etaS = 0 physical contract.
+- `tests/mrlfe/test_mrlfe_elastic_reference_buffer.m` protects the etaS > 0 buffer contract.
 
 Remaining cleanup:
 
@@ -34,4 +36,14 @@ Remaining cleanup:
 
 Rationale:
 
-The elastic and viscous cases are not separate physical models. They are the same fluid-loaded real-k mRLFE model evaluated at different `etaS` values.
+The elastic and viscous cases are not separate physical models. They are the same fluid-loaded real-k mRLFE model evaluated at different `etaS` values. The two mRLFE contract tests are kept as permanent regression tests because they define the unified model behavior; they are not temporary optimization diagnostics.
+
+## Solver optimization guardrail
+
+Before changing branch tracking, objective functions, or internal grids, the maintained smoke suite must continue to pass:
+
+```matlab
+run_all_smoke_tests
+```
+
+Any temporary optimization script should either be deleted before merge or promoted to a maintained test/diagnostic with clear naming and documentation. Optimization-only artifacts should not remain in the repository after the selected solver strategy is finalized.
