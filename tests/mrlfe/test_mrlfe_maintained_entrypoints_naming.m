@@ -52,4 +52,9 @@ oldLandscapeDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 
 assert(isfile(renamedLandscapeDiagnostic), 'Renamed mRLFE visco residual landscape diagnostic is missing.');
 assert(~isfile(oldLandscapeDiagnostic), 'Old author-labeled residual landscape diagnostic should not remain.');
 
+renamedStressTest = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_test_mrlfe_visco_range.m');
+oldStressTest = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_test_mrlfe_han_visco_range.m');
+assert(isfile(renamedStressTest), 'Renamed mRLFE visco range stress test is missing.');
+assert(~isfile(oldStressTest), 'Old author-labeled visco range stress test should not remain.');
+
 fprintf('test_mrlfe_maintained_entrypoints_naming passed. Maintained mRLFE docs use physical naming.\n');
