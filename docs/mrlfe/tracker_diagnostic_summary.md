@@ -20,14 +20,14 @@ examples/mrlfe/diagnostics/
 Current diagnostics:
 
 ```matlab
-diagnose_mrlfe_han_visco_validity_breakdown
+diagnose_mrlfe_visco_validity_breakdown
 diagnose_mrlfe_han_visco_residual_landscape
 compare_mrlfe_tracker_vs_condition_peaks
 stress_test_mrlfe_elastic_range
 stress_test_mrlfe_han_visco_range
 ```
 
-The two stress-test scripts were moved from the old top-level validation folder into the mRLFE diagnostics tree. They are model-specific diagnostics, not Rayleigh-Lamb validation scripts.
+The two stress-test scripts were moved from the old top-level validation folder into the mRLFE diagnostics tree. They are model-specific diagnostics, not Rayleigh-Lamb validation scripts. Diagnostics still containing author-dependent labels are pending rename or retirement.
 
 ## Diagnostic configuration
 
@@ -55,8 +55,8 @@ Reference case used in the tracker comparison tests:
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
 | `mRLFEElasticRealK` | `A0Like` | `120/120` | `1` | `0.12494` | `0.0011888` | `0.0022245` | `0.00083144` | `0.70` | `3.1119 s` | `3.6412 s` | Continuous, local-minimum consistent; largest relative jump occurs in the first low-frequency A0 interval. |
 | `mRLFEElasticRealK` | `S0Like` | `120/120` | `1` | `0.015396` | `0.0047737` | `0.0014626` | `0.00036393` | `1.00` | `1.8042 s` | `3.6163 s` | Very clean continuity and local-minimum agreement. |
-| `mRLFEHanViscoRealK` | `A0Like` | `55/120` | `1` | `0.12379` | `0.0076518` | `0.0021338` | `0.00086671` | `0.80` | `4.3435 s` | `3.0734 s` | Conservative real-k branch segment; local-minimum consistent until branch cut. |
-| `mRLFEHanViscoRealK` | `S0Like` | `45/120` | `1` | `0.030398` | `0.0083871` | `0.00098574` | `0.00011753` | `1.00` | `3.2021 s` | `3.2755 s` | Conservative real-k branch segment; very strong local-minimum agreement until branch cut. |
+| `mRLFEViscoRealK` | `A0Like` | `55/120` | `1` | `0.12379` | `0.0076518` | `0.0021338` | `0.00086671` | `0.80` | `4.3435 s` | `3.0734 s` | Conservative real-k branch segment; local-minimum consistent until branch cut. |
+| `mRLFEViscoRealK` | `S0Like` | `45/120` | `1` | `0.030398` | `0.0083871` | `0.00098574` | `0.00011753` | `1.00` | `3.2021 s` | `3.2755 s` | Conservative real-k branch segment; very strong local-minimum agreement until branch cut. |
 
 ## Main conclusions
 
@@ -99,7 +99,7 @@ The diagnostic therefore reports both:
 
 A large relative jump should be inspected using the maximum-jump table, not interpreted automatically as branch switching.
 
-### 4. Han viscoelastic real-k behaves conservatively
+### 4. Viscoelastic real-k behaves conservatively
 
 For viscoelastic real-k cases, the solver returns only one valid branch segment and cuts the branch when the modal-local real-k solution is no longer available.
 
@@ -135,7 +135,7 @@ Edit the case at the top of the script:
 
 ```matlab
 branchName = "A0Like";              % "A0Like" or "S0Like"
-modelName  = "mRLFEElasticRealK";   % "mRLFEElasticRealK" or "mRLFEHanViscoRealK"
+modelName  = "mRLFEElasticRealK";   % "mRLFEElasticRealK" or "mRLFEViscoRealK"
 ```
 
 Recommended cases to keep checking:
@@ -151,11 +151,11 @@ modelName  = "mRLFEElasticRealK";
 
 % Viscoelastic A0-like
 branchName = "A0Like";
-modelName  = "mRLFEHanViscoRealK";
+modelName  = "mRLFEViscoRealK";
 
 % Viscoelastic S0-like
 branchName = "S0Like";
-modelName  = "mRLFEHanViscoRealK";
+modelName  = "mRLFEViscoRealK";
 ```
 
 Keep the committed default as:
