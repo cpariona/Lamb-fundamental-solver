@@ -33,10 +33,11 @@ options.mrlfeSearchFactors = [0.80, 1.25; 0.60, 1.60; 0.35, 2.50];
 options.mrlfeComputeA0Like = true;
 options.mrlfeComputeS0Like = true;
 
-% Optional mRLFE internal tracking grid. Disabled by default to preserve the
-% external behavior of current workflows. When enabled, mRLFE branches are
-% tracked on a denser internal grid and resampled back to the requested grid.
+% Optional mRLFE internal tracking grid. The direct tracker remains the default
+% for etaS = 0. The viscous real-k path can opt into an AE-style internal grid
+% through mrlfeUseInternalTrackingGridForViscousRealK.
 options.mrlfeUseInternalTrackingGrid = false;
+options.mrlfeUseInternalTrackingGridForViscousRealK = true;
 options.mrlfeInternalTrackingPointFactor = 2;
 options.mrlfeInternalTrackingMinPoints = 30;
 options.mrlfeInternalTrackingMaxPoints = 400;
@@ -67,7 +68,7 @@ options.mrlfeRealKPreviousKWeight = 0.0;
 options.mrlfeRealKPreviousCpMaxRelativeJump = inf;
 
 % Viscoelastic real-k modal-local tracker controls. These are enabled
-% internally only for the viscoelastic real-k branch by rlComputeFundamentalLambModes.
+% internally only for the viscous etaS > 0 real-k branch by rlComputeFundamentalLambModes.
 options.mrlfeViscoUseModalLocalTracker = true;
 options.mrlfeViscoA0ModalCpWindow = [0.35, 2.50];
 options.mrlfeViscoS0ModalCpWindow = [0.70, 1.40];
