@@ -28,8 +28,13 @@ options.computeA0 = branchName == "A0Like";
 options.computeS0 = branchName == "S0Like";
 options.mrlfeComputeA0Like = branchName == "A0Like";
 options.mrlfeComputeS0Like = branchName == "S0Like";
+options.computeMRLFERealK = true;
+options.computeMRLFEElasticRealK = true;
+options.computeMRLFEViscoRealK = true;
+options.computeMRLFEHanViscoRealK = true;
 
-[modelName, summaryModelName, options] = configureMRLFEModelOptions(options, string(request.modelLabel), string(request.sweepField));
+modelName = "mRLFERealK";
+summaryModelName = "mRLFERealK";
 [valuesSolver, displayScale, units] = convertRequestDisplayValues(request);
 
 sweepSpec = struct();
@@ -47,7 +52,6 @@ sweepOutput = struct();
 sweepOutput.request = request;
 sweepOutput.modelFamily = "mrlfe";
 sweepOutput.modelName = modelName;
-sweepOutput.rawModelName = summaryModelName;
 sweepOutput.branchName = branchName;
 sweepOutput.sweepSpec = sweepSpec;
 sweepOutput.rawResults = rawResults;
@@ -60,27 +64,6 @@ if isstruct(controls) && isfield(controls, fieldName) && ~isempty(controls.(fiel
     value = controls.(fieldName);
 else
     value = defaultValue;
-end
-end
-
-function [modelName, summaryModelName, options] = configureMRLFEModelOptions(options, modelLabel, sweepParameter)
-if modelLabel == "Elastic real-k"
-    if sweepParameter == "etaS"
-        error('etaS only affects the viscoelastic real-k model. Select Viscoelastic real-k or sweep mu/thickness.');
-    end
-    options.computeMRLFEElasticRealK = true;
-    options.computeMRLFEViscoRealK = false;
-    options.computeMRLFERealK = true;
-    options.computeMRLFEHanViscoRealK = false;
-    modelName = "mRLFEElasticRealK";
-    summaryModelName = "mRLFEElasticRealK";
-else
-    options.computeMRLFEElasticRealK = true;
-    options.computeMRLFEViscoRealK = true;
-    options.computeMRLFERealK = true;
-    options.computeMRLFEHanViscoRealK = true;
-    modelName = "mRLFEViscoRealK";
-    summaryModelName = "mRLFEViscoRealK";
 end
 end
 
