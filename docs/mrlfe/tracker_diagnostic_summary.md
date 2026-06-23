@@ -21,7 +21,7 @@ Current diagnostics:
 
 ```matlab
 diagnose_mrlfe_visco_validity_breakdown
-diagnose_mrlfe_han_visco_residual_landscape
+diagnose_mrlfe_visco_residual_landscape
 compare_mrlfe_tracker_vs_condition_peaks
 stress_test_mrlfe_elastic_range
 stress_test_mrlfe_han_visco_range
