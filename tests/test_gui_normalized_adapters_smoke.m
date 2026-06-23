@@ -106,8 +106,10 @@ if isfield(viscoRequest, 'computeHan')
     viscoRequest = rmfield(viscoRequest, 'computeHan');
 end
 viscoGuiResult = guiRunMRLFEModel(viscoRequest);
-assert(hasNormalizedBranch(viscoGuiResult, "mRLFEHanViscoRealK", "A0Like"), ...
-    'mRLFE GUI adapter must accept computeHanVisco and return the viscoelastic A0-like branch.');
+assert(hasNormalizedBranch(viscoGuiResult, "mRLFEViscoRealK", "A0Like"), ...
+    'mRLFE GUI adapter must accept computeHanVisco and return the author-neutral viscoelastic A0-like branch.');
+assert(hasRawModelBranch(viscoGuiResult, "mRLFEHanViscoRealK", "A0Like"), ...
+    'mRLFE GUI adapter must preserve the raw internal model name in metadata.');
 
 fprintf('GUI normalized adapters smoke test passed.\n');
 
@@ -119,6 +121,20 @@ end
 for i = 1:numel(guiResult.branches)
     branch = guiResult.branches(i);
     if string(branch.modelName) == string(modelName) && string(branch.branchName) == string(branchName)
+        tf = true;
+        return;
+    end
+end
+end
+
+function tf = hasRawModelBranch(guiResult, rawModelName, branchName)
+tf = false;
+if ~isfield(guiResult, 'branches') || isempty(guiResult.branches)
+    return;
+end
+for i = 1:numel(guiResult.branches)
+    branch = guiResult.branches(i);
+    if isfield(branch, 'rawModelName') && string(branch.rawModelName) == string(rawModelName) && string(branch.branchName) == string(branchName)
         tf = true;
         return;
     end
