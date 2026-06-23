@@ -279,21 +279,32 @@ assertFunctionsOnPath({ ...
     'test_mrlfe_tracking_strategy_comparison'}, ...
     'mRLFE maintained test');
 
-mrlfeTests = { ...
-    'mRLFE smoke test', @test_mrlfe_smoke; ...
-    'mRLFE etaS zero-limit contract test', @test_mrlfe_etaS_zero_limit; ...
-    'mRLFE elastic-reference buffer contract test', @test_mrlfe_elastic_reference_buffer; ...
-    'mRLFE residual objective contract test', @test_mrlfe_residual_objective_contract; ...
-    'mRLFE internal tracking grid contract test', @test_mrlfe_internal_tracking_grid; ...
-    'mRLFE internal tracking grid with buffer contract test', @test_mrlfe_internal_tracking_grid_with_buffer; ...
-    'mRLFE viscous default internal tracking grid contract test', @test_mrlfe_viscous_default_internal_tracking_grid; ...
-    'mRLFE tracking quality summary contract test', @test_mrlfe_tracking_quality_summary; ...
-    'mRLFE tracking strategy comparison contract test', @test_mrlfe_tracking_strategy_comparison};
+fprintf('\n[13/21] mRLFE smoke test\n');
+test_mrlfe_smoke;
 
-for i = 1:size(mrlfeTests, 1)
-    fprintf('\n[%d/21] %s\n', i + 12, mrlfeTests{i, 1});
-    mrlfeTests{i, 2}();
-end
+fprintf('\n[14/21] mRLFE etaS zero-limit contract test\n');
+test_mrlfe_etaS_zero_limit;
+
+fprintf('\n[15/21] mRLFE elastic-reference buffer contract test\n');
+test_mrlfe_elastic_reference_buffer;
+
+fprintf('\n[16/21] mRLFE residual objective contract test\n');
+test_mrlfe_residual_objective_contract;
+
+fprintf('\n[17/21] mRLFE internal tracking grid contract test\n');
+test_mrlfe_internal_tracking_grid;
+
+fprintf('\n[18/21] mRLFE internal tracking grid with buffer contract test\n');
+test_mrlfe_internal_tracking_grid_with_buffer;
+
+fprintf('\n[19/21] mRLFE viscous default internal tracking grid contract test\n');
+test_mrlfe_viscous_default_internal_tracking_grid;
+
+fprintf('\n[20/21] mRLFE tracking quality summary contract test\n');
+test_mrlfe_tracking_quality_summary;
+
+fprintf('\n[21/21] mRLFE tracking strategy comparison contract test\n');
+test_mrlfe_tracking_strategy_comparison;
 
 fprintf('\nAll maintained smoke tests passed.\n');
 
