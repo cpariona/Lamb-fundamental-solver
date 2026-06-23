@@ -38,8 +38,6 @@ h.showMRLFEElasticA0 = h.showMRLFEA0;
 h.showMRLFEElasticS0 = h.showMRLFES0;
 h.showMRLFEViscoA0 = h.showMRLFEA0;
 h.showMRLFEViscoS0 = h.showMRLFES0;
-h.showMRLFEHanA0 = h.showMRLFEA0;
-h.showMRLFEHanS0 = h.showMRLFES0;
 
 header = uilabel(g, 'Text', 'Approximations', 'FontWeight', 'bold', 'VerticalAlignment', 'center');
 header.Layout.Row = 5;
