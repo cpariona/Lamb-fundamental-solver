@@ -8,12 +8,13 @@ lastGuiResult = [];
 lastOptions = [];
 lastParams = [];
 inputsAreDirty = false;
+
 colors.A0 = [0.0000 0.4470 0.7410];
 colors.S0 = [1.0000 0.0000 0.0000];
 colors.MRLFEElasticA0 = [0.0000 0.4470 0.7410];
 colors.MRLFEElasticS0 = [1.0000 0.0000 0.0000];
-colors.MRLFEHanA0 = [0.4660 0.6740 0.1880];
-colors.MRLFEHanS0 = [0.8500 0.3250 0.0980];
+colors.MRLFEViscoA0 = [0.4660 0.6740 0.1880];
+colors.MRLFEViscoS0 = [0.8500 0.3250 0.0980];
 colors.AE = [0.4940 0.1840 0.5560];
 
 fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[80 80 1460 860]);
@@ -90,8 +91,10 @@ updateAxisFieldState();
 
     function updateMaterialInputState()
         spOn = string(setup.model.Value) == "ShearPoisson";
-        setup.nulabel.Enable = onOff(spOn); setup.nu.Enable = onOff(spOn);
-        setup.lambdalabel.Enable = onOff(~spOn); setup.lambda.Enable = onOff(~spOn);
+        setup.nulabel.Enable = onOff(spOn);
+        setup.nu.Enable = onOff(spOn);
+        setup.lambdalabel.Enable = onOff(~spOn);
+        setup.lambda.Enable = onOff(~spOn);
         setup.E.Enable = 'off';
         setup.K.Enable = 'off';
         setup.CT.Enable = 'off';
@@ -114,7 +117,7 @@ updateAxisFieldState();
             setup.CT.Value = elastic.CT;
             setup.CL.Value = elastic.CL;
         catch
-            % Validation during compute reports invalid inputs.
+            % Compute-time validation reports invalid entries.
         end
     end
 
@@ -130,13 +133,9 @@ updateAxisFieldState();
     function onCompute()
         try
             setStatusText({'Status: computing...'}); drawnow;
-            params = readParamsFromGui();
-            options = readOptionsFromGui();
-
-            [lastResults, lastGuiResult] = runModelRequestThroughAdapter(params, options);
-
-            lastOptions = options;
-            lastParams = params;
+            lastParams = readParamsFromGui();
+            lastOptions = readOptionsFromGui();
+            [lastResults, lastGuiResult] = runModelRequestThroughAdapter(lastParams, lastOptions);
             inputsAreDirty = false;
             updatePlotCheckboxesFromResults();
             updatePlot();
@@ -171,7 +170,7 @@ updateAxisFieldState();
         options.mrlfeComputeA0Like = logical(modelControls.mrlfe.computeA0Like.Value);
         options.mrlfeComputeS0Like = logical(modelControls.mrlfe.computeS0Like.Value);
 
-        if (options.computeMRLFERealK || options.computeMRLFEHanViscoRealK)
+        if options.computeMRLFERealK || options.computeMRLFEHanViscoRealK
             if ~options.mrlfeComputeA0Like && ~options.mrlfeComputeS0Like
                 error('Select at least one mRLFE branch: A0-like or S0-like.');
             end
@@ -222,23 +221,19 @@ updateAxisFieldState();
             return;
         end
 
-        guiRequest = struct();
-        guiRequest.params = params;
-        guiRequest.options = options;
-
+        guiRequest = struct('params', params, 'options', options);
         if isfield(options, 'mrlfeParams')
             guiRequest.mrlfeParams = options.mrlfeParams;
         end
 
         if options.computeMRLFERealK || options.computeMRLFEHanViscoRealK
             guiRequest.computeElastic = options.computeMRLFERealK || options.computeMRLFEHanViscoRealK;
-            guiRequest.computeHan = options.computeMRLFEHanViscoRealK;
+            guiRequest.computeHanVisco = options.computeMRLFEHanViscoRealK;
             guiResult = guiRunMRLFEModel(guiRequest);
-            results = guiResult.metadata.rawResult;
         else
             guiResult = guiRunRayleighLambModel(guiRequest);
-            results = guiResult.metadata.rawResult;
         end
+        results = guiResult.metadata.rawResult;
     end
 
     function updatePlotCheckboxesFromResults()
@@ -282,11 +277,11 @@ updateAxisFieldState();
                         plotControls.showMRLFEElasticS0.Value = true;
                     end
                     updated = true;
-                case "mRLFEHanViscoRealK"
+                case "mRLFEViscoRealK"
                     if branchName == "A0Like"
-                        plotControls.showMRLFEHanA0.Value = true;
+                        getViscoCheckbox("A0Like").Value = true;
                     elseif branchName == "S0Like"
-                        plotControls.showMRLFEHanS0.Value = true;
+                        getViscoCheckbox("S0Like").Value = true;
                     end
                     updated = true;
                 case "AcoustoelasticIOPHGO"
@@ -309,10 +304,8 @@ updateAxisFieldState();
         end
         cla(ax);
         hold(ax,'on');
-        plotted = false;
-        if tryPlotNormalizedResults()
-            plotted = true;
-        elseif isfield(lastResults,'modes')
+        plotted = tryPlotNormalizedResults();
+        if ~plotted && isfield(lastResults,'modes')
             if plotControls.showA0.Value && isfield(lastResults.modes,'A0')
                 plotBranch(lastResults.modes.A0, colors.A0, 'A0');
                 plotted = true;
@@ -369,9 +362,9 @@ updateAxisFieldState();
             case {"mRLFEElasticRealK", "mRLFERealK"}
                 tf = (branchName == "A0Like" && plotControls.showMRLFEElasticA0.Value) || ...
                      (branchName == "S0Like" && plotControls.showMRLFEElasticS0.Value);
-            case "mRLFEHanViscoRealK"
-                tf = (branchName == "A0Like" && plotControls.showMRLFEHanA0.Value) || ...
-                     (branchName == "S0Like" && plotControls.showMRLFEHanS0.Value);
+            case "mRLFEViscoRealK"
+                tf = (branchName == "A0Like" && getViscoCheckbox("A0Like").Value) || ...
+                     (branchName == "S0Like" && getViscoCheckbox("S0Like").Value);
             case "AcoustoelasticIOPHGO"
                 tf = plotControls.showA0.Value;
         end
@@ -385,7 +378,7 @@ updateAxisFieldState();
                 name = char(branchName);
             case {"mRLFEElasticRealK", "mRLFERealK"}
                 name = ['mRLFE elastic ', char(formatMRLFEBranchName(branchName))];
-            case "mRLFEHanViscoRealK"
+            case "mRLFEViscoRealK"
                 name = ['mRLFE viscoelastic ', char(formatMRLFEBranchName(branchName))];
             case "AcoustoelasticIOPHGO"
                 name = 'AE IOP/HGO A0-like';
@@ -399,23 +392,11 @@ updateAxisFieldState();
         branchName = string(branch.branchName);
         switch modelName
             case "RayleighLamb"
-                if branchName == "A0"
-                    color = colors.A0;
-                else
-                    color = colors.S0;
-                end
+                color = branchColor(branchName, colors.A0, colors.S0);
             case {"mRLFEElasticRealK", "mRLFERealK"}
-                if branchName == "A0Like"
-                    color = colors.MRLFEElasticA0;
-                else
-                    color = colors.MRLFEElasticS0;
-                end
-            case "mRLFEHanViscoRealK"
-                if branchName == "A0Like"
-                    color = colors.MRLFEHanA0;
-                else
-                    color = colors.MRLFEHanS0;
-                end
+                color = branchColor(branchName, colors.MRLFEElasticA0, colors.MRLFEElasticS0);
+            case "mRLFEViscoRealK"
+                color = branchColor(branchName, colors.MRLFEViscoA0, colors.MRLFEViscoS0);
             case "AcoustoelasticIOPHGO"
                 color = colors.AE;
             otherwise
@@ -423,15 +404,39 @@ updateAxisFieldState();
         end
     end
 
-    function txt = formatMRLFEBranchName(branchName)
+    function cb = getViscoCheckbox(branchName)
         branchName = string(branchName);
-        switch branchName
+        if branchName == "A0Like"
+            if isfield(plotControls, 'showMRLFEViscoA0')
+                cb = plotControls.showMRLFEViscoA0;
+            else
+                cb = plotControls.showMRLFEHanA0;
+            end
+        else
+            if isfield(plotControls, 'showMRLFEViscoS0')
+                cb = plotControls.showMRLFEViscoS0;
+            else
+                cb = plotControls.showMRLFEHanS0;
+            end
+        end
+    end
+
+    function color = branchColor(branchName, colorA0, colorS0)
+        if string(branchName) == "A0" || string(branchName) == "A0Like"
+            color = colorA0;
+        else
+            color = colorS0;
+        end
+    end
+
+    function txt = formatMRLFEBranchName(branchName)
+        switch string(branchName)
             case "A0Like"
                 txt = "A0-like";
             case "S0Like"
                 txt = "S0-like";
             otherwise
-                txt = branchName;
+                txt = string(branchName);
         end
     end
 
@@ -453,29 +458,18 @@ updateAxisFieldState();
         end
         if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
             updateAcoustoelasticLabels();
-            return;
+        else
+            updateRayleighLambLabels();
         end
-        updateRayleighLambLabels();
     end
 
     function updateAcoustoelasticLabels()
-        if isempty(lastResults)
-            return;
-        end
         r = lastResults;
         materialInfo.Text = sprintf('AE IOP/HGO | mu %.2f kPa | rho %.1f kg/m^3 | h %.3f mm\nIOP %.2f mmHg | R %.2f mm | k1 %.2f kPa | k2 %.2f', ...
             lastParams.mu/1e3, lastParams.rho, lastParams.thickness*1e3, ...
             modelControls.ae.IOP.Value, modelControls.ae.R.Value, modelControls.ae.k1.Value, modelControls.ae.k2.Value);
-        validCount = nnz(r.validCp);
-        totalCount = numel(r.Cp);
-        statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d', totalCount), ...
-            sprintf('Cp valid %d/%d', validCount, totalCount)};
-        if isfield(r, 'reliability') && isfield(r.reliability, 'LastValidFrequency_kHz') && isfinite(r.reliability.LastValidFrequency_kHz)
-            statusLines{end+1} = sprintf('last valid %.3f kHz', r.reliability.LastValidFrequency_kHz);
-        end
-        if isfield(r, 'internalAtlasTracking') && isfield(r.internalAtlasTracking, 'Used') && r.internalAtlasTracking.Used
-            statusLines{end+1} = sprintf('tracking grid %d pts', numel(r.trackingFrequency));
-        end
+        statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d', numel(r.Cp)), ...
+            sprintf('Cp valid %d/%d', nnz(r.validCp), numel(r.Cp))};
         setStatusText(statusLines);
     end
 
@@ -488,14 +482,13 @@ updateAxisFieldState();
             setStatusText({'Status: computed.'});
             return;
         end
-        materialInfo.Text = sprintf('rho %.1f kg/m^3 | 2h %.3f mm | mu %.2f kPa | nu %.5f | E %.2f kPa\nlambda_Lame %.2f MPa | K %.2f MPa | CL %.2f m/s | CT %.2f m/s', ...
+        materialInfo.Text = sprintf('rho %.1f kg/m^3 | 2h %.3f mm | mu %.2f kPa | nu %.5f | E %.2f kPa\nlambda_L %.2f MPa | K %.2f MPa | CL %.2f m/s | CT %.2f m/s', ...
             mat.rho, geom.thickness*1e3, mat.mu/1e3, mat.nu, mat.E/1e3, mat.lambda/1e6, mat.K/1e6, mat.CL, mat.CT);
         if ~isempty(gridData) && isfield(gridData,'frequency')
-            status = {sprintf('Status: computed %d frequency points.', numel(gridData.frequency))};
+            setStatusText({sprintf('Status: computed %d frequency points.', numel(gridData.frequency))});
         else
-            status = {'Status: computed.'};
+            setStatusText({'Status: computed.'});
         end
-        setStatusText(status);
     end
 
     function onShowDiagnostics()
@@ -503,52 +496,18 @@ updateAxisFieldState();
             uialert(fig,'Compute first.','No results');
             return;
         end
-        txt = buildDiagnosticsText();
         diagFig = uifigure('Name','Diagnostics','Position',[120 120 720 520]);
-        ta = uitextarea(diagFig,'Value',cellstr(splitlines(txt)),'Editable','off','FontName','Consolas');
+        ta = uitextarea(diagFig,'Value',cellstr(splitlines(buildDiagnosticsText())),'Editable','off','FontName','Consolas');
         ta.Position = [10 10 700 500];
     end
 
     function txt = buildDiagnosticsText()
+        lines = strings(0,1);
         if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
-            txt = buildAcoustoelasticDiagnosticsText();
-            return;
+            lines(end+1) = "AE IOP/HGO diagnostics";
+        else
+            lines(end+1) = "Rayleigh-Lamb / mRLFE diagnostics";
         end
-        txt = buildRayleighLambDiagnosticsText();
-    end
-
-    function txt = buildAcoustoelasticDiagnosticsText()
-        r = lastResults;
-        lines = strings(0,1);
-        lines(end+1) = "AE IOP/HGO diagnostics";
-        lines(end+1) = sprintf("IOP %.6g Pa", r.directParams.alpha*0 + modelControls.ae.IOP.Value*133.322);
-        lines(end+1) = sprintf("R %.6g m", modelControls.ae.R.Value*1e-3);
-        lines(end+1) = sprintf("h %.6g m", r.directParams.thickness);
-        lines(end+1) = sprintf("mu %.6g Pa", lastParams.mu);
-        lines(end+1) = sprintf("k1 %.6g Pa", modelControls.ae.k1.Value*1e3);
-        lines(end+1) = sprintf("k2 %.6g", modelControls.ae.k2.Value);
-        lines(end+1) = sprintf("rho %.6g kg/m^3", r.directParams.rho);
-        lines(end+1) = sprintf("rhoF %.6g kg/m^3", r.directParams.rhoF);
-        lines(end+1) = sprintf("frequency output points %d", numel(r.frequency));
-        if isfield(r, 'internalAtlasTracking') && isfield(r.internalAtlasTracking, 'Used') && r.internalAtlasTracking.Used
-            lines(end+1) = sprintf("frequency tracking points %d", numel(r.trackingFrequency));
-        end
-        lines(end+1) = sprintf("valid Cp %d/%d", nnz(r.validCp), numel(r.validCp));
-        if isfield(r, 'reliability')
-            names = fieldnames(r.reliability);
-            for i = 1:numel(names)
-                v = r.reliability.(names{i});
-                if isnumeric(v) || islogical(v) || isstring(v) || ischar(v)
-                    lines(end+1) = sprintf("%s: %s", names{i}, string(v));
-                end
-            end
-        end
-        txt = strjoin(lines, newline);
-    end
-
-    function txt = buildRayleighLambDiagnosticsText()
-        lines = strings(0,1);
-        lines(end+1) = "Rayleigh-Lamb / mRLFE diagnostics";
         if ~isempty(lastParams)
             lines(end+1) = sprintf("modelType %s", string(lastParams.modelType));
             lines(end+1) = sprintf("rho %.6g kg/m^3", lastParams.rho);
@@ -562,8 +521,7 @@ updateAxisFieldState();
             lines(end+1) = sprintf("2h %.6g m", lastParams.thickness);
         end
         if isfield(lastResults, 'models')
-            names = fieldnames(lastResults.models);
-            lines(end+1) = sprintf("computed models: %s", strjoin(string(names), ", "));
+            lines(end+1) = sprintf("computed models: %s", strjoin(string(fieldnames(lastResults.models)), ", "));
         end
         txt = strjoin(lines, newline);
     end
@@ -579,17 +537,12 @@ updateAxisFieldState();
             return;
         end
         LambResults = lastResults; %#ok<NASGU>
-        GuiResults = []; %#ok<NASGU>
-        GuiBranchTables = []; %#ok<NASGU>
-        AcoustoelasticIOPHGOResults = []; %#ok<NASGU>
+        GuiResults = lastGuiResult; %#ok<NASGU>
+        GuiBranchTables = [];
         if ~isempty(lastGuiResult)
-            GuiResults = lastGuiResult; %#ok<NASGU>
             GuiBranchTables = guiNormalizedBranchesToTables(lastGuiResult.branches); %#ok<NASGU>
         end
-        if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
-            AcoustoelasticIOPHGOResults = lastResults; %#ok<NASGU>
-        end
-        save(fullfile(path,file),'LambResults','GuiResults','GuiBranchTables','AcoustoelasticIOPHGOResults','lastParams','lastOptions');
+        save(fullfile(path,file),'LambResults','GuiResults','GuiBranchTables','lastParams','lastOptions');
         setStatusText({['Status: saved ', fullfile(path,file)]});
     end
 
@@ -603,10 +556,11 @@ updateAxisFieldState();
     end
 
     function updateAxisFieldState()
-        isAuto = logical(plotControls.autoAxes.Value);
-        enable = onOff(~isAuto);
-        plotControls.xmin.Enable = enable; plotControls.xmax.Enable = enable;
-        plotControls.ymin.Enable = enable; plotControls.ymax.Enable = enable;
+        enable = onOff(~logical(plotControls.autoAxes.Value));
+        plotControls.xmin.Enable = enable;
+        plotControls.xmax.Enable = enable;
+        plotControls.ymin.Enable = enable;
+        plotControls.ymax.Enable = enable;
     end
 
     function resetAxes()
@@ -619,8 +573,10 @@ updateAxisFieldState();
 
     function useCurrentAxes()
         xl = xlim(ax); yl = ylim(ax);
-        plotControls.xmin.Value = xl(1); plotControls.xmax.Value = xl(2);
-        plotControls.ymin.Value = yl(1); plotControls.ymax.Value = yl(2);
+        plotControls.xmin.Value = xl(1);
+        plotControls.xmax.Value = xl(2);
+        plotControls.ymin.Value = yl(1);
+        plotControls.ymax.Value = yl(2);
         plotControls.autoAxes.Value = false;
         updateAxisFieldState();
     end
