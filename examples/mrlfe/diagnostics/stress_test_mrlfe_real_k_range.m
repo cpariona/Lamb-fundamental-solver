@@ -46,7 +46,7 @@ fprintf('etaS values: %.3g to %.3g Pa*s (%d cases)\n', ...
 fprintf('Large-jump threshold for safe fmax: %.3g\n', largeJumpThreshold);
 
 for iE = 1:numel(EValues)
-    params = setYoungModulusForShearPoisson(paramsBase, EValues(iE));
+    params = mrlfeSetYoungModulusForShearPoisson(paramsBase, EValues(iE));
     material = rlComputeMaterial(params);
 
     fprintf('\nE = %.6g kPa, mu = %.6g kPa, CT = %.6g m/s\n', ...
@@ -62,7 +62,7 @@ for iE = 1:numel(EValues)
         try
             results = rlComputeFundamentalLambModes(params, options);
             resultsByCase{iE, iEta} = results;
-            [branches, modelName] = selectRealKBranches(results, etaS);
+            [branches, modelName] = mrlfeSelectRealKBranches(results, etaS);
             rowA0 = printBranchSummary(branches, modelName, 'A0Like', params, material, etaS, largeJumpThreshold);
             rowS0 = printBranchSummary(branches, modelName, 'S0Like', params, material, etaS, largeJumpThreshold);
             summaryRows = [summaryRows; rowA0; rowS0]; %#ok<AGROW>
@@ -92,26 +92,6 @@ fprintf('\nWrote mRLFE_real_k_range_stability_summary.csv\n');
 
 plotSafeFmaxSummary(mRLFERealKRangeStabilitySummary, 'A0Like');
 plotSafeFmaxSummary(mRLFERealKRangeStabilitySummary, 'S0Like');
-
-function params = setYoungModulusForShearPoisson(params, youngModulus)
-params.E = youngModulus;
-params.mu = youngModulus / (2 * (1 + params.nu));
-end
-
-function [branches, modelName] = selectRealKBranches(results, etaS)
-if etaS > 0 && isfield(results.models, 'mRLFEViscoRealK')
-    modelName = "mRLFEViscoRealK";
-    branches = results.models.mRLFEViscoRealK.branches;
-elseif isfield(results.models, 'mRLFERealK')
-    modelName = "mRLFERealK";
-    branches = results.models.mRLFERealK.branches;
-elseif isfield(results.models, 'mRLFEElasticRealK')
-    modelName = "mRLFEElasticRealK";
-    branches = results.models.mRLFEElasticRealK.branches;
-else
-    error('No mRLFE real-k branches were found in results.models.');
-end
-end
 
 function row = printBranchSummary(branches, modelName, branchName, params, material, etaS, largeJumpThreshold)
 row = makeEmptyRow(branchName, params, material, etaS);
