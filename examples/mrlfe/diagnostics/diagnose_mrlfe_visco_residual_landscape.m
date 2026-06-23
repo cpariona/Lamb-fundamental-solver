@@ -81,14 +81,17 @@ for iCase = 1:numel(cases)
         viscoCp = interpolateCp(viscoBranch, frequency);
         elasticCp = interpolateCp(elasticBranch, frequency);
         referenceCp = chooseReferenceCp(viscoCp, elasticCp);
+        branchStatus = classifyBranchStatus(viscoBranch, frequency, viscoCp);
         landscape = summarizeLandscape(CpScan, residual, referenceCp, caseInfo.branch, physicalCpFloor);
+        interpretation = interpretLandscape(landscape, branchStatus);
 
-        summaryRows = [summaryRows; makeSummaryRow(caseInfo, material, frequency, viscoCp, elasticCp, landscape)]; %#ok<AGROW>
+        summaryRows = [summaryRows; makeSummaryRow(caseInfo, material, frequency, viscoCp, elasticCp, branchStatus, landscape, interpretation)]; %#ok<AGROW>
         sampleRows = appendSampleRows(sampleRows, caseInfo, material, frequency, CpScan, residual, landscape); %#ok<AGROW>
 
-        fprintf('  f = %.6g Hz: global Cp %.6g, ref Cp %.6g, modal Cp %.6g, local minima %d, modal minima %d\n', ...
-            frequency, landscape.GlobalMinCp, landscape.ReferenceCp, landscape.BestModalLocalMinCp, ...
-            landscape.NumLocalMinima, landscape.NumModalLocalMinima);
+        fprintf('  f = %.6g Hz: global Cp %.6g%s, ref Cp %.6g, modal Cp %.6g, modal minima %d, branch %s, %s\n', ...
+            frequency, landscape.GlobalMinCp, boundaryLabel(landscape.GlobalMinimumAtLowerBound), ...
+            landscape.ReferenceCp, landscape.BestModalLocalMinCp, landscape.NumModalLocalMinima, ...
+            branchStatus.Status, interpretation);
     end
 end
 
@@ -127,6 +130,34 @@ if nnz(mask) >= 2 && frequency >= min(f(mask)) && frequency <= max(f(mask))
 end
 end
 
+function status = classifyBranchStatus(branch, frequency, cp)
+valid = getValidCp(branch);
+f = branch.frequency(:);
+status = struct();
+status.Status = "cut_or_unavailable";
+status.IsFiniteCp = isfinite(cp);
+status.LastValidFrequency_Hz = nan;
+status.DistancePastLastValid_Hz = nan;
+if any(valid)
+    status.LastValidFrequency_Hz = max(f(valid));
+    status.DistancePastLastValid_Hz = frequency - status.LastValidFrequency_Hz;
+end
+if isfinite(cp) && cp > 0
+    status.Status = "available";
+elseif isfinite(status.LastValidFrequency_Hz) && frequency > status.LastValidFrequency_Hz
+    status.Status = "past_branch_cut";
+end
+end
+
+function valid = getValidCp(branch)
+if isfield(branch, 'validCp')
+    valid = branch.validCp;
+else
+    valid = branch.valid;
+end
+valid = valid(:) & isfinite(branch.Cp(:));
+end
+
 function cp = chooseReferenceCp(viscoCp, elasticCp)
 if isfinite(viscoCp) && viscoCp > 0
     cp = viscoCp;
@@ -142,7 +173,9 @@ finiteMask = isfinite(residual);
 landscape = struct('GlobalMinCp', nan, 'GlobalMinResidual', nan, 'ReferenceCp', referenceCp, ...
     'BestLocalMinCp', nan, 'BestLocalMinResidual', nan, 'BestModalLocalMinCp', nan, ...
     'BestModalLocalMinResidual', nan, 'NumLocalMinima', 0, 'NumModalLocalMinima', 0, ...
-    'ModalWindowMinCp', nan, 'ModalWindowMaxCp', nan, 'GlobalMinIndex', nan);
+    'ModalWindowMinCp', nan, 'ModalWindowMaxCp', nan, 'GlobalMinIndex', nan, ...
+    'GlobalMinimumAtLowerBound', false, 'GlobalMinimumAtUpperBound', false, ...
+    'GlobalMinimumBelowPhysicalFloor', false, 'ModalLocalMinimumAvailable', false);
 if ~any(finiteMask)
     return;
 end
@@ -152,6 +185,9 @@ finiteCp = CpScan(finiteMask);
 landscape.GlobalMinCp = finiteCp(idx);
 finiteIndices = find(finiteMask);
 landscape.GlobalMinIndex = finiteIndices(idx);
+landscape.GlobalMinimumAtLowerBound = landscape.GlobalMinIndex == find(finiteMask, 1, 'first');
+landscape.GlobalMinimumAtUpperBound = landscape.GlobalMinIndex == find(finiteMask, 1, 'last');
+landscape.GlobalMinimumBelowPhysicalFloor = landscape.GlobalMinCp < physicalCpFloor;
 
 localIdx = findLocalMinima(residual, 12);
 landscape.NumLocalMinima = numel(localIdx);
@@ -166,10 +202,42 @@ if isfinite(referenceCp) && referenceCp > 0
     landscape.ModalWindowMaxCp = upperFactor * referenceCp;
     modalIdx = localIdx(CpScan(localIdx) >= landscape.ModalWindowMinCp & CpScan(localIdx) <= landscape.ModalWindowMaxCp);
     landscape.NumModalLocalMinima = numel(modalIdx);
+    landscape.ModalLocalMinimumAvailable = ~isempty(modalIdx);
     if ~isempty(modalIdx)
         [landscape.BestModalLocalMinResidual, bestIdx] = min(residual(modalIdx));
         landscape.BestModalLocalMinCp = CpScan(modalIdx(bestIdx));
     end
+end
+end
+
+function interpretation = interpretLandscape(landscape, branchStatus)
+messages = strings(0, 1);
+if landscape.GlobalMinimumAtLowerBound
+    messages(end+1) = "global minimum at Cp lower scan bound"; %#ok<AGROW>
+elseif landscape.GlobalMinimumAtUpperBound
+    messages(end+1) = "global minimum at Cp upper scan bound"; %#ok<AGROW>
+end
+if landscape.GlobalMinimumBelowPhysicalFloor
+    messages(end+1) = "global minimum below physical Cp floor"; %#ok<AGROW>
+end
+if landscape.ModalLocalMinimumAvailable
+    messages(end+1) = "modal local minimum available"; %#ok<AGROW>
+else
+    messages(end+1) = "no modal local minimum in reference window"; %#ok<AGROW>
+end
+if branchStatus.Status == "past_branch_cut"
+    messages(end+1) = "frequency is past tracked branch cut"; %#ok<AGROW>
+elseif branchStatus.Status == "cut_or_unavailable"
+    messages(end+1) = "tracked visco Cp unavailable"; %#ok<AGROW>
+end
+interpretation = strjoin(messages, '; ');
+end
+
+function label = boundaryLabel(isLowerBound)
+if isLowerBound
+    label = " (lower-bound)";
+else
+    label = "";
 end
 end
 
@@ -192,7 +260,7 @@ else
 end
 end
 
-function row = makeSummaryRow(caseInfo, material, frequency, viscoCp, elasticCp, landscape)
+function row = makeSummaryRow(caseInfo, material, frequency, viscoCp, elasticCp, branchStatus, landscape, interpretation)
 row = struct();
 row.Branch = string(caseInfo.branch);
 row.E_kPa = material.E/1e3;
@@ -202,17 +270,25 @@ row.EtaS_Pa_s = caseInfo.etaS;
 row.Frequency_Hz = frequency;
 row.ViscoCp = viscoCp;
 row.ElasticCp = elasticCp;
+row.ViscoBranchStatus = branchStatus.Status;
+row.ViscoLastValidFrequency_Hz = branchStatus.LastValidFrequency_Hz;
+row.ViscoDistancePastLastValid_Hz = branchStatus.DistancePastLastValid_Hz;
 row.GlobalMinCp = landscape.GlobalMinCp;
 row.GlobalMinResidual = landscape.GlobalMinResidual;
+row.GlobalMinimumAtLowerBound = landscape.GlobalMinimumAtLowerBound;
+row.GlobalMinimumAtUpperBound = landscape.GlobalMinimumAtUpperBound;
+row.GlobalMinimumBelowPhysicalFloor = landscape.GlobalMinimumBelowPhysicalFloor;
 row.ReferenceCp = landscape.ReferenceCp;
 row.BestLocalMinCp = landscape.BestLocalMinCp;
 row.BestLocalMinResidual = landscape.BestLocalMinResidual;
 row.BestModalLocalMinCp = landscape.BestModalLocalMinCp;
 row.BestModalLocalMinResidual = landscape.BestModalLocalMinResidual;
+row.ModalLocalMinimumAvailable = landscape.ModalLocalMinimumAvailable;
 row.NumLocalMinima = landscape.NumLocalMinima;
 row.NumModalLocalMinima = landscape.NumModalLocalMinima;
 row.ModalWindowMinCp = landscape.ModalWindowMinCp;
 row.ModalWindowMaxCp = landscape.ModalWindowMaxCp;
+row.Interpretation = string(interpretation);
 end
 
 function rows = appendSampleRows(rows, caseInfo, material, frequency, CpScan, residual, landscape)
@@ -220,6 +296,10 @@ numSamples = min(250, numel(CpScan));
 sampleIdx = unique(round(linspace(1, numel(CpScan), numSamples)));
 if isfinite(landscape.GlobalMinIndex)
     sampleIdx = unique([sampleIdx(:); landscape.GlobalMinIndex]);
+end
+if isfinite(landscape.BestModalLocalMinCp)
+    [~, modalIdx] = min(abs(CpScan(:) - landscape.BestModalLocalMinCp));
+    sampleIdx = unique([sampleIdx(:); modalIdx]);
 end
 for i = 1:numel(sampleIdx)
     idx = sampleIdx(i);
