@@ -14,7 +14,7 @@ end
 sweepSpec = struct();
 caseInfo = struct();
 caseInfo.sweepName = sweepName;
-caseInfo.modelName = "mRLFEHanViscoRealK";
+caseInfo.modelName = "mRLFERealK";
 caseInfo.fixedEtaS = 0.05;
 caseInfo.showLastValidPoint = false;
 
