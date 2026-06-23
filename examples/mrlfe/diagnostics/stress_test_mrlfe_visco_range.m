@@ -6,17 +6,15 @@
 % viscoelastic branch.
 %
 % Model:
-%   mRLFEViscoRealK
-%   lambda real
-%   muStar = mu + 1i*omega*etaS
-%   k real
+%   mRLFERealK, with etaS = 0 as the elastic limit and etaS > 0 as the
+%   viscoelastic real-k case.
 %
 % Output file:
 %   mRLFE_visco_range_stability_summary.csv
 
 startup();
 
-EValues = [50e3, 100e3, 300e3, 500e3, 1000e3, 1500e3]; % [Pa]
+EValues = [50e3, 100e3, 300e3, 500e3, 1000e3, 1500e3]; % [Pa], converted to mu through ShearPoisson
 etaSValues = [0, 0.01, 0.05, 0.1, 0.3, 0.5, 0.7, 1.0]; % [Pa*s]
 largeJumpThreshold = 0.15;
 
@@ -27,13 +25,11 @@ paramsBase.numFrequencyPoints = 160;
 paramsBase.frequencySpacing = "hybrid";
 paramsBase.thickness = 0.5e-3;
 paramsBase.nu = 0.4999;
-paramsBase.CL = 1500;
 
 optionsBase = rlDefaultOptions("Fast");
 optionsBase.computeA0 = true;
 optionsBase.computeS0 = true;
 optionsBase.computeMRLFERealK = true;
-optionsBase.computeMRLFEViscoRealK = true;
 optionsBase.computeMRLFEComplexK = false;
 
 summaryRows = [];
@@ -44,30 +40,30 @@ fprintf('------------------------------------------\n');
 fprintf('Frequency range: %.0f to %.0f Hz, N = %d\n', ...
     paramsBase.fmin, paramsBase.fmax, paramsBase.numFrequencyPoints);
 fprintf('Thickness: %.4g mm\n', paramsBase.thickness*1e3);
-fprintf('E values: %.3g to %.3g kPa (%d cases)\n', ...
+fprintf('E-equivalent values: %.3g to %.3g kPa (%d cases)\n', ...
     min(EValues)/1e3, max(EValues)/1e3, numel(EValues));
 fprintf('etaS values: %.3g to %.3g Pa*s (%d cases)\n', ...
     min(etaSValues), max(etaSValues), numel(etaSValues));
 fprintf('Large-jump threshold for safe fmax: %.3g\n', largeJumpThreshold);
 
 for iE = 1:numel(EValues)
-    params = paramsBase;
-    params.E = EValues(iE);
+    params = setYoungModulusForShearPoisson(paramsBase, EValues(iE));
     material = rlComputeMaterial(params);
 
     fprintf('\nE = %.6g kPa, mu = %.6g kPa, CT = %.6g m/s\n', ...
-        params.E/1e3, material.mu/1e3, material.CT);
+        material.E/1e3, material.mu/1e3, material.CT);
 
     for iEta = 1:numel(etaSValues)
         etaS = etaSValues(iEta);
         options = optionsBase;
+        options.computeMRLFEViscoRealK = etaS > 0;
         options.mrlfeParams = struct('etaS', etaS, 'etaL', 0, 'useComplexLambda', false);
 
         fprintf('  etaS = %.6g Pa*s\n', etaS);
         try
             results = rlComputeFundamentalLambModes(params, options);
             resultsByCase{iE, iEta} = results;
-            branches = results.models.mRLFEViscoRealK.branches;
+            branches = selectRealKBranches(results, etaS);
             rowA0 = printBranchSummary(branches, 'A0Like', params, material, etaS, largeJumpThreshold);
             rowS0 = printBranchSummary(branches, 'S0Like', params, material, etaS, largeJumpThreshold);
             summaryRows = [summaryRows; rowA0; rowS0]; %#ok<AGROW>
@@ -91,12 +87,29 @@ assignin('base', 'mRLFEViscoRangeStabilityLargeJumpThreshold', largeJumpThreshol
 fprintf('\nViscoelastic range stability summary\n');
 fprintf('------------------------------------\n');
 if ~isempty(mRLFEViscoRangeStabilitySummary)
-    disp(mRLFEViscoRangeStabilitySummary(:, {'Branch','E_kPa','EtaS_Pa_s','ValidPoints','TotalPoints','ValidFmax_Hz','SafeFmax_Hz','MaxResidual','MaxRelativeCpJump','FirstLargeJumpRelative','HasWarning'}));
+    disp(mRLFEViscoRangeStabilitySummary(:, {'Branch','E_kPa','Mu_kPa','EtaS_Pa_s','ValidPoints','TotalPoints','ValidFmax_Hz','SafeFmax_Hz','MaxResidual','MaxRelativeCpJump','FirstLargeJumpRelative','HasWarning'}));
 end
 fprintf('\nWrote mRLFE_visco_range_stability_summary.csv\n');
 
 plotSafeFmaxSummary(mRLFEViscoRangeStabilitySummary, 'A0Like');
 plotSafeFmaxSummary(mRLFEViscoRangeStabilitySummary, 'S0Like');
+
+function params = setYoungModulusForShearPoisson(params, youngModulus)
+params.E = youngModulus;
+params.mu = youngModulus / (2 * (1 + params.nu));
+end
+
+function branches = selectRealKBranches(results, etaS)
+if etaS > 0 && isfield(results.models, 'mRLFEViscoRealK')
+    branches = results.models.mRLFEViscoRealK.branches;
+elseif isfield(results.models, 'mRLFERealK')
+    branches = results.models.mRLFERealK.branches;
+elseif isfield(results.models, 'mRLFEElasticRealK')
+    branches = results.models.mRLFEElasticRealK.branches;
+else
+    error('No mRLFE real-k branches were found in results.models.');
+end
+end
 
 function row = printBranchSummary(branches, branchName, params, material, etaS, largeJumpThreshold)
 row = makeEmptyRow(branchName, params, material, etaS);
@@ -186,7 +199,7 @@ end
 function row = makeEmptyRow(branchName, params, material, etaS)
 row = struct();
 row.Branch = string(branchName);
-row.E_kPa = params.E / 1e3;
+row.E_kPa = material.E / 1e3;
 row.Mu_kPa = material.mu / 1e3;
 row.CT_m_per_s = material.CT;
 row.EtaS_Pa_s = etaS;
@@ -293,7 +306,7 @@ for etaS = etaValues
     plot(T.E_kPa(m), T.SafeFmax_Hz(m), '-o', 'LineWidth', 1.2, 'DisplayName', sprintf('etaS = %.3g Pa*s', etaS));
 end
 grid on;
-xlabel('E [kPa]');
+xlabel('E-equivalent [kPa]');
 ylabel('Safe fmax [Hz]');
 title(sprintf('Viscoelastic real-k %s safe fmax', branchName));
 legend('Location', 'best');
