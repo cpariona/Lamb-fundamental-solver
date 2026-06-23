@@ -94,6 +94,21 @@ assert(isstruct(mrlfeBranchTables) && ~isempty(fieldnames(mrlfeBranchTables)), .
     'mRLFE normalized branch table export must return a non-empty struct.');
 assertBranchTablesAreValid(mrlfeBranchTables, 'mRLFE normalized branch tables are invalid.');
 
+%% mRLFE normalized adapter, viscoelastic real-k alias used by the main GUI
+viscoRequest = mrlfeRequest;
+viscoRequest.options.computeMRLFERealK = true;
+viscoRequest.options.computeMRLFEHanViscoRealK = true;
+viscoRequest.options.mrlfeParams.etaS = 0.05;
+viscoRequest.mrlfeParams = viscoRequest.options.mrlfeParams;
+viscoRequest.computeElastic = true;
+viscoRequest.computeHanVisco = true;
+if isfield(viscoRequest, 'computeHan')
+    viscoRequest = rmfield(viscoRequest, 'computeHan');
+end
+viscoGuiResult = guiRunMRLFEModel(viscoRequest);
+assert(hasNormalizedBranch(viscoGuiResult, "mRLFEHanViscoRealK", "A0Like"), ...
+    'mRLFE GUI adapter must accept computeHanVisco and return the viscoelastic A0-like branch.');
+
 fprintf('GUI normalized adapters smoke test passed.\n');
 
 function tf = hasNormalizedBranch(guiResult, modelName, branchName)
