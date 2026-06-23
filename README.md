@@ -8,7 +8,7 @@ MATLAB project for computing and plotting fundamental Lamb-wave phase velocity c
 * Experimental Rayleigh-Lamb S0 phase velocity using the symmetric residual.
 * Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
 * mRLFE elastic real-k dispersion for fluid-loaded layers.
-* mRLFE Han-style viscoelastic real-k dispersion.
+* mRLFE viscoelastic real-k dispersion for fluid-loaded layers.
 * Acoustoelastic IOP/HGO atlas-branch solver for prestress studies.
 * GUI plotting of phase velocity Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
 
@@ -121,12 +121,12 @@ Available robustness presets:
 
 ## mRLFE solver workflow
 
-The mRLFE real-k models are solved using an intentionally chained workflow:
+The mRLFE real-k model is solved using an intentionally chained workflow:
 
 ```text
 Rayleigh-Lamb A0/S0
     -> mRLFE elastic real-k A0-like/S0-like
-        -> mRLFE Han viscoelastic real-k A0-like/S0-like
+        -> mRLFE viscoelastic real-k A0-like/S0-like
 ```
 
 Main mRLFE folders:
@@ -135,6 +135,7 @@ Main mRLFE folders:
 models/mrlfe/core/
 models/mrlfe/solvers/
 models/mrlfe/options/
+analysis/mrlfe/
 examples/mrlfe/
 ```
 
@@ -142,6 +143,14 @@ The high-level mRLFE function is:
 
 ```matlab
 computeMRLFE
+```
+
+Maintained mRLFE analysis helpers:
+
+```matlab
+objectiveMRLFEResidual
+summarizeMRLFETrackingQuality
+compareMRLFETrackingStrategies
 ```
 
 Maintained mRLFE sweeps:
@@ -159,15 +168,7 @@ Useful maintained examples:
 
 ```matlab
 run_mrlfe_prototype
-compare_mrlfe_elastic_vs_han_visco_cp
+compare_mrlfe_elastic_vs_visco_cp
 ```
 
-Useful diagnostics:
-
-```matlab
-diagnose_mrlfe_han_visco_validity_breakdown
-diagnose_mrlfe_han_visco_residual_landscape
-compare_mrlfe_tracker_vs_condition_peaks
-stress_test_mrlfe_elastic_range
-stress_test_mrlfe_han_visco_range
-```
+Historical diagnostics that still contain author-dependent labels are outside the maintained execution surface until they are renamed or retired.
