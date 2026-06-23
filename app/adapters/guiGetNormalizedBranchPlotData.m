@@ -3,8 +3,6 @@ function plotData = guiGetNormalizedBranchPlotData(branch, xSelection)
 %
 % plotData = guiGetNormalizedBranchPlotData(branch, xSelection) extracts x, y,
 % validity mask, labels, and display metadata from a normalized adapter branch.
-% This helper prepares the GUI plotting layer to consume adapter-normalized
-% results instead of raw model-specific fields.
 %
 % Supported xSelection values:
 %   "frequency"        -> branch.frequency [Hz]
@@ -63,7 +61,8 @@ end
 
 function value = getColumn(s, fieldName)
 if isfield(s, fieldName) && ~isempty(s.(fieldName))
-    value = s.(fieldName)(:);
+    rawValue = s.(fieldName);
+    value = rawValue(:);
 else
     value = [];
 end
@@ -89,9 +88,11 @@ function validMask = getValidMask(branch, x, y)
 validMask = isfinite(x(:)) & isfinite(y(:));
 if isfield(branch, 'diagnostics') && isstruct(branch.diagnostics)
     if isfield(branch.diagnostics, 'validCp') && ~isempty(branch.diagnostics.validCp)
-        validMask = validMask & logical(branch.diagnostics.validCp(:));
+        branchValid = branch.diagnostics.validCp;
+        validMask = validMask & logical(branchValid(:));
     elseif isfield(branch.diagnostics, 'valid') && ~isempty(branch.diagnostics.valid)
-        validMask = validMask & logical(branch.diagnostics.valid(:));
+        branchValid = branch.diagnostics.valid;
+        validMask = validMask & logical(branchValid(:));
     end
 end
 end
