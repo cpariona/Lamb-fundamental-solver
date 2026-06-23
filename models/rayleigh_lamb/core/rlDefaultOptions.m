@@ -25,12 +25,21 @@ options.maxPredictionRelativeError = 0.18;
 options.maxSinglePointSpikeRelative = 0.25;
 options.preferPreviousRootWeight = 0.50;
 options.mrlfeResidualTolerance = 1e-4;
+options.mrlfeResidualMethod = "minSingularValueRatio";
 options.mrlfeSearchFactors = [0.80, 1.25; 0.60, 1.60; 0.35, 2.50];
 
 % mRLFE branch selection. Defaults preserve the historical behavior of
 % computing both fundamental-like branches unless a caller restricts them.
 options.mrlfeComputeA0Like = true;
 options.mrlfeComputeS0Like = true;
+
+% Optional mRLFE internal tracking grid. Disabled by default to preserve the
+% external behavior of current workflows. When enabled, mRLFE branches are
+% tracked on a denser internal grid and resampled back to the requested grid.
+options.mrlfeUseInternalTrackingGrid = false;
+options.mrlfeInternalTrackingPointFactor = 2;
+options.mrlfeInternalTrackingMinPoints = 30;
+options.mrlfeInternalTrackingMaxPoints = 400;
 
 % Real-k mRLFE continuation and validation controls.
 options.computeMRLFEElasticRealK = false;
