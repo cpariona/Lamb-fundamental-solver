@@ -49,29 +49,28 @@ branches = repmat(emptyBranch(), 0, 1);
 modelNames = string(fieldnames(rawResult.models));
 modelNames = modelNames(modelNames ~= "mRLFE");
 
-% mRLFERealK is the maintained unified real-k result. Elastic and viscous
-% named fields can remain in raw results as reference/compatibility data, but
-% the normalized GUI surface should expose only the unified branch.
-if any(modelNames == "mRLFERealK")
-    modelNames = modelNames(modelNames ~= "mRLFEElasticRealK");
-    modelNames = modelNames(modelNames ~= "mRLFEViscoRealK");
-    modelNames = modelNames(modelNames ~= "mRLFEHanViscoRealK");
-else
-    if any(modelNames == "mRLFEElasticRealK")
-        modelNames = modelNames(modelNames ~= "mRLFERealK");
+primaryModelNames = ["mRLFERealK", "mRLFEViscoRealK", "mRLFEElasticRealK"];
+for i = 1:numel(primaryModelNames)
+    primaryName = primaryModelNames(i);
+    candidates = mrlfeModelCandidateNames(primaryName);
+    available = candidates(ismember(candidates, modelNames));
+    if isempty(available)
+        continue;
     end
-    if any(modelNames == "mRLFEViscoRealK")
-        modelNames = modelNames(modelNames ~= "mRLFEHanViscoRealK");
-    end
-end
 
-for iModel = 1:numel(modelNames)
-    rawModelName = modelNames(iModel);
-    modelName = normalizeModelName(rawModelName);
+    rawModelName = available(1);
     modelResult = rawResult.models.(char(rawModelName));
     if ~isfield(modelResult, 'branches') || ~isstruct(modelResult.branches)
         continue;
     end
+
+    % If the unified result exists, keep elastic/visco reference models out of
+    % the normalized GUI surface. They remain available in metadata.rawResult.
+    if primaryName ~= "mRLFERealK" && any(modelNames == "mRLFERealK")
+        continue;
+    end
+
+    modelName = normalizeModelName(primaryName);
     branchNames = string(fieldnames(modelResult.branches));
     for iBranch = 1:numel(branchNames)
         branchName = branchNames(iBranch);
@@ -130,7 +129,7 @@ end
 function modelName = normalizeModelName(rawModelName)
 rawModelName = string(rawModelName);
 switch rawModelName
-    case {"mRLFEHanViscoRealK", "mRLFEViscoRealK"}
+    case {"mRLFERealK", "mRLFEViscoRealK", "mRLFEHanViscoRealK"}
         modelName = "mRLFERealK";
     otherwise
         modelName = rawModelName;
