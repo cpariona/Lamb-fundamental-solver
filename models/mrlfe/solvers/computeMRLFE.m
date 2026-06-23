@@ -223,9 +223,9 @@ end
 
 switch string(branchName)
     case "S0Like"
-        window = getOption(options, 'mrlfeViscoS0ModalCpWindow', getOption(options, 'mrlfeHanS0ModalCpWindow', [0.70, 1.40]));
+        window = getOption(options, 'mrlfeViscoS0ModalCpWindow', [0.70, 1.40]);
     otherwise
-        window = getOption(options, 'mrlfeViscoA0ModalCpWindow', getOption(options, 'mrlfeHanA0ModalCpWindow', [0.35, 2.50]));
+        window = getOption(options, 'mrlfeViscoA0ModalCpWindow', [0.35, 2.50]);
 end
 
 if isnumeric(window) && numel(window) == 2 && all(isfinite(window)) && all(window > 0) && window(2) > window(1)
