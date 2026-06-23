@@ -19,7 +19,6 @@ rlOptions.computeA0 = true;
 rlOptions.computeS0 = true;
 rlOptions.computeMRLFE = false;
 rlOptions.computeMRLFERealK = false;
-rlOptions.computeMRLFEHanViscoRealK = false;
 
 rlRequest = struct();
 rlRequest.params = rlParams;
@@ -50,16 +49,13 @@ assert(isstruct(rlBranchTables) && ~isempty(fieldnames(rlBranchTables)), ...
     'Rayleigh-Lamb normalized branch table export must return a non-empty struct.');
 assertBranchTablesAreValid(rlBranchTables, 'Rayleigh-Lamb normalized branch tables are invalid.');
 
-%% mRLFE normalized adapter, elastic real-k only
+%% mRLFE normalized adapter, etaS = 0 elastic limit
 mrlfeParams = rlParams;
 mrlfeOptions = rlOptions;
 mrlfeOptions.computeA0 = true;
 mrlfeOptions.computeS0 = false;
 mrlfeOptions.computeMRLFE = false;
-mrlfeOptions.computeMRLFEElasticRealK = true;
-mrlfeOptions.computeMRLFEViscoRealK = false;
 mrlfeOptions.computeMRLFERealK = true;
-mrlfeOptions.computeMRLFEHanViscoRealK = false;
 mrlfeOptions.mrlfeComputeA0Like = true;
 mrlfeOptions.mrlfeComputeS0Like = false;
 mrlfeOptions.mrlfeParams = defaultMRLFEParams();
@@ -79,14 +75,14 @@ mrlfeGuiResult = guiRunMRLFEModel(mrlfeRequest);
 assert(isstruct(mrlfeGuiResult), 'mRLFE GUI adapter must return a struct.');
 assert(isfield(mrlfeGuiResult, 'branches') && ~isempty(mrlfeGuiResult.branches), ...
     'mRLFE GUI adapter must return non-empty normalized branches.');
-assert(hasNormalizedBranch(mrlfeGuiResult, "mRLFEElasticRealK", "A0Like"), ...
-    'mRLFE GUI adapter must include normalized elastic A0-like branch.');
-assert(~hasNormalizedBranch(mrlfeGuiResult, "mRLFERealK", "A0Like"), ...
-    'mRLFE GUI adapter must not duplicate the elastic branch under compatibility alias mRLFERealK.');
+assert(hasNormalizedBranch(mrlfeGuiResult, "mRLFERealK", "A0Like"), ...
+    'mRLFE GUI adapter must expose the unified mRLFE real-k A0-like branch.');
+assert(~hasNormalizedBranch(mrlfeGuiResult, "mRLFEElasticRealK", "A0Like"), ...
+    'mRLFE GUI adapter must not expose the etaS=0 reference as a separate normalized model.');
 
 mrlfeRawNormalized = guiNormalizeRawResult(mrlfeGuiResult.metadata.rawResult, "testRawMRLFE");
-assert(hasNormalizedBranch(mrlfeRawNormalized, "mRLFEElasticRealK", "A0Like"), ...
-    'Raw mRLFE normalization must include normalized elastic A0-like branch.');
+assert(hasNormalizedBranch(mrlfeRawNormalized, "mRLFERealK", "A0Like"), ...
+    'Raw mRLFE normalization must include the unified real-k A0-like branch.');
 
 mrlfePlotData = guiGetNormalizedBranchPlotData(mrlfeGuiResult.branches(1), "frequency");
 assertPlotDataIsValid(mrlfePlotData, 'mRLFE normalized plot data is invalid.');
@@ -96,21 +92,18 @@ assert(isstruct(mrlfeBranchTables) && ~isempty(fieldnames(mrlfeBranchTables)), .
     'mRLFE normalized branch table export must return a non-empty struct.');
 assertBranchTablesAreValid(mrlfeBranchTables, 'mRLFE normalized branch tables are invalid.');
 
-%% mRLFE normalized adapter, viscoelastic real-k path used by the main GUI
+%% mRLFE normalized adapter, etaS > 0 viscous case
 viscoRequest = mrlfeRequest;
-viscoRequest.options.computeMRLFEElasticRealK = true;
-viscoRequest.options.computeMRLFEViscoRealK = true;
 viscoRequest.options.computeMRLFERealK = true;
-viscoRequest.options.computeMRLFEHanViscoRealK = true;
 viscoRequest.options.mrlfeParams.etaS = 0.05;
 viscoRequest.mrlfeParams = viscoRequest.options.mrlfeParams;
 viscoRequest.computeElastic = true;
 viscoRequest.computeVisco = true;
 viscoGuiResult = guiRunMRLFEModel(viscoRequest);
-assert(hasNormalizedBranch(viscoGuiResult, "mRLFEViscoRealK", "A0Like"), ...
-    'mRLFE GUI adapter must return the author-neutral viscoelastic A0-like branch.');
-assert(~hasNormalizedBranch(viscoGuiResult, "mRLFEHanViscoRealK", "A0Like"), ...
-    'mRLFE GUI adapter must not expose the legacy author-dependent model name as a normalized branch.');
+assert(hasNormalizedBranch(viscoGuiResult, "mRLFERealK", "A0Like"), ...
+    'mRLFE GUI adapter must return the unified real-k branch for etaS > 0.');
+assert(~hasNormalizedBranch(viscoGuiResult, "mRLFEViscoRealK", "A0Like"), ...
+    'mRLFE GUI adapter must not expose the viscous raw path as a separate normalized model.');
 
 fprintf('GUI normalized adapters smoke test passed.\n');
 
