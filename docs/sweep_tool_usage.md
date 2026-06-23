@@ -15,13 +15,13 @@ SweepTool_GUI
 
 | Family | Parameters | Branches | Notes |
 | --- | --- | --- | --- |
-| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Uses the mRLFE sweep adapter and `runParametricSweep`. |
+| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Uses the unified `mRLFE real-k` path. `etaS = 0` is the elastic limit; `etaS > 0` is the viscous case. |
 | `Rayleigh-Lamb` | `thickness`, `mu` | `A0`, `S0` | Uses the Rayleigh-Lamb sweep adapter and the maintained `rl*` API. |
 | `AE IOP/HGO` | `IOP`, `mu` | `atlasA0` | Uses the AE IOP/HGO sweep adapter and the maintained atlas branch policy. |
 
 ## Recommended quick checks
 
-### mRLFE elastic check
+### mRLFE real-k check
 
 Use:
 
@@ -29,9 +29,10 @@ Use:
 Model family: mRLFE
 Sweep parameter: mu
 Values: 60, 75
-Model: Elastic real-k
+Model: mRLFE real-k
 Branch: A0Like
 Robustness: Fast
+etaS: 0.05 Pa*s
 ```
 
 Expected outcome:
@@ -39,7 +40,27 @@ Expected outcome:
 - The sweep runs without an adapter error.
 - The values are interpreted in kPa and converted to solver units by the registry scale.
 - The summary table has two rows.
+- The normalized model name is `mRLFERealK`.
 - `SweepToolOutput`, `SweepToolRequest`, `SweepToolNormalized`, `SweepToolResults`, and `SweepToolSummary` export to the base workspace.
+
+### mRLFE etaS check
+
+Use:
+
+```text
+Model family: mRLFE
+Sweep parameter: etaS
+Values: 0, 0.05
+Model: mRLFE real-k
+Branch: A0Like
+Robustness: Fast
+```
+
+Expected outcome:
+
+- `etaS = 0` gives the elastic fluid-loaded limit.
+- `etaS > 0` uses the same mRLFE real-k model with shear viscosity.
+- The normalized model name remains `mRLFERealK` for both cases.
 
 ### Rayleigh-Lamb thickness check
 
