@@ -24,10 +24,10 @@ diagnose_mrlfe_visco_validity_breakdown
 diagnose_mrlfe_visco_residual_landscape
 compare_mrlfe_tracker_vs_condition_peaks
 stress_test_mrlfe_elastic_range
-stress_test_mrlfe_han_visco_range
+stress_test_mrlfe_visco_range
 ```
 
-The two stress-test scripts were moved from the old top-level validation folder into the mRLFE diagnostics tree. They are model-specific diagnostics, not Rayleigh-Lamb validation scripts. Diagnostics still containing author-dependent labels are pending rename or retirement.
+The two stress-test scripts were moved from the old top-level validation folder into the mRLFE diagnostics tree. They are model-specific diagnostics, not Rayleigh-Lamb validation scripts.
 
 ## Diagnostic configuration
 
@@ -171,7 +171,7 @@ Use the stress tests for broader range checks:
 
 ```matlab
 stress_test_mrlfe_elastic_range
-stress_test_mrlfe_han_visco_range
+stress_test_mrlfe_visco_range
 ```
 
 These scripts are heavier than smoke tests and should be run manually when mRLFE tracking, material ranges, or viscoelastic branch behavior changes.
