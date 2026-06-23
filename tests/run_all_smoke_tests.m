@@ -142,19 +142,19 @@ assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol,
 assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
     'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
 
-fprintf('\n[1/19] GUI normalized adapters smoke test\n');
+fprintf('\n[1/20] GUI normalized adapters smoke test\n');
 test_gui_normalized_adapters_smoke;
 
-fprintf('\n[2/19] GUI sweep adapters smoke test\n');
+fprintf('\n[2/20] GUI sweep adapters smoke test\n');
 test_gui_sweep_adapters_smoke;
 
-fprintf('\n[3/19] GUI sweep registry smoke test\n');
+fprintf('\n[3/20] GUI sweep registry smoke test\n');
 test_gui_sweep_registry_smoke;
 
-fprintf('\n[4/19] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
+fprintf('\n[4/20] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke;
 
-fprintf('\n[5/19] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
+fprintf('\n[5/20] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_main_adapter_smoke;
 
 %% Acoustoelastic maintained API and entrypoint checks
@@ -239,60 +239,65 @@ assertFunctionsOnPath({ ...
     'test_ae_analyze_truncation_recovery'}, ...
     'Acoustoelastic maintained test');
 
-fprintf('\n[6/19] Acoustoelastic atlas branch policy validation test\n');
+fprintf('\n[6/20] Acoustoelastic atlas branch policy validation test\n');
 test_acoustoelastic_iop_hgo_branch_policy_validation;
 
-fprintf('\n[7/19] Acoustoelastic fallback invalidation policy test\n');
+fprintf('\n[7/20] Acoustoelastic fallback invalidation policy test\n');
 test_acoustoelastic_iop_hgo_fallback_invalidation;
 
-fprintf('\n[8/19] Acoustoelastic internal tracking grid test\n');
+fprintf('\n[8/20] Acoustoelastic internal tracking grid test\n');
 test_acoustoelastic_iop_hgo_internal_tracking_grid;
 
-fprintf('\n[9/19] Acoustoelastic truncation recovery helper unit test\n');
+fprintf('\n[9/20] Acoustoelastic truncation recovery helper unit test\n');
 test_ae_analyze_truncation_recovery;
 
-fprintf('\n[10/19] Acoustoelastic branch-persistence refinement unit test\n');
+fprintf('\n[10/20] Acoustoelastic branch-persistence refinement unit test\n');
 test_acoustoelastic_iop_hgo_branch_persistence_refinement;
 
-fprintf('\n[11/19] Acoustoelastic IOP/HGO constitutive identity test\n');
+fprintf('\n[11/20] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_acoustoelastic_iop_hgo_constitutive_identity;
 
-fprintf('\n[12/19] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
+fprintf('\n[12/20] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
 test_acoustoelastic_iop_hgo_atlasA0_smoke;
 
 fprintf('\nChecking maintained mRLFE tests...\n');
 assertFunctionsOnPath({ ...
     'computeMRLFE', ...
     'objectiveMRLFEResidual', ...
+    'summarizeMRLFETrackingQuality', ...
     'test_mrlfe_smoke', ...
     'test_mrlfe_etaS_zero_limit', ...
     'test_mrlfe_elastic_reference_buffer', ...
     'test_mrlfe_residual_objective_contract', ...
     'test_mrlfe_internal_tracking_grid', ...
     'test_mrlfe_internal_tracking_grid_with_buffer', ...
-    'test_mrlfe_viscous_default_internal_tracking_grid'}, ...
+    'test_mrlfe_viscous_default_internal_tracking_grid', ...
+    'test_mrlfe_tracking_quality_summary'}, ...
     'mRLFE maintained test');
 
-fprintf('\n[13/19] mRLFE smoke test\n');
+fprintf('\n[13/20] mRLFE smoke test\n');
 test_mrlfe_smoke;
 
-fprintf('\n[14/19] mRLFE etaS zero-limit contract test\n');
+fprintf('\n[14/20] mRLFE etaS zero-limit contract test\n');
 test_mrlfe_etaS_zero_limit;
 
-fprintf('\n[15/19] mRLFE elastic-reference buffer contract test\n');
+fprintf('\n[15/20] mRLFE elastic-reference buffer contract test\n');
 test_mrlfe_elastic_reference_buffer;
 
-fprintf('\n[16/19] mRLFE residual objective contract test\n');
+fprintf('\n[16/20] mRLFE residual objective contract test\n');
 test_mrlfe_residual_objective_contract;
 
-fprintf('\n[17/19] mRLFE internal tracking grid contract test\n');
+fprintf('\n[17/20] mRLFE internal tracking grid contract test\n');
 test_mrlfe_internal_tracking_grid;
 
-fprintf('\n[18/19] mRLFE internal tracking grid with buffer contract test\n');
+fprintf('\n[18/20] mRLFE internal tracking grid with buffer contract test\n');
 test_mrlfe_internal_tracking_grid_with_buffer;
 
-fprintf('\n[19/19] mRLFE viscous default internal tracking grid contract test\n');
+fprintf('\n[19/20] mRLFE viscous default internal tracking grid contract test\n');
 test_mrlfe_viscous_default_internal_tracking_grid;
+
+fprintf('\n[20/20] mRLFE tracking quality summary contract test\n');
+test_mrlfe_tracking_quality_summary;
 
 fprintf('\nAll maintained smoke tests passed.\n');
 
