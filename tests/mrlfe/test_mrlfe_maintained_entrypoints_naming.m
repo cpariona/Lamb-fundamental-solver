@@ -41,14 +41,18 @@ assert(contains(readmeSection, 'compare_mrlfe_elastic_vs_visco_cp'), ...
 renamedExample = fullfile(repoRoot, 'examples', 'mrlfe', 'basic', 'compare_mrlfe_elastic_vs_visco_cp.m');
 assert(isfile(renamedExample), 'Renamed mRLFE elastic-vs-visco example is missing.');
 
-renamedValidityDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'diagnose_mrlfe_visco_validity_breakdown.m');
-assert(isfile(renamedValidityDiagnostic), 'Renamed mRLFE visco validity diagnostic is missing.');
+validityDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'diagnose_mrlfe_visco_validity_breakdown.m');
+assert(isfile(validityDiagnostic), 'mRLFE visco validity diagnostic is missing.');
 
-renamedLandscapeDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'diagnose_mrlfe_visco_residual_landscape.m');
-assert(isfile(renamedLandscapeDiagnostic), 'Renamed mRLFE visco residual landscape diagnostic is missing.');
+landscapeDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'diagnose_mrlfe_visco_residual_landscape.m');
+assert(isfile(landscapeDiagnostic), 'mRLFE visco residual landscape diagnostic is missing.');
 
-renamedStressTest = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_test_mrlfe_visco_range.m');
-assert(isfile(renamedStressTest), 'Renamed mRLFE visco range stress test is missing.');
+rangeStressTest = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_test_mrlfe_real_k_range.m');
+assert(isfile(rangeStressTest), 'Unified mRLFE real-k range stress test is missing.');
+assert(~isfile(fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_test_mrlfe_elastic_range.m')), ...
+    'Obsolete separate mRLFE elastic range stress test should not exist.');
+assert(~isfile(fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_test_mrlfe_visco_range.m')), ...
+    'Obsolete separate mRLFE visco range stress test should not exist.');
 
 maintainedFiles = { ...
     fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeModelCandidateNames.m'), ...
