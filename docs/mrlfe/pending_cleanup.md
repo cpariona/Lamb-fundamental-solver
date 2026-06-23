@@ -1,4 +1,4 @@
-# mRLFE pending cleanup
+# mRLFE cleanup status
 
 ## Material-parameter cleanup status
 
@@ -25,18 +25,21 @@ Current status:
 - The maintained normalized model name is `mRLFERealK`.
 - The solver keeps the etaS = 0 branch as an internal reference/buffer when computing etaS > 0.
 - The main GUI reuses a compatible cached etaS = 0 reference when available.
+- The physical raw model names are `mRLFEElasticRealK` and `mRLFEViscoRealK`.
+- Author-dependent mRLFE model names have been removed from the maintained solver, GUI, docs, and smoke-test surface.
 - `tests/mrlfe/test_mrlfe_etaS_zero_limit.m` protects the etaS = 0 physical contract.
 - `tests/mrlfe/test_mrlfe_elastic_reference_buffer.m` protects the etaS > 0 buffer contract.
+- `tests/mrlfe/test_mrlfe_model_candidate_names.m` protects the canonical model-name contract.
+- `tests/mrlfe/test_mrlfe_maintained_entrypoints_naming.m` guards maintained mRLFE files against reintroducing author-dependent names.
 
 Remaining cleanup:
 
-- Rename old diagnostic scripts that still contain author-dependent labels in their filenames.
-- Update archived diagnostic documentation after those scripts are renamed or retired.
-- Remove temporary compatibility aliases after the remaining old diagnostics are migrated.
+- No maintained mRLFE real-k naming cleanup remains open.
+- Any future archived documentation cleanup should preserve historical context only when needed and must not reintroduce author-dependent names into maintained entrypoints.
 
 Rationale:
 
-The elastic and viscous cases are not separate physical models. They are the same fluid-loaded real-k mRLFE model evaluated at different `etaS` values. The two mRLFE contract tests are kept as permanent regression tests because they define the unified model behavior; they are not temporary optimization diagnostics.
+The elastic and viscous cases are not separate physical models. They are the same fluid-loaded real-k mRLFE model evaluated at different `etaS` values. The mRLFE contract tests are kept as permanent regression tests because they define the unified model behavior; they are not temporary optimization diagnostics.
 
 ## mRLFE residual objective status
 
