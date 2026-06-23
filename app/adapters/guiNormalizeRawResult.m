@@ -53,8 +53,9 @@ if any(modelNames == "mRLFEElasticRealK")
 end
 
 for iModel = 1:numel(modelNames)
-    modelName = modelNames(iModel);
-    modelResult = rawResult.models.(char(modelName));
+    rawModelName = modelNames(iModel);
+    modelName = normalizeModelName(rawModelName);
+    modelResult = rawResult.models.(char(rawModelName));
     if ~isfield(modelResult, 'branches') || ~isstruct(modelResult.branches)
         continue;
     end
@@ -62,7 +63,7 @@ for iModel = 1:numel(modelNames)
     for iBranch = 1:numel(branchNames)
         branchName = branchNames(iBranch);
         rawBranch = modelResult.branches.(char(branchName));
-        branches(end+1, 1) = normalizeModelBranch(modelName, branchName, rawBranch, modelResult); %#ok<AGROW>
+        branches(end+1, 1) = normalizeModelBranch(modelName, rawModelName, branchName, rawBranch, modelResult); %#ok<AGROW>
     end
 end
 end
@@ -70,6 +71,7 @@ end
 function branch = normalizeModeBranch(modelName, branchName, mode, rawResult)
 branch = emptyBranch();
 branch.modelName = modelName;
+branch.rawModelName = modelName;
 branch.branchName = branchName;
 branch.frequency = getFieldOrDefault(mode, 'frequency', getRawFrequency(rawResult));
 branch.phaseVelocity = getFieldOrDefault(mode, 'Cp', []);
@@ -85,9 +87,10 @@ branch.diagnostics.residual = getFieldOrDefault(mode, 'residual', []);
 branch.diagnostics.valid = getFieldOrDefault(mode, 'valid', isfinite(branch.phaseVelocity));
 end
 
-function branch = normalizeModelBranch(modelName, branchName, rawBranch, modelResult)
+function branch = normalizeModelBranch(modelName, rawModelName, branchName, rawBranch, modelResult)
 branch = emptyBranch();
 branch.modelName = modelName;
+branch.rawModelName = rawModelName;
 branch.branchName = branchName;
 branch.frequency = getFieldOrDefault(rawBranch, 'frequency', []);
 branch.phaseVelocity = getFieldOrDefault(rawBranch, 'Cp', []);
@@ -96,6 +99,7 @@ branch.kThickness = getFieldOrDefault(rawBranch, 'kThickness', []);
 branch = finalizeBranch(branch);
 branch.metadata.rawBranch = rawBranch;
 branch.metadata.rawModel = modelResult;
+branch.metadata.rawModelName = rawModelName;
 branch.metadata.units = defaultUnits();
 branch.diagnostics.residual = getFieldOrDefault(rawBranch, 'residual', []);
 branch.diagnostics.valid = getFieldOrDefault(rawBranch, 'valid', isfinite(branch.phaseVelocity));
@@ -110,6 +114,16 @@ if isfield(rawBranch, 'pointStatus')
 end
 end
 
+function modelName = normalizeModelName(rawModelName)
+rawModelName = string(rawModelName);
+switch rawModelName
+    case "mRLFEHanViscoRealK"
+        modelName = "mRLFEViscoRealK";
+    otherwise
+        modelName = rawModelName;
+end
+end
+
 function branch = finalizeBranch(branch)
 branch.frequency = branch.frequency(:);
 branch.phaseVelocity = branch.phaseVelocity(:);
@@ -120,6 +134,7 @@ end
 function branch = emptyBranch()
 branch = struct();
 branch.modelName = "";
+branch.rawModelName = "";
 branch.branchName = "";
 branch.frequency = [];
 branch.phaseVelocity = [];
@@ -144,7 +159,7 @@ end
 function modelName = inferTopLevelModelName(branches)
 if isempty(branches)
     modelName = "";
-elseif any(string({branches.modelName}) == "mRLFEElasticRealK") || any(string({branches.modelName}) == "mRLFEHanViscoRealK")
+elseif any(string({branches.modelName}) == "mRLFEElasticRealK") || any(string({branches.modelName}) == "mRLFEViscoRealK")
     modelName = "mRLFE";
 else
     modelName = "RayleighLamb";
