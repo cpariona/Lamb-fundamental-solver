@@ -27,7 +27,6 @@ paramsBase.numFrequencyPoints = 160;
 paramsBase.frequencySpacing = "hybrid";
 paramsBase.thickness = 0.5e-3;
 paramsBase.nu = 0.4999;
-paramsBase.CL = 1500;
 
 optionsBase = rlDefaultOptions("Fast");
 optionsBase.computeA0 = true;
@@ -44,8 +43,7 @@ fprintf('-------------------------------------------------\n');
 
 for iCase = 1:numel(cases)
     caseInfo = cases(iCase);
-    params = paramsBase;
-    params.E = caseInfo.E;
+    params = setYoungModulusForShearPoisson(paramsBase, caseInfo.E);
     material = rlComputeMaterial(params);
     geometry = rlComputeGeometry(params);
     geometryPublic = rmfield(geometry, 'halfThickness');
@@ -59,10 +57,10 @@ for iCase = 1:numel(cases)
     mrlfeParams.solveComplexK = false;
 
     options = optionsBase;
-    options.mrlfeParams = struct('etaS', caseInfo.etaS, 'etaL', 0, 'useComplexLambda', false);
+    options.mrlfeParams = mrlfeParams;
 
-    fprintf('\nCase %d/%d: %s, E = %.6g kPa, etaS = %.6g Pa*s\n', ...
-        iCase, numel(cases), caseInfo.branch, caseInfo.E/1e3, caseInfo.etaS);
+    fprintf('\nCase %d/%d: %s, E = %.6g kPa, mu = %.6g kPa, etaS = %.6g Pa*s\n', ...
+        iCase, numel(cases), caseInfo.branch, material.E/1e3, material.mu/1e3, caseInfo.etaS);
 
     try
         results = rlComputeFundamentalLambModes(params, options);
@@ -106,6 +104,11 @@ assignin('base', 'mRLFEViscoResidualLandscapeSamples', mRLFEViscoResidualLandsca
 fprintf('\nWrote:\n');
 fprintf('  mRLFE_visco_residual_landscape_summary.csv\n');
 fprintf('  mRLFE_visco_residual_landscape_samples.csv\n');
+
+function params = setYoungModulusForShearPoisson(params, youngModulus)
+params.E = youngModulus;
+params.mu = youngModulus / (2 * (1 + params.nu));
+end
 
 function residual = residualVsCp(CpScan, omega, material, geometry, mrlfeParams)
 residual = nan(size(CpScan));
@@ -192,7 +195,7 @@ end
 function row = makeSummaryRow(caseInfo, material, frequency, viscoCp, elasticCp, landscape)
 row = struct();
 row.Branch = string(caseInfo.branch);
-row.E_kPa = caseInfo.E/1e3;
+row.E_kPa = material.E/1e3;
 row.Mu_kPa = material.mu/1e3;
 row.CT_m_per_s = material.CT;
 row.EtaS_Pa_s = caseInfo.etaS;
@@ -222,7 +225,7 @@ for i = 1:numel(sampleIdx)
     idx = sampleIdx(i);
     row = struct();
     row.Branch = string(caseInfo.branch);
-    row.E_kPa = caseInfo.E/1e3;
+    row.E_kPa = material.E/1e3;
     row.Mu_kPa = material.mu/1e3;
     row.CT_m_per_s = material.CT;
     row.EtaS_Pa_s = caseInfo.etaS;
