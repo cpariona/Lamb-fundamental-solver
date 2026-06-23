@@ -1,6 +1,6 @@
 # Repository structure
 
-This document describes the active repository layout for GUI-focused development. The current MATLAB implementation is organized around the clean Rayleigh-Lamb `rl*` API, the mRLFE model, the author-neutral acoustoelastic IOP/HGO API, and a GUI adapter layer. Naming guidance is documented in `docs/naming_strategy.md` and the acoustoelastic short-path convention is summarized in `docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md`.
+This document describes the active repository layout for GUI-focused development. The current MATLAB implementation is organized around the clean Rayleigh-Lamb `rl*` API, shared isotropic material helpers, the mRLFE model, the author-neutral acoustoelastic IOP/HGO API, and a GUI adapter layer. Naming guidance is documented in `docs/naming_strategy.md` and the acoustoelastic short-path convention is summarized in `docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md`.
 
 ## Active top-level areas
 
@@ -15,6 +15,7 @@ examples/rayleigh_lamb/      Maintained Rayleigh-Lamb examples, sweeps, and vali
 examples/mrlfe/              Maintained mRLFE examples, sweeps, diagnostics, and stress tests.
 examples/acoustoelastic_iop_hgo/
                              Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
+models/materials/            Shared isotropic elastic material-parameter helpers.
 models/rayleigh_lamb/        Clean Rayleigh-Lamb implementation using `rl*` functions.
 models/mrlfe/                Modified Rayleigh-Lamb fluid-loaded model implementation.
 models/acoustoelastic_iop_hgo/
@@ -54,6 +55,16 @@ docs/sweep_tool_usage.md
 ```
 
 ## Model folders
+
+### Shared material helpers
+
+```text
+models/materials/
+├─ elasticFromMuNu.m
+└─ elasticFromLame.m
+```
+
+These helpers build equivalent isotropic elastic quantities from `mu`, `nu`, `rho`, or Lamé constants. Maintained soft-material workflows expose `mu` and `nu`, while `E`, `lambda_Lame`, `K`, `CT`, and `CL` are derived.
 
 ### Rayleigh-Lamb base solver
 
