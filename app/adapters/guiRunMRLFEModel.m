@@ -7,9 +7,6 @@ function result = guiRunMRLFEModel(guiRequest)
 %   mrlfeParams      - struct overlay stored in options.mrlfeParams
 %   computeElastic   - logical, default true
 %   computeVisco     - logical, default false
-%
-% Legacy request fields computeHan/computeHanVisco are still accepted as
-% compatibility aliases, but the normalized GUI surface uses viscoelastic names.
 
 if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
@@ -19,8 +16,7 @@ params = mergeStructs(rlDefaultParams(), getStructField(guiRequest, 'params', st
 options = mergeStructs(rlDefaultOptions(), getStructField(guiRequest, 'options', struct()));
 
 computeElastic = getStructField(guiRequest, 'computeElastic', true);
-computeVisco = getStructField(guiRequest, 'computeVisco', ...
-    getStructField(guiRequest, 'computeHan', getStructField(guiRequest, 'computeHanVisco', false)));
+computeVisco = getStructField(guiRequest, 'computeVisco', false);
 computeA0Like = getStructField(options, 'mrlfeComputeA0Like', true);
 computeS0Like = getStructField(options, 'mrlfeComputeS0Like', true);
 computeMRLFE = logical(computeElastic || computeVisco);
@@ -31,7 +27,6 @@ options.computeMRLFE = false;
 options.computeMRLFEElasticRealK = logical(computeElastic || computeVisco);
 options.computeMRLFEViscoRealK = logical(computeVisco);
 options.computeMRLFERealK = options.computeMRLFEElasticRealK;
-options.computeMRLFEHanViscoRealK = options.computeMRLFEViscoRealK;
 
 if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
     options.mrlfeParams = guiRequest.mrlfeParams;
