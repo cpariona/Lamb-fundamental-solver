@@ -16,6 +16,7 @@ colors.MRLFEElasticS0 = [1.0000 0.0000 0.0000];
 colors.MRLFEViscoA0 = [0.4660 0.6740 0.1880];
 colors.MRLFEViscoS0 = [0.8500 0.3250 0.0980];
 colors.AE = [0.4940 0.1840 0.5560];
+colors.Approx = [0.2500 0.2500 0.2500];
 
 fig = uifigure('Name','Fundamental Lamb Wave Phase Velocity Calculator','Position',[80 80 1460 860]);
 root = uigridlayout(fig,[1 2]);
@@ -153,6 +154,8 @@ updateAxisFieldState();
         if options.computeAcoustoelasticIOPHGO
             options.computeA0 = false;
             options.computeS0 = false;
+            options.computeMRLFEElasticRealK = false;
+            options.computeMRLFEViscoRealK = false;
             options.computeMRLFERealK = false;
             options.computeMRLFEHanViscoRealK = false;
             options.computeMRLFEComplexK = false;
@@ -164,13 +167,15 @@ updateAxisFieldState();
 
         options.computeA0 = logical(modelControls.rl.computeA0.Value);
         options.computeS0 = logical(modelControls.rl.computeS0.Value);
-        options.computeMRLFERealK = logical(modelControls.mrlfe.computeRealK.Value);
-        options.computeMRLFEHanViscoRealK = logical(modelControls.mrlfe.computeHanViscoRealK.Value);
+        options.computeMRLFEElasticRealK = logical(modelControls.mrlfe.computeRealK.Value);
+        options.computeMRLFEViscoRealK = logical(modelControls.mrlfe.computeHanViscoRealK.Value);
+        options.computeMRLFERealK = options.computeMRLFEElasticRealK;
+        options.computeMRLFEHanViscoRealK = options.computeMRLFEViscoRealK;
         options.computeMRLFEComplexK = false;
         options.mrlfeComputeA0Like = logical(modelControls.mrlfe.computeA0Like.Value);
         options.mrlfeComputeS0Like = logical(modelControls.mrlfe.computeS0Like.Value);
 
-        if options.computeMRLFERealK || options.computeMRLFEHanViscoRealK
+        if options.computeMRLFEElasticRealK || options.computeMRLFEViscoRealK
             if ~options.mrlfeComputeA0Like && ~options.mrlfeComputeS0Like
                 error('Select at least one mRLFE branch: A0-like or S0-like.');
             end
@@ -178,6 +183,11 @@ updateAxisFieldState();
             options.computeS0 = options.computeS0 || options.mrlfeComputeS0Like;
             modelControls.rl.computeA0.Value = options.computeA0;
             modelControls.rl.computeS0.Value = options.computeS0;
+            if options.computeMRLFEViscoRealK
+                options.computeMRLFEElasticRealK = true;
+                options.computeMRLFERealK = true;
+                modelControls.mrlfe.computeRealK.Value = true;
+            end
             options.mrlfeParams = readMRLFEParamsFromGui();
         end
     end
@@ -226,9 +236,10 @@ updateAxisFieldState();
             guiRequest.mrlfeParams = options.mrlfeParams;
         end
 
-        if options.computeMRLFERealK || options.computeMRLFEHanViscoRealK
-            guiRequest.computeElastic = options.computeMRLFERealK || options.computeMRLFEHanViscoRealK;
-            guiRequest.computeHanVisco = options.computeMRLFEHanViscoRealK;
+        if options.computeMRLFEElasticRealK || options.computeMRLFEViscoRealK
+            guiRequest.computeElastic = options.computeMRLFEElasticRealK || options.computeMRLFEViscoRealK;
+            guiRequest.computeVisco = options.computeMRLFEViscoRealK;
+            guiRequest.computeHanVisco = options.computeMRLFEViscoRealK;
             guiResult = guiRunMRLFEModel(guiRequest);
         else
             guiResult = guiRunRayleighLambModel(guiRequest);
@@ -278,11 +289,7 @@ updateAxisFieldState();
                     end
                     updated = true;
                 case "mRLFEViscoRealK"
-                    if branchName == "A0Like"
-                        getViscoCheckbox("A0Like").Value = true;
-                    elseif branchName == "S0Like"
-                        getViscoCheckbox("S0Like").Value = true;
-                    end
+                    setViscoBranchVisible(branchName, true);
                     updated = true;
                 case "AcoustoelasticIOPHGO"
                     plotControls.showA0.Value = true;
@@ -305,6 +312,7 @@ updateAxisFieldState();
         cla(ax);
         hold(ax,'on');
         plotted = tryPlotNormalizedResults();
+        plotted = tryPlotApproximations() || plotted;
         if ~plotted && isfield(lastResults,'modes')
             if plotControls.showA0.Value && isfield(lastResults.modes,'A0')
                 plotBranch(lastResults.modes.A0, colors.A0, 'A0');
@@ -321,7 +329,7 @@ updateAxisFieldState();
             title(ax,'Phase velocity Cp');
             legend(ax,'Location','best');
         end
-        xlabel(ax,'frequency [Hz]');
+        xlabel(ax, currentXLabel());
         ylabel(ax,'Phase velocity Cp [m/s]');
         grid(ax,'on');
         hold(ax,'off');
@@ -338,7 +346,7 @@ updateAxisFieldState();
             if ~shouldPlotNormalizedBranch(branch)
                 continue;
             end
-            plotData = guiGetNormalizedBranchPlotData(branch);
+            plotData = guiGetNormalizedBranchPlotData(branch, string(plotControls.xaxis.Value));
             frequency = plotData.x(:);
             Cp = plotData.y(:);
             valid = plotData.validMask(:) & isfinite(frequency) & isfinite(Cp);
@@ -347,6 +355,32 @@ updateAxisFieldState();
             end
             plot(ax, frequency(valid), Cp(valid), '-', 'Color', normalizedBranchColor(branch), ...
                 'LineWidth', 2.0, 'DisplayName', normalizedBranchDisplayName(branch));
+            plotted = true;
+        end
+    end
+
+    function plotted = tryPlotApproximations()
+        plotted = false;
+        if ~isfield(lastResults, 'approximations') || ~isstruct(lastResults.approximations)
+            return;
+        end
+        if plotControls.showA0Thin.Value && isfield(lastResults.approximations, 'A0ThinPlate')
+            plotted = plotApproximation(lastResults.approximations.A0ThinPlate, '--', 'A0 thin-plate') || plotted;
+        end
+        if plotControls.showS0Ext.Value && isfield(lastResults.approximations, 'S0Extensional')
+            plotted = plotApproximation(lastResults.approximations.S0Extensional, ':', 'S0 extensional') || plotted;
+        end
+    end
+
+    function plotted = plotApproximation(approx, lineStyle, label)
+        plotted = false;
+        [x, Cp] = branchXY(approx);
+        valid = isfinite(x(:)) & isfinite(Cp(:));
+        if isfield(approx, 'valid') && ~isempty(approx.valid)
+            valid = valid & logical(approx.valid(:));
+        end
+        if any(valid)
+            plot(ax, x(valid), Cp(valid), lineStyle, 'Color', colors.Approx, 'LineWidth', 1.5, 'DisplayName', label);
             plotted = true;
         end
     end
@@ -363,8 +397,7 @@ updateAxisFieldState();
                 tf = (branchName == "A0Like" && plotControls.showMRLFEElasticA0.Value) || ...
                      (branchName == "S0Like" && plotControls.showMRLFEElasticS0.Value);
             case "mRLFEViscoRealK"
-                tf = (branchName == "A0Like" && getViscoCheckbox("A0Like").Value) || ...
-                     (branchName == "S0Like" && getViscoCheckbox("S0Like").Value);
+                tf = isViscoBranchVisible(branchName);
             case "AcoustoelasticIOPHGO"
                 tf = plotControls.showA0.Value;
         end
@@ -404,19 +437,36 @@ updateAxisFieldState();
         end
     end
 
-    function cb = getViscoCheckbox(branchName)
+    function setViscoBranchVisible(branchName, value)
         branchName = string(branchName);
         if branchName == "A0Like"
             if isfield(plotControls, 'showMRLFEViscoA0')
-                cb = plotControls.showMRLFEViscoA0;
+                plotControls.showMRLFEViscoA0.Value = value;
+            elseif isfield(plotControls, 'showMRLFEHanA0')
+                plotControls.showMRLFEHanA0.Value = value;
+            end
+        elseif branchName == "S0Like"
+            if isfield(plotControls, 'showMRLFEViscoS0')
+                plotControls.showMRLFEViscoS0.Value = value;
+            elseif isfield(plotControls, 'showMRLFEHanS0')
+                plotControls.showMRLFEHanS0.Value = value;
+            end
+        end
+    end
+
+    function tf = isViscoBranchVisible(branchName)
+        branchName = string(branchName);
+        if branchName == "A0Like"
+            if isfield(plotControls, 'showMRLFEViscoA0')
+                tf = logical(plotControls.showMRLFEViscoA0.Value);
             else
-                cb = plotControls.showMRLFEHanA0;
+                tf = logical(plotControls.showMRLFEHanA0.Value);
             end
         else
             if isfield(plotControls, 'showMRLFEViscoS0')
-                cb = plotControls.showMRLFEViscoS0;
+                tf = logical(plotControls.showMRLFEViscoS0.Value);
             else
-                cb = plotControls.showMRLFEHanS0;
+                tf = logical(plotControls.showMRLFEHanS0.Value);
             end
         end
     end
@@ -441,14 +491,51 @@ updateAxisFieldState();
     end
 
     function plotBranch(branch, color, label)
-        frequency = branch.frequency(:);
-        Cp = branch.Cp(:);
-        valid = isfinite(frequency) & isfinite(Cp);
+        [x, Cp] = branchXY(branch);
+        valid = isfinite(x(:)) & isfinite(Cp(:));
         if isfield(branch,'validMask')
             valid = valid & branch.validMask(:);
+        elseif isfield(branch,'valid')
+            valid = valid & branch.valid(:);
         end
         if any(valid)
-            plot(ax, frequency(valid), Cp(valid), '-', 'Color', color, 'LineWidth', 2.0, 'DisplayName', label);
+            plot(ax, x(valid), Cp(valid), '-', 'Color', color, 'LineWidth', 2.0, 'DisplayName', label);
+        end
+    end
+
+    function [x, Cp] = branchXY(branch)
+        frequency = branch.frequency(:);
+        Cp = branch.Cp(:);
+        switch string(plotControls.xaxis.Value)
+            case "angularFrequency"
+                x = 2*pi*frequency;
+            case "wavenumber"
+                if isfield(branch, 'k') && ~isempty(branch.k)
+                    x = real(branch.k(:));
+                else
+                    x = frequency;
+                end
+            case "kThickness"
+                if isfield(branch, 'kThickness') && ~isempty(branch.kThickness)
+                    x = real(branch.kThickness(:));
+                else
+                    x = frequency;
+                end
+            otherwise
+                x = frequency;
+        end
+    end
+
+    function label = currentXLabel()
+        switch string(plotControls.xaxis.Value)
+            case "angularFrequency"
+                label = 'angular frequency [rad/s]';
+            case "wavenumber"
+                label = 'wavenumber k [1/m]';
+            case "kThickness"
+                label = 'kThickness = k * thickness [-]';
+            otherwise
+                label = 'frequency [Hz]';
         end
     end
 
