@@ -14,7 +14,7 @@
 
 startup();
 
-EValues = [50e3, 100e3, 300e3, 500e3, 1000e3, 1500e3]; % [Pa]
+EValues = [50e3, 100e3, 300e3, 500e3, 1000e3, 1500e3]; % [Pa], converted to mu through ShearPoisson
 largeJumpThreshold = 0.15;
 
 paramsBase = rlDefaultParams();
@@ -24,7 +24,6 @@ paramsBase.numFrequencyPoints = 160;
 paramsBase.frequencySpacing = "hybrid";
 paramsBase.thickness = 0.5e-3;
 paramsBase.nu = 0.4999;
-paramsBase.CL = 1500;
 
 optionsBase = rlDefaultOptions("Fast");
 optionsBase.computeA0 = true;
@@ -39,16 +38,15 @@ fprintf('\nmRLFE elastic real-k stability sweep\n');
 fprintf('-----------------------------------\n');
 fprintf('Frequency range: %.0f to %.0f Hz\n', paramsBase.fmin, paramsBase.fmax);
 fprintf('Thickness: %.4g mm\n', paramsBase.thickness*1e3);
-fprintf('E values: %.3g to %.3g kPa (%d cases)\n', min(EValues)/1e3, max(EValues)/1e3, numel(EValues));
+fprintf('E-equivalent values: %.3g to %.3g kPa (%d cases)\n', min(EValues)/1e3, max(EValues)/1e3, numel(EValues));
 fprintf('Large-jump threshold for safe fmax: %.3g\n', largeJumpThreshold);
 
 for iE = 1:numel(EValues)
-    params = paramsBase;
-    params.E = EValues(iE);
+    params = setYoungModulusForShearPoisson(paramsBase, EValues(iE));
     material = rlComputeMaterial(params);
 
     fprintf('\nE = %.6g kPa, mu = %.6g kPa, CT = %.6g m/s\n', ...
-        params.E/1e3, material.mu/1e3, material.CT);
+        material.E/1e3, material.mu/1e3, material.CT);
 
     try
         results = rlComputeFundamentalLambModes(params, optionsBase);
@@ -75,12 +73,17 @@ assignin('base', 'mRLFEElasticRangeStabilityLargeJumpThreshold', largeJumpThresh
 fprintf('\nElastic range stability summary\n');
 fprintf('-------------------------------\n');
 if ~isempty(mRLFEElasticRangeStabilitySummary)
-    disp(mRLFEElasticRangeStabilitySummary(:, {'Branch','E_kPa','ValidPoints','TotalPoints','ValidFmax_Hz','SafeFmax_Hz','MaxResidual','MaxRelativeCpJump','FirstLargeJumpRelative','HasWarning'}));
+    disp(mRLFEElasticRangeStabilitySummary(:, {'Branch','E_kPa','Mu_kPa','ValidPoints','TotalPoints','ValidFmax_Hz','SafeFmax_Hz','MaxResidual','MaxRelativeCpJump','FirstLargeJumpRelative','HasWarning'}));
 end
 fprintf('\nWrote mRLFE_elastic_range_stability_summary.csv\n');
 
 plotSafeFmaxSummary(mRLFEElasticRangeStabilitySummary, 'A0Like');
 plotSafeFmaxSummary(mRLFEElasticRangeStabilitySummary, 'S0Like');
+
+function params = setYoungModulusForShearPoisson(params, youngModulus)
+params.E = youngModulus;
+params.mu = youngModulus / (2 * (1 + params.nu));
+end
 
 function row = printBranchSummary(branches, branchName, params, material, largeJumpThreshold)
 row = makeEmptyRow(branchName, params, material);
@@ -170,7 +173,7 @@ end
 function row = makeEmptyRow(branchName, params, material)
 row = struct();
 row.Branch = string(branchName);
-row.E_kPa = params.E / 1e3;
+row.E_kPa = material.E / 1e3;
 row.Mu_kPa = material.mu / 1e3;
 row.CT_m_per_s = material.CT;
 row.Thickness_mm = params.thickness * 1e3;
@@ -271,7 +274,7 @@ T = summaryTable(mask, :);
 figure;
 plot(T.E_kPa, T.SafeFmax_Hz, '-o', 'LineWidth', 1.2);
 grid on;
-xlabel('E [kPa]');
+xlabel('E-equivalent [kPa]');
 ylabel('Safe fmax [Hz]');
 title(sprintf('Elastic real-k %s safe fmax', branchName));
 end
