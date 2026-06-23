@@ -51,6 +51,9 @@ modelNames = modelNames(modelNames ~= "mRLFE");
 if any(modelNames == "mRLFEElasticRealK")
     modelNames = modelNames(modelNames ~= "mRLFERealK");
 end
+if any(modelNames == "mRLFEViscoRealK")
+    modelNames = modelNames(modelNames ~= "mRLFEHanViscoRealK");
+end
 
 for iModel = 1:numel(modelNames)
     rawModelName = modelNames(iModel);
