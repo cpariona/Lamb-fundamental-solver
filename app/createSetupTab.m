@@ -4,12 +4,12 @@ function h = createSetupTab(tabs, params0, callbacks)
 elastic0 = elasticFromMuNu(params0.mu, params0.nu, params0.rho);
 
 tab = uitab(tabs, 'Title', 'Setup');
-g = uigridlayout(tab, [10 4]);
-g.ColumnWidth = {115, '1x', 95, '1x'};
-g.RowHeight = {22, 24, 24, 24, 22, 24, 24, 22, 24, '1x'};
+g = uigridlayout(tab, [11 4]);
+g.ColumnWidth = {120, '1x', 120, '1x'};
+g.RowHeight = {22, 24, 24, 24, 22, 24, 24, 22, 24, 24, '1x'};
 g.Padding = [10 8 10 8];
 g.RowSpacing = 3;
-g.ColumnSpacing = 6;
+g.ColumnSpacing = 8;
 
 header = uilabel(g, 'Text', 'Material inputs', 'FontWeight', 'bold');
 header.Layout.Row = 1;
@@ -47,7 +47,8 @@ h.nu = uieditfield(g, 'numeric', 'Value', params0.nu, 'Limits', [-0.999 0.499999
 h.nu.Layout.Row = 4;
 h.nu.Layout.Column = 2;
 
-h.lambdalabel = uilabel(g, 'Text', 'lambda_Lame [MPa]');
+h.lambdalabel = uilabel(g, 'Text', 'lambda_L [MPa]');
+h.lambdalabel.Tooltip = 'First Lame parameter lambda_Lame [MPa]';
 h.lambdalabel.Layout.Row = 4;
 h.lambdalabel.Layout.Column = 3;
 h.lambda = uieditfield(g, 'numeric', 'Value', elastic0.lambda/1e6, 'Limits', [0 Inf], ...
@@ -113,5 +114,5 @@ label.Layout.Column = 1;
 h.fmax = uieditfield(g, 'numeric', 'Value', params0.fmax, 'Limits', [eps Inf], ...
     'ValueChangedFcn', callbacks.markDirty);
 h.fmax.Layout.Row = 10;
-h.fmax.Layout.Column = [2 4];
+h.fmax.Layout.Column = 2;
 end
