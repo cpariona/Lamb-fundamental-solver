@@ -34,8 +34,8 @@ options.mrlfeComputeA0Like = true;
 options.mrlfeComputeS0Like = true;
 
 % Optional mRLFE internal tracking grid. The direct tracker remains the default
-% for etaS = 0. The viscous real-k path can opt into an AE-style internal grid
-% through mrlfeUseInternalTrackingGridForViscousRealK.
+% for etaS = 0. The viscous real-k path uses an AE-style internal grid by
+% default through mrlfeUseInternalTrackingGridForViscousRealK.
 options.mrlfeUseInternalTrackingGrid = false;
 options.mrlfeUseInternalTrackingGridForViscousRealK = true;
 options.mrlfeInternalTrackingPointFactor = 2;
@@ -43,10 +43,18 @@ options.mrlfeInternalTrackingMinPoints = 30;
 options.mrlfeInternalTrackingMaxPoints = 400;
 
 % Real-k mRLFE continuation and validation controls.
+%
+% Maintained public compute flags:
+%   computeMRLFEElasticRealK   etaS = 0 elastic fluid-loaded real-k branch.
+%   computeMRLFEViscoRealK    etaS > 0 viscoelastic fluid-loaded real-k branch.
+%
+% Compatibility flags kept temporarily:
+%   computeMRLFERealK         historical alias for the unified real-k result.
+%   computeMRLFEHanViscoRealK legacy author-labeled alias for the visco branch.
 options.computeMRLFEElasticRealK = false;
 options.computeMRLFEViscoRealK = false;
-options.computeMRLFERealK = false; % compatibility alias for elastic real-k
-options.computeMRLFEHanViscoRealK = false; % legacy compatibility alias
+options.computeMRLFERealK = false;
+options.computeMRLFEHanViscoRealK = false;
 options.mrlfeRealKReferenceWeight = 0.75;
 options.mrlfeRealKPredictionWeight = 0.0;
 options.mrlfeRealKResidualFloor = 1e-14;
@@ -76,7 +84,9 @@ options.mrlfeViscoPreviousCpWeight = 80.0;
 options.mrlfeViscoPreviousKWeight = 0.0;
 options.mrlfeViscoPreviousCpMaxRelativeJump = 0.18;
 
-% Legacy option aliases kept temporarily for older scripts.
+% Legacy option aliases kept temporarily for older scripts. New code should set
+% the mrlfeVisco* fields above. Solver code reads visco fields first and falls
+% back to these only when needed for compatibility.
 options.mrlfeHanUseModalLocalTracker = options.mrlfeViscoUseModalLocalTracker;
 options.mrlfeHanA0ModalCpWindow = options.mrlfeViscoA0ModalCpWindow;
 options.mrlfeHanS0ModalCpWindow = options.mrlfeViscoS0ModalCpWindow;
