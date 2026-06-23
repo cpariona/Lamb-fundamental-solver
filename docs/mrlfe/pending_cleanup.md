@@ -15,19 +15,23 @@ Remaining cleanup:
 - Keep `E` as a displayed/derived quantity, not as a primary soft-material sweep variable.
 - Keep `LameParameters` available for explicit formulation diagnostics.
 
-## Collapse elastic and viscoelastic mRLFE variants
+## mRLFE real-k unification status
 
 Current status:
 
-- The code still exposes separate elastic and viscoelastic real-k model labels in some workflows.
-- The maintained sweep examples use the viscoelastic real-k branch family and sweep or fix `etaS` explicitly.
+- The maintained GUI and SweepTool surface expose a single `mRLFE real-k` model.
+- `etaS = 0` is treated as the elastic fluid-loaded limit.
+- `etaS > 0` is treated as the viscous case of the same mRLFE real-k model.
+- The maintained normalized model name is `mRLFERealK`.
+- The solver keeps the etaS = 0 branch as an internal reference/buffer when computing etaS > 0.
+- The main GUI reuses a compatible cached etaS = 0 reference when available.
 
-Pending cleanup:
+Remaining cleanup:
 
-- Treat mRLFE as a single model family with `etaS` as the controlling viscous parameter.
-- Interpret `etaS = 0` as the elastic limit of the same mRLFE model instead of routing to a separate elastic model label.
-- Update examples, GUI/request metadata, normalizers, and documentation after the solver-side parameter contract is clarified.
+- Rename old diagnostic scripts that still contain author-dependent labels in their filenames.
+- Update archived diagnostic documentation after those scripts are renamed or retired.
+- Remove temporary compatibility aliases after the remaining old diagnostics are migrated.
 
 Rationale:
 
-This would better match the intended physical interpretation: the elastic case should be the zero-viscosity limit of the same model rather than a separate user-facing model variant.
+The elastic and viscous cases are not separate physical models. They are the same fluid-loaded real-k mRLFE model evaluated at different `etaS` values.
