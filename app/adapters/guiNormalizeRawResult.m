@@ -48,11 +48,21 @@ function branches = normalizeMRLFEModelBranches(rawResult)
 branches = repmat(emptyBranch(), 0, 1);
 modelNames = string(fieldnames(rawResult.models));
 modelNames = modelNames(modelNames ~= "mRLFE");
-if any(modelNames == "mRLFEElasticRealK")
-    modelNames = modelNames(modelNames ~= "mRLFERealK");
-end
-if any(modelNames == "mRLFEViscoRealK")
+
+% mRLFERealK is the maintained unified real-k result. Elastic and viscous
+% named fields can remain in raw results as reference/compatibility data, but
+% the normalized GUI surface should expose only the unified branch.
+if any(modelNames == "mRLFERealK")
+    modelNames = modelNames(modelNames ~= "mRLFEElasticRealK");
+    modelNames = modelNames(modelNames ~= "mRLFEViscoRealK");
     modelNames = modelNames(modelNames ~= "mRLFEHanViscoRealK");
+else
+    if any(modelNames == "mRLFEElasticRealK")
+        modelNames = modelNames(modelNames ~= "mRLFERealK");
+    end
+    if any(modelNames == "mRLFEViscoRealK")
+        modelNames = modelNames(modelNames ~= "mRLFEHanViscoRealK");
+    end
 end
 
 for iModel = 1:numel(modelNames)
@@ -120,8 +130,8 @@ end
 function modelName = normalizeModelName(rawModelName)
 rawModelName = string(rawModelName);
 switch rawModelName
-    case "mRLFEHanViscoRealK"
-        modelName = "mRLFEViscoRealK";
+    case {"mRLFEHanViscoRealK", "mRLFEViscoRealK"}
+        modelName = "mRLFERealK";
     otherwise
         modelName = rawModelName;
 end
@@ -162,7 +172,7 @@ end
 function modelName = inferTopLevelModelName(branches)
 if isempty(branches)
     modelName = "";
-elseif any(string({branches.modelName}) == "mRLFEElasticRealK") || any(string({branches.modelName}) == "mRLFEViscoRealK")
+elseif any(string({branches.modelName}) == "mRLFERealK") || any(string({branches.modelName}) == "mRLFEElasticRealK")
     modelName = "mRLFE";
 else
     modelName = "RayleighLamb";
