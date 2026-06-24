@@ -30,6 +30,8 @@ switch lower(string(modelFamily))
         modelName = "RayleighLamb";
     case "mrlfe"
         modelName = "mRLFERealK";
+    case "acoustoelastic_iop_hgo"
+        modelName = "AcoustoelasticIOPHGO";
     otherwise
         modelName = string(modelFamily);
 end
