@@ -56,9 +56,14 @@ aeAnalyzeBranchPersistenceCandidates
 aeRefineAtlasA0BranchPersistence
 aeClassifyAmbiguityRegime
 aeExtractRawBranch1Candidate
+aeComputeModalAtlasForCase
+aeFindTopModalAtlasLocalMinima
+aeLinkModalAtlasMinimaIntoBranches
 ```
 
 `aeExtractRawBranch1Candidate` is diagnostic infrastructure. It supports `track_raw_branch1` and `compare_atlasA0_vs_raw_branch1`; it does not promote `raw_branch1` to production output.
+
+`aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic shared by the standard and low-frequency atlas diagnostics.
 
 ## Maintained public workflows
 
