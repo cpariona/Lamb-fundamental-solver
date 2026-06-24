@@ -4,8 +4,9 @@ function [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branc
 % [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions)
 %
 % The helper evaluates the maintained mRLFE real-k workflow through
-% rlComputeFundamentalLambModes. It uses the supplied experimental frequency
-% grid directly by setting fmin/fmax and a linspace point count.
+% rlComputeFundamentalLambModes. The internal forward solve uses at least 10
+% frequency points to satisfy the Rayleigh-Lamb base solver validation, then
+% interpolates the branch back to the experimental fitting frequencies.
 
 if nargin < 3 || isempty(branchName)
     branchName = "A0Like";
@@ -20,36 +21,51 @@ if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInp
     error('frequency_Hz must contain positive finite values.');
 end
 
-params = localPrepareFrequencyParams(params, frequencyInput);
+[params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequencyInput);
 solverOptions = localPrepareOptions(solverOptions, branchName);
 
 rawFullResult = rlComputeFundamentalLambModes(params, solverOptions);
-branch = localExtractBranch(rawFullResult, branchName);
-Cp_mps = branch.Cp(:);
+branchSolve = localExtractBranch(rawFullResult, branchName);
+[branch, Cp_mps] = localResampleBranchToRequestedGrid(branchSolve, frequencyInput);
 
 rawResult = struct();
 rawResult.modelFamily = "mrlfe";
 rawResult.modelName = "mRLFERealK";
 rawResult.branchName = branchName;
 rawResult.frequency_Hz = frequencyInput;
+rawResult.frequencySolve_Hz = frequencySolve_Hz;
 rawResult.Cp_mps = Cp_mps;
 rawResult.validMask = localBranchValidMask(branch);
 rawResult.branch = branch;
+rawResult.branchSolve = branchSolve;
 rawResult.rawFullResult = rawFullResult;
 rawResult.params = params;
 rawResult.options = solverOptions;
 end
 
-function params = localPrepareFrequencyParams(params, frequency_Hz)
+function [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequency_Hz)
 frequency_Hz = frequency_Hz(:);
-[frequencySorted, sortIdx] = sort(frequency_Hz);
+[frequencySorted, ~] = sort(frequency_Hz);
 if any(abs(frequencySorted - frequency_Hz) > 0)
     error('mRLFE fitting currently requires frequency_Hz to be sorted ascending.');
 end
 
-params.fmin = frequencySorted(1);
-params.fmax = frequencySorted(end);
-params.numFrequencyPoints = numel(frequencySorted);
+if numel(frequencySorted) == 1
+    f0 = frequencySorted(1);
+    halfWidth = max(0.05 * f0, 1.0);
+    fmin = max(eps(f0), f0 - halfWidth);
+    fmax = f0 + halfWidth;
+else
+    fmin = frequencySorted(1);
+    fmax = frequencySorted(end);
+end
+
+numFrequencyPoints = max(10, numel(frequencySorted));
+frequencySolve_Hz = linspace(fmin, fmax, numFrequencyPoints).';
+
+params.fmin = fmin;
+params.fmax = fmax;
+params.numFrequencyPoints = numFrequencyPoints;
 params.frequencySpacing = "linspace";
 end
 
@@ -90,6 +106,65 @@ if ~isfield(rawFullResult, 'models') || ~isfield(rawFullResult.models, 'mRLFERea
     error('mRLFE result does not contain requested branch: %s.', branchName);
 end
 branch = rawFullResult.models.mRLFERealK.branches.(char(branchName));
+end
+
+function [branchOut, CpRequested_mps] = localResampleBranchToRequestedGrid(branchIn, frequencyRequested_Hz)
+frequencyRequested_Hz = frequencyRequested_Hz(:);
+frequencySolve_Hz = branchIn.frequency(:);
+CpSolve_mps = branchIn.Cp(:);
+
+branchOut = branchIn;
+branchOut.frequency = frequencyRequested_Hz;
+branchOut.omega = 2 * pi * frequencyRequested_Hz;
+branchOut.Cp = interpolateNumeric(CpSolve_mps, frequencySolve_Hz, frequencyRequested_Hz);
+
+numericFields = {'k', 'kReal', 'kImag', 'attenuation', 'kThickness', 'residual', 'score', 'seedK', 'seedCp'};
+for i = 1:numel(numericFields)
+    fieldName = numericFields{i};
+    if isfield(branchIn, fieldName)
+        branchOut.(fieldName) = interpolateNumeric(branchIn.(fieldName), frequencySolve_Hz, frequencyRequested_Hz);
+    end
+end
+
+logicalFields = {'validResidual', 'validReference', 'validSmooth', 'validCp', 'validAttenuation', 'valid'};
+for i = 1:numel(logicalFields)
+    fieldName = logicalFields{i};
+    if isfield(branchIn, fieldName)
+        branchOut.(fieldName) = interpolateLogical(branchIn.(fieldName), frequencySolve_Hz, frequencyRequested_Hz);
+    end
+end
+
+CpRequested_mps = branchOut.Cp(:);
+end
+
+function valuesOut = interpolateNumeric(valuesIn, frequencyIn, frequencyOut)
+valuesIn = valuesIn(:);
+if isempty(valuesIn) || numel(valuesIn) ~= numel(frequencyIn)
+    valuesOut = nan(size(frequencyOut));
+    return;
+end
+valid = isfinite(frequencyIn) & isfinite(real(valuesIn)) & isfinite(imag(valuesIn));
+if nnz(valid) < 2
+    valuesOut = nan(size(frequencyOut));
+    return;
+end
+if ~isreal(valuesIn)
+    realPart = interp1(frequencyIn(valid), real(valuesIn(valid)), frequencyOut, 'linear', nan);
+    imagPart = interp1(frequencyIn(valid), imag(valuesIn(valid)), frequencyOut, 'linear', nan);
+    valuesOut = realPart + 1i * imagPart;
+else
+    valuesOut = interp1(frequencyIn(valid), valuesIn(valid), frequencyOut, 'linear', nan);
+end
+end
+
+function valuesOut = interpolateLogical(valuesIn, frequencyIn, frequencyOut)
+valuesIn = logical(valuesIn(:));
+if isempty(valuesIn) || numel(valuesIn) ~= numel(frequencyIn)
+    valuesOut = false(size(frequencyOut));
+    return;
+end
+nearest = interp1(frequencyIn, double(valuesIn), frequencyOut, 'nearest', 0);
+valuesOut = logical(nearest(:));
 end
 
 function validMask = localBranchValidMask(branch)
