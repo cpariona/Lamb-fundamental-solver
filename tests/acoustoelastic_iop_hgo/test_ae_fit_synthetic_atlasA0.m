@@ -4,21 +4,33 @@ startup
 fprintf('\nRunning AE IOP/HGO synthetic atlasA0 fitting test...\n');
 fprintf('-------------------------------------------------\n');
 
-trueParams = aeDefaultSweepParams();
-trueParams.mu = 50e3;
-trueParams.IOP = 15 * 133.322;
+trueParams = struct();
+trueParams.R = 7.8e-3;
 trueParams.thickness = 550e-6;
-trueParams.frequency = [500, 1000, 2000, 4000];
+trueParams.mu = 50e3;
+trueParams.k1 = 25e3;
+trueParams.k2 = 100;
+trueParams.rho = 1060;
+trueParams.rhoF = 1000;
+trueParams.fluidBulkModulus = 2.2e9;
+trueParams.IOP = 15 * 133.322;
+trueParams.frequency = logspace(log10(300), log10(15e3), 35);
 
-solverOptions = aeDefaultSweepOptions("Fast");
-solverOptions.atlasNumYPoints = 120;
-solverOptions.atlasTopNMinima = 8;
-solverOptions.atlasInitializationNumFrequencyPoints = 16;
+solverOptions = defaultAcoustoelasticIOPHGOOptions();
+solverOptions.M54_variant = "corrected";
+solverOptions.normalizeRows = false;
+solverOptions.usePhysicalCpWindow = false;
+solverOptions.atlasNumYPoints = 300;
+solverOptions.atlasTopNMinima = 12;
+solverOptions.atlasBranchPolicy = "atlasA0";
+solverOptions.atlasInitializationNumFrequencyPoints = 50;
 
 [CpSynthetic_mps, syntheticRaw] = aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
 assert(any(syntheticRaw.validMask), 'Synthetic AE atlasA0 output must contain at least one valid point.');
 assert(all(isfinite(CpSynthetic_mps(syntheticRaw.validMask)) & CpSynthetic_mps(syntheticRaw.validMask) > 0), ...
     'Synthetic AE atlasA0 valid Cp must be finite and positive.');
+assert(syntheticRaw.rawResult.solverResult.reliability.SelectionFallbackUsed == false, ...
+    'Synthetic AE atlasA0 fitting test should not rely on fallback branch selection.');
 
 experimental = struct();
 experimental.frequency_Hz = trueParams.frequency(:);
@@ -29,11 +41,11 @@ fitConfig = struct();
 fitConfig.branchName = "atlasA0";
 fitConfig.freeParams = "mu";
 fitConfig.fixedParams = rmfield(trueParams, {'mu', 'frequency'});
-fitConfig.initialGuess = struct('mu', 45e3);
-fitConfig.bounds = struct('mu', [35e3, 65e3]);
+fitConfig.initialGuess = struct('mu', 48e3);
+fitConfig.bounds = struct('mu', [45e3, 55e3]);
 fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
-    'optimizerOptions', optimset('Display', 'off', 'MaxIter', 12, 'MaxFunEvals', 24, 'TolX', 1e-3));
+    'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3));
 
 fitResult = aeFitDispersionData(experimental, fitConfig);
 
