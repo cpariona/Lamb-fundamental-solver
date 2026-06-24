@@ -180,7 +180,12 @@ clear functions
 rehash toolboxcache
 startup
 
-test_acoustoelastic_iop_hgo_short_entrypoints
+run_acoustoelastic_smoke_tests
+```
+
+After broad repository changes, also run:
+
+```matlab
 run_all_smoke_tests
 ```
 
