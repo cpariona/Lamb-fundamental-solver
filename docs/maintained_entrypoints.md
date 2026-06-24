@@ -33,6 +33,7 @@ guiBuildFitRequest
 guiRunFit
 guiFitRLSolver
 guiFitMRLFESolver
+guiFitAcoustoelasticIOPHGOSolver
 guiNormalizeFitResult
 guiPlotFitResult
 ```
@@ -162,6 +163,14 @@ aeRunSweep
 aeSummarizeSweep
 ```
 
+Maintained AE IOP/HGO fitting helpers:
+
+```matlab
+aeBuildFitProblem
+aeEvaluateFitModel
+aeFitDispersionData
+```
+
 Maintained public workflows:
 
 ```matlab
@@ -169,6 +178,12 @@ run_atlas_branch
 sweep_iop
 sweep_mu
 sweep_mu_iop
+```
+
+Maintained AE IOP/HGO fitting example:
+
+```matlab
+fit_ae_atlasA0
 ```
 
 Maintained diagnostic evidence:
@@ -181,6 +196,12 @@ diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
 diagnose_idA0_plausibility
+```
+
+Maintained AE IOP/HGO fitting test:
+
+```matlab
+test_ae_fit_synthetic_atlasA0
 ```
 
 ## mRLFE model
@@ -286,6 +307,7 @@ docs/fitting_phase2_status.md
 docs/fitting_phase3_status.md
 docs/fitting_phase4_status.md
 docs/fitting_phase5_status.md
+docs/fitting_phase6_status.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
@@ -301,5 +323,6 @@ docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/documentation_index.md
 docs/acoustoelastic_iop_hgo/public_api.md
 docs/acoustoelastic_iop_hgo/branch_policy.md
+docs/acoustoelastic_iop_hgo/fitting_workflow.md
 docs/acoustoelastic_iop_hgo/sweep_workflow.md
 ```
