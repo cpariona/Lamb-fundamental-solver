@@ -89,7 +89,6 @@ diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
 diagnose_idA0_plausibility
-diagnose_grid_start_sensitivity
 ```
 
 ## Historical diagnostics retained for traceability
@@ -99,6 +98,7 @@ diagnose_idA0_score
 validate_idA0_grid
 validate_idA0_score_grid
 diagnose_modal_atlas
+diagnose_grid_start_sensitivity
 track_raw_branch1
 ```
 
