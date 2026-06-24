@@ -1,7 +1,7 @@
 clear; clc;
 startup
 
-% Run core path and Rayleigh-Lamb baseline smoke checks.
+% Run core path, fitting helper, and Rayleigh-Lamb baseline smoke checks.
 
 fprintf('\nRunning core smoke tests...\n');
 fprintf('---------------------------\n');
@@ -20,6 +20,19 @@ assertNumericClose(elastic.mu, 75e3, 1e-12, ...
     'elasticFromMuNu should preserve mu.');
 assert(elastic.lambda > 0 && elastic.K > 0 && elastic.CL > elastic.CT, ...
     'elasticFromMuNu should return positive lambda/K and CL > CT.');
+
+%% Shared fitting helpers
+fprintf('\nChecking shared fitting helper functions...\n');
+assertFunctionsOnPath({ ...
+    'normalizeExperimentalDispersionData', ...
+    'validateExperimentalDispersionData', ...
+    'computeDispersionFitResiduals', ...
+    'computeDispersionFitMetrics', ...
+    'buildParameterVector', ...
+    'unpackParameterVector', ...
+    'estimateLocalSensitivity', ...
+    'assessFitIdentifiability'}, ...
+    'shared fitting helper');
 
 %% Rayleigh-Lamb primary API path checks
 fprintf('\nChecking Rayleigh-Lamb primary rl* API functions...\n');
@@ -111,6 +124,10 @@ assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol,
     'Rayleigh-Lamb A0 regression Cp values are not repeatable.');
 assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
     'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
+
+%% Shared fitting helper smoke test
+fprintf('\nRunning shared fitting helper smoke test from core suite...\n');
+test_fitting_helpers_smoke
 
 fprintf('\nCore smoke tests passed.\n');
 
