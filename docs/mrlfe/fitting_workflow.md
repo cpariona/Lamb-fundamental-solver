@@ -40,16 +40,22 @@ Only `frequency_Hz` and `Cp_mps` are required.
 
 ## Frequency-grid policy
 
-`mrlfeEvaluateFitModel` evaluates mRLFE on the supplied fitting frequency range by setting:
+`mrlfeEvaluateFitModel` evaluates mRLFE through the maintained Rayleigh-Lamb/mRLFE forward workflow. Since the base Rayleigh-Lamb solver validates that `numFrequencyPoints >= 10`, the fitting evaluator uses an internal solve grid with at least 10 points:
 
 ```matlab
 params.fmin = min(frequency_Hz);
 params.fmax = max(frequency_Hz);
-params.numFrequencyPoints = numel(frequency_Hz);
+params.numFrequencyPoints = max(10, numel(frequency_Hz));
 params.frequencySpacing = "linspace";
 ```
 
-The first implementation requires valid fitting frequencies to be sorted ascending.
+The mRLFE branch is then interpolated back to the experimental fitting frequencies.
+
+This allows sparse experimental fitting data, including fewer than 10 points, while preserving the base solver validation rule.
+
+If only one fitting frequency is supplied, the evaluator creates a narrow internal frequency window around that point before interpolating back to the requested frequency.
+
+The current implementation requires valid fitting frequencies to be sorted ascending.
 
 ## Optimizer policy
 
