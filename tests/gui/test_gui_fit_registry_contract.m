@@ -7,7 +7,7 @@ fprintf('------------------------------------------\n');
 registry = guiGetFitRegistry();
 assert(isfield(registry, 'defaultModelFamily'), 'Fit registry missing defaultModelFamily.');
 assert(isfield(registry, 'modelFamilies'), 'Fit registry missing modelFamilies.');
-assert(numel(registry.modelFamilies) >= 2, 'Fit registry must expose Rayleigh-Lamb and mRLFE model families.');
+assert(numel(registry.modelFamilies) >= 3, 'Fit registry must expose Rayleigh-Lamb, mRLFE, and AE IOP/HGO model families.');
 
 rlFamily = registry.modelFamilies(1);
 assert(rlFamily.id == "rayleigh_lamb", 'First fit family should be Rayleigh-Lamb.');
@@ -18,6 +18,11 @@ mrlfeFamily = registry.modelFamilies(2);
 assert(mrlfeFamily.id == "mrlfe", 'Second fit family should be mRLFE.');
 assert(any(mrlfeFamily.branchNames == "A0Like"), 'mRLFE fit registry must include A0Like.');
 assert(any([mrlfeFamily.parameters.canFit]), 'At least one mRLFE parameter must be fit-capable.');
+
+aeFamily = registry.modelFamilies(3);
+assert(aeFamily.id == "acoustoelastic_iop_hgo", 'Third fit family should be AE IOP/HGO.');
+assert(any(aeFamily.branchNames == "atlasA0"), 'AE IOP/HGO fit registry must include atlasA0.');
+assert(any([aeFamily.parameters.canFit]), 'At least one AE IOP/HGO parameter must be fit-capable.');
 
 %% Rayleigh-Lamb app-level fit
 trueParams = rlDefaultParams();
