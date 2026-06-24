@@ -257,12 +257,14 @@ docs/validation_status.md
 docs/maintained_entrypoints.md
 docs/fitting_architecture.md
 docs/fitting_phase1_status.md
+docs/fitting_phase2_status.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
 docs/gui_integration_audit.md
 docs/rayleigh_lamb/overview.md
 docs/rayleigh_lamb/public_api.md
+docs/rayleigh_lamb/fitting_workflow.md
 docs/mrlfe/current_sweeps.md
 docs/mrlfe/pending_cleanup.md
 docs/mrlfe/tracker_diagnostic_summary.md
