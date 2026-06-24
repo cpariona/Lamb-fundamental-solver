@@ -1,10 +1,9 @@
 function FitTool_GUI()
 %FITTOOL_GUI Minimal visual interface for experimental dispersion fitting.
 %
-% This GUI is intentionally small. It uses the app-level fitting backend from
-% app/fitting and does not implement model-specific fitting logic.
+% This GUI uses the app-level fitting backend from app/fitting and does not
+% implement model-specific fitting algorithms.
 
-params0 = rlDefaultParams();
 lastFitOutput = [];
 
 fig = uifigure('Name', 'Experimental Dispersion Fitting Tool', 'Position', [120 120 1180 720]);
@@ -22,11 +21,12 @@ tabs = uitabgroup(leftGrid);
 
 fitControls = [];
 callbacks = struct();
+callbacks.onFitModelChanged = @(~,~)onFitModelChanged();
 callbacks.onFitParameterChanged = @(~,~)onFitParameterChanged();
 callbacks.onPopulateFitData = @(~,~)onPopulateFitData();
 callbacks.onRunFit = @(~,~)onRunFit();
 
-fitControls = createFittingTab(tabs, params0, callbacks);
+fitControls = createFittingTab(tabs, rlDefaultParams(), callbacks);
 
 rightGrid = uigridlayout(root, [2 1]);
 rightGrid.Layout.Column = 2;
@@ -44,48 +44,43 @@ title(ax, 'Experimental fit');
 resultTable = uitable(rightGrid, 'Data', table(), 'ColumnName', {});
 resultTable.Layout.Row = 2;
 
-onFitParameterChanged();
+onFitModelChanged();
+
+    function onFitModelChanged()
+        modelFamily = getSelectedModelFamily();
+        family = getSelectedFamily();
+        fitControls.branch.Items = cellstr(family.branchNames);
+        fitControls.branch.Value = char(family.defaultBranchName);
+        fitControls.robustness.Items = cellstr(family.robustnessPresets);
+        fitControls.robustness.Value = char(family.defaultRobustness);
+        freeParams = getValidatedVisibleFreeParams(modelFamily);
+        fitControls.freeParam.Items = cellstr(freeParams);
+        fitControls.freeParam.Value = char(freeParams(1));
+        onFitParameterChanged();
+        fitControls.status.Text = sprintf('Fit status: selected model %s.', string(family.label));
+    end
 
     function onFitParameterChanged()
+        modelFamily = getSelectedModelFamily();
         freeParam = string(fitControls.freeParam.Value);
-        switch freeParam
-            case "mu"
-                fitControls.initialGuessLabel.Text = 'Initial mu [kPa]';
-                fitControls.lowerBoundLabel.Text = 'Lower mu [kPa]';
-                fitControls.upperBoundLabel.Text = 'Upper mu [kPa]';
-                fitControls.initialGuess.Value = params0.mu / 1e3;
-                fitControls.lowerBound.Value = max(1, 0.20 * params0.mu / 1e3);
-                fitControls.upperBound.Value = 5.0 * params0.mu / 1e3;
-                fitControls.fixedHeader.Text = sprintf('Fixed: rho %.0f kg/m^3 | nu %.5f | 2h %.3f mm', ...
-                    params0.rho, params0.nu, params0.thickness * 1e3);
-            case "thickness"
-                fitControls.initialGuessLabel.Text = 'Initial 2h [mm]';
-                fitControls.lowerBoundLabel.Text = 'Lower 2h [mm]';
-                fitControls.upperBoundLabel.Text = 'Upper 2h [mm]';
-                fitControls.initialGuess.Value = params0.thickness * 1e3;
-                fitControls.lowerBound.Value = max(0.01, 0.20 * params0.thickness * 1e3);
-                fitControls.upperBound.Value = 5.0 * params0.thickness * 1e3;
-                fitControls.fixedHeader.Text = sprintf('Fixed: rho %.0f kg/m^3 | nu %.5f | mu %.3f kPa', ...
-                    params0.rho, params0.nu, params0.mu / 1e3);
-        end
+        config = getParameterDisplayConfig(modelFamily, freeParam);
+        fitControls.initialGuessLabel.Text = sprintf('Initial %s [%s]', config.label, config.displayUnit);
+        fitControls.lowerBoundLabel.Text = sprintf('Lower %s [%s]', config.label, config.displayUnit);
+        fitControls.upperBoundLabel.Text = sprintf('Upper %s [%s]', config.label, config.displayUnit);
+        fitControls.initialGuess.Value = config.initialDisplay;
+        fitControls.lowerBound.Value = config.lowerDisplay;
+        fitControls.upperBound.Value = config.upperDisplay;
+        fitControls.fixedHeader.Text = getFixedSummary(modelFamily, freeParam);
     end
 
     function onPopulateFitData()
         try
-            params = params0;
+            modelFamily = getSelectedModelFamily();
             freeParam = string(fitControls.freeParam.Value);
-            switch freeParam
-                case "mu"
-                    params.mu = fitControls.initialGuess.Value * 1e3;
-                case "thickness"
-                    params.thickness = fitControls.initialGuess.Value * 1e-3;
-            end
-            frequency_Hz = linspace(1000, 8000, 12).';
             branchName = string(fitControls.branch.Value);
-            options = rlDefaultOptions(string(fitControls.robustness.Value));
-            Cp_mps = rlEvaluateFitModel(params, frequency_Hz, branchName, options);
-            fitControls.dataTable.Data = [frequency_Hz, Cp_mps(:), ones(size(frequency_Hz))];
-            fitControls.status.Text = 'Fit status: synthetic data generated from current fitting controls.';
+            [frequency_Hz, Cp_mps, validMask] = generateSyntheticData(modelFamily, branchName, freeParam);
+            fitControls.dataTable.Data = [frequency_Hz(:), Cp_mps(:), double(validMask(:))];
+            fitControls.status.Text = sprintf('Fit status: synthetic %s data generated.', modelFamily);
         catch ME
             fitControls.status.Text = ['Fit status: error generating data: ', ME.message];
             uialert(fig, ME.message, 'Synthetic data error');
@@ -110,10 +105,11 @@ onFitParameterChanged();
     end
 
     function request = buildRequestFromControls()
+        modelFamily = getSelectedModelFamily();
         experimental = readExperimentalData();
         freeParam = string(fitControls.freeParam.Value);
-        [fixedParams, initialGuess, bounds] = buildParameterConfig(freeParam);
-        request = guiBuildFitRequest('rayleigh_lamb', ...
+        [fixedParams, initialGuess, bounds, controls, fitOptions] = buildParameterConfig(modelFamily, freeParam);
+        request = guiBuildFitRequest(modelFamily, ...
             'branchName', string(fitControls.branch.Value), ...
             'mode', "basic", ...
             'experimental', experimental, ...
@@ -121,8 +117,8 @@ onFitParameterChanged();
             'freeParams', freeParam, ...
             'initialGuess', initialGuess, ...
             'bounds', bounds, ...
-            'controls', struct('robustness', string(fitControls.robustness.Value)), ...
-            'fitOptions', struct('useStandardErrorWeights', false));
+            'controls', controls, ...
+            'fitOptions', fitOptions);
     end
 
     function experimental = readExperimentalData()
@@ -146,22 +142,198 @@ onFitParameterChanged();
         experimental.validMask = validMask;
     end
 
-    function [fixedParams, initialGuess, bounds] = buildParameterConfig(freeParam)
-        fixedParams = struct('rho', params0.rho, 'nu', params0.nu);
-        initialGuess = struct();
-        bounds = struct();
-        switch freeParam
-            case "mu"
-                fixedParams.thickness = params0.thickness;
-                initialGuess.mu = fitControls.initialGuess.Value * 1e3;
-                bounds.mu = [fitControls.lowerBound.Value, fitControls.upperBound.Value] * 1e3;
-            case "thickness"
-                fixedParams.mu = params0.mu;
-                initialGuess.thickness = fitControls.initialGuess.Value * 1e-3;
-                bounds.thickness = [fitControls.lowerBound.Value, fitControls.upperBound.Value] * 1e-3;
-            otherwise
-                error('Unsupported free parameter: %s.', freeParam);
+    function [fixedParams, initialGuess, bounds, controls, fitOptions] = buildParameterConfig(modelFamily, freeParam)
+        initialValue = convertDisplayToSolver(modelFamily, freeParam, fitControls.initialGuess.Value);
+        lowerValue = convertDisplayToSolver(modelFamily, freeParam, fitControls.lowerBound.Value);
+        upperValue = convertDisplayToSolver(modelFamily, freeParam, fitControls.upperBound.Value);
+        if lowerValue >= upperValue
+            error('Lower bound must be smaller than upper bound.');
         end
+
+        initialGuess = struct();
+        initialGuess.(char(freeParam)) = initialValue;
+        bounds = struct();
+        bounds.(char(freeParam)) = [lowerValue, upperValue];
+        controls = struct('robustness', string(fitControls.robustness.Value));
+        fitOptions = struct('useStandardErrorWeights', false);
+
+        switch modelFamily
+            case "rayleigh_lamb"
+                params = rlDefaultParams();
+                fixedParams = struct('rho', params.rho, 'nu', params.nu);
+                if freeParam == "mu"
+                    fixedParams.thickness = params.thickness;
+                elseif freeParam == "thickness"
+                    fixedParams.mu = params.mu;
+                else
+                    error('Unsupported Rayleigh-Lamb visible free parameter: %s.', freeParam);
+                end
+            case "mrlfe"
+                params = mrlfeDefaultSweepParams();
+                fixedParams = struct('thickness', params.thickness, 'rho', params.rho, 'nu', params.nu);
+                controls.etaS = 0.0;
+                controls.fluidDensity = 1000;
+                controls.fluidSoundSpeed = 1500;
+                fitOptions.optimizerOptions = optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 70, 'TolX', 1e-4);
+            case "acoustoelastic_iop_hgo"
+                params = defaultAEParams();
+                fixedParams = rmfield(params, {'mu', 'frequency'});
+                controls.atlasNumYPoints = 300;
+                controls.atlasTopNMinima = 12;
+                controls.atlasInitializationNumFrequencyPoints = 50;
+                fitOptions.optimizerOptions = optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3);
+            otherwise
+                error('Unsupported fitting model family: %s.', modelFamily);
+        end
+    end
+
+    function [frequency_Hz, Cp_mps, validMask] = generateSyntheticData(modelFamily, branchName, freeParam)
+        value = convertDisplayToSolver(modelFamily, freeParam, fitControls.initialGuess.Value);
+        switch modelFamily
+            case "rayleigh_lamb"
+                params = rlDefaultParams();
+                params.(char(freeParam)) = value;
+                frequency_Hz = linspace(1000, 8000, 12).';
+                options = rlDefaultOptions(string(fitControls.robustness.Value));
+                Cp_mps = rlEvaluateFitModel(params, frequency_Hz, branchName, options);
+                validMask = isfinite(Cp_mps(:));
+            case "mrlfe"
+                params = mrlfeDefaultSweepParams();
+                params.mu = value;
+                frequency_Hz = linspace(1000, 8000, 10).';
+                options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0.0);
+                Cp_mps = mrlfeEvaluateFitModel(params, frequency_Hz, "A0Like", options);
+                validMask = isfinite(Cp_mps(:));
+            case "acoustoelastic_iop_hgo"
+                params = defaultAEParams();
+                params.mu = value;
+                frequency_Hz = params.frequency(:);
+                options = defaultAEOptions();
+                [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, "atlasA0", options);
+                validMask = rawResult.validMask(:);
+                if ~any(validMask)
+                    error('AE atlasA0 produced zero valid points for the current synthetic setup.');
+                end
+            otherwise
+                error('Unsupported fitting model family: %s.', modelFamily);
+        end
+    end
+
+    function modelFamily = getSelectedModelFamily()
+        selectedLabel = string(fitControls.model.Value);
+        idx = find(fitControls.modelLabels == selectedLabel, 1, 'first');
+        if isempty(idx)
+            error('Selected model is not registered: %s.', selectedLabel);
+        end
+        modelFamily = string(fitControls.modelFamilyIds(idx));
+    end
+
+    function family = getSelectedFamily()
+        modelFamily = getSelectedModelFamily();
+        families = fitControls.registry.modelFamilies;
+        for i = 1:numel(families)
+            if families(i).id == modelFamily
+                family = families(i);
+                return;
+            end
+        end
+        error('Selected fitting family is not registered: %s.', modelFamily);
+    end
+
+    function freeParams = getValidatedVisibleFreeParams(modelFamily)
+        switch modelFamily
+            case "rayleigh_lamb"
+                freeParams = ["mu", "thickness"];
+            case "mrlfe"
+                freeParams = "mu";
+            case "acoustoelastic_iop_hgo"
+                freeParams = "mu";
+            otherwise
+                error('Unsupported fitting model family: %s.', modelFamily);
+        end
+    end
+
+    function config = getParameterDisplayConfig(modelFamily, freeParam)
+        switch modelFamily
+            case "rayleigh_lamb"
+                params = rlDefaultParams();
+                switch freeParam
+                    case "mu"
+                        config = makeDisplayConfig('mu', 'kPa', 1e3, params.mu, [0.20 * params.mu, 5.0 * params.mu]);
+                    case "thickness"
+                        config = makeDisplayConfig('2h', 'mm', 1e-3, params.thickness, [0.20 * params.thickness, 5.0 * params.thickness]);
+                    otherwise
+                        error('Unsupported Rayleigh-Lamb free parameter: %s.', freeParam);
+                end
+            case "mrlfe"
+                params = mrlfeDefaultSweepParams();
+                config = makeDisplayConfig('mu', 'kPa', 1e3, params.mu, [20e3, 160e3]);
+            case "acoustoelastic_iop_hgo"
+                params = defaultAEParams();
+                config = makeDisplayConfig('mu', 'kPa', 1e3, params.mu, [45e3, 55e3]);
+            otherwise
+                error('Unsupported fitting model family: %s.', modelFamily);
+        end
+    end
+
+    function config = makeDisplayConfig(label, displayUnit, displayScale, initialValue, solverBounds)
+        config = struct();
+        config.label = label;
+        config.displayUnit = displayUnit;
+        config.displayScale = displayScale;
+        config.initialDisplay = initialValue ./ displayScale;
+        config.lowerDisplay = solverBounds(1) ./ displayScale;
+        config.upperDisplay = solverBounds(2) ./ displayScale;
+    end
+
+    function value = convertDisplayToSolver(modelFamily, freeParam, displayValue)
+        config = getParameterDisplayConfig(modelFamily, freeParam);
+        value = displayValue .* config.displayScale;
+    end
+
+    function text = getFixedSummary(modelFamily, freeParam)
+        switch modelFamily
+            case "rayleigh_lamb"
+                params = rlDefaultParams();
+                if freeParam == "mu"
+                    text = sprintf('Fixed: rho %.0f kg/m^3 | nu %.5f | 2h %.3f mm', params.rho, params.nu, params.thickness * 1e3);
+                else
+                    text = sprintf('Fixed: rho %.0f kg/m^3 | nu %.5f | mu %.3f kPa', params.rho, params.nu, params.mu / 1e3);
+                end
+            case "mrlfe"
+                params = mrlfeDefaultSweepParams();
+                text = sprintf('Fixed: etaS 0 Pa*s | rho %.0f kg/m^3 | nu %.5f | 2h %.3f mm', params.rho, params.nu, params.thickness * 1e3);
+            case "acoustoelastic_iop_hgo"
+                params = defaultAEParams();
+                text = sprintf('Fixed: IOP %.1f mmHg | 2h %.0f um | R %.2f mm | atlasA0', params.IOP / 133.322, params.thickness * 1e6, params.R * 1e3);
+            otherwise
+                text = 'Fixed: unavailable.';
+        end
+    end
+
+    function params = defaultAEParams()
+        params = struct();
+        params.R = 7.8e-3;
+        params.thickness = 550e-6;
+        params.mu = 50e3;
+        params.k1 = 25e3;
+        params.k2 = 100;
+        params.rho = 1060;
+        params.rhoF = 1000;
+        params.fluidBulkModulus = 2.2e9;
+        params.IOP = 15 * 133.322;
+        params.frequency = logspace(log10(300), log10(15e3), 35);
+    end
+
+    function options = defaultAEOptions()
+        options = defaultAcoustoelasticIOPHGOOptions();
+        options.M54_variant = "corrected";
+        options.normalizeRows = false;
+        options.usePhysicalCpWindow = false;
+        options.atlasNumYPoints = 300;
+        options.atlasTopNMinima = 12;
+        options.atlasBranchPolicy = "atlasA0";
+        options.atlasInitializationNumFrequencyPoints = 50;
     end
 
     function updateStatusFromFitOutput(fitOutput)
