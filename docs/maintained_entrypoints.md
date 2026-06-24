@@ -90,6 +90,16 @@ test_fitting_helpers_smoke
 test_gui_fit_registry_contract
 ```
 
+Focused fitting validation suite:
+
+```matlab
+run_fit_validation_tests
+test_fit_validation_rayleigh_lamb
+test_fit_validation_mrlfe
+test_fit_validation_ae_iop_hgo
+assertFitRecovery
+```
+
 ## Rayleigh-Lamb base solver
 
 Maintained Rayleigh-Lamb implementation entrypoints use the `rl*` API:
@@ -294,6 +304,12 @@ run_acoustoelastic_smoke_tests
 run_mrlfe_smoke_tests
 ```
 
+Run focused fitting validation separately:
+
+```matlab
+run_fit_validation_tests
+```
+
 ## Active documentation links
 
 ```text
@@ -302,6 +318,7 @@ docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
 docs/fitting_architecture.md
+docs/fitting_validation_suite.md
 docs/fitting_phase1_status.md
 docs/fitting_phase2_status.md
 docs/fitting_phase3_status.md
