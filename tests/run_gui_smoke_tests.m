@@ -1,7 +1,7 @@
 clear; clc;
 startup
 
-% Run GUI adapter and sweep smoke tests.
+% Run GUI adapter, sweep, and fitting smoke tests.
 
 fprintf('\nRunning GUI smoke tests...\n');
 fprintf('--------------------------\n');
@@ -27,23 +27,32 @@ assertFunctionsOnPath({ ...
     'guiGetSweepRegistry', ...
     'guiGetSweepFamilyConfig', ...
     'guiGetSweepParameterConfig', ...
-    'guiFormatSweepValues'}, ...
+    'guiFormatSweepValues', ...
+    'guiGetFitRegistry', ...
+    'guiBuildFitRequest', ...
+    'guiRunFit', ...
+    'guiFitRLSolver', ...
+    'guiNormalizeFitResult', ...
+    'guiPlotFitResult'}, ...
     'GUI adapter/helper');
 
-fprintf('\n[GUI 1/5] GUI normalized adapters smoke test\n');
+fprintf('\n[GUI 1/6] GUI normalized adapters smoke test\n');
 test_gui_normalized_adapters_smoke;
 
-fprintf('\n[GUI 2/5] GUI sweep adapters smoke test\n');
+fprintf('\n[GUI 2/6] GUI sweep adapters smoke test\n');
 test_gui_sweep_adapters_smoke;
 
-fprintf('\n[GUI 3/5] GUI sweep registry smoke test\n');
+fprintf('\n[GUI 3/6] GUI sweep registry smoke test\n');
 test_gui_sweep_registry_smoke;
 
-fprintf('\n[GUI 4/5] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
+fprintf('\n[GUI 4/6] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke;
 
-fprintf('\n[GUI 5/5] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
+fprintf('\n[GUI 5/6] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_main_adapter_smoke;
+
+fprintf('\n[GUI 6/6] GUI fitting backend contract test\n');
+test_gui_fit_registry_contract;
 
 fprintf('\nGUI smoke tests passed.\n');
 
