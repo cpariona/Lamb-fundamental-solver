@@ -101,6 +101,14 @@ rlComputeS0ExtensionalApproximation
 rlSolveFundamentalBranch
 ```
 
+Maintained Rayleigh-Lamb fitting helpers:
+
+```matlab
+rlBuildFitProblem
+rlEvaluateFitModel
+rlFitDispersionData
+```
+
 Maintained Rayleigh-Lamb examples:
 
 ```matlab
@@ -109,6 +117,13 @@ run_default_A0_S0
 sweep_thickness_A0_elastic
 sweep_thickness_S0_elastic
 check_default_outputs
+fit_default_A0
+```
+
+Maintained Rayleigh-Lamb tests:
+
+```matlab
+test_rl_fit_synthetic_A0
 ```
 
 ## Acoustoelastic IOP/HGO model
