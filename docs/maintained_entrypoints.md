@@ -265,6 +265,7 @@ docs/maintained_entrypoints.md
 docs/fitting_architecture.md
 docs/fitting_phase1_status.md
 docs/fitting_phase2_status.md
+docs/fitting_phase3_status.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
