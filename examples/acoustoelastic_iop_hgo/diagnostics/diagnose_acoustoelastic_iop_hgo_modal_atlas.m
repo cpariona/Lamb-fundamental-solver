@@ -323,8 +323,7 @@ imagesc(atlas.frequency/1e3, atlas.yGrid, atlas.objectiveMap);
 set(gca, 'YScale', 'log', 'XScale', 'log', 'YDir', 'normal');
 hold on; grid on;
 colormap(parula);
-cb = colorbar;
-cb.Label.String = 'log10(sigma_{min})';
+colorbar;
 
 T = atlas.minimaTable;
 if ~isempty(T)
@@ -352,7 +351,7 @@ end
 
 xlabel('frequency [kHz]');
 ylabel('Cp / sqrt(alpha/rho) [-]');
-title(sprintf('Li 2024 modal atlas: %s, IOP %.0f mmHg', condition.label, atlas.IOP_mmHg), 'Interpreter', 'none');
+title(sprintf('Li 2024 modal atlas: %s, IOP %.0f mmHg | color = log10 objective', condition.label, atlas.IOP_mmHg), 'Interpreter', 'none');
 hold off;
 end
 
@@ -365,9 +364,8 @@ scatter(branchTable.FrequencyCoverage_kHz, branchTable.Roughness, 60, branchTabl
 grid on;
 xlabel('branch frequency coverage [kHz]');
 ylabel('branch roughness');
-title('Li 2024 modal atlas branch persistence summary');
-cb = colorbar;
-cb.Label.String = 'median minimum rank';
+title('Li 2024 modal atlas branch persistence summary | color = median minimum rank');
+colorbar;
 end
 
 function plotConditionMinimaDensity(summaryTable)
