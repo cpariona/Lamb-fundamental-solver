@@ -241,6 +241,7 @@ docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
 docs/fitting_architecture.md
+docs/fitting_phase1_status.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
