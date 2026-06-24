@@ -1,13 +1,17 @@
 function h = createFittingTab(tabs, params0, callbacks)
 %CREATEFITTINGTAB Build minimal experimental fitting controls.
 %
-% The tab is intentionally lightweight. It prepares GUI inputs for the
-% app-level fitting backend and does not implement fitting algorithms.
+% The tab prepares GUI inputs for the app-level fitting backend and does not
+% implement model-specific fitting algorithms.
 
 registry = guiGetFitRegistry();
-family = registry.modelFamilies(1);
+families = registry.modelFamilies;
+modelLabels = strings(1, numel(families));
+for i = 1:numel(families)
+    modelLabels(i) = string(families(i).label);
+end
+family = families(1);
 
-elastic0 = elasticFromMuNu(params0.mu, params0.nu, params0.rho);
 CpExample = sqrt(params0.mu / params0.rho);
 defaultData = [1000, CpExample, 1; 3000, CpExample, 1; 5000, CpExample, 1; 7000, CpExample, 1];
 
@@ -19,6 +23,14 @@ g.Padding = [10 8 10 8];
 g.RowSpacing = 3;
 g.ColumnSpacing = 8;
 
+h = struct();
+h.registry = registry;
+h.modelLabels = modelLabels;
+h.modelFamilyIds = strings(1, numel(families));
+for i = 1:numel(families)
+    h.modelFamilyIds(i) = families(i).id;
+end
+
 header = uilabel(g, 'Text', 'Experimental fitting', 'FontWeight', 'bold');
 header.Layout.Row = 1;
 header.Layout.Column = [1 4];
@@ -26,7 +38,8 @@ header.Layout.Column = [1 4];
 label = uilabel(g, 'Text', 'Model');
 label.Layout.Row = 2;
 label.Layout.Column = 1;
-h.model = uidropdown(g, 'Items', cellstr([family.label]), 'Value', char(family.label), 'Enable', 'off');
+h.model = uidropdown(g, 'Items', cellstr(modelLabels), 'Value', char(modelLabels(1)), ...
+    'ValueChangedFcn', callbacks.onFitModelChanged);
 h.model.Layout.Row = 2;
 h.model.Layout.Column = 2;
 
@@ -73,8 +86,7 @@ h.upperBound = uieditfield(g, 'numeric', 'Value', 5.0 * params0.mu / 1e3, 'Limit
 h.upperBound.Layout.Row = 5;
 h.upperBound.Layout.Column = 2;
 
-h.fixedHeader = uilabel(g, 'Text', sprintf('Fixed defaults: rho %.0f kg/m^3 | nu %.5f | 2h %.3f mm', ...
-    params0.rho, elastic0.nu, params0.thickness * 1e3), 'FontSize', 10);
+h.fixedHeader = uilabel(g, 'Text', 'Fixed defaults depend on the selected model.', 'FontSize', 10);
 h.fixedHeader.Layout.Row = 5;
 h.fixedHeader.Layout.Column = [3 4];
 
@@ -104,7 +116,7 @@ h.status = uilabel(g, 'Text', 'Fit status: ready.', 'FontSize', 10, 'WordWrap', 
 h.status.Layout.Row = 12;
 h.status.Layout.Column = [1 4];
 
-h.note = uilabel(g, 'Text', 'Phase 4 supports Rayleigh-Lamb A0/S0 fitting for one selected parameter.', ...
+h.note = uilabel(g, 'Text', 'Validated visible fitting: Rayleigh-Lamb mu/thickness, mRLFE mu, AE IOP/HGO atlasA0 mu.', ...
     'FontSize', 10, 'WordWrap', 'on');
 h.note.Layout.Row = 13;
 h.note.Layout.Column = [1 4];
