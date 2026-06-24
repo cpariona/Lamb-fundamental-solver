@@ -12,9 +12,9 @@ startup
 
 outputFolder = aeOutputFolder(launchFolder, 'idA0_score_grid');
 
-baseParams = makeBaseParams();
-baseOptions = makeBaseOptions();
-grid = makeValidationGrid();
+baseParams = aeDefaultIdentityA0ValidationParams();
+baseOptions = aeDefaultIdentityA0ValidationOptions('AtlasBranchPolicy', "atlasA0");
+grid = aeDefaultIdentityA0ValidationGrid();
 
 fprintf('\nAcoustoelastic IOP/HGO branch-identity score grid validation\n');
 fprintf('Launch folder:\n%s\n', launchFolder);
@@ -74,72 +74,6 @@ assignin('base', 'AcoustoelasticIOPHGOBranchIdentityScoreGridSummary', summaryTa
 assignin('base', 'AcoustoelasticIOPHGOBranchIdentityScoreGridBestCandidates', bestCandidateTable);
 assignin('base', 'AcoustoelasticIOPHGOBranchIdentityScoreGridAggregate', aggregateTable);
 assignin('base', 'AcoustoelasticIOPHGOBranchIdentityScoreGridOutputFolder', outputFolder);
-
-function params = makeBaseParams()
-params = struct();
-params.R = 7.8e-3;
-params.thickness = 550e-6;
-params.IOP = 15 * 133.322;
-params.mu = 50e3;
-params.k1 = 25e3;
-params.k2 = 100;
-params.rho = 1060;
-params.rhoF = 1000;
-params.fluidBulkModulus = 2.2e9;
-params.frequency = logspace(log10(100), log10(35e3), 120);
-end
-
-function options = makeBaseOptions()
-options = defaultAcoustoelasticIOPHGOOptions();
-options.M54_variant = "corrected";
-options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
-options.atlasBranchPolicy = "atlasA0";
-options.atlasNumYPoints = 1000;
-options.atlasTopNMinima = 18;
-end
-
-function grid = makeValidationGrid()
-IOP_mmHg = [5, 15, 25, 35];
-mu_kPa = [25, 50, 100];
-k1_kPa = [10, 25, 50];
-k2 = [50, 100, 200];
-thickness_um = [450, 650];
-
-rows = [];
-idx = 0;
-for iop = IOP_mmHg
-    for mu = mu_kPa
-        for k1 = k1_kPa
-            for k2v = k2
-                idx = idx + 1;
-                row = struct();
-                row.CaseIndex = idx;
-                row.IOP_mmHg = iop;
-                row.mu_kPa = mu;
-                row.k1_kPa = k1;
-                row.k2 = k2v;
-                row.thickness_um = 550;
-                row.GridFamily = "material_iop_core";
-                rows = [rows; row]; %#ok<AGROW>
-            end
-        end
-    end
-end
-for h = thickness_um
-    idx = idx + 1;
-    row = struct();
-    row.CaseIndex = idx;
-    row.IOP_mmHg = 25;
-    row.mu_kPa = 50;
-    row.k1_kPa = 25;
-    row.k2 = 100;
-    row.thickness_um = h;
-    row.GridFamily = "thickness_probe";
-    rows = [rows; row]; %#ok<AGROW>
-end
-grid = struct2table(rows);
-end
 
 function row = buildSummaryRow(caseIndex, gridRow, result, score)
 valid = logical(result.validCp(:)) & isfinite(result.Cp(:));
