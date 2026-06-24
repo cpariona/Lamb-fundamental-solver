@@ -1,10 +1,10 @@
 function rawBranch = aeExtractRawBranch1Candidate(launchFolder, varargin)
 %AEEXTRACTRAWBRANCH1CANDIDATE Extract corrected raw-matrix branch-1 candidate.
 %
-% rawBranch = aeExtractRawBranch1Candidate(launchFolder) reads the
-% low-frequency modal-atlas tables, selects a persistent raw_branch1
-% candidate for each IOP condition, and writes the raw_branch1 outputs under
-% Results/ae_iop_hgo/raw_branch1 relative to launchFolder.
+% rawBranch = aeExtractRawBranch1Candidate(launchFolder) reads the modal-atlas
+% tables, selects a persistent raw_branch1 candidate for each IOP condition,
+% and writes the raw_branch1 outputs under Results/ae_iop_hgo/raw_branch1
+% relative to launchFolder.
 %
 % This is diagnostic infrastructure only. It does not modify result.Cp or
 % result.validCp and does not promote raw_branch1 to production output.
@@ -20,9 +20,12 @@ function rawBranch = aeExtractRawBranch1Candidate(launchFolder, varargin)
 
 opts = parseOptions(varargin{:});
 
-inputFolder = fullfile(launchFolder, 'Results', 'ae_iop_hgo', 'modal_atlas_lowfreq');
+inputFolder = fullfile(launchFolder, 'Results', 'ae_iop_hgo', 'modal_atlas');
+legacyLowFrequencyFolder = fullfile(launchFolder, 'Results', 'ae_iop_hgo', 'modal_atlas_lowfreq');
 legacyInputFolder = fullfile(launchFolder, 'Results', 'acoustoelastic_iop_hgo_low_frequency_modal_atlas');
-if ~exist(inputFolder, 'dir') && exist(legacyInputFolder, 'dir')
+if ~exist(inputFolder, 'dir') && exist(legacyLowFrequencyFolder, 'dir')
+    inputFolder = legacyLowFrequencyFolder;
+elseif ~exist(inputFolder, 'dir') && exist(legacyInputFolder, 'dir')
     inputFolder = legacyInputFolder;
 end
 
@@ -40,7 +43,7 @@ rawBranchTable = branchTable(branchTable.Condition == "corrected_raw_matrix", :)
 rawMinimaTable = minimaTable(minimaTable.Condition == "corrected_raw_matrix", :);
 
 if isempty(rawBranchTable) || isempty(rawMinimaTable)
-    error('No corrected_raw_matrix modal-atlas rows were found. Run diagnose_modal_atlas_lowfreq first.');
+    error('No corrected_raw_matrix modal-atlas rows were found. Run diagnose_modal_atlas first.');
 end
 
 IOP_mmHg = unique(rawBranchTable.IOP_mmHg, 'stable');
@@ -158,20 +161,26 @@ end
 end
 
 function [minimaFile, branchFile] = resolveModalAtlasFiles(inputFolder)
-minimaFile = fullfile(inputFolder, 'modal_atlas_lowfreq_minima.csv');
-branchFile = fullfile(inputFolder, 'modal_atlas_lowfreq_branches.csv');
-legacyMinimaFile = fullfile(inputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_minima_table.csv');
-legacyBranchFile = fullfile(inputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_branch_table.csv');
+minimaFile = fullfile(inputFolder, 'modal_atlas_minima.csv');
+branchFile = fullfile(inputFolder, 'modal_atlas_branches.csv');
+legacyMinimaFile = fullfile(inputFolder, 'acoustoelastic_iop_hgo_modal_atlas_minima_table.csv');
+legacyBranchFile = fullfile(inputFolder, 'acoustoelastic_iop_hgo_modal_atlas_branch_table.csv');
+legacyLowMinimaFile = fullfile(inputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_minima_table.csv');
+legacyLowBranchFile = fullfile(inputFolder, 'acoustoelastic_iop_hgo_low_frequency_modal_atlas_branch_table.csv');
 
 if ~exist(minimaFile, 'file') && exist(legacyMinimaFile, 'file')
     minimaFile = legacyMinimaFile;
+elseif ~exist(minimaFile, 'file') && exist(legacyLowMinimaFile, 'file')
+    minimaFile = legacyLowMinimaFile;
 end
 if ~exist(branchFile, 'file') && exist(legacyBranchFile, 'file')
     branchFile = legacyBranchFile;
+elseif ~exist(branchFile, 'file') && exist(legacyLowBranchFile, 'file')
+    branchFile = legacyLowBranchFile;
 end
 
 if ~exist(minimaFile, 'file') || ~exist(branchFile, 'file')
-    error('Low-frequency atlas CSV files were not found. Run diagnose_modal_atlas_lowfreq first.');
+    error('Modal-atlas CSV files were not found. Run diagnose_modal_atlas first.');
 end
 end
 
@@ -231,98 +240,103 @@ end
 x(~mask) = 1;
 end
 
-function comparison = compareTrackers(params, branchPoints, rawOptions, normalizedOptions, gridList, iop)
-rows = [];
-methodLabels = ["corrected_raw_globalScan", "corrected_row_normalized_globalScan"];
-for m = 1:numel(methodLabels)
-    for g = 1:numel(gridList)
-        if methodLabels(m) == "corrected_raw_globalScan"
-            opt = rawOptions;
-        else
-            opt = normalizedOptions;
-        end
-        opt.numCpScanPoints = gridList(g);
-        result = solveAcoustoelasticIOPHGODispersion(params, opt);
-        candidateCp = interp1(branchPoints.Frequency_Hz, branchPoints.Cp_mps, result.frequency, 'linear', nan);
-        for k = 1:numel(result.frequency)
-            row = struct();
-            row.IOP_mmHg = iop;
-            row.TrackerMethod = methodLabels(m);
-            row.GridPoints = gridList(g);
-            row.Frequency_Hz = result.frequency(k);
-            row.Frequency_kHz = result.frequency(k)/1e3;
-            row.TrackerCp_mps = result.Cp(k);
-            row.CandidateCp_mps = candidateCp(k);
-            row.AbsError_mps = abs(result.Cp(k) - candidateCp(k));
-            row.RelativeError = row.AbsError_mps / max(abs(candidateCp(k)), eps);
-            row.ValidTracker = result.validCp(k);
-            rows = [rows; row]; %#ok<AGROW>
-        end
-    end
-end
-comparison = struct2table(rows);
-end
-
-function S = summarizeTrackerComparison(T)
-[G, method, grid, iop] = findgroups(T.TrackerMethod, T.GridPoints, T.IOP_mmHg);
-S = table();
-S.TrackerMethod = method;
-S.GridPoints = grid;
-S.IOP_mmHg = iop;
-S.MedianAbsError_mps = splitapply(@(x) median(x, 'omitnan'), T.AbsError_mps, G);
-S.MedianRelativeError = splitapply(@(x) median(x, 'omitnan'), T.RelativeError, G);
-S.MaxRelativeError = splitapply(@(x) max(x, [], 'omitnan'), T.RelativeError, G);
-S.ValidFraction = splitapply(@(x) mean(double(x), 'omitnan'), T.ValidTracker, G);
-end
-
-function plotCandidateVsTrackers(params, branchPoints, rawOptions, normalizedOptions, gridList, iop, outputFolder)
-figure('Color', 'w', 'Name', sprintf('AE raw branch candidate IOP %.0f', iop));
-hold on; grid on;
-plot(branchPoints.Frequency_kHz, branchPoints.Cp_mps, 'k-', 'LineWidth', 3, 'DisplayName', 'atlas candidate');
-for g = 1:numel(gridList)
+function trackerComparison = compareTrackers(params, points, rawOptions, normalizedOptions, gridPoints, iop)
+trackerComparison = table();
+for g = 1:numel(gridPoints)
     opt = rawOptions;
-    opt.numCpScanPoints = gridList(g);
-    r = solveAcoustoelasticIOPHGODispersion(params, opt);
-    plot(r.frequency/1e3, r.Cp, '--', 'LineWidth', 1.2, 'DisplayName', sprintf('raw tracker %d', gridList(g)));
+    opt.numCpScanPoints = gridPoints(g);
+    rawResult = solveAcoustoelasticIOPHGODispersion(params, opt);
+
     opt = normalizedOptions;
-    opt.numCpScanPoints = gridList(g);
-    r = solveAcoustoelasticIOPHGODispersion(params, opt);
-    plot(r.frequency/1e3, r.Cp, ':', 'LineWidth', 1.2, 'DisplayName', sprintf('normalized tracker %d', gridList(g)));
+    opt.numCpScanPoints = gridPoints(g);
+    normalizedResult = solveAcoustoelasticIOPHGODispersion(params, opt);
+
+    trackerComparison = [trackerComparison; compareTrackerCase(points, rawResult, iop, gridPoints(g), "corrected_raw_matrix")]; %#ok<AGROW>
+    trackerComparison = [trackerComparison; compareTrackerCase(points, normalizedResult, iop, gridPoints(g), "corrected_row_normalized")]; %#ok<AGROW>
 end
+end
+
+function T = compareTrackerCase(points, result, iop, gridPoints, condition)
+cpInterp = interp1(points.Frequency_Hz, points.Cp_mps, result.frequency(:), 'linear', nan);
+valid = result.validCp(:) & isfinite(result.Cp(:)) & isfinite(cpInterp);
+T = table();
+T.Condition = repmat(condition, numel(result.frequency), 1);
+T.IOP_mmHg = repmat(iop, numel(result.frequency), 1);
+T.GridPoints = repmat(gridPoints, numel(result.frequency), 1);
+T.Frequency_Hz = result.frequency(:);
+T.Frequency_kHz = result.frequency(:)/1e3;
+T.CandidateCp_mps = cpInterp(:);
+T.TrackerCp_mps = result.Cp(:);
+T.ValidComparison = valid(:);
+T.RelativeDifference = abs(T.TrackerCp_mps - T.CandidateCp_mps) ./ max(abs(T.CandidateCp_mps), eps);
+end
+
+function summary = summarizeTrackerComparison(T)
+validRows = T(T.ValidComparison, :);
+[G, condition, iop, gridPoints] = findgroups(validRows.Condition, validRows.IOP_mmHg, validRows.GridPoints);
+medianDiff = splitapply(@(x) median(x, 'omitnan'), validRows.RelativeDifference, G);
+maxDiff = splitapply(@(x) max(x, [], 'omitnan'), validRows.RelativeDifference, G);
+numPoints = splitapply(@numel, validRows.RelativeDifference, G);
+summary = table(condition, iop, gridPoints, numPoints, medianDiff, maxDiff, ...
+    'VariableNames', {'Condition','IOP_mmHg','GridPoints','ValidPoints','MedianRelativeDifference','MaxRelativeDifference'});
+end
+
+function plotCandidateVsTrackers(params, points, rawOptions, normalizedOptions, gridPoints, iop, outputFolder)
+figure('Color', 'w');
+plot(points.Frequency_kHz, points.Cp_mps, 'k-', 'LineWidth', 2.5, 'DisplayName', 'raw branch-1 candidate');
+hold on;
+styles = {'--', ':', '-.'};
+for g = 1:numel(gridPoints)
+    opt = rawOptions;
+    opt.numCpScanPoints = gridPoints(g);
+    rawResult = solveAcoustoelasticIOPHGODispersion(params, opt);
+    valid = rawResult.validCp & isfinite(rawResult.Cp);
+    plot(rawResult.frequency(valid)/1e3, rawResult.Cp(valid), styles{min(g, numel(styles))}, ...
+        'LineWidth', 1.4, 'DisplayName', sprintf('raw matrix tracker %d', gridPoints(g)));
+
+    opt = normalizedOptions;
+    opt.numCpScanPoints = gridPoints(g);
+    normalizedResult = solveAcoustoelasticIOPHGODispersion(params, opt);
+    valid = normalizedResult.validCp & isfinite(normalizedResult.Cp);
+    plot(normalizedResult.frequency(valid)/1e3, normalizedResult.Cp(valid), styles{min(g, numel(styles))}, ...
+        'LineWidth', 1.4, 'DisplayName', sprintf('row-normalized tracker %d', gridPoints(g)));
+end
+hold off;
+grid on;
 xlabel('frequency [kHz]');
 ylabel('Cp [m/s]');
-title(sprintf('Corrected raw atlas branch candidate, IOP %.0f mmHg', iop));
+title(sprintf('Corrected raw branch-1 candidate vs trackers, IOP %.1f mmHg', iop));
 legend('Location', 'best');
-hold off;
-saveas(gcf, fullfile(outputFolder, sprintf('raw_branch1_iop_%g.png', iop)));
-saveas(gcf, fullfile(outputFolder, sprintf('raw_branch1_iop_%g.fig', iop)));
+saveas(gcf, fullfile(outputFolder, sprintf('raw_branch1_vs_trackers_IOP_%g.fig', iop)));
+saveas(gcf, fullfile(outputFolder, sprintf('raw_branch1_vs_trackers_IOP_%g.png', iop)));
 end
 
-function plotCandidateAcrossIOP(T, outputFolder)
-figure('Color', 'w', 'Name', 'AE raw branch candidate across IOP');
-hold on; grid on;
-iops = unique(T.IOP_mmHg, 'stable');
-for i = 1:numel(iops)
-    Ti = T(T.IOP_mmHg == iops(i), :);
-    plot(Ti.Frequency_kHz, Ti.Cp_mps, 'LineWidth', 2, 'DisplayName', sprintf('IOP %.0f mmHg', iops(i)));
+function plotCandidateAcrossIOP(candidateCurve, outputFolder)
+figure('Color', 'w');
+hold on;
+iopList = unique(candidateCurve.IOP_mmHg, 'stable');
+for i = 1:numel(iopList)
+    T = candidateCurve(candidateCurve.IOP_mmHg == iopList(i), :);
+    plot(T.Frequency_kHz, T.Cp_mps, 'LineWidth', 1.8, 'DisplayName', sprintf('IOP %.1f mmHg', iopList(i)));
 end
-xlabel('frequency [kHz]');
-ylabel('Candidate branch Cp [m/s]');
-title('Corrected raw atlas branch candidate across IOP');
-legend('Location', 'best');
 hold off;
-saveas(gcf, fullfile(outputFolder, 'raw_branch1_across_iop.png'));
-saveas(gcf, fullfile(outputFolder, 'raw_branch1_across_iop.fig'));
-end
-
-function plotTrackerComparisonSummary(S, outputFolder)
-figure('Color', 'w', 'Name', 'AE raw branch tracker error summary');
-labels = strcat(S.TrackerMethod, " | grid ", string(S.GridPoints), " | IOP ", string(S.IOP_mmHg));
-bar(categorical(labels), S.MedianRelativeError);
 grid on;
-ylabel('median relative error vs atlas branch');
-title('Tracker mismatch relative to corrected raw atlas branch candidate');
+xlabel('frequency [kHz]');
+ylabel('Cp [m/s]');
+title('Corrected raw branch-1 candidate across IOP');
+legend('Location', 'best');
+saveas(gcf, fullfile(outputFolder, 'raw_branch1_candidate_across_iop.fig'));
+saveas(gcf, fullfile(outputFolder, 'raw_branch1_candidate_across_iop.png'));
+end
+
+function plotTrackerComparisonSummary(summary, outputFolder)
+figure('Color', 'w');
+labels = strcat(summary.Condition, " | IOP ", string(summary.IOP_mmHg), " | N ", string(summary.GridPoints));
+bar(categorical(labels), summary.MedianRelativeDifference);
+grid on;
+ylabel('median relative difference');
+title('Tracker agreement with corrected raw branch-1 candidate');
 xtickangle(35);
-saveas(gcf, fullfile(outputFolder, 'raw_branch1_tracker_summary.png'));
 saveas(gcf, fullfile(outputFolder, 'raw_branch1_tracker_summary.fig'));
+saveas(gcf, fullfile(outputFolder, 'raw_branch1_tracker_summary.png'));
 end
