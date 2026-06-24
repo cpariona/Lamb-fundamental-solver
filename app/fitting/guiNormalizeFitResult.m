@@ -28,6 +28,8 @@ function modelName = localModelName(modelFamily)
 switch lower(string(modelFamily))
     case "rayleigh_lamb"
         modelName = "RayleighLamb";
+    case "mrlfe"
+        modelName = "mRLFERealK";
     otherwise
         modelName = string(modelFamily);
 end
