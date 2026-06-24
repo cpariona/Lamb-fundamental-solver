@@ -41,23 +41,26 @@ assertFunctionsOnPath({ ...
     'guiPlotFitResult'}, ...
     'GUI adapter/helper');
 
-fprintf('\n[GUI 1/6] GUI normalized adapters smoke test\n');
+fprintf('\n[GUI 1/7] GUI normalized adapters smoke test\n');
 test_gui_normalized_adapters_smoke;
 
-fprintf('\n[GUI 2/6] GUI sweep adapters smoke test\n');
+fprintf('\n[GUI 2/7] GUI sweep adapters smoke test\n');
 test_gui_sweep_adapters_smoke;
 
-fprintf('\n[GUI 3/6] GUI sweep registry smoke test\n');
+fprintf('\n[GUI 3/7] GUI sweep registry smoke test\n');
 test_gui_sweep_registry_smoke;
 
-fprintf('\n[GUI 4/6] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
+fprintf('\n[GUI 4/7] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke;
 
-fprintf('\n[GUI 5/6] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
+fprintf('\n[GUI 5/7] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_main_adapter_smoke;
 
-fprintf('\n[GUI 6/6] GUI fitting backend contract test\n');
+fprintf('\n[GUI 6/7] GUI fitting backend contract test\n');
 test_gui_fit_registry_contract;
+
+fprintf('\n[GUI 7/7] FitTool model registry contract test\n');
+test_fit_tool_model_registry_contract;
 
 fprintf('\nGUI smoke tests passed.\n');
 
