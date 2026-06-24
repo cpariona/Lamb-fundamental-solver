@@ -63,7 +63,7 @@ aeLinkModalAtlasMinimaIntoBranches
 
 `aeExtractRawBranch1Candidate` is diagnostic infrastructure. It supports `track_raw_branch1` and `compare_atlasA0_vs_raw_branch1`; it does not promote `raw_branch1` to production output.
 
-`aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic shared by the standard and low-frequency atlas diagnostics.
+`aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic. The maintained `diagnose_modal_atlas` entrypoint starts at low frequency by design, so no separate low-frequency modal-atlas entrypoint is maintained.
 
 ## Maintained public workflows
 
@@ -94,9 +94,16 @@ diagnose_idA0_score
 validate_idA0_grid
 validate_idA0_score_grid
 diagnose_modal_atlas
-diagnose_modal_atlas_lowfreq
 track_raw_branch1
 ```
+
+## Removed redundant entrypoints
+
+```matlab
+diagnose_modal_atlas_lowfreq
+```
+
+`diagnose_modal_atlas_lowfreq` was removed because low-frequency initialization is now implicit in `diagnose_modal_atlas`.
 
 ## Maintained tests
 
