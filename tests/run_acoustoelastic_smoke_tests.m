@@ -58,7 +58,10 @@ assertFunctionsOnPath({ ...
     'aeLinkModalAtlasMinimaIntoBranches', ...
     'aeDefaultIdentityA0ValidationParams', ...
     'aeDefaultIdentityA0ValidationOptions', ...
-    'aeDefaultIdentityA0ValidationGrid'}, ...
+    'aeDefaultIdentityA0ValidationGrid', ...
+    'aeBuildFitProblem', ...
+    'aeEvaluateFitModel', ...
+    'aeFitDispersionData'}, ...
     'Acoustoelastic maintained analysis helper');
 
 fprintf('\nChecking maintained acoustoelastic public workflows...\n');
@@ -90,29 +93,33 @@ assertFunctionsOnPath({ ...
     'test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy', ...
     'test_acoustoelastic_iop_hgo_short_entrypoints', ...
     'test_acoustoelastic_iop_hgo_branch_persistence_refinement', ...
-    'test_ae_analyze_truncation_recovery'}, ...
+    'test_ae_analyze_truncation_recovery', ...
+    'test_ae_fit_synthetic_atlasA0'}, ...
     'Acoustoelastic maintained test');
 
-fprintf('\n[AE 1/7] Acoustoelastic atlas branch policy validation test\n');
+fprintf('\n[AE 1/8] Acoustoelastic atlas branch policy validation test\n');
 test_acoustoelastic_iop_hgo_branch_policy_validation;
 
-fprintf('\n[AE 2/7] Acoustoelastic fallback invalidation policy test\n');
+fprintf('\n[AE 2/8] Acoustoelastic fallback invalidation policy test\n');
 test_acoustoelastic_iop_hgo_fallback_invalidation;
 
-fprintf('\n[AE 3/7] Acoustoelastic internal tracking grid test\n');
+fprintf('\n[AE 3/8] Acoustoelastic internal tracking grid test\n');
 test_acoustoelastic_iop_hgo_internal_tracking_grid;
 
-fprintf('\n[AE 4/7] Acoustoelastic truncation recovery helper unit test\n');
+fprintf('\n[AE 4/8] Acoustoelastic truncation recovery helper unit test\n');
 test_ae_analyze_truncation_recovery;
 
-fprintf('\n[AE 5/7] Acoustoelastic branch-persistence refinement unit test\n');
+fprintf('\n[AE 5/8] Acoustoelastic branch-persistence refinement unit test\n');
 test_acoustoelastic_iop_hgo_branch_persistence_refinement;
 
-fprintf('\n[AE 6/7] Acoustoelastic IOP/HGO constitutive identity test\n');
+fprintf('\n[AE 6/8] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_acoustoelastic_iop_hgo_constitutive_identity;
 
-fprintf('\n[AE 7/7] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
+fprintf('\n[AE 7/8] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
 test_acoustoelastic_iop_hgo_atlasA0_smoke;
+
+fprintf('\n[AE 8/8] Acoustoelastic IOP/HGO atlasA0 fitting test\n');
+test_ae_fit_synthetic_atlasA0;
 
 fprintf('\nAcoustoelastic IOP/HGO smoke tests passed.\n');
 
