@@ -34,7 +34,7 @@ Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv
 If that file is missing, `compare_atlasA0_vs_raw_branch1` regenerates it from:
 
 ```text
-Results/ae_iop_hgo/modal_atlas_lowfreq
+Results/ae_iop_hgo/modal_atlas
 ```
 
 using:
@@ -46,8 +46,10 @@ aeExtractRawBranch1Candidate
 Therefore, the required prerequisite is now:
 
 ```matlab
-diagnose_modal_atlas_lowfreq
+diagnose_modal_atlas
 ```
+
+`diagnose_modal_atlas` starts at low frequency by design. A separate `diagnose_modal_atlas_lowfreq` entrypoint is no longer maintained.
 
 `track_raw_branch1` remains the explicit short entrypoint for generating and inspecting `raw_branch1` outputs manually.
 
@@ -138,174 +140,3 @@ The corner script writes:
 - `raw_branch_corner_branches.csv`
 - `raw_branch_corner_configs.csv`
 - `raw_branch_corner_aggregate.csv`
-- `raw_branch_corner_workspace.mat`
-- plots under `plots/`
-
-### Output files
-
-The single-input comparison script writes:
-
-- `atlas_vs_raw_branch1_points.csv`
-- `atlas_vs_raw_branch1_summary.csv`
-- `atlas_vs_raw_branch1_workspace.mat`
-- plots under `plots/`
-
-Workspace variables:
-
-- `AcoustoelasticIOPHGOAtlasVsRawBranch1Points`
-- `AcoustoelasticIOPHGOAtlasVsRawBranch1Summary`
-- `AcoustoelasticIOPHGOAtlasVsRawBranch1OutputFolder`
-
-The grid validation script writes workspace variables:
-
-- `AcoustoelasticIOPHGOAtlasVsRawBranch1GridSummary`
-- `AcoustoelasticIOPHGOAtlasVsRawBranch1GridAggregate`
-- `AcoustoelasticIOPHGOAtlasVsRawBranch1GridOutputFolder`
-
-The corner ambiguity script writes workspace variables:
-
-- `AcoustoelasticIOPHGORawBranchCornerSummary`
-- `AcoustoelasticIOPHGORawBranchCornerAggregate`
-- `AcoustoelasticIOPHGORawBranchCornerOutputFolder`
-
-### Metrics
-
-For each IOP case, the summary table reports:
-
-- raw-branch coverage and median rank;
-- official `atlasA0` valid fraction;
-- `identityA0Diagnostic` candidate valid fraction;
-- valid overlap fraction against `raw_branch1`;
-- first `atlasA0` versus raw mismatch frequency;
-- first `identityA0Diagnostic` versus raw mismatch frequency;
-- median and maximum relative error versus raw for both branches;
-- number of identity-candidate points added beyond official atlas validity.
-
-A mismatch is flagged when the relative error against `raw_branch1` exceeds 5% for at least three consecutive frequency points.
-
-### Diagnostic classifications
-
-The comparison and grid scripts assign one of:
-
-- `aligned_with_raw_branch`
-- `atlas_truncated_but_aligned`
-- `identity_extension_aligned`
-- `identity_extension_modal_mismatch`
-- `atlas_branch_switch_suspected`
-- `raw_branch_uncertain`
-
-The corner script assigns one of:
-
-- `stable_raw_and_aligned`
-- `stable_raw_atlas_aligned`
-- `raw_branch_weak`
-- `raw_selection_sensitive`
-- `raw_weak_and_selection_sensitive`
-- `atlas_mismatch_or_unresolved`
-
-These are diagnostic labels only. They do not promote `raw_branch1` or `identityA0Diagnostic` to production output.
-
-### Validation snapshot: corrected raw matrix, mu 50 kPa
-
-First completed run after adding this diagnostic used the `raw_branch1` curves produced from the corrected raw matrix condition at 5, 15, and 25 mmHg.
-
-| IOP [mmHg] | Raw valid points | Raw median rank | Atlas valid fraction | Identity valid fraction | First atlas/raw mismatch [kHz] | First identity/raw mismatch [kHz] | Median atlas/raw rel. error | Median identity/raw rel. error | Max atlas/raw rel. error | Max identity/raw rel. error | Identity added points | Classification |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| 5 | 160 | 1 | 1.00000 | 1.00000 | NaN | NaN | 0.0020757 | 0.0020757 | 0.0059108 | 0.0059108 | 0 | `aligned_with_raw_branch` |
-| 15 | 160 | 1 | 0.96250 | 1.00000 | NaN | NaN | 0.0020721 | 0.0022651 | 0.0242100 | 0.0382230 | 6 | `atlas_truncated_but_aligned` |
-| 25 | 144 | 1 | 0.97917 | 0.99306 | NaN | NaN | 0.0020396 | 0.0020613 | 0.0391710 | 0.0391710 | 2 | `atlas_truncated_but_aligned` |
-
-Interpretation:
-
-- No case exceeded the configured modal-mismatch rule of relative error greater than 5% for at least three consecutive frequency points.
-- The raw branch is high-confidence in these cases: coverage is complete over the tested raw frequency grid and median rank is 1.
-- The official `atlasA0` branch is aligned with `raw_branch1` where valid.
-- At 15 and 25 mmHg, the official behavior is best interpreted as conservative truncation while staying on the same global branch, not as a detected modal switch.
-- `identityA0Diagnostic` increases coverage for 15 and 25 mmHg while remaining below the 5% mismatch threshold in this run.
-
-This snapshot supports using `raw_branch1` as a validation reference for this corrected raw matrix regime, but it does not promote `raw_branch1` or `identityA0Diagnostic` to official solver output.
-
-### Grid validation snapshot: corrected raw matrix, 12 cases
-
-The first completed grid validation used the default 12-case grid:
-
-```matlab
-IOP_mmHg = [5, 15, 25, 35];
-mu_kPa = [25, 50, 100];
-k1_kPa = 25;
-k2 = 100;
-thickness_um = 550;
-```
-
-Aggregate result:
-
-| Classification | Cases | Median atlas valid fraction | Median identity valid fraction | Median atlas/raw rel. error | Median identity/raw rel. error |
-|---|---:|---:|---:|---:|---:|
-| `aligned_with_raw_branch` | 5 | 1.00000 | 1.00000 | 0.0019999 | 0.0019999 |
-| `atlas_truncated_but_aligned` | 6 | 0.86250 | 0.90938 | 0.0020107 | 0.0020324 |
-| `raw_branch_uncertain` | 1 | 0.11250 | 0.15625 | 0.78507 | 0.78507 |
-
-Case-level summary:
-
-| Case | Raw valid fraction | Raw median rank | Atlas valid fraction | Identity valid fraction | First atlas/raw mismatch [kHz] | First identity/raw mismatch [kHz] | Median atlas/raw rel. error | Median identity/raw rel. error | Max atlas/raw rel. error | Max identity/raw rel. error | Identity added points | Classification |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| `iop_5mmHg_mu_25kPa` | 0.98750 | 1.0 | 0.91875 | 0.96875 | NaN | 21.680 | 0.0019674 | 0.0020107 | 0.098836 | 0.238050 | 8 | `atlas_truncated_but_aligned` |
-| `iop_5mmHg_mu_50kPa` | 1.00000 | 1.0 | 1.00000 | 1.00000 | NaN | NaN | 0.0022614 | 0.0022614 | 0.0088062 | 0.0088062 | 0 | `aligned_with_raw_branch` |
-| `iop_5mmHg_mu_100kPa` | 1.00000 | 1.0 | 1.00000 | 1.00000 | NaN | NaN | 0.0019999 | 0.0019999 | 0.0067414 | 0.0067414 | 0 | `aligned_with_raw_branch` |
-| `iop_15mmHg_mu_25kPa` | 0.89375 | 2.0 | 0.78125 | 0.83125 | NaN | NaN | 0.0020685 | 0.0022614 | 0.0071205 | 0.105060 | 8 | `atlas_truncated_but_aligned` |
-| `iop_15mmHg_mu_50kPa` | 1.00000 | 1.0 | 0.93750 | 0.98125 | NaN | NaN | 0.0020468 | 0.0020757 | 0.0078390 | 0.050662 | 7 | `atlas_truncated_but_aligned` |
-| `iop_15mmHg_mu_100kPa` | 1.00000 | 1.0 | 1.00000 | 1.00000 | NaN | NaN | 0.0023268 | 0.0023268 | 0.0062287 | 0.0062287 | 0 | `aligned_with_raw_branch` |
-| `iop_25mmHg_mu_25kPa` | 0.85000 | 4.0 | 0.68750 | 0.74375 | NaN | 10.001 | 0.0019818 | 0.0020288 | 0.0063654 | 0.087022 | 9 | `atlas_truncated_but_aligned` |
-| `iop_25mmHg_mu_50kPa` | 0.93750 | 1.5 | 0.96250 | 0.96250 | NaN | NaN | 0.0020360 | 0.0020360 | 0.065809 | 0.065809 | 0 | `atlas_truncated_but_aligned` |
-| `iop_25mmHg_mu_100kPa` | 1.00000 | 1.0 | 1.00000 | 1.00000 | NaN | NaN | 0.0019348 | 0.0019348 | 0.0059035 | 0.0059035 | 0 | `aligned_with_raw_branch` |
-| `iop_35mmHg_mu_25kPa` | 0.71250 | 5.0 | 0.11250 | 0.15625 | 17.380 | 17.380 | 0.7850700 | 0.7850700 | 0.800360 | 0.800360 | 7 | `raw_branch_uncertain` |
-| `iop_35mmHg_mu_50kPa` | 0.84375 | 2.0 | 0.80625 | 0.85625 | NaN | NaN | 0.0019854 | 0.0020035 | 0.077439 | 0.077439 | 8 | `atlas_truncated_but_aligned` |
-| `iop_35mmHg_mu_100kPa` | 1.00000 | 1.0 | 1.00000 | 1.00000 | NaN | NaN | 0.0019890 | 0.0019890 | 0.014989 | 0.014989 | 0 | `aligned_with_raw_branch` |
-
-Interpretation:
-
-- Five cases are fully aligned with the global raw branch, mainly all `mu = 100 kPa` cases and the better-conditioned lower-IOP `mu = 50 kPa` cases.
-- Six cases show conservative official truncation while remaining aligned with `raw_branch1` over the overlapping valid region.
-- The only clear failure regime in this grid is `iop_35mmHg_mu_25kPa`, classified as `raw_branch_uncertain`. In this case, raw coverage is only 0.7125, median raw rank is 5, official atlas coverage drops to 0.1125, and the relative error versus the selected raw branch is about 0.785.
-- The grid supports the earlier conclusion that the dominant issue is not a systematic atlas branch switch. It is conservative truncation plus severe branch-identity ambiguity in the low-stiffness/high-IOP corner.
-- `identityA0Diagnostic` usually increases coverage, but in some low-stiffness cases its maximum relative error exceeds 5%; therefore it should remain diagnostic and not be promoted to official output.
-
-This grid snapshot supports using `atlasA0` as the conservative official output while focusing future diagnostics on `mu = 25 kPa`, especially `IOP = 35 mmHg`.
-
-### Corner validation snapshot: 35 mmHg, mu 25 kPa
-
-The first completed corner diagnostic used nine raw-atlas configurations around the difficult case `IOP = 35 mmHg`, `mu = 25 kPa`.
-
-Aggregate result:
-
-| Configurations | Min raw valid fraction | Median raw valid fraction | Max raw valid fraction | Median raw median rank | Min atlas/raw overlap fraction | Median atlas/raw rel. error | Median reference/raw rel. error | Max reference/raw rel. error | Configs with raw weakness | Configs with reference mismatch |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 9 | 0.73125 | 0.75625 | 0.92500 | 5 | 0.66216 | 0.0019818 | 0 | 0.44767 | 6 | 5 |
-
-Configuration-level summary:
-
-| Config | NumY | TopN | Max log-y jump | Raw valid fraction | Raw median rank | Atlas valid fraction | Identity valid fraction | Atlas/raw overlap | Reference/raw overlap | First reference/raw mismatch [kHz] | Median atlas/raw rel. error | Median reference/raw rel. error | Max reference/raw rel. error | Classification |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| `base` | 900 | 16 | 0.075 | 0.73125 | 4 | 0.61250 | 0.67500 | 0.72650 | 1.00000 | NaN | 0.0019818 | 0 | 0 | `raw_branch_weak` |
-| `strict_jump` | 900 | 16 | 0.050 | 0.73125 | 4 | 0.61250 | 0.67500 | 0.72650 | 1.00000 | NaN | 0.0019818 | 0 | 0 | `raw_branch_weak` |
-| `loose_jump` | 900 | 16 | 0.110 | 0.73125 | 4 | 0.61250 | 0.67500 | 0.72650 | 1.00000 | 30.204 | 0.0019818 | 0 | 0.18921 | `raw_weak_and_selection_sensitive` |
-| `top24` | 900 | 24 | 0.075 | 0.81875 | 6 | 0.61250 | 0.67500 | 0.71756 | 0.94872 | NaN | 0.0019963 | 0 | 0.14711 | `stable_raw_and_aligned` |
-| `top32` | 900 | 32 | 0.075 | 0.92500 | 8.5 | 0.61250 | 0.67500 | 0.66216 | 0.97436 | 18.709 | 0.0019963 | 0 | 0.17248 | `raw_weak_and_selection_sensitive` |
-| `fine1400` | 1400 | 16 | 0.075 | 0.73125 | 5 | 0.61250 | 0.67500 | 0.76923 | 0.82906 | 21.680 | 0.0015085 | 0.0022206 | 0.24860 | `raw_weak_and_selection_sensitive` |
-| `fine_top24` | 1400 | 24 | 0.075 | 0.85625 | 6 | 0.61250 | 0.67500 | 0.69343 | 0.94017 | 18.709 | 0.0015551 | 0.0022696 | 0.084739 | `raw_selection_sensitive` |
-| `fine_loose` | 1400 | 24 | 0.110 | 0.86250 | 6 | 0.61250 | 0.67500 | 0.68841 | 0.93162 | 16.146 | 0.0015551 | 0.0022411 | 0.44767 | `raw_selection_sensitive` |
-| `coarse600` | 600 | 16 | 0.075 | 0.75625 | 5 | 0.61250 | 0.67500 | 0.76033 | 0.86325 | NaN | 0.0029709 | 0.0031444 | 0.070733 | `raw_branch_weak` |
-
-Interpretation:
-
-- The corner is not a simple atlas-resolution failure. Increasing `TopNMinimaPerFrequency` improves raw coverage from about 0.73 to as high as 0.925, but it also raises the selected raw branch median rank up to 8.5 and can introduce selection sensitivity.
-- The official `atlasA0` remains locally aligned with whichever selected raw branch is used over the overlapping valid region; the median atlas/raw relative error stays around 0.0015-0.0030 in all configurations.
-- The unstable quantity is the selected `raw_branch1` reference itself. Five of nine configurations show a first reference/raw mismatch frequency, and the maximum reference/raw relative error reaches 0.44767.
-- Therefore, the `IOP = 35 mmHg`, `mu = 25 kPa` corner should not be used as a production-policy validation reference without additional modal-shape or branch-family evidence.
-- The conservative official `atlasA0` truncation is appropriate in this corner until the physical modal identity is resolved by a stronger criterion than residual-branch linking alone.
-
-### Interpretation
-
-Use this diagnostic to decide whether the current `atlasA0` selection is consistent with the globally persistent modal-atlas branch. A result classified as `atlas_branch_switch_suspected` or `identity_extension_modal_mismatch` should trigger manual inspection of the point-level table and plots before any solver-policy change is considered.
-
-The official conservative output remains `result.Cp` and `result.validCp` from `atlasA0`.
