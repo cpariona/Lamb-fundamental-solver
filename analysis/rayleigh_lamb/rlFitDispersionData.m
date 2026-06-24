@@ -1,19 +1,13 @@
 function fitResult = rlFitDispersionData(experimental, fitConfig)
 %RLFITDISPERSIONDATA Fit Rayleigh-Lamb parameters to dispersion data.
 %
-% This first implementation uses fminsearch with objective penalties for
-% bounds. It is intended as a lightweight backend for Phase 2 and avoids an
-% Optimization Toolbox dependency.
+% One-parameter fits with finite bounds use fminbnd. Multi-parameter fits use
+% fminsearch with objective penalties for bounds. This avoids an Optimization
+% Toolbox dependency in the first fitting implementation.
 
 problem = rlBuildFitProblem(experimental, fitConfig);
 
-optimizerOptions = getFitOption(problem.fitOptions, 'optimizerOptions', []);
-if isempty(optimizerOptions)
-    optimizerOptions = optimset('Display', 'off', 'MaxIter', 80, 'MaxFunEvals', 220, 'TolX', 1e-6, 'TolFun', 1e-8);
-end
-
-objective = @(x) problem.objectiveFunction(x(:));
-[xBest, bestObjective, exitFlag, output] = fminsearch(objective, problem.x0(:), optimizerOptions);
+[optimizerName, xBest, bestObjective, exitFlag, output] = runOptimizer(problem);
 xBest = xBest(:);
 
 % Keep the final report inside declared bounds. The objective already
@@ -49,12 +43,34 @@ fitResult.sensitivity = sensitivityInfo;
 fitResult.sensitivityMatrix = S;
 fitResult.identifiability = identifiability;
 fitResult.optimizer = struct();
-fitResult.optimizer.name = "fminsearch";
+fitResult.optimizer.name = optimizerName;
 fitResult.optimizer.objective = bestObjective;
 fitResult.optimizer.exitFlag = exitFlag;
 fitResult.optimizer.output = output;
 fitResult.rawSolverResult = rawSolverResult;
 fitResult.problem = rmfield(problem, {'evaluateModel', 'residualFunction', 'objectiveFunction'});
+end
+
+function [optimizerName, xBest, bestObjective, exitFlag, output] = runOptimizer(problem)
+objective = @(x) problem.objectiveFunction(x(:));
+
+if numel(problem.x0) == 1 && isfinite(problem.lowerBounds) && isfinite(problem.upperBounds)
+    optimizerName = "fminbnd";
+    options = getFitOption(problem.fitOptions, 'optimizerOptions', []);
+    if isempty(options)
+        options = optimset('Display', 'off', 'MaxIter', 80, 'MaxFunEvals', 160, 'TolX', 1e-6);
+    end
+    scalarObjective = @(x) objective(x);
+    [xScalar, bestObjective, exitFlag, output] = fminbnd(scalarObjective, problem.lowerBounds, problem.upperBounds, options);
+    xBest = xScalar(:);
+else
+    optimizerName = "fminsearch";
+    options = getFitOption(problem.fitOptions, 'optimizerOptions', []);
+    if isempty(options)
+        options = optimset('Display', 'off', 'MaxIter', 80, 'MaxFunEvals', 220, 'TolX', 1e-6, 'TolFun', 1e-8);
+    end
+    [xBest, bestObjective, exitFlag, output] = fminsearch(objective, problem.x0(:), options);
+end
 end
 
 function value = getFitOption(options, fieldName, defaultValue)
