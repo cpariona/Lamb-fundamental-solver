@@ -150,6 +150,9 @@ Maintained analysis helpers:
 
 ```matlab
 objectiveMRLFEResidual
+mrlfeModelCandidateNames
+mrlfeSetYoungModulusForShearPoisson
+mrlfeSelectRealKBranches
 summarizeMRLFETrackingQuality
 compareMRLFETrackingStrategies
 ```
@@ -165,6 +168,15 @@ sweep_thickness_A0Like_viscoelastic
 sweep_thickness_S0Like_viscoelastic
 ```
 
+Maintained mRLFE diagnostics:
+
+```matlab
+compare_mrlfe_tracker_vs_condition_peaks
+diagnose_mrlfe_visco_validity_breakdown
+diagnose_mrlfe_visco_residual_landscape
+stress_test_mrlfe_real_k_range
+```
+
 Maintained mRLFE tests:
 
 ```matlab
@@ -178,9 +190,11 @@ test_mrlfe_viscous_default_internal_tracking_grid
 test_mrlfe_tracking_quality_summary
 test_mrlfe_tracking_strategy_comparison
 test_mrlfe_internal_grid_quality_guard
+test_mrlfe_maintained_entrypoints_naming
+test_mrlfe_model_candidate_names
+test_mrlfe_diagnostic_material_sweep_contract
+test_mrlfe_etaS_zero_diagnostic_selection
 ```
-
-Historical mRLFE diagnostics that still contain author-dependent labels remain outside the maintained execution surface until they are renamed or retired.
 
 ## Smoke-test scope
 
@@ -203,6 +217,7 @@ docs/rayleigh_lamb/overview.md
 docs/rayleigh_lamb/public_api.md
 docs/mrlfe/current_sweeps.md
 docs/mrlfe/pending_cleanup.md
+docs/mrlfe/tracker_diagnostic_summary.md
 docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/documentation_index.md
 docs/acoustoelastic_iop_hgo/public_api.md
