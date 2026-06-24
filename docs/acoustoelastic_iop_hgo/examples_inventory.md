@@ -45,6 +45,14 @@ analysis/acoustoelastic_iop_hgo/aeSaveExampleFigure.m
 analysis/acoustoelastic_iop_hgo/aeDeleteExampleFigure.m
 ```
 
+Reusable modal-atlas diagnostic logic lives in:
+
+```text
+analysis/acoustoelastic_iop_hgo/aeComputeModalAtlasForCase.m
+analysis/acoustoelastic_iop_hgo/aeFindTopModalAtlasLocalMinima.m
+analysis/acoustoelastic_iop_hgo/aeLinkModalAtlasMinimaIntoBranches.m
+```
+
 Generated figures, local results, MAT files, CSV files, and image exports are ignored by the repository-level `.gitignore`.
 
 Sweep plots use the following visual convention: the Cp axis starts at zero, while frequency, mu, IOP, and other non-Cp axes use data-driven limits with padding. Grouped Cp figures created from a single grid sweep use a common Cp axis limit computed from all conditions in the sweep. The interactive 3D sweep surface keeps fixed axis limits and preserves the current camera view when the slider is moved.
@@ -109,8 +117,8 @@ These scripts are retained because they support thesis traceability or heavy val
 | `diagnostics/diagnose_idA0_score.m` | `HISTORICAL_DIAGNOSTIC_RETAINED` | Writes to `Results/ae_iop_hgo/idA0_score`. Requires sweep workspaces. | Keep. |
 | `diagnostics/validate_idA0_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
 | `diagnostics/validate_idA0_score_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
-| `diagnostics/diagnose_modal_atlas.m` | `HISTORICAL_DIAGNOSTIC_WRAPPER` | Delegates to modal-atlas implementation while preserving launch folder. | Keep. |
-| `diagnostics/diagnose_modal_atlas_lowfreq.m` | `HISTORICAL_DIAGNOSTIC_WRAPPER` | Delegates to low-frequency modal-atlas implementation while preserving launch folder. | Keep. |
+| `diagnostics/diagnose_modal_atlas.m` | `HISTORICAL_DIAGNOSTIC_WRAPPER` | Delegates to modal-atlas implementation while preserving launch folder through `aeRunLegacyScript`; shared atlas-map logic lives in analysis helpers. | Keep. |
+| `diagnostics/diagnose_modal_atlas_lowfreq.m` | `HISTORICAL_DIAGNOSTIC_WRAPPER` | Delegates to low-frequency modal-atlas implementation while preserving launch folder through `aeRunLegacyScript`; shared atlas-map logic lives in analysis helpers. | Keep. |
 | `diagnostics/track_raw_branch1.m` | `REPRODUCIBILITY_ENTRYPOINT` | Calls `aeExtractRawBranch1Candidate` and writes `Results/ae_iop_hgo/raw_branch1`. | Keep. |
 
 ### Long implementation targets retained by design
@@ -119,8 +127,8 @@ These long descriptive files remain because they contain implementation logic fo
 
 | File | Classification | Reason | Action |
 |---|---|---|---|
-| `diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m` | `LONG_IMPLEMENTATION_TARGET` | Implementation for `diagnose_modal_atlas`. Generates modal-family ambiguity evidence. | Keep. |
-| `diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m` | `LONG_IMPLEMENTATION_TARGET` | Implementation for `diagnose_modal_atlas_lowfreq`. Generates low-frequency modal-atlas evidence. | Keep. |
+| `diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m` | `LONG_IMPLEMENTATION_TARGET` | Implementation for `diagnose_modal_atlas`. Generates modal-family ambiguity evidence; shared atlas-map computation now uses `aeComputeModalAtlasForCase`. | Keep. |
+| `diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m` | `LONG_IMPLEMENTATION_TARGET` | Implementation for `diagnose_modal_atlas_lowfreq`. Generates low-frequency modal-atlas evidence; shared atlas-map computation now uses `aeComputeModalAtlasForCase`. | Keep. |
 | `diagnostics/validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid.m` | `LONG_HEAVY_VALIDATION_IMPLEMENTATION` | Implementation for `validate_idA0_grid`. Writes to clean short path. | Keep. |
 | `diagnostics/validate_acoustoelastic_iop_hgo_branch_identity_score_grid.m` | `LONG_HEAVY_VALIDATION_IMPLEMENTATION` | Implementation for `validate_idA0_score_grid`. Writes to clean short path. | Keep. |
 
@@ -157,7 +165,7 @@ The next possible cleanup actions are design decisions, not mechanical cleanup:
 
 ```text
 1. Decide whether to consolidate heavy validation wrappers into their short files.
-2. Decide whether modal-atlas long implementations should remain script implementations or be migrated into helper functions.
+2. Decide whether additional long diagnostic implementation logic should migrate into helper functions after a focused validation pass.
 ```
 
 Each action requires its own focused design and validation pass.
