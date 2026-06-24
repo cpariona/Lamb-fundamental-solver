@@ -53,6 +53,14 @@ analysis/acoustoelastic_iop_hgo/aeFindTopModalAtlasLocalMinima.m
 analysis/acoustoelastic_iop_hgo/aeLinkModalAtlasMinimaIntoBranches.m
 ```
 
+Reusable heavy-validation setup lives in:
+
+```text
+analysis/acoustoelastic_iop_hgo/aeDefaultIdentityA0ValidationParams.m
+analysis/acoustoelastic_iop_hgo/aeDefaultIdentityA0ValidationOptions.m
+analysis/acoustoelastic_iop_hgo/aeDefaultIdentityA0ValidationGrid.m
+```
+
 Generated figures, local results, MAT files, CSV files, and image exports are ignored by the repository-level `.gitignore`.
 
 Sweep plots use the following visual convention: the Cp axis starts at zero, while frequency, mu, IOP, and other non-Cp axes use data-driven limits with padding. Grouped Cp figures created from a single grid sweep use a common Cp axis limit computed from all conditions in the sweep. The interactive 3D sweep surface keeps fixed axis limits and preserves the current camera view when the slider is moved.
@@ -106,7 +114,6 @@ These diagnostics support the current `atlasA0` policy, ambiguity interpretation
 | `diagnostics/diagnose_atlas_truncation.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE` | Writes to `Results/ae_iop_hgo/atlas_truncation`. Requires sweep workspaces. | Keep. |
 | `diagnostics/diagnose_idA0_plausibility.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE_WRAPPER` | Delegates to `diagnose_idA0_plausibility_impl.m`; requires `idA0_grid` workspace. | Keep. |
 | `diagnostics/diagnose_idA0_plausibility_impl.m` | `MAINTAINED_DIAGNOSTIC_IMPLEMENTATION` | Writes to `Results/ae_iop_hgo/idA0_plausibility`. | Keep as implementation target. |
-| `diagnostics/diagnose_grid_start_sensitivity.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE` | Writes to `Results/ae_iop_hgo/grid_start_sensitivity`. Tests atlasA0 sensitivity to frequency start and output density. | Keep; run manually when atlasA0 solver-interface behavior changes. |
 
 ### Historical diagnostics retained for traceability
 
@@ -115,9 +122,10 @@ These scripts are retained because they support thesis traceability or heavy val
 | File | Classification | Output behavior | Action |
 |---|---|---|---|
 | `diagnostics/diagnose_idA0_score.m` | `HISTORICAL_DIAGNOSTIC_RETAINED` | Writes to `Results/ae_iop_hgo/idA0_score`. Requires sweep workspaces. | Keep. |
-| `diagnostics/validate_idA0_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
-| `diagnostics/validate_idA0_score_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
+| `diagnostics/validate_idA0_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation that uses shared identity-A0 validation defaults. | Keep. |
+| `diagnostics/validate_idA0_score_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation that uses shared identity-A0 validation defaults. | Keep. |
 | `diagnostics/diagnose_modal_atlas.m` | `HISTORICAL_DIAGNOSTIC_WRAPPER` | Delegates to the consolidated modal-atlas implementation. The implementation starts at low frequency by design and writes to `Results/ae_iop_hgo/modal_atlas`. | Keep. |
+| `diagnostics/diagnose_grid_start_sensitivity.m` | `HISTORICAL_DIAGNOSTIC_RETAINED` | Writes to `Results/ae_iop_hgo/grid_start_sensitivity`. Retained as evidence for the decision that modal-atlas workflows should start at low frequency by default. | Keep for traceability; do not list as maintained evidence. |
 | `diagnostics/track_raw_branch1.m` | `REPRODUCIBILITY_ENTRYPOINT` | Calls `aeExtractRawBranch1Candidate` and writes `Results/ae_iop_hgo/raw_branch1`. | Keep. |
 
 ### Removed redundant modal-atlas entrypoints
@@ -136,8 +144,8 @@ These long descriptive files remain because they contain implementation logic fo
 | File | Classification | Reason | Action |
 |---|---|---|---|
 | `diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m` | `LONG_IMPLEMENTATION_TARGET` | Implementation for `diagnose_modal_atlas`. Generates modal-family ambiguity evidence from low frequency to high frequency; shared atlas-map computation uses `aeComputeModalAtlasForCase`. | Keep. |
-| `diagnostics/validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid.m` | `LONG_HEAVY_VALIDATION_IMPLEMENTATION` | Implementation for `validate_idA0_grid`. Writes to clean short path. | Keep. |
-| `diagnostics/validate_acoustoelastic_iop_hgo_branch_identity_score_grid.m` | `LONG_HEAVY_VALIDATION_IMPLEMENTATION` | Implementation for `validate_idA0_score_grid`. Writes to clean short path. | Keep. |
+| `diagnostics/validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid.m` | `LONG_HEAVY_VALIDATION_IMPLEMENTATION` | Implementation for `validate_idA0_grid`. Writes to clean short path and uses shared validation defaults. | Keep. |
+| `diagnostics/validate_acoustoelastic_iop_hgo_branch_identity_score_grid.m` | `LONG_HEAVY_VALIDATION_IMPLEMENTATION` | Implementation for `validate_idA0_score_grid`. Writes to clean short path and uses shared validation defaults. | Keep. |
 
 ### Archived categories no longer present in examples
 
@@ -169,14 +177,7 @@ docs/acoustoelastic_iop_hgo/retained_diagnostic_dependency_review.md
 
 Do not delete more files from `examples/acoustoelastic_iop_hgo/` based only on name similarity.
 
-The next possible cleanup actions are design decisions, not mechanical cleanup:
-
-```text
-1. Decide whether to consolidate heavy validation wrappers into their short files.
-2. Decide whether additional long diagnostic implementation logic should migrate into helper functions after a focused validation pass.
-```
-
-Each action requires its own focused design and validation pass.
+The remaining cleanup should be tied to solver-interface or physical-model decisions rather than mechanical file cleanup.
 
 ### Validation command
 
