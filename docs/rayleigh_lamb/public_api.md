@@ -6,6 +6,8 @@ The `rl*` functions under `models/rayleigh_lamb/` are the supported Rayleigh-Lam
 
 For architecture, path behavior, validation, and GUI guidance, see [Rayleigh-Lamb solver overview](overview.md).
 
+For the first model-specific fitting workflow, see [Rayleigh-Lamb fitting workflow](fitting_workflow.md).
+
 ## Material-parameter convention
 
 The maintained soft-material input model is:
@@ -63,6 +65,26 @@ For new user-facing Rayleigh-Lamb code, start with these primary entrypoints:
 
 These names should be used for maintained examples, documentation, application code, and analysis scripts that call the base Rayleigh-Lamb implementation directly.
 
+## Fitting helpers
+
+The first maintained Rayleigh-Lamb fitting helpers live under:
+
+```text
+analysis/rayleigh_lamb/
+```
+
+Current fitting helpers:
+
+```matlab
+rlBuildFitProblem
+rlEvaluateFitModel
+rlFitDispersionData
+```
+
+`rlEvaluateFitModel` evaluates A0/S0 directly on a supplied fitting frequency grid. It does not use `rlBuildFrequencyVector`, which allows one-point frequency-speed fitting workflows.
+
+The first validated fitting workflow is synthetic A0 data with `mu` as the only free parameter.
+
 ## Maintained examples
 
 Rayleigh-Lamb basic examples live under:
@@ -103,6 +125,18 @@ Current validation script:
 check_default_outputs
 ```
 
+Rayleigh-Lamb fitting examples live under:
+
+```text
+examples/rayleigh_lamb/fitting/
+```
+
+Current fitting script:
+
+```matlab
+fit_default_A0
+```
+
 These scripts are user-facing examples or validation scripts built on the `rl*` API. They are not compatibility wrappers.
 
 ## Sweep helper
@@ -123,4 +157,4 @@ It is a workflow helper, not a replacement for the `rl*` solver API. Use it for 
 
 ## Internal/helper entrypoints
 
-Residual, validation, geometry/material, frequency-vector, branch-spec, and tracking helpers are maintained but primarily support the higher-level entrypoints listed above. Direct calls to these helpers may be appropriate for focused diagnostics, tests, or advanced workflows.
+Residual, validation, geometry/material, frequency-vector, branch-spec, tracking, and fitting helpers are maintained but primarily support the higher-level entrypoints listed above. Direct calls to these helpers may be appropriate for focused diagnostics, tests, or advanced workflows.
