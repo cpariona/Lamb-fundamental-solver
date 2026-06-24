@@ -137,7 +137,6 @@ diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
 diagnose_idA0_plausibility
-diagnose_grid_start_sensitivity
 ```
 
 ## mRLFE model
