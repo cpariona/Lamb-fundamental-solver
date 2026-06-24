@@ -32,6 +32,7 @@ guiGetFitRegistry
 guiBuildFitRequest
 guiRunFit
 guiFitRLSolver
+guiFitMRLFESolver
 guiNormalizeFitResult
 guiPlotFitResult
 ```
@@ -201,6 +202,14 @@ summarizeMRLFETrackingQuality
 compareMRLFETrackingStrategies
 ```
 
+Maintained mRLFE fitting helpers:
+
+```matlab
+mrlfeBuildFitProblem
+mrlfeEvaluateFitModel
+mrlfeFitDispersionData
+```
+
 Maintained public sweep wrappers:
 
 ```matlab
@@ -210,6 +219,12 @@ sweep_etaS_A0Like_viscoelastic
 sweep_etaS_S0Like_viscoelastic
 sweep_thickness_A0Like_viscoelastic
 sweep_thickness_S0Like_viscoelastic
+```
+
+Maintained mRLFE fitting example:
+
+```matlab
+fit_mrlfe_A0Like
 ```
 
 Maintained mRLFE diagnostics:
@@ -238,6 +253,7 @@ test_mrlfe_maintained_entrypoints_naming
 test_mrlfe_model_candidate_names
 test_mrlfe_diagnostic_material_sweep_contract
 test_mrlfe_etaS_zero_diagnostic_selection
+test_mrlfe_fit_synthetic_A0Like
 ```
 
 ## Smoke-test scope
@@ -269,6 +285,7 @@ docs/fitting_phase1_status.md
 docs/fitting_phase2_status.md
 docs/fitting_phase3_status.md
 docs/fitting_phase4_status.md
+docs/fitting_phase5_status.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
@@ -277,6 +294,7 @@ docs/rayleigh_lamb/overview.md
 docs/rayleigh_lamb/public_api.md
 docs/rayleigh_lamb/fitting_workflow.md
 docs/mrlfe/current_sweeps.md
+docs/mrlfe/fitting_workflow.md
 docs/mrlfe/pending_cleanup.md
 docs/mrlfe/tracker_diagnostic_summary.md
 docs/acoustoelastic_iop_hgo/README.md
