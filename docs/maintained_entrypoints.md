@@ -88,6 +88,7 @@ Maintained fitting tests:
 ```matlab
 test_fitting_helpers_smoke
 test_gui_fit_registry_contract
+test_fit_tool_model_registry_contract
 ```
 
 Focused fitting validation suite:
@@ -325,6 +326,7 @@ docs/fitting_phase3_status.md
 docs/fitting_phase4_status.md
 docs/fitting_phase5_status.md
 docs/fitting_phase6_status.md
+docs/fitting_phase7_status.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
