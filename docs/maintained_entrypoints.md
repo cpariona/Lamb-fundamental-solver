@@ -60,6 +60,25 @@ rlWriteSweepOutputs
 rlSaveExampleFigure
 ```
 
+## Shared fitting helpers
+
+```matlab
+normalizeExperimentalDispersionData
+validateExperimentalDispersionData
+computeDispersionFitResiduals
+computeDispersionFitMetrics
+buildParameterVector
+unpackParameterVector
+estimateLocalSensitivity
+assessFitIdentifiability
+```
+
+Maintained fitting tests:
+
+```matlab
+test_fitting_helpers_smoke
+```
+
 ## Rayleigh-Lamb base solver
 
 Maintained Rayleigh-Lamb implementation entrypoints use the `rl*` API:
