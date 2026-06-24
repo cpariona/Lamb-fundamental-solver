@@ -11,6 +11,8 @@ switch modelFamily
         fitOutput = guiFitRLSolver(request);
     case {"mrlfe", "mrlfe_real_k", "mrlferealk"}
         fitOutput = guiFitMRLFESolver(request);
+    case {"acoustoelastic_iop_hgo", "ae_iop_hgo", "ae"}
+        fitOutput = guiFitAcoustoelasticIOPHGOSolver(request);
     otherwise
         error('Unsupported GUI fit model family: %s', string(request.modelFamily));
 end
