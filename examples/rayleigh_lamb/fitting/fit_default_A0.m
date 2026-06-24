@@ -33,11 +33,13 @@ fitConfig.bounds = struct('mu', [20e3, 200e3]);
 fitConfig.solverOptions = solverOptions;
 
 fitResult = rlFitDispersionData(experimental, fitConfig);
+relativeRMSE = fitResult.metrics.RMSE / mean(abs(experimental.Cp_mps));
 
 fprintf('\nRayleigh-Lamb A0 synthetic fit complete.\n');
 fprintf('True mu: %.3f kPa\n', trueParams.mu / 1e3);
 fprintf('Fit  mu: %.3f kPa\n', fitResult.bestParams.mu / 1e3);
 fprintf('RMSE: %.6g m/s\n', fitResult.metrics.RMSE);
+fprintf('Relative RMSE: %.6g\n', relativeRMSE);
 fprintf('Identifiability: %s\n', string(fitResult.identifiability.classification));
 
 figure('Color', 'w');
@@ -49,5 +51,25 @@ xlabel('Frequency [kHz]');
 ylabel('Phase speed [m/s]');
 title('Rayleigh-Lamb A0 synthetic fit');
 legend({'Synthetic data', 'Fitted model'}, 'Location', 'best');
+applyPhysicalYLimits(experimental.Cp_mps, fitResult.Cp_fit_mps);
+
+figure('Color', 'w');
+plot(fitResult.frequency_Hz ./ 1e3, fitResult.residualInfo.rawResiduals_mps, 'o-', 'LineWidth', 1.2);
+grid on;
+xlabel('Frequency [kHz]');
+ylabel('Residual [m/s]');
+title('Rayleigh-Lamb A0 synthetic fit residuals');
 
 assignin('base', 'RayleighLambA0FitResult', fitResult);
+
+function applyPhysicalYLimits(CpExp_mps, CpFit_mps)
+CpAll = [CpExp_mps(:); CpFit_mps(:)];
+CpAll = CpAll(isfinite(CpAll));
+if isempty(CpAll)
+    return;
+end
+CpCenter = mean(CpAll);
+CpSpan = max(CpAll) - min(CpAll);
+yMargin = max([0.05 * abs(CpCenter), 1.2 * CpSpan, 1e-3]);
+ylim([CpCenter - yMargin, CpCenter + yMargin]);
+end
