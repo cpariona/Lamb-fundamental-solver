@@ -198,8 +198,19 @@ test_mrlfe_etaS_zero_diagnostic_selection
 
 ## Smoke-test scope
 
+Run the full maintained suite:
+
 ```matlab
 run_all_smoke_tests
+```
+
+Run focused groups after localized changes:
+
+```matlab
+run_core_smoke_tests
+run_gui_smoke_tests
+run_acoustoelastic_smoke_tests
+run_mrlfe_smoke_tests
 ```
 
 ## Active documentation links
