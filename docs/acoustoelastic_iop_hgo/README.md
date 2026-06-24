@@ -60,6 +60,7 @@ Sweeps:
 ```matlab
 sweep_iop
 sweep_mu
+sweep_mu_iop
 ```
 
 Maintained diagnostics:
@@ -71,6 +72,13 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
+diagnose_idA0_plausibility
+```
+
+Focused smoke runner:
+
+```matlab
+run_acoustoelastic_smoke_tests
 ```
 
 Do not execute long legacy scripts directly unless reproducing historical behavior.
