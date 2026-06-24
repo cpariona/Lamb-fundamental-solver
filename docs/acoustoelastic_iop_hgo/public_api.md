@@ -59,11 +59,16 @@ aeExtractRawBranch1Candidate
 aeComputeModalAtlasForCase
 aeFindTopModalAtlasLocalMinima
 aeLinkModalAtlasMinimaIntoBranches
+aeDefaultIdentityA0ValidationParams
+aeDefaultIdentityA0ValidationOptions
+aeDefaultIdentityA0ValidationGrid
 ```
 
 `aeExtractRawBranch1Candidate` is diagnostic infrastructure. It supports `track_raw_branch1` and `compare_atlasA0_vs_raw_branch1`; it does not promote `raw_branch1` to production output.
 
 `aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic. The maintained `diagnose_modal_atlas` entrypoint starts at low frequency by design, so no separate low-frequency modal-atlas entrypoint is maintained.
+
+`aeDefaultIdentityA0ValidationParams`, `aeDefaultIdentityA0ValidationOptions`, and `aeDefaultIdentityA0ValidationGrid` centralize the shared heavy-validation setup used by `validate_idA0_grid` and `validate_idA0_score_grid`.
 
 ## Maintained public workflows
 
