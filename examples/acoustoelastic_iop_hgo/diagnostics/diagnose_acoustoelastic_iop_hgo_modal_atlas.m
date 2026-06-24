@@ -3,8 +3,9 @@ startup
 
 % Li 2024 modal atlas diagnostic.
 %
-% This diagnostic builds a full frequency-Cp map of the characteristic-matrix
-% objective and then identifies local-minimum families as continuous branches.
+% This diagnostic builds a full low-frequency-to-high-frequency Cp map of the
+% characteristic-matrix objective and identifies local-minimum families as
+% continuous branches.
 %
 % Main goal:
 %   Stop trusting a single tracker blindly. Instead, visualize and quantify:
@@ -13,6 +14,11 @@ startup
 %     3. which branch each existing tracker is following,
 %     4. whether dense clusters of low-Cp minima persist or disappear under
 %        alternative numerical/modeling conditions.
+%
+% Frequency convention:
+%   The modal atlas must start at low frequency. A separate low-frequency
+%   diagnostic is intentionally not maintained; low-frequency onset is part of
+%   the standard atlas definition.
 
 baseParams = struct();
 
@@ -30,19 +36,18 @@ baseParams.rho = 1060;                  % kg/m^3
 baseParams.rhoF = 1000;                 % kg/m^3
 baseParams.fluidBulkModulus = 2.2e9;    % Pa
 
-referenceFrequency = 20e3;
-baseParams.frequency = ensureFrequencyIncludesReference(linspace(6e3, 35e3, 100), referenceFrequency);
-
-% Keep this list focused at first. Add 5 and 10 mmHg later if needed.
-atlasIOP_mmHg = [15, 20, 25];
+% Low-frequency-to-high-frequency atlas grid.
+baseParams.frequency = logspace(log10(100), log10(35e3), 160); % Hz
+atlasIOP_mmHg = [5, 15, 25];
 atlasIOP_Pa = atlasIOP_mmHg * 133.322;
 
-% Logarithmic y-grid reveals Lamb-like valleys more clearly than a linear Cp grid.
-% y = Cp / sqrt(alpha/rho).
-yGrid = logspace(log10(0.03), log10(1.60), 720);
-topNMinimaPerFrequency = 14;
-maxLogYJumpForBranch = 0.085;
-minBranchPoints = 8;
+% Dimensionless phase-velocity grid.
+% y = Cp/sqrt(alpha/rho). The lower bound is intentionally small to allow
+% inspection of the flexural A0 onset.
+yGrid = logspace(log10(0.003), log10(2.0), 900);
+topNMinimaPerFrequency = 16;
+maxLogYJumpForBranch = 0.075;
+minBranchPoints = 10;
 
 % Existing tracker overlays. These are not used to define branches.
 trackerGridPoints = [900, 1800, 3600];
@@ -51,7 +56,8 @@ baseOptions = defaultAcoustoelasticIOPHGOOptions();
 baseOptions.branch = "A0";
 baseOptions.trackingDirection = "backward";
 baseOptions.trackingMethod = "globalScan";
-baseOptions.minDimensionlessFrequency = 0.20;
+baseOptions.minDimensionlessFrequency = 0.0;
+baseOptions.usePhysicalCpWindow = false;
 
 conditionList = makeConditionList(baseOptions);
 
@@ -63,7 +69,8 @@ atlasMaps = struct();
 trackerResults = struct();
 
 fprintf('\nLi 2024 modal atlas diagnostic\n');
-fprintf('Frequency points: %d, y-grid points: %d\n', numel(baseParams.frequency), numel(yGrid));
+fprintf('Frequency range: %.3g Hz to %.3g kHz, %d points\n', min(baseParams.frequency), max(baseParams.frequency)/1e3, numel(baseParams.frequency));
+fprintf('y-grid range: %.4g to %.4g, %d points\n', min(yGrid), max(yGrid), numel(yGrid));
 fprintf('IOP values: %s mmHg\n\n', mat2str(atlasIOP_mmHg));
 
 for c = 1:numel(conditionList)
@@ -77,7 +84,7 @@ for c = 1:numel(conditionList)
 
         fprintf('  IOP %.1f mmHg: building objective map...\n', atlasIOP_mmHg(i));
         atlas = aeComputeModalAtlasForCase(directParams, condition.options, yGrid, topNMinimaPerFrequency, ...
-            maxLogYJumpForBranch, minBranchPoints, "standard");
+            maxLogYJumpForBranch, minBranchPoints, "lowFrequency");
 
         atlas.conditionLabel = condition.label;
         atlas.IOP_mmHg = atlasIOP_mmHg(i);
@@ -116,6 +123,14 @@ writetable(allMinima, fullfile(outputFolder, 'acoustoelastic_iop_hgo_modal_atlas
 writetable(allBranches, fullfile(outputFolder, 'acoustoelastic_iop_hgo_modal_atlas_branch_table.csv'));
 writetable(allTrackerMatches, fullfile(outputFolder, 'acoustoelastic_iop_hgo_modal_atlas_tracker_match_table.csv'));
 writetable(conditionSummary, fullfile(outputFolder, 'acoustoelastic_iop_hgo_modal_atlas_condition_summary_table.csv'));
+
+% Short canonical aliases used by downstream diagnostic helpers.
+writetable(allMinima, fullfile(outputFolder, 'modal_atlas_minima.csv'));
+writetable(allBranches, fullfile(outputFolder, 'modal_atlas_branches.csv'));
+
+save(fullfile(outputFolder, 'acoustoelastic_iop_hgo_modal_atlas_workspace.mat'), ...
+    'atlasMaps', 'allMinima', 'allBranches', 'allTrackerMatches', 'conditionSummary', ...
+    'baseParams', 'atlasIOP_mmHg', 'yGrid', 'conditionList', 'trackerResults', '-v7.3');
 
 fprintf('\nModal-atlas minima table\n');
 disp(head(allMinima, min(20, height(allMinima))));
@@ -166,11 +181,6 @@ conditionList(3).options = opt;
 conditionList(3).overlayTrackers = false;
 end
 
-function frequency = ensureFrequencyIncludesReference(frequency, fRef)
-frequency = unique([frequency(:); fRef]);
-frequency = sort(frequency(:)).';
-end
-
 function [directParams, state] = buildDirectParamsFromIOP(params)
 [alpha, beta, gamma, state] = computeAcoustoelasticABGFromIOPHGO( ...
     params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
@@ -217,19 +227,45 @@ summary.NumMinima = height(minimaTable);
 summary.NumPersistentBranches = height(branchTable);
 if isempty(minimaTable)
     summary.MedianMinimaPerFrequency = nan;
+    summary.MedianNearestSpacingLogY = nan;
 else
-    summary.MedianMinimaPerFrequency = median(splitapply(@numel, minimaTable.Cp_mps, findgroups(minimaTable.Frequency_Hz)), 'omitnan');
+    [G, ~] = findgroups(minimaTable.Frequency_Hz);
+    summary.MedianMinimaPerFrequency = median(splitapply(@numel, minimaTable.Cp_mps, G), 'omitnan');
+    summary.MedianNearestSpacingLogY = median(minimaTable.SpacingToNearestLogY, 'omitnan');
 end
 if isempty(branchTable)
     summary.MaxBranchCoverage_kHz = nan;
     summary.SmoothestBranchID = nan;
     summary.SmoothestBranchRoughness = nan;
+    summary.BestLowFrequencyCandidateID = nan;
 else
     summary.MaxBranchCoverage_kHz = max(branchTable.FrequencyCoverage_kHz);
     [roughness, idx] = min(branchTable.Roughness);
     summary.SmoothestBranchID = branchTable.BranchID(idx);
     summary.SmoothestBranchRoughness = roughness;
+
+    score = normalizeMetric(branchTable.MedianY) + normalizeMetric(branchTable.Roughness) ...
+        - normalizeMetric(branchTable.FrequencyCoverage_kHz) - 0.5*normalizeMetric(branchTable.NetCpIncrease_mps);
+    [~, idxBest] = min(score);
+    summary.BestLowFrequencyCandidateID = branchTable.BranchID(idxBest);
 end
+end
+
+function x = normalizeMetric(x)
+x = x(:);
+finiteMask = isfinite(x);
+if ~any(finiteMask)
+    x(:) = 0;
+    return;
+end
+xmin = min(x(finiteMask));
+xmax = max(x(finiteMask));
+if abs(xmax - xmin) < eps
+    x(finiteMask) = 0;
+else
+    x(finiteMask) = (x(finiteMask) - xmin) ./ (xmax - xmin);
+end
+x(~finiteMask) = 1;
 end
 
 function [trackerTable, trackerResultsForCase] = computeTrackerMatchesForCase(params, options, atlas, gridList)
@@ -284,16 +320,18 @@ end
 function plotModalAtlasCase(atlas, condition, trackerResults, key)
 figure('Color', 'w', 'Name', sprintf('Modal atlas %s IOP %.0f', condition.label, atlas.IOP_mmHg));
 imagesc(atlas.frequency/1e3, atlas.yGrid, atlas.objectiveMap);
-set(gca, 'YScale', 'log', 'YDir', 'normal');
+set(gca, 'YScale', 'log', 'XScale', 'log', 'YDir', 'normal');
 hold on; grid on;
 colormap(parula);
 cb = colorbar;
 cb.Label.String = 'log10(sigma_{min})';
 
 T = atlas.minimaTable;
-validBranches = isfinite(T.BranchID);
-scatter(T.Frequency_kHz(validBranches), T.y(validBranches), 18, T.BranchID(validBranches), 'filled', ...
-    'MarkerEdgeAlpha', 0.35, 'MarkerFaceAlpha', 0.70, 'HandleVisibility', 'off');
+if ~isempty(T)
+    validBranches = isfinite(T.BranchID);
+    scatter(T.Frequency_kHz(validBranches), T.y(validBranches), 18, T.BranchID(validBranches), 'filled', ...
+        'MarkerEdgeAlpha', 0.35, 'MarkerFaceAlpha', 0.70, 'HandleVisibility', 'off');
+end
 
 if condition.overlayTrackers && isfield(trackerResults, key)
     tracker = trackerResults.(key);
