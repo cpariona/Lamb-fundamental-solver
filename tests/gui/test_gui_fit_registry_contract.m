@@ -7,13 +7,19 @@ fprintf('------------------------------------------\n');
 registry = guiGetFitRegistry();
 assert(isfield(registry, 'defaultModelFamily'), 'Fit registry missing defaultModelFamily.');
 assert(isfield(registry, 'modelFamilies'), 'Fit registry missing modelFamilies.');
-assert(~isempty(registry.modelFamilies), 'Fit registry must expose at least one model family.');
+assert(numel(registry.modelFamilies) >= 2, 'Fit registry must expose Rayleigh-Lamb and mRLFE model families.');
 
 rlFamily = registry.modelFamilies(1);
-assert(rlFamily.id == "rayleigh_lamb", 'First Phase 3 fit family should be Rayleigh-Lamb.');
+assert(rlFamily.id == "rayleigh_lamb", 'First fit family should be Rayleigh-Lamb.');
 assert(any(rlFamily.branchNames == "A0"), 'Rayleigh-Lamb fit registry must include A0.');
 assert(any([rlFamily.parameters.canFit]), 'At least one Rayleigh-Lamb parameter must be fit-capable.');
 
+mrlfeFamily = registry.modelFamilies(2);
+assert(mrlfeFamily.id == "mrlfe", 'Second fit family should be mRLFE.');
+assert(any(mrlfeFamily.branchNames == "A0Like"), 'mRLFE fit registry must include A0Like.');
+assert(any([mrlfeFamily.parameters.canFit]), 'At least one mRLFE parameter must be fit-capable.');
+
+%% Rayleigh-Lamb app-level fit
 trueParams = rlDefaultParams();
 trueParams.mu = 85e3;
 trueParams.thickness = 0.50e-3;
@@ -52,6 +58,48 @@ assert(fitOutput.normalized.metrics.RMSE < 0.05, 'Normalized app-level fit RMSE 
 assert(fitOutput.normalized.identifiability.classification == "locally_identifiable", ...
     'App-level synthetic fit should be locally identifiable.');
 assert(height(fitOutput.normalized.summaryTable) == 1, 'Normalized summary table should contain one free parameter.');
+fprintf('Rayleigh-Lamb recovered mu: %.3f kPa\n', fitOutput.fitResult.bestParams.mu / 1e3);
 
-fprintf('Recovered mu: %.3f kPa\n', fitOutput.fitResult.bestParams.mu / 1e3);
+%% mRLFE app-level fit
+mrlfeParams = mrlfeDefaultSweepParams();
+mrlfeParams.mu = 75e3;
+mrlfeParams.thickness = 0.50e-3;
+mrlfeParams.rho = 1070;
+mrlfeParams.nu = 0.4999;
+
+mrlfeFrequency_Hz = linspace(1000, 8000, 6).';
+mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0.0);
+mrlfeCpSynthetic_mps = mrlfeEvaluateFitModel(mrlfeParams, mrlfeFrequency_Hz, "A0Like", mrlfeOptions);
+
+mrlfeExperimental = struct();
+mrlfeExperimental.frequency_Hz = mrlfeFrequency_Hz;
+mrlfeExperimental.Cp_mps = mrlfeCpSynthetic_mps;
+mrlfeExperimental.validMask = true(size(mrlfeFrequency_Hz));
+
+mrlfeRequest = guiBuildFitRequest("mrlfe", ...
+    'branchName', "A0Like", ...
+    'mode', "basic", ...
+    'experimental', mrlfeExperimental, ...
+    'fixedParams', struct('thickness', mrlfeParams.thickness, 'rho', mrlfeParams.rho, 'nu', mrlfeParams.nu), ...
+    'freeParams', "mu", ...
+    'initialGuess', struct('mu', 50e3), ...
+    'bounds', struct('mu', [20e3, 160e3]), ...
+    'controls', struct('robustness', "Fast", 'etaS', 0.0, 'fluidDensity', 1000, 'fluidSoundSpeed', 1500), ...
+    'fitOptions', struct('useStandardErrorWeights', false, ...
+        'optimizerOptions', optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 70, 'TolX', 1e-4)));
+
+mrlfeFitOutput = guiRunFit(mrlfeRequest);
+assert(mrlfeFitOutput.modelFamily == "mrlfe", 'Unexpected mRLFE fitOutput modelFamily.');
+assert(mrlfeFitOutput.branchName == "A0Like", 'Unexpected mRLFE fitOutput branchName.');
+assert(isfield(mrlfeFitOutput, 'fitResult'), 'mRLFE fitOutput missing fitResult.');
+assert(isfield(mrlfeFitOutput, 'normalized'), 'mRLFE fitOutput missing normalized result.');
+
+mrlfeRelativeMuError = abs(mrlfeFitOutput.fitResult.bestParams.mu - mrlfeParams.mu) / mrlfeParams.mu;
+assert(mrlfeRelativeMuError < 0.05, 'App-level mRLFE fit did not recover mu within 5%%.');
+assert(mrlfeFitOutput.normalized.metrics.RMSE < 0.10, 'Normalized app-level mRLFE fit RMSE is unexpectedly high.');
+assert(mrlfeFitOutput.normalized.identifiability.classification == "locally_identifiable", ...
+    'App-level mRLFE synthetic fit should be locally identifiable.');
+assert(height(mrlfeFitOutput.normalized.summaryTable) == 1, 'mRLFE normalized summary table should contain one free parameter.');
+fprintf('mRLFE recovered mu: %.3f kPa\n', mrlfeFitOutput.fitResult.bestParams.mu / 1e3);
+
 fprintf('\nGUI fitting backend contract test passed.\n');
