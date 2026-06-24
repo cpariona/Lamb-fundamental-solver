@@ -9,6 +9,8 @@ modelFamily = lower(string(request.modelFamily));
 switch modelFamily
     case {"rayleigh_lamb", "rayleighlamb", "rl"}
         fitOutput = guiFitRLSolver(request);
+    case {"mrlfe", "mrlfe_real_k", "mrlferealk"}
+        fitOutput = guiFitMRLFESolver(request);
     otherwise
         error('Unsupported GUI fit model family: %s', string(request.modelFamily));
 end
