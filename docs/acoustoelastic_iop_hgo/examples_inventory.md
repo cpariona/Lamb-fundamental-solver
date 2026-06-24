@@ -98,7 +98,7 @@ These diagnostics support the current `atlasA0` policy, ambiguity interpretation
 
 | File | Classification | Output behavior | Action |
 |---|---|---|---|
-| `diagnostics/compare_atlasA0_vs_raw_branch1.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE` | Reads `Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv` when present; otherwise regenerates it from `modal_atlas_lowfreq` using `aeExtractRawBranch1Candidate`. Writes to `Results/ae_iop_hgo/atlas_vs_raw_branch1`. | Keep. |
+| `diagnostics/compare_atlasA0_vs_raw_branch1.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE` | Reads `Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv` when present; otherwise regenerates it from the consolidated `modal_atlas` output using `aeExtractRawBranch1Candidate`. Writes to `Results/ae_iop_hgo/atlas_vs_raw_branch1`. | Keep. |
 | `diagnostics/validate_atlas_raw_grid.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE` | Writes to `Results/ae_iop_hgo/atlas_vs_raw_branch1_grid`. | Keep. |
 | `diagnostics/diagnose_raw_branch_corner.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE` | Writes to `Results/ae_iop_hgo/raw_branch_corner`. | Keep. |
 | `diagnostics/diagnose_branch_families.m` | `MAINTAINED_DIAGNOSTIC_EVIDENCE` | Writes to `Results/ae_iop_hgo/branch_families`. | Keep. |
@@ -117,9 +117,17 @@ These scripts are retained because they support thesis traceability or heavy val
 | `diagnostics/diagnose_idA0_score.m` | `HISTORICAL_DIAGNOSTIC_RETAINED` | Writes to `Results/ae_iop_hgo/idA0_score`. Requires sweep workspaces. | Keep. |
 | `diagnostics/validate_idA0_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
 | `diagnostics/validate_idA0_score_grid.m` | `HEAVY_VALIDATION_WRAPPER` | Delegates to long validation implementation. | Keep. |
-| `diagnostics/diagnose_modal_atlas.m` | `HISTORICAL_DIAGNOSTIC_WRAPPER` | Delegates to modal-atlas implementation while preserving launch folder through `aeRunLegacyScript`; shared atlas-map logic lives in analysis helpers. | Keep. |
-| `diagnostics/diagnose_modal_atlas_lowfreq.m` | `HISTORICAL_DIAGNOSTIC_WRAPPER` | Delegates to low-frequency modal-atlas implementation while preserving launch folder through `aeRunLegacyScript`; shared atlas-map logic lives in analysis helpers. | Keep. |
+| `diagnostics/diagnose_modal_atlas.m` | `HISTORICAL_DIAGNOSTIC_WRAPPER` | Delegates to the consolidated modal-atlas implementation. The implementation starts at low frequency by design and writes to `Results/ae_iop_hgo/modal_atlas`. | Keep. |
 | `diagnostics/track_raw_branch1.m` | `REPRODUCIBILITY_ENTRYPOINT` | Calls `aeExtractRawBranch1Candidate` and writes `Results/ae_iop_hgo/raw_branch1`. | Keep. |
+
+### Removed redundant modal-atlas entrypoints
+
+The separate low-frequency modal-atlas scripts were removed because low-frequency initialization is now implicit in the standard modal-atlas diagnostic.
+
+```text
+diagnostics/diagnose_modal_atlas_lowfreq.m
+diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
+```
 
 ### Long implementation targets retained by design
 
@@ -127,8 +135,7 @@ These long descriptive files remain because they contain implementation logic fo
 
 | File | Classification | Reason | Action |
 |---|---|---|---|
-| `diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m` | `LONG_IMPLEMENTATION_TARGET` | Implementation for `diagnose_modal_atlas`. Generates modal-family ambiguity evidence; shared atlas-map computation now uses `aeComputeModalAtlasForCase`. | Keep. |
-| `diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m` | `LONG_IMPLEMENTATION_TARGET` | Implementation for `diagnose_modal_atlas_lowfreq`. Generates low-frequency modal-atlas evidence; shared atlas-map computation now uses `aeComputeModalAtlasForCase`. | Keep. |
+| `diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m` | `LONG_IMPLEMENTATION_TARGET` | Implementation for `diagnose_modal_atlas`. Generates modal-family ambiguity evidence from low frequency to high frequency; shared atlas-map computation uses `aeComputeModalAtlasForCase`. | Keep. |
 | `diagnostics/validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid.m` | `LONG_HEAVY_VALIDATION_IMPLEMENTATION` | Implementation for `validate_idA0_grid`. Writes to clean short path. | Keep. |
 | `diagnostics/validate_acoustoelastic_iop_hgo_branch_identity_score_grid.m` | `LONG_HEAVY_VALIDATION_IMPLEMENTATION` | Implementation for `validate_idA0_score_grid`. Writes to clean short path. | Keep. |
 
@@ -144,6 +151,7 @@ E1 direct-matrix exploratory diagnostics
 E2 A0-backward/tracking exploratory diagnostics
 E3 complex-C example diagnostic
 raw_branch1 long implementation script
+redundant low-frequency modal-atlas wrapper and implementation
 ```
 
 Relevant archive and review documents:
@@ -191,7 +199,7 @@ run_all_smoke_tests
 After raw-branch helper changes, also run:
 
 ```matlab
-diagnose_modal_atlas_lowfreq
+diagnose_modal_atlas
 track_raw_branch1
 compare_atlasA0_vs_raw_branch1
 ```
