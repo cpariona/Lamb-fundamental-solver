@@ -66,6 +66,7 @@ aeExtractRawBranch1Candidate
 run_atlas_branch
 sweep_iop
 sweep_mu
+sweep_mu_iop
 ```
 
 ## Maintained diagnostic evidence
@@ -97,10 +98,19 @@ track_raw_branch1
 test_acoustoelastic_iop_hgo_branch_policy_validation
 test_acoustoelastic_iop_hgo_atlasA0_smoke
 test_acoustoelastic_iop_hgo_constitutive_identity
+test_acoustoelastic_iop_hgo_fallback_invalidation
+test_acoustoelastic_iop_hgo_internal_tracking_grid
 test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 test_acoustoelastic_iop_hgo_short_entrypoints
 test_acoustoelastic_iop_hgo_branch_persistence_refinement
 test_ae_analyze_truncation_recovery
+```
+
+## Maintained smoke runners
+
+```matlab
+run_acoustoelastic_smoke_tests
+run_all_smoke_tests
 ```
 
 ## Policy for callers
