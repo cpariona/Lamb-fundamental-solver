@@ -26,6 +26,12 @@ guiRunRLSweep
 guiNormalizeRLSweep
 guiRunAcoustoelasticIOPHGOSweep
 guiNormalizeAcoustoelasticIOPHGOSweep
+guiGetFitRegistry
+guiBuildFitRequest
+guiRunFit
+guiFitRLSolver
+guiNormalizeFitResult
+guiPlotFitResult
 ```
 
 ## Shared sweep helpers
@@ -77,6 +83,7 @@ Maintained fitting tests:
 
 ```matlab
 test_fitting_helpers_smoke
+test_gui_fit_registry_contract
 ```
 
 ## Rayleigh-Lamb base solver
