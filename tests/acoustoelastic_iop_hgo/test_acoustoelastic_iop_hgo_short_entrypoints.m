@@ -47,6 +47,12 @@ for i = 1:numel(optionalNames)
     validateLegacyTargetIfExampleWrapper(optionalNames(i), entryPath);
 end
 
+assertExpectedWrappersUseLegacyRunner([ ...
+    "validate_idA0_grid", ...
+    "validate_idA0_score_grid", ...
+    "diagnose_modal_atlas", ...
+    "diagnose_modal_atlas_lowfreq" ...
+    ]);
 assertMaintainedDocsContain(maintainedNames);
 
 fprintf('Maintained acoustoelastic IOP/HGO entrypoint path test passed. Optional wrapper targets verified when present.\n');
@@ -87,6 +93,16 @@ for j = 1:numel(markerStart)
     targetPath = fullfile(entryFolder, char(targetName));
     assert(exist(targetPath, 'file') == 2, ...
         'Short example entrypoint %s points to missing legacy target: %s', entryName, targetPath);
+end
+end
+
+function assertExpectedWrappersUseLegacyRunner(wrapperNames)
+for i = 1:numel(wrapperNames)
+    entryPath = which(wrapperNames(i));
+    assert(~isempty(entryPath), 'Expected AE wrapper is missing from path: %s', wrapperNames(i));
+    text = fileread(entryPath);
+    assert(contains(text, 'aeRunLegacyScript'), ...
+        'Expected AE wrapper should delegate through aeRunLegacyScript: %s', wrapperNames(i));
 end
 end
 
