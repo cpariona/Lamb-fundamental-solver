@@ -35,6 +35,7 @@ guiFitRLSolver
 guiFitMRLFESolver
 guiFitAcoustoelasticIOPHGOSolver
 guiNormalizeFitResult
+guiEvaluateFitFullCurve
 guiPlotFitResult
 ```
 
@@ -77,6 +78,8 @@ normalizeExperimentalDispersionData
 validateExperimentalDispersionData
 computeDispersionFitResiduals
 computeDispersionFitMetrics
+computeConstantSpeedBaseline
+assessFitPhysicalQuality
 buildParameterVector
 unpackParameterVector
 estimateLocalSensitivity
@@ -89,6 +92,8 @@ Maintained fitting tests:
 test_fitting_helpers_smoke
 test_gui_fit_registry_contract
 test_fit_tool_model_registry_contract
+test_fit_physical_qc_flat_rl
+test_fit_physical_qc_synthetic_pass
 ```
 
 Focused fitting validation suite:
@@ -331,6 +336,7 @@ docs/fitting_phase6_status.md
 docs/fitting_phase7_status.md
 docs/fitting_phase8_status.md
 docs/fitting_phase9_status.md
+docs/fitting_phase10_status.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
