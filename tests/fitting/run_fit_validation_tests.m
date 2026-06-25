@@ -9,14 +9,20 @@ startup
 fprintf('\nRunning focused fitting validation suite...\n');
 fprintf('==========================================\n');
 
-fprintf('\n[Fit validation 1/3] Rayleigh-Lamb validation\n');
+fprintf('\n[Fit validation 1/5] Rayleigh-Lamb validation\n');
 test_fit_validation_rayleigh_lamb;
 
-fprintf('\n[Fit validation 2/3] mRLFE validation\n');
+fprintf('\n[Fit validation 2/5] mRLFE baseline validation\n');
 test_fit_validation_mrlfe;
 
-fprintf('\n[Fit validation 3/3] AE IOP/HGO validation\n');
+fprintf('\n[Fit validation 3/5] mRLFE hidden-parameter validation\n');
+test_fit_validation_mrlfe_hidden_params;
+
+fprintf('\n[Fit validation 4/5] AE IOP/HGO baseline validation\n');
 test_fit_validation_ae_iop_hgo;
+
+fprintf('\n[Fit validation 5/5] AE IOP/HGO hidden-parameter validation\n');
+test_fit_validation_ae_iop_hgo_hidden_params;
 
 summary = struct();
 if evalin('base', 'exist(''RayleighLambFitValidationSummary'', ''var'')')
@@ -25,8 +31,14 @@ end
 if evalin('base', 'exist(''MRLFEFitValidationSummary'', ''var'')')
     summary.MRLFE = evalin('base', 'MRLFEFitValidationSummary');
 end
+if evalin('base', 'exist(''MRLFEHiddenParamFitValidationSummary'', ''var'')')
+    summary.MRLFEHiddenParams = evalin('base', 'MRLFEHiddenParamFitValidationSummary');
+end
 if evalin('base', 'exist(''AEIOPHGOFitValidationSummary'', ''var'')')
     summary.AEIOPHGO = evalin('base', 'AEIOPHGOFitValidationSummary');
+end
+if evalin('base', 'exist(''AEIOPHGOHiddenParamFitValidationSummary'', ''var'')')
+    summary.AEIOPHGOHiddenParams = evalin('base', 'AEIOPHGOHiddenParamFitValidationSummary');
 end
 assignin('base', 'FitValidationSummary', summary);
 
