@@ -116,7 +116,7 @@ h.status = uilabel(g, 'Text', 'Fit status: ready.', 'FontSize', 10, 'WordWrap', 
 h.status.Layout.Row = 12;
 h.status.Layout.Column = [1 4];
 
-h.note = uilabel(g, 'Text', 'Validated visible fitting: Rayleigh-Lamb mu/thickness, mRLFE mu, AE IOP/HGO atlasA0 mu.', ...
+h.note = uilabel(g, 'Text', 'Visible one-parameter fitting: RL mu/thickness; mRLFE mu/thickness/etaS; AE atlasA0 mu/thickness/IOP.', ...
     'FontSize', 10, 'WordWrap', 'on');
 h.note.Layout.Row = 13;
 h.note.Layout.Column = [1 4];
