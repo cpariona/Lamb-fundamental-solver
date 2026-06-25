@@ -9,20 +9,26 @@ startup
 fprintf('\nRunning focused fitting validation suite...\n');
 fprintf('==========================================\n');
 
-fprintf('\n[Fit validation 1/5] Rayleigh-Lamb validation\n');
+fprintf('\n[Fit validation 1/7] Rayleigh-Lamb validation\n');
 test_fit_validation_rayleigh_lamb;
 
-fprintf('\n[Fit validation 2/5] mRLFE baseline validation\n');
+fprintf('\n[Fit validation 2/7] mRLFE baseline validation\n');
 test_fit_validation_mrlfe;
 
-fprintf('\n[Fit validation 3/5] mRLFE hidden-parameter validation\n');
+fprintf('\n[Fit validation 3/7] mRLFE hidden-parameter validation\n');
 test_fit_validation_mrlfe_hidden_params;
 
-fprintf('\n[Fit validation 4/5] AE IOP/HGO baseline validation\n');
+fprintf('\n[Fit validation 4/7] AE IOP/HGO baseline validation\n');
 test_fit_validation_ae_iop_hgo;
 
-fprintf('\n[Fit validation 5/5] AE IOP/HGO hidden-parameter validation\n');
+fprintf('\n[Fit validation 5/7] AE IOP/HGO hidden-parameter validation\n');
 test_fit_validation_ae_iop_hgo_hidden_params;
+
+fprintf('\n[Fit validation 6/7] Physical QC flat RL A0 warning test\n');
+test_fit_physical_qc_flat_rl;
+
+fprintf('\n[Fit validation 7/7] Physical QC synthetic pass test\n');
+test_fit_physical_qc_synthetic_pass;
 
 summary = struct();
 if evalin('base', 'exist(''RayleighLambFitValidationSummary'', ''var'')')
