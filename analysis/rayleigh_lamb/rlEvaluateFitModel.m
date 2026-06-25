@@ -6,6 +6,10 @@ function [Cp_mps, rawResult] = rlEvaluateFitModel(params, frequency_Hz, branchNa
 % This helper evaluates the maintained Rayleigh-Lamb A0/S0 residuals directly
 % on the supplied experimental frequency grid. It is intended for fitting and
 % does not rely on rlBuildFrequencyVector, so one-point fitting is supported.
+%
+% For fitting, prediction fallback is disabled. If a valid root cannot be
+% tracked at a frequency, that point remains NaN and is not treated as a
+% physical model point.
 
 if nargin < 3 || isempty(branchName)
     branchName = "A0";
@@ -51,6 +55,9 @@ Cp_mps = CpSorted(unsortIdx);
 residual = residualSorted(unsortIdx);
 k = kSorted(unsortIdx);
 omega = omegaSorted(unsortIdx);
+validMask = isfinite(Cp_mps) & isfinite(residual) & residual <= max(options.residualTolerance, eps);
+Cp_mps(~validMask) = NaN;
+k(~validMask) = NaN;
 
 rawResult = struct();
 rawResult.modelFamily = "rayleigh_lamb";
@@ -61,10 +68,11 @@ rawResult.omega = omega;
 rawResult.k = k;
 rawResult.kThickness = k * geometry.thickness;
 rawResult.residual = residual;
-rawResult.validMask = isfinite(Cp_mps);
+rawResult.validMask = validMask;
 rawResult.material = material;
 rawResult.geometry = rmfield(geometry, 'halfThickness');
 rawResult.options = options;
+rawResult.solverOptions = solverOptions;
 end
 
 function solverOptions = localBuildSolverOptions(options, material, branchSpec)
@@ -78,6 +86,7 @@ solverOptions.branchName = branchSpec.name;
 solverOptions.initialCpGuess = branchSpec.initialCpGuess;
 solverOptions.initialSearchRange = branchSpec.initialSearchRange;
 solverOptions.preferLowestCp = branchSpec.preferLowestCp;
+solverOptions.disallowPredictionFallback = true;
 
 optionalFields = {'searchFactors', 'minCpAbsolute', 'minCpRelativeToCT', ...
     'maxCpFactorCT', 'minCpGlobalMax', 'initialGuessWeight', 'predictionWeight', ...
