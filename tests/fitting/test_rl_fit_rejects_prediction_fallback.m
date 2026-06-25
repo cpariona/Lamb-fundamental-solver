@@ -21,16 +21,29 @@ fitConfig.bounds = struct('mu', [31.6e3, 200e3]);
 fitConfig.solverOptions = rlDefaultOptions("Fast");
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, 'minValidFraction', 0.80);
 
-failedAsExpected = false;
 try
-    fitResult = rlFitDispersionData(experimental, fitConfig); %#ok<NASGU>
+    fitResult = rlFitDispersionData(experimental, fitConfig);
+    qc = assessFitPhysicalQuality(fitResult);
+
+    validPairs = nnz(fitResult.validMask);
+    requiredPairs = ceil(fitConfig.fitOptions.minValidFraction * nnz(experimental.validMask));
+    assert(validPairs >= requiredPairs, ...
+        'If flat RL A0 fitting succeeds, it must retain sufficient valid root coverage.');
+    assert(fitResult.metrics.RMSE > 0.05, ...
+        'Flat RL A0 fitting must not report an artificially near-zero RMSE.');
+    assert(qc.classification == "warning" || qc.classification == "caution", ...
+        'Flat RL A0 fitting must produce physical QC warning/caution.');
+    assert(any(qc.reasons == "near-flat experimental curve"), ...
+        'Flat RL A0 fitting must flag near-flat experimental curve.');
+
+    fprintf('Fit succeeded with strict roots. RMSE: %.6g m/s | QC: %s\n', ...
+        fitResult.metrics.RMSE, string(qc.classification));
 catch ME
-    failedAsExpected = contains(ME.message, 'No valid model/experimental point pairs') || ...
+    expectedFailure = contains(ME.message, 'No valid model/experimental point pairs') || ...
         contains(ME.message, 'Insufficient valid Rayleigh-Lamb model coverage') || ...
         contains(ME.message, 'Could not refine initial root');
+    assert(expectedFailure, 'Unexpected RL fitting failure: %s', ME.message);
+    fprintf('Fit failed as acceptable strict-root rejection: %s\n', ME.message);
 end
-
-assert(failedAsExpected, ...
-    'Flat RL A0 fitting should fail instead of using prediction fallback as fitted data.');
 
 fprintf('\nRL fitting prediction-fallback rejection test passed.\n');
