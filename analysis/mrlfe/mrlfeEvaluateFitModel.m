@@ -7,6 +7,10 @@ function [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branc
 % rlComputeFundamentalLambModes. The internal forward solve uses at least 10
 % frequency points to satisfy the Rayleigh-Lamb base solver validation, then
 % interpolates the branch back to the experimental fitting frequencies.
+%
+% The elastic/geometric parameters remain in params. The mRLFE viscosity
+% parameter etaS may also be passed in params for fitting; when present it is
+% propagated to solverOptions.mrlfeParams.etaS before the forward solve.
 
 if nargin < 3 || isempty(branchName)
     branchName = "A0Like";
@@ -22,7 +26,7 @@ if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInp
 end
 
 [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequencyInput);
-solverOptions = localPrepareOptions(solverOptions, branchName);
+solverOptions = localPrepareOptions(solverOptions, branchName, params);
 
 rawFullResult = rlComputeFundamentalLambModes(params, solverOptions);
 branchSolve = localExtractBranch(rawFullResult, branchName);
@@ -69,7 +73,7 @@ params.numFrequencyPoints = numFrequencyPoints;
 params.frequencySpacing = "linspace";
 end
 
-function options = localPrepareOptions(options, branchName)
+function options = localPrepareOptions(options, branchName, params)
 branchName = string(branchName);
 options.computeMRLFERealK = true;
 options.computeMRLFEElasticRealK = true;
@@ -82,6 +86,9 @@ end
 options.mrlfeParams.solveComplexK = false;
 options.mrlfeParams.etaL = 0;
 options.mrlfeParams.useComplexLambda = false;
+if isfield(params, 'etaS') && ~isempty(params.etaS)
+    options.mrlfeParams.etaS = params.etaS;
+end
 
 switch branchName
     case "A0Like"
