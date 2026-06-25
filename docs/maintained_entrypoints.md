@@ -97,7 +97,9 @@ Focused fitting validation suite:
 run_fit_validation_tests
 test_fit_validation_rayleigh_lamb
 test_fit_validation_mrlfe
+test_fit_validation_mrlfe_hidden_params
 test_fit_validation_ae_iop_hgo
+test_fit_validation_ae_iop_hgo_hidden_params
 assertFitRecovery
 ```
 
@@ -327,6 +329,7 @@ docs/fitting_phase4_status.md
 docs/fitting_phase5_status.md
 docs/fitting_phase6_status.md
 docs/fitting_phase7_status.md
+docs/fitting_phase8_status.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
