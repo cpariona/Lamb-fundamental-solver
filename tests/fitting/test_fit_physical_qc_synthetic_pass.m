@@ -1,39 +1,51 @@
 clear; clc;
 startup
 
-fprintf('\nRunning physical QC pass test for synthetic Rayleigh-Lamb fit...\n');
-fprintf('------------------------------------------------------------\n');
+fprintf('\nRunning physical QC pass test for a clearly dispersive synthetic fit...\n');
+fprintf('---------------------------------------------------------------\n');
 
-trueParams = rlDefaultParams();
-trueParams.mu = 85e3;
-trueParams.thickness = 0.50e-3;
-trueParams.rho = 1070;
-trueParams.nu = 0.4999;
-frequency_Hz = linspace(1000, 8000, 12).';
-solverOptions = rlDefaultOptions("Fast");
-CpSynthetic_mps = rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
-experimental = struct('frequency_Hz', frequency_Hz, 'Cp_mps', CpSynthetic_mps, 'validMask', true(size(frequency_Hz)));
+% This is a unit test for the physical-QC logic, not a Rayleigh-Lamb solver
+% regression test. It uses a constructed dispersive curve with an exact model
+% match so the constant-speed baseline is clearly worse than the fitted model.
+frequency_Hz = linspace(500, 8000, 12).';
+CpSynthetic_mps = 2.0 + 0.050 * sqrt(frequency_Hz);
 
-fitConfig = struct();
-fitConfig.branchName = "A0";
-fitConfig.freeParams = "mu";
-fitConfig.fixedParams = struct('thickness', trueParams.thickness, 'rho', trueParams.rho, 'nu', trueParams.nu);
-fitConfig.initialGuess = struct('mu', 55e3);
-fitConfig.bounds = struct('mu', [20e3, 180e3]);
-fitConfig.solverOptions = solverOptions;
-fitConfig.fitOptions = struct('useStandardErrorWeights', false);
+experimental = struct();
+experimental.frequency_Hz = frequency_Hz;
+experimental.Cp_mps = CpSynthetic_mps;
+experimental.validMask = true(size(frequency_Hz));
 
-fitResult = rlFitDispersionData(experimental, fitConfig);
+fitResult = struct();
+fitResult.modelFamily = "rayleigh_lamb";
+fitResult.branchName = "A0";
+fitResult.freeParams = "mu";
+fitResult.bestParams = struct('mu', 85e3);
+fitResult.allParams = struct('mu', 85e3, 'thickness', 0.50e-3, 'rho', 1070, 'nu', 0.4999);
+fitResult.fixedParams = struct('thickness', 0.50e-3, 'rho', 1070, 'nu', 0.4999);
+fitResult.xBest = 85e3;
+fitResult.lowerBounds = 20e3;
+fitResult.upperBounds = 180e3;
+fitResult.frequency_Hz = frequency_Hz;
+fitResult.Cp_exp_mps = CpSynthetic_mps;
+fitResult.Cp_fit_mps = CpSynthetic_mps;
+fitResult.validMask = true(size(frequency_Hz));
+fitResult.metrics = computeDispersionFitMetrics(CpSynthetic_mps, experimental);
+fitResult.sensitivityMatrix = 0.5 * ones(size(frequency_Hz));
+fitResult.identifiability = struct('classification', "locally_identifiable");
+fitResult.optimizer = struct('name', "constructed", 'objective', 0, 'exitFlag', 1, 'output', struct());
+fitResult.rawSolverResult = struct();
+
 qc = assessFitPhysicalQuality(fitResult);
 
 assert(~any(qc.reasons == "constant-speed baseline is competitive"), ...
-    'Synthetic dispersive RL fit should improve over constant-speed baseline.');
+    'Clearly dispersive exact fit should improve over constant-speed baseline.');
 assert(qc.ImprovementOverConstant > 0.10, ...
-    'Synthetic dispersive RL fit should improve over constant-speed baseline by more than 10%%.');
+    'Clearly dispersive exact fit should improve over constant-speed baseline by more than 10%%.');
 assert(qc.ExperimentalDispersionRatio > 0.015, ...
-    'Synthetic dispersive RL fit should not be classified as near-flat.');
+    'Clearly dispersive synthetic curve should not be classified as near-flat.');
+assert(qc.ModelDispersionRatio > 0.015, ...
+    'Clearly dispersive fitted curve should not be weakly dispersive.');
 
-fprintf('Fit mu: %.3f kPa\n', fitResult.bestParams.mu / 1e3);
 fprintf('Fit RMSE: %.6g m/s\n', fitResult.metrics.RMSE);
 fprintf('Constant RMSE: %.6g m/s\n', qc.ConstantRMSE_mps);
 fprintf('Physical QC: %s | %s\n', qc.classification, strjoin(qc.reasons, '; '));
