@@ -5,6 +5,7 @@ CpMinAbs = getOption(options, 'minCpAbsolute', 1e-4);
 CpMin = max(CpMinAbs, getOption(options, 'minCpRelativeToCT', 1e-3) * options.CT);
 CpGlobalMin = CpMin;
 CpGlobalMax = max(getOption(options, 'maxCpFactorCT', 20) * options.CT, getOption(options, 'minCpGlobalMax', 1.0));
+disallowPredictionFallback = logical(getOption(options, 'disallowPredictionFallback', false));
 
 Cp = nan(size(frequency));
 residual = nan(size(frequency));
@@ -110,6 +111,9 @@ for i = 2:numel(frequency)
     end
 
     if isnan(bestCp)
+        if disallowPredictionFallback
+            break;
+        end
         bestCp = CpPred;
         bestR = residualFcn(bestCp, fi);
     end
