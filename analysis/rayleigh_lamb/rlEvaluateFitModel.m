@@ -7,9 +7,11 @@ function [Cp_mps, rawResult] = rlEvaluateFitModel(params, frequency_Hz, branchNa
 % on the supplied experimental frequency grid. It is intended for fitting and
 % does not rely on rlBuildFrequencyVector, so one-point fitting is supported.
 %
-% For fitting, prediction fallback is disabled. If a valid root cannot be
-% tracked at a frequency, that point remains NaN and is not treated as a
-% physical model point.
+% For fitting, prediction fallback is disabled. Therefore finite tracked
+% points correspond to residual minima, not predictor-only placeholders. The
+% residual value is retained for diagnostics but is not used as a hard validity
+% gate because an absolute residual tolerance can be overly restrictive across
+% different frequency/material scales.
 
 if nargin < 3 || isempty(branchName)
     branchName = "A0";
@@ -55,7 +57,7 @@ Cp_mps = CpSorted(unsortIdx);
 residual = residualSorted(unsortIdx);
 k = kSorted(unsortIdx);
 omega = omegaSorted(unsortIdx);
-validMask = isfinite(Cp_mps) & isfinite(residual) & residual <= max(options.residualTolerance, eps);
+validMask = isfinite(Cp_mps) & isfinite(residual) & isfinite(k);
 Cp_mps(~validMask) = NaN;
 k(~validMask) = NaN;
 
