@@ -330,6 +330,7 @@ docs/fitting_phase5_status.md
 docs/fitting_phase6_status.md
 docs/fitting_phase7_status.md
 docs/fitting_phase8_status.md
+docs/fitting_phase9_status.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
