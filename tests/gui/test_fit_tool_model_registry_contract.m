@@ -19,6 +19,10 @@ assert(any(ids == "mrlfe"), 'FitTool registry must expose mRLFE.');
 assert(any(ids == "acoustoelastic_iop_hgo"), 'FitTool registry must expose AE IOP/HGO.');
 assert(all(strlength(labels) > 0), 'FitTool registry labels must be nonempty.');
 
+assertFamilyParameters(registry, "rayleigh_lamb", ["mu", "thickness"]);
+assertFamilyParameters(registry, "mrlfe", ["mu", "thickness", "etaS"]);
+assertFamilyParameters(registry, "acoustoelastic_iop_hgo", ["mu", "thickness", "IOP"]);
+
 fig = uifigure('Visible', 'off');
 cleanup = onCleanup(@()delete(fig));
 tabs = uitabgroup(fig);
@@ -39,3 +43,25 @@ assert(any(strcmp(controls.model.Items, 'AE IOP/HGO')), 'Model dropdown must inc
 
 fprintf('Available fitting models: %s\n', strjoin(cellstr(labels), ', '));
 fprintf('\nFitTool model registry contract test passed.\n');
+
+function assertFamilyParameters(registry, familyId, requiredParams)
+family = [];
+for i = 1:numel(registry.modelFamilies)
+    if registry.modelFamilies(i).id == familyId
+        family = registry.modelFamilies(i);
+        break;
+    end
+end
+assert(~isempty(family), 'Missing fitting family: %s.', familyId);
+ids = strings(1, numel(family.parameters));
+canFit = false(1, numel(family.parameters));
+for i = 1:numel(family.parameters)
+    ids(i) = family.parameters(i).id;
+    canFit(i) = family.parameters(i).canFit;
+end
+for i = 1:numel(requiredParams)
+    idx = find(ids == requiredParams(i), 1, 'first');
+    assert(~isempty(idx), 'Fitting family %s must expose parameter %s.', familyId, requiredParams(i));
+    assert(canFit(idx), 'Fitting family %s parameter %s must be fit-capable.', familyId, requiredParams(i));
+end
+end
