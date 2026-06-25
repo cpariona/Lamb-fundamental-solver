@@ -11,6 +11,11 @@ function problem = mrlfeBuildFitProblem(experimental, fitConfig)
 %   bounds          fields with [lower upper] bounds
 %   solverOptions   mrlfeDefaultSweepOptions-compatible options
 %   fitOptions      residual options
+%
+% The viscosity parameter etaS is stored in solverOptions.mrlfeParams by the
+% mRLFE solver. For fitting purposes, etaS is mirrored into baseParams so it
+% can be packed/unpacked by the shared fitting helpers, then propagated back
+% to solverOptions by mrlfeEvaluateFitModel.
 
 if nargin < 2 || ~isstruct(fitConfig)
     error('fitConfig must be provided as a structure.');
@@ -26,8 +31,10 @@ end
 
 branchName = getConfigValue(fitConfig, 'branchName', "A0Like");
 branchName = string(branchName);
+solverOptions = getConfigValue(fitConfig, 'solverOptions', mrlfeDefaultSweepOptions(branchName, 'EtaS', 0.05));
 
 baseParams = mrlfeDefaultSweepParams();
+baseParams.etaS = localEtaSFromOptions(solverOptions);
 baseParams = applyStructOverrides(baseParams, getConfigValue(fitConfig, 'fixedParams', struct()));
 baseParams = applyStructOverrides(baseParams, getConfigValue(fitConfig, 'initialGuess', struct()));
 
@@ -37,7 +44,6 @@ freeParams = string(fitConfig.freeParams(:));
 bounds = getConfigValue(fitConfig, 'bounds', struct());
 [lowerBounds, upperBounds] = localBuildBounds(bounds, freeParams);
 
-solverOptions = getConfigValue(fitConfig, 'solverOptions', mrlfeDefaultSweepOptions(branchName, 'EtaS', 0.05));
 fitOptions = getConfigValue(fitConfig, 'fitOptions', struct());
 if ~isfield(fitOptions, 'useStandardErrorWeights')
     fitOptions.useStandardErrorWeights = false;
@@ -102,6 +108,13 @@ for i = 1:numel(freeParams)
         lowerBounds(i) = value(1);
         upperBounds(i) = value(2);
     end
+end
+end
+
+function etaS = localEtaSFromOptions(options)
+etaS = 0;
+if isstruct(options) && isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS')
+    etaS = options.mrlfeParams.etaS;
 end
 end
 
