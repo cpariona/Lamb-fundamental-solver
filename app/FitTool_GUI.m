@@ -170,18 +170,30 @@ onFitModelChanged();
                 end
             case "mrlfe"
                 params = mrlfeDefaultSweepParams();
-                fixedParams = struct('thickness', params.thickness, 'rho', params.rho, 'nu', params.nu);
+                fixedParams = struct('rho', params.rho, 'nu', params.nu);
+                if freeParam ~= "mu"
+                    fixedParams.mu = params.mu;
+                end
+                if freeParam ~= "thickness"
+                    fixedParams.thickness = params.thickness;
+                end
                 controls.etaS = 0.0;
+                if freeParam == "etaS"
+                    controls.etaS = initialValue;
+                end
                 controls.fluidDensity = 1000;
                 controls.fluidSoundSpeed = 1500;
-                fitOptions.optimizerOptions = optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 70, 'TolX', 1e-4);
+                fitOptions.optimizerOptions = optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-5);
             case "acoustoelastic_iop_hgo"
                 params = defaultAEParams();
-                fixedParams = rmfield(params, {'mu', 'frequency'});
+                fixedParams = rmfield(params, {'frequency', char(freeParam)});
                 controls.atlasNumYPoints = 300;
                 controls.atlasTopNMinima = 12;
                 controls.atlasInitializationNumFrequencyPoints = 50;
                 fitOptions.optimizerOptions = optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3);
+                if freeParam == "thickness"
+                    fitOptions.optimizerOptions = optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-8);
+                end
             otherwise
                 error('Unsupported fitting model family: %s.', modelFamily);
         end
@@ -199,14 +211,18 @@ onFitModelChanged();
                 validMask = isfinite(Cp_mps(:));
             case "mrlfe"
                 params = mrlfeDefaultSweepParams();
-                params.mu = value;
+                params.(char(freeParam)) = value;
                 frequency_Hz = linspace(1000, 8000, 10).';
-                options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0.0);
+                etaSForSynthetic = 0.0;
+                if freeParam == "etaS"
+                    etaSForSynthetic = value;
+                end
+                options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', etaSForSynthetic);
                 Cp_mps = mrlfeEvaluateFitModel(params, frequency_Hz, "A0Like", options);
                 validMask = isfinite(Cp_mps(:));
             case "acoustoelastic_iop_hgo"
                 params = defaultAEParams();
-                params.mu = value;
+                params.(char(freeParam)) = value;
                 frequency_Hz = params.frequency(:);
                 options = defaultAEOptions();
                 [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, "atlasA0", options);
@@ -245,9 +261,9 @@ onFitModelChanged();
             case "rayleigh_lamb"
                 freeParams = ["mu", "thickness"];
             case "mrlfe"
-                freeParams = "mu";
+                freeParams = ["mu", "thickness", "etaS"];
             case "acoustoelastic_iop_hgo"
-                freeParams = "mu";
+                freeParams = ["mu", "thickness", "IOP"];
             otherwise
                 error('Unsupported fitting model family: %s.', modelFamily);
         end
@@ -267,10 +283,28 @@ onFitModelChanged();
                 end
             case "mrlfe"
                 params = mrlfeDefaultSweepParams();
-                config = makeDisplayConfig('mu', 'kPa', 1e3, params.mu, [20e3, 160e3]);
+                switch freeParam
+                    case "mu"
+                        config = makeDisplayConfig('mu', 'kPa', 1e3, params.mu, [20e3, 160e3]);
+                    case "thickness"
+                        config = makeDisplayConfig('2h', 'mm', 1e-3, params.thickness, [0.25e-3, 1.00e-3]);
+                    case "etaS"
+                        config = makeDisplayConfig('etaS', 'Pa*s', 1, 0.12, [0.0, 0.30]);
+                    otherwise
+                        error('Unsupported mRLFE free parameter: %s.', freeParam);
+                end
             case "acoustoelastic_iop_hgo"
                 params = defaultAEParams();
-                config = makeDisplayConfig('mu', 'kPa', 1e3, params.mu, [45e3, 55e3]);
+                switch freeParam
+                    case "mu"
+                        config = makeDisplayConfig('mu', 'kPa', 1e3, params.mu, [45e3, 55e3]);
+                    case "thickness"
+                        config = makeDisplayConfig('2h', 'um', 1e-6, params.thickness, [480e-6, 620e-6]);
+                    case "IOP"
+                        config = makeDisplayConfig('IOP', 'mmHg', 133.322, params.IOP, [10, 20] * 133.322);
+                    otherwise
+                        error('Unsupported AE IOP/HGO free parameter: %s.', freeParam);
+                end
             otherwise
                 error('Unsupported fitting model family: %s.', modelFamily);
         end
@@ -302,10 +336,28 @@ onFitModelChanged();
                 end
             case "mrlfe"
                 params = mrlfeDefaultSweepParams();
-                text = sprintf('Fixed: etaS 0 Pa*s | rho %.0f kg/m^3 | nu %.5f | 2h %.3f mm', params.rho, params.nu, params.thickness * 1e3);
+                switch freeParam
+                    case "mu"
+                        text = sprintf('Fixed: etaS 0 Pa*s | rho %.0f kg/m^3 | nu %.5f | 2h %.3f mm', params.rho, params.nu, params.thickness * 1e3);
+                    case "thickness"
+                        text = sprintf('Fixed: etaS 0 Pa*s | rho %.0f kg/m^3 | nu %.5f | mu %.3f kPa', params.rho, params.nu, params.mu / 1e3);
+                    case "etaS"
+                        text = sprintf('Fixed: rho %.0f kg/m^3 | nu %.5f | mu %.3f kPa | 2h %.3f mm', params.rho, params.nu, params.mu / 1e3, params.thickness * 1e3);
+                    otherwise
+                        text = 'Fixed: mRLFE defaults.';
+                end
             case "acoustoelastic_iop_hgo"
                 params = defaultAEParams();
-                text = sprintf('Fixed: IOP %.1f mmHg | 2h %.0f um | R %.2f mm | atlasA0', params.IOP / 133.322, params.thickness * 1e6, params.R * 1e3);
+                switch freeParam
+                    case "mu"
+                        text = sprintf('Fixed: IOP %.1f mmHg | 2h %.0f um | R %.2f mm | atlasA0', params.IOP / 133.322, params.thickness * 1e6, params.R * 1e3);
+                    case "thickness"
+                        text = sprintf('Fixed: IOP %.1f mmHg | mu %.1f kPa | R %.2f mm | atlasA0', params.IOP / 133.322, params.mu / 1e3, params.R * 1e3);
+                    case "IOP"
+                        text = sprintf('Fixed: mu %.1f kPa | 2h %.0f um | R %.2f mm | atlasA0', params.mu / 1e3, params.thickness * 1e6, params.R * 1e3);
+                    otherwise
+                        text = 'Fixed: AE IOP/HGO atlasA0 defaults.';
+                end
             otherwise
                 text = 'Fixed: unavailable.';
         end
