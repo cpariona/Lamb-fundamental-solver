@@ -39,6 +39,9 @@ fitOptions = getConfigValue(fitConfig, 'fitOptions', struct());
 if ~isfield(fitOptions, 'useStandardErrorWeights')
     fitOptions.useStandardErrorWeights = false;
 end
+if ~isfield(fitOptions, 'minValidFraction') || isempty(fitOptions.minValidFraction)
+    fitOptions.minValidFraction = 0.80;
+end
 
 problem = struct();
 problem.modelFamily = "rayleigh_lamb";
@@ -60,7 +63,12 @@ end
 function residuals = localResidualFunction(x, problem)
 params = unpackParameterVector(x, problem.baseParams, problem.freeParams);
 CpModel_mps = problem.evaluateModel(params);
-residuals = computeDispersionFitResiduals(CpModel_mps, problem.experimental, problem.fitOptions);
+[residuals, residualInfo] = computeDispersionFitResiduals(CpModel_mps, problem.experimental, problem.fitOptions);
+requiredCount = max(1, ceil(problem.fitOptions.minValidFraction * nnz(problem.experimental.validMask)));
+if residualInfo.numResiduals < requiredCount
+    error('Insufficient valid Rayleigh-Lamb model coverage: %d/%d valid pairs.', ...
+        residualInfo.numResiduals, nnz(problem.experimental.validMask));
+end
 end
 
 function value = localObjectiveFunction(x, problem)
