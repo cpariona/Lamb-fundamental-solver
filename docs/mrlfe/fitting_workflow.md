@@ -59,12 +59,13 @@ The current implementation requires valid fitting frequencies to be sorted ascen
 
 ## Fast fitting performance preset
 
-`mrlfeEvaluateFitModel` now applies fitting-specific performance defaults by default. These defaults affect only the fitting evaluator, not general mRLFE sweeps.
+`mrlfeEvaluateFitModel` applies fitting-specific performance defaults by default only for the elastic A0Like real-k case (`etaS = 0`). These defaults affect only the fitting evaluator, not general mRLFE sweeps.
 
-Default fitting preset:
+Default elastic A0Like fitting preset:
 
 ```text
 mrlfeUseFitPerformanceDefaults = true
+mrlfeFitPerformancePreset = fast_elastic_A0Like
 mrlfeUseInternalTrackingGrid = true
 mrlfeInternalTrackingMinPoints = 10
 mrlfeInternalTrackingPointFactor = 1
@@ -94,6 +95,43 @@ The raw output exposes the applied preset through:
 
 ```matlab
 rawResult.fitPerformanceDefaults
+```
+
+## etaS forward cache
+
+For one-parameter `etaS` fitting, `mrlfeBuildFitProblem` now precomputes the elastic `etaS = 0` real-k reference once and attaches it to:
+
+```matlab
+solverOptions.mrlfeElasticReferenceResult
+```
+
+This cache is useful because the viscous fit changes `etaS` but keeps the elastic material and geometry fixed:
+
+```text
+changes during fit: etaS
+fixed during fit:   mu, thickness, rho, nu, frequency grid
+```
+
+Without the cache, the viscous real-k path can recompute the elastic reference during each objective evaluation. With the cache, every viscous evaluation can reuse the same elastic reference branch.
+
+The cache is enabled only when:
+
+```text
+freeParams == "etaS"
+solverOptions.mrlfeElasticReferenceResult is not already provided
+solverOptions.mrlfeDisableForwardCache is not true
+```
+
+The fit result exposes cache diagnostics through:
+
+```matlab
+fitResult.problem.forwardCache
+```
+
+To disable this cache explicitly:
+
+```matlab
+solverOptions.mrlfeDisableForwardCache = true;
 ```
 
 ## Current forward path and timing concern
@@ -169,7 +207,22 @@ It assigns:
 MRLFEFitOptionSensitivityDiagnostic
 ```
 
-Use these diagnostics before implementing an atlas/cache strategy. They should answer whether a lightweight fitting preset is enough or whether a deeper mRLFE atlas evaluator is justified.
+The etaS forward-cache diagnostic is:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+diagnose_etaS_forward_cache
+```
+
+It assigns:
+
+```matlab
+MRLFEEtaSForwardCacheDiagnostic
+```
+
+Use these diagnostics before implementing a deeper atlas/cache strategy. They should answer whether a lightweight fitting preset/cache is enough or whether a deeper mRLFE atlas evaluator is justified.
 
 ## Optimizer policy
 
@@ -221,9 +274,10 @@ rehash toolboxcache
 startup
 test_mrlfe_fit_synthetic_A0Like
 test_mrlfe_fit_fast_options_quality
+test_mrlfe_etaS_fit_forward_cache
 ```
 
-The first test checks that the synthetic A0-like fit recovers `mu` within tolerance. The second compares the fast fitting preset against the high-cost reference and checks that the Cp difference remains small.
+The first test checks that the synthetic A0-like fit recovers `mu` within tolerance. The second compares the fast fitting preset against the high-cost reference and checks that the Cp difference remains small. The third verifies that `etaS` fitting attaches and uses a cached elastic reference.
 
 `run_core_smoke_tests` also checks the mRLFE fitting helper path and runs the synthetic fitting test.
 
@@ -254,7 +308,6 @@ This phase does not implement:
 
 ```text
 visible mRLFE controls inside FitTool_GUI
-viscous etaS fitting validation
 multi-parameter mRLFE fitting validation
 S0Like fitting validation
 uncertainty estimates for fitted parameters
