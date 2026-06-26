@@ -1,10 +1,10 @@
 % Diagnose a direct viscous mRLFE Cp-atlas prototype against the maintained solver.
-% Diagnostic only: does not replace the maintained mRLFE solver path.
+% Diagnostic only: does not replace the maintained solver by default.
 %
 % This compares:
 %   A. maintained viscous real-k forward solve without fitting cache;
 %   B. maintained viscous real-k forward solve with cached elastic reference;
-%   C. direct viscous Cp-atlas prototype seeded only by the Rayleigh-Lamb branch.
+%   C. direct viscous Cp-atlas evaluator seeded only by the Rayleigh-Lamb branch.
 
 clear; clc;
 startup
@@ -54,13 +54,22 @@ tCachedEval = tic;
 [CpCached, rawCached] = problemCached.evaluateModel(params);
 timeCachedEval = toc(tCachedEval);
 
-%% C. Direct viscous atlas prototype.
-[material, geometry, seedModes, mrlfeParams, atlasOptions] = buildDirectAtlasInputs(params, frequency_Hz, branchName, etaS);
+%% C. Direct viscous atlas through the fitting evaluator.
+optionsAtlas = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
+optionsAtlas.mrlfeUseDirectViscoAtlas = true;
+optionsAtlas.mrlfeViscoAtlasCpScanPoints = 900;
+optionsAtlas.mrlfeViscoAtlasCandidates = 8;
+optionsAtlas.mrlfeViscoAtlasCpWindow = [0.25, 3.00];
+optionsAtlas.mrlfeViscoAtlasSeedWeight = 0.10;
+optionsAtlas.mrlfeViscoAtlasResidualWeight = 0.45;
+optionsAtlas.mrlfeViscoAtlasJumpWeight = 18.0;
+optionsAtlas.mrlfeViscoAtlasCurvatureWeight = 12.0;
+optionsAtlas.mrlfeViscoAtlasResidualTolerance = 1e-3;
 
 tAtlas = tic;
-atlasBranch = solveMRLFEViscoBranchAtlas(branchName, seedModes.A0, material, geometry, mrlfeParams, atlasOptions);
+[CpAtlas, rawAtlas] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, optionsAtlas);
 timeAtlas = toc(tAtlas);
-CpAtlas = atlasBranch.Cp(:);
+atlasBranch = rawAtlas.branch;
 
 validAgainstNoCache = isfinite(CpNoCache(:)) & isfinite(CpAtlas(:));
 rmseAtlasVsNoCache = sqrt(mean((CpAtlas(validAgainstNoCache) - CpNoCache(validAgainstNoCache)).^2, 'omitnan'));
@@ -78,8 +87,9 @@ fprintf('  cached build time            = %.6g s | cache enabled = %d\n', ...
     buildCachedSeconds, problemCached.forwardCache.enabled);
 fprintf('  maintained cached eval time  = %.6g s | solver elapsed = %.6g s | valid = %d/%d\n', ...
     timeCachedEval, getSolverElapsedSeconds(rawCached), nnz(isfinite(CpCached)), numel(CpCached));
-fprintf('  direct atlas time            = %.6g s | valid finite = %d/%d | valid strict = %d/%d\n', ...
-    timeAtlas, nnz(isfinite(CpAtlas)), numel(CpAtlas), nnz(atlasBranch.validCp(:) & isfinite(CpAtlas(:))), numel(CpAtlas));
+fprintf('  direct atlas eval time       = %.6g s | solver elapsed = %.6g s | valid finite = %d/%d | valid strict = %d/%d\n', ...
+    timeAtlas, getSolverElapsedSeconds(rawAtlas), nnz(isfinite(CpAtlas)), numel(CpAtlas), nnz(atlasBranch.validCp(:) & isfinite(CpAtlas(:))), numel(CpAtlas));
+fprintf('  direct atlas path            = %s\n', rawAtlas.evaluationPath.path);
 
 fprintf('\nAccuracy against maintained no-cache forward solve:\n');
 fprintf('  cached RMSE difference       = %.6g m/s\n', rmseCachedVsNoCache);
@@ -102,6 +112,7 @@ summary.CpCached = CpCached;
 summary.CpAtlas = CpAtlas;
 summary.rawNoCache = rawNoCache;
 summary.rawCached = rawCached;
+summary.rawAtlas = rawAtlas;
 summary.atlasBranch = atlasBranch;
 summary.problemCached = problemCached;
 summary.timeNoCache = timeNoCache;
@@ -121,46 +132,6 @@ fprintf('  - It still uses the Rayleigh-Lamb seed branch to identify the modal f
 fprintf('  - A useful prototype should be faster than the maintained path and close in Cp.\n');
 fprintf('  - If it is fast but inaccurate, tune Cp window/candidate weights before integration.\n');
 fprintf('  - If it is accurate but slow, reduce cpScanPoints or add coarse-to-fine refinement.\n');
-
-function [material, geometry, seedModes, mrlfeParams, atlasOptions] = buildDirectAtlasInputs(params, frequency_Hz, branchName, etaS)
-rlParams = params;
-rlParams.fmin = min(frequency_Hz);
-rlParams.fmax = max(frequency_Hz);
-rlParams.numFrequencyPoints = numel(frequency_Hz);
-rlParams.frequencySpacing = "linspace";
-
-rlOptions = rlDefaultOptions("Fast");
-rlOptions.computeA0 = branchName == "A0Like";
-rlOptions.computeS0 = branchName == "S0Like";
-rlOptions.computeMRLFE = false;
-rlOptions.computeMRLFERealK = false;
-rlOptions.computeMRLFEElasticRealK = false;
-rlOptions.computeMRLFEViscoRealK = false;
-rlOptions.computeMRLFEComplexK = false;
-
-rawRL = rlComputeFundamentalLambModes(rlParams, rlOptions);
-material = rawRL.material;
-geometry = rawRL.geometry;
-seedModes = rawRL.modes;
-
-mrlfeParams = defaultMRLFEParams();
-mrlfeParams.etaS = etaS;
-mrlfeParams.etaL = 0;
-mrlfeParams.solveComplexK = false;
-mrlfeParams.useComplexLambda = false;
-mrlfeParams.fluidDensity = 1000;
-mrlfeParams.fluidSoundSpeed = 1500;
-
-atlasOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
-atlasOptions.mrlfeViscoAtlasCpScanPoints = 900;
-atlasOptions.mrlfeViscoAtlasCandidates = 8;
-atlasOptions.mrlfeViscoAtlasCpWindow = [0.25, 3.00];
-atlasOptions.mrlfeViscoAtlasSeedWeight = 0.10;
-atlasOptions.mrlfeViscoAtlasResidualWeight = 0.45;
-atlasOptions.mrlfeViscoAtlasJumpWeight = 18.0;
-atlasOptions.mrlfeViscoAtlasCurvatureWeight = 12.0;
-atlasOptions.mrlfeViscoAtlasResidualTolerance = 1e-3;
-end
 
 function t = getSolverElapsedSeconds(rawResult)
 t = NaN;
