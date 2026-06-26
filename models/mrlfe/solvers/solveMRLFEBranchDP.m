@@ -2,10 +2,9 @@ function branch = solveMRLFEBranchDP(name, seedMode, material, geometry, mrlfePa
 % Track one real-k mRLFE branch using multiple local candidates and a global
 % dynamic-programming path selection.
 %
-% This solver is currently intended for elastic A0-like real-k mRLFE only.
-% It extracts several local residual minima at each frequency, then selects a
-% globally smooth branch. It avoids the pointwise branch switching observed
-% when only the lowest residual valley is selected.
+% This solver extracts several local residual minima at each frequency, then
+% selects a globally smooth branch. It avoids pointwise branch switching when
+% only the lowest residual valley is selected.
 %
 % guideBranch is optional. When provided, it is used only to define a safer
 % Cp scan range. This reproduces the prototype behavior that used both the
@@ -87,6 +86,10 @@ tracker.seedWeight = getOption(options, 'mrlfeA0DPSeedWeight', 0.20);
 tracker.maxJumpSoft = getOption(options, 'mrlfeA0DPMaxJumpSoft', 0.30);
 tracker.missingPenalty = getOption(options, 'mrlfeA0DPMissingPenalty', 20.0);
 tracker.allowMissing = getOption(options, 'mrlfeA0DPAllowMissing', true);
+tracker.refineCandidates = getOption(options, 'mrlfeA0DPRefineCandidates', false);
+tracker.refineTolX = getOption(options, 'mrlfeA0DPRefineTolX', 1e-6);
+tracker.refineMaxIter = getOption(options, 'mrlfeA0DPRefineMaxIter', 24);
+tracker.refineMaxFunEvals = getOption(options, 'mrlfeA0DPRefineMaxFunEvals', 60);
 end
 
 function [candidateCp, candidateResidual, candidateRank] = extractCandidates(seedMode, guideBranch, material, geometry, mrlfeParams, tracker)
@@ -126,7 +129,7 @@ CpScan = linspace(cpGlobalMin, cpGlobalMax, tracker.cpScanPoints);
 
 for j = 1:numel(frequency)
     residual = computeResidualVsCp(CpScan, omega(j), material, geometry, mrlfeParams);
-    candidates = findResidualCandidates(CpScan, residual, tracker.maxCandidates, tracker.edgeGuardPoints);
+    candidates = findResidualCandidates(CpScan, residual, omega(j), material, geometry, mrlfeParams, tracker);
     n = numel(candidates.cp);
     candidateCp(1:n,j) = candidates.cp(:);
     candidateResidual(1:n,j) = candidates.residual(:);
@@ -137,15 +140,23 @@ end
 function residual = computeResidualVsCp(CpScan, omega, material, geometry, mrlfeParams)
 residual = nan(size(CpScan));
 for i = 1:numel(CpScan)
-    k = omega / CpScan(i);
-    residual(i) = mrlfeResidual(k, omega, material, geometry, mrlfeParams);
+    residual(i) = residualAtCp(CpScan(i), omega, material, geometry, mrlfeParams);
 end
 end
 
-function candidates = findResidualCandidates(CpScan, residual, maxCandidates, edgeGuardPoints)
+function value = residualAtCp(cp, omega, material, geometry, mrlfeParams)
+if ~isfinite(cp) || cp <= 0
+    value = inf;
+    return;
+end
+k = omega / cp;
+value = mrlfeResidual(k, omega, material, geometry, mrlfeParams);
+end
+
+function candidates = findResidualCandidates(CpScan, residual, omega, material, geometry, mrlfeParams, tracker)
 idx = [];
-firstAllowed = 1 + edgeGuardPoints;
-lastAllowed = numel(residual) - edgeGuardPoints;
+firstAllowed = 1 + tracker.edgeGuardPoints;
+lastAllowed = numel(residual) - tracker.edgeGuardPoints;
 for i = max(2, firstAllowed):min(numel(residual)-1, lastAllowed)
     if isfinite(residual(i)) && residual(i) < residual(i-1) && residual(i) < residual(i+1)
         idx(end+1) = i; %#ok<AGROW>
@@ -159,9 +170,46 @@ if isempty(idx)
 end
 [~, order] = sort(residual(idx), 'ascend');
 idx = idx(order);
-idx = idx(1:min(maxCandidates, numel(idx)));
-candidates.cp = CpScan(idx);
-candidates.residual = residual(idx);
+idx = idx(1:min(tracker.maxCandidates, numel(idx)));
+
+cp = CpScan(idx);
+res = residual(idx);
+if tracker.refineCandidates
+    [cp, res] = refineResidualCandidates(CpScan, residual, idx, omega, material, geometry, mrlfeParams, tracker);
+    [~, refinedOrder] = sort(res, 'ascend');
+    cp = cp(refinedOrder);
+    res = res(refinedOrder);
+end
+candidates.cp = cp;
+candidates.residual = res;
+end
+
+function [cpRefined, residualRefined] = refineResidualCandidates(CpScan, residual, idx, omega, material, geometry, mrlfeParams, tracker)
+cpRefined = CpScan(idx);
+residualRefined = residual(idx);
+opt = optimset('Display', 'off', 'TolX', tracker.refineTolX, ...
+    'MaxIter', tracker.refineMaxIter, 'MaxFunEvals', tracker.refineMaxFunEvals);
+for n = 1:numel(idx)
+    i = idx(n);
+    if i <= 1 || i >= numel(CpScan)
+        continue;
+    end
+    lower = CpScan(i-1);
+    upper = CpScan(i+1);
+    if ~(isfinite(lower) && isfinite(upper) && upper > lower)
+        continue;
+    end
+    try
+        objective = @(cp) residualAtCp(cp, omega, material, geometry, mrlfeParams);
+        [cpBest, residualBest] = fminbnd(objective, lower, upper, opt);
+        if isfinite(cpBest) && isfinite(residualBest) && residualBest <= residualRefined(n)
+            cpRefined(n) = cpBest;
+            residualRefined(n) = residualBest;
+        end
+    catch
+        % Keep the grid candidate if the local refinement fails.
+    end
+end
 end
 
 function path = trackCandidatesDP(candidateCp, candidateResidual, seedCp, tracker)
