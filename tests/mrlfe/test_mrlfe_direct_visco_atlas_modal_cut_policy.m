@@ -24,26 +24,26 @@ options.mrlfeViscoAtlasSeedWeight = 0.10;
 options.mrlfeViscoAtlasResidualWeight = 0.45;
 options.mrlfeViscoAtlasJumpWeight = 18.0;
 options.mrlfeViscoAtlasCurvatureWeight = 12.0;
-options.mrlfeViscoAtlasResidualTolerance = 1e-3;
 
-% Use the maintained viscous jump-limit field with an intentionally strict value
-% to force a controlled modal cut. This verifies the direct atlas honors the
-% existing viscous tracking policy naming rather than introducing a separate
-% tail-cut control surface.
-options.mrlfeViscoPreviousCpMaxRelativeJump = 1e-6;
+% Use an intentionally strict residual tolerance to force a deterministic modal
+% cut. This verifies the direct atlas honors the maintained
+% mrlfeRealKStopAtFirstMissingModalMinimum policy and records the tail cutoff
+% through firstMissingModalMinimumIndex/Frequency.
+options.mrlfeViscoAtlasResidualTolerance = realmin('double');
+options.mrlfeRealKStopAtFirstMissingModalMinimum = true;
 
 [CpAtlas, rawAtlas] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
 branch = rawAtlas.branch;
 
 assert(rawAtlas.evaluationPath.path == "direct_viscous_atlas", 'Expected the direct viscous atlas evaluation path.');
 assert(isfield(branch, 'firstMissingModalMinimumIndex'), 'Direct atlas branch must expose firstMissingModalMinimumIndex.');
-assert(isfinite(branch.firstMissingModalMinimumIndex), 'Strict viscous jump policy should trigger a modal cut.');
-assert(branch.firstMissingModalMinimumIndex > 1, 'The modal cut should occur after the first point for this baseline case.');
-assert(branch.modalCutReason == "cp_jump_exceeds_viscous_limit", 'Unexpected modal cut reason.');
+assert(isfinite(branch.firstMissingModalMinimumIndex), 'Strict residual policy should trigger a modal cut.');
+assert(branch.firstMissingModalMinimumIndex >= 1, 'The modal cut index should be positive for this forced case.');
+assert(branch.modalCutReason == "missing_modal_minimum", 'Unexpected modal cut reason.');
 assert(any(~isfinite(CpAtlas)), 'Cp should be truncated after the forced modal cut.');
 assert(all(~branch.validCp(branch.firstMissingModalMinimumIndex:end)), 'Cp validity must be false after the modal cut.');
-assert(branch.viscoAtlas.modalCutPolicy.previousCpMaxRelativeJump == options.mrlfeViscoPreviousCpMaxRelativeJump, ...
-    'Modal-cut diagnostics must report the maintained viscous jump limit.');
+assert(branch.viscoAtlas.modalCutPolicy.stopAtFirstMissingModalMinimum == true, ...
+    'Modal-cut diagnostics must report the maintained stop-at-first-missing policy.');
 
 fprintf('First missing index: %g\n', branch.firstMissingModalMinimumIndex);
 fprintf('First missing frequency: %.6g Hz\n', branch.firstMissingModalMinimumFrequency);
