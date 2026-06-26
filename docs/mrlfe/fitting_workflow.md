@@ -57,6 +57,45 @@ If only one fitting frequency is supplied, the evaluator creates a narrow intern
 
 The current implementation requires valid fitting frequencies to be sorted ascending.
 
+## Fast fitting performance preset
+
+`mrlfeEvaluateFitModel` now applies fitting-specific performance defaults by default. These defaults affect only the fitting evaluator, not general mRLFE sweeps.
+
+Default fitting preset:
+
+```text
+mrlfeUseFitPerformanceDefaults = true
+mrlfeUseInternalTrackingGrid = true
+mrlfeInternalTrackingMinPoints = 10
+mrlfeInternalTrackingPointFactor = 1
+mrlfeInternalTrackingMaxPoints = 80
+mrlfeA0DPCpScanPoints = 500
+mrlfeA0DPCandidates = 8
+```
+
+The preset was chosen from `diagnose_fit_option_sensitivity`. For the A0Like elastic real-k baseline, `cpScanPoints = 500`, `trackingMinPoints = 10`, and `pointFactor = 1` gave a large speedup with sub-0.01 m/s RMS Cp difference relative to the 2200-point reference in the standard 1-8 kHz fitting window.
+
+To disable the fitting preset and use explicit solver options exactly:
+
+```matlab
+solverOptions.mrlfeUseFitPerformanceDefaults = false;
+```
+
+To keep the preset but override individual fitting defaults:
+
+```matlab
+solverOptions.mrlfeFitA0DPCpScanPoints = 800;
+solverOptions.mrlfeFitInternalTrackingMinPoints = 20;
+solverOptions.mrlfeFitInternalTrackingPointFactor = 1;
+solverOptions.mrlfeFitInternalTrackingMaxPoints = 80;
+```
+
+The raw output exposes the applied preset through:
+
+```matlab
+rawResult.fitPerformanceDefaults
+```
+
 ## Current forward path and timing concern
 
 The fitting evaluator currently calls:
@@ -115,7 +154,22 @@ The script assigns its output to the base workspace as:
 MRLFEFitTimingDiagnostic
 ```
 
-Use this diagnostic before implementing an atlas/cache strategy. It should answer whether a lightweight cache is enough or whether a deeper mRLFE atlas evaluator is justified.
+The option-sensitivity diagnostic is:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+diagnose_fit_option_sensitivity
+```
+
+It assigns:
+
+```matlab
+MRLFEFitOptionSensitivityDiagnostic
+```
+
+Use these diagnostics before implementing an atlas/cache strategy. They should answer whether a lightweight fitting preset is enough or whether a deeper mRLFE atlas evaluator is justified.
 
 ## Optimizer policy
 
@@ -142,7 +196,7 @@ Candidate directions, in increasing implementation cost:
 5. Build a true parameter-Cp atlas only if repeated fits over the same parameter bounds are needed.
 ```
 
-The AE IOP/HGO atlas architecture is a useful reference for branch selection and reliability reporting, but mRLFE should not copy it mechanically. mRLFE already has a DP-based modal candidate tracker for A0-like branches, so the first likely win is caching and reusing repeated work around the existing real-k workflow.
+The AE IOP/HGO atlas architecture is a useful reference for branch selection and reliability reporting, but mRLFE should not copy it mechanically. mRLFE already has a DP-based modal candidate tracker for A0-like branches, so the first likely win is a faster fitting preset and then targeted caching around the existing real-k workflow.
 
 ## Example
 
@@ -166,11 +220,12 @@ clear functions
 rehash toolboxcache
 startup
 test_mrlfe_fit_synthetic_A0Like
+test_mrlfe_fit_fast_options_quality
 ```
 
-The test checks that the synthetic A0-like fit recovers `mu` within tolerance.
+The first test checks that the synthetic A0-like fit recovers `mu` within tolerance. The second compares the fast fitting preset against the high-cost reference and checks that the Cp difference remains small.
 
-`run_core_smoke_tests` also checks the mRLFE fitting helper path and runs this fitting test.
+`run_core_smoke_tests` also checks the mRLFE fitting helper path and runs the synthetic fitting test.
 
 ## App-level integration
 
