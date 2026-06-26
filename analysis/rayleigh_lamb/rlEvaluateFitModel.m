@@ -3,11 +3,11 @@ function [Cp_mps, rawResult] = rlEvaluateFitModel(params, frequency_Hz, branchNa
 %
 % [Cp_mps, rawResult] = rlEvaluateFitModel(params, frequency_Hz, branchName, options)
 %
-% This helper is intended for fitting. It evaluates each experimental
-% frequency independently using a branch-specific physical search window. It
-% does not use continuation or prediction fallback, so one failed point cannot
-% collapse the rest of the fitting grid and no predictor-only points are used as
-% model data.
+% This helper is intended for fitting. It builds an internal tracking grid,
+% explicitly includes the requested experimental frequencies, and evaluates the
+% requested Rayleigh-Lamb branch by continuation with prediction fallback
+% disabled. The returned Cp values are therefore sampled from one coherent modal
+% branch rather than from independent per-frequency residual minima.
 
 if nargin < 3 || isempty(branchName)
     branchName = "A0";
@@ -27,27 +27,30 @@ rlValidateOptions(options);
 
 material = rlComputeMaterial(params);
 geometry = rlComputeGeometry(params);
-omega = 2 * pi * frequencyInput;
 
-Cp_mps = nan(size(frequencyInput));
-residual = nan(size(frequencyInput));
+[frequencyTrack, requestIndexInTrack] = localBuildTrackingFrequencyGrid(frequencyInput, options);
+solverOptions = localBuildSolverOptions(options, material);
+solverOptions.disallowPredictionFallback = true;
 
-for i = 1:numel(frequencyInput)
-    fi = frequencyInput(i);
-    geometryForSpec = geometry;
-    geometryForSpec.frequency0 = fi;
-    branchSpec = rlMakeBranchSpec(branchName, material, geometryForSpec);
-    switch branchName
-        case "A0"
-            residualFcn = @(Cp) rlAResidual(Cp, fi, material.CL, material.CT, geometry.halfThickness);
-        case "S0"
-            residualFcn = @(Cp) rlSResidual(Cp, fi, material.CL, material.CT, geometry.halfThickness);
-        otherwise
-            error('Unsupported Rayleigh-Lamb fitting branch: %s.', branchName);
-    end
-    [Cp_mps(i), residual(i)] = localSolveIndependentFrequency(residualFcn, branchSpec, material, options);
+geometryForSpec = geometry;
+geometryForSpec.frequency0 = frequencyTrack(1);
+branchSpec = rlMakeBranchSpec(branchName, material, geometryForSpec);
+solverOptions = localApplyBranchSpec(solverOptions, branchSpec);
+
+switch branchName
+    case "A0"
+        residualFcn = @(Cp, f) rlAResidual(Cp, f, material.CL, material.CT, geometry.halfThickness);
+    case "S0"
+        residualFcn = @(Cp, f) rlSResidual(Cp, f, material.CL, material.CT, geometry.halfThickness);
+    otherwise
+        error('Unsupported Rayleigh-Lamb fitting branch: %s.', branchName);
 end
 
+[CpTrack, residualTrack] = rlSolveFundamentalBranch(frequencyTrack, residualFcn, solverOptions);
+
+Cp_mps = CpTrack(requestIndexInTrack);
+residual = residualTrack(requestIndexInTrack);
+omega = 2 * pi * frequencyInput;
 k = omega ./ Cp_mps;
 validMask = isfinite(Cp_mps) & isfinite(residual) & isfinite(k) & Cp_mps > 0;
 Cp_mps(~validMask) = NaN;
@@ -66,86 +69,164 @@ rawResult.validMask = validMask;
 rawResult.material = material;
 rawResult.geometry = rmfield(geometry, 'halfThickness');
 rawResult.options = options;
-rawResult.trackingMode = "independent_frequency_search";
+rawResult.trackingMode = "branch_coherent_internal_grid";
+rawResult.internalFrequency_Hz = frequencyTrack;
+rawResult.internalCp_mps = CpTrack;
+rawResult.internalResidual = residualTrack;
+rawResult.internalValidMask = isfinite(CpTrack) & isfinite(residualTrack) & CpTrack > 0;
+rawResult.selectedBranch = branchName;
+rawResult.minimaTable = struct([]);
+rawResult.branchTable = localBuildBranchTable(branchName, frequencyTrack, CpTrack, residualTrack);
+rawResult.reliability = localBuildReliability(branchName, frequencyInput, validMask, frequencyTrack, CpTrack, residualTrack);
+rawResult.diagnostics = localBuildDiagnostics(frequencyInput, frequencyTrack, requestIndexInTrack, solverOptions);
 end
 
-function [bestCp, bestResidual] = localSolveIndependentFrequency(residualFcn, branchSpec, material, options)
-bestCp = nan;
-bestResidual = inf;
+function [frequencyTrack, requestIndexInTrack] = localBuildTrackingFrequencyGrid(frequencyInput, options)
+frequencySorted = sort(frequencyInput(:));
+fminRequest = min(frequencySorted);
+fmaxRequest = max(frequencySorted);
 
-CpMinAbs = getOption(options, 'minCpAbsolute', 1e-4);
-CpMin = max(CpMinAbs, getOption(options, 'minCpRelativeToCT', 1e-3) * material.CT);
-CpMax = max(getOption(options, 'maxCpFactorCT', 20) * material.CT, getOption(options, 'minCpGlobalMax', 1.0));
+initMinDefault = min(300, fminRequest);
+initMin = getOption(options, 'rlFitInitializationMinFrequency_Hz', initMinDefault);
+if ~isfinite(initMin) || initMin <= 0
+    initMin = initMinDefault;
+end
+initMin = min(initMin, fminRequest);
 
-if isfield(branchSpec, 'initialSearchRange') && numel(branchSpec.initialSearchRange) == 2 && ...
-        all(isfinite(branchSpec.initialSearchRange)) && branchSpec.initialSearchRange(2) > branchSpec.initialSearchRange(1)
-    CpMin = max(CpMin, branchSpec.initialSearchRange(1));
-    CpMax = min(CpMax, branchSpec.initialSearchRange(2));
+if fmaxRequest <= initMin
+    fmaxTrack = fmaxRequest * 1.05;
+else
+    fmaxTrack = fmaxRequest;
 end
 
-if CpMax <= CpMin
-    return;
+numRequest = numel(unique(frequencySorted));
+numInit = getOption(options, 'rlFitInitializationNumFrequencyPoints', max(16, 2 * numRequest));
+numInit = max(10, round(numInit));
+
+if fmaxTrack > initMin
+    initGrid = linspace(initMin, fmaxTrack, numInit).';
+else
+    halfWidth = max(0.05 * fminRequest, 1.0);
+    initGrid = linspace(max(fminRequest - halfWidth, eps), fminRequest + halfWidth, numInit).';
 end
 
-numGrid = max(200, getOption(options, 'gridPointsInitial', 1200));
-CpGrid = linspace(CpMin, CpMax, numGrid);
-RGrid = arrayfun(residualFcn, CpGrid);
-valid = isfinite(RGrid) & CpGrid > CpMinAbs;
-CpGrid = CpGrid(valid);
-RGrid = RGrid(valid);
-if numel(CpGrid) < 5
-    return;
-end
+frequencyTrack = unique([initGrid; frequencySorted], 'sorted');
+[~, requestIndexInTrack] = ismember(frequencyInput, frequencyTrack);
 
-candidateIdx = localFindLocalMinima(RGrid);
-if isempty(candidateIdx)
-    [~, idx] = min(RGrid);
-    candidateIdx = idx;
-end
-
-bestScore = inf;
-for j = candidateIdx(:).'
-    leftIdx = max(j - 2, 1);
-    rightIdx = min(j + 2, numel(CpGrid));
-    CpLeft = CpGrid(leftIdx);
-    CpRight = CpGrid(rightIdx);
-    if CpRight <= CpLeft
-        continue;
-    end
-    try
-        CpCandidate = fminbnd(residualFcn, CpLeft, CpRight);
-        RCandidate = residualFcn(CpCandidate);
-        if ~isfinite(CpCandidate) || ~isfinite(RCandidate) || CpCandidate <= 0
-            continue;
+if any(requestIndexInTrack == 0)
+    requestIndexInTrack = zeros(size(frequencyInput));
+    for i = 1:numel(frequencyInput)
+        [delta, idx] = min(abs(frequencyTrack - frequencyInput(i)));
+        tol = 10 * eps(max(1, abs(frequencyInput(i))));
+        if delta > tol
+            error('Internal Rayleigh-Lamb fitting grid did not retain requested frequency %.15g Hz.', frequencyInput(i));
         end
-        score = RCandidate;
-        if branchSpec.preferLowestCp
-            score = score * (1 + 0.01 * CpCandidate / max(material.CT, eps));
-        end
-        if isfinite(branchSpec.initialCpGuess) && branchSpec.initialCpGuess > 0
-            relSeed = abs(CpCandidate - branchSpec.initialCpGuess) / branchSpec.initialCpGuess;
-            score = score * (1 + getOption(options, 'initialGuessWeight', 0.25) * relSeed);
-        end
-        if score < bestScore
-            bestScore = score;
-            bestCp = CpCandidate;
-            bestResidual = RCandidate;
-        end
-    catch
+        requestIndexInTrack(i) = idx;
     end
 end
 end
 
-function idx = localFindLocalMinima(y)
-idx = [];
-if numel(y) < 3
-    return;
-end
-for i = 2:numel(y)-1
-    if isfinite(y(i)) && y(i) < y(i-1) && y(i) < y(i+1)
-        idx(end+1) = i; %#ok<AGROW>
+function solverOptions = localBuildSolverOptions(options, material)
+solverOptions = struct();
+solverOptions.CT = material.CT;
+solverOptions.gridPointsInitial = options.gridPointsInitial;
+solverOptions.gridPointsTracking = options.gridPointsTracking;
+solverOptions.jumpTol = options.jumpTol;
+solverOptions.residualTolerance = options.residualTolerance;
+
+optionalFields = {'searchFactors', 'minCpAbsolute', 'minCpRelativeToCT', ...
+    'maxCpFactorCT', 'minCpGlobalMax', 'initialGuessWeight', 'predictionWeight', ...
+    'maxPredictionRelativeError', 'maxSinglePointSpikeRelative', 'preferPreviousRootWeight'};
+for i = 1:numel(optionalFields)
+    fieldName = optionalFields{i};
+    if isfield(options, fieldName)
+        solverOptions.(fieldName) = options.(fieldName);
     end
 end
+end
+
+function solverOptions = localApplyBranchSpec(solverOptions, branchSpec)
+solverOptions.branchName = branchSpec.name;
+solverOptions.initialCpGuess = branchSpec.initialCpGuess;
+solverOptions.initialSearchRange = branchSpec.initialSearchRange;
+solverOptions.preferLowestCp = branchSpec.preferLowestCp;
+end
+
+function branchTable = localBuildBranchTable(branchName, frequencyTrack, CpTrack, residualTrack)
+valid = isfinite(CpTrack) & isfinite(residualTrack) & CpTrack > 0;
+branchTable = struct();
+branchTable.name = branchName;
+branchTable.validPoints = nnz(valid);
+branchTable.totalPoints = numel(frequencyTrack);
+branchTable.validFraction = nnz(valid) / max(1, numel(frequencyTrack));
+branchTable.firstValidFrequency_Hz = localFirstValue(frequencyTrack(valid));
+branchTable.lastValidFrequency_Hz = localLastValue(frequencyTrack(valid));
+branchTable.maxRelativeCpJump = localMaxRelativeJump(CpTrack(valid));
+branchTable.meanResidual = mean(residualTrack(valid), 'omitnan');
+end
+
+function reliability = localBuildReliability(branchName, frequencyInput, validMask, frequencyTrack, CpTrack, residualTrack)
+internalValid = isfinite(CpTrack) & isfinite(residualTrack) & CpTrack > 0;
+reliability = struct();
+reliability.PolicyName = "rlBranchCoherentInternalGrid";
+reliability.BranchName = branchName;
+reliability.ValidFraction = nnz(validMask) / max(1, numel(validMask));
+reliability.ValidPoints = nnz(validMask);
+reliability.MissingPoints = numel(validMask) - nnz(validMask);
+reliability.FirstValidFrequency_kHz = localFirstValue(frequencyInput(validMask)) / 1e3;
+reliability.LastValidFrequency_kHz = localLastValue(frequencyInput(validMask)) / 1e3;
+reliability.InternalValidFraction = nnz(internalValid) / max(1, numel(internalValid));
+reliability.InternalFirstValidFrequency_kHz = localFirstValue(frequencyTrack(internalValid)) / 1e3;
+reliability.InternalLastValidFrequency_kHz = localLastValue(frequencyTrack(internalValid)) / 1e3;
+reliability.MaxBranchRelativeCpJump = localMaxRelativeJump(CpTrack(internalValid));
+reliability.SelectionFallbackUsed = false;
+if all(validMask)
+    reliability.ValidityNote = "allRequestedPointsReported";
+else
+    reliability.ValidityNote = "someRequestedPointsMissingFromCoherentBranch";
+end
+end
+
+function diagnostics = localBuildDiagnostics(frequencyInput, frequencyTrack, requestIndexInTrack, solverOptions)
+diagnostics = struct();
+diagnostics.requestedFrequency_Hz = frequencyInput;
+diagnostics.internalFrequency_Hz = frequencyTrack;
+diagnostics.requestIndexInTrack = requestIndexInTrack;
+diagnostics.disallowPredictionFallback = true;
+diagnostics.gridPointsInitial = solverOptions.gridPointsInitial;
+diagnostics.gridPointsTracking = solverOptions.gridPointsTracking;
+diagnostics.jumpTol = solverOptions.jumpTol;
+diagnostics.residualTolerance = solverOptions.residualTolerance;
+end
+
+function value = localFirstValue(x)
+x = x(:);
+x = x(isfinite(x));
+if isempty(x)
+    value = NaN;
+else
+    value = x(1);
+end
+end
+
+function value = localLastValue(x)
+x = x(:);
+x = x(isfinite(x));
+if isempty(x)
+    value = NaN;
+else
+    value = x(end);
+end
+end
+
+function maxJump = localMaxRelativeJump(Cp)
+Cp = Cp(:);
+Cp = Cp(isfinite(Cp) & Cp > 0);
+if numel(Cp) < 2
+    maxJump = NaN;
+    return;
+end
+maxJump = max(abs(diff(Cp)) ./ max(Cp(1:end-1), eps));
 end
 
 function value = getOption(options, fieldName, defaultValue)
