@@ -2,7 +2,8 @@
 % Diagnostic only: does not change solver internals.
 %
 % This script compares lower-cost A0Like DP/tracking settings against a high-cost
-% reference forward solution. Use it before introducing an atlas/cache evaluator.
+% reference forward solution. It explicitly disables the automatic fitting
+% performance preset so the tested options are not overwritten.
 
 clear; clc;
 startup
@@ -20,6 +21,7 @@ params.nu = 0.4999;
 params.etaS = etaS;
 
 referenceOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
+referenceOptions.mrlfeUseFitPerformanceDefaults = false;
 referenceOptions.mrlfeUseInternalTrackingGrid = true;
 referenceOptions.mrlfeInternalTrackingMinPoints = 30;
 referenceOptions.mrlfeInternalTrackingPointFactor = 2;
