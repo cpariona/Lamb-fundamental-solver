@@ -243,6 +243,12 @@ summarizeMRLFETrackingQuality
 compareMRLFETrackingStrategies
 ```
 
+Maintained mRLFE prototype solvers:
+
+```matlab
+solveMRLFEViscoBranchAtlas
+```
+
 Maintained mRLFE fitting helpers:
 
 ```matlab
@@ -275,6 +281,7 @@ compare_mrlfe_tracker_vs_condition_peaks
 diagnose_etaS_forward_cache
 diagnose_fit_timing
 diagnose_fit_option_sensitivity
+diagnose_mrlfe_visco_direct_atlas
 diagnose_mrlfe_visco_validity_breakdown
 diagnose_mrlfe_visco_residual_landscape
 stress_test_mrlfe_real_k_range
