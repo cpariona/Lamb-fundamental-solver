@@ -272,6 +272,7 @@ Maintained mRLFE diagnostics:
 
 ```matlab
 compare_mrlfe_tracker_vs_condition_peaks
+diagnose_etaS_forward_cache
 diagnose_fit_timing
 diagnose_fit_option_sensitivity
 diagnose_mrlfe_visco_validity_breakdown
@@ -283,6 +284,7 @@ Maintained mRLFE tests:
 
 ```matlab
 test_mrlfe_smoke
+test_mrlfe_etaS_fit_forward_cache
 test_mrlfe_etaS_zero_limit
 test_mrlfe_elastic_reference_buffer
 test_mrlfe_residual_objective_contract
