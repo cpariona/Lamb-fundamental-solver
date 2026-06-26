@@ -45,6 +45,10 @@ function options = localApplyViscoAtlasDefaults(options, branchName)
 options.mrlfeA0DPCandidates = getOption(options, 'mrlfeViscoAtlasCandidates', getOption(options, 'mrlfeA0DPCandidates', 8));
 options.mrlfeA0DPCpScanPoints = getOption(options, 'mrlfeViscoAtlasCpScanPoints', getOption(options, 'mrlfeA0DPCpScanPoints', 900));
 options.mrlfeA0DPEdgeGuardPoints = getOption(options, 'mrlfeViscoAtlasEdgeGuardPoints', getOption(options, 'mrlfeA0DPEdgeGuardPoints', 6));
+options.mrlfeA0DPRefineCandidates = getOption(options, 'mrlfeA0DPRefineCandidates', true);
+options.mrlfeA0DPRefineTolX = getOption(options, 'mrlfeA0DPRefineTolX', 1e-6);
+options.mrlfeA0DPRefineMaxIter = getOption(options, 'mrlfeA0DPRefineMaxIter', 24);
+options.mrlfeA0DPRefineMaxFunEvals = getOption(options, 'mrlfeA0DPRefineMaxFunEvals', 60);
 
 switch branchName
     case "S0Like"
@@ -181,6 +185,10 @@ summary.jumpWeight = getOption(options, 'mrlfeA0DPJumpWeight', NaN);
 summary.curvatureWeight = getOption(options, 'mrlfeA0DPCurvatureWeight', NaN);
 summary.seedWeight = getOption(options, 'mrlfeA0DPSeedWeight', NaN);
 summary.residualTolerance = getOption(options, 'mrlfeResidualTolerance', NaN);
+summary.refineCandidates = getOption(options, 'mrlfeA0DPRefineCandidates', NaN);
+summary.refineTolX = getOption(options, 'mrlfeA0DPRefineTolX', NaN);
+summary.refineMaxIter = getOption(options, 'mrlfeA0DPRefineMaxIter', NaN);
+summary.refineMaxFunEvals = getOption(options, 'mrlfeA0DPRefineMaxFunEvals', NaN);
 summary.useModalCpWindow = getOption(options, 'mrlfeRealKUseModalCpWindow', NaN);
 summary.stopAtFirstMissingModalMinimum = getOption(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', NaN);
 summary.previousCpMaxRelativeJump = getOption(options, 'mrlfeRealKPreviousCpMaxRelativeJump', NaN);
