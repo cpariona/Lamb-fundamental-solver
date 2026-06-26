@@ -1,6 +1,6 @@
 # mRLFE fitting workflow
 
-This document records the first mRLFE dispersion fitting implementation.
+This document records the first mRLFE dispersion fitting implementation and the current diagnostic path toward faster atlas/cache-based fitting.
 
 ## Scope
 
@@ -57,6 +57,66 @@ If only one fitting frequency is supplied, the evaluator creates a narrow intern
 
 The current implementation requires valid fitting frequencies to be sorted ascending.
 
+## Current forward path and timing concern
+
+The fitting evaluator currently calls:
+
+```text
+mrlfeEvaluateFitModel
+  -> rlComputeFundamentalLambModes
+    -> Rayleigh-Lamb seed branch
+    -> computeMRLFE
+      -> solveMRLFEBranch / solveMRLFEBranchDP
+```
+
+For one-parameter fitting, `mrlfeFitDispersionData` repeatedly evaluates this full forward path through `fminbnd`. The fit can therefore be correct but slow if each objective evaluation recomputes Rayleigh-Lamb seeds, mRLFE residual scans, and branch tracking from scratch.
+
+For A0-like elastic real-k mRLFE, `solveMRLFEBranchDP` already performs a local Cp-landscape scan at each frequency and then selects a continuous branch through dynamic programming. This is conceptually close to a modal atlas over Cp for one parameter value. The next optimization phase should measure whether fitting time is dominated by:
+
+```text
+1. repeated Rayleigh-Lamb seed computation;
+2. repeated mRLFE residual matrix evaluations over Cp;
+3. dynamic-programming candidate extraction;
+4. optimizer function-count rather than solver internals.
+```
+
+## Timing diagnostic
+
+Run:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+diagnose_fit_timing
+```
+
+The diagnostic lives in:
+
+```text
+examples/mrlfe/diagnostics/diagnose_fit_timing.m
+```
+
+It reports:
+
+```text
+single forward-evaluation time
+coarse RMSE landscape time over mu
+current fminbnd fit time
+optimizer function count
+mRLFE solver diagnostic elapsed time
+tracking point count
+valid fraction across the objective landscape
+```
+
+The script assigns its output to the base workspace as:
+
+```matlab
+MRLFEFitTimingDiagnostic
+```
+
+Use this diagnostic before implementing an atlas/cache strategy. It should answer whether a lightweight cache is enough or whether a deeper mRLFE atlas evaluator is justified.
+
 ## Optimizer policy
 
 `mrlfeFitDispersionData` uses no Optimization Toolbox dependency.
@@ -67,6 +127,22 @@ Current behavior:
 one free parameter with finite bounds -> fminbnd
 multi-parameter or unbounded case     -> fminsearch with bound penalties
 ```
+
+## Candidate optimization directions
+
+The next phase should not change the already-working fit result until timing evidence is available.
+
+Candidate directions, in increasing implementation cost:
+
+```text
+1. Cache parameter-independent solver setup inside a fitting problem.
+2. Reuse Rayleigh-Lamb seed branches when only mRLFE parameters change.
+3. Add a coarse-global mu scan plus local refinement to reduce expensive fminbnd calls.
+4. Build an mRLFE Cp atlas per parameter candidate and expose diagnostic outputs similar to AE atlas reliability fields.
+5. Build a true parameter-Cp atlas only if repeated fits over the same parameter bounds are needed.
+```
+
+The AE IOP/HGO atlas architecture is a useful reference for branch selection and reliability reporting, but mRLFE should not copy it mechanically. mRLFE already has a DP-based modal candidate tracker for A0-like branches, so the first likely win is caching and reusing repeated work around the existing real-k workflow.
 
 ## Example
 
@@ -127,6 +203,7 @@ viscous etaS fitting validation
 multi-parameter mRLFE fitting validation
 S0Like fitting validation
 uncertainty estimates for fitted parameters
+mRLFE atlas/cache fitting evaluator
 ```
 
 Multi-parameter fitting is structurally supported by the helper contracts, but the first maintained validation target is the one-parameter synthetic A0-like case.
