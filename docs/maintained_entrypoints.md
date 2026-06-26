@@ -273,6 +273,7 @@ Maintained mRLFE diagnostics:
 ```matlab
 compare_mrlfe_tracker_vs_condition_peaks
 diagnose_fit_timing
+diagnose_fit_option_sensitivity
 diagnose_mrlfe_visco_validity_breakdown
 diagnose_mrlfe_visco_residual_landscape
 stress_test_mrlfe_real_k_range
@@ -296,6 +297,7 @@ test_mrlfe_model_candidate_names
 test_mrlfe_diagnostic_material_sweep_contract
 test_mrlfe_etaS_zero_diagnostic_selection
 test_mrlfe_fit_synthetic_A0Like
+test_mrlfe_fit_fast_options_quality
 ```
 
 ## Smoke-test scope
