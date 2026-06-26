@@ -28,8 +28,12 @@ end
 [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequencyInput);
 solverOptions = localPrepareOptions(solverOptions, branchName, params);
 
-rawFullResult = rlComputeFundamentalLambModes(params, solverOptions);
-branchSolve = localExtractBranch(rawFullResult, branchName);
+if localShouldUseDirectViscoAtlas(solverOptions, branchName)
+    [rawFullResult, branchSolve] = localEvaluateDirectViscoAtlas(params, frequencySolve_Hz, branchName, solverOptions);
+else
+    rawFullResult = rlComputeFundamentalLambModes(params, solverOptions);
+    branchSolve = localExtractBranch(rawFullResult, branchName);
+end
 [branch, Cp_mps] = localResampleBranchToRequestedGrid(branchSolve, frequencyInput);
 
 rawResult = struct();
@@ -46,6 +50,7 @@ rawResult.rawFullResult = rawFullResult;
 rawResult.params = params;
 rawResult.options = solverOptions;
 rawResult.fitPerformanceDefaults = localBuildFitPerformanceSummary(solverOptions);
+rawResult.evaluationPath = localEvaluationPathSummary(solverOptions);
 end
 
 function [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequency_Hz)
@@ -109,6 +114,77 @@ end
 options = localApplyFitPerformanceDefaults(options, branchName);
 end
 
+function tf = localShouldUseDirectViscoAtlas(options, branchName)
+tf = false;
+if ~(isstruct(options) && isfield(options, 'mrlfeUseDirectViscoAtlas') && options.mrlfeUseDirectViscoAtlas)
+    return;
+end
+if branchName ~= "A0Like"
+    return;
+end
+etaS = 0;
+if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS') && ~isempty(options.mrlfeParams.etaS)
+    etaS = options.mrlfeParams.etaS;
+end
+tf = isfinite(etaS) && etaS > 0;
+end
+
+function [rawFullResult, branchSolve] = localEvaluateDirectViscoAtlas(params, frequencySolve_Hz, branchName, solverOptions)
+rlParams = params;
+rlParams.fmin = min(frequencySolve_Hz);
+rlParams.fmax = max(frequencySolve_Hz);
+rlParams.numFrequencyPoints = numel(frequencySolve_Hz);
+rlParams.frequencySpacing = "linspace";
+
+rlOptions = rlDefaultOptions("Fast");
+rlOptions.computeA0 = branchName == "A0Like";
+rlOptions.computeS0 = branchName == "S0Like";
+rlOptions.computeMRLFE = false;
+rlOptions.computeMRLFERealK = false;
+rlOptions.computeMRLFEElasticRealK = false;
+rlOptions.computeMRLFEViscoRealK = false;
+rlOptions.computeMRLFEComplexK = false;
+
+rlStart = tic;
+rawRL = rlComputeFundamentalLambModes(rlParams, rlOptions);
+rlElapsed = toc(rlStart);
+
+if branchName == "A0Like"
+    if ~isfield(rawRL, 'modes') || ~isfield(rawRL.modes, 'A0')
+        error('Direct mRLFE viscous atlas requires Rayleigh-Lamb A0 seed mode.');
+    end
+    seedMode = rawRL.modes.A0;
+else
+    if ~isfield(rawRL, 'modes') || ~isfield(rawRL.modes, 'S0')
+        error('Direct mRLFE viscous atlas requires Rayleigh-Lamb S0 seed mode.');
+    end
+    seedMode = rawRL.modes.S0;
+end
+
+atlasStart = tic;
+branchSolve = solveMRLFEViscoBranchAtlas(branchName, seedMode, rawRL.material, rawRL.geometry, solverOptions.mrlfeParams, solverOptions);
+atlasElapsed = toc(atlasStart);
+
+rawFullResult = rawRL;
+rawFullResult.models = struct();
+rawFullResult.models.mRLFERealK = struct();
+rawFullResult.models.mRLFERealK.modelName = "mRLFE";
+rawFullResult.models.mRLFERealK.variant = "direct-viscous-atlas-real-k";
+rawFullResult.models.mRLFERealK.description = "Direct viscous mRLFE Cp atlas prototype without elastic mRLFE reference branch.";
+rawFullResult.models.mRLFERealK.parameters = solverOptions.mrlfeParams;
+rawFullResult.models.mRLFERealK.frequency = frequencySolve_Hz(:);
+rawFullResult.models.mRLFERealK.branches = struct();
+rawFullResult.models.mRLFERealK.branches.(char(branchName)) = branchSolve;
+rawFullResult.models.mRLFERealK.diagnostics = struct();
+rawFullResult.models.mRLFERealK.diagnostics.elapsedSeconds = atlasElapsed;
+rawFullResult.models.mRLFERealK.diagnostics.rayleighLambSeedElapsedSeconds = rlElapsed;
+rawFullResult.models.mRLFERealK.diagnostics.variant = "direct-viscous-atlas-real-k";
+rawFullResult.models.mRLFERealK.diagnostics.branchNames = branchName;
+rawFullResult.models.mRLFERealK.diagnostics.usedInternalTrackingGrid = false;
+rawFullResult.models.mRLFERealK.diagnostics.requestedPointCount = numel(frequencySolve_Hz);
+rawFullResult.models.mRLFERealK.diagnostics.trackingPointCount = numel(frequencySolve_Hz);
+end
+
 function options = localApplyFitPerformanceDefaults(options, branchName)
 useDefaults = getOption(options, 'mrlfeUseFitPerformanceDefaults', true);
 options.mrlfeUseFitPerformanceDefaults = logical(useDefaults);
@@ -157,6 +233,16 @@ summary.internalTrackingPointFactor = getOption(options, 'mrlfeInternalTrackingP
 summary.internalTrackingMaxPoints = getOption(options, 'mrlfeInternalTrackingMaxPoints', NaN);
 summary.a0DpCpScanPoints = getOption(options, 'mrlfeA0DPCpScanPoints', NaN);
 summary.a0DpCandidates = getOption(options, 'mrlfeA0DPCandidates', NaN);
+end
+
+function summary = localEvaluationPathSummary(options)
+summary = struct();
+summary.useDirectViscoAtlas = getOption(options, 'mrlfeUseDirectViscoAtlas', false);
+if summary.useDirectViscoAtlas
+    summary.path = "direct_viscous_atlas";
+else
+    summary.path = "maintained_rl_mrlfe_workflow";
+end
 end
 
 function branch = localExtractBranch(rawFullResult, branchName)
