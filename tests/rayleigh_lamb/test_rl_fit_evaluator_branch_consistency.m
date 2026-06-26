@@ -20,6 +20,10 @@ assert(isfield(rawFit, 'internalFrequency_Hz') && numel(rawFit.internalFrequency
     'Fit evaluator must expose its internal tracking grid.');
 assert(isfield(rawFit, 'reliability') && rawFit.reliability.SelectionFallbackUsed == false, ...
     'Fit evaluator must not report prediction fallback as official fitting output.');
+assert(isfield(rawFit, 'diagnostics') && isinf(rawFit.diagnostics.maxPredictionRelativeError), ...
+    'Fit evaluator should not use prediction error as a hard fitting rejection gate by default.');
+assert(rawFit.diagnostics.jumpTol >= 0.80, ...
+    'Fit evaluator should use a permissive internal jump tolerance by default.');
 
 referenceParams = params;
 referenceParams.fmin = min(rawFit.internalFrequency_Hz);
@@ -41,8 +45,8 @@ assert(max(relativeDifference) < 0.05, ...
 internalValid = rawFit.internalValidMask(:);
 internalCp = rawFit.internalCp_mps(internalValid);
 relativeJump = abs(diff(internalCp)) ./ max(internalCp(1:end-1), eps);
-assert(isempty(relativeJump) || max(relativeJump) < options.jumpTol, ...
-    'Internal branch contains a jump larger than the configured continuation tolerance.');
+assert(isempty(relativeJump) || max(relativeJump) < rawFit.diagnostics.jumpTol, ...
+    'Internal branch contains a jump larger than the configured fitting continuation tolerance.');
 
 fprintf('Max relative difference to maintained A0 solver: %.6g\n', max(relativeDifference));
 if isempty(relativeJump)
