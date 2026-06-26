@@ -278,6 +278,7 @@ Maintained mRLFE diagnostics:
 
 ```matlab
 compare_mrlfe_tracker_vs_condition_peaks
+diagnose_etaS_direct_atlas_fit
 diagnose_etaS_forward_cache
 diagnose_fit_timing
 diagnose_fit_option_sensitivity
