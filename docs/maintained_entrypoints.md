@@ -291,6 +291,7 @@ Maintained mRLFE tests:
 
 ```matlab
 test_mrlfe_smoke
+test_mrlfe_direct_visco_atlas_evaluator
 test_mrlfe_etaS_fit_forward_cache
 test_mrlfe_etaS_zero_limit
 test_mrlfe_elastic_reference_buffer
