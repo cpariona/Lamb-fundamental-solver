@@ -40,12 +40,14 @@ assert(rawAtlas.evaluationPath.path == "direct_viscous_atlas", 'Unexpected direc
 assert(isfield(rawAtlas.branch, 'viscoAtlas'), 'Direct atlas branch must expose viscoAtlas diagnostics.');
 assert(rawAtlas.branch.viscoAtlas.usedElasticMRLFEReference == false, ...
     'Direct viscous atlas must not use an elastic mRLFE reference branch.');
+assert(rawAtlas.branch.viscoAtlas.options.refineCandidates == true, ...
+    'Direct viscous atlas should refine DP candidates by default.');
 assert(all(rawAtlas.branch.validCp(:)), 'Direct viscous atlas branch should be strictly valid for this baseline case.');
 
 rmseDiff = sqrt(mean((CpAtlas(:) - CpReference(:)).^2));
 maxAbsDiff = max(abs(CpAtlas(:) - CpReference(:)));
-assert(rmseDiff < 0.02, 'Direct viscous atlas Cp RMSE difference is too large.');
-assert(maxAbsDiff < 0.03, 'Direct viscous atlas maximum Cp difference is too large.');
+assert(rmseDiff < 0.005, 'Direct viscous atlas Cp RMSE difference is too large.');
+assert(maxAbsDiff < 0.015, 'Direct viscous atlas maximum Cp difference is too large.');
 
 fprintf('Reference path: %s\n', rawReference.evaluationPath.path);
 fprintf('Atlas path:     %s\n', rawAtlas.evaluationPath.path);
