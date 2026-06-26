@@ -45,6 +45,7 @@ rawResult.branchSolve = branchSolve;
 rawResult.rawFullResult = rawFullResult;
 rawResult.params = params;
 rawResult.options = solverOptions;
+rawResult.fitPerformanceDefaults = localBuildFitPerformanceSummary(solverOptions);
 end
 
 function [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequency_Hz)
@@ -104,6 +105,46 @@ switch branchName
     otherwise
         error('Unsupported mRLFE fitting branch: %s.', branchName);
 end
+
+options = localApplyFitPerformanceDefaults(options, branchName);
+end
+
+function options = localApplyFitPerformanceDefaults(options, branchName)
+useDefaults = getOption(options, 'mrlfeUseFitPerformanceDefaults', true);
+options.mrlfeUseFitPerformanceDefaults = logical(useDefaults);
+if ~useDefaults
+    options.mrlfeFitPerformancePreset = "off";
+    return;
+end
+
+% Fitting calls the forward mRLFE evaluator repeatedly. The maintained sweep
+% defaults are intentionally conservative, but they are too expensive for
+% iterative fitting. Diagnostics on the A0Like elastic real-k baseline showed
+% that 500 Cp scan points and a 10-point internal tracking grid preserve the
+% branch within a few millimetres per second while reducing forward time by
+% nearly one order of magnitude for the standard fitting data window.
+options.mrlfeFitPerformancePreset = getOption(options, 'mrlfeFitPerformancePreset', "fast");
+options.mrlfeUseInternalTrackingGrid = getOption(options, 'mrlfeFitUseInternalTrackingGrid', true);
+options.mrlfeInternalTrackingMinPoints = getOption(options, 'mrlfeFitInternalTrackingMinPoints', 10);
+options.mrlfeInternalTrackingPointFactor = getOption(options, 'mrlfeFitInternalTrackingPointFactor', 1);
+options.mrlfeInternalTrackingMaxPoints = getOption(options, 'mrlfeFitInternalTrackingMaxPoints', 80);
+
+if branchName == "A0Like"
+    options.mrlfeA0DPCpScanPoints = getOption(options, 'mrlfeFitA0DPCpScanPoints', 500);
+    options.mrlfeA0DPCandidates = getOption(options, 'mrlfeFitA0DPCandidates', getOption(options, 'mrlfeA0DPCandidates', 8));
+end
+end
+
+function summary = localBuildFitPerformanceSummary(options)
+summary = struct();
+summary.useFitPerformanceDefaults = getOption(options, 'mrlfeUseFitPerformanceDefaults', false);
+summary.preset = getOption(options, 'mrlfeFitPerformancePreset', "off");
+summary.useInternalTrackingGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', false);
+summary.internalTrackingMinPoints = getOption(options, 'mrlfeInternalTrackingMinPoints', NaN);
+summary.internalTrackingPointFactor = getOption(options, 'mrlfeInternalTrackingPointFactor', NaN);
+summary.internalTrackingMaxPoints = getOption(options, 'mrlfeInternalTrackingMaxPoints', NaN);
+summary.a0DpCpScanPoints = getOption(options, 'mrlfeA0DPCpScanPoints', NaN);
+summary.a0DpCandidates = getOption(options, 'mrlfeA0DPCandidates', NaN);
 end
 
 function branch = localExtractBranch(rawFullResult, branchName)
@@ -181,5 +222,13 @@ elseif isfield(branch, 'valid')
     validMask = logical(branch.valid(:)) & isfinite(branch.Cp(:));
 else
     validMask = isfinite(branch.Cp(:));
+end
+end
+
+function value = getOption(options, fieldName, defaultValue)
+if isstruct(options) && isfield(options, fieldName) && ~isempty(options.(fieldName))
+    value = options.(fieldName);
+else
+    value = defaultValue;
 end
 end
