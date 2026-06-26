@@ -49,6 +49,8 @@ if ~isfield(fitOptions, 'useStandardErrorWeights')
     fitOptions.useStandardErrorWeights = false;
 end
 
+[solverOptions, forwardCache] = localAttachForwardCacheIfUseful(solverOptions, baseParams, freeParams, branchName, experimental);
+
 problem = struct();
 problem.modelFamily = "mrlfe";
 problem.branchName = branchName;
@@ -60,6 +62,7 @@ problem.lowerBounds = lowerBounds;
 problem.upperBounds = upperBounds;
 problem.parameterInfo = parameterInfo;
 problem.solverOptions = solverOptions;
+problem.forwardCache = forwardCache;
 problem.fitOptions = fitOptions;
 problem.evaluateModel = @(params) mrlfeEvaluateFitModel(params, experimental.frequency_Hz, branchName, solverOptions);
 problem.residualFunction = @(x) localResidualFunction(x, problem);
@@ -111,6 +114,79 @@ for i = 1:numel(freeParams)
 end
 end
 
+function [solverOptions, forwardCache] = localAttachForwardCacheIfUseful(solverOptions, baseParams, freeParams, branchName, experimental)
+forwardCache = struct();
+forwardCache.enabled = false;
+forwardCache.kind = "none";
+forwardCache.reason = "not_applicable";
+
+if isfield(solverOptions, 'mrlfeDisableForwardCache') && solverOptions.mrlfeDisableForwardCache
+    forwardCache.reason = "disabled_by_option";
+    return;
+end
+
+if ~(numel(freeParams) == 1 && freeParams(1) == "etaS")
+    forwardCache.reason = "free_parameter_not_etaS_only";
+    return;
+end
+
+if isfield(solverOptions, 'mrlfeElasticReferenceResult') && ~isempty(solverOptions.mrlfeElasticReferenceResult)
+    forwardCache.enabled = true;
+    forwardCache.kind = "provided_elastic_reference";
+    forwardCache.reason = "caller_provided_reference";
+    return;
+end
+
+referenceOptions = solverOptions;
+if ~isfield(referenceOptions, 'mrlfeParams') || isempty(referenceOptions.mrlfeParams)
+    referenceOptions.mrlfeParams = defaultMRLFEParams();
+end
+referenceOptions.mrlfeParams.etaS = 0;
+referenceOptions.mrlfeParams.etaL = 0;
+referenceOptions.mrlfeParams.solveComplexK = false;
+referenceOptions.mrlfeParams.useComplexLambda = false;
+
+% Build the reference with the maintained elastic settings rather than the fast
+% elastic fitting preset. This keeps the cached reference equivalent to the
+% reference that the viscous path would otherwise compute internally.
+referenceOptions.mrlfeUseFitPerformanceDefaults = false;
+
+referenceParams = baseParams;
+referenceParams.etaS = 0;
+
+try
+    [~, rawReference] = mrlfeEvaluateFitModel(referenceParams, experimental.frequency_Hz, branchName, referenceOptions);
+    if isfield(rawReference, 'rawFullResult') && isfield(rawReference.rawFullResult, 'models') && ...
+            isfield(rawReference.rawFullResult.models, 'mRLFEElasticRealK')
+        solverOptions.mrlfeElasticReferenceResult = rawReference.rawFullResult.models.mRLFEElasticRealK;
+        forwardCache.enabled = true;
+        forwardCache.kind = "etaS_elastic_reference";
+        forwardCache.reason = "precomputed_elastic_reference";
+        forwardCache.frequency_Hz = rawReference.frequencySolve_Hz;
+        forwardCache.branchName = branchName;
+        forwardCache.referenceParams = referenceParams;
+        forwardCache.referenceOptions = localSummarizeReferenceOptions(referenceOptions);
+    else
+        forwardCache.reason = "reference_missing_mRLFEElasticRealK";
+    end
+catch exception
+    forwardCache.enabled = false;
+    forwardCache.kind = "none";
+    forwardCache.reason = "reference_precompute_failed";
+    forwardCache.errorIdentifier = string(exception.identifier);
+    forwardCache.errorMessage = string(exception.message);
+end
+end
+
+function summary = localSummarizeReferenceOptions(options)
+summary = struct();
+summary.mrlfeUseFitPerformanceDefaults = getOption(options, 'mrlfeUseFitPerformanceDefaults', []);
+summary.mrlfeUseInternalTrackingGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', []);
+summary.mrlfeInternalTrackingMinPoints = getOption(options, 'mrlfeInternalTrackingMinPoints', []);
+summary.mrlfeInternalTrackingPointFactor = getOption(options, 'mrlfeInternalTrackingPointFactor', []);
+summary.mrlfeA0DPCpScanPoints = getOption(options, 'mrlfeA0DPCpScanPoints', []);
+end
+
 function etaS = localEtaSFromOptions(options)
 etaS = 0;
 if isstruct(options) && isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS')
@@ -134,6 +210,14 @@ end
 function value = getConfigValue(config, fieldName, defaultValue)
 if isstruct(config) && isfield(config, fieldName) && ~isempty(config.(fieldName))
     value = config.(fieldName);
+else
+    value = defaultValue;
+end
+end
+
+function value = getOption(options, fieldName, defaultValue)
+if isstruct(options) && isfield(options, fieldName) && ~isempty(options.(fieldName))
+    value = options.(fieldName);
 else
     value = defaultValue;
 end
