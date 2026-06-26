@@ -272,6 +272,7 @@ Maintained mRLFE diagnostics:
 
 ```matlab
 compare_mrlfe_tracker_vs_condition_peaks
+diagnose_fit_timing
 diagnose_mrlfe_visco_validity_breakdown
 diagnose_mrlfe_visco_residual_landscape
 stress_test_mrlfe_real_k_range
