@@ -117,22 +117,34 @@ if ~useDefaults
     return;
 end
 
+etaS = 0;
+if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS') && ~isempty(options.mrlfeParams.etaS)
+    etaS = options.mrlfeParams.etaS;
+end
+
+% The fast fitting preset has been validated only for the elastic A0Like real-k
+% baseline. Viscous real-k branches use a different tracker/reference path and
+% can lose all valid Cp points if the elastic A0 DP scan is reduced too much.
+% Keep viscous and S0Like fitting on the maintained solver defaults until a
+% separate option-sensitivity diagnostic validates faster settings for them.
+if ~(branchName == "A0Like" && abs(etaS) <= eps(max(1, abs(etaS))))
+    options.mrlfeFitPerformancePreset = "maintained_default";
+    return;
+end
+
 % Fitting calls the forward mRLFE evaluator repeatedly. The maintained sweep
 % defaults are intentionally conservative, but they are too expensive for
 % iterative fitting. Diagnostics on the A0Like elastic real-k baseline showed
 % that 500 Cp scan points and a 10-point internal tracking grid preserve the
 % branch within a few millimetres per second while reducing forward time by
 % nearly one order of magnitude for the standard fitting data window.
-options.mrlfeFitPerformancePreset = getOption(options, 'mrlfeFitPerformancePreset', "fast");
+options.mrlfeFitPerformancePreset = getOption(options, 'mrlfeFitPerformancePreset', "fast_elastic_A0Like");
 options.mrlfeUseInternalTrackingGrid = getOption(options, 'mrlfeFitUseInternalTrackingGrid', true);
 options.mrlfeInternalTrackingMinPoints = getOption(options, 'mrlfeFitInternalTrackingMinPoints', 10);
 options.mrlfeInternalTrackingPointFactor = getOption(options, 'mrlfeFitInternalTrackingPointFactor', 1);
 options.mrlfeInternalTrackingMaxPoints = getOption(options, 'mrlfeFitInternalTrackingMaxPoints', 80);
-
-if branchName == "A0Like"
-    options.mrlfeA0DPCpScanPoints = getOption(options, 'mrlfeFitA0DPCpScanPoints', 500);
-    options.mrlfeA0DPCandidates = getOption(options, 'mrlfeFitA0DPCandidates', getOption(options, 'mrlfeA0DPCandidates', 8));
-end
+options.mrlfeA0DPCpScanPoints = getOption(options, 'mrlfeFitA0DPCpScanPoints', 500);
+options.mrlfeA0DPCandidates = getOption(options, 'mrlfeFitA0DPCandidates', getOption(options, 'mrlfeA0DPCandidates', 8));
 end
 
 function summary = localBuildFitPerformanceSummary(options)
