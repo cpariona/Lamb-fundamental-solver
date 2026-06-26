@@ -100,7 +100,8 @@ else
 end
 
 numRequest = numel(unique(frequencySorted));
-numInit = getOption(options, 'rlFitInitializationNumFrequencyPoints', max(16, 2 * numRequest));
+numInitDefault = max(120, 2 * numRequest);
+numInit = getOption(options, 'rlFitInitializationNumFrequencyPoints', numInitDefault);
 numInit = max(10, round(numInit));
 
 if fmaxTrack > initMin
@@ -131,18 +132,24 @@ solverOptions = struct();
 solverOptions.CT = material.CT;
 solverOptions.gridPointsInitial = options.gridPointsInitial;
 solverOptions.gridPointsTracking = options.gridPointsTracking;
-solverOptions.jumpTol = options.jumpTol;
+solverOptions.jumpTol = max(options.jumpTol, getOption(options, 'rlFitMinJumpTol', 0.80));
 solverOptions.residualTolerance = options.residualTolerance;
 
 optionalFields = {'searchFactors', 'minCpAbsolute', 'minCpRelativeToCT', ...
     'maxCpFactorCT', 'minCpGlobalMax', 'initialGuessWeight', 'predictionWeight', ...
-    'maxPredictionRelativeError', 'maxSinglePointSpikeRelative', 'preferPreviousRootWeight'};
+    'maxSinglePointSpikeRelative', 'preferPreviousRootWeight'};
 for i = 1:numel(optionalFields)
     fieldName = optionalFields{i};
     if isfield(options, fieldName)
         solverOptions.(fieldName) = options.(fieldName);
     end
 end
+
+% Fitting uses a coherent branch as model data. A0 is strongly dispersive at
+% low frequency, so the generic prediction-error gate can reject the correct
+% local minimum immediately after initialization. Keep prediction useful for
+% scoring, but do not use it as a hard rejection gate in fitting evaluation.
+solverOptions.maxPredictionRelativeError = getOption(options, 'rlFitMaxPredictionRelativeError', inf);
 end
 
 function solverOptions = localApplyBranchSpec(solverOptions, branchSpec)
@@ -196,6 +203,7 @@ diagnostics.disallowPredictionFallback = true;
 diagnostics.gridPointsInitial = solverOptions.gridPointsInitial;
 diagnostics.gridPointsTracking = solverOptions.gridPointsTracking;
 diagnostics.jumpTol = solverOptions.jumpTol;
+diagnostics.maxPredictionRelativeError = solverOptions.maxPredictionRelativeError;
 diagnostics.residualTolerance = solverOptions.residualTolerance;
 end
 
