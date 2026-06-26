@@ -94,6 +94,7 @@ test_gui_fit_registry_contract
 test_fit_tool_model_registry_contract
 test_fit_physical_qc_flat_rl
 test_fit_physical_qc_synthetic_pass
+test_rl_fit_evaluator_branch_consistency
 ```
 
 Focused fitting validation suite:
@@ -153,6 +154,7 @@ Maintained Rayleigh-Lamb tests:
 
 ```matlab
 test_rl_fit_synthetic_A0
+test_rl_fit_evaluator_branch_consistency
 ```
 
 ## Acoustoelastic IOP/HGO model
@@ -220,138 +222,4 @@ Maintained AE IOP/HGO fitting test:
 
 ```matlab
 test_ae_fit_synthetic_atlasA0
-```
-
-## mRLFE model
-
-Main high-level function:
-
-```matlab
-computeMRLFE
-```
-
-Maintained analysis helpers:
-
-```matlab
-objectiveMRLFEResidual
-mrlfeModelCandidateNames
-mrlfeSetYoungModulusForShearPoisson
-mrlfeSelectRealKBranches
-summarizeMRLFETrackingQuality
-compareMRLFETrackingStrategies
-```
-
-Maintained mRLFE fitting helpers:
-
-```matlab
-mrlfeBuildFitProblem
-mrlfeEvaluateFitModel
-mrlfeFitDispersionData
-```
-
-Maintained public sweep wrappers:
-
-```matlab
-sweep_mu_A0Like_viscoelastic
-sweep_mu_S0Like_viscoelastic
-sweep_etaS_A0Like_viscoelastic
-sweep_etaS_S0Like_viscoelastic
-sweep_thickness_A0Like_viscoelastic
-sweep_thickness_S0Like_viscoelastic
-```
-
-Maintained mRLFE fitting example:
-
-```matlab
-fit_mrlfe_A0Like
-```
-
-Maintained mRLFE diagnostics:
-
-```matlab
-compare_mrlfe_tracker_vs_condition_peaks
-diagnose_mrlfe_visco_validity_breakdown
-diagnose_mrlfe_visco_residual_landscape
-stress_test_mrlfe_real_k_range
-```
-
-Maintained mRLFE tests:
-
-```matlab
-test_mrlfe_smoke
-test_mrlfe_etaS_zero_limit
-test_mrlfe_elastic_reference_buffer
-test_mrlfe_residual_objective_contract
-test_mrlfe_internal_tracking_grid
-test_mrlfe_internal_tracking_grid_with_buffer
-test_mrlfe_viscous_default_internal_tracking_grid
-test_mrlfe_tracking_quality_summary
-test_mrlfe_tracking_strategy_comparison
-test_mrlfe_internal_grid_quality_guard
-test_mrlfe_maintained_entrypoints_naming
-test_mrlfe_model_candidate_names
-test_mrlfe_diagnostic_material_sweep_contract
-test_mrlfe_etaS_zero_diagnostic_selection
-test_mrlfe_fit_synthetic_A0Like
-```
-
-## Smoke-test scope
-
-Run the full maintained suite:
-
-```matlab
-run_all_smoke_tests
-```
-
-Run focused groups after localized changes:
-
-```matlab
-run_core_smoke_tests
-run_gui_smoke_tests
-run_acoustoelastic_smoke_tests
-run_mrlfe_smoke_tests
-```
-
-Run focused fitting validation separately:
-
-```matlab
-run_fit_validation_tests
-```
-
-## Active documentation links
-
-```text
-docs/repository_structure.md
-docs/naming_strategy.md
-docs/validation_status.md
-docs/maintained_entrypoints.md
-docs/fitting_architecture.md
-docs/fitting_validation_suite.md
-docs/fitting_phase1_status.md
-docs/fitting_phase2_status.md
-docs/fitting_phase3_status.md
-docs/fitting_phase4_status.md
-docs/fitting_phase5_status.md
-docs/fitting_phase6_status.md
-docs/fitting_phase7_status.md
-docs/fitting_phase8_status.md
-docs/fitting_phase9_status.md
-docs/fitting_phase10_status.md
-docs/parametric_sweeps.md
-docs/sweep_tool_usage.md
-docs/gui_adapter_architecture.md
-docs/gui_integration_audit.md
-docs/rayleigh_lamb/overview.md
-docs/rayleigh_lamb/public_api.md
-docs/rayleigh_lamb/fitting_workflow.md
-docs/mrlfe/current_sweeps.md
-docs/mrlfe/fitting_workflow.md
-docs/mrlfe/pending_cleanup.md
-docs/mrlfe/tracker_diagnostic_summary.md
-docs/acoustoelastic_iop_hgo/README.md
-docs/acoustoelastic_iop_hgo/documentation_index.md
-docs/acoustoelastic_iop_hgo/public_api.md
-docs/acoustoelastic_iop_hgo/branch_policy.md
-docs/acoustoelastic_iop_hgo/fitting_workflow.md
-docs/acoustoelastic_iop_hgo/sweep_workflow.md
 ```
