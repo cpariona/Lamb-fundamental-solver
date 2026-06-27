@@ -27,8 +27,9 @@ end
 
 [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequencyInput);
 solverOptions = localPrepareOptions(solverOptions, branchName, params);
+useDirectViscoAtlas = localShouldUseDirectViscoAtlas(solverOptions, branchName);
 
-if localShouldUseDirectViscoAtlas(solverOptions, branchName)
+if useDirectViscoAtlas
     [rawFullResult, branchSolve] = localEvaluateDirectViscoAtlas(params, frequencySolve_Hz, branchName, solverOptions);
 else
     rawFullResult = rlComputeFundamentalLambModes(params, solverOptions);
@@ -50,7 +51,7 @@ rawResult.rawFullResult = rawFullResult;
 rawResult.params = params;
 rawResult.options = solverOptions;
 rawResult.fitPerformanceDefaults = localBuildFitPerformanceSummary(solverOptions);
-rawResult.evaluationPath = localEvaluationPathSummary(solverOptions);
+rawResult.evaluationPath = localEvaluationPathSummary(solverOptions, useDirectViscoAtlas);
 end
 
 function [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequency_Hz)
@@ -235,10 +236,13 @@ summary.a0DpCpScanPoints = getOption(options, 'mrlfeA0DPCpScanPoints', NaN);
 summary.a0DpCandidates = getOption(options, 'mrlfeA0DPCandidates', NaN);
 end
 
-function summary = localEvaluationPathSummary(options)
+function summary = localEvaluationPathSummary(options, usedDirectViscoAtlas)
+requestedDirectViscoAtlas = getOption(options, 'mrlfeUseDirectViscoAtlas', false);
 summary = struct();
-summary.useDirectViscoAtlas = getOption(options, 'mrlfeUseDirectViscoAtlas', false);
-if summary.useDirectViscoAtlas
+summary.requestedDirectViscoAtlas = logical(requestedDirectViscoAtlas);
+summary.useDirectViscoAtlas = logical(usedDirectViscoAtlas);
+summary.usedDirectViscoAtlas = logical(usedDirectViscoAtlas);
+if usedDirectViscoAtlas
     summary.path = "direct_viscous_atlas";
 else
     summary.path = "maintained_rl_mrlfe_workflow";
