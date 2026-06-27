@@ -74,8 +74,6 @@ end
 end
 
 function tf = shouldComputeMRLFERealK(options)
-% Maintained real-k flags are computeMRLFEElasticRealK and
-% computeMRLFEViscoRealK. computeMRLFERealK remains a unified real-k selector.
 tf = getOption(options, 'computeMRLFERealK', false) || ...
     getOption(options, 'computeMRLFEElasticRealK', false) || ...
     getOption(options, 'computeMRLFEViscoRealK', false) || ...
@@ -183,13 +181,16 @@ for i = 1:numel(branchNames)
     name = branchNames{i};
     branch = mrlfeResults.branches.(name);
     validCp = getBranchValidCp(branch);
-    finiteResidual = isfield(branch, 'residual') && isfinite(branch.residual(:));
+    finiteResidual = false(size(branch.Cp(:)));
+    if isfield(branch, 'residual')
+        finiteResidual = isfinite(branch.residual(:));
+    end
     item = struct();
     item.validPoints = nnz(validCp);
     item.validCpPoints = nnz(validCp);
     item.totalPoints = numel(branch.Cp);
     item.maxCpJumpRelative = maxRelativeJump(branch.Cp(validCp));
-    if isfield(branch, 'residual') && any(finiteResidual)
+    if any(finiteResidual)
         residual = branch.residual(:);
         item.maxResidual = max(residual(finiteResidual));
         item.meanResidual = mean(residual(finiteResidual));
