@@ -1,0 +1,64 @@
+# Documentation index
+
+This folder is organized by active documentation, model-family documentation, and archived implementation history.
+
+## Active repository-level references
+
+```text
+docs/repository_structure.md
+docs/naming_strategy.md
+docs/validation_status.md
+docs/maintained_entrypoints.md
+```
+
+## Active topic folders
+
+```text
+docs/fitting/
+docs/gui/
+docs/sweeps/
+docs/rayleigh_lamb/
+docs/mrlfe/
+docs/acoustoelastic_iop_hgo/
+```
+
+## Active fitting documentation
+
+```text
+docs/fitting/README.md
+docs/fitting/architecture.md
+docs/fitting/validation_suite.md
+docs/mrlfe/fitting_workflow.md
+docs/rayleigh_lamb/fitting_workflow.md
+docs/acoustoelastic_iop_hgo/fitting_workflow.md
+```
+
+## Active GUI documentation
+
+```text
+docs/gui/adapter_architecture.md
+docs/gui/integration_audit.md
+docs/gui/main_pending_cleanup.md
+```
+
+## Active sweep documentation
+
+```text
+docs/sweeps/parametric_sweeps.md
+docs/sweeps/sweep_tool_usage.md
+docs/mrlfe/current_sweeps.md
+docs/acoustoelastic_iop_hgo/sweep_workflow.md
+```
+
+## Archived documentation
+
+```text
+docs/archive/fitting_phase_logs.md
+docs/archive/fitting_phases/
+```
+
+Historical phase logs are retained for traceability. They are not active API or workflow references.
+
+## Cleanup policy
+
+Root-level `docs/*.md` should be limited to repository-wide references and this index. Topic-specific documents should live under their topic folder. Historical implementation logs should live under `docs/archive/`.
