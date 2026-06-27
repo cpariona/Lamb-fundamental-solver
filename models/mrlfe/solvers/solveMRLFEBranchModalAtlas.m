@@ -1,15 +1,18 @@
 function branch = solveMRLFEBranchModalAtlas(name, seedMode, material, geometry, mrlfeParams, options)
 %SOLVEMRLFEBRANCHMODALATLAS Experimental modal-atlas real-k mRLFE branch solver.
 %
-% branch = solveMRLFEBranchModalAtlas(name, seedMode, material, geometry, mrlfeParams, options)
-%
 % Diagnostic/experimental solver. It evaluates the real-k mRLFE residual over a
 % Cp-frequency atlas, extracts local minima at each frequency, links minima into
 % modal families, and selects one family using modal-identity criteria.
 %
-% This solver does not replace the maintained mRLFE workflow. The Rayleigh-Lamb
-% seed is used only to define a broad Cp scan window and to report comparison
-% metadata; it is not used as a pointwise continuation reference.
+% The Rayleigh-Lamb seed is used to define a broad Cp scan window and to report
+% comparison metadata. It is not used as pointwise continuation reference.
+%
+% Optional ambiguity handling:
+%   mrlfeModalAtlasApplyAmbiguityCut = false/true
+% When enabled, modal escape clusters are marked invalid instead of forcing a
+% jump to another modal family. Continuous Cp is always preserved in
+% branch.modalAtlas.continuousCp.
 
 if nargin < 6 || isempty(options)
     options = struct();
@@ -40,25 +43,18 @@ minimaTable = buildMinimaTable(frequency, omega, CpScan, material, geometry, mrl
 [minimaTable, branchTable] = linkModalFamilies(minimaTable, frequency, atlasOptions);
 selected = selectModalFamily(branchTable, minimaTable, frequency, atlasOptions, name);
 
-Cp = nan(size(frequency));
-residual = nan(size(frequency));
-candidateRank = nan(size(frequency));
-candidateIndex = nan(size(frequency));
-familyId = nan(size(frequency));
+[Cp, residual, candidateRank, candidateIndex, familyId] = reconstructSelectedBranch(selected, minimaTable, frequency);
+continuousCp = Cp;
+continuousResidual = residual;
+continuousFamilyId = familyId;
 
-if ~isempty(selected) && isfinite(selected.BranchID)
-    rows = minimaTable(minimaTable.BranchID == selected.BranchID, :);
-    for i = 1:height(rows)
-        idx = find(frequency == rows.Frequency_Hz(i), 1, 'first');
-        if isempty(idx)
-            continue;
-        end
-        Cp(idx) = rows.Cp_mps(i);
-        residual(idx) = rows.Objective(i);
-        candidateRank(idx) = rows.MinRank(i);
-        candidateIndex(idx) = rows.LocalIndex(i);
-        familyId(idx) = rows.BranchID(i);
-    end
+[ambiguityMask, ambiguityClusters, ambiguityTriggers] = detectModalAmbiguity(frequency, Cp, residual, familyId, minimaTable, atlasOptions);
+if atlasOptions.applyAmbiguityCut
+    Cp(ambiguityMask) = nan;
+    residual(ambiguityMask) = nan;
+    candidateRank(ambiguityMask) = nan;
+    candidateIndex(ambiguityMask) = nan;
+    familyId(ambiguityMask) = nan;
 end
 
 kReal = omega ./ Cp;
@@ -97,6 +93,9 @@ branch.validAttenuation = false(size(valid));
 branch.candidateIndex = candidateIndex;
 branch.candidateRank = candidateRank;
 branch.modalAtlasFamilyId = familyId;
+branch.modalAmbiguityMask = ambiguityMask;
+branch.modalAmbiguityClusters = ambiguityClusters;
+branch.modalAmbiguityTriggers = ambiguityTriggers;
 branch.modalAtlas = struct();
 branch.modalAtlas.CpScan = CpScan(:);
 branch.modalAtlas.minimaTable = minimaTable;
@@ -105,7 +104,34 @@ branch.modalAtlas.selectedFamily = selected;
 branch.modalAtlas.options = atlasOptions;
 branch.modalAtlas.seedFamily = getSeedFamily(seedMode);
 branch.modalAtlas.etaS = mrlfeParams.etaS;
+branch.modalAtlas.continuousCp = continuousCp;
+branch.modalAtlas.continuousResidual = continuousResidual;
+branch.modalAtlas.continuousFamilyId = continuousFamilyId;
+branch.modalAtlas.applyAmbiguityCut = atlasOptions.applyAmbiguityCut;
 branch.note = "Experimental mRLFE modal atlas branch. Diagnostic only.";
+end
+
+function [Cp, residual, candidateRank, candidateIndex, familyId] = reconstructSelectedBranch(selected, minimaTable, frequency)
+Cp = nan(size(frequency));
+residual = nan(size(frequency));
+candidateRank = nan(size(frequency));
+candidateIndex = nan(size(frequency));
+familyId = nan(size(frequency));
+if isempty(selected) || ~isfinite(selected.BranchID)
+    return;
+end
+rows = minimaTable(minimaTable.BranchID == selected.BranchID, :);
+for i = 1:height(rows)
+    idx = rows.FrequencyIndex(i);
+    if idx < 1 || idx > numel(frequency)
+        continue;
+    end
+    Cp(idx) = rows.Cp_mps(i);
+    residual(idx) = rows.Objective(i);
+    candidateRank(idx) = rows.MinRank(i);
+    candidateIndex(idx) = rows.LocalIndex(i);
+    familyId(idx) = rows.BranchID(i);
+end
 end
 
 function seedCp = getSeedCp(seedMode)
@@ -155,6 +181,14 @@ atlasOptions.rankWeight = getOption(options, 'mrlfeModalAtlasRankWeight', 0.8);
 atlasOptions.roughnessWeight = getOption(options, 'mrlfeModalAtlasRoughnessWeight', 1.2);
 atlasOptions.residualWeight = getOption(options, 'mrlfeModalAtlasResidualWeight', 0.8);
 atlasOptions.startCpWeight = getOption(options, 'mrlfeModalAtlasStartCpWeight', 0.5);
+
+atlasOptions.applyAmbiguityCut = getOption(options, 'mrlfeModalAtlasApplyAmbiguityCut', false);
+atlasOptions.ambiguityResidualRatio = getOption(options, 'mrlfeModalAtlasAmbiguityResidualRatio', 4.0);
+atlasOptions.ambiguityMinCpSeparation = getOption(options, 'mrlfeModalAtlasAmbiguityMinCpSeparation', 0.16);
+atlasOptions.ambiguityMaxGapPoints = getOption(options, 'mrlfeModalAtlasAmbiguityMaxGapPoints', 6);
+atlasOptions.ambiguityPaddingPoints = getOption(options, 'mrlfeModalAtlasAmbiguityPaddingPoints', 1);
+atlasOptions.ambiguityMinClusterTriggers = getOption(options, 'mrlfeModalAtlasAmbiguityMinClusterTriggers', 2);
+atlasOptions.ambiguityRequireHigherCpAlternative = getOption(options, 'mrlfeModalAtlasAmbiguityRequireHigherCpAlternative', true);
 end
 
 function CpScan = buildCpScan(seedCp, atlasOptions)
@@ -379,6 +413,100 @@ score = atlasOptions.coverageWeight * coverageCost + ...
 T.Score = score;
 T = sortrows(T, 'Score');
 selected = T(1, :);
+end
+
+function [ambiguityMask, clusters, triggers] = detectModalAmbiguity(frequency, Cp, residual, familyId, minimaTable, atlasOptions)
+triggerMask = false(size(frequency));
+triggerRows = [];
+for i = 1:numel(frequency)
+    if ~isfinite(Cp(i)) || ~isfinite(residual(i)) || ~isfinite(familyId(i))
+        continue;
+    end
+    Tf = minimaTable(minimaTable.FrequencyIndex == i, :);
+    if isempty(Tf)
+        continue;
+    end
+    Tf = sortrows(Tf, 'Objective');
+    best = Tf(1, :);
+    if best.BranchID == familyId(i)
+        continue;
+    end
+    if atlasOptions.ambiguityRequireHigherCpAlternative && best.Cp_mps <= Cp(i)
+        continue;
+    end
+    relSep = abs(best.Cp_mps - Cp(i)) / max(abs(Cp(i)), eps);
+    objRatio = residual(i) / max(best.Objective, realmin);
+    if relSep >= atlasOptions.ambiguityMinCpSeparation && objRatio >= atlasOptions.ambiguityResidualRatio
+        triggerMask(i) = true;
+        row = struct();
+        row.Frequency_Hz = frequency(i);
+        row.FrequencyIndex = i;
+        row.SelectedCp_mps = Cp(i);
+        row.SelectedObjective = residual(i);
+        row.SelectedFamilyID = familyId(i);
+        row.BestCp_mps = best.Cp_mps;
+        row.BestObjective = best.Objective;
+        row.BestRank = best.MinRank;
+        row.BestFamilyID = best.BranchID;
+        row.RelativeCpSeparation = relSep;
+        row.ObjectiveRatio = objRatio;
+        triggerRows = [triggerRows; row]; %#ok<AGROW>
+    end
+end
+[ambiguityMask, clusters] = clusterTriggers(triggerMask, frequency, atlasOptions);
+if isempty(triggerRows)
+    triggers = table();
+else
+    triggers = struct2table(triggerRows);
+end
+end
+
+function [cutMask, clusters] = clusterTriggers(triggerMask, frequency, atlasOptions)
+idx = find(triggerMask(:));
+cutMask = false(size(triggerMask(:)));
+rows = [];
+if isempty(idx)
+    clusters = table();
+    return;
+end
+startIdx = idx(1);
+lastIdx = idx(1);
+nTrig = 1;
+for k = 2:numel(idx)
+    if idx(k) - lastIdx <= atlasOptions.ambiguityMaxGapPoints + 1
+        lastIdx = idx(k);
+        nTrig = nTrig + 1;
+    else
+        [cutMask, rows] = addCluster(cutMask, rows, startIdx, lastIdx, nTrig, frequency, atlasOptions);
+        startIdx = idx(k);
+        lastIdx = idx(k);
+        nTrig = 1;
+    end
+end
+[cutMask, rows] = addCluster(cutMask, rows, startIdx, lastIdx, nTrig, frequency, atlasOptions);
+if isempty(rows)
+    clusters = table();
+else
+    clusters = struct2table(rows);
+end
+end
+
+function [cutMask, rows] = addCluster(cutMask, rows, startIdx, lastIdx, nTrig, frequency, atlasOptions)
+if nTrig < atlasOptions.ambiguityMinClusterTriggers
+    return;
+end
+pad = atlasOptions.ambiguityPaddingPoints;
+a = max(1, startIdx - pad);
+b = min(numel(cutMask), lastIdx + pad);
+cutMask(a:b) = true;
+row = struct();
+row.StartIndex = a;
+row.EndIndex = b;
+row.TriggerCount = nTrig;
+row.StartFrequency_Hz = frequency(a);
+row.EndFrequency_Hz = frequency(b);
+row.CutPoints = b - a + 1;
+rows = [rows; row]; %#ok<AGROW>
 end
 
 function x = normalizeMetric(x)
