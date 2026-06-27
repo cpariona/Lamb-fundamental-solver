@@ -9,7 +9,7 @@ params.nu = 0.4999;
 params.thickness = 0.5e-3;
 params.fmin = 10;
 params.fmax = 600;
-params.numFrequencyPoints = 8;
+params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
 options = rlDefaultOptions("Fast");
