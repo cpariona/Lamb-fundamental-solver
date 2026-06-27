@@ -1,16 +1,21 @@
 function branch = solveMRLFEViscoBranchAtlas(name, seedMode, material, geometry, mrlfeParams, options)
-%SOLVEMRLFEVISCOBRANCHATLAS Prototype direct real-k viscous mRLFE atlas tracker.
+%SOLVEMRLFEVISCOBRANCHATLAS Direct real-k viscous mRLFE Cp-atlas tracker.
 %
 % branch = solveMRLFEViscoBranchAtlas(name, seedMode, material, geometry, mrlfeParams, options)
 %
-% This diagnostic/prototype solver evaluates the viscous mRLFE residual directly
-% over a Cp scan, extracts multiple local candidates per frequency, and selects
-% a continuous branch with the existing dynamic-programming tracker. It does
-% not require a precomputed etaS=0 mRLFE elastic reference branch.
+% This solver evaluates the viscous mRLFE residual directly over a Cp scan,
+% extracts multiple local candidates per frequency, and selects a continuous
+% branch with the existing dynamic-programming tracker. It does not require a
+% precomputed etaS=0 mRLFE elastic reference branch.
 %
 % The seedMode is still used to identify the modal family and to define a broad
-% physically reasonable Cp scan window. In the intended diagnostic workflow this
-% seed is the Rayleigh-Lamb A0/S0 branch, not an elastic mRLFE reference branch.
+% physically reasonable Cp scan window. In the intended A0Like etaS fitting
+% workflow this seed is the Rayleigh-Lamb A0 branch, not an elastic mRLFE
+% reference branch.
+%
+% Canonical option names are the maintained DP and viscous tracking names
+% (mrlfeA0DP*, mrlfeVisco*, mrlfeRealK*). Older mrlfeViscoAtlas* names are kept
+% only as compatibility aliases and should not be used in new diagnostics.
 
 if nargin < 6 || isempty(options)
     options = struct();
@@ -27,10 +32,10 @@ if ~isfield(mrlfeParams, 'useComplexLambda') || isempty(mrlfeParams.useComplexLa
     mrlfeParams.useComplexLambda = false;
 end
 
-options = localApplyViscoAtlasDefaults(options, string(name));
+options = localApplyDirectViscousAtlasDefaults(options, string(name));
 branch = solveMRLFEBranchDP(name, seedMode, material, geometry, mrlfeParams, options, []);
 branch = localApplyViscousModalCutPolicy(branch, options);
-branch.note = "mRLFE direct viscous real-k Cp atlas prototype without elastic mRLFE reference branch.";
+branch.note = "mRLFE direct viscous real-k Cp atlas without elastic mRLFE reference branch.";
 branch.viscoAtlas = struct();
 branch.viscoAtlas.usedElasticMRLFEReference = false;
 branch.viscoAtlas.seedFamily = localSeedFamily(seedMode);
@@ -39,12 +44,12 @@ branch.viscoAtlas.options = localAtlasOptionSummary(options);
 branch.viscoAtlas.modalCutPolicy = localModalCutPolicySummary(branch, options);
 end
 
-function options = localApplyViscoAtlasDefaults(options, branchName)
-% Keep the prototype explicitly separate from the elastic fast fitting preset,
-% but inherit the maintained viscous tracker naming where possible.
-options.mrlfeA0DPCandidates = getOption(options, 'mrlfeViscoAtlasCandidates', getOption(options, 'mrlfeA0DPCandidates', 8));
-options.mrlfeA0DPCpScanPoints = getOption(options, 'mrlfeViscoAtlasCpScanPoints', getOption(options, 'mrlfeA0DPCpScanPoints', 900));
-options.mrlfeA0DPEdgeGuardPoints = getOption(options, 'mrlfeViscoAtlasEdgeGuardPoints', getOption(options, 'mrlfeA0DPEdgeGuardPoints', 6));
+function options = localApplyDirectViscousAtlasDefaults(options, branchName)
+% Use canonical maintained tracker option names first. Legacy mrlfeViscoAtlas*
+% aliases are read only as fallback for compatibility with older scripts.
+options.mrlfeA0DPCandidates = getOptionWithAlias(options, 'mrlfeA0DPCandidates', 'mrlfeViscoAtlasCandidates', 8);
+options.mrlfeA0DPCpScanPoints = getOptionWithAlias(options, 'mrlfeA0DPCpScanPoints', 'mrlfeViscoAtlasCpScanPoints', 900);
+options.mrlfeA0DPEdgeGuardPoints = getOptionWithAlias(options, 'mrlfeA0DPEdgeGuardPoints', 'mrlfeViscoAtlasEdgeGuardPoints', 6);
 options.mrlfeA0DPRefineCandidates = getOption(options, 'mrlfeA0DPRefineCandidates', true);
 options.mrlfeA0DPRefineTolX = getOption(options, 'mrlfeA0DPRefineTolX', 1e-6);
 options.mrlfeA0DPRefineMaxIter = getOption(options, 'mrlfeA0DPRefineMaxIter', 24);
@@ -52,11 +57,13 @@ options.mrlfeA0DPRefineMaxFunEvals = getOption(options, 'mrlfeA0DPRefineMaxFunEv
 
 switch branchName
     case "S0Like"
-        defaultWindow = getOption(options, 'mrlfeViscoS0ModalCpWindow', [0.70, 1.40]);
+        windowCanonical = 'mrlfeViscoS0ModalCpWindow';
+        defaultWindow = [0.70, 1.40];
     otherwise
-        defaultWindow = getOption(options, 'mrlfeViscoA0ModalCpWindow', [0.35, 2.50]);
+        windowCanonical = 'mrlfeViscoA0ModalCpWindow';
+        defaultWindow = [0.35, 2.50];
 end
-window = getOption(options, 'mrlfeViscoAtlasCpWindow', defaultWindow);
+window = getOptionWithAlias(options, windowCanonical, 'mrlfeViscoAtlasCpWindow', defaultWindow);
 if isnumeric(window) && numel(window) == 2 && all(isfinite(window)) && all(window > 0) && window(2) > window(1)
     options.mrlfeA0DPCpMinFactor = window(1);
     options.mrlfeA0DPCpMaxFactor = window(2);
@@ -64,24 +71,25 @@ else
     error('Viscous modal Cp window must be [lower upper] with 0 < lower < upper.');
 end
 
-options.mrlfeA0DPCpMinFloor = getOption(options, 'mrlfeViscoAtlasCpMinFloor', getOption(options, 'mrlfeA0DPCpMinFloor', 0.25));
-options.mrlfeA0DPCpMaxCeiling = getOption(options, 'mrlfeViscoAtlasCpMaxCeiling', getOption(options, 'mrlfeA0DPCpMaxCeiling', 120));
-options.mrlfeA0DPResidualWeight = getOption(options, 'mrlfeViscoAtlasResidualWeight', getOption(options, 'mrlfeA0DPResidualWeight', 0.45));
-options.mrlfeA0DPJumpWeight = getOption(options, 'mrlfeViscoAtlasJumpWeight', getOption(options, 'mrlfeA0DPJumpWeight', 18.0));
-options.mrlfeA0DPCurvatureWeight = getOption(options, 'mrlfeViscoAtlasCurvatureWeight', getOption(options, 'mrlfeA0DPCurvatureWeight', 12.0));
-options.mrlfeA0DPSeedWeight = getOption(options, 'mrlfeViscoAtlasSeedWeight', getOption(options, 'mrlfeA0DPSeedWeight', 0.10));
-options.mrlfeA0DPMaxJumpSoft = getOption(options, 'mrlfeViscoAtlasMaxJumpSoft', getOption(options, 'mrlfeA0DPMaxJumpSoft', getOption(options, 'mrlfeViscoPreviousCpMaxRelativeJump', 0.18)));
-options.mrlfeA0DPMissingPenalty = getOption(options, 'mrlfeViscoAtlasMissingPenalty', getOption(options, 'mrlfeA0DPMissingPenalty', 20.0));
-options.mrlfeA0DPAllowMissing = getOption(options, 'mrlfeViscoAtlasAllowMissing', getOption(options, 'mrlfeA0DPAllowMissing', true));
+options.mrlfeA0DPCpMinFloor = getOptionWithAlias(options, 'mrlfeA0DPCpMinFloor', 'mrlfeViscoAtlasCpMinFloor', 0.25);
+options.mrlfeA0DPCpMaxCeiling = getOptionWithAlias(options, 'mrlfeA0DPCpMaxCeiling', 'mrlfeViscoAtlasCpMaxCeiling', 120);
+options.mrlfeA0DPResidualWeight = getOptionWithAlias(options, 'mrlfeA0DPResidualWeight', 'mrlfeViscoAtlasResidualWeight', 0.45);
+options.mrlfeA0DPJumpWeight = getOptionWithAlias(options, 'mrlfeA0DPJumpWeight', 'mrlfeViscoAtlasJumpWeight', 18.0);
+options.mrlfeA0DPCurvatureWeight = getOptionWithAlias(options, 'mrlfeA0DPCurvatureWeight', 'mrlfeViscoAtlasCurvatureWeight', 12.0);
+options.mrlfeA0DPSeedWeight = getOptionWithAlias(options, 'mrlfeA0DPSeedWeight', 'mrlfeViscoAtlasSeedWeight', 0.10);
+options.mrlfeA0DPMaxJumpSoft = getOptionWithAlias(options, 'mrlfeA0DPMaxJumpSoft', 'mrlfeViscoAtlasMaxJumpSoft', ...
+    getOption(options, 'mrlfeViscoPreviousCpMaxRelativeJump', 0.18));
+options.mrlfeA0DPMissingPenalty = getOptionWithAlias(options, 'mrlfeA0DPMissingPenalty', 'mrlfeViscoAtlasMissingPenalty', 20.0);
+options.mrlfeA0DPAllowMissing = getOptionWithAlias(options, 'mrlfeA0DPAllowMissing', 'mrlfeViscoAtlasAllowMissing', true);
 
 % The DP path itself enforces continuity. Keep hard reference gates disabled by
-% default because the point of this prototype is to avoid anchoring to an elastic
-% mRLFE reference branch.
-options.mrlfeA0DPValidationMaxRelativeKDrift = getOption(options, 'mrlfeViscoAtlasValidationMaxRelativeKDrift', inf);
-options.mrlfeA0DPValidationMaxRelativeCpDrift = getOption(options, 'mrlfeViscoAtlasValidationMaxRelativeCpDrift', inf);
-options.mrlfeA0DPValidationMaxCpJumpRelative = getOption(options, 'mrlfeViscoAtlasValidationMaxCpJumpRelative', inf);
-options.mrlfeA0DPValidationMaxCpPredictionError = getOption(options, 'mrlfeViscoAtlasValidationMaxCpPredictionError', inf);
-options.mrlfeResidualTolerance = max(getOption(options, 'mrlfeViscoAtlasResidualTolerance', getOption(options, 'mrlfeResidualTolerance', 1e-4)), 1e-3);
+% default because this route intentionally avoids anchoring to an elastic mRLFE
+% reference branch.
+options.mrlfeA0DPValidationMaxRelativeKDrift = getOptionWithAlias(options, 'mrlfeA0DPValidationMaxRelativeKDrift', 'mrlfeViscoAtlasValidationMaxRelativeKDrift', inf);
+options.mrlfeA0DPValidationMaxRelativeCpDrift = getOptionWithAlias(options, 'mrlfeA0DPValidationMaxRelativeCpDrift', 'mrlfeViscoAtlasValidationMaxRelativeCpDrift', inf);
+options.mrlfeA0DPValidationMaxCpJumpRelative = getOptionWithAlias(options, 'mrlfeA0DPValidationMaxCpJumpRelative', 'mrlfeViscoAtlasValidationMaxCpJumpRelative', inf);
+options.mrlfeA0DPValidationMaxCpPredictionError = getOptionWithAlias(options, 'mrlfeA0DPValidationMaxCpPredictionError', 'mrlfeViscoAtlasValidationMaxCpPredictionError', inf);
+options.mrlfeResidualTolerance = max(getOptionWithAlias(options, 'mrlfeResidualTolerance', 'mrlfeViscoAtlasResidualTolerance', 1e-4), 1e-3);
 
 % Use the maintained viscous local-tracker fields for post-DP tail handling.
 options.mrlfeRealKUseModalCpWindow = getOption(options, 'mrlfeViscoUseModalLocalTracker', true);
@@ -202,6 +210,16 @@ summary.previousCpMaxRelativeJump = getOption(options, 'mrlfeRealKPreviousCpMaxR
 summary.firstMissingModalMinimumIndex = branch.firstMissingModalMinimumIndex;
 summary.firstMissingModalMinimumFrequency = branch.firstMissingModalMinimumFrequency;
 summary.modalCutReason = branch.modalCutReason;
+end
+
+function value = getOptionWithAlias(options, canonicalName, legacyAlias, defaultValue)
+if isstruct(options) && isfield(options, canonicalName) && ~isempty(options.(canonicalName))
+    value = options.(canonicalName);
+elseif isstruct(options) && isfield(options, legacyAlias) && ~isempty(options.(legacyAlias))
+    value = options.(legacyAlias);
+else
+    value = defaultValue;
+end
 end
 
 function value = getOption(options, fieldName, defaultValue)
