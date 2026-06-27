@@ -43,10 +43,15 @@ if shouldUseDirectViscoAtlas(branchName, request.freeParams)
     solverOptions.mrlfeDisableForwardCache = true;
 end
 
+fixedParams = request.fixedParams;
+if ~isfield(fixedParams, 'etaS')
+    fixedParams.etaS = controls.etaS;
+end
+
 fitConfig = struct();
 fitConfig.branchName = branchName;
 fitConfig.freeParams = request.freeParams;
-fitConfig.fixedParams = request.fixedParams;
+fitConfig.fixedParams = fixedParams;
 fitConfig.initialGuess = request.initialGuess;
 fitConfig.bounds = request.bounds;
 fitConfig.solverOptions = solverOptions;
