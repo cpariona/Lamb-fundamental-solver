@@ -44,7 +44,7 @@ if shouldUseDirectViscoAtlas(branchName, request.freeParams)
 end
 
 fixedParams = request.fixedParams;
-if ~isfield(fixedParams, 'etaS')
+if ~any(string(request.freeParams) == "etaS") && ~isfield(fixedParams, 'etaS')
     fixedParams.etaS = controls.etaS;
 end
 
