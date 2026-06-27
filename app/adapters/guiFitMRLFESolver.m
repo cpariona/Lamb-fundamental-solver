@@ -38,7 +38,8 @@ end
 solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', controls.etaS);
 solverOptions.mrlfeParams.fluidDensity = controls.fluidDensity;
 solverOptions.mrlfeParams.fluidSoundSpeed = controls.fluidSoundSpeed;
-if shouldUseDirectViscoAtlas(branchName, request.freeParams)
+routePolicy = localRoutePolicy(branchName, request.freeParams);
+if routePolicy.requestDirectViscoAtlas
     solverOptions.mrlfeUseDirectViscoAtlas = true;
     solverOptions.mrlfeDisableForwardCache = true;
 end
@@ -67,9 +68,33 @@ fitOutput.modelName = "mRLFERealK";
 fitOutput.branchName = branchName;
 fitOutput.fitResult = fitResult;
 fitOutput.normalized = normalized;
+fitOutput.routePolicy = routePolicy;
+fitOutput.routePolicy.actualPath = localActualEvaluationPath(fitResult);
 end
 
-function tf = shouldUseDirectViscoAtlas(branchName, freeParams)
-freeParams = string(freeParams);
-tf = branchName == "A0Like" && numel(freeParams) == 1 && freeParams(1) == "etaS";
+function policy = localRoutePolicy(branchName, freeParams)
+freeParams = string(freeParams(:));
+policy = struct();
+policy.branchName = string(branchName);
+policy.freeParams = freeParams;
+policy.requestDirectViscoAtlas = branchName == "A0Like" && numel(freeParams) == 1 && freeParams(1) == "etaS";
+if policy.requestDirectViscoAtlas
+    policy.expectedPath = "direct_viscous_atlas";
+    policy.description = "A0Like etaS fitting uses the validated direct viscous atlas route.";
+else
+    policy.expectedPath = "maintained_rl_mrlfe_workflow";
+    policy.description = "mRLFE fitting uses the maintained reference-based workflow.";
+end
+end
+
+function path = localActualEvaluationPath(fitResult)
+path = "unknown";
+try
+    if isfield(fitResult, 'rawSolverResult') && isfield(fitResult.rawSolverResult, 'evaluationPath') && ...
+            isfield(fitResult.rawSolverResult.evaluationPath, 'path')
+        path = string(fitResult.rawSolverResult.evaluationPath.path);
+    end
+catch
+    path = "unknown";
+end
 end
