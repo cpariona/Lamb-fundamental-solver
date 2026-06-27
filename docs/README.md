@@ -30,7 +30,7 @@ docs/fitting/architecture.md
 docs/fitting/validation_suite.md
 docs/mrlfe/fitting_workflow.md
 docs/rayleigh_lamb/fitting_workflow.md
-docs/acoustoelastic_iop_hgo/fitting_workflow.md
+docs/acoustoelastic_iop_hgo/active/fitting_workflow.md
 ```
 
 ## Active GUI documentation
@@ -39,6 +39,7 @@ docs/acoustoelastic_iop_hgo/fitting_workflow.md
 docs/gui/adapter_architecture.md
 docs/gui/integration_audit.md
 docs/gui/main_pending_cleanup.md
+docs/acoustoelastic_iop_hgo/active/main_gui_integration_closure.md
 ```
 
 ## Active sweep documentation
@@ -47,7 +48,18 @@ docs/gui/main_pending_cleanup.md
 docs/sweeps/parametric_sweeps.md
 docs/sweeps/sweep_tool_usage.md
 docs/mrlfe/current_sweeps.md
-docs/acoustoelastic_iop_hgo/sweep_workflow.md
+docs/acoustoelastic_iop_hgo/active/sweep_workflow.md
+```
+
+## Model-family documentation
+
+```text
+docs/rayleigh_lamb/overview.md
+docs/rayleigh_lamb/public_api.md
+docs/rayleigh_lamb/fitting_workflow.md
+docs/mrlfe/README.md
+docs/acoustoelastic_iop_hgo/README.md
+docs/acoustoelastic_iop_hgo/documentation_index.md
 ```
 
 ## Archived documentation
@@ -55,10 +67,11 @@ docs/acoustoelastic_iop_hgo/sweep_workflow.md
 ```text
 docs/archive/fitting_phase_logs.md
 docs/archive/fitting_phases/
+docs/acoustoelastic_iop_hgo/archive/
 ```
 
-Historical phase logs are retained for traceability. They are not active API or workflow references.
+Historical phase logs and exploratory notes are retained for traceability. They are not active API or workflow references.
 
 ## Cleanup policy
 
-Root-level `docs/*.md` should be limited to repository-wide references and this index. Topic-specific documents should live under their topic folder. Historical implementation logs should live under `docs/archive/`.
+Root-level `docs/*.md` should be limited to repository-wide references and this index. Topic-specific documents should live under their topic folder. Historical implementation logs should live under `docs/archive/` or the model-specific `archive/` folder.
