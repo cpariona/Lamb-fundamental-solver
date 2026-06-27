@@ -345,20 +345,26 @@ docs/repository_structure.md
 docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
+docs/fitting/README.md
 docs/fitting_architecture.md
 docs/fitting_validation_suite.md
-docs/fitting_phase1_status.md
-docs/fitting_phase2_status.md
-docs/fitting_phase3_status.md
-docs/fitting_phase4_status.md
-docs/fitting_phase5_status.md
-docs/fitting_phase6_status.md
-docs/fitting_phase7_status.md
-docs/fitting_phase8_status.md
-docs/fitting_phase9_status.md
-docs/fitting_phase10_status.md
-docs/fitting_phase11_status.md
+docs/mrlfe/README.md
+docs/mrlfe/fitting_workflow.md
+docs/mrlfe/current_sweeps.md
 docs/parametric_sweeps.md
 docs/sweep_tool_usage.md
 docs/gui_adapter_architecture.md
+docs/gui_integration_audit.md
+docs/main_gui_pending_cleanup.md
+docs/acoustoelastic_iop_hgo/README.md
+```
+
+## Archived or historical documentation
+
+```text
+docs/archive/fitting_phase_logs.md
+docs/fitting_phase*_status.md
+```
+
+The fitting phase logs are retained as implementation history. They are not active API or workflow references.
 ```
