@@ -5,12 +5,20 @@ This folder contains diagnostic evidence that supports, but does not itself defi
 ## Branch-policy diagnostics
 
 ```text
+branch_policy_numerical_review.md
 atlas_vs_raw_branch1_diagnostic.md
 branch_families_diagnostic.md
-branch_policy.md
 atlasA0_truncation_cause_diagnostic.md
 atlasA0_truncation_validation.md
 ```
+
+The numerical review protocol is:
+
+```text
+branch_policy_numerical_review.md
+```
+
+Use it to interpret `atlasA0`, `identityA0Diagnostic`, `raw_branch1`, and `branch_families` evidence without prematurely changing the production solver policy.
 
 ## Identity-A0 diagnostics
 
