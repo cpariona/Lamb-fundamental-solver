@@ -38,6 +38,10 @@ end
 solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', controls.etaS);
 solverOptions.mrlfeParams.fluidDensity = controls.fluidDensity;
 solverOptions.mrlfeParams.fluidSoundSpeed = controls.fluidSoundSpeed;
+if shouldUseDirectViscoAtlas(branchName, request.freeParams)
+    solverOptions.mrlfeUseDirectViscoAtlas = true;
+    solverOptions.mrlfeDisableForwardCache = true;
+end
 
 fitConfig = struct();
 fitConfig.branchName = branchName;
@@ -58,4 +62,9 @@ fitOutput.modelName = "mRLFERealK";
 fitOutput.branchName = branchName;
 fitOutput.fitResult = fitResult;
 fitOutput.normalized = normalized;
+end
+
+function tf = shouldUseDirectViscoAtlas(branchName, freeParams)
+freeParams = string(freeParams);
+tf = branchName == "A0Like" && numel(freeParams) == 1 && freeParams(1) == "etaS";
 end
