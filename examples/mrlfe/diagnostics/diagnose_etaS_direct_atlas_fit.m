@@ -119,14 +119,14 @@ switch string(mode)
     case "direct_atlas"
         fitConfig.solverOptions.mrlfeDisableForwardCache = true;
         fitConfig.solverOptions.mrlfeUseDirectViscoAtlas = true;
-        fitConfig.solverOptions.mrlfeViscoAtlasCpScanPoints = 900;
-        fitConfig.solverOptions.mrlfeViscoAtlasCandidates = 8;
-        fitConfig.solverOptions.mrlfeViscoAtlasCpWindow = [0.25, 3.00];
-        fitConfig.solverOptions.mrlfeViscoAtlasSeedWeight = 0.10;
-        fitConfig.solverOptions.mrlfeViscoAtlasResidualWeight = 0.45;
-        fitConfig.solverOptions.mrlfeViscoAtlasJumpWeight = 18.0;
-        fitConfig.solverOptions.mrlfeViscoAtlasCurvatureWeight = 12.0;
-        fitConfig.solverOptions.mrlfeViscoAtlasResidualTolerance = 1e-3;
+        fitConfig.solverOptions.mrlfeA0DPCpScanPoints = 900;
+        fitConfig.solverOptions.mrlfeA0DPCandidates = 8;
+        fitConfig.solverOptions.mrlfeViscoA0ModalCpWindow = [0.25, 3.00];
+        fitConfig.solverOptions.mrlfeA0DPSeedWeight = 0.10;
+        fitConfig.solverOptions.mrlfeA0DPResidualWeight = 0.45;
+        fitConfig.solverOptions.mrlfeA0DPJumpWeight = 18.0;
+        fitConfig.solverOptions.mrlfeA0DPCurvatureWeight = 12.0;
+        fitConfig.solverOptions.mrlfeResidualTolerance = 1e-3;
     otherwise
         error('Unknown etaS fit diagnostic mode: %s.', mode);
 end
