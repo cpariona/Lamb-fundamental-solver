@@ -1,146 +1,40 @@
 # Acoustoelastic IOP/HGO sweep workflow
 
-This document describes the maintained sweep workflow for the acoustoelastic IOP/HGO model.
+This document describes the maintained sweep workflow for the acoustoelastic IOP/HGO module.
 
-The sweep layer is intentionally separated from the numerical branch solver. The current implementation uses the public solver entrypoint, but the sweep scripts are organized by physical campaign rather than by branch-tracking policy.
+## Maintained sweep entrypoints
 
-## Design rule
-
-Do not encode internal branch policies in maintained sweep file names.
-
-Use physical or workflow names instead:
-
-```matlab
-sweep_iop
-sweep_mu
-```
-
-The branch policy belongs in solver options:
-
-```matlab
-options.atlasBranchPolicy = "atlasA0";
-```
-
-`"atlasA0"` is the only maintained production atlas-A0 policy name.
-
-## Maintained files
-
-Short user-facing sweep entrypoints:
-
-```text
-examples/acoustoelastic_iop_hgo/sweeps/sweep_iop.m
-examples/acoustoelastic_iop_hgo/sweeps/sweep_mu.m
-```
-
-The previous descriptive sweep aliases have been archived:
-
-```text
-examples/acoustoelastic_iop_hgo/sweeps/sweep_acoustoelastic_iop_hgo_iop.m
-examples/acoustoelastic_iop_hgo/sweeps/sweep_acoustoelastic_iop_hgo_mu.m
-```
-
-Core helpers:
-
-```text
-models/acoustoelastic_iop_hgo/solvers/aeRunSweep.m
-analysis/acoustoelastic_iop_hgo/aeSummarizeSweep.m
-analysis/acoustoelastic_iop_hgo/aeOutputFolder.m
-```
-
-## Setup
-
-From the repository root:
+Run from the repository root after startup:
 
 ```matlab
 clear functions
 rehash toolboxcache
 startup
+
+sweep_iop
+sweep_mu
+sweep_mu_iop
 ```
 
-## Generic sweep adapter
+## Output convention
 
-The generic sweep runner is:
-
-```matlab
-aeRunSweep
-```
-
-Location:
+Generated outputs should be written under:
 
 ```text
-models/acoustoelastic_iop_hgo/solvers/aeRunSweep.m
+Results/ae_iop_hgo/<task>/
 ```
 
-It receives:
-
-```matlab
-baseParams
-sweepField
-sweepValues
-options
-sweepConfig
-```
-
-and calls:
-
-```matlab
-solveAcoustoelasticIOPHGOBranch
-```
-
-The adapter returns:
-
-```matlab
-sweepResult.conditions(i).params
-sweepResult.conditions(i).result
-sweepResult.conditions(i).reliability
-sweepResult.summaryTable
-```
-
-## Sweep summary helper
-
-The analysis helper is:
-
-```matlab
-aeSummarizeSweep
-```
-
-Location:
+The current naming convention is documented in:
 
 ```text
-analysis/acoustoelastic_iop_hgo/aeSummarizeSweep.m
+docs/acoustoelastic_iop_hgo/active/naming_and_paths_convention.md
 ```
-
-It builds:
-
-```matlab
-summary.conditionTable
-summary.dispersionTable
-summary.branchTable
-```
-
-The long dispersion table includes one row per frequency and condition, including phase speed, validity flag, point status, nearest rank, nearest branch ID, and objective value when available.
 
 ## IOP sweep
 
-Run:
+The maintained IOP sweep produces a table and figures for the official atlas-A0 output policy.
 
-```matlab
-sweep_iop
-```
-
-Default campaign:
-
-```matlab
-IOP_mmHg = [5, 10, 15, 20, 25];
-```
-
-Default output folder:
-
-```text
-Results/ae_iop_hgo/iop_sweep/
-```
-
-Generated files:
+Expected output examples:
 
 ```text
 iop_sweep_condition_summary.csv
@@ -149,33 +43,11 @@ iop_sweep_selected_branch_table.csv
 iop_sweep_workspace.mat
 ```
 
-Legacy output folder from earlier runs may still exist:
+## Mu sweep
 
-```text
-Results/acoustoelastic_iop_hgo_iop_sweep/
-```
+The maintained mu sweep produces a table and figures for the official atlas-A0 output policy.
 
-## Shear-modulus sweep
-
-Run:
-
-```matlab
-sweep_mu
-```
-
-Default campaign:
-
-```matlab
-mu_kPa = [25, 50, 75, 100];
-```
-
-Default output folder:
-
-```text
-Results/ae_iop_hgo/mu_sweep/
-```
-
-Generated files:
+Expected output examples:
 
 ```text
 mu_sweep_condition_summary.csv
@@ -195,7 +67,7 @@ Results/acoustoelastic_iop_hgo_mu_sweep/
 The earlier executable branch-policy comparison has been archived. Current branch-policy status and retained evidence are documented in:
 
 ```text
-docs/acoustoelastic_iop_hgo/phase_closure_atlasA0.md
-docs/acoustoelastic_iop_hgo/solver_optimization_status.md
-docs/acoustoelastic_iop_hgo/branch_policy.md
+docs/acoustoelastic_iop_hgo/archive/phase_closure_atlasA0.md
+docs/acoustoelastic_iop_hgo/active/solver_optimization_status.md
+docs/acoustoelastic_iop_hgo/active/branch_policy.md
 ```
