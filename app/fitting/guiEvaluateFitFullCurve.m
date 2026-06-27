@@ -46,8 +46,11 @@ end
 
 raw = struct();
 extended = emptyExtension();
-if modelFamily == "rayleigh_lamb" || modelFamily == "mrlfe" || modelFamily == "acoustoelastic_iop_hgo"
+if shouldEvaluateExtension(fitResult, modelFamily)
     extended = localEvaluateExtension(fitResult, modelFamily, branchName, fmin, fmax, nPoints);
+    raw.extension = extended;
+else
+    extended.errorMessage = "extension skipped for fast GUI fitting path";
     raw.extension = extended;
 end
 
@@ -63,6 +66,19 @@ fullCurve.anchorFrequency_Hz = frequencyAnchor_Hz(:);
 fullCurve.anchorCp_mps = CpAnchor_mps(:);
 fullCurve.anchorValidMask = validAnchor(:);
 fullCurve.note = "in-band curve interpolates fitted model values at experimental frequencies";
+end
+
+function tf = shouldEvaluateExtension(fitResult, modelFamily)
+if modelFamily == "mrlfe"
+    tf = false;
+    if isfield(fitResult, 'problem') && isfield(fitResult.problem, 'fitOptions') && ...
+            isfield(fitResult.problem.fitOptions, 'evaluateFullCurveExtension') && ...
+            ~isempty(fitResult.problem.fitOptions.evaluateFullCurveExtension)
+        tf = logical(fitResult.problem.fitOptions.evaluateFullCurveExtension);
+    end
+else
+    tf = true;
+end
 end
 
 function extended = localEvaluateExtension(fitResult, modelFamily, branchName, fmin, fmax, nPoints)
