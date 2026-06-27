@@ -7,8 +7,7 @@ MATLAB project for computing and plotting fundamental Lamb-wave phase velocity c
 * Rayleigh-Lamb A0 phase velocity using the antisymmetric residual.
 * Experimental Rayleigh-Lamb S0 phase velocity using the symmetric residual.
 * Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
-* mRLFE elastic real-k dispersion for fluid-loaded layers.
-* mRLFE viscoelastic real-k dispersion for fluid-loaded layers.
+* mRLFE elastic and viscoelastic real-k dispersion for fluid-loaded layers.
 * Acoustoelastic IOP/HGO atlas-branch solver for prestress studies.
 * GUI plotting of phase velocity Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
 
@@ -49,7 +48,7 @@ docs/naming_strategy.md
 The current GUI integration audit and adapter plan are documented in:
 
 ```text
-docs/gui_integration_audit.md
+docs/gui/integration_audit.md
 ```
 
 ## Launching the GUI
@@ -164,11 +163,19 @@ sweep_thickness_A0Like_viscoelastic
 sweep_thickness_S0Like_viscoelastic
 ```
 
-Useful maintained examples:
+Maintained mRLFE fitting example:
 
 ```matlab
-run_mrlfe_prototype
-compare_mrlfe_elastic_vs_visco_cp
+fit_mrlfe_A0Like
 ```
 
-Historical diagnostics that still contain author-dependent labels are outside the maintained execution surface until they are renamed or retired.
+Focused mRLFE diagnostics:
+
+```matlab
+compare_mrlfe_tracker_vs_condition_peaks
+diagnose_etaS_direct_atlas_fit
+diagnose_mrlfe_visco_direct_atlas
+stress_test_mrlfe_real_k_range
+```
+
+The optional direct viscous atlas route is limited to the validated A0-like `etaS` fitting path. The general GUI and sweep workflows use the maintained reference-based mRLFE workflow.
