@@ -1,6 +1,15 @@
-### Acoustoelastic IOP/HGO module documentation
+# Acoustoelastic IOP/HGO module documentation
 
-This folder collects module-specific documentation for the acoustoelastic IOP/HGO branch of the Lamb fundamental solver.
+This folder contains documentation for the acoustoelastic IOP/HGO branch of the Lamb fundamental solver.
+
+## Folder map
+
+```text
+active/       current operational references
+diagnostics/  diagnostic evidence and validation notes
+audits/       cleanup, retention, and maintenance records
+archive/      historical exploratory notes
+```
 
 For the curated documentation map, start with:
 
@@ -8,7 +17,7 @@ For the curated documentation map, start with:
 documentation_index.md
 ```
 
-### Current status
+## Current status
 
 The current official production policy is:
 
@@ -31,15 +40,15 @@ raw_branch1
 branch_families
 ```
 
-See:
+Core policy references:
 
 ```text
-solver_optimization_status.md
-phase_closure_atlasA0.md
-branch_policy.md
+active/branch_policy.md
+active/solver_optimization_status.md
+active/public_api.md
 ```
 
-### Recommended user-facing commands
+## Recommended user-facing commands
 
 From the repository root:
 
@@ -75,16 +84,6 @@ diagnose_atlas_truncation
 diagnose_idA0_plausibility
 ```
 
-Historical diagnostics retained for traceability:
-
-```matlab
-diagnose_modal_atlas
-diagnose_grid_start_sensitivity
-track_raw_branch1
-validate_idA0_grid
-validate_idA0_score_grid
-```
-
 Focused smoke runner:
 
 ```matlab
@@ -93,21 +92,21 @@ run_acoustoelastic_smoke_tests
 
 Do not execute long legacy scripts directly unless reproducing historical behavior.
 
-### Most relevant documents
+## Most relevant active documents
 
 | Document | Purpose |
 |---|---|
-| `documentation_index.md` | Curated map of active docs, evidence docs, cleanup records, and archives. |
-| `public_api.md` | Public API list. |
-| `branch_policy.md` | Branch policy summary and official atlas-A0 selection rule. |
-| `sweep_workflow.md` | Sweep workflow documentation. |
-| `examples_inventory.md` | Current executable inventory under `examples/acoustoelastic_iop_hgo/`. |
-| `solver_optimization_status.md` | Current solver policy, validation status, and ambiguity boundary. |
-| `naming_and_paths_convention.md` | Short-name and result-path convention. |
-| `retained_diagnostic_dependency_review.md` | Current retained dependencies, including raw_branch1 helper-backed regeneration. |
-| `framework_hygiene_status.md` | Current framework cleanup state. |
+| `active/public_api.md` | Public API list. |
+| `active/branch_policy.md` | Branch policy summary and official atlas-A0 selection rule. |
+| `active/sweep_workflow.md` | Sweep workflow documentation. |
+| `active/fitting_workflow.md` | Fitting workflow documentation. |
+| `active/examples_inventory.md` | Current executable inventory under `examples/acoustoelastic_iop_hgo/`. |
+| `active/solver_optimization_status.md` | Current solver policy, validation status, and ambiguity boundary. |
+| `active/naming_and_paths_convention.md` | Short-name and result-path convention. |
+| `active/solver_pending_work.md` | Pending solver-side numerical work. |
+| `active/main_gui_integration_closure.md` | Main-GUI integration closure note. |
 
-### Structure convention
+## Structure convention
 
 Use this structure for new work:
 
@@ -118,11 +117,14 @@ examples/acoustoelastic_iop_hgo/basic/        simple executable examples
 examples/acoustoelastic_iop_hgo/sweeps/       sweep entrypoints
 examples/acoustoelastic_iop_hgo/diagnostics/  diagnostics and validations
 tests/acoustoelastic_iop_hgo/                 tests
-docs/acoustoelastic_iop_hgo/                  module documentation
+docs/acoustoelastic_iop_hgo/active/           current module documentation
+docs/acoustoelastic_iop_hgo/diagnostics/      diagnostic evidence
+docs/acoustoelastic_iop_hgo/audits/           maintenance records
+docs/acoustoelastic_iop_hgo/archive/          historical notes
 Results/ae_iop_hgo/<task>                     generated outputs
 ```
 
-### Cleanup status
+## Cleanup status
 
 The framework currently has two layers:
 
