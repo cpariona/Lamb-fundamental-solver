@@ -151,7 +151,7 @@ keys = fieldnames(branchTables);
 assert(~isempty(keys), message);
 requiredVariables = {'ModelName','BranchName','Frequency_Hz','PhaseVelocity_mps','Wavenumber_1_per_m','kThickness'};
 for iKey = 1:numel(keys)
-    T = branchTables.(iKey);
+    T = branchTables.(keys{iKey});
     assert(istable(T), message);
     for iVar = 1:numel(requiredVariables)
         assert(ismember(requiredVariables{iVar}, T.Properties.VariableNames), message);
