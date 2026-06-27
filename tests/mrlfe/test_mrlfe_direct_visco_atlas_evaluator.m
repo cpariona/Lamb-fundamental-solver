@@ -20,14 +20,14 @@ referenceOptions.mrlfeDisableForwardCache = true;
 
 atlasOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
 atlasOptions.mrlfeUseDirectViscoAtlas = true;
-atlasOptions.mrlfeViscoAtlasCpScanPoints = 900;
-atlasOptions.mrlfeViscoAtlasCandidates = 8;
-atlasOptions.mrlfeViscoAtlasCpWindow = [0.25, 3.00];
-atlasOptions.mrlfeViscoAtlasSeedWeight = 0.10;
-atlasOptions.mrlfeViscoAtlasResidualWeight = 0.45;
-atlasOptions.mrlfeViscoAtlasJumpWeight = 18.0;
-atlasOptions.mrlfeViscoAtlasCurvatureWeight = 12.0;
-atlasOptions.mrlfeViscoAtlasResidualTolerance = 1e-3;
+atlasOptions.mrlfeA0DPCpScanPoints = 900;
+atlasOptions.mrlfeA0DPCandidates = 8;
+atlasOptions.mrlfeViscoA0ModalCpWindow = [0.25, 3.00];
+atlasOptions.mrlfeA0DPSeedWeight = 0.10;
+atlasOptions.mrlfeA0DPResidualWeight = 0.45;
+atlasOptions.mrlfeA0DPJumpWeight = 18.0;
+atlasOptions.mrlfeA0DPCurvatureWeight = 12.0;
+atlasOptions.mrlfeResidualTolerance = 1e-3;
 
 [CpReference, rawReference] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, referenceOptions);
 [CpAtlas, rawAtlas] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, atlasOptions);
