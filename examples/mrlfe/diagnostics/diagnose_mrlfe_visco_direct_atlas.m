@@ -1,4 +1,4 @@
-% Diagnose a direct viscous mRLFE Cp-atlas prototype against the maintained solver.
+% Diagnose a direct viscous mRLFE Cp-atlas route against the maintained solver.
 % Diagnostic only: does not replace the maintained solver by default.
 %
 % This compares:
@@ -57,14 +57,14 @@ timeCachedEval = toc(tCachedEval);
 %% C. Direct viscous atlas through the fitting evaluator.
 optionsAtlas = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
 optionsAtlas.mrlfeUseDirectViscoAtlas = true;
-optionsAtlas.mrlfeViscoAtlasCpScanPoints = 900;
-optionsAtlas.mrlfeViscoAtlasCandidates = 8;
-optionsAtlas.mrlfeViscoAtlasCpWindow = [0.25, 3.00];
-optionsAtlas.mrlfeViscoAtlasSeedWeight = 0.10;
-optionsAtlas.mrlfeViscoAtlasResidualWeight = 0.45;
-optionsAtlas.mrlfeViscoAtlasJumpWeight = 18.0;
-optionsAtlas.mrlfeViscoAtlasCurvatureWeight = 12.0;
-optionsAtlas.mrlfeViscoAtlasResidualTolerance = 1e-3;
+optionsAtlas.mrlfeA0DPCpScanPoints = 900;
+optionsAtlas.mrlfeA0DPCandidates = 8;
+optionsAtlas.mrlfeViscoA0ModalCpWindow = [0.25, 3.00];
+optionsAtlas.mrlfeA0DPSeedWeight = 0.10;
+optionsAtlas.mrlfeA0DPResidualWeight = 0.45;
+optionsAtlas.mrlfeA0DPJumpWeight = 18.0;
+optionsAtlas.mrlfeA0DPCurvatureWeight = 12.0;
+optionsAtlas.mrlfeResidualTolerance = 1e-3;
 
 tAtlas = tic;
 [CpAtlas, rawAtlas] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, optionsAtlas);
@@ -129,7 +129,7 @@ assignin('base', 'MRLFEViscoDirectAtlasDiagnostic', summary);
 fprintf('\nInterpretation notes:\n');
 fprintf('  - The direct atlas does not precompute an etaS=0 mRLFE reference.\n');
 fprintf('  - It still uses the Rayleigh-Lamb seed branch to identify the modal family and Cp scan window.\n');
-fprintf('  - A useful prototype should be faster than the maintained path and close in Cp.\n');
+fprintf('  - A useful direct route should be faster than the maintained path and close in Cp.\n');
 fprintf('  - If it is fast but inaccurate, tune Cp window/candidate weights before integration.\n');
 fprintf('  - If it is accurate but slow, reduce cpScanPoints or add coarse-to-fine refinement.\n');
 
