@@ -20,7 +20,7 @@ gRL.RowSpacing = 2;
 uilabel(gRL, 'Text', 'Fundamental modes', 'FontWeight', 'bold', 'FontSize', 11);
 h.rl.computeA0 = uicheckbox(gRL, 'Text', 'A0', 'Value', opts0.computeA0, 'ValueChangedFcn', callbacks.markDirty);
 h.rl.computeS0 = uicheckbox(gRL, 'Text', 'S0', 'Value', opts0.computeS0, 'ValueChangedFcn', callbacks.markDirty);
-uilabel(gRL, 'Text', 'mRLFE forces the Rayleigh-Lamb seed branches required by the selected A0-like/S0-like branches.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+uilabel(gRL, 'Text', 'mRLFE computes the Rayleigh-Lamb seed branches required internally by the selected A0-like/S0-like branches, but those seed branches are not exposed as mRLFE plot results.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 
 tabMRLFE = uitab(tg, 'Title', 'mRLFE');
 gM = uigridlayout(tabMRLFE, [8 4]);
@@ -52,7 +52,7 @@ h.mrlfe.computeA0Like = uicheckbox(gM, 'Text', 'A0-like', 'Value', true, 'ValueC
 h.mrlfe.computeA0Like.Layout.Row = 4;
 h.mrlfe.computeA0Like.Layout.Column = [1 2];
 
-h.mrlfe.computeS0Like = uicheckbox(gM, 'Text', 'S0-like', 'Value', true, 'ValueChangedFcn', callbacks.markDirty);
+h.mrlfe.computeS0Like = uicheckbox(gM, 'Text', 'S0-like', 'Value', false, 'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.computeS0Like.Layout.Row = 4;
 h.mrlfe.computeS0Like.Layout.Column = [3 4];
 
@@ -77,7 +77,7 @@ h.mrlfe.etaS = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], 'ValueC
 h.mrlfe.etaS.Layout.Row = 7;
 h.mrlfe.etaS.Layout.Column = [3 4];
 
-note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity, using the elastic real-k branch as the reference buffer.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity, using the elastic real-k branch as the reference buffer. S0-like is opt-in because it is typically slower.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Row = 8;
 note.Layout.Column = [1 4];
 

@@ -18,10 +18,15 @@ end
 params = mergeStructs(rlDefaultParams(), getStructField(guiRequest, 'params', struct()));
 options = mergeStructs(rlDefaultOptions(), getStructField(guiRequest, 'options', struct()));
 
+elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, options);
+elapsedSeconds = toc(elapsedTimer);
+
 result = guiNormalizeRawResult(rawResult, mfilename);
+result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.metadata.params = params;
 result.metadata.options = options;
+result.metadata.elapsedSeconds = elapsedSeconds;
 end
 
 function value = getStructField(s, name, defaultValue)

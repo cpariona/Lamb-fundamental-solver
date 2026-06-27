@@ -26,7 +26,9 @@ end
 params = guiRequest.params;
 options = mergeStructs(defaultAcoustoelasticIOPHGOOptions(), getStructField(guiRequest, 'options', struct()));
 
+elapsedTimer = tic;
 rawResult = solveAcoustoelasticIOPHGOBranch(params, options);
+elapsedSeconds = toc(elapsedTimer);
 
 result = struct();
 result.modelName = "AcoustoelasticIOPHGO";
@@ -41,7 +43,9 @@ result.metadata.params = params;
 result.metadata.options = options;
 result.metadata.rawResult = rawResult;
 result.metadata.adapter = mfilename;
+result.metadata.elapsedSeconds = elapsedSeconds;
 result.diagnostics = getFieldOrDefault(rawResult, 'diagnostics', struct());
+result.diagnostics.elapsedSeconds = elapsedSeconds;
 if isfield(rawResult, 'reliability')
     result.diagnostics.reliability = rawResult.reliability;
 end
