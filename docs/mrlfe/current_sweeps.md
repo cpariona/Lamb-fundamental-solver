@@ -21,7 +21,7 @@ etaS = [0, 0.1, 0.2, 0.3, 0.4, 0.5] Pa*s
 2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
 ```
 
-The `mu` sweep is displayed as shear modulus but solved internally as `E = 3*mu`. This parameterization cleanup is tracked in `docs/mrlfe/pending_cleanup.md`.
+The maintained mRLFE sweep parameterization uses `mu` as the primary elastic stiffness input. Derived quantities such as `E`, Lamé parameters, bulk modulus, and wave speeds are computed by the shared material helpers rather than treated as primary soft-material sweep variables.
 
 Plots use AE-style two-line titles, frequency in kHz, and axes starting at zero. Data are written under `Results/mrlfe/<taskName>/`; figures are written under `examples/mrlfe/sweeps/figures/<taskName>/` as `.fig` and `.png`.
 
