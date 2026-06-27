@@ -70,6 +70,7 @@ onFitModelChanged();
         fitControls.initialGuess.Value = config.initialDisplay;
         fitControls.lowerBound.Value = config.lowerDisplay;
         fitControls.upperBound.Value = config.upperDisplay;
+        updateFixedExtraControls(modelFamily, freeParam);
         fitControls.fixedHeader.Text = getFixedSummary(modelFamily, freeParam);
     end
 
@@ -177,9 +178,10 @@ onFitModelChanged();
                 if freeParam ~= "thickness"
                     fixedParams.thickness = params.thickness;
                 end
-                controls.etaS = 0.0;
                 if freeParam == "etaS"
                     controls.etaS = initialValue;
+                else
+                    controls.etaS = getFixedEtaSValue();
                 end
                 controls.fluidDensity = 1000;
                 controls.fluidSoundSpeed = 1500;
@@ -213,12 +215,18 @@ onFitModelChanged();
                 params = mrlfeDefaultSweepParams();
                 params.(char(freeParam)) = value;
                 frequency_Hz = linspace(1000, 8000, 10).';
-                etaSForSynthetic = 0.0;
                 if freeParam == "etaS"
                     etaSForSynthetic = value;
+                else
+                    etaSForSynthetic = getFixedEtaSValue();
+                    params.etaS = etaSForSynthetic;
                 end
-                options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', etaSForSynthetic);
-                Cp_mps = mrlfeEvaluateFitModel(params, frequency_Hz, "A0Like", options);
+                options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaSForSynthetic);
+                if branchName == "A0Like" && etaSForSynthetic > 0
+                    options.mrlfeUseDirectViscoAtlas = true;
+                    options.mrlfeDisableForwardCache = true;
+                end
+                Cp_mps = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
                 validMask = isfinite(Cp_mps(:));
             case "acoustoelastic_iop_hgo"
                 params = defaultAEParams();
@@ -232,6 +240,26 @@ onFitModelChanged();
                 end
             otherwise
                 error('Unsupported fitting model family: %s.', modelFamily);
+        end
+    end
+
+    function updateFixedExtraControls(modelFamily, freeParam)
+        showFixedEtaS = modelFamily == "mrlfe" && freeParam ~= "etaS";
+        if showFixedEtaS
+            fitControls.fixedEtaSLabel.Visible = 'on';
+            fitControls.fixedEtaS.Visible = 'on';
+            fitControls.fixedEtaS.Enable = 'on';
+        else
+            fitControls.fixedEtaSLabel.Visible = 'off';
+            fitControls.fixedEtaS.Visible = 'off';
+            fitControls.fixedEtaS.Enable = 'off';
+        end
+    end
+
+    function etaS = getFixedEtaSValue()
+        etaS = fitControls.fixedEtaS.Value;
+        if isempty(etaS) || ~isfinite(etaS) || etaS < 0
+            error('Fixed etaS must be a finite nonnegative value.');
         end
     end
 
@@ -338,9 +366,9 @@ onFitModelChanged();
                 params = mrlfeDefaultSweepParams();
                 switch freeParam
                     case "mu"
-                        text = sprintf('Fixed: etaS 0 Pa*s | rho %.0f kg/m^3 | nu %.5f | 2h %.3f mm', params.rho, params.nu, params.thickness * 1e3);
+                        text = sprintf('Fixed: etaS %.4g Pa*s | rho %.0f kg/m^3 | nu %.5f | 2h %.3f mm', getFixedEtaSValue(), params.rho, params.nu, params.thickness * 1e3);
                     case "thickness"
-                        text = sprintf('Fixed: etaS 0 Pa*s | rho %.0f kg/m^3 | nu %.5f | mu %.3f kPa', params.rho, params.nu, params.mu / 1e3);
+                        text = sprintf('Fixed: etaS %.4g Pa*s | rho %.0f kg/m^3 | nu %.5f | mu %.3f kPa', getFixedEtaSValue(), params.rho, params.nu, params.mu / 1e3);
                     case "etaS"
                         text = sprintf('Fixed: rho %.0f kg/m^3 | nu %.5f | mu %.3f kPa | 2h %.3f mm', params.rho, params.nu, params.mu / 1e3, params.thickness * 1e3);
                     otherwise
@@ -390,9 +418,19 @@ onFitModelChanged();
 
     function updateStatusFromFitOutput(fitOutput)
         normalized = fitOutput.normalized;
-        statusText = sprintf('Fit status: done | %s %s | RMSE %.4g m/s | %s', ...
+        pathText = getEvaluationPathText(fitOutput);
+        statusText = sprintf('Fit status: done | %s %s | RMSE %.4g m/s | %s%s', ...
             normalized.modelName, normalized.branchName, normalized.metrics.RMSE, ...
-            string(normalized.identifiability.classification));
+            string(normalized.identifiability.classification), pathText);
         fitControls.status.Text = statusText;
+    end
+
+    function pathText = getEvaluationPathText(fitOutput)
+        pathText = "";
+        if isfield(fitOutput, 'fitResult') && isfield(fitOutput.fitResult, 'rawSolverResult') && ...
+                isfield(fitOutput.fitResult.rawSolverResult, 'evaluationPath') && ...
+                isfield(fitOutput.fitResult.rawSolverResult.evaluationPath, 'path')
+            pathText = " | path " + string(fitOutput.fitResult.rawSolverResult.evaluationPath.path);
+        end
     end
 end
