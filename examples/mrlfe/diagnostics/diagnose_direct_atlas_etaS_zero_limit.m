@@ -2,8 +2,9 @@
 % Diagnostic only: this does not replace the maintained solver.
 %
 % This compares the maintained elastic real-k mRLFE branch against the direct
-% residual-atlas branch evaluated with etaS = 0. If agreement is strong, the
-% direct atlas may become a candidate for a unified mRLFE interface path.
+% residual-atlas branch evaluated with etaS = 0. The direct branch is evaluated
+% by calling solveMRLFEViscoBranchAtlas directly, bypassing the fitting evaluator
+% policy that currently restricts the direct-atlas route to etaS > 0.
 
 clear; clc;
 startup
@@ -36,8 +37,6 @@ for b = 1:numel(branches)
     timeElastic = toc(tElastic);
 
     optionsAtlas = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
-    optionsAtlas.mrlfeUseDirectViscoAtlas = true;
-    optionsAtlas.mrlfeDisableForwardCache = true;
     optionsAtlas.mrlfeA0DPCpScanPoints = 900;
     optionsAtlas.mrlfeA0DPCandidates = 8;
     optionsAtlas.mrlfeA0DPSeedWeight = 0.10;
@@ -45,6 +44,7 @@ for b = 1:numel(branches)
     optionsAtlas.mrlfeA0DPJumpWeight = 18.0;
     optionsAtlas.mrlfeA0DPCurvatureWeight = 12.0;
     optionsAtlas.mrlfeResidualTolerance = 1e-3;
+    optionsAtlas.mrlfeRealKStopAtFirstMissingModalMinimum = true;
     if branchName == "S0Like"
         optionsAtlas.mrlfeViscoS0ModalCpWindow = [0.70, 1.40];
     else
@@ -52,7 +52,7 @@ for b = 1:numel(branches)
     end
 
     tAtlas = tic;
-    [CpAtlas, rawAtlas] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, optionsAtlas);
+    [CpAtlas, rawAtlas] = evaluateDirectAtlasForced(params, frequency_Hz, branchName, optionsAtlas);
     timeAtlas = toc(tAtlas);
 
     atlasBranch = rawAtlas.branch;
@@ -108,3 +108,58 @@ fprintf('  - Agreement at etaS = 0 is necessary before using direct atlas as a u
 fprintf('  - A0Like and S0Like must be assessed separately.\n');
 fprintf('  - If etaS = 0 fails or truncates, keep the maintained elastic path.\n');
 fprintf('  - If etaS = 0 agrees for A0Like only, restrict any future unification to A0Like.\n');
+
+function [CpRequested, rawResult] = evaluateDirectAtlasForced(params, frequency_Hz, branchName, options)
+frequency_Hz = frequency_Hz(:);
+rlParams = params;
+rlParams.fmin = min(frequency_Hz);
+rlParams.fmax = max(frequency_Hz);
+rlParams.numFrequencyPoints = numel(frequency_Hz);
+rlParams.frequencySpacing = "linspace";
+
+rlOptions = rlDefaultOptions("Fast");
+rlOptions.computeA0 = branchName == "A0Like";
+rlOptions.computeS0 = branchName == "S0Like";
+rlOptions.computeMRLFE = false;
+rlOptions.computeMRLFERealK = false;
+rlOptions.computeMRLFEElasticRealK = false;
+rlOptions.computeMRLFEViscoRealK = false;
+rlOptions.computeMRLFEComplexK = false;
+
+rawRL = rlComputeFundamentalLambModes(rlParams, rlOptions);
+if branchName == "A0Like"
+    seedMode = rawRL.modes.A0;
+else
+    seedMode = rawRL.modes.S0;
+end
+
+mrlfeParams = defaultMRLFEParams();
+if isfield(options, 'mrlfeParams') && isstruct(options.mrlfeParams)
+    mrlfeParams = options.mrlfeParams;
+end
+mrlfeParams.etaS = 0;
+mrlfeParams.etaL = 0;
+mrlfeParams.solveComplexK = false;
+mrlfeParams.useComplexLambda = false;
+
+branch = solveMRLFEViscoBranchAtlas(branchName, seedMode, rawRL.material, rawRL.geometry, mrlfeParams, options);
+CpRequested = branch.Cp(:);
+
+rawResult = struct();
+rawResult.modelFamily = "mrlfe";
+rawResult.modelName = "mRLFERealK";
+rawResult.branchName = string(branchName);
+rawResult.frequency_Hz = frequency_Hz;
+rawResult.frequencySolve_Hz = frequency_Hz;
+rawResult.Cp_mps = CpRequested;
+rawResult.validMask = branch.validCp(:) & isfinite(CpRequested);
+rawResult.branch = branch;
+rawResult.rawRayleighLamb = rawRL;
+rawResult.params = params;
+rawResult.options = options;
+rawResult.evaluationPath = struct();
+rawResult.evaluationPath.requestedDirectViscoAtlas = true;
+rawResult.evaluationPath.useDirectViscoAtlas = true;
+rawResult.evaluationPath.usedDirectViscoAtlas = true;
+rawResult.evaluationPath.path = "direct_viscous_atlas_forced_etaS_zero_diagnostic";
+end
