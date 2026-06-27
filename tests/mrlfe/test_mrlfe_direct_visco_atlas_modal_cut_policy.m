@@ -17,19 +17,19 @@ params.etaS = etaS;
 
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
 options.mrlfeUseDirectViscoAtlas = true;
-options.mrlfeViscoAtlasCpScanPoints = 900;
-options.mrlfeViscoAtlasCandidates = 8;
-options.mrlfeViscoAtlasCpWindow = [0.25, 3.00];
-options.mrlfeViscoAtlasSeedWeight = 0.10;
-options.mrlfeViscoAtlasResidualWeight = 0.45;
-options.mrlfeViscoAtlasJumpWeight = 18.0;
-options.mrlfeViscoAtlasCurvatureWeight = 12.0;
+options.mrlfeA0DPCpScanPoints = 900;
+options.mrlfeA0DPCandidates = 8;
+options.mrlfeViscoA0ModalCpWindow = [0.25, 3.00];
+options.mrlfeA0DPSeedWeight = 0.10;
+options.mrlfeA0DPResidualWeight = 0.45;
+options.mrlfeA0DPJumpWeight = 18.0;
+options.mrlfeA0DPCurvatureWeight = 12.0;
 
 % Force a deterministic modal cut using maintained viscous policy controls. The
 % first trigger may be either a missing/weak modal minimum or the maintained
 % previous-Cp jump gate, depending on the DP-selected path. The test validates
 % controlled tail truncation rather than a single hard-coded reason.
-options.mrlfeViscoAtlasResidualTolerance = realmin('double');
+options.mrlfeResidualTolerance = realmin('double');
 options.mrlfeViscoPreviousCpMaxRelativeJump = 1e-6;
 options.mrlfeRealKStopAtFirstMissingModalMinimum = true;
 

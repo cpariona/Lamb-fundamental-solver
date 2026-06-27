@@ -226,7 +226,7 @@ test_ae_fit_synthetic_atlasA0
 
 ## mRLFE model
 
-Main high-level function:
+Main high-level function for the maintained forward workflow:
 
 ```matlab
 computeMRLFE
@@ -243,12 +243,6 @@ summarizeMRLFETrackingQuality
 compareMRLFETrackingStrategies
 ```
 
-Maintained mRLFE prototype solvers:
-
-```matlab
-solveMRLFEViscoBranchAtlas
-```
-
 Maintained mRLFE fitting helpers:
 
 ```matlab
@@ -256,6 +250,14 @@ mrlfeBuildFitProblem
 mrlfeEvaluateFitModel
 mrlfeFitDispersionData
 ```
+
+Optional direct viscous atlas route for the validated A0Like etaS fitting case:
+
+```matlab
+solveMRLFEViscoBranchAtlas
+```
+
+This route is not the general forward-solver default. It is used through `mrlfeEvaluateFitModel` when `mrlfeUseDirectViscoAtlas = true` and the request is eligible.
 
 Maintained public sweep wrappers:
 
@@ -294,6 +296,7 @@ Maintained mRLFE tests:
 test_mrlfe_smoke
 test_mrlfe_direct_visco_atlas_evaluator
 test_mrlfe_direct_visco_atlas_modal_cut_policy
+test_mrlfe_direct_visco_atlas_option_alias_contract
 test_mrlfe_etaS_fit_forward_cache
 test_mrlfe_etaS_zero_limit
 test_mrlfe_elastic_reference_buffer
@@ -338,38 +341,30 @@ run_fit_validation_tests
 ## Active documentation links
 
 ```text
+docs/README.md
 docs/repository_structure.md
 docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
-docs/fitting_architecture.md
-docs/fitting_validation_suite.md
-docs/fitting_phase1_status.md
-docs/fitting_phase2_status.md
-docs/fitting_phase3_status.md
-docs/fitting_phase4_status.md
-docs/fitting_phase5_status.md
-docs/fitting_phase6_status.md
-docs/fitting_phase7_status.md
-docs/fitting_phase8_status.md
-docs/fitting_phase9_status.md
-docs/fitting_phase10_status.md
-docs/fitting_phase11_status.md
-docs/parametric_sweeps.md
-docs/sweep_tool_usage.md
-docs/gui_adapter_architecture.md
-docs/gui_integration_audit.md
-docs/rayleigh_lamb/overview.md
-docs/rayleigh_lamb/public_api.md
-docs/rayleigh_lamb/fitting_workflow.md
-docs/mrlfe/current_sweeps.md
+docs/fitting/README.md
+docs/fitting/architecture.md
+docs/fitting/validation_suite.md
+docs/mrlfe/README.md
 docs/mrlfe/fitting_workflow.md
-docs/mrlfe/pending_cleanup.md
-docs/mrlfe/tracker_diagnostic_summary.md
+docs/mrlfe/current_sweeps.md
+docs/gui/adapter_architecture.md
+docs/gui/integration_audit.md
+docs/gui/main_pending_cleanup.md
+docs/sweeps/parametric_sweeps.md
+docs/sweeps/sweep_tool_usage.md
 docs/acoustoelastic_iop_hgo/README.md
-docs/acoustoelastic_iop_hgo/documentation_index.md
-docs/acoustoelastic_iop_hgo/public_api.md
-docs/acoustoelastic_iop_hgo/branch_policy.md
-docs/acoustoelastic_iop_hgo/fitting_workflow.md
-docs/acoustoelastic_iop_hgo/sweep_workflow.md
 ```
+
+## Archived or historical documentation
+
+```text
+docs/archive/fitting_phase_logs.md
+docs/archive/fitting_phases/fitting_phase*_status.md
+```
+
+The fitting phase logs are retained as implementation history. They are not active API or workflow references.

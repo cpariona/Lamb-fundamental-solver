@@ -1,53 +1,49 @@
 # Validation status
 
-This document summarizes the maintained validation surface for the current repository. It intentionally tracks active tests and diagnostics only.
+This document records the current validation entrypoints and the validation status expected before merging changes.
 
-## Maintained test entrypoints
+## General smoke tests
 
-```text
-tests/run_all_smoke_tests.m
-tests/mrlfe/
-tests/acoustoelastic_iop_hgo/
+Run from the repository root:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+
+run_all_smoke_tests
 ```
 
-`tests/run_all_smoke_tests.m` is the top-level smoke-test entrypoint. It covers the current Rayleigh-Lamb `rl*` smoke/regression checks, maintained mRLFE smoke coverage, and maintained author-neutral acoustoelastic IOP/HGO tests.
+For focused groups:
 
-## Rayleigh-Lamb validation coverage
-
-Rayleigh-Lamb validation is maintained through the `rl*` smoke and regression checks inside `tests/run_all_smoke_tests.m`. These checks verify the clean Rayleigh-Lamb public path used by the base solver and downstream workflows.
-
-For API details, see:
-
-```text
-docs/rayleigh_lamb/public_api.md
-docs/rayleigh_lamb/overview.md
+```matlab
+run_core_smoke_tests
+run_gui_smoke_tests
+run_acoustoelastic_smoke_tests
+run_mrlfe_smoke_tests
 ```
 
-## mRLFE validation coverage
+## Focused fitting validation
 
-mRLFE validation is maintained under:
+Fitting validation is intentionally separate from smoke tests because it may be slower and checks synthetic parameter recovery rather than only API execution.
 
-```text
-tests/mrlfe/
+Run:
+
+```matlab
+run_fit_validation_tests
 ```
 
-The maintained mRLFE smoke coverage is included by `tests/run_all_smoke_tests.m`. Additional diagnostic context for tracker behavior is documented in:
+The fitting validation suite is documented in:
 
 ```text
-docs/mrlfe/tracker_diagnostic_summary.md
+docs/fitting/validation_suite.md
 ```
 
-## Acoustoelastic IOP/HGO validation coverage
+## Acoustoelastic IOP/HGO validation
 
-Acoustoelastic IOP/HGO validation is maintained under:
+The maintained acoustoelastic IOP/HGO smoke suite includes tests for the official `atlasA0` policy, fallback invalidation, and identity-A0 diagnostic policy.
 
-```text
-tests/acoustoelastic_iop_hgo/
-```
-
-The maintained acoustoelastic tests exercise author-neutral IOP/HGO entrypoints and are included by `tests/run_all_smoke_tests.m`.
-
-Current policy-sensitive tests include:
+Representative tests include:
 
 ```text
 test_acoustoelastic_iop_hgo_atlasA0_smoke
@@ -60,11 +56,11 @@ test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 For API, branch-policy, and module documentation, see:
 
 ```text
-docs/acoustoelastic_iop_hgo/public_api.md
-docs/acoustoelastic_iop_hgo/branch_policy.md
+docs/acoustoelastic_iop_hgo/active/public_api.md
+docs/acoustoelastic_iop_hgo/active/branch_policy.md
 docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/documentation_index.md
-docs/acoustoelastic_iop_hgo/main_gui_integration_closure.md
+docs/acoustoelastic_iop_hgo/active/main_gui_integration_closure.md
 ```
 
 ## Recommended validation command
@@ -75,5 +71,12 @@ From the repository root:
 clear functions
 rehash toolboxcache
 startup
-run_all_smoke_tests
+
+run_core_smoke_tests
+run_gui_smoke_tests
+run_acoustoelastic_smoke_tests
+run_mrlfe_smoke_tests
+run_fit_validation_tests
 ```
+
+For documentation-only changes, it is sufficient to run the affected smoke groups and confirm there are no broken documentation links by grep/search.

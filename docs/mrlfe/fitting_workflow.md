@@ -1,12 +1,10 @@
 # mRLFE fitting workflow
 
-This document records the first mRLFE dispersion fitting implementation and the current diagnostic path toward faster atlas/cache-based fitting.
+This document records the maintained mRLFE dispersion fitting workflow and the currently validated acceleration routes for fitting.
 
 ## Scope
 
-The current mRLFE fitting layer supports fitting experimental phase-speed data against the maintained mRLFE real-k workflow.
-
-Implemented helpers:
+The mRLFE fitting layer supports fitting experimental phase-speed data against real-k mRLFE A0-like and S0-like branches through these helpers:
 
 ```matlab
 mrlfeBuildFitProblem
@@ -14,16 +12,15 @@ mrlfeEvaluateFitModel
 mrlfeFitDispersionData
 ```
 
-The first tested use case is:
+The fitting implementation supports one-parameter fits such as:
 
 ```text
 branch: A0Like
-free parameter: mu
-fixed parameters: thickness, rho, nu, fluid parameters
-etaS: 0 Pa*s
+free parameter: mu, thickness, or etaS
+fixed parameters: remaining elastic/geometric parameters, rho, nu, fluid parameters
 ```
 
-`etaS = 0` is used for the first synthetic recovery test because it provides a stable baseline before validating viscous fitting.
+For `mu` and `thickness` fits, `etaS` may be fixed. In `FitTool_GUI`, the fixed viscosity is exposed as `Fixed etaS [Pa*s]` when `etaS` is not the free parameter.
 
 ## Data contract
 
@@ -40,7 +37,7 @@ Only `frequency_Hz` and `Cp_mps` are required.
 
 ## Frequency-grid policy
 
-`mrlfeEvaluateFitModel` evaluates mRLFE through the maintained Rayleigh-Lamb/mRLFE forward workflow. Since the base Rayleigh-Lamb solver validates that `numFrequencyPoints >= 10`, the fitting evaluator uses an internal solve grid with at least 10 points:
+`mrlfeEvaluateFitModel` evaluates mRLFE on an internal solve grid and interpolates back to the requested fitting frequencies. Since the base Rayleigh-Lamb solver validates that `numFrequencyPoints >= 10`, the fitting evaluator uses at least 10 internal points:
 
 ```matlab
 params.fmin = min(frequency_Hz);
@@ -49,55 +46,35 @@ params.numFrequencyPoints = max(10, numel(frequency_Hz));
 params.frequencySpacing = "linspace";
 ```
 
-The mRLFE branch is then interpolated back to the experimental fitting frequencies.
-
-This allows sparse experimental fitting data, including fewer than 10 points, while preserving the base solver validation rule.
-
-If only one fitting frequency is supplied, the evaluator creates a narrow internal frequency window around that point before interpolating back to the requested frequency.
+This allows sparse experimental fitting data, including fewer than 10 points, while preserving the base solver validation rule. If only one fitting frequency is supplied, the evaluator creates a narrow internal frequency window around that point before interpolating back to the requested frequency.
 
 The current implementation requires valid fitting frequencies to be sorted ascending.
 
-## Fast fitting performance preset
+## Route taxonomy
 
-`mrlfeEvaluateFitModel` applies fitting-specific performance defaults by default only for the elastic A0Like real-k case (`etaS = 0`). These defaults affect only the fitting evaluator, not general mRLFE sweeps.
+The code currently distinguishes three mRLFE fitting routes.
 
-Default elastic A0Like fitting preset:
+### 1. Maintained/reference-based workflow
+
+This is the general mRLFE forward workflow:
 
 ```text
-mrlfeUseFitPerformanceDefaults = true
-mrlfeFitPerformancePreset = fast_elastic_A0Like
-mrlfeUseInternalTrackingGrid = true
-mrlfeInternalTrackingMinPoints = 10
-mrlfeInternalTrackingPointFactor = 1
-mrlfeInternalTrackingMaxPoints = 80
-mrlfeA0DPCpScanPoints = 500
-mrlfeA0DPCandidates = 8
+mrlfeEvaluateFitModel
+  -> rlComputeFundamentalLambModes
+    -> Rayleigh-Lamb seed branch
+    -> computeMRLFE
+      -> solveMRLFEBranch / solveMRLFEBranchDP
 ```
 
-The preset was chosen from `diagnose_fit_option_sensitivity`. For the A0Like elastic real-k baseline, `cpScanPoints = 500`, `trackingMinPoints = 10`, and `pointFactor = 1` gave a large speedup with sub-0.01 m/s RMS Cp difference relative to the 2200-point reference in the standard 1-8 kHz fitting window.
+It is the maintained default for general mRLFE evaluations, for `mu`/`thickness` fitting, and for S0Like. It remains the conservative route for cases that have not been specifically validated with the direct atlas.
 
-To disable the fitting preset and use explicit solver options exactly:
+The raw result reports this route as:
 
 ```matlab
-solverOptions.mrlfeUseFitPerformanceDefaults = false;
+rawResult.evaluationPath.path == "maintained_rl_mrlfe_workflow"
 ```
 
-To keep the preset but override individual fitting defaults:
-
-```matlab
-solverOptions.mrlfeFitA0DPCpScanPoints = 800;
-solverOptions.mrlfeFitInternalTrackingMinPoints = 20;
-solverOptions.mrlfeFitInternalTrackingPointFactor = 1;
-solverOptions.mrlfeFitInternalTrackingMaxPoints = 80;
-```
-
-The raw output exposes the applied preset through:
-
-```matlab
-rawResult.fitPerformanceDefaults
-```
-
-## etaS forward cache
+### 2. etaS elastic-reference forward cache
 
 For one-parameter `etaS` fitting, `mrlfeBuildFitProblem` can precompute the elastic `etaS = 0` real-k reference once and attach it to:
 
@@ -134,7 +111,7 @@ To disable this cache explicitly:
 solverOptions.mrlfeDisableForwardCache = true;
 ```
 
-## Direct viscous atlas evaluator
+### 3. Direct viscous atlas evaluator
 
 `mrlfeEvaluateFitModel` also exposes an optional direct viscous atlas path for A0Like real-k `etaS > 0` evaluations:
 
@@ -143,38 +120,6 @@ solverOptions.mrlfeUseDirectViscoAtlas = true;
 ```
 
 This path does not precompute or reuse an elastic mRLFE `etaS = 0` reference. It uses the Rayleigh-Lamb A0 seed only to define the modal family and Cp scan window, evaluates the viscous mRLFE residual directly over Cp, extracts candidate minima, refines the candidates locally, and selects a continuous branch through the DP tracker.
-
-The default direct-atlas behavior inherits maintained viscous tracking names where possible:
-
-```text
-mrlfeViscoUseModalLocalTracker
-mrlfeViscoA0ModalCpWindow
-mrlfeViscoS0ModalCpWindow
-mrlfeViscoPreviousCpMaxRelativeJump
-mrlfeRealKStopAtFirstMissingModalMinimum
-```
-
-The DP candidate refinement is enabled for the direct viscous atlas path:
-
-```text
-mrlfeA0DPRefineCandidates = true
-mrlfeA0DPRefineTolX = 1e-6
-mrlfeA0DPRefineMaxIter = 24
-mrlfeA0DPRefineMaxFunEvals = 60
-```
-
-Current diagnostic evidence from `diagnose_etaS_direct_atlas_fit` for the standard 1-8 kHz A0Like synthetic `etaS = 0.12 Pa*s` case:
-
-```text
-maintained no-cache  time = 26.1459 s | etaS = 0.120001 Pa*s | RMSE = 2.97413e-07 m/s
-maintained cached    time = 15.5355 s | etaS = 0.120001 Pa*s | RMSE = 2.97413e-07 m/s
-direct atlas         time = 4.51087 s | etaS = 0.120001 Pa*s | RMSE = 3.05837e-07 m/s
-speedup atlas vs no-cache = 5.79619 x
-speedup atlas vs cached   = 3.44402 x
-RMSE atlas vs cached fitted Cp = 6.61039e-08 m/s
-```
-
-The direct atlas path is therefore the preferred experimental route for fast A0Like `etaS` fitting, but it should remain opt-in until broader sweeps validate the same behavior across material, thickness, and viscosity ranges.
 
 The raw output distinguishes the requested route from the route actually used:
 
@@ -206,25 +151,104 @@ branchName == "A0Like"
 freeParams == "etaS"
 ```
 
-## Current forward path and timing concern
+## Direct atlas option naming
 
-The default fitting evaluator currently calls:
+The maintained/canonical option names for the direct viscous atlas route are the existing DP and viscous tracking names:
 
 ```text
-mrlfeEvaluateFitModel
-  -> rlComputeFundamentalLambModes
-    -> Rayleigh-Lamb seed branch
-    -> computeMRLFE
-      -> solveMRLFEBranch / solveMRLFEBranchDP
+mrlfeA0DPCpScanPoints
+mrlfeA0DPCandidates
+mrlfeA0DPEdgeGuardPoints
+mrlfeA0DPCpMinFactor
+mrlfeA0DPCpMaxFactor
+mrlfeA0DPCpMinFloor
+mrlfeA0DPCpMaxCeiling
+mrlfeA0DPSeedWeight
+mrlfeA0DPResidualWeight
+mrlfeA0DPJumpWeight
+mrlfeA0DPCurvatureWeight
+mrlfeA0DPMaxJumpSoft
+mrlfeA0DPMissingPenalty
+mrlfeA0DPAllowMissing
+mrlfeResidualTolerance
+mrlfeA0DPRefineCandidates
+mrlfeA0DPRefineTolX
+mrlfeA0DPRefineMaxIter
+mrlfeA0DPRefineMaxFunEvals
+mrlfeViscoUseModalLocalTracker
+mrlfeViscoA0ModalCpWindow
+mrlfeViscoS0ModalCpWindow
+mrlfeViscoPreviousCpMaxRelativeJump
+mrlfeRealKStopAtFirstMissingModalMinimum
 ```
 
-For one-parameter fitting, `mrlfeFitDispersionData` repeatedly evaluates this full forward path through `fminbnd`. The fit can therefore be correct but slow if each objective evaluation recomputes Rayleigh-Lamb seeds, mRLFE residual scans, and branch tracking from scratch.
+Older `mrlfeViscoAtlas*` fields are compatibility aliases only. New diagnostics and tests should use the canonical names above. If both a canonical field and its legacy alias are present, the canonical field takes priority.
 
-For A0-like elastic real-k mRLFE, `solveMRLFEBranchDP` performs a local Cp-landscape scan at each frequency and then selects a continuous branch through dynamic programming. This is conceptually close to a modal atlas over Cp for one parameter value.
+The DP candidate refinement is enabled for the direct viscous atlas path:
 
-## Timing diagnostic
+```text
+mrlfeA0DPRefineCandidates = true
+mrlfeA0DPRefineTolX = 1e-6
+mrlfeA0DPRefineMaxIter = 24
+mrlfeA0DPRefineMaxFunEvals = 60
+```
 
-Run:
+## Fast fitting performance preset
+
+`mrlfeEvaluateFitModel` applies fitting-specific performance defaults by default only for the elastic A0Like real-k case (`etaS = 0`). These defaults affect only the fitting evaluator, not general mRLFE sweeps.
+
+Default elastic A0Like fitting preset:
+
+```text
+mrlfeUseFitPerformanceDefaults = true
+mrlfeFitPerformancePreset = fast_elastic_A0Like
+mrlfeUseInternalTrackingGrid = true
+mrlfeInternalTrackingMinPoints = 10
+mrlfeInternalTrackingPointFactor = 1
+mrlfeInternalTrackingMaxPoints = 80
+mrlfeA0DPCpScanPoints = 500
+mrlfeA0DPCandidates = 8
+```
+
+To disable the fitting preset and use explicit solver options exactly:
+
+```matlab
+solverOptions.mrlfeUseFitPerformanceDefaults = false;
+```
+
+To keep the preset but override individual fitting defaults:
+
+```matlab
+solverOptions.mrlfeFitA0DPCpScanPoints = 800;
+solverOptions.mrlfeFitInternalTrackingMinPoints = 20;
+solverOptions.mrlfeFitInternalTrackingPointFactor = 1;
+solverOptions.mrlfeFitInternalTrackingMaxPoints = 80;
+```
+
+The raw output exposes the applied preset through:
+
+```matlab
+rawResult.fitPerformanceDefaults
+```
+
+## Current diagnostic evidence
+
+Current diagnostic evidence from `diagnose_etaS_direct_atlas_fit` for the standard 1-8 kHz A0Like synthetic `etaS = 0.12 Pa*s` case:
+
+```text
+maintained no-cache  time = 26.1459 s | etaS = 0.120001 Pa*s | RMSE = 2.97413e-07 m/s
+maintained cached    time = 15.5355 s | etaS = 0.120001 Pa*s | RMSE = 2.97413e-07 m/s
+direct atlas         time = 4.51087 s | etaS = 0.120001 Pa*s | RMSE = 3.05837e-07 m/s
+speedup atlas vs no-cache = 5.79619 x
+speedup atlas vs cached   = 3.44402 x
+RMSE atlas vs cached fitted Cp = 6.61039e-08 m/s
+```
+
+The direct atlas path is therefore the preferred experimental route for fast A0Like `etaS` fitting, but it should remain scoped to the validated case until broader sweeps validate the same behavior across material, thickness, and viscosity ranges.
+
+## Diagnostics
+
+Timing diagnostic:
 
 ```matlab
 clear functions
@@ -233,31 +257,13 @@ startup
 diagnose_fit_timing
 ```
 
-The diagnostic lives in:
-
-```text
-examples/mrlfe/diagnostics/diagnose_fit_timing.m
-```
-
-It reports:
-
-```text
-single forward-evaluation time
-coarse RMSE landscape time over mu
-current fminbnd fit time
-optimizer function count
-mRLFE solver diagnostic elapsed time
-tracking point count
-valid fraction across the objective landscape
-```
-
-The script assigns its output to the base workspace as:
+Assigned output:
 
 ```matlab
 MRLFEFitTimingDiagnostic
 ```
 
-The option-sensitivity diagnostic is:
+Option-sensitivity diagnostic:
 
 ```matlab
 clear functions
@@ -266,13 +272,13 @@ startup
 diagnose_fit_option_sensitivity
 ```
 
-It assigns:
+Assigned output:
 
 ```matlab
 MRLFEFitOptionSensitivityDiagnostic
 ```
 
-The etaS forward-cache diagnostic is:
+etaS forward-cache diagnostic:
 
 ```matlab
 clear functions
@@ -281,101 +287,47 @@ startup
 diagnose_etaS_forward_cache
 ```
 
-It assigns:
+Assigned output:
 
 ```matlab
 MRLFEEtaSForwardCacheDiagnostic
 ```
 
-The direct viscous atlas diagnostics are:
+Direct atlas fitting diagnostic:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+diagnose_etaS_direct_atlas_fit
+```
+
+Assigned output:
+
+```matlab
+MRLFEEtaSDirectAtlasFitDiagnostic
+```
+
+Direct atlas forward diagnostic:
 
 ```matlab
 clear functions
 rehash toolboxcache
 startup
 diagnose_mrlfe_visco_direct_atlas
-diagnose_etaS_direct_atlas_fit
 ```
 
-They assign:
+Assigned output:
 
 ```matlab
 MRLFEViscoDirectAtlasDiagnostic
-MRLFEEtaSDirectAtlasFitDiagnostic
-```
-
-Use these diagnostics before promoting the direct atlas route from opt-in to default behavior.
-
-## Optimizer policy
-
-`mrlfeFitDispersionData` uses no Optimization Toolbox dependency.
-
-Current behavior:
-
-```text
-one free parameter with finite bounds -> fminbnd
-multi-parameter or unbounded case     -> fminsearch with bound penalties
-```
-
-## Candidate optimization directions
-
-The next phase should focus on validation breadth and cleanup rather than adding another solver variant.
-
-Candidate directions, in increasing implementation cost:
-
-```text
-1. Validate direct atlas etaS fitting across mu, thickness, etaS, and frequency-window sweeps.
-2. Consolidate temporary mrlfeViscoAtlas* aliases into maintained viscous tracker naming where possible.
-3. Reuse Rayleigh-Lamb seed branches when only mRLFE parameters change, if profiling still shows seed computation matters.
-4. Expose the direct atlas route in GUI/registry only after sweep validation.
-5. Build a true parameter-Cp atlas only if repeated fits over the same parameter bounds are needed.
-```
-
-The AE IOP/HGO atlas architecture is a useful reference for branch selection and reliability reporting, but mRLFE should not copy it mechanically. mRLFE already has a DP-based modal candidate tracker for A0-like branches, and the direct viscous atlas route now provides the first validated fast path for A0Like `etaS` fitting.
-
-## Example
-
-Run:
-
-```matlab
-clear functions
-rehash toolboxcache
-startup
-
-fit_mrlfe_A0Like
-```
-
-The example lives in:
-
-```text
-examples/mrlfe/fit_mrlfe_A0Like.m
-```
-
-## Tests
-
-Focused mRLFE fitting tests:
-
-```matlab
-test_mrlfe_fit_synthetic_A0Like
-test_fit_validation_mrlfe
-test_fit_validation_mrlfe_hidden_params
-test_mrlfe_fit_fast_options_quality
-test_mrlfe_etaS_fit_forward_cache
-test_mrlfe_direct_visco_atlas_evaluator
-test_mrlfe_direct_visco_atlas_modal_cut_policy
-```
-
-Shared validation suite:
-
-```matlab
-run_fit_validation_tests
 ```
 
 ## Current limitations
 
-- Direct atlas etaS fitting is currently validated only for the standard synthetic A0Like 1-8 kHz case.
-- Direct atlas integration is opt-in through `mrlfeUseDirectViscoAtlas`; it is not yet the default general mRLFE fitting route.
-- The GUI fitting adapter enables direct atlas only for A0Like one-parameter etaS fitting.
-- The code still contains temporary prototype aliases such as `mrlfeViscoAtlas*`; these should be consolidated during the mRLFE cleanup/renaming pass.
-- Multi-parameter mRLFE fitting remains available through the shared fitting framework but has not yet received direct-atlas-specific validation.
-- Experimental-data fitting should include physical QC; a mathematically low RMSE alone does not guarantee parameter identifiability.
+```text
+- Direct atlas etaS fitting is validated only for A0Like in the standard 1-8 kHz synthetic case.
+- S0Like direct atlas is intentionally disabled until separately validated.
+- LambFundamental_GUI still uses the maintained forward workflow for general mRLFE branch computation.
+- Sweep GUI integration with direct atlas is not part of this cleanup phase.
+```
