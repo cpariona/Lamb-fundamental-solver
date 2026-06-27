@@ -350,7 +350,7 @@ updateAxisFieldState();
                     end
                     updated = true;
                 case "AcoustoelasticIOPHGO"
-                    plotControls.showA0.Value = true;
+                    plotControls.showAE.Value = true;
                     updated = true;
             end
         end
@@ -455,7 +455,7 @@ updateAxisFieldState();
                 tf = (branchName == "A0Like" && plotControls.showMRLFEA0.Value) || ...
                      (branchName == "S0Like" && plotControls.showMRLFES0.Value);
             case "AcoustoelasticIOPHGO"
-                tf = plotControls.showA0.Value;
+                tf = plotControls.showAE.Value;
         end
     end
 
