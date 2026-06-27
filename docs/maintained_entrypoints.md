@@ -367,4 +367,3 @@ docs/fitting_phase*_status.md
 ```
 
 The fitting phase logs are retained as implementation history. They are not active API or workflow references.
-```
