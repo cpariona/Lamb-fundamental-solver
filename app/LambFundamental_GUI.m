@@ -573,7 +573,8 @@ updateAxisFieldState();
         materialInfo.Text = sprintf('AE IOP/HGO | mu %.2f kPa | rho %.1f kg/m^3 | h %.3f mm\nIOP %.2f mmHg | R %.2f mm | k1 %.2f kPa | k2 %.2f', ...
             lastParams.mu/1e3, lastParams.rho, lastParams.thickness*1e3, ...
             modelControls.ae.IOP.Value, modelControls.ae.R.Value, modelControls.ae.k1.Value, modelControls.ae.k2.Value);
-        statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d', numel(r.Cp)), ...
+        elapsedText = formatElapsedText(getGuiElapsedSeconds());
+        statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d%s', numel(r.Cp), elapsedText), ...
             sprintf('Cp valid %d/%d', nnz(r.validCp), numel(r.Cp))};
         setStatusText(statusLines);
     end
@@ -589,10 +590,11 @@ updateAxisFieldState();
         end
         materialInfo.Text = sprintf('rho %.1f kg/m^3 | 2h %.3f mm | mu %.2f kPa | nu %.5f | E %.2f kPa\nlambda_L %.2f MPa | K %.2f MPa | CL %.2f m/s | CT %.2f m/s', ...
             mat.rho, geom.thickness*1e3, mat.mu/1e3, mat.nu, mat.E/1e3, mat.lambda/1e6, mat.K/1e6, mat.CL, mat.CT);
+        elapsedText = formatElapsedText(getGuiElapsedSeconds());
         if ~isempty(gridData) && isfield(gridData,'frequency')
-            setStatusText({sprintf('Status: computed %d frequency points.', numel(gridData.frequency))});
+            setStatusText({sprintf('Status: computed %d frequency points%s.', numel(gridData.frequency), elapsedText)});
         else
-            setStatusText({'Status: computed.'});
+            setStatusText({sprintf('Status: computed%s.', elapsedText)});
         end
     end
 
@@ -601,9 +603,9 @@ updateAxisFieldState();
             uialert(fig,'Compute first.','No results');
             return;
         end
-        diagFig = uifigure('Name','Diagnostics','Position',[120 120 720 520]);
+        diagFig = uifigure('Name','Diagnostics','Position',[120 120 760 560]);
         ta = uitextarea(diagFig,'Value',cellstr(splitlines(buildDiagnosticsText())),'Editable','off','FontName','Consolas');
-        ta.Position = [10 10 700 500];
+        ta.Position = [10 10 740 540];
     end
 
     function txt = buildDiagnosticsText()
@@ -613,22 +615,112 @@ updateAxisFieldState();
         else
             lines(end+1) = "Rayleigh-Lamb / mRLFE diagnostics";
         end
-        if ~isempty(lastParams)
-            lines(end+1) = sprintf("modelType %s", string(lastParams.modelType));
-            lines(end+1) = sprintf("rho %.6g kg/m^3", lastParams.rho);
-            lines(end+1) = sprintf("mu %.6g Pa", lastParams.mu);
-            lines(end+1) = sprintf("nu %.6g", lastParams.nu);
-            lines(end+1) = sprintf("E %.6g Pa", lastParams.E);
-            lines(end+1) = sprintf("lambda_Lame %.6g Pa", lastParams.lambda);
-            lines(end+1) = sprintf("K %.6g Pa", lastParams.K);
-            lines(end+1) = sprintf("CL %.6g m/s", lastParams.CL);
-            lines(end+1) = sprintf("CT %.6g m/s", lastParams.CT);
-            lines(end+1) = sprintf("2h %.6g m", lastParams.thickness);
+        lines(end+1) = "";
+        lines = appendGuiVisibleDiagnostics(lines);
+        lines = appendRawModelDiagnostics(lines);
+        lines = appendOptionDiagnostics(lines);
+        lines = appendParameterDiagnostics(lines);
+        txt = strjoin(lines, newline);
+    end
+
+    function lines = appendGuiVisibleDiagnostics(lines)
+        lines(end+1) = "GUI-visible branches:";
+        if isempty(lastGuiResult) || ~isfield(lastGuiResult, 'branches') || isempty(lastGuiResult.branches)
+            lines(end+1) = "  none";
+        else
+            for i = 1:numel(lastGuiResult.branches)
+                branch = lastGuiResult.branches(i);
+                n = numel(branch.phaseVelocity);
+                valid = getBranchValidCount(branch);
+                lines(end+1) = sprintf("  %s %s | valid %d/%d", string(branch.modelName), string(branch.branchName), valid, n);
+            end
+        end
+        elapsed = getGuiElapsedSeconds();
+        if isfinite(elapsed)
+            lines(end+1) = sprintf("adapter elapsed %.6g s", elapsed);
+        end
+        if ~isempty(lastGuiResult) && isfield(lastGuiResult, 'metadata') && ...
+                isfield(lastGuiResult.metadata, 'seedBranchesHiddenFromPlotSurface')
+            lines(end+1) = sprintf("seed branches hidden from plotting surface: %d", logical(lastGuiResult.metadata.seedBranchesHiddenFromPlotSurface));
+        end
+        lines(end+1) = "";
+    end
+
+    function lines = appendRawModelDiagnostics(lines)
+        lines(end+1) = "Raw/internal result content:";
+        if isfield(lastResults, 'modes')
+            lines(end+1) = sprintf("  RL seed/result modes: %s", strjoin(string(fieldnames(lastResults.modes)), ", "));
         end
         if isfield(lastResults, 'models')
-            lines(end+1) = sprintf("computed models: %s", strjoin(string(fieldnames(lastResults.models)), ", "));
+            lines(end+1) = sprintf("  computed internal models: %s", strjoin(string(fieldnames(lastResults.models)), ", "));
         end
-        txt = strjoin(lines, newline);
+        lines(end+1) = "";
+    end
+
+    function lines = appendOptionDiagnostics(lines)
+        lines(end+1) = "Requested options:";
+        if isempty(lastOptions)
+            lines(end+1) = "  unavailable";
+        else
+            optionNames = ["computeA0", "computeS0", "computeMRLFERealK", "computeMRLFEElasticRealK", ...
+                "computeMRLFEViscoRealK", "mrlfeComputeA0Like", "mrlfeComputeS0Like", "computeAcoustoelasticIOPHGO"];
+            for i = 1:numel(optionNames)
+                name = optionNames(i);
+                if isfield(lastOptions, char(name))
+                    lines(end+1) = sprintf("  %s = %d", name, logical(lastOptions.(char(name))));
+                end
+            end
+            if isfield(lastOptions, 'mrlfeParams') && isfield(lastOptions.mrlfeParams, 'etaS')
+                lines(end+1) = sprintf("  etaS = %.6g Pa*s", lastOptions.mrlfeParams.etaS);
+            end
+        end
+        lines(end+1) = "";
+    end
+
+    function lines = appendParameterDiagnostics(lines)
+        lines(end+1) = "Material / geometry:";
+        if isempty(lastParams)
+            lines(end+1) = "  unavailable";
+        else
+            lines(end+1) = sprintf("  modelType %s", string(lastParams.modelType));
+            lines(end+1) = sprintf("  rho %.6g kg/m^3", lastParams.rho);
+            lines(end+1) = sprintf("  mu %.6g Pa", lastParams.mu);
+            lines(end+1) = sprintf("  nu %.6g", lastParams.nu);
+            lines(end+1) = sprintf("  E %.6g Pa", lastParams.E);
+            lines(end+1) = sprintf("  lambda_Lame %.6g Pa", lastParams.lambda);
+            lines(end+1) = sprintf("  K %.6g Pa", lastParams.K);
+            lines(end+1) = sprintf("  CL %.6g m/s", lastParams.CL);
+            lines(end+1) = sprintf("  CT %.6g m/s", lastParams.CT);
+            lines(end+1) = sprintf("  2h %.6g m", lastParams.thickness);
+        end
+    end
+
+    function nValid = getBranchValidCount(branch)
+        values = branch.phaseVelocity(:);
+        valid = isfinite(values);
+        if isfield(branch, 'diagnostics') && isfield(branch.diagnostics, 'valid') && ~isempty(branch.diagnostics.valid)
+            valid = valid & logical(branch.diagnostics.valid(:));
+        end
+        nValid = nnz(valid);
+    end
+
+    function elapsed = getGuiElapsedSeconds()
+        elapsed = nan;
+        if ~isempty(lastGuiResult) && isfield(lastGuiResult, 'metadata') && ...
+                isfield(lastGuiResult.metadata, 'elapsedSeconds')
+            elapsed = lastGuiResult.metadata.elapsedSeconds;
+        elseif ~isempty(lastGuiResult) && isfield(lastGuiResult, 'diagnostics') && ...
+                isfield(lastGuiResult.diagnostics, 'elapsedSeconds')
+            elapsed = lastGuiResult.diagnostics.elapsedSeconds;
+        end
+    end
+
+    function text = formatElapsedText(elapsed)
+        if isfinite(elapsed)
+            text = sprintf(' | %.3g s', elapsed);
+        else
+            text = '';
+        end
     end
 
     function onExport()
