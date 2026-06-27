@@ -1,6 +1,16 @@
 # mRLFE documentation index
 
-This folder contains active mRLFE model, fitting, and sweep documentation.
+This folder contains active mRLFE model, fitting, sweep, diagnostic, and archived cleanup documentation.
+
+## Folder map
+
+```text
+README.md
+fitting_workflow.md
+current_sweeps.md
+diagnostics/
+archive/
+```
 
 ## Active references
 
@@ -29,6 +39,30 @@ legacy aliases:        mrlfeViscoAtlas* compatibility only
 ## Sweep status
 
 `current_sweeps.md` records the current mRLFE sweep scripts and generated-output conventions.
+
+## Diagnostic evidence
+
+Diagnostic documentation lives in:
+
+```text
+docs/mrlfe/diagnostics/
+```
+
+Current diagnostic summary:
+
+```text
+docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
+```
+
+## Archived cleanup records
+
+Historical cleanup notes live in:
+
+```text
+docs/mrlfe/archive/
+```
+
+These records are retained for traceability. They are not active API or workflow documentation.
 
 ## Related tests
 
