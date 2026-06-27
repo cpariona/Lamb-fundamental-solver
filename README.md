@@ -163,10 +163,11 @@ sweep_thickness_A0Like_viscoelastic
 sweep_thickness_S0Like_viscoelastic
 ```
 
-Maintained mRLFE fitting example:
+Maintained mRLFE fitting and comparison examples:
 
 ```matlab
 fit_mrlfe_A0Like
+compare_mrlfe_elastic_vs_visco_cp
 ```
 
 Focused mRLFE diagnostics:
