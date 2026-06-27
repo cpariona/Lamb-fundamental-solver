@@ -7,6 +7,10 @@ function result = guiRunMRLFEModel(guiRequest)
 %   mrlfeParams      - struct overlay stored in options.mrlfeParams
 %   computeElastic   - logical, default true
 %   computeVisco     - logical, default false
+%
+% Rayleigh-Lamb A0/S0 branches may be computed internally as seeds for mRLFE,
+% but this adapter exposes only mRLFE branches on the normalized GUI plotting
+% surface. The seed branches remain available in result.metadata.rawResult.
 
 if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
@@ -32,10 +36,28 @@ if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
     options.mrlfeParams = guiRequest.mrlfeParams;
 end
 
+elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, options);
+elapsedSeconds = toc(elapsedTimer);
+
 result = guiNormalizeRawResult(rawResult, mfilename);
+result.branches = filterMRLFEBranches(result.branches);
+result.diagnostics.branchCount = numel(result.branches);
+result.diagnostics.elapsedSeconds = elapsedSeconds;
+result.diagnostics.seedBranchesHiddenFromPlotSurface = true;
 result.metadata.params = params;
 result.metadata.options = options;
+result.metadata.elapsedSeconds = elapsedSeconds;
+result.metadata.seedBranchesHiddenFromPlotSurface = true;
+end
+
+function branches = filterMRLFEBranches(branches)
+if isempty(branches)
+    return;
+end
+modelNames = string({branches.modelName});
+keep = modelNames == "mRLFERealK" | modelNames == "mRLFEElasticRealK" | modelNames == "mRLFEViscoRealK";
+branches = branches(keep);
 end
 
 function value = getStructField(s, name, defaultValue)
