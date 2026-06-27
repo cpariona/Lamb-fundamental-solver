@@ -10,8 +10,8 @@ Use these active documents instead:
 
 ```text
 docs/fitting/README.md
-docs/fitting_architecture.md
-docs/fitting_validation_suite.md
+docs/fitting/architecture.md
+docs/fitting/validation_suite.md
 docs/mrlfe/fitting_workflow.md
 docs/maintained_entrypoints.md
 ```
@@ -19,17 +19,17 @@ docs/maintained_entrypoints.md
 ## Historical phase logs
 
 ```text
-docs/fitting_phase1_status.md
-docs/fitting_phase2_status.md
-docs/fitting_phase3_status.md
-docs/fitting_phase4_status.md
-docs/fitting_phase5_status.md
-docs/fitting_phase6_status.md
-docs/fitting_phase7_status.md
-docs/fitting_phase8_status.md
-docs/fitting_phase9_status.md
-docs/fitting_phase10_status.md
-docs/fitting_phase11_status.md
+docs/archive/fitting_phases/fitting_phase1_status.md
+docs/archive/fitting_phases/fitting_phase2_status.md
+docs/archive/fitting_phases/fitting_phase3_status.md
+docs/archive/fitting_phases/fitting_phase4_status.md
+docs/archive/fitting_phases/fitting_phase5_status.md
+docs/archive/fitting_phases/fitting_phase6_status.md
+docs/archive/fitting_phases/fitting_phase7_status.md
+docs/archive/fitting_phases/fitting_phase8_status.md
+docs/archive/fitting_phases/fitting_phase9_status.md
+docs/archive/fitting_phases/fitting_phase10_status.md
+docs/archive/fitting_phases/fitting_phase11_status.md
 ```
 
 ## Cleanup policy
