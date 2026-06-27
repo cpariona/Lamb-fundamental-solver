@@ -21,7 +21,7 @@ opt.mrlfeParams.etaS = 0; opt.mrlfeParams.etaL = 0; opt.mrlfeParams.useComplexLa
 
 t = tic; rawRef = rlComputeFundamentalLambModes(params,opt); tref = toc(t);
 ref = rawRef.models.mRLFERealK.branches.A0Like; refCp = ref.Cp(:); refValid = branchValid(ref);
-seed = rawRef.modes.A0;
+seed = rawRef.modes.A0; seedCp = seed.Cp(:);
 fprintf('Maintained A0Like elastic: %.6g s | valid %d/%d\n', tref, nnz(refValid), numel(refValid));
 
 atlasOpt = opt; atlasOpt.mrlfeModalAtlasCpScanPoints = 1200; atlasOpt.mrlfeModalAtlasTopNMinima = 24;
@@ -41,7 +41,7 @@ if isempty(Tb)
 end
 Tb.RefCp_mps = refCp(Tb.FrequencyIndex);
 Tb.AbsToRef_mps = abs(Tb.Cp_mps - Tb.RefCp_mps);
-Tb.SeedCp_mps = seed.Cp(Tb.FrequencyIndex);
+Tb.SeedCp_mps = seedCp(Tb.FrequencyIndex);
 Tb.AbsToSeed_mps = abs(Tb.Cp_mps - Tb.SeedCp_mps);
 Tb.SelectedFamily = Tb.BranchID == atlas.modalAtlas.selectedFamily.BranchID;
 
