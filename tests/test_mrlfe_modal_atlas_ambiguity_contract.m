@@ -10,7 +10,7 @@ params.thickness = 0.5e-3;
 params.fmin = 10;
 params.fmax = 2e3;
 params.numFrequencyPoints = 24;
-params.frequencySpacing = "linear";
+params.frequencySpacing = "linspace";
 
 material = rlComputeMaterial(params);
 params.E = material.E;
