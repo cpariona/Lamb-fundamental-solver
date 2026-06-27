@@ -43,20 +43,28 @@ diagnose_direct_atlas_etaS_zero_limit
 
 checks whether the same direct residual-atlas route can reproduce the maintained elastic real-k mRLFE branch when `etaS = 0`.
 
-Use this diagnostic before considering any interface policy that replaces the maintained elastic/cache workflow with a unified direct-atlas route.
-
-Interpretation:
+Current diagnostic outcome:
 
 ```text
-A0Like etaS=0 agrees and S0Like etaS=0 agrees:
-    direct atlas may be considered as a candidate unified mRLFE route.
+A0Like etaS=0:
+    The direct atlas finds the first point with small Cp error, but the branch is truncated after that point.
+    It is not suitable as the general elastic A0Like route yet.
 
-A0Like etaS=0 agrees but S0Like etaS=0 fails:
-    restrict direct atlas to A0Like workflows.
-
-etaS=0 fails or truncates:
-    keep the maintained elastic reference workflow.
+S0Like etaS=0:
+    The forced direct atlas agrees closely with the maintained elastic branch in the tested window.
+    This is useful evidence, but S0Like direct atlas has not completed the same validation path as A0Like etaS fitting.
 ```
+
+Current interpretation:
+
+```text
+Do not replace the maintained mRLFE workflow with the direct atlas route.
+Keep direct atlas limited to the validated A0Like etaS fitting path.
+Keep maintained RL -> mRLFE elastic -> mRLFE viscous workflow for general GUI and sweep use.
+Treat S0Like direct-atlas agreement as preliminary diagnostic evidence only.
+```
+
+A future unification attempt should first solve the A0Like etaS=0 truncation and then run a dedicated S0Like direct-atlas validation.
 
 ## Policy
 
