@@ -176,11 +176,34 @@ RMSE atlas vs cached fitted Cp = 6.61039e-08 m/s
 
 The direct atlas path is therefore the preferred experimental route for fast A0Like `etaS` fitting, but it should remain opt-in until broader sweeps validate the same behavior across material, thickness, and viscosity ranges.
 
-The raw output exposes this route through:
+The raw output distinguishes the requested route from the route actually used:
+
+```matlab
+rawResult.evaluationPath.requestedDirectViscoAtlas
+rawResult.evaluationPath.usedDirectViscoAtlas
+rawResult.evaluationPath.path
+```
+
+For the validated A0Like etaS case:
 
 ```matlab
 rawResult.evaluationPath.path == "direct_viscous_atlas"
 rawResult.branch.viscoAtlas.usedElasticMRLFEReference == false
+```
+
+For S0Like, requesting `mrlfeUseDirectViscoAtlas = true` currently falls back to the maintained workflow and reports:
+
+```matlab
+rawResult.evaluationPath.requestedDirectViscoAtlas == true
+rawResult.evaluationPath.usedDirectViscoAtlas == false
+rawResult.evaluationPath.path == "maintained_rl_mrlfe_workflow"
+```
+
+The GUI fitting adapter enables the direct atlas only for the validated case:
+
+```text
+branchName == "A0Like"
+freeParams == "etaS"
 ```
 
 ## Current forward path and timing concern
@@ -351,7 +374,8 @@ run_fit_validation_tests
 ## Current limitations
 
 - Direct atlas etaS fitting is currently validated only for the standard synthetic A0Like 1-8 kHz case.
-- Direct atlas integration is opt-in through `mrlfeUseDirectViscoAtlas`; it is not yet the default mRLFE fitting route.
+- Direct atlas integration is opt-in through `mrlfeUseDirectViscoAtlas`; it is not yet the default general mRLFE fitting route.
+- The GUI fitting adapter enables direct atlas only for A0Like one-parameter etaS fitting.
 - The code still contains temporary prototype aliases such as `mrlfeViscoAtlas*`; these should be consolidated during the mRLFE cleanup/renaming pass.
 - Multi-parameter mRLFE fitting remains available through the shared fitting framework but has not yet received direct-atlas-specific validation.
 - Experimental-data fitting should include physical QC; a mathematically low RMSE alone does not guarantee parameter identifiability.
