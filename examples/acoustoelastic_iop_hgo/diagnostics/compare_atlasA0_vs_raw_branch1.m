@@ -151,12 +151,7 @@ rawValid = isfinite(rawCp);
 atlasCp = atlasResult.Cp(:);
 atlasValid = logical(atlasResult.validCp(:)) & isfinite(atlasCp);
 
-identityCp = nan(size(f));
-identityValid = false(size(f));
-if isfield(identityResult, 'identityA0')
-    identityCp = identityResult.identityA0.CpCandidate(:);
-    identityValid = logical(identityResult.identityA0.validCandidate(:)) & isfinite(identityCp);
-end
+[identityCp, identityValid] = identityCandidateOnFrequencyGrid(identityResult, f);
 
 [atlasErr, atlasOverlap, atlasMismatch] = relativeError(rawCp, rawValid, atlasCp, atlasValid, options.RelativeMismatchThreshold);
 [identityErr, identityOverlap, identityMismatch] = relativeError(rawCp, rawValid, identityCp, identityValid, options.RelativeMismatchThreshold);
@@ -194,6 +189,70 @@ summary.FirstIdentityMismatch_Hz = firstIdentityMismatch;
 summary.Classification = classifyAlignment(summary, options);
 
 comparison = struct('points', points, 'summary', summary);
+end
+
+function [cp, valid] = identityCandidateOnFrequencyGrid(identityResult, f)
+f = f(:);
+cp = nan(size(f));
+valid = false(size(f));
+
+if ~isstruct(identityResult) || ~isfield(identityResult, 'identityA0') || ~isstruct(identityResult.identityA0)
+    return;
+end
+
+identity = identityResult.identityA0;
+if ~isfield(identity, 'CpCandidate') || isempty(identity.CpCandidate)
+    return;
+end
+
+candidateCp = identity.CpCandidate(:);
+if isfield(identity, 'validCandidate') && ~isempty(identity.validCandidate)
+    candidateValid = logical(identity.validCandidate(:));
+else
+    candidateValid = isfinite(candidateCp);
+end
+
+candidateFrequency = [];
+if isfield(identity, 'frequency') && ~isempty(identity.frequency)
+    candidateFrequency = identity.frequency(:);
+elseif isfield(identityResult, 'frequency') && ~isempty(identityResult.frequency)
+    candidateFrequency = identityResult.frequency(:);
+end
+
+if numel(candidateCp) == numel(f) && (isempty(candidateFrequency) || numel(candidateFrequency) ~= numel(candidateCp) || sameFrequencyGrid(candidateFrequency, f))
+    cp = candidateCp(:);
+    valid = candidateValid(:) & isfinite(cp);
+    return;
+end
+
+if numel(candidateFrequency) ~= numel(candidateCp)
+    warning('compare_atlasA0_vs_raw_branch1:IdentityGridMismatch', ...
+        'identityA0Diagnostic candidate length does not match either the output grid or its own frequency grid. Marking identity candidate invalid for this case.');
+    return;
+end
+
+[candidateFrequency, order] = sort(candidateFrequency(:));
+candidateCp = candidateCp(order);
+candidateValid = candidateValid(order) & isfinite(candidateCp);
+
+[candidateFrequency, uniqueIdx] = unique(candidateFrequency, 'stable');
+candidateCp = candidateCp(uniqueIdx);
+candidateValid = candidateValid(uniqueIdx);
+
+candidateCp(~candidateValid) = nan;
+cp = interp1(candidateFrequency, candidateCp, f, 'linear', nan);
+valid = isfinite(cp);
+end
+
+function tf = sameFrequencyGrid(a, b)
+a = a(:);
+b = b(:);
+if numel(a) ~= numel(b)
+    tf = false;
+    return;
+end
+tol = 10 * eps(max(1, max(abs([a; b]))));
+tf = max(abs(a - b)) <= tol;
 end
 
 function [err, overlapFraction, mismatch] = relativeError(referenceCp, referenceValid, cp, valid, threshold)
