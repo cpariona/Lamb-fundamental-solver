@@ -183,19 +183,19 @@ diagnose_atlas_truncation
 Important supporting documents:
 
 ```text
-docs/acoustoelastic_iop_hgo/solver_optimization_status.md
-docs/acoustoelastic_iop_hgo/phase_closure_atlasA0.md
-docs/acoustoelastic_iop_hgo/atlas_vs_raw_branch1_diagnostic.md
-docs/acoustoelastic_iop_hgo/branch_families_diagnostic.md
-docs/acoustoelastic_iop_hgo/identityA0_diagnostic_policy.md
-docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+docs/acoustoelastic_iop_hgo/active/solver_optimization_status.md
+docs/acoustoelastic_iop_hgo/archive/phase_closure_atlasA0.md
+docs/acoustoelastic_iop_hgo/diagnostics/atlas_vs_raw_branch1_diagnostic.md
+docs/acoustoelastic_iop_hgo/diagnostics/branch_families_diagnostic.md
+docs/acoustoelastic_iop_hgo/diagnostics/identityA0_diagnostic_policy.md
+docs/acoustoelastic_iop_hgo/archive/a0_backward_tracking_archive.md
 ```
 
 Archived branch-policy and A0-backward exploratory scripts should not be restored as workflows. Their retained conclusions are preserved in:
 
 ```text
-docs/acoustoelastic_iop_hgo/code_retention_review_plan.md
-docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+docs/acoustoelastic_iop_hgo/audits/code_retention_review_plan.md
+docs/acoustoelastic_iop_hgo/archive/a0_backward_tracking_archive.md
 ```
 
 ## Diagnostic alternatives
