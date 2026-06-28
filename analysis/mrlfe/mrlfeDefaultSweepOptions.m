@@ -7,6 +7,8 @@ function options = mrlfeDefaultSweepOptions(branchName, varargin)
 p = inputParser;
 addRequired(p, 'branchName', @(x)ischar(x) || isstring(x));
 addParameter(p, 'EtaS', 0.05, @(x)isnumeric(x) && isscalar(x) && isfinite(x));
+addParameter(p, 'UseUnifiedAtlasRoute', false, @(x)islogical(x) || isnumeric(x));
+addParameter(p, 'A0Policy', "delayedCut", @(x)ischar(x) || isstring(x));
 parse(p, branchName, varargin{:});
 
 branchName = string(p.Results.branchName);
@@ -16,6 +18,8 @@ options.computeMRLFERealK = true;
 options.computeMRLFEElasticRealK = true;
 options.computeMRLFEViscoRealK = true;
 options.computeMRLFEComplexK = false;
+options.mrlfeUseUnifiedAtlasRoute = logical(p.Results.UseUnifiedAtlasRoute);
+options.mrlfeA0Policy = string(p.Results.A0Policy);
 options.mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams.fluidDensity = 1000;
 options.mrlfeParams.fluidSoundSpeed = 1500;
