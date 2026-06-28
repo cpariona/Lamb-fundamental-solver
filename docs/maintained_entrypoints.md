@@ -361,6 +361,12 @@ test_mrlfe_unified_atlas_mu_sweep_contract
 test_mrlfe_a0_policy_selector_contract
 ```
 
+Maintained GUI mRLFE atlas integration test:
+
+```matlab
+test_gui_mrlfe_unified_atlas_policy_contract
+```
+
 ## Smoke-test scope
 
 Run the full maintained suite:
@@ -407,6 +413,7 @@ docs/mrlfe/current_sweeps.md
 docs/mrlfe_atlas_policy_notes.md
 examples/mrlfe/diagnostics/README.md
 docs/gui/adapter_architecture.md
+docs/gui/mrlfe_atlas_policy_integration.md
 docs/gui/integration_audit.md
 docs/gui/main_pending_cleanup.md
 docs/sweeps/parametric_sweeps.md
