@@ -80,12 +80,12 @@ h.mrlfe.etaS.Layout.Column = [3 4];
 label = uilabel(gM, 'Text', 'A0 atlas policy');
 label.Layout.Row = 8;
 label.Layout.Column = [1 2];
-h.mrlfe.a0Policy = uidropdown(gM, 'Items', {'delayedCut', 'adaptivePhysicalTail'}, ...
-    'Value', 'delayedCut', 'ValueChangedFcn', callbacks.markDirty);
+h.mrlfe.a0Policy = uidropdown(gM, 'Items', {'adaptivePhysicalTail', 'delayedCut'}, ...
+    'Value', 'adaptivePhysicalTail', 'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.a0Policy.Layout.Row = 8;
 h.mrlfe.a0Policy.Layout.Column = [3 4];
 
-note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity. The GUI adapter uses the unified real-k atlas route for viscous mRLFE calls. delayedCut is conservative; adaptivePhysicalTail is opt-in for difficult soft/viscous A0-like branches. S0-like is opt-in because it is typically slower.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity. The GUI adapter uses the unified real-k atlas route for viscous mRLFE calls. adaptivePhysicalTail is the recommended interactive A0 policy; delayedCut remains available for conservative diagnostics.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Row = 9;
 note.Layout.Column = [1 4];
 
@@ -151,7 +151,7 @@ h.ae.fluidBulkModulus = uieditfield(gAE, 'numeric', 'Value', 2.2, 'Limits', [0 I
 h.ae.fluidBulkModulus.Layout.Row = 6;
 h.ae.fluidBulkModulus.Layout.Column = [3 4];
 
-note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, fmin, and fmax. Internal atlas settings are derived from the Advanced robustness preset.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, fmin, and fmax. The GUI adapter uses a fast atlas preset for interaction; dense diagnostics keep explicit solver options.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Row = 7;
 note.Layout.Column = [1 4];
 
