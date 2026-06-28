@@ -5,7 +5,9 @@ function branch = solveMRLFEBranchAdaptiveAtlas(name, seedMode, material, geomet
 % a physical fallback scale. After the first accepted points, each frequency is
 % searched around the previous mRLFE point or a linear prediction from the last
 % two accepted points. The local window expands only when no acceptable local
-% minimum is found.
+% minimum is found. Once a stable branch has been established, a tracking loss
+% cuts the remaining tail instead of reinitializing from the seed and jumping to
+% another branch.
 
 frequency = seedMode.frequency(:);
 omega = seedMode.omega(:);
@@ -26,14 +28,26 @@ windowUsed = nan(numFreq,1);
 candidateRank = nan(numFreq,1);
 numCandidates = zeros(numFreq,1);
 centerCp = nan(numFreq,1);
+cutIndex = nan;
+cutReason = "none";
+
+validRunLength = 0;
+branchEstablished = false;
 
 for j = 1:numFreq
-    center = chooseCenterCp(j, Cp, seedCp);
+    center = chooseCenterCp(j, Cp, seedCp, branchEstablished, tracker);
     centerCp(j) = center;
     [best, usedWindow] = findAdaptiveCandidate(center, omega(j), material, geometry, mrlfeParams, tracker);
     windowUsed(j) = usedWindow;
     numCandidates(j) = best.numCandidates;
+
     if ~best.valid
+        if tracker.cutAfterEstablishedLoss && branchEstablished
+            cutIndex = j;
+            cutReason = "missing_local_minimum_after_established_branch";
+            break;
+        end
+        validRunLength = 0;
         continue;
     end
 
@@ -48,12 +62,27 @@ for j = 1:numFreq
     validSmooth(j) = isSmoothContinuation(j, Cp, tracker);
     validCp(j) = validResidual(j) && validReference(j) && validSmooth(j);
 
-    if ~validCp(j)
+    if validCp(j)
+        validRunLength = validRunLength + 1;
+        branchEstablished = branchEstablished || validRunLength >= tracker.establishedMinValidRun;
+    else
         Cp(j) = nan;
         kReal(j) = nan;
         residual(j) = nan;
         score(j) = nan;
         candidateRank(j) = nan;
+        validRunLength = 0;
+        if tracker.cutAfterEstablishedLoss && branchEstablished
+            cutIndex = j;
+            if ~validResidual(j)
+                cutReason = "residual_rejected_after_established_branch";
+            elseif ~validSmooth(j)
+                cutReason = "smoothness_rejected_after_established_branch";
+            else
+                cutReason = "invalid_candidate_after_established_branch";
+            end
+            break;
+        end
     end
 end
 
@@ -90,6 +119,14 @@ branch.adaptiveCenterCp = centerCp;
 branch.adaptiveCandidateCount = numCandidates;
 branch.dpOptions = tracker;
 branch.usedGuideBranch = false;
+branch.adaptiveCut = struct( ...
+    'PolicyName', "adaptiveContinuationCut", ...
+    'CutAfterEstablishedLoss', tracker.cutAfterEstablishedLoss, ...
+    'EstablishedMinValidRun', tracker.establishedMinValidRun, ...
+    'FirstCutIndex', cutIndex, ...
+    'FirstCutFrequency', getCutFrequency(frequency, cutIndex), ...
+    'CutReason', cutReason, ...
+    'ValidPointsAfterCut', nnz(validCp));
 branch.note = "mRLFE branch tracked with adaptive local Cp windows.";
 end
 
@@ -110,16 +147,22 @@ tracker.refineCandidates = getOption(options, 'mrlfeAdaptiveRefineCandidates', t
 tracker.refineTolX = getOption(options, 'mrlfeA0DPRefineTolX', 1e-6);
 tracker.refineMaxIter = getOption(options, 'mrlfeA0DPRefineMaxIter', 24);
 tracker.refineMaxFunEvals = getOption(options, 'mrlfeA0DPRefineMaxFunEvals', 60);
+tracker.cutAfterEstablishedLoss = getOption(options, 'mrlfeAdaptiveCutAfterEstablishedLoss', true);
+tracker.establishedMinValidRun = getOption(options, 'mrlfeAdaptiveEstablishedMinValidRun', 8);
 end
 
-function center = chooseCenterCp(j, Cp, seedCp)
+function center = chooseCenterCp(j, Cp, seedCp, branchEstablished, tracker)
 if j >= 3 && isfinite(Cp(j-1)) && isfinite(Cp(j-2))
     center = Cp(j-1) + (Cp(j-1) - Cp(j-2));
 elseif j >= 2 && isfinite(Cp(j-1))
     center = Cp(j-1);
-elseif isfinite(seedCp(j)) && seedCp(j) > 0
+elseif ~branchEstablished && isfinite(seedCp(j)) && seedCp(j) > 0
     center = seedCp(j);
 else
+    if branchEstablished && tracker.cutAfterEstablishedLoss
+        center = nan;
+        return;
+    end
     validSeed = seedCp(isfinite(seedCp) & seedCp > 0);
     if isempty(validSeed)
         center = 1;
@@ -133,6 +176,9 @@ end
 function [best, usedWindow] = findAdaptiveCandidate(center, omega, material, geometry, mrlfeParams, tracker)
 best = emptyCandidate();
 usedWindow = nan;
+if ~isfinite(center) || center <= 0
+    return;
+end
 for i = 1:numel(tracker.windows)
     width = tracker.windows(i);
     cpMin = max(tracker.cpMinFloor, center * (1 - width));
@@ -246,6 +292,14 @@ if j >= 3 && isfinite(Cp(j-2))
     if predErr > tracker.maxPredictionError
         tf = false;
     end
+end
+end
+
+function f = getCutFrequency(frequency, cutIndex)
+if isfinite(cutIndex) && cutIndex >= 1 && cutIndex <= numel(frequency)
+    f = frequency(cutIndex);
+else
+    f = nan;
 end
 end
 
