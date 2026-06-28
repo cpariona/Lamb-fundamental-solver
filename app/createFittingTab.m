@@ -16,9 +16,9 @@ CpExample = sqrt(params0.mu / params0.rho);
 defaultData = [1000, CpExample, 1; 3000, CpExample, 1; 5000, CpExample, 1; 7000, CpExample, 1];
 
 tab = uitab(tabs, 'Title', 'Fitting');
-g = uigridlayout(tab, [14 4]);
+g = uigridlayout(tab, [15 4]);
 g.ColumnWidth = {115, '1x', 115, '1x'};
-g.RowHeight = {22, 24, 24, 24, 24, 24, 24, 24, 24, 24, '1x', 28, 26, 26};
+g.RowHeight = {22, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, '1x', 28, 26, 26};
 g.Padding = [10 8 10 8];
 g.RowSpacing = 3;
 g.ColumnSpacing = 8;
@@ -99,18 +99,27 @@ h.fixedEtaS.Layout.Column = 2;
 h.fixedEtaSLabel.Visible = 'off';
 h.fixedEtaS.Visible = 'off';
 
+h.a0PolicyLabel = uilabel(g, 'Text', 'mRLFE A0 atlas policy');
+h.a0PolicyLabel.Layout.Row = 7;
+h.a0PolicyLabel.Layout.Column = [1 2];
+h.a0Policy = uidropdown(g, 'Items', {'delayedCut', 'adaptivePhysicalTail'}, 'Value', 'delayedCut');
+h.a0Policy.Layout.Row = 7;
+h.a0Policy.Layout.Column = [3 4];
+h.a0PolicyLabel.Visible = 'off';
+h.a0Policy.Visible = 'off';
+
 note = uilabel(g, 'Text', 'Data table columns: frequency_Hz | Cp_mps | Use(1/0).', 'FontSize', 10);
-note.Layout.Row = 7;
+note.Layout.Row = 8;
 note.Layout.Column = [1 4];
 
 h.dataTable = uitable(g, 'Data', defaultData, ...
     'ColumnName', {'frequency_Hz', 'Cp_mps', 'Use'}, ...
     'ColumnEditable', [true true true]);
-h.dataTable.Layout.Row = [8 11];
+h.dataTable.Layout.Row = [9 12];
 h.dataTable.Layout.Column = [1 4];
 
 buttonGrid = uigridlayout(g, [1 2]);
-buttonGrid.Layout.Row = 12;
+buttonGrid.Layout.Row = 13;
 buttonGrid.Layout.Column = [1 4];
 buttonGrid.ColumnWidth = {'1x', '1x'};
 buttonGrid.Padding = [0 0 0 0];
@@ -122,11 +131,11 @@ h.runButton = uibutton(buttonGrid, 'Text', 'Run fit', ...
     'ButtonPushedFcn', callbacks.onRunFit);
 
 h.status = uilabel(g, 'Text', 'Fit status: ready.', 'FontSize', 10, 'WordWrap', 'on');
-h.status.Layout.Row = 13;
+h.status.Layout.Row = 14;
 h.status.Layout.Column = [1 4];
 
 h.note = uilabel(g, 'Text', 'Visible one-parameter fitting: RL mu/thickness; mRLFE mu/thickness/etaS; AE atlasA0 mu/thickness/IOP.', ...
     'FontSize', 10, 'WordWrap', 'on');
-h.note.Layout.Row = 14;
+h.note.Layout.Row = 15;
 h.note.Layout.Column = [1 4];
 end

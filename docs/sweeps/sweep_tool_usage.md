@@ -15,7 +15,7 @@ SweepTool_GUI
 
 | Family | Parameters | Branches | Notes |
 | --- | --- | --- | --- |
-| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Uses the unified `mRLFE real-k` path. `etaS = 0` is the elastic limit; `etaS > 0` is the viscous case. |
+| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Uses the unified `mRLFE real-k` path. `etaS = 0` is the elastic limit; `etaS > 0` is the viscous case. The A0 atlas policy selector exposes `delayedCut` and `adaptivePhysicalTail`. |
 | `Rayleigh-Lamb` | `thickness`, `mu` | `A0`, `S0` | Uses the Rayleigh-Lamb sweep adapter and the maintained `rl*` API. |
 | `AE IOP/HGO` | `IOP`, `mu` | `atlasA0` | Uses the AE IOP/HGO sweep adapter and the maintained atlas branch policy. |
 
@@ -33,6 +33,7 @@ Model: mRLFE real-k
 Branch: A0Like
 Robustness: Fast
 etaS: 0.05 Pa*s
+A0 atlas policy: delayedCut
 ```
 
 Expected outcome:
@@ -41,6 +42,8 @@ Expected outcome:
 - The values are interpreted in kPa and converted to solver units by the registry scale.
 - The summary table has two rows.
 - The normalized model name is `mRLFERealK`.
+- `SweepToolOutput.atlasPolicy.mrlfeUseUnifiedAtlasRoute` is `true`.
+- `SweepToolOutput.atlasPolicy.mrlfeA0Policy` matches the selected A0 policy.
 - `SweepToolOutput`, `SweepToolRequest`, `SweepToolNormalized`, `SweepToolResults`, and `SweepToolSummary` export to the base workspace.
 
 ### mRLFE etaS check
@@ -54,6 +57,7 @@ Values: 0, 0.05
 Model: mRLFE real-k
 Branch: A0Like
 Robustness: Fast
+A0 atlas policy: delayedCut
 ```
 
 Expected outcome:
@@ -61,6 +65,28 @@ Expected outcome:
 - `etaS = 0` gives the elastic fluid-loaded limit.
 - `etaS > 0` uses the same mRLFE real-k model with shear viscosity.
 - The normalized model name remains `mRLFERealK` for both cases.
+- The exported `SweepToolOutput.atlasPolicy` reports the selected atlas route and A0 policy.
+
+### mRLFE adaptive A0 policy check
+
+Use:
+
+```text
+Model family: mRLFE
+Sweep parameter: etaS
+Values: 0.05
+Model: mRLFE real-k
+Branch: A0Like
+Robustness: Fast
+A0 atlas policy: adaptivePhysicalTail
+```
+
+Expected outcome:
+
+- The sweep completes without adapter errors.
+- The summary table has one row.
+- `SweepToolOutput.atlasPolicy.mrlfeA0Policy` is `adaptivePhysicalTail`.
+- This check verifies routing only. It does not prove physical validity of the adaptive policy for a given experiment.
 
 ### Rayleigh-Lamb thickness check
 
@@ -169,6 +195,12 @@ guiNormalizeAcoustoelasticIOPHGOSweep
 ```
 
 The GUI should not call scripts under `examples/` directly. Example scripts and GUI callbacks should share maintained backend utilities or model APIs through adapters.
+
+mRLFE atlas policy integration is documented in:
+
+```text
+docs/gui/mrlfe_atlas_policy_integration.md
+```
 
 ## Export contract
 

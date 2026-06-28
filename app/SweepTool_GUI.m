@@ -38,9 +38,9 @@ root.ColumnSpacing = 10;
 
 controlPanel = uipanel(root, 'Title', 'Sweep setup');
 controlPanel.Layout.Column = 1;
-cg = uigridlayout(controlPanel, [20 2]);
+cg = uigridlayout(controlPanel, [22 2]);
 cg.ColumnWidth = {145, '1x'};
-cg.RowHeight = [repmat({24, 30}, 1, 8), {34, 34, '1x', 28}];
+cg.RowHeight = [repmat({24, 30}, 1, 9), {34, 34, '1x', 28}];
 cg.Padding = [10 8 10 8];
 cg.RowSpacing = 4;
 cg.ColumnSpacing = 8;
@@ -92,6 +92,12 @@ robustnessDrop = uidropdown(cg, ...
     'Items', cellstr(activeFamily.robustnessPresets), ...
     'Value', char(activeFamily.defaultRobustness));
 setGridPosition(robustnessDrop, row, [1 2]);
+
+row = row + 1;
+addLabel(cg, row, [1 2], 'mRLFE A0 atlas policy');
+row = row + 1;
+a0PolicyDrop = uidropdown(cg, 'Items', {'delayedCut', 'adaptivePhysicalTail'}, 'Value', 'delayedCut');
+setGridPosition(a0PolicyDrop, row, [1 2]);
 
 row = row + 1;
 addLabel(cg, row, [1 2], 'Base etaS [Pa*s]');
@@ -242,6 +248,8 @@ updateFamilySpecificControls();
                 controls.etaS = etaSEdit.Value;
                 controls.fluidDensity = fluidDensityEdit.Value;
                 controls.fluidSoundSpeed = fluidSoundEdit.Value;
+                controls.mrlfeUseUnifiedAtlasRoute = true;
+                controls.mrlfeA0Policy = string(a0PolicyDrop.Value);
             otherwise
                 controls.M54_variant = "corrected";
                 controls.normalizeRows = false;
@@ -262,6 +270,7 @@ updateFamilySpecificControls();
         etaSEdit.Enable = matlab.lang.OnOffSwitchState(isMRLFE);
         fluidDensityEdit.Enable = matlab.lang.OnOffSwitchState(isMRLFE);
         fluidSoundEdit.Enable = matlab.lang.OnOffSwitchState(isMRLFE);
+        a0PolicyDrop.Enable = matlab.lang.OnOffSwitchState(isMRLFE);
     end
 
     function familyId = getFamilyIdFromLabel(label)

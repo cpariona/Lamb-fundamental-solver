@@ -86,6 +86,7 @@ options.computeMRLFERealK = true;
 options.computeMRLFEElasticRealK = true;
 options.computeMRLFEViscoRealK = true;
 options.computeMRLFEComplexK = false;
+options.mrlfeA0Policy = string(getOption(options, 'mrlfeA0Policy', "delayedCut"));
 
 if ~isfield(options, 'mrlfeParams') || isempty(options.mrlfeParams)
     options.mrlfeParams = defaultMRLFEParams();
@@ -117,6 +118,9 @@ end
 
 function tf = localShouldUseDirectViscoAtlas(options, branchName)
 tf = false;
+if getOption(options, 'mrlfeUseUnifiedAtlasRoute', false)
+    return;
+end
 if ~(isstruct(options) && isfield(options, 'mrlfeUseDirectViscoAtlas') && options.mrlfeUseDirectViscoAtlas)
     return;
 end
@@ -238,12 +242,18 @@ end
 
 function summary = localEvaluationPathSummary(options, usedDirectViscoAtlas)
 requestedDirectViscoAtlas = getOption(options, 'mrlfeUseDirectViscoAtlas', false);
+requestedUnifiedAtlas = getOption(options, 'mrlfeUseUnifiedAtlasRoute', false);
 summary = struct();
 summary.requestedDirectViscoAtlas = logical(requestedDirectViscoAtlas);
+summary.requestedUnifiedAtlas = logical(requestedUnifiedAtlas);
 summary.useDirectViscoAtlas = logical(usedDirectViscoAtlas);
 summary.usedDirectViscoAtlas = logical(usedDirectViscoAtlas);
+summary.usedUnifiedAtlas = logical(requestedUnifiedAtlas && ~usedDirectViscoAtlas);
+summary.mrlfeA0Policy = string(getOption(options, 'mrlfeA0Policy', "delayedCut"));
 if usedDirectViscoAtlas
     summary.path = "direct_viscous_atlas";
+elseif requestedUnifiedAtlas
+    summary.path = "unified_atlas";
 else
     summary.path = "maintained_rl_mrlfe_workflow";
 end
