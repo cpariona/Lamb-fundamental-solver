@@ -8,9 +8,9 @@ function result = guiRunMRLFEModel(guiRequest)
 %   computeElastic   - logical, default true
 %   computeVisco     - logical, default false
 %
-% Rayleigh-Lamb A0/S0 branches may be computed internally as seeds for mRLFE,
-% but this adapter exposes only mRLFE branches on the normalized GUI plotting
-% surface. The seed branches remain available in result.metadata.rawResult.
+% Rayleigh-Lamb A0/S0 branches are computed only as seeds for mRLFE. This
+% adapter exposes only the maintained mRLFERealK branch on the normalized GUI
+% plotting surface. Seed branches remain available in result.metadata.rawResult.
 
 if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
@@ -19,28 +19,43 @@ end
 params = mergeStructs(rlDefaultParams(), getStructField(guiRequest, 'params', struct()));
 options = mergeStructs(rlDefaultOptions(), getStructField(guiRequest, 'options', struct()));
 
-computeElastic = getStructField(guiRequest, 'computeElastic', true);
-computeVisco = getStructField(guiRequest, 'computeVisco', false);
+computeVisco = logical(getStructField(guiRequest, 'computeVisco', false));
 computeA0Like = getStructField(options, 'mrlfeComputeA0Like', true);
 computeS0Like = getStructField(options, 'mrlfeComputeS0Like', true);
-computeMRLFE = logical(computeElastic || computeVisco);
-
-options.computeA0 = logical(getStructField(options, 'computeA0', true) || (computeMRLFE && computeA0Like));
-options.computeS0 = logical(getStructField(options, 'computeS0', true) || (computeMRLFE && computeS0Like));
-options.computeMRLFE = false;
-options.computeMRLFEElasticRealK = logical(computeElastic || computeVisco);
-options.computeMRLFEViscoRealK = logical(computeVisco);
-options.computeMRLFERealK = options.computeMRLFEElasticRealK;
-options.computeMRLFEComplexK = false;
-options.mrlfeUseUnifiedAtlasRoute = logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', computeVisco));
-options.mrlfeA0Policy = string(getStructField(options, 'mrlfeA0Policy', "delayedCut"));
 
 if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
     options.mrlfeParams = guiRequest.mrlfeParams;
 end
+if ~isfield(options, 'mrlfeParams') || isempty(options.mrlfeParams)
+    options.mrlfeParams = defaultMRLFEParams();
+end
+options.mrlfeParams.solveComplexK = false;
+options.mrlfeParams.etaL = 0;
+options.mrlfeParams.useComplexLambda = false;
+
+options.computeMRLFE = false;
+options.computeMRLFEElasticRealK = false;
+options.computeMRLFEViscoRealK = false;
+options.computeMRLFERealK = false;
+options.computeMRLFEComplexK = false;
+options.mrlfeUseUnifiedAtlasRoute = logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', computeVisco));
+options.mrlfeA0Policy = string(getStructField(options, 'mrlfeA0Policy', "delayedCut"));
+
+seedOptions = options;
+seedOptions.computeA0 = logical(getStructField(options, 'computeA0', true) || computeA0Like);
+seedOptions.computeS0 = logical(getStructField(options, 'computeS0', false) || computeS0Like);
+seedOptions.computeMRLFE = false;
+seedOptions.computeMRLFEElasticRealK = false;
+seedOptions.computeMRLFEViscoRealK = false;
+seedOptions.computeMRLFERealK = false;
+seedOptions.computeMRLFEComplexK = false;
 
 elapsedTimer = tic;
-rawResult = rlComputeFundamentalLambModes(params, options);
+rawResult = rlComputeFundamentalLambModes(params, seedOptions);
+frequency = rawResult.grid.frequency(:);
+mrlfeResult = computeMRLFE(frequency, rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
+rawResult.models.mRLFERealK = mrlfeResult;
+rawResult.models.mRLFE = mrlfeResult;
 elapsedSeconds = toc(elapsedTimer);
 
 result = guiNormalizeRawResult(rawResult, mfilename);
@@ -63,7 +78,7 @@ if isempty(branches)
     return;
 end
 modelNames = string({branches.modelName});
-keep = modelNames == "mRLFERealK" | modelNames == "mRLFEElasticRealK" | modelNames == "mRLFEViscoRealK";
+keep = modelNames == "mRLFERealK";
 branches = branches(keep);
 end
 
