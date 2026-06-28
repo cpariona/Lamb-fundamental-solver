@@ -8,6 +8,12 @@ function branch = solveMRLFEBranchAdaptiveAtlas(name, seedMode, material, geomet
 % minimum is found. Once a stable branch has been established, a tracking loss
 % cuts the remaining tail instead of reinitializing from the seed and jumping to
 % another branch.
+%
+% Optional valley fallback:
+%   Some physical branches become shallow shoulders rather than strict local
+%   minima. When enabled, the tracker adds a prediction-centered candidate from
+%   a narrow trust region around the predicted Cp. This is intended for A0-like
+%   low-mu diagnostics and is disabled by default.
 
 frequency = seedMode.frequency(:);
 omega = seedMode.omega(:);
@@ -28,6 +34,8 @@ windowUsed = nan(numFreq,1);
 candidateRank = nan(numFreq,1);
 numCandidates = zeros(numFreq,1);
 centerCp = nan(numFreq,1);
+candidateType = strings(numFreq,1);
+candidateType(:) = "none";
 cutIndex = nan;
 cutReason = "none";
 
@@ -44,7 +52,7 @@ for j = 1:numFreq
     if ~best.valid
         if tracker.cutAfterEstablishedLoss && branchEstablished
             cutIndex = j;
-            cutReason = "missing_local_minimum_after_established_branch";
+            cutReason = "missing_candidate_after_established_branch";
             break;
         end
         validRunLength = 0;
@@ -55,6 +63,7 @@ for j = 1:numFreq
     kReal(j) = omega(j) / best.cp;
     residual(j) = best.residual;
     candidateRank(j) = best.rank;
+    candidateType(j) = best.type;
     score(j) = best.score;
 
     validResidual(j) = isfinite(best.residual) && best.residual <= tracker.residualTolerance;
@@ -71,6 +80,7 @@ for j = 1:numFreq
         residual(j) = nan;
         score(j) = nan;
         candidateRank(j) = nan;
+        candidateType(j) = "none";
         validRunLength = 0;
         if tracker.cutAfterEstablishedLoss && branchEstablished
             cutIndex = j;
@@ -114,6 +124,7 @@ branch.valid = valid;
 branch.candidateIndex = ones(numFreq,1);
 branch.candidateIndex(~validCp) = nan;
 branch.candidateRank = candidateRank;
+branch.candidateType = candidateType;
 branch.adaptiveWindowUsed = windowUsed;
 branch.adaptiveCenterCp = centerCp;
 branch.adaptiveCandidateCount = numCandidates;
@@ -149,6 +160,11 @@ tracker.refineMaxIter = getOption(options, 'mrlfeA0DPRefineMaxIter', 24);
 tracker.refineMaxFunEvals = getOption(options, 'mrlfeA0DPRefineMaxFunEvals', 60);
 tracker.cutAfterEstablishedLoss = getOption(options, 'mrlfeAdaptiveCutAfterEstablishedLoss', true);
 tracker.establishedMinValidRun = getOption(options, 'mrlfeAdaptiveEstablishedMinValidRun', 8);
+tracker.allowValleyFallback = getOption(options, 'mrlfeAdaptiveAllowValleyFallback', false);
+tracker.valleyFallbackRelativeWindow = getOption(options, 'mrlfeAdaptiveValleyFallbackRelativeWindow', 0.08);
+tracker.valleyFallbackResidualTolerance = getOption(options, 'mrlfeAdaptiveValleyFallbackResidualTolerance', tracker.residualTolerance);
+tracker.valleyFallbackPredictionWeight = getOption(options, 'mrlfeAdaptiveValleyFallbackPredictionWeight', tracker.predictionWeight);
+tracker.valleyFallbackResidualWeight = getOption(options, 'mrlfeAdaptiveValleyFallbackResidualWeight', tracker.residualWeight);
 end
 
 function center = chooseCenterCp(j, Cp, seedCp, branchEstablished, tracker)
@@ -189,6 +205,9 @@ for i = 1:numel(tracker.windows)
     CpScan = linspace(cpMin, cpMax, tracker.cpScanPoints);
     residual = computeResidualVsCp(CpScan, omega, material, geometry, mrlfeParams);
     candidates = findCandidates(CpScan, residual, omega, material, geometry, mrlfeParams, tracker);
+    if tracker.allowValleyFallback
+        candidates = appendValleyFallbackCandidate(candidates, CpScan, residual, center, tracker);
+    end
     if isempty(candidates.cp)
         continue;
     end
@@ -219,8 +238,7 @@ for i = max(2, firstAllowed):min(numel(residual)-1, lastAllowed)
     end
 end
 if isempty(idx)
-    candidates.cp = [];
-    candidates.residual = [];
+    candidates = emptyCandidates();
     return;
 end
 [~, order] = sort(residual(idx), 'ascend');
@@ -235,6 +253,37 @@ if tracker.refineCandidates
 end
 candidates.cp = cp(:);
 candidates.residual = res(:);
+candidates.type = repmat("localMinimum", numel(candidates.cp), 1);
+end
+
+function candidates = appendValleyFallbackCandidate(candidates, CpScan, residual, center, tracker)
+mask = isfinite(residual) & residual > 0 & residual <= tracker.valleyFallbackResidualTolerance;
+trust = abs(CpScan - center) ./ max(abs(center), eps) <= tracker.valleyFallbackRelativeWindow;
+idx = find(mask & trust);
+if isempty(idx)
+    return;
+end
+score = nan(size(idx));
+for n = 1:numel(idx)
+    cp = CpScan(idx(n));
+    predTerm = abs(cp - center) / max(abs(center), eps);
+    resTerm = log10(max(residual(idx(n)), tracker.residualFloor));
+    score(n) = tracker.valleyFallbackResidualWeight * resTerm + tracker.valleyFallbackPredictionWeight * predTerm.^2;
+end
+[~, bestLocal] = min(score);
+bestIdx = idx(bestLocal);
+
+cpCandidate = CpScan(bestIdx);
+resCandidate = residual(bestIdx);
+if isempty(candidates.cp)
+    candidates.cp = cpCandidate;
+    candidates.residual = resCandidate;
+    candidates.type = "valleyFallback";
+else
+    candidates.cp(end+1,1) = cpCandidate;
+    candidates.residual(end+1,1) = resCandidate;
+    candidates.type(end+1,1) = "valleyFallback";
+end
 end
 
 function [cpRefined, residualRefined] = refineCandidates(CpScan, idx, omega, material, geometry, mrlfeParams, tracker)
@@ -273,6 +322,7 @@ if best.valid
     best.residual = candidates.residual(idx);
     best.rank = idx;
     best.score = bestScore;
+    best.type = candidates.type(idx);
 end
 end
 
@@ -304,7 +354,14 @@ end
 end
 
 function c = emptyCandidate()
-c = struct('valid', false, 'cp', nan, 'residual', nan, 'rank', nan, 'score', nan, 'numCandidates', 0);
+c = struct('valid', false, 'cp', nan, 'residual', nan, 'rank', nan, 'score', nan, 'numCandidates', 0, 'type', "none");
+end
+
+function candidates = emptyCandidates()
+candidates = struct();
+candidates.cp = [];
+candidates.residual = [];
+candidates.type = strings(0,1);
 end
 
 function value = getOption(options, fieldName, defaultValue)
