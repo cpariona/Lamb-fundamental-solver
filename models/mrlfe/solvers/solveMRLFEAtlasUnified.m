@@ -54,7 +54,7 @@ if isViscous
         branch.delayedViscoModalCut = cut;
         branch.atlasUnifiedPolicy = "viscousA0DelayedCut";
     else
-        branch.atlasUnifiedPolicy = "viscousS0ConservativeCut";
+        branch.atlasUnifiedPolicy = "viscousS0ContinuationCut";
     end
 else
     opt = makeElasticOptions(branchName, options);
@@ -96,6 +96,16 @@ if string(branchName) == "A0Like"
     opt.mrlfeDelayedCutPreviousCpMaxRelativeJump = getOption(options, 'mrlfeDelayedCutPreviousCpMaxRelativeJump', 0.18);
     opt.mrlfeDelayedCutResidualTolerance = getOption(options, 'mrlfeDelayedCutResidualTolerance', 1e-3);
 else
+    % S0Like uses RL-S0 only as a fast branch-scale seed. Once the branch is
+    % found, tracking should prefer the previous selected mRLFE candidate over
+    % returning to the RL-S0 curve, which can drift toward CT at high frequency.
+    opt.mrlfeA0DPJumpWeight = getOption(options, 'mrlfeViscoS0DPJumpWeight', 55.0);
+    opt.mrlfeA0DPCurvatureWeight = getOption(options, 'mrlfeViscoS0DPCurvatureWeight', 45.0);
+    opt.mrlfeA0DPSeedWeight = getOption(options, 'mrlfeViscoS0DPSeedWeight', 0.03);
+    opt.mrlfeA0DPResidualWeight = getOption(options, 'mrlfeViscoS0DPResidualWeight', 0.35);
+    opt.mrlfeA0DPMaxJumpSoft = getOption(options, 'mrlfeViscoS0DPMaxJumpSoft', 0.08);
+    opt.mrlfeA0DPValidationMaxCpJumpRelative = getOption(options, 'mrlfeViscoS0DPValidationMaxCpJumpRelative', 0.18);
+    opt.mrlfeA0DPValidationMaxCpPredictionError = getOption(options, 'mrlfeViscoS0DPValidationMaxCpPredictionError', 0.18);
     opt.mrlfeRealKStopAtFirstMissingModalMinimum = true;
     opt.mrlfeViscoS0StopAtFirstMissingModalMinimum = true;
     opt.mrlfeViscoS0PreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoS0PreviousCpMaxRelativeJump', 0.18);
