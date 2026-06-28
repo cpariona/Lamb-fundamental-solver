@@ -54,7 +54,8 @@ The main GUI adapter uses a lightweight route:
 
 ```text
 Rayleigh-Lamb seed branch
-    -> computeMRLFE
+    -> computeMRLFE for etaS = 0
+    -> solveMRLFEAtlasUnified for etaS > 0
     -> mRLFERealK only
     -> normalized GUI branch
 ```
@@ -67,13 +68,51 @@ mRLFERealK
 
 The raw/internal result may preserve Rayleigh-Lamb seed branches, but routine GUI computation should not produce redundant `mRLFEElasticRealK` and `mRLFEViscoRealK` branches when only `mRLFERealK` is requested.
 
-The model adapter preserves the route and policy metadata:
+## GUI fast atlas preset
+
+The main GUI uses a fast atlas preset for viscous mRLFE interaction:
+
+```matlab
+options.mrlfeUseGuiFastAtlasPreset = true;
+options.mrlfeGuiAtlasPreset = "fast";
+```
+
+The preset reduces atlas scan density and candidate refinement for interactive use:
+
+```matlab
+mrlfeViscoAtlasCpScanPoints = 260
+mrlfeA0DPCpScanPoints = 260
+mrlfeA0DPCandidates = 5
+mrlfeA0DPRefineCandidates = false
+mrlfeAdaptiveCpScanPoints = 260
+mrlfeAdaptiveRefineCandidates = false
+mrlfeAdaptiveWindows = [0.20 0.40 0.80]
+```
+
+This preset is GUI-specific. Dense diagnostics and policy-validation scripts should keep their own explicit dense options. Disable the preset only for debugging:
+
+```matlab
+options.mrlfeUseGuiFastAtlasPreset = false;
+```
+
+The adapter preserves preset metadata:
+
+```matlab
+result.metadata.mrlfeGuiAtlasPreset
+result.diagnostics.mrlfeGuiAtlasPreset
+```
+
+## Metadata contract
+
+The model adapter preserves the route, policy, and preset metadata:
 
 ```matlab
 result.metadata.mrlfeUseUnifiedAtlasRoute
 result.metadata.mrlfeA0Policy
+result.metadata.mrlfeGuiAtlasPreset
 result.diagnostics.mrlfeUseUnifiedAtlasRoute
 result.diagnostics.mrlfeA0Policy
+result.diagnostics.mrlfeGuiAtlasPreset
 ```
 
 The plotting surface remains normalized. Rayleigh-Lamb seed branches may exist in `metadata.rawResult`, but they should not appear as mRLFE plot branches.
@@ -168,8 +207,9 @@ Expected behavior:
 - mRLFE real-k A0-like curve appears
 - status/diagnostics remain available
 - Rayleigh-Lamb seed branches are not exposed as mRLFE plot branches
-- diagnostic elapsed time is substantially lower than the redundant all-variant route
+- diagnostic elapsed time is substantially lower than the dense all-atlas route
 - raw/internal models contain mRLFERealK for the visible mRLFE result
+- mrlfeGuiAtlasPreset reports "fast" for viscous GUI calls
 ```
 
 ### SweepTool
