@@ -21,7 +21,7 @@ app/adapters/guiFitMRLFESolver.m
 analysis/mrlfe/mrlfeEvaluateFitModel.m
 ```
 
-The goal is not to claim external physical validation. The goal is to ensure that GUI requests can explicitly reach the maintained unified real-k atlas route and preserve the selected A0 policy in metadata.
+The goal is not to claim external physical validation. The goal is to ensure that GUI requests can reach the maintained viscous mRLFE atlas route and preserve the selected A0 policy in metadata.
 
 ## Supported A0 policies
 
@@ -36,10 +36,10 @@ Current interpretation:
 
 | Policy | Use |
 | --- | --- |
-| `delayedCut` | Conservative/default A0 policy. |
-| `adaptivePhysicalTail` | Opt-in policy for difficult soft, viscous, fluid-loaded A0-like branches. |
+| `adaptivePhysicalTail` | Recommended interactive policy for difficult soft, viscous, fluid-loaded A0-like branches. |
+| `delayedCut` | Conservative/diagnostic A0 policy. It can truncate early or select a short tail in GUI-fast settings. |
 
-The GUI should not silently make `adaptivePhysicalTail` the global default.
+The solver default remains conservative in backend contexts. The GUI default is allowed to prioritize interactive branch coverage by selecting `adaptivePhysicalTail`.
 
 ## Main GUI contract
 
@@ -50,7 +50,7 @@ options.mrlfeUseUnifiedAtlasRoute = options.mrlfeParams.etaS > 0;
 options.mrlfeA0Policy = string(modelControls.mrlfe.a0Policy.Value);
 ```
 
-The main GUI adapter uses a lightweight route:
+The main GUI adapter uses this route split:
 
 ```text
 Rayleigh-Lamb seed branch
@@ -60,21 +60,23 @@ Rayleigh-Lamb seed branch
     -> normalized GUI branch
 ```
 
-It should not compute and register all mRLFE internal variants for routine plotting. The GUI-visible model should be:
+`etaS = 0` is treated as an elastic reference route in the main GUI. The elastic modal-atlas route is not currently the GUI default because it can return invalid/fragmented normalized Cp in the lightweight smoke-test grid and needs a separate stabilization pass.
+
+The GUI-visible model should be:
 
 ```text
 mRLFERealK
 ```
 
-The raw/internal result may preserve Rayleigh-Lamb seed branches, but routine GUI computation should not produce redundant `mRLFEElasticRealK` and `mRLFEViscoRealK` branches when only `mRLFERealK` is requested.
+The raw/internal result may preserve Rayleigh-Lamb seed branches, but routine GUI computation should not expose redundant `mRLFEElasticRealK` and `mRLFEViscoRealK` branches on the plotting surface.
 
-## GUI fast atlas preset
+## GUI fast viscous atlas preset
 
 The main GUI uses a fast atlas preset for viscous mRLFE interaction:
 
 ```matlab
 options.mrlfeUseGuiFastAtlasPreset = true;
-options.mrlfeGuiAtlasPreset = "fast";
+options.mrlfeGuiAtlasPreset = "fast_viscous";
 ```
 
 The preset reduces atlas scan density and candidate refinement for interactive use:
@@ -95,16 +97,15 @@ This preset is GUI-specific. Dense diagnostics and policy-validation scripts sho
 options.mrlfeUseGuiFastAtlasPreset = false;
 ```
 
-The adapter preserves preset metadata:
+For `etaS = 0`, the adapter reports:
 
 ```matlab
-result.metadata.mrlfeGuiAtlasPreset
-result.diagnostics.mrlfeGuiAtlasPreset
+result.metadata.mrlfeGuiAtlasPreset = "elastic_reference";
 ```
 
 ## Metadata contract
 
-The model adapter preserves the route, policy, and preset metadata:
+The model adapter preserves route, policy, and preset metadata:
 
 ```matlab
 result.metadata.mrlfeUseUnifiedAtlasRoute
@@ -194,10 +195,9 @@ Open: LambFundamental_GUI
 Model-specific settings > mRLFE
 Enable: mRLFE real-k
 Branch: A0-like
-etaS: 0.05
-A0 atlas policy: delayedCut
+etaS: 0.1
+A0 atlas policy: adaptivePhysicalTail
 Compute selected modes
-Then repeat with adaptivePhysicalTail
 ```
 
 Expected behavior:
@@ -207,9 +207,8 @@ Expected behavior:
 - mRLFE real-k A0-like curve appears
 - status/diagnostics remain available
 - Rayleigh-Lamb seed branches are not exposed as mRLFE plot branches
-- diagnostic elapsed time is substantially lower than the dense all-atlas route
+- elapsed time is suitable for interaction at the default 631-point grid
 - raw/internal models contain mRLFERealK for the visible mRLFE result
-- mrlfeGuiAtlasPreset reports "fast" for viscous GUI calls
 ```
 
 ### SweepTool
@@ -220,9 +219,8 @@ Model family: mRLFE
 Sweep parameter: etaS
 Values: 0, 0.05
 Branch: A0Like
-A0 atlas policy: delayedCut
+A0 atlas policy: adaptivePhysicalTail
 Run sweep
-Then repeat with adaptivePhysicalTail
 ```
 
 Expected behavior:
@@ -240,10 +238,9 @@ Open: FitTool_GUI
 Model: mRLFE
 Branch: A0Like
 Free parameter: mu or etaS
-A0 atlas policy: delayedCut
+A0 atlas policy: adaptivePhysicalTail
 Generate synthetic from setup
 Run fit
-Then repeat with adaptivePhysicalTail
 ```
 
 Expected behavior:
@@ -256,4 +253,6 @@ Expected behavior:
 
 ## Current limitation
 
-This integration does not validate the atlas policy against complex-k solutions, FEM, or experimental data. It only ensures that the GUI can request and report the same maintained solver policy used by the backend.
+This integration does not validate the atlas policy against complex-k solutions, FEM, or experimental data. It only ensures that the GUI can request and report the same maintained viscous solver policy used by the backend.
+
+The elastic modal-atlas GUI route remains a separate future task.
