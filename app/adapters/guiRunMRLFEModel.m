@@ -55,7 +55,13 @@ seedOptions.computeMRLFEComplexK = false;
 elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, seedOptions);
 frequency = rawResult.grid.frequency(:);
-mrlfeResult = solveMRLFEAtlasUnified(frequency, rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
+if shouldUseUnifiedAtlas(options, computeVisco)
+    mrlfeResult = solveMRLFEAtlasUnified(frequency, rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
+else
+    elasticParams = options.mrlfeParams;
+    elasticParams.etaS = 0;
+    mrlfeResult = computeMRLFE(frequency, rawResult.material, rawResult.geometry, rawResult.modes, elasticParams, options);
+end
 rawResult.models.mRLFERealK = mrlfeResult;
 rawResult.models.mRLFE = mrlfeResult;
 elapsedSeconds = toc(elapsedTimer);
@@ -73,6 +79,14 @@ result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.seedBranchesHiddenFromPlotSurface = true;
 result.metadata.mrlfeUseUnifiedAtlasRoute = options.mrlfeUseUnifiedAtlasRoute;
 result.metadata.mrlfeA0Policy = options.mrlfeA0Policy;
+end
+
+function tf = shouldUseUnifiedAtlas(options, computeVisco)
+etaS = 0;
+if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS') && ~isempty(options.mrlfeParams.etaS)
+    etaS = options.mrlfeParams.etaS;
+end
+tf = logical(computeVisco) && etaS > 0 && logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', true));
 end
 
 function branches = filterMRLFEBranches(branches)
