@@ -56,6 +56,7 @@ elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, seedOptions);
 frequency = rawResult.grid.frequency(:);
 if shouldUseUnifiedAtlas(options, computeVisco)
+    options = applyGuiFastAtlasPreset(options);
     mrlfeResult = solveMRLFEAtlasUnified(frequency, rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
 else
     elasticParams = options.mrlfeParams;
@@ -73,12 +74,14 @@ result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.diagnostics.seedBranchesHiddenFromPlotSurface = true;
 result.diagnostics.mrlfeUseUnifiedAtlasRoute = options.mrlfeUseUnifiedAtlasRoute;
 result.diagnostics.mrlfeA0Policy = options.mrlfeA0Policy;
+result.diagnostics.mrlfeGuiAtlasPreset = getStructField(options, 'mrlfeGuiAtlasPreset', "none");
 result.metadata.params = params;
 result.metadata.options = options;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.seedBranchesHiddenFromPlotSurface = true;
 result.metadata.mrlfeUseUnifiedAtlasRoute = options.mrlfeUseUnifiedAtlasRoute;
 result.metadata.mrlfeA0Policy = options.mrlfeA0Policy;
+result.metadata.mrlfeGuiAtlasPreset = getStructField(options, 'mrlfeGuiAtlasPreset', "none");
 end
 
 function tf = shouldUseUnifiedAtlas(options, computeVisco)
@@ -87,6 +90,25 @@ if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS') && ~i
     etaS = options.mrlfeParams.etaS;
 end
 tf = logical(computeVisco) && etaS > 0 && logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', true));
+end
+
+function options = applyGuiFastAtlasPreset(options)
+usePreset = logical(getStructField(options, 'mrlfeUseGuiFastAtlasPreset', true));
+if ~usePreset
+    options.mrlfeGuiAtlasPreset = "off";
+    return;
+end
+options.mrlfeGuiAtlasPreset = "fast";
+options.mrlfeViscoAtlasCpScanPoints = getStructField(options, 'mrlfeViscoAtlasCpScanPoints', 260);
+options.mrlfeA0DPCpScanPoints = getStructField(options, 'mrlfeA0DPCpScanPoints', 260);
+options.mrlfeA0DPCandidates = getStructField(options, 'mrlfeA0DPCandidates', 5);
+options.mrlfeA0DPRefineCandidates = getStructField(options, 'mrlfeA0DPRefineCandidates', false);
+options.mrlfeAdaptiveCpScanPoints = getStructField(options, 'mrlfeAdaptiveCpScanPoints', 260);
+options.mrlfeAdaptiveRefineCandidates = getStructField(options, 'mrlfeAdaptiveRefineCandidates', false);
+options.mrlfeAdaptiveWindows = getStructField(options, 'mrlfeAdaptiveWindows', [0.20 0.40 0.80]);
+options.mrlfeAdaptiveValleyFallbackRelativeWindow = getStructField(options, 'mrlfeAdaptiveValleyFallbackRelativeWindow', 0.12);
+options.mrlfeModalAtlasCpScanPoints = getStructField(options, 'mrlfeModalAtlasCpScanPoints', 400);
+options.mrlfeModalAtlasTopNMinima = getStructField(options, 'mrlfeModalAtlasTopNMinima', 12);
 end
 
 function branches = filterMRLFEBranches(branches)
