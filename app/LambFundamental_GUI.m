@@ -172,6 +172,8 @@ updateAxisFieldState();
         options.computeMRLFEComplexK = false;
         options.mrlfeComputeA0Like = logical(modelControls.mrlfe.computeA0Like.Value);
         options.mrlfeComputeS0Like = logical(modelControls.mrlfe.computeS0Like.Value);
+        options.mrlfeUseUnifiedAtlasRoute = false;
+        options.mrlfeA0Policy = "delayedCut";
 
         if options.computeMRLFERealK
             if ~options.mrlfeComputeA0Like && ~options.mrlfeComputeS0Like
@@ -182,6 +184,10 @@ updateAxisFieldState();
             modelControls.rl.computeA0.Value = options.computeA0;
             modelControls.rl.computeS0.Value = options.computeS0;
             options.mrlfeParams = readMRLFEParamsFromGui();
+            options.mrlfeUseUnifiedAtlasRoute = options.mrlfeParams.etaS > 0;
+            if isfield(modelControls.mrlfe, 'a0Policy')
+                options.mrlfeA0Policy = string(modelControls.mrlfe.a0Policy.Value);
+            end
             options = attachCachedElasticReferenceIfUseful(options, params);
         end
     end

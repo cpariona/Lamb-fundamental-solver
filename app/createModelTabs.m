@@ -23,9 +23,9 @@ h.rl.computeS0 = uicheckbox(gRL, 'Text', 'S0', 'Value', opts0.computeS0, 'ValueC
 uilabel(gRL, 'Text', 'mRLFE computes the Rayleigh-Lamb seed branches required internally by the selected A0-like/S0-like branches, but those seed branches are not exposed as mRLFE plot results.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 
 tabMRLFE = uitab(tg, 'Title', 'mRLFE');
-gM = uigridlayout(tabMRLFE, [8 4]);
+gM = uigridlayout(tabMRLFE, [9 4]);
 gM.ColumnWidth = {105, '1x', 105, '1x'};
-gM.RowHeight = {22, 24, 22, 24, 24, 24, 24, '1x'};
+gM.RowHeight = {22, 24, 22, 24, 24, 24, 24, 24, '1x'};
 gM.Padding = [10 6 10 6];
 gM.RowSpacing = 2;
 gM.ColumnSpacing = 6;
@@ -77,8 +77,16 @@ h.mrlfe.etaS = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], 'ValueC
 h.mrlfe.etaS.Layout.Row = 7;
 h.mrlfe.etaS.Layout.Column = [3 4];
 
-note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity. The GUI adapter uses the unified real-k atlas route for viscous mRLFE calls. S0-like is opt-in because it is typically slower.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
-note.Layout.Row = 8;
+label = uilabel(gM, 'Text', 'A0 atlas policy');
+label.Layout.Row = 8;
+label.Layout.Column = [1 2];
+h.mrlfe.a0Policy = uidropdown(gM, 'Items', {'delayedCut', 'adaptivePhysicalTail'}, ...
+    'Value', 'delayedCut', 'ValueChangedFcn', callbacks.markDirty);
+h.mrlfe.a0Policy.Layout.Row = 8;
+h.mrlfe.a0Policy.Layout.Column = [3 4];
+
+note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity. The GUI adapter uses the unified real-k atlas route for viscous mRLFE calls. delayedCut is conservative; adaptivePhysicalTail is opt-in for difficult soft/viscous A0-like branches. S0-like is opt-in because it is typically slower.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note.Layout.Row = 9;
 note.Layout.Column = [1 4];
 
 h.mrlfe.computeComplexK = struct('Value', false);

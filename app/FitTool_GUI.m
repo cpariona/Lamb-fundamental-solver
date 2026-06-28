@@ -185,6 +185,8 @@ onFitModelChanged();
                 end
                 controls.fluidDensity = 1000;
                 controls.fluidSoundSpeed = 1500;
+                controls.mrlfeUseUnifiedAtlasRoute = true;
+                controls.mrlfeA0Policy = string(fitControls.a0Policy.Value);
                 fitOptions.optimizerOptions = optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-5);
             case "acoustoelastic_iop_hgo"
                 params = defaultAEParams();
@@ -221,11 +223,8 @@ onFitModelChanged();
                     etaSForSynthetic = getFixedEtaSValue();
                     params.etaS = etaSForSynthetic;
                 end
-                options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaSForSynthetic);
-                if branchName == "A0Like" && etaSForSynthetic > 0
-                    options.mrlfeUseDirectViscoAtlas = true;
-                    options.mrlfeDisableForwardCache = true;
-                end
+                options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaSForSynthetic, ...
+                    'UseUnifiedAtlasRoute', true, 'A0Policy', string(fitControls.a0Policy.Value));
                 Cp_mps = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
                 validMask = isfinite(Cp_mps(:));
             case "acoustoelastic_iop_hgo"
@@ -253,6 +252,16 @@ onFitModelChanged();
             fitControls.fixedEtaSLabel.Visible = 'off';
             fitControls.fixedEtaS.Visible = 'off';
             fitControls.fixedEtaS.Enable = 'off';
+        end
+        showA0Policy = modelFamily == "mrlfe";
+        if showA0Policy
+            fitControls.a0PolicyLabel.Visible = 'on';
+            fitControls.a0Policy.Visible = 'on';
+            fitControls.a0Policy.Enable = 'on';
+        else
+            fitControls.a0PolicyLabel.Visible = 'off';
+            fitControls.a0Policy.Visible = 'off';
+            fitControls.a0Policy.Enable = 'off';
         end
     end
 
