@@ -50,6 +50,15 @@ else
     cp = seedMode.Cp(:);
 end
 
+% RL-S0 may bend toward the shear-speed neighborhood at high frequency. For
+% S0Like atlas tracking, keep the seed in the extensional neighborhood so the
+% Cp scan window does not collapse toward CT and invite a branch switch.
+if branchName == "S0Like" && startsWith(seedSource, "RayleighLambSeed")
+    physicalCp = makeSyntheticCp(branchName, frequency, material, geometry);
+    cp = max(cp(:), physicalCp(:));
+    seedSource = "RayleighLambSeedPhysicalFloor";
+end
+
 seedMode.name = erase(branchName, "Like");
 seedMode.family = branchName;
 seedMode.frequency = frequency;
