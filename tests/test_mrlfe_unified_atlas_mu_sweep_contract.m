@@ -10,15 +10,21 @@ for i = 1:numel(muValues)
     assert(result.branches.S0Like.atlasUnifiedPolicy == "viscousS0AdaptiveContinuation");
     assert(result.branches.S0Like.seedMode.seedSource == "RayleighLambSeedPhysicalFloor");
 
-    s0Valid = branchValid(result.branches.S0Like);
-    assert(nnz(s0Valid) >= 14, 'S0 adaptive tracker lost too many points in mu sweep contract.');
-    s0Cp = result.branches.S0Like.Cp(:);
+    branch = result.branches.S0Like;
+    s0Valid = branchValid(branch);
+    assert(nnz(s0Valid) >= 10, 'S0 adaptive tracker lost too many points in mu sweep contract.');
+    s0Cp = branch.Cp(:);
     s0CpValid = s0Cp(s0Valid);
     if numel(s0CpValid) >= 2
         maxJump = max(abs(diff(s0CpValid)) ./ max(abs(s0CpValid(1:end-1)), eps));
         assert(maxJump < 0.18, 'S0 adaptive tracker produced an excessive jump in mu sweep contract.');
     end
-    assert(all(isfinite(result.branches.S0Like.adaptiveWindowUsed(s0Valid))));
+    assert(all(isfinite(branch.adaptiveWindowUsed(s0Valid))));
+    assert(isfield(branch, 'adaptiveCut'));
+    if nnz(s0Valid) < numel(s0Valid)
+        assert(isfinite(branch.adaptiveCut.FirstCutIndex), 'Truncated adaptive branch must report a cut index.');
+        assert(branch.adaptiveCut.CutReason ~= "none", 'Truncated adaptive branch must report a cut reason.');
+    end
 end
 
 fprintf('test_mrlfe_unified_atlas_mu_sweep_contract passed.\n');
@@ -81,6 +87,8 @@ options.mrlfeAdaptiveCpScanPoints = 180;
 options.mrlfeAdaptiveWindows = [0.12 0.20 0.35 0.50];
 options.mrlfeAdaptiveEdgeGuardPoints = 3;
 options.mrlfeAdaptiveRefineCandidates = false;
+options.mrlfeAdaptiveEstablishedMinValidRun = 4;
+options.mrlfeAdaptiveCutAfterEstablishedLoss = true;
 options.mrlfeResidualTolerance = 1e-3;
 
 result = computeMRLFE(frequency, material, geometry, seedModes, mrlfeParams, options);
