@@ -14,6 +14,12 @@ timerStart = tic;
 solveComplexK = isfield(mrlfeParams, 'solveComplexK') && mrlfeParams.solveComplexK;
 computeA0Like = getOption(options, 'mrlfeComputeA0Like', true);
 computeS0Like = getOption(options, 'mrlfeComputeS0Like', true);
+
+if getOption(options, 'mrlfeUseUnifiedAtlasRoute', false) && ~solveComplexK
+    mrlfeResults = solveMRLFEAtlasUnified(requestedFrequency, material, geometry, seedModes, mrlfeParams, options);
+    return;
+end
+
 useInternalTrackingGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', false) && ~solveComplexK;
 trackingFrequency = buildMRLFETrackingFrequency(requestedFrequency, options, useInternalTrackingGrid);
 
