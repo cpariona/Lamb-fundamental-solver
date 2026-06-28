@@ -24,7 +24,7 @@ options.computeMRLFEElasticRealK = false;
 options.computeMRLFEViscoRealK = false;
 options.computeMRLFERealK = false;
 options.computeMRLFEComplexK = false;
-options.mrlfeUseUnifiedAtlasRoute = true;
+options.mrlfeUseUnifiedAtlasRoute = logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', computeVisco));
 options.mrlfeA0Policy = string(getStructField(options, 'mrlfeA0Policy', "adaptivePhysicalTail"));
 options.mrlfeComputeA0Like = logical(computeA0Like);
 options.mrlfeComputeS0Like = logical(computeS0Like);
@@ -40,8 +40,15 @@ seedOptions.computeMRLFEComplexK = false;
 
 elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, seedOptions);
-options = applyGuiAtlasPreset(options, computeVisco);
-mrlfeResult = solveMRLFEAtlasUnified(rawResult.grid.frequency(:), rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
+if shouldUseUnifiedAtlas(options, computeVisco)
+    options = applyGuiAtlasPreset(options, true);
+    mrlfeResult = solveMRLFEAtlasUnified(rawResult.grid.frequency(:), rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
+else
+    options = applyGuiAtlasPreset(options, false);
+    elasticParams = options.mrlfeParams;
+    elasticParams.etaS = 0;
+    mrlfeResult = computeMRLFE(rawResult.grid.frequency(:), rawResult.material, rawResult.geometry, rawResult.modes, elasticParams, options);
+end
 rawResult.models.mRLFERealK = mrlfeResult;
 rawResult.models.mRLFE = mrlfeResult;
 elapsedSeconds = toc(elapsedTimer);
@@ -51,16 +58,24 @@ result.branches = filterMRLFEBranches(result.branches);
 result.diagnostics.branchCount = numel(result.branches);
 result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.diagnostics.seedBranchesHiddenFromPlotSurface = true;
-result.diagnostics.mrlfeUseUnifiedAtlasRoute = options.mrlfeUseUnifiedAtlasRoute;
+result.diagnostics.mrlfeUseUnifiedAtlasRoute = shouldUseUnifiedAtlas(options, computeVisco);
 result.diagnostics.mrlfeA0Policy = options.mrlfeA0Policy;
 result.diagnostics.mrlfeGuiAtlasPreset = getStructField(options, 'mrlfeGuiAtlasPreset', "none");
 result.metadata.params = params;
 result.metadata.options = options;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.seedBranchesHiddenFromPlotSurface = true;
-result.metadata.mrlfeUseUnifiedAtlasRoute = options.mrlfeUseUnifiedAtlasRoute;
+result.metadata.mrlfeUseUnifiedAtlasRoute = shouldUseUnifiedAtlas(options, computeVisco);
 result.metadata.mrlfeA0Policy = options.mrlfeA0Policy;
 result.metadata.mrlfeGuiAtlasPreset = getStructField(options, 'mrlfeGuiAtlasPreset', "none");
+end
+
+function tf = shouldUseUnifiedAtlas(options, computeVisco)
+etaS = 0;
+if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS') && ~isempty(options.mrlfeParams.etaS)
+    etaS = options.mrlfeParams.etaS;
+end
+tf = logical(computeVisco) && etaS > 0 && logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', true));
 end
 
 function options = applyGuiAtlasPreset(options, computeVisco)
@@ -71,13 +86,8 @@ end
 if computeVisco
     options.mrlfeGuiAtlasPreset = "fast_viscous";
 else
-    options.mrlfeGuiAtlasPreset = "fast_elastic";
+    options.mrlfeGuiAtlasPreset = "elastic_reference";
 end
-options.mrlfeModalAtlasApplyAmbiguityCut = getStructField(options, 'mrlfeModalAtlasApplyAmbiguityCut', false);
-options.mrlfeModalAtlasCpScanPoints = getStructField(options, 'mrlfeModalAtlasCpScanPoints', 420);
-options.mrlfeModalAtlasTopNMinima = getStructField(options, 'mrlfeModalAtlasTopNMinima', 12);
-options.mrlfeModalAtlasRefineMinima = getStructField(options, 'mrlfeModalAtlasRefineMinima', false);
-options.mrlfeModalAtlasRequireResidualValidity = getStructField(options, 'mrlfeModalAtlasRequireResidualValidity', false);
 options.mrlfeViscoAtlasCpScanPoints = getStructField(options, 'mrlfeViscoAtlasCpScanPoints', 260);
 options.mrlfeA0DPCpScanPoints = getStructField(options, 'mrlfeA0DPCpScanPoints', 260);
 options.mrlfeA0DPCandidates = getStructField(options, 'mrlfeA0DPCandidates', 5);
