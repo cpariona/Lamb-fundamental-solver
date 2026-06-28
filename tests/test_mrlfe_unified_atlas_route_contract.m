@@ -41,6 +41,9 @@ options.mrlfeViscoAtlasCpScanPoints = 120;
 options.mrlfeA0DPCandidates = 6;
 options.mrlfeA0DPRefineCandidates = false;
 options.mrlfeDelayedCutMinValidRun = 2;
+options.mrlfeUseAdaptiveS0AtlasTracker = true;
+options.mrlfeAdaptiveCpScanPoints = 120;
+options.mrlfeAdaptiveRefineCandidates = false;
 
 result = computeMRLFE(frequency, material, geometry, seedModes, mrlfeParams, options);
 
@@ -51,7 +54,8 @@ assert(isfield(result.branches, 'S0Like'));
 assert(result.branches.A0Like.solverRoute == "atlasUnified");
 assert(result.branches.S0Like.solverRoute == "atlasUnified");
 assert(result.branches.A0Like.seedMode.seedSource == "RayleighLambSeed");
-assert(result.branches.S0Like.seedMode.seedSource == "RayleighLambSeed");
+assert(result.branches.S0Like.seedMode.seedSource == "RayleighLambSeedPhysicalFloor");
+assert(result.branches.S0Like.atlasUnifiedPolicy == "viscousS0AdaptiveContinuation");
 
 fprintf('test_mrlfe_unified_atlas_route_contract passed.\n');
 end
