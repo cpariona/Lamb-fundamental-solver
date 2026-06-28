@@ -101,6 +101,9 @@ else
     % S0Like uses RL-S0 only as a fast branch-scale seed. Once the branch is
     % found, tracking should prefer the previous selected mRLFE candidate over
     % returning to the RL-S0 curve, which can drift toward CT at high frequency.
+    opt.mrlfeA0DPEdgeGuardPoints = getOption(options, 'mrlfeViscoS0DPEdgeGuardPoints', 4);
+    opt.mrlfeA0DPCpMinFactor = getOption(options, 'mrlfeViscoS0DPCpMinFactor', 0.45);
+    opt.mrlfeA0DPCpMaxFactor = getOption(options, 'mrlfeViscoS0DPCpMaxFactor', 1.40);
     opt.mrlfeA0DPJumpWeight = getOption(options, 'mrlfeViscoS0DPJumpWeight', 55.0);
     opt.mrlfeA0DPCurvatureWeight = getOption(options, 'mrlfeViscoS0DPCurvatureWeight', 45.0);
     opt.mrlfeA0DPSeedWeight = getOption(options, 'mrlfeViscoS0DPSeedWeight', 0.03);
@@ -114,7 +117,7 @@ else
     opt.mrlfeDelayedCutPreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoS0DelayedCutPreviousCpMaxRelativeJump', 0.18);
     opt.mrlfeDelayedCutResidualTolerance = getOption(options, 'mrlfeViscoS0DelayedCutResidualTolerance', 1e-3);
     opt.mrlfeViscoS0PreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoS0PreviousCpMaxRelativeJump', 0.18);
-    opt.mrlfeViscoS0ModalCpWindow = getOption(options, 'mrlfeViscoS0ModalCpWindow', [0.70, 1.40]);
+    opt.mrlfeViscoS0ModalCpWindow = getOption(options, 'mrlfeViscoS0ModalCpWindow', [0.45, 1.40]);
 end
 end
 
