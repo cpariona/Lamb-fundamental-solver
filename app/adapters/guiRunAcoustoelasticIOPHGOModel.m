@@ -25,6 +25,7 @@ end
 
 params = guiRequest.params;
 options = mergeStructs(defaultAcoustoelasticIOPHGOOptions(), getStructField(guiRequest, 'options', struct()));
+options = applyGuiFastAEPreset(options);
 
 elapsedTimer = tic;
 rawResult = solveAcoustoelasticIOPHGOBranch(params, options);
@@ -44,11 +45,31 @@ result.metadata.options = options;
 result.metadata.rawResult = rawResult;
 result.metadata.adapter = mfilename;
 result.metadata.elapsedSeconds = elapsedSeconds;
+result.metadata.aeGuiAtlasPreset = getStructField(options, 'aeGuiAtlasPreset', "none");
 result.diagnostics = getFieldOrDefault(rawResult, 'diagnostics', struct());
 result.diagnostics.elapsedSeconds = elapsedSeconds;
+result.diagnostics.aeGuiAtlasPreset = getStructField(options, 'aeGuiAtlasPreset', "none");
 if isfield(rawResult, 'reliability')
     result.diagnostics.reliability = rawResult.reliability;
 end
+end
+
+function options = applyGuiFastAEPreset(options)
+usePreset = logical(getStructField(options, 'aeUseGuiFastAtlasPreset', true));
+if ~usePreset
+    options.aeGuiAtlasPreset = "off";
+    return;
+end
+options.aeGuiAtlasPreset = "fast";
+options.numCpScanPoints = getStructField(options, 'numCpScanPoints', 420);
+options.maxLocalCandidates = getStructField(options, 'maxLocalCandidates', 8);
+options.refineLocalMinima = getStructField(options, 'refineLocalMinima', false);
+options.atlasInitializationNumFrequencyPoints = getStructField(options, 'atlasInitializationNumFrequencyPoints', 25);
+options.trackingMethod = getStructField(options, 'trackingMethod', "predictiveContinuation");
+options.localContinuationFallback = getStructField(options, 'localContinuationFallback', "globalScan");
+options.predictiveWindow = getStructField(options, 'predictiveWindow', 0.22);
+options.predictionWeight = getStructField(options, 'predictionWeight', 8.0);
+options.curvatureWeight = getStructField(options, 'curvatureWeight', 4.0);
 end
 
 function branch = normalizeAcoustoelasticBranch(result, rawResult, params, options)
