@@ -16,8 +16,8 @@ for i = 1:numCases
 
     [params, material, geometry, frequency, seedModes, mrlfeParams] = buildCase(mu);
 
-    defaultOptions = makeAtlasOptions(false);
-    adaptiveOptions = makeAtlasOptions(true);
+    defaultOptions = makeAtlasOptions("delayedCut");
+    adaptiveOptions = makeAtlasOptions("adaptivePhysicalTail");
 
     defaultResult = computeMRLFE(frequency, material, geometry, seedModes, mrlfeParams, defaultOptions);
     adaptiveResult = computeMRLFE(frequency, material, geometry, seedModes, mrlfeParams, adaptiveOptions);
@@ -96,13 +96,14 @@ mrlfeParams.useComplexLambda = false;
 mrlfeParams.solveComplexK = false;
 end
 
-function atlasOptions = makeAtlasOptions(useAdaptiveA0)
+function atlasOptions = makeAtlasOptions(a0Policy)
 atlasOptions = rlDefaultOptions("Fast");
 atlasOptions.mrlfeUseUnifiedAtlasRoute = true;
 atlasOptions.mrlfeComputeA0Like = true;
 atlasOptions.mrlfeComputeS0Like = true;
 atlasOptions.computeMRLFEComplexK = false;
 atlasOptions.computeMRLFEViscoComplexK = false;
+atlasOptions.mrlfeA0Policy = string(a0Policy);
 atlasOptions.mrlfeViscoAtlasCpScanPoints = 900;
 atlasOptions.mrlfeA0DPCandidates = 8;
 atlasOptions.mrlfeA0DPRefineCandidates = true;
@@ -123,8 +124,7 @@ atlasOptions.mrlfeAdaptiveCutAfterEstablishedLoss = true;
 atlasOptions.mrlfeResidualTolerance = 1e-3;
 atlasOptions.mrlfeViscoS0ModalCpWindow = [0.45, 1.40];
 
-if useAdaptiveA0
-    atlasOptions.mrlfeUseAdaptiveA0AtlasTracker = true;
+if string(a0Policy) == "adaptivePhysicalTail"
     atlasOptions.mrlfeUseA0PhysicalTailCut = true;
     atlasOptions.mrlfeAdaptiveWindows = [0.20 0.35 0.50 0.80 1.20];
     atlasOptions.mrlfeAdaptiveMaxJumpRelative = 0.12;
@@ -141,7 +141,6 @@ if useAdaptiveA0
     atlasOptions.mrlfeA0PhysicalMaxLocalDropRelative = 0.05;
     atlasOptions.mrlfeA0PhysicalMaxTwoStepDropRelative = 0.10;
 else
-    atlasOptions.mrlfeUseAdaptiveA0AtlasTracker = false;
     atlasOptions.mrlfeUseA0PhysicalTailCut = false;
 end
 end
