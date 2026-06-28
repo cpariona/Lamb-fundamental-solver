@@ -34,11 +34,19 @@ end
 if ~isfield(controls, 'fluidSoundSpeed') || isempty(controls.fluidSoundSpeed)
     controls.fluidSoundSpeed = 1500;
 end
+if ~isfield(controls, 'mrlfeUseUnifiedAtlasRoute') || isempty(controls.mrlfeUseUnifiedAtlasRoute)
+    controls.mrlfeUseUnifiedAtlasRoute = false;
+end
+if ~isfield(controls, 'mrlfeA0Policy') || isempty(controls.mrlfeA0Policy)
+    controls.mrlfeA0Policy = "delayedCut";
+end
 
-solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', controls.etaS);
+solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', controls.etaS, ...
+    'UseUnifiedAtlasRoute', logical(controls.mrlfeUseUnifiedAtlasRoute), ...
+    'A0Policy', string(controls.mrlfeA0Policy));
 solverOptions.mrlfeParams.fluidDensity = controls.fluidDensity;
 solverOptions.mrlfeParams.fluidSoundSpeed = controls.fluidSoundSpeed;
-routePolicy = localRoutePolicy(branchName, request.freeParams);
+routePolicy = localRoutePolicy(branchName, request.freeParams, controls);
 if routePolicy.requestDirectViscoAtlas
     solverOptions.mrlfeUseDirectViscoAtlas = true;
     solverOptions.mrlfeDisableForwardCache = true;
@@ -70,15 +78,22 @@ fitOutput.fitResult = fitResult;
 fitOutput.normalized = normalized;
 fitOutput.routePolicy = routePolicy;
 fitOutput.routePolicy.actualPath = localActualEvaluationPath(fitResult);
+fitOutput.routePolicy.mrlfeA0Policy = string(controls.mrlfeA0Policy);
 end
 
-function policy = localRoutePolicy(branchName, freeParams)
+function policy = localRoutePolicy(branchName, freeParams, controls)
 freeParams = string(freeParams(:));
+useUnifiedAtlas = isstruct(controls) && isfield(controls, 'mrlfeUseUnifiedAtlasRoute') && ...
+    ~isempty(controls.mrlfeUseUnifiedAtlasRoute) && logical(controls.mrlfeUseUnifiedAtlasRoute);
 policy = struct();
 policy.branchName = string(branchName);
 policy.freeParams = freeParams;
-policy.requestDirectViscoAtlas = branchName == "A0Like" && numel(freeParams) == 1 && freeParams(1) == "etaS";
-if policy.requestDirectViscoAtlas
+policy.requestUnifiedAtlas = logical(useUnifiedAtlas);
+policy.requestDirectViscoAtlas = ~useUnifiedAtlas && branchName == "A0Like" && numel(freeParams) == 1 && freeParams(1) == "etaS";
+if policy.requestUnifiedAtlas
+    policy.expectedPath = "unified_atlas";
+    policy.description = "mRLFE fitting uses the unified real-k atlas route with explicit A0 policy metadata.";
+elseif policy.requestDirectViscoAtlas
     policy.expectedPath = "direct_viscous_atlas";
     policy.description = "A0Like etaS fitting uses the validated direct viscous atlas route.";
 else
