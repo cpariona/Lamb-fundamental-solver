@@ -56,9 +56,16 @@ outDir = fullfile(pwd, 'outputs', 'mrlfe');
 if ~exist(outDir, 'dir')
     mkdir(outDir);
 end
+figDir = fullfile(outDir, 'figures');
+if ~exist(figDir, 'dir')
+    mkdir(figDir);
+end
+figureFiles = plotParametricFigures(summaryTable, figDir);
+
 outFile = fullfile(outDir, 'mrlfe_a0_policy_parametric_sweep.mat');
-save(outFile, 'muValues', 'etaSValues', 'thicknessValues', 'summaryTable', 'aggregateTable', 'summary', 'aggregate', 'results');
+save(outFile, 'muValues', 'etaSValues', 'thicknessValues', 'summaryTable', 'aggregateTable', 'summary', 'aggregate', 'results', 'figureFiles');
 fprintf('\nSaved A0 policy parametric sweep diagnostic to:\n%s\n', outFile);
+fprintf('\nSaved A0 policy figures to:\n%s\n', figDir);
 
 function [params, material, geometry, frequency, seedModes, mrlfeParams] = buildCase(mu, etaS, thickness)
 params = rlDefaultParams();
@@ -229,6 +236,78 @@ aggregate.MedianMaxJumpReduction = median(summaryTable.MaxJumpReduction, 'omitna
 aggregate.CutCases = nnz(~isnan(summaryTable.AdaptiveCutFrequencyHz));
 aggregate.ValleyFallbackCases = nnz(summaryTable.AdaptiveValleyFallbackCount > 0);
 aggregate.MedianValleyFallbackCount = median(summaryTable.AdaptiveValleyFallbackCount, 'omitnan');
+end
+
+function figureFiles = plotParametricFigures(summaryTable, figDir)
+figureFiles = strings(0, 1);
+figureFiles(end+1, 1) = plotHeatMapGrid(summaryTable, figDir, 'ValidPointGain', 'Valid-point gain: adaptive - delayed', 'valid_point_gain');
+figureFiles(end+1, 1) = plotHeatMapGrid(summaryTable, figDir, 'AdaptiveLastValidHz', 'Adaptive last valid frequency (Hz)', 'adaptive_last_valid_hz');
+figureFiles(end+1, 1) = plotHeatMapGrid(summaryTable, figDir, 'AdaptiveValleyFallbackCount', 'Adaptive valley-fallback count', 'adaptive_valley_fallback_count');
+figureFiles(end+1, 1) = plotHeatMapGrid(summaryTable, figDir, 'AdaptiveCutFrequencyHz', 'Adaptive cut frequency (Hz)', 'adaptive_cut_frequency_hz');
+figureFiles(end+1, 1) = plotScatterMetric(summaryTable, figDir, 'ValidPointGain', 'Valid-point gain: adaptive - delayed', 'valid_point_gain_scatter');
+figureFiles(end+1, 1) = plotScatterMetric(summaryTable, figDir, 'AdaptiveLastValidHz', 'Adaptive last valid frequency (Hz)', 'adaptive_last_valid_hz_scatter');
+end
+
+function filePath = plotHeatMapGrid(summaryTable, figDir, metricName, plotTitle, fileStem)
+thicknessValues = unique(summaryTable.thickness_mm(:))';
+etaValues = unique(summaryTable.etaS(:))';
+muValues = unique(summaryTable.mu_kPa(:))';
+fig = figure('Color', 'w', 'Name', plotTitle, 'Position', [100 100 520*numel(thicknessValues) 420]);
+for i = 1:numel(thicknessValues)
+    h = thicknessValues(i);
+    data = nan(numel(etaValues), numel(muValues));
+    for ie = 1:numel(etaValues)
+        for im = 1:numel(muValues)
+            mask = abs(summaryTable.thickness_mm - h) < 1e-12 & ...
+                abs(summaryTable.etaS - etaValues(ie)) < 1e-12 & ...
+                abs(summaryTable.mu_kPa - muValues(im)) < 1e-12;
+            if any(mask)
+                value = summaryTable.(metricName)(find(mask, 1, 'first'));
+                data(ie, im) = value;
+            end
+        end
+    end
+    subplot(1, numel(thicknessValues), i);
+    imagesc(muValues, etaValues, data);
+    axis xy;
+    xlabel('\mu (kPa)');
+    ylabel('\eta_S');
+    title(sprintf('h = %.1f mm', h));
+    colorbar;
+end
+sgtitle(plotTitle, 'Interpreter', 'none');
+filePath = saveDiagnosticFigure(fig, figDir, fileStem);
+end
+
+function filePath = plotScatterMetric(summaryTable, figDir, metricName, plotTitle, fileStem)
+fig = figure('Color', 'w', 'Name', plotTitle, 'Position', [100 100 900 560]);
+thicknessValues = unique(summaryTable.thickness_mm(:))';
+hold on;
+for i = 1:numel(thicknessValues)
+    h = thicknessValues(i);
+    mask = abs(summaryTable.thickness_mm - h) < 1e-12;
+    scatter(summaryTable.mu_kPa(mask), summaryTable.(metricName)(mask), 36, summaryTable.etaS(mask), 'filled', ...
+        'DisplayName', sprintf('h = %.1f mm', h));
+end
+hold off;
+grid on;
+xlabel('\mu (kPa)');
+ylabel(plotTitle, 'Interpreter', 'none');
+title(plotTitle, 'Interpreter', 'none');
+legend('Location', 'best');
+colorbar;
+filePath = saveDiagnosticFigure(fig, figDir, fileStem);
+end
+
+function filePath = saveDiagnosticFigure(fig, figDir, fileStem)
+filePath = fullfile(figDir, [fileStem '.png']);
+try
+    exportgraphics(fig, filePath, 'Resolution', 200);
+catch
+    saveas(fig, filePath);
+end
+savefig(fig, fullfile(figDir, [fileStem '.fig']));
+close(fig);
 end
 
 function policy = getBranchPolicy(branch)
