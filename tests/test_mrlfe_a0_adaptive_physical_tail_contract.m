@@ -20,7 +20,7 @@ for i = 1:numel(muValues)
         valid = valid & logical(a0.validCp(:));
     end
     validCount = nnz(valid);
-    assert(validCount >= 120, 'A0 adaptive physical tail policy returned too few valid points.');
+    validFraction = validCount / numel(frequency);
 
     cpValid = a0.Cp(valid);
     maxJump = maxRelativeJump(cpValid);
@@ -28,12 +28,15 @@ for i = 1:numel(muValues)
 
     lastValidHz = frequency(find(valid, 1, 'last'));
     if mu <= 50e3
+        assert(validFraction > 0.35, 'Soft A0 branch returned too few valid points.');
         assert(lastValidHz > 12e3, 'Soft A0 branch did not persist far enough.');
         assert(lastValidHz < 20e3, 'Soft A0 branch did not cut the high-frequency collapse tail.');
     elseif mu <= 100e3
+        assert(validFraction > 0.55, 'Intermediate A0 branch returned too few valid points.');
         assert(lastValidHz > 20e3, 'Intermediate A0 branch did not persist far enough.');
         assert(lastValidHz < 31e3, 'Intermediate A0 branch did not cut the high-frequency collapse tail.');
     else
+        assert(validFraction > 0.90, 'Stiffer A0 branch returned too few valid points.');
         assert(lastValidHz > 31e3, 'Stiffer A0 branch was cut too early.');
     end
 end
