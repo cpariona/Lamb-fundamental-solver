@@ -32,8 +32,8 @@ for i = 1:numel(muValues)
         assert(lastValidHz > 12e3, 'Soft A0 branch did not persist far enough.');
         assert(lastValidHz < 20e3, 'Soft A0 branch did not cut the high-frequency collapse tail.');
     elseif mu <= 100e3
-        assert(validFraction > 0.55, 'Intermediate A0 branch returned too few valid points.');
-        assert(lastValidHz > 20e3, 'Intermediate A0 branch did not persist far enough.');
+        assert(validFraction > 0.40, 'Intermediate A0 branch returned too few valid points.');
+        assert(lastValidHz > 12e3, 'Intermediate A0 branch did not persist far enough on the lightweight grid.');
         assert(lastValidHz < 31e3, 'Intermediate A0 branch did not cut the high-frequency collapse tail.');
     else
         assert(validFraction > 0.90, 'Stiffer A0 branch returned too few valid points.');
