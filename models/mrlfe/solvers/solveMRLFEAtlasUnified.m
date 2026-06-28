@@ -48,7 +48,7 @@ end
 function branch = solveOneAtlasBranch(branchName, seedMode, material, geometry, mrlfeParams, options, isViscous)
 if isViscous
     opt = makeViscousOptions(branchName, options);
-    if string(branchName) == "A0Like" && getOption(opt, 'mrlfeUseAdaptiveA0AtlasTracker', false)
+    if string(branchName) == "A0Like" && string(opt.mrlfeA0Policy) == "adaptivePhysicalTail"
         branch = solveMRLFEBranchAdaptiveAtlas(branchName, seedMode, material, geometry, mrlfeParams, opt);
         branch.atlasUnifiedPolicy = "viscousA0AdaptivePhysicalTailCut";
         if getOption(opt, 'mrlfeUseA0PhysicalTailCut', true)
@@ -103,7 +103,8 @@ opt.mrlfeA0DPEdgeGuardPoints = getOption(options, 'mrlfeA0DPEdgeGuardPoints', 6)
 opt.mrlfeA0DPRefineCandidates = getOption(options, 'mrlfeA0DPRefineCandidates', true);
 opt.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
 if string(branchName) == "A0Like"
-    opt.mrlfeUseAdaptiveA0AtlasTracker = getOption(options, 'mrlfeUseAdaptiveA0AtlasTracker', false);
+    opt.mrlfeA0Policy = resolveA0Policy(options);
+    opt.mrlfeUseAdaptiveA0AtlasTracker = string(opt.mrlfeA0Policy) == "adaptivePhysicalTail";
     opt.mrlfeUseA0PhysicalTailCut = getOption(options, 'mrlfeUseA0PhysicalTailCut', true);
     opt.mrlfeAdaptiveCpScanPoints = getOption(options, 'mrlfeAdaptiveCpScanPoints', getOption(options, 'mrlfeViscoAtlasCpScanPoints', 900));
     opt.mrlfeAdaptiveWindows = getOption(options, 'mrlfeAdaptiveWindows', [0.20 0.35 0.50 0.80 1.20]);
@@ -150,6 +151,20 @@ else
     opt.mrlfeViscoS0PreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoS0PreviousCpMaxRelativeJump', 0.18);
     opt.mrlfeViscoS0ModalCpWindow = getOption(options, 'mrlfeViscoS0ModalCpWindow', [0.45, 1.40]);
 end
+end
+
+function policy = resolveA0Policy(options)
+policy = getOption(options, 'mrlfeA0Policy', "");
+policy = string(policy);
+if strlength(policy) == 0
+    if getOption(options, 'mrlfeUseAdaptiveA0AtlasTracker', false)
+        policy = "adaptivePhysicalTail";
+    else
+        policy = "delayedCut";
+    end
+end
+validPolicies = ["delayedCut", "adaptivePhysicalTail"];
+assert(any(policy == validPolicies), 'Unsupported mRLFE A0 policy: %s.', policy);
 end
 
 function corridorOptions = makeA0PhysicalTailCutOptions(opt)
