@@ -45,24 +45,29 @@ for iMu = 1:numel(muValues)
         directCp = interpolateBranchCp(frequency, directResult.branches.A0Like.Cp, f);
         adaptiveCp = interpolateBranchCp(frequency, adaptiveA0.Cp, f);
         seedCp = interpolateBranchCp(frequency, seedModes.A0.Cp, f);
+        adaptiveType = interpolateCandidateType(frequency, adaptiveA0, f);
 
-        rows = makeRows(mu, f, minima, directCp, adaptiveCp, seedCp);
+        rows = makeRows(mu, f, minima, directCp, adaptiveCp, seedCp, adaptiveType);
         landscapeRows = [landscapeRows; rows]; %#ok<AGROW>
 
         fig = figure('Visible', 'off');
-        semilogy(CpScan, residual, 'LineWidth', 1.2);
+        h = [];
+        labels = {};
+        h(end+1) = semilogy(CpScan, residual, 'LineWidth', 1.2); %#ok<AGROW>
+        labels{end+1} = 'residual'; %#ok<AGROW>
         hold on;
-        markCp(seedCp, 'seed');
-        markCp(directCp, 'direct');
-        markCp(adaptiveCp, 'adaptive');
+        [h, labels] = markCp(h, labels, seedCp, 'seed Cp', '--');
+        [h, labels] = markCp(h, labels, directCp, 'direct A0 Cp', '-.');
+        [h, labels] = markCp(h, labels, adaptiveCp, sprintf('adaptive A0 Cp (%s)', adaptiveType), ':');
         if ~isempty(minima)
-            plot([minima.cp], [minima.residual], 'o', 'MarkerSize', 5);
+            h(end+1) = plot([minima.cp], [minima.residual], 'o', 'MarkerSize', 5); %#ok<AGROW>
+            labels{end+1} = 'local minima'; %#ok<AGROW>
         end
         grid on;
         xlabel('Cp [m/s]');
         ylabel('mRLFE residual');
         title(sprintf('A0 residual landscape: mu = %.0f kPa, f = %.1f Hz', mu/1e3, f));
-        legend('residual', 'seed Cp', 'direct A0 Cp', 'adaptive A0 Cp', 'local minima', 'Location', 'best');
+        legend(h, labels, 'Location', 'best');
         figFile = fullfile(outDir, sprintf('a0_landscape_mu_%06.1f_kPa_f_%08.1f_Hz.png', mu/1e3, f));
         saveas(fig, figFile);
         close(fig);
@@ -149,6 +154,10 @@ options.mrlfeAdaptivePredictionWeight = 45.0;
 options.mrlfeAdaptiveResidualWeight = 0.45;
 options.mrlfeAdaptiveEstablishedMinValidRun = 8;
 options.mrlfeAdaptiveCutAfterEstablishedLoss = true;
+options.mrlfeAdaptiveAllowValleyFallback = true;
+options.mrlfeAdaptiveValleyFallbackRelativeWindow = 0.10;
+options.mrlfeAdaptiveValleyFallbackPredictionWeight = 65.0;
+options.mrlfeAdaptiveValleyFallbackResidualWeight = 0.30;
 options.mrlfeResidualTolerance = 1e-3;
 end
 
@@ -238,7 +247,21 @@ else
 end
 end
 
-function rows = makeRows(mu, f, minima, directCp, adaptiveCp, seedCp)
+function type = interpolateCandidateType(frequency, branch, f)
+type = "none";
+if ~isfield(branch, 'candidateType')
+    return;
+end
+frequency = frequency(:);
+cp = branch.Cp(:);
+valid = isfinite(cp) & cp > 0;
+idx = find(valid & abs(frequency - f) == min(abs(frequency(valid) - f)), 1, 'first');
+if ~isempty(idx)
+    type = string(branch.candidateType(idx));
+end
+end
+
+function rows = makeRows(mu, f, minima, directCp, adaptiveCp, seedCp, adaptiveType)
 if isempty(minima)
     rows = makeEmptyRow();
     rows.mu_kPa = mu/1e3;
@@ -249,6 +272,7 @@ if isempty(minima)
     rows.seedCp = seedCp;
     rows.directCp = directCp;
     rows.adaptiveCp = adaptiveCp;
+    rows.adaptiveCandidateType = adaptiveType;
     return;
 end
 rows = repmat(makeEmptyRow(), numel(minima), 1);
@@ -261,6 +285,7 @@ for i = 1:numel(minima)
     rows(i).seedCp = seedCp;
     rows(i).directCp = directCp;
     rows(i).adaptiveCp = adaptiveCp;
+    rows(i).adaptiveCandidateType = adaptiveType;
     rows(i).distanceToSeed = abs(minima(i).cp - seedCp) / max(abs(seedCp), eps);
     rows(i).distanceToDirect = abs(minima(i).cp - directCp) / max(abs(directCp), eps);
     rows(i).distanceToAdaptive = abs(minima(i).cp - adaptiveCp) / max(abs(adaptiveCp), eps);
@@ -277,14 +302,16 @@ row.minimumResidual = nan;
 row.seedCp = nan;
 row.directCp = nan;
 row.adaptiveCp = nan;
+row.adaptiveCandidateType = "none";
 row.distanceToSeed = nan;
 row.distanceToDirect = nan;
 row.distanceToAdaptive = nan;
 end
 
-function markCp(cp, labelText)
+function [h, labels] = markCp(h, labels, cp, labelText, lineStyle)
 if isfinite(cp) && cp > 0
     yl = ylim;
-    plot([cp cp], yl, '--', 'LineWidth', 1.0, 'DisplayName', labelText);
+    h(end+1) = plot([cp cp], yl, lineStyle, 'LineWidth', 1.0); %#ok<AGROW>
+    labels{end+1} = labelText; %#ok<AGROW>
 end
 end
