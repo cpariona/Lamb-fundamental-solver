@@ -40,6 +40,8 @@ options.computeMRLFERealK = false;
 options.computeMRLFEComplexK = false;
 options.mrlfeUseUnifiedAtlasRoute = logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', computeVisco));
 options.mrlfeA0Policy = string(getStructField(options, 'mrlfeA0Policy', "delayedCut"));
+options.mrlfeComputeA0Like = logical(computeA0Like);
+options.mrlfeComputeS0Like = logical(computeS0Like);
 
 seedOptions = options;
 seedOptions.computeA0 = logical(getStructField(options, 'computeA0', true) || computeA0Like);
@@ -53,7 +55,7 @@ seedOptions.computeMRLFEComplexK = false;
 elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, seedOptions);
 frequency = rawResult.grid.frequency(:);
-mrlfeResult = computeMRLFE(frequency, rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
+mrlfeResult = solveMRLFEAtlasUnified(frequency, rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
 rawResult.models.mRLFERealK = mrlfeResult;
 rawResult.models.mRLFE = mrlfeResult;
 elapsedSeconds = toc(elapsedTimer);
