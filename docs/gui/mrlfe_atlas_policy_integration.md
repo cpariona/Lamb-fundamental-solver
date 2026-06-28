@@ -50,7 +50,7 @@ options.mrlfeUseUnifiedAtlasRoute = options.mrlfeParams.etaS > 0;
 options.mrlfeA0Policy = string(modelControls.mrlfe.a0Policy.Value);
 ```
 
-The main GUI adapter uses this route split:
+The main GUI adapter uses this route split by default:
 
 ```text
 Rayleigh-Lamb seed branch
@@ -60,7 +60,49 @@ Rayleigh-Lamb seed branch
     -> normalized GUI branch
 ```
 
-`etaS = 0` is treated as an elastic reference route in the main GUI. The elastic modal-atlas route is not currently the GUI default because it can return invalid/fragmented normalized Cp in the lightweight smoke-test grid and needs a separate stabilization pass.
+`etaS = 0` remains an elastic reference route by default. This preserves the stable GUI behavior while the elastic modal-atlas route is evaluated separately.
+
+## Guarded elastic atlas route
+
+The adapter now supports an opt-in guarded elastic atlas route:
+
+```matlab
+options.mrlfeUseElasticAtlasGuiRoute = true;
+```
+
+When this option is true and `etaS = 0`, the adapter tries:
+
+```text
+solveMRLFEAtlasUnified -> elastic modal atlas
+```
+
+If the atlas candidate produces no finite branch Cp values, the adapter falls back to:
+
+```text
+computeMRLFE -> elastic reference
+```
+
+The fallback is explicit and recorded:
+
+```matlab
+result.metadata.mrlfeUseElasticAtlasGuiRoute
+result.metadata.mrlfeElasticAtlasFallback
+result.metadata.mrlfeGuiActualRoute
+result.diagnostics.mrlfeUseElasticAtlasGuiRoute
+result.diagnostics.mrlfeElasticAtlasFallback
+result.diagnostics.mrlfeGuiActualRoute
+```
+
+Possible actual routes are:
+
+```text
+elastic_modal_atlas
+elastic_reference_fallback
+elastic_reference
+viscous_unified_atlas
+```
+
+This guarded route is a stabilization mechanism. It is not yet the default visual route for `etaS = 0`.
 
 The GUI-visible model should be:
 
@@ -97,21 +139,33 @@ This preset is GUI-specific. Dense diagnostics and policy-validation scripts sho
 options.mrlfeUseGuiFastAtlasPreset = false;
 ```
 
-For `etaS = 0`, the adapter reports:
+For `etaS = 0`, the default adapter reports:
 
 ```matlab
 result.metadata.mrlfeGuiAtlasPreset = "elastic_reference";
 ```
 
+For the guarded elastic atlas trial, the adapter reports:
+
+```matlab
+result.metadata.mrlfeGuiAtlasPreset = "fast_elastic_atlas_guarded";
+```
+
 ## Metadata contract
 
-The model adapter preserves route, policy, and preset metadata:
+The model adapter preserves route, policy, preset, and fallback metadata:
 
 ```matlab
 result.metadata.mrlfeUseUnifiedAtlasRoute
+result.metadata.mrlfeUseElasticAtlasGuiRoute
+result.metadata.mrlfeElasticAtlasFallback
+result.metadata.mrlfeGuiActualRoute
 result.metadata.mrlfeA0Policy
 result.metadata.mrlfeGuiAtlasPreset
 result.diagnostics.mrlfeUseUnifiedAtlasRoute
+result.diagnostics.mrlfeUseElasticAtlasGuiRoute
+result.diagnostics.mrlfeElasticAtlasFallback
+result.diagnostics.mrlfeGuiActualRoute
 result.diagnostics.mrlfeA0Policy
 result.diagnostics.mrlfeGuiAtlasPreset
 ```
@@ -166,29 +220,31 @@ The GUI atlas integration is covered by:
 
 ```matlab
 tests/gui/test_gui_mrlfe_unified_atlas_policy_contract.m
+tests/gui/test_gui_mrlfe_elastic_atlas_guard_contract.m
 ```
 
-and the test is included in:
+and both tests are included in:
 
 ```matlab
 tests/run_gui_smoke_tests
 ```
 
-The contract checks that:
+The guarded elastic atlas contract checks that:
 
 ```text
-- main GUI adapter preserves mrlfeUseUnifiedAtlasRoute and mrlfeA0Policy
-- Sweep GUI adapter preserves atlasPolicy metadata
-- mRLFE fitting adapter reports actualPath = "unified_atlas" when requested
+- an opt-in etaS = 0 atlas request is reported in metadata
+- the actual route is either elastic_modal_atlas or elastic_reference_fallback
+- the normalized GUI branch contains finite Cp values
+- fallback metadata is consistent with the actual route
 ```
 
-This is a routing and integration test, not a physical validation test.
+This is a routing and stabilization test, not a physical validation test.
 
 ## Manual GUI checks
 
 After contract tests pass, perform a short manual check before merging large GUI changes.
 
-### Main GUI
+### Main GUI viscous route
 
 ```text
 Open: LambFundamental_GUI
@@ -209,6 +265,23 @@ Expected behavior:
 - Rayleigh-Lamb seed branches are not exposed as mRLFE plot branches
 - elapsed time is suitable for interaction at the default 631-point grid
 - raw/internal models contain mRLFERealK for the visible mRLFE result
+```
+
+### Guarded elastic atlas diagnostic route
+
+Use a programmatic request with:
+
+```matlab
+options.mrlfeUseElasticAtlasGuiRoute = true;
+options.mrlfeParams.etaS = 0;
+```
+
+Expected behavior:
+
+```text
+- no compute error
+- normalized mRLFERealK A0Like output contains finite Cp
+- metadata reports elastic_modal_atlas or elastic_reference_fallback
 ```
 
 ### SweepTool
@@ -255,4 +328,4 @@ Expected behavior:
 
 This integration does not validate the atlas policy against complex-k solutions, FEM, or experimental data. It only ensures that the GUI can request and report the same maintained viscous solver policy used by the backend.
 
-The elastic modal-atlas GUI route remains a separate future task.
+The elastic modal-atlas route is now guarded and testable, but it is not yet the default for `etaS = 0`.
