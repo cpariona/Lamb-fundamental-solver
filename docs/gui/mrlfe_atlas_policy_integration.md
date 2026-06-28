@@ -50,6 +50,23 @@ options.mrlfeUseUnifiedAtlasRoute = options.mrlfeParams.etaS > 0;
 options.mrlfeA0Policy = string(modelControls.mrlfe.a0Policy.Value);
 ```
 
+The main GUI adapter uses a lightweight route:
+
+```text
+Rayleigh-Lamb seed branch
+    -> computeMRLFE
+    -> mRLFERealK only
+    -> normalized GUI branch
+```
+
+It should not compute and register all mRLFE internal variants for routine plotting. The GUI-visible model should be:
+
+```text
+mRLFERealK
+```
+
+The raw/internal result may preserve Rayleigh-Lamb seed branches, but routine GUI computation should not produce redundant `mRLFEElasticRealK` and `mRLFEViscoRealK` branches when only `mRLFERealK` is requested.
+
 The model adapter preserves the route and policy metadata:
 
 ```matlab
@@ -151,6 +168,8 @@ Expected behavior:
 - mRLFE real-k A0-like curve appears
 - status/diagnostics remain available
 - Rayleigh-Lamb seed branches are not exposed as mRLFE plot branches
+- diagnostic elapsed time is substantially lower than the redundant all-variant route
+- raw/internal models contain mRLFERealK for the visible mRLFE result
 ```
 
 ### SweepTool
