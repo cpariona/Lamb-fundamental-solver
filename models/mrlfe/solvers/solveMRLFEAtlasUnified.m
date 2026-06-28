@@ -54,7 +54,9 @@ if isViscous
         branch.delayedViscoModalCut = cut;
         branch.atlasUnifiedPolicy = "viscousA0DelayedCut";
     else
-        branch.atlasUnifiedPolicy = "viscousS0ContinuationCut";
+        [branch, cut] = mrlfeApplyDelayedViscoModalCut(branch, opt);
+        branch.delayedViscoModalCut = cut;
+        branch.atlasUnifiedPolicy = "viscousS0DelayedContinuationCut";
     end
 else
     opt = makeElasticOptions(branchName, options);
@@ -106,8 +108,11 @@ else
     opt.mrlfeA0DPMaxJumpSoft = getOption(options, 'mrlfeViscoS0DPMaxJumpSoft', 0.08);
     opt.mrlfeA0DPValidationMaxCpJumpRelative = getOption(options, 'mrlfeViscoS0DPValidationMaxCpJumpRelative', 0.18);
     opt.mrlfeA0DPValidationMaxCpPredictionError = getOption(options, 'mrlfeViscoS0DPValidationMaxCpPredictionError', 0.18);
-    opt.mrlfeRealKStopAtFirstMissingModalMinimum = true;
-    opt.mrlfeViscoS0StopAtFirstMissingModalMinimum = true;
+    opt.mrlfeRealKStopAtFirstMissingModalMinimum = false;
+    opt.mrlfeViscoS0StopAtFirstMissingModalMinimum = false;
+    opt.mrlfeDelayedCutMinValidRun = getOption(options, 'mrlfeViscoS0DelayedCutMinValidRun', 8);
+    opt.mrlfeDelayedCutPreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoS0DelayedCutPreviousCpMaxRelativeJump', 0.18);
+    opt.mrlfeDelayedCutResidualTolerance = getOption(options, 'mrlfeViscoS0DelayedCutResidualTolerance', 1e-3);
     opt.mrlfeViscoS0PreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoS0PreviousCpMaxRelativeJump', 0.18);
     opt.mrlfeViscoS0ModalCpWindow = getOption(options, 'mrlfeViscoS0ModalCpWindow', [0.70, 1.40]);
 end
