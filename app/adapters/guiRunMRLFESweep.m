@@ -16,6 +16,8 @@ end
 
 options = rlDefaultOptions(string(controls.robustness));
 options.computeMRLFEComplexK = false;
+options.mrlfeUseUnifiedAtlasRoute = logical(getControlValue(controls, 'mrlfeUseUnifiedAtlasRoute', true));
+options.mrlfeA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "delayedCut"));
 options.mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams.fluidDensity = getControlValue(controls, 'fluidDensity', 1000);
 options.mrlfeParams.fluidSoundSpeed = getControlValue(controls, 'fluidSoundSpeed', 1500);
@@ -56,6 +58,8 @@ sweepOutput.sweepSpec = sweepSpec;
 sweepOutput.rawResults = rawResults;
 sweepOutput.summaryTable = summaryTable;
 sweepOutput.normalized = normalized;
+sweepOutput.atlasPolicy = struct('mrlfeUseUnifiedAtlasRoute', options.mrlfeUseUnifiedAtlasRoute, ...
+    'mrlfeA0Policy', options.mrlfeA0Policy);
 end
 
 function value = getControlValue(controls, fieldName, defaultValue)
