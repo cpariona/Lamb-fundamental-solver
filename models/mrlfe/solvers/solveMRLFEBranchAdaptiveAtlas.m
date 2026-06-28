@@ -12,8 +12,9 @@ function branch = solveMRLFEBranchAdaptiveAtlas(name, seedMode, material, geomet
 % Optional valley fallback:
 %   Some physical branches become shallow shoulders rather than strict local
 %   minima. When enabled, the tracker adds a prediction-centered candidate from
-%   a narrow trust region around the predicted Cp. This is intended for A0-like
-%   low-mu diagnostics and is disabled by default.
+%   a narrow trust region around the predicted Cp. This fallback is allowed only
+%   after the branch has already been established by strict accepted points, so
+%   it cannot initialize the branch on a low-Cp residual artifact.
 
 frequency = seedMode.frequency(:);
 omega = seedMode.omega(:);
@@ -45,7 +46,7 @@ branchEstablished = false;
 for j = 1:numFreq
     center = chooseCenterCp(j, Cp, seedCp, branchEstablished, tracker);
     centerCp(j) = center;
-    [best, usedWindow] = findAdaptiveCandidate(center, omega(j), material, geometry, mrlfeParams, tracker);
+    [best, usedWindow] = findAdaptiveCandidate(center, omega(j), material, geometry, mrlfeParams, tracker, branchEstablished);
     windowUsed(j) = usedWindow;
     numCandidates(j) = best.numCandidates;
 
@@ -189,7 +190,7 @@ end
 center = max(center, eps);
 end
 
-function [best, usedWindow] = findAdaptiveCandidate(center, omega, material, geometry, mrlfeParams, tracker)
+function [best, usedWindow] = findAdaptiveCandidate(center, omega, material, geometry, mrlfeParams, tracker, branchEstablished)
 best = emptyCandidate();
 usedWindow = nan;
 if ~isfinite(center) || center <= 0
@@ -205,7 +206,7 @@ for i = 1:numel(tracker.windows)
     CpScan = linspace(cpMin, cpMax, tracker.cpScanPoints);
     residual = computeResidualVsCp(CpScan, omega, material, geometry, mrlfeParams);
     candidates = findCandidates(CpScan, residual, omega, material, geometry, mrlfeParams, tracker);
-    if tracker.allowValleyFallback
+    if tracker.allowValleyFallback && branchEstablished
         candidates = appendValleyFallbackCandidate(candidates, CpScan, residual, center, tracker);
     end
     if isempty(candidates.cp)
