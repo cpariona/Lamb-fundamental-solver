@@ -17,6 +17,8 @@ archive/
 ```text
 docs/mrlfe/fitting_workflow.md
 docs/mrlfe/current_sweeps.md
+docs/mrlfe_atlas_policy_notes.md
+examples/mrlfe/diagnostics/README.md
 ```
 
 ## Fitting workflow
@@ -36,6 +38,17 @@ canonical option names: mrlfeA0DP*, mrlfeVisco*, mrlfeRealK*
 legacy aliases:        mrlfeViscoAtlas* compatibility only
 ```
 
+## Atlas policy notes
+
+`docs/mrlfe_atlas_policy_notes.md` records the current real-k atlas policy findings, including the A0 policy selector, S0 continuation route, conditional physical tail cut, dense diagnostics, and parametric sweep results.
+
+Current A0 policies:
+
+```matlab
+options.mrlfeA0Policy = "delayedCut";
+options.mrlfeA0Policy = "adaptivePhysicalTail";
+```
+
 ## Sweep status
 
 `current_sweeps.md` records the current mRLFE sweep scripts and generated-output conventions.
@@ -46,6 +59,7 @@ Diagnostic documentation lives in:
 
 ```text
 docs/mrlfe/diagnostics/
+examples/mrlfe/diagnostics/README.md
 ```
 
 Current diagnostic summary:
@@ -70,6 +84,12 @@ Primary mRLFE smoke entrypoint:
 
 ```matlab
 run_mrlfe_smoke_tests
+```
+
+Focused atlas tests:
+
+```matlab
+tests/run_mrlfe_atlas_tests
 ```
 
 Focused fitting validation:

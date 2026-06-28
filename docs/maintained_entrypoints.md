@@ -241,6 +241,10 @@ mrlfeSetYoungModulusForShearPoisson
 mrlfeSelectRealKBranches
 summarizeMRLFETrackingQuality
 compareMRLFETrackingStrategies
+compareMRLFEAtlasPolicy
+mrlfeApplyDelayedViscoModalCut
+mrlfeApplyPhysicalCorridorCut
+mrlfeMakeDirectViscoAtlasBranchOptions
 ```
 
 Maintained mRLFE fitting helpers:
@@ -251,13 +255,23 @@ mrlfeEvaluateFitModel
 mrlfeFitDispersionData
 ```
 
-Optional direct viscous atlas route for the validated A0Like etaS fitting case:
+Maintained mRLFE real-k atlas solver helpers:
 
 ```matlab
 solveMRLFEViscoBranchAtlas
+solveMRLFEAtlasUnified
+solveMRLFEBranchAdaptiveAtlas
+mrlfeMakePhysicalSeedMode
 ```
 
-This route is not the general forward-solver default. It is used through `mrlfeEvaluateFitModel` when `mrlfeUseDirectViscoAtlas = true` and the request is eligible.
+`solveMRLFEViscoBranchAtlas` remains the direct viscous atlas route. `solveMRLFEAtlasUnified` is the unified real-k atlas route used by `computeMRLFE` when `mrlfeUseUnifiedAtlasRoute = true`.
+
+Current A0 policy selector:
+
+```matlab
+options.mrlfeA0Policy = "delayedCut";
+options.mrlfeA0Policy = "adaptivePhysicalTail";
+```
 
 Maintained public sweep wrappers:
 
@@ -290,6 +304,21 @@ diagnose_mrlfe_visco_residual_landscape
 stress_test_mrlfe_real_k_range
 ```
 
+Maintained mRLFE atlas diagnostics:
+
+```matlab
+diagnose_mrlfe_unified_atlas_mu_sweep
+diagnose_mrlfe_a0_policy_parametric_sweep
+diagnose_mrlfe_a0_physical_corridor_mu_sweep
+diagnose_mrlfe_atlas_primary_policy_matrix
+```
+
+Additional mRLFE atlas investigation diagnostics are documented in:
+
+```text
+examples/mrlfe/diagnostics/README.md
+```
+
 Maintained mRLFE tests:
 
 ```matlab
@@ -315,6 +344,23 @@ test_mrlfe_fit_synthetic_A0Like
 test_mrlfe_fit_fast_options_quality
 ```
 
+Maintained mRLFE atlas tests:
+
+```matlab
+tests/run_mrlfe_atlas_tests
+test_mrlfe_modal_atlas_ambiguity_contract
+test_mrlfe_modal_atlas_s0_contract
+test_mrlfe_atlas_policy_matrix_contract
+test_mrlfe_direct_visco_branch_policy_contract
+test_mrlfe_delayed_visco_modal_cut_contract
+test_mrlfe_a0_delayed_direct_visco_opt_in_contract
+test_mrlfe_a0_delayed_direct_visco_s0_guard_contract
+test_mrlfe_unified_atlas_route_contract
+test_mrlfe_s0_adaptive_atlas_tracker_contract
+test_mrlfe_unified_atlas_mu_sweep_contract
+test_mrlfe_a0_policy_selector_contract
+```
+
 ## Smoke-test scope
 
 Run the full maintained suite:
@@ -338,6 +384,12 @@ Run focused fitting validation separately:
 run_fit_validation_tests
 ```
 
+Run focused atlas validation after mRLFE atlas changes:
+
+```matlab
+tests/run_mrlfe_atlas_tests
+```
+
 ## Active documentation links
 
 ```text
@@ -352,6 +404,8 @@ docs/fitting/validation_suite.md
 docs/mrlfe/README.md
 docs/mrlfe/fitting_workflow.md
 docs/mrlfe/current_sweeps.md
+docs/mrlfe_atlas_policy_notes.md
+examples/mrlfe/diagnostics/README.md
 docs/gui/adapter_architecture.md
 docs/gui/integration_audit.md
 docs/gui/main_pending_cleanup.md
