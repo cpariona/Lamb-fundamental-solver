@@ -48,15 +48,20 @@ end
 function branch = solveOneAtlasBranch(branchName, seedMode, material, geometry, mrlfeParams, options, isViscous)
 if isViscous
     opt = makeViscousOptions(branchName, options);
-    branch = solveMRLFEViscoBranchAtlas(branchName, seedMode, material, geometry, mrlfeParams, opt);
-    if string(branchName) == "A0Like"
-        [branch, cut] = mrlfeApplyDelayedViscoModalCut(branch, opt);
-        branch.delayedViscoModalCut = cut;
-        branch.atlasUnifiedPolicy = "viscousA0DelayedCut";
+    if string(branchName) == "S0Like" && getOption(opt, 'mrlfeUseAdaptiveS0AtlasTracker', true)
+        branch = solveMRLFEBranchAdaptiveAtlas(branchName, seedMode, material, geometry, mrlfeParams, opt);
+        branch.atlasUnifiedPolicy = "viscousS0AdaptiveContinuation";
     else
-        [branch, cut] = mrlfeApplyDelayedViscoModalCut(branch, opt);
-        branch.delayedViscoModalCut = cut;
-        branch.atlasUnifiedPolicy = "viscousS0DelayedContinuationCut";
+        branch = solveMRLFEViscoBranchAtlas(branchName, seedMode, material, geometry, mrlfeParams, opt);
+        if string(branchName) == "A0Like"
+            [branch, cut] = mrlfeApplyDelayedViscoModalCut(branch, opt);
+            branch.delayedViscoModalCut = cut;
+            branch.atlasUnifiedPolicy = "viscousA0DelayedCut";
+        else
+            [branch, cut] = mrlfeApplyDelayedViscoModalCut(branch, opt);
+            branch.delayedViscoModalCut = cut;
+            branch.atlasUnifiedPolicy = "viscousS0DelayedContinuationCut";
+        end
     end
 else
     opt = makeElasticOptions(branchName, options);
@@ -98,19 +103,14 @@ if string(branchName) == "A0Like"
     opt.mrlfeDelayedCutPreviousCpMaxRelativeJump = getOption(options, 'mrlfeDelayedCutPreviousCpMaxRelativeJump', 0.18);
     opt.mrlfeDelayedCutResidualTolerance = getOption(options, 'mrlfeDelayedCutResidualTolerance', 1e-3);
 else
-    % S0Like uses RL-S0 only as a fast branch-scale seed. Once the branch is
-    % found, tracking should prefer the previous selected mRLFE candidate over
-    % returning to the RL-S0 curve, which can drift toward CT at high frequency.
-    opt.mrlfeA0DPEdgeGuardPoints = getOption(options, 'mrlfeViscoS0DPEdgeGuardPoints', 4);
-    opt.mrlfeA0DPCpMinFactor = getOption(options, 'mrlfeViscoS0DPCpMinFactor', 0.45);
-    opt.mrlfeA0DPCpMaxFactor = getOption(options, 'mrlfeViscoS0DPCpMaxFactor', 1.40);
-    opt.mrlfeA0DPJumpWeight = getOption(options, 'mrlfeViscoS0DPJumpWeight', 55.0);
-    opt.mrlfeA0DPCurvatureWeight = getOption(options, 'mrlfeViscoS0DPCurvatureWeight', 45.0);
-    opt.mrlfeA0DPSeedWeight = getOption(options, 'mrlfeViscoS0DPSeedWeight', 0.03);
-    opt.mrlfeA0DPResidualWeight = getOption(options, 'mrlfeViscoS0DPResidualWeight', 0.35);
-    opt.mrlfeA0DPMaxJumpSoft = getOption(options, 'mrlfeViscoS0DPMaxJumpSoft', 0.08);
-    opt.mrlfeA0DPValidationMaxCpJumpRelative = getOption(options, 'mrlfeViscoS0DPValidationMaxCpJumpRelative', 0.18);
-    opt.mrlfeA0DPValidationMaxCpPredictionError = getOption(options, 'mrlfeViscoS0DPValidationMaxCpPredictionError', 0.18);
+    opt.mrlfeUseAdaptiveS0AtlasTracker = getOption(options, 'mrlfeUseAdaptiveS0AtlasTracker', true);
+    opt.mrlfeAdaptiveCpScanPoints = getOption(options, 'mrlfeAdaptiveCpScanPoints', getOption(options, 'mrlfeViscoAtlasCpScanPoints', 900));
+    opt.mrlfeAdaptiveWindows = getOption(options, 'mrlfeAdaptiveWindows', [0.12 0.20 0.35 0.50]);
+    opt.mrlfeAdaptiveEdgeGuardPoints = getOption(options, 'mrlfeAdaptiveEdgeGuardPoints', 4);
+    opt.mrlfeAdaptiveResidualWeight = getOption(options, 'mrlfeAdaptiveResidualWeight', 0.35);
+    opt.mrlfeAdaptivePredictionWeight = getOption(options, 'mrlfeAdaptivePredictionWeight', 55.0);
+    opt.mrlfeAdaptiveMaxJumpRelative = getOption(options, 'mrlfeAdaptiveMaxJumpRelative', 0.18);
+    opt.mrlfeAdaptiveMaxPredictionError = getOption(options, 'mrlfeAdaptiveMaxPredictionError', 0.18);
     opt.mrlfeRealKStopAtFirstMissingModalMinimum = false;
     opt.mrlfeViscoS0StopAtFirstMissingModalMinimum = false;
     opt.mrlfeDelayedCutMinValidRun = getOption(options, 'mrlfeViscoS0DelayedCutMinValidRun', 8);
