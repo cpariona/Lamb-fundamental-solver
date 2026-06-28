@@ -28,9 +28,10 @@ for i = 1:numCases
 
     fprintf('  Direct A0   : valid %d/%d, maxJump %.5f, last %.3f Hz\n', ...
         summary(i).DirectValidPoints, summary(i).TotalPoints, summary(i).DirectMaxJumpRelative, summary(i).DirectLastValidHz);
-    fprintf('  Adaptive A0 : valid %d/%d, maxJump %.5f, last %.3f Hz, maxWindow %.2f, cut %s at %.3f Hz\n', ...
+    fprintf('  Adaptive A0 : valid %d/%d, maxJump %.5f, last %.3f Hz, maxWindow %.2f, cut %s at %.3f Hz, valleyFallback %d\n', ...
         summary(i).AdaptiveValidPoints, summary(i).TotalPoints, summary(i).AdaptiveMaxJumpRelative, ...
-        summary(i).AdaptiveLastValidHz, summary(i).AdaptiveMaxWindow, string(summary(i).AdaptiveCutReason), summary(i).AdaptiveCutFrequencyHz);
+        summary(i).AdaptiveLastValidHz, summary(i).AdaptiveMaxWindow, string(summary(i).AdaptiveCutReason), ...
+        summary(i).AdaptiveCutFrequencyHz, summary(i).AdaptiveValleyFallbackCount);
 end
 
 summaryTable = struct2table(summary);
@@ -111,12 +112,16 @@ options.mrlfeAdaptiveCpScanPoints = 900;
 options.mrlfeAdaptiveWindows = [0.20 0.35 0.50 0.80 1.20];
 options.mrlfeAdaptiveEdgeGuardPoints = 4;
 options.mrlfeAdaptiveRefineCandidates = true;
-options.mrlfeAdaptiveMaxJumpRelative = 0.25;
-options.mrlfeAdaptiveMaxPredictionError = 0.25;
-options.mrlfeAdaptivePredictionWeight = 35.0;
+options.mrlfeAdaptiveMaxJumpRelative = 0.12;
+options.mrlfeAdaptiveMaxPredictionError = 0.12;
+options.mrlfeAdaptivePredictionWeight = 45.0;
 options.mrlfeAdaptiveResidualWeight = 0.45;
 options.mrlfeAdaptiveEstablishedMinValidRun = 8;
 options.mrlfeAdaptiveCutAfterEstablishedLoss = true;
+options.mrlfeAdaptiveAllowValleyFallback = true;
+options.mrlfeAdaptiveValleyFallbackRelativeWindow = 0.10;
+options.mrlfeAdaptiveValleyFallbackPredictionWeight = 65.0;
+options.mrlfeAdaptiveValleyFallbackResidualWeight = 0.30;
 options.mrlfeResidualTolerance = 1e-3;
 end
 
@@ -141,6 +146,7 @@ row.AdaptiveResidualP95 = nan;
 row.AdaptiveMinWindow = nan;
 row.AdaptiveMedianWindow = nan;
 row.AdaptiveMaxWindow = nan;
+row.AdaptiveValleyFallbackCount = nan;
 row.AdaptiveCutIndex = nan;
 row.AdaptiveCutFrequencyHz = nan;
 row.AdaptiveCutReason = "none";
@@ -160,6 +166,9 @@ if isfield(adaptiveA0, 'adaptiveWindowUsed')
         row.AdaptiveMedianWindow = median(validW);
         row.AdaptiveMaxWindow = max(validW);
     end
+end
+if isfield(adaptiveA0, 'candidateType')
+    row.AdaptiveValleyFallbackCount = nnz(string(adaptiveA0.candidateType(:)) == "valleyFallback");
 end
 if isfield(adaptiveA0, 'adaptiveCut')
     row.AdaptiveCutIndex = adaptiveA0.adaptiveCut.FirstCutIndex;
