@@ -46,14 +46,18 @@ for ih = 1:numel(thicknessValues)
 end
 
 summaryTable = struct2table(summary);
+aggregate = summarizeAggregate(summaryTable);
+aggregateTable = struct2table(aggregate);
 disp(summaryTable);
+fprintf('\nAggregate A0 policy comparison:\n');
+disp(aggregateTable);
 
 outDir = fullfile(pwd, 'outputs', 'mrlfe');
 if ~exist(outDir, 'dir')
     mkdir(outDir);
 end
 outFile = fullfile(outDir, 'mrlfe_a0_policy_parametric_sweep.mat');
-save(outFile, 'muValues', 'etaSValues', 'thicknessValues', 'summaryTable', 'summary', 'results');
+save(outFile, 'muValues', 'etaSValues', 'thicknessValues', 'summaryTable', 'aggregateTable', 'summary', 'aggregate', 'results');
 fprintf('\nSaved A0 policy parametric sweep diagnostic to:\n%s\n', outFile);
 
 function [params, material, geometry, frequency, seedModes, mrlfeParams] = buildCase(mu, etaS, thickness)
@@ -211,6 +215,20 @@ end
 row.ValidPointGain = row.AdaptiveValidPoints - row.DelayedValidPoints;
 row.LastValidGainHz = row.AdaptiveLastValidHz - row.DelayedLastValidHz;
 row.MaxJumpReduction = row.DelayedMaxJumpRelative - row.AdaptiveMaxJumpRelative;
+end
+
+function aggregate = summarizeAggregate(summaryTable)
+aggregate = struct();
+aggregate.TotalCases = height(summaryTable);
+aggregate.AdaptiveBetterValidPoints = nnz(summaryTable.ValidPointGain > 0);
+aggregate.AdaptiveEqualValidPoints = nnz(summaryTable.ValidPointGain == 0);
+aggregate.AdaptiveWorseValidPoints = nnz(summaryTable.ValidPointGain < 0);
+aggregate.MedianValidPointGain = median(summaryTable.ValidPointGain, 'omitnan');
+aggregate.MedianLastValidGainHz = median(summaryTable.LastValidGainHz, 'omitnan');
+aggregate.MedianMaxJumpReduction = median(summaryTable.MaxJumpReduction, 'omitnan');
+aggregate.CutCases = nnz(~isnan(summaryTable.AdaptiveCutFrequencyHz));
+aggregate.ValleyFallbackCases = nnz(summaryTable.AdaptiveValleyFallbackCount > 0);
+aggregate.MedianValleyFallbackCount = median(summaryTable.AdaptiveValleyFallbackCount, 'omitnan');
 end
 
 function policy = getBranchPolicy(branch)
