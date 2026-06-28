@@ -31,6 +31,9 @@ options.computeMRLFE = false;
 options.computeMRLFEElasticRealK = logical(computeElastic || computeVisco);
 options.computeMRLFEViscoRealK = logical(computeVisco);
 options.computeMRLFERealK = options.computeMRLFEElasticRealK;
+options.computeMRLFEComplexK = false;
+options.mrlfeUseUnifiedAtlasRoute = logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', computeVisco));
+options.mrlfeA0Policy = string(getStructField(options, 'mrlfeA0Policy', "delayedCut"));
 
 if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
     options.mrlfeParams = guiRequest.mrlfeParams;
@@ -45,10 +48,14 @@ result.branches = filterMRLFEBranches(result.branches);
 result.diagnostics.branchCount = numel(result.branches);
 result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.diagnostics.seedBranchesHiddenFromPlotSurface = true;
+result.diagnostics.mrlfeUseUnifiedAtlasRoute = options.mrlfeUseUnifiedAtlasRoute;
+result.diagnostics.mrlfeA0Policy = options.mrlfeA0Policy;
 result.metadata.params = params;
 result.metadata.options = options;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.seedBranchesHiddenFromPlotSurface = true;
+result.metadata.mrlfeUseUnifiedAtlasRoute = options.mrlfeUseUnifiedAtlasRoute;
+result.metadata.mrlfeA0Policy = options.mrlfeA0Policy;
 end
 
 function branches = filterMRLFEBranches(branches)
