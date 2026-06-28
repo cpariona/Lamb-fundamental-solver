@@ -1,10 +1,11 @@
 function branchOut = mrlfeApplyPhysicalCorridorCut(branchIn, guideCp, frequency, options)
-%MRLFEAPPLYPHYSICALCORRIDORCUT Cut a branch when it leaves a physical Cp corridor.
+%MRLFEAPPLYPHYSICALCORRIDORCUT Conditionally cut a branch when it collapses.
 %
-% The corridor is defined relative to a guide branch, usually dry RL-A0. This
-% does not assume that mRLFE must match RL. It only prevents continuation into
-% very low-Cp mathematical/leaky roots that are incompatible with the tracked
-% physical A0-like branch.
+% The guide is usually dry RL-A0. The policy is deliberately not a pointwise
+% filter: mRLFE may be slower than RL because of water loading and loss. The
+% branch is cut only when it leaves the guide-ratio corridor and simultaneously
+% shows a strong local downward trend, which is interpreted as collapse into a
+% different low-Cp mathematical/leaky root.
 
 if nargin < 4
     options = struct();
@@ -17,8 +18,10 @@ frequency = frequency(:);
 
 minRatio = getOption(options, 'minRatioToGuide', 0.70);
 maxRatio = getOption(options, 'maxRatioToGuide', inf);
-minFrequencyHz = getOption(options, 'minFrequencyHz', -inf);
+minFrequencyHz = getOption(options, 'minFrequencyHz', 1000);
 minValidRunBeforeCut = getOption(options, 'minValidRunBeforeCut', 8);
+maxLocalDropRelative = getOption(options, 'maxLocalDropRelative', 0.05);
+maxTwoStepDropRelative = getOption(options, 'maxTwoStepDropRelative', 0.10);
 
 valid = isfinite(cp) & cp > 0 & isfinite(guideCp) & guideCp > 0;
 if isfield(branchIn, 'validCp')
@@ -31,27 +34,43 @@ ratio = nan(size(cp));
 ratio(valid) = cp(valid) ./ guideCp(valid);
 inside = valid & ratio >= minRatio & ratio <= maxRatio;
 
+localDrop = nan(size(cp));
+twoStepDrop = nan(size(cp));
+for j = 2:numel(cp)
+    if valid(j) && valid(j-1)
+        localDrop(j) = (cp(j-1) - cp(j)) / max(abs(cp(j-1)), eps);
+    end
+end
+for j = 3:numel(cp)
+    if valid(j) && valid(j-2)
+        twoStepDrop(j) = (cp(j-2) - cp(j)) / max(abs(cp(j-2)), eps);
+    end
+end
+
 cutIndex = nan;
 cutReason = "none";
 validRun = 0;
 for j = 1:numel(cp)
-    if frequency(j) < minFrequencyHz
+    if frequency(j) < minFrequencyHz || ~valid(j)
         continue;
     end
     if inside(j)
         validRun = validRun + 1;
-    elseif valid(j) && validRun >= minValidRunBeforeCut
+        continue;
+    end
+    outsideLow = ratio(j) < minRatio;
+    outsideHigh = ratio(j) > maxRatio;
+    strongDrop = localDrop(j) > maxLocalDropRelative || twoStepDrop(j) > maxTwoStepDropRelative;
+    if validRun >= minValidRunBeforeCut && (outsideLow || outsideHigh) && strongDrop
         cutIndex = j;
-        if ratio(j) < minRatio
-            cutReason = "below_min_ratio_to_guide";
-        elseif ratio(j) > maxRatio
-            cutReason = "above_max_ratio_to_guide";
+        if outsideLow
+            cutReason = "low_ratio_with_downward_collapse";
+        elseif outsideHigh
+            cutReason = "high_ratio_with_fast_departure";
         else
-            cutReason = "outside_physical_corridor";
+            cutReason = "outside_corridor_with_trend";
         end
         break;
-    elseif valid(j)
-        validRun = 0;
     end
 end
 
@@ -59,7 +78,6 @@ corridorValid = valid;
 if isfinite(cutIndex)
     corridorValid(cutIndex:end) = false;
 end
-corridorValid = corridorValid & inside;
 
 branchOut.Cp(~corridorValid) = nan;
 if isfield(branchOut, 'kReal')
@@ -79,11 +97,13 @@ if isfield(branchOut, 'valid')
 end
 
 branchOut.physicalCorridor = struct( ...
-    'PolicyName', "guideRatioCorridorCut", ...
+    'PolicyName', "guideRatioConditionalTailCut", ...
     'MinRatioToGuide', minRatio, ...
     'MaxRatioToGuide', maxRatio, ...
     'MinFrequencyHz', minFrequencyHz, ...
     'MinValidRunBeforeCut', minValidRunBeforeCut, ...
+    'MaxLocalDropRelative', maxLocalDropRelative, ...
+    'MaxTwoStepDropRelative', maxTwoStepDropRelative, ...
     'FirstCutIndex', cutIndex, ...
     'FirstCutFrequency', getCutFrequency(frequency, cutIndex), ...
     'CutReason', cutReason, ...
@@ -91,6 +111,8 @@ branchOut.physicalCorridor = struct( ...
     'ValidPointsAfterCut', nnz(corridorValid));
 branchOut.guideCp = guideCp;
 branchOut.guideRatio = ratio;
+branchOut.localDropRelative = localDrop;
+branchOut.twoStepDropRelative = twoStepDrop;
 end
 
 function f = getCutFrequency(frequency, cutIndex)
