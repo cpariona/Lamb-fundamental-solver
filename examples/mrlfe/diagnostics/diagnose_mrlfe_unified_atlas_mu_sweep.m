@@ -81,6 +81,8 @@ for i = 1:numCases
     atlasOptions.mrlfeAdaptiveMaxPredictionError = 0.18;
     atlasOptions.mrlfeAdaptivePredictionWeight = 55.0;
     atlasOptions.mrlfeAdaptiveResidualWeight = 0.35;
+    atlasOptions.mrlfeAdaptiveEstablishedMinValidRun = 8;
+    atlasOptions.mrlfeAdaptiveCutAfterEstablishedLoss = true;
     atlasOptions.mrlfeResidualTolerance = 1e-3;
     atlasOptions.mrlfeViscoS0ModalCpWindow = [0.45, 1.40];
 
@@ -89,7 +91,9 @@ for i = 1:numCases
     summary(i) = summarizeCase(mu, result);
 
     fprintf('  A0 valid: %d/%d, maxJump = %.5f\n', summary(i).A0ValidPoints, summary(i).TotalPoints, summary(i).A0MaxJumpRelative);
-    fprintf('  S0 valid: %d/%d, maxJump = %.5f, maxWindow = %.2f\n', summary(i).S0ValidPoints, summary(i).TotalPoints, summary(i).S0MaxJumpRelative, summary(i).S0MaxAdaptiveWindow);
+    fprintf('  S0 valid: %d/%d, maxJump = %.5f, maxWindow = %.2f, cut = %s at %.3f Hz\n', ...
+        summary(i).S0ValidPoints, summary(i).TotalPoints, summary(i).S0MaxJumpRelative, ...
+        summary(i).S0MaxAdaptiveWindow, string(summary(i).S0CutReason), summary(i).S0CutFrequencyHz);
 end
 
 summaryTable = struct2table(summary);
@@ -128,6 +132,9 @@ row.S0Window012Count = nan;
 row.S0Window020Count = nan;
 row.S0Window035Count = nan;
 row.S0Window050Count = nan;
+row.S0CutIndex = nan;
+row.S0CutFrequencyHz = nan;
+row.S0CutReason = "none";
 end
 
 function row = summarizeCase(mu, result)
@@ -140,9 +147,10 @@ if isfield(result.branches, 'A0Like')
     row = summarizeBranch(row, 'A0', result.branches.A0Like, freq);
 end
 if isfield(result.branches, 'S0Like')
-    row = summarizeBranch(row, 'S0', result.branches.S0Like, freq);
-    if isfield(result.branches.S0Like, 'adaptiveWindowUsed')
-        w = result.branches.S0Like.adaptiveWindowUsed(:);
+    s0 = result.branches.S0Like;
+    row = summarizeBranch(row, 'S0', s0, freq);
+    if isfield(s0, 'adaptiveWindowUsed')
+        w = s0.adaptiveWindowUsed(:);
         validW = w(isfinite(w));
         if ~isempty(validW)
             row.S0MinAdaptiveWindow = min(validW);
@@ -153,6 +161,11 @@ if isfield(result.branches, 'S0Like')
             row.S0Window035Count = nnz(abs(validW - 0.35) < 1e-12);
             row.S0Window050Count = nnz(abs(validW - 0.50) < 1e-12);
         end
+    end
+    if isfield(s0, 'adaptiveCut')
+        row.S0CutIndex = s0.adaptiveCut.FirstCutIndex;
+        row.S0CutFrequencyHz = s0.adaptiveCut.FirstCutFrequency;
+        row.S0CutReason = s0.adaptiveCut.CutReason;
     end
 end
 end
