@@ -48,7 +48,14 @@ end
 function branch = solveOneAtlasBranch(branchName, seedMode, material, geometry, mrlfeParams, options, isViscous)
 if isViscous
     opt = makeViscousOptions(branchName, options);
-    if string(branchName) == "S0Like" && getOption(opt, 'mrlfeUseAdaptiveS0AtlasTracker', true)
+    if string(branchName) == "A0Like" && getOption(opt, 'mrlfeUseAdaptiveA0AtlasTracker', false)
+        branch = solveMRLFEBranchAdaptiveAtlas(branchName, seedMode, material, geometry, mrlfeParams, opt);
+        branch.atlasUnifiedPolicy = "viscousA0AdaptivePhysicalTailCut";
+        if getOption(opt, 'mrlfeUseA0PhysicalTailCut', true)
+            corridorOptions = makeA0PhysicalTailCutOptions(opt);
+            branch = mrlfeApplyPhysicalCorridorCut(branch, seedMode.Cp, seedMode.frequency, corridorOptions);
+        end
+    elseif string(branchName) == "S0Like" && getOption(opt, 'mrlfeUseAdaptiveS0AtlasTracker', true)
         branch = solveMRLFEBranchAdaptiveAtlas(branchName, seedMode, material, geometry, mrlfeParams, opt);
         branch.atlasUnifiedPolicy = "viscousS0AdaptiveContinuation";
     else
@@ -96,6 +103,28 @@ opt.mrlfeA0DPEdgeGuardPoints = getOption(options, 'mrlfeA0DPEdgeGuardPoints', 6)
 opt.mrlfeA0DPRefineCandidates = getOption(options, 'mrlfeA0DPRefineCandidates', true);
 opt.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
 if string(branchName) == "A0Like"
+    opt.mrlfeUseAdaptiveA0AtlasTracker = getOption(options, 'mrlfeUseAdaptiveA0AtlasTracker', false);
+    opt.mrlfeUseA0PhysicalTailCut = getOption(options, 'mrlfeUseA0PhysicalTailCut', true);
+    opt.mrlfeAdaptiveCpScanPoints = getOption(options, 'mrlfeAdaptiveCpScanPoints', getOption(options, 'mrlfeViscoAtlasCpScanPoints', 900));
+    opt.mrlfeAdaptiveWindows = getOption(options, 'mrlfeAdaptiveWindows', [0.20 0.35 0.50 0.80 1.20]);
+    opt.mrlfeAdaptiveEdgeGuardPoints = getOption(options, 'mrlfeAdaptiveEdgeGuardPoints', 4);
+    opt.mrlfeAdaptiveRefineCandidates = getOption(options, 'mrlfeAdaptiveRefineCandidates', true);
+    opt.mrlfeAdaptiveMaxJumpRelative = getOption(options, 'mrlfeAdaptiveMaxJumpRelative', 0.12);
+    opt.mrlfeAdaptiveMaxPredictionError = getOption(options, 'mrlfeAdaptiveMaxPredictionError', 0.12);
+    opt.mrlfeAdaptiveResidualWeight = getOption(options, 'mrlfeAdaptiveResidualWeight', 0.45);
+    opt.mrlfeAdaptivePredictionWeight = getOption(options, 'mrlfeAdaptivePredictionWeight', 45.0);
+    opt.mrlfeAdaptiveEstablishedMinValidRun = getOption(options, 'mrlfeAdaptiveEstablishedMinValidRun', 8);
+    opt.mrlfeAdaptiveCutAfterEstablishedLoss = getOption(options, 'mrlfeAdaptiveCutAfterEstablishedLoss', true);
+    opt.mrlfeAdaptiveAllowValleyFallback = getOption(options, 'mrlfeAdaptiveAllowValleyFallback', true);
+    opt.mrlfeAdaptiveValleyFallbackRelativeWindow = getOption(options, 'mrlfeAdaptiveValleyFallbackRelativeWindow', 0.10);
+    opt.mrlfeAdaptiveValleyFallbackPredictionWeight = getOption(options, 'mrlfeAdaptiveValleyFallbackPredictionWeight', 65.0);
+    opt.mrlfeAdaptiveValleyFallbackResidualWeight = getOption(options, 'mrlfeAdaptiveValleyFallbackResidualWeight', 0.30);
+    opt.mrlfeA0PhysicalMinRatioToGuide = getOption(options, 'mrlfeA0PhysicalMinRatioToGuide', 0.70);
+    opt.mrlfeA0PhysicalMaxRatioToGuide = getOption(options, 'mrlfeA0PhysicalMaxRatioToGuide', inf);
+    opt.mrlfeA0PhysicalMinFrequencyHz = getOption(options, 'mrlfeA0PhysicalMinFrequencyHz', 1000);
+    opt.mrlfeA0PhysicalMinValidRunBeforeCut = getOption(options, 'mrlfeA0PhysicalMinValidRunBeforeCut', 8);
+    opt.mrlfeA0PhysicalMaxLocalDropRelative = getOption(options, 'mrlfeA0PhysicalMaxLocalDropRelative', 0.05);
+    opt.mrlfeA0PhysicalMaxTwoStepDropRelative = getOption(options, 'mrlfeA0PhysicalMaxTwoStepDropRelative', 0.10);
     opt.mrlfeRealKStopAtFirstMissingModalMinimum = false;
     opt.mrlfeViscoA0StopAtFirstMissingModalMinimum = false;
     opt.mrlfeViscoA0PreviousCpMaxRelativeJump = inf;
@@ -111,6 +140,8 @@ else
     opt.mrlfeAdaptivePredictionWeight = getOption(options, 'mrlfeAdaptivePredictionWeight', 55.0);
     opt.mrlfeAdaptiveMaxJumpRelative = getOption(options, 'mrlfeAdaptiveMaxJumpRelative', 0.18);
     opt.mrlfeAdaptiveMaxPredictionError = getOption(options, 'mrlfeAdaptiveMaxPredictionError', 0.18);
+    opt.mrlfeAdaptiveCutAfterEstablishedLoss = getOption(options, 'mrlfeAdaptiveCutAfterEstablishedLoss', true);
+    opt.mrlfeAdaptiveEstablishedMinValidRun = getOption(options, 'mrlfeAdaptiveEstablishedMinValidRun', 8);
     opt.mrlfeRealKStopAtFirstMissingModalMinimum = false;
     opt.mrlfeViscoS0StopAtFirstMissingModalMinimum = false;
     opt.mrlfeDelayedCutMinValidRun = getOption(options, 'mrlfeViscoS0DelayedCutMinValidRun', 8);
@@ -119,6 +150,16 @@ else
     opt.mrlfeViscoS0PreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoS0PreviousCpMaxRelativeJump', 0.18);
     opt.mrlfeViscoS0ModalCpWindow = getOption(options, 'mrlfeViscoS0ModalCpWindow', [0.45, 1.40]);
 end
+end
+
+function corridorOptions = makeA0PhysicalTailCutOptions(opt)
+corridorOptions = struct();
+corridorOptions.minRatioToGuide = getOption(opt, 'mrlfeA0PhysicalMinRatioToGuide', 0.70);
+corridorOptions.maxRatioToGuide = getOption(opt, 'mrlfeA0PhysicalMaxRatioToGuide', inf);
+corridorOptions.minFrequencyHz = getOption(opt, 'mrlfeA0PhysicalMinFrequencyHz', 1000);
+corridorOptions.minValidRunBeforeCut = getOption(opt, 'mrlfeA0PhysicalMinValidRunBeforeCut', 8);
+corridorOptions.maxLocalDropRelative = getOption(opt, 'mrlfeA0PhysicalMaxLocalDropRelative', 0.05);
+corridorOptions.maxTwoStepDropRelative = getOption(opt, 'mrlfeA0PhysicalMaxTwoStepDropRelative', 0.10);
 end
 
 function d = summarizeAtlasUnified(out, elapsed)
