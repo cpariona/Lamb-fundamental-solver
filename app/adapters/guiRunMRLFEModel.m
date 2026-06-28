@@ -40,15 +40,31 @@ seedOptions.computeMRLFEComplexK = false;
 
 elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, seedOptions);
-if shouldUseUnifiedAtlas(options, computeVisco)
-    options = applyGuiAtlasPreset(options, true);
+useViscousAtlas = shouldUseUnifiedAtlas(options, computeVisco);
+useElasticAtlas = shouldUseElasticAtlas(options, computeVisco);
+elasticAtlasFallback = false;
+actualRoute = "elastic_reference";
+
+if useViscousAtlas
+    options = applyGuiAtlasPreset(options, "viscous");
     mrlfeResult = solveMRLFEAtlasUnified(rawResult.grid.frequency(:), rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
+    actualRoute = "viscous_unified_atlas";
+elseif useElasticAtlas
+    options = applyGuiAtlasPreset(options, "elastic_atlas");
+    candidate = solveMRLFEAtlasUnified(rawResult.grid.frequency(:), rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
+    if mrlfeResultHasFiniteCp(candidate)
+        mrlfeResult = candidate;
+        actualRoute = "elastic_modal_atlas";
+    else
+        elasticAtlasFallback = true;
+        mrlfeResult = computeElasticReference(rawResult, options);
+        actualRoute = "elastic_reference_fallback";
+    end
 else
-    options = applyGuiAtlasPreset(options, false);
-    elasticParams = options.mrlfeParams;
-    elasticParams.etaS = 0;
-    mrlfeResult = computeMRLFE(rawResult.grid.frequency(:), rawResult.material, rawResult.geometry, rawResult.modes, elasticParams, options);
+    options = applyGuiAtlasPreset(options, "elastic_reference");
+    mrlfeResult = computeElasticReference(rawResult, options);
 end
+
 rawResult.models.mRLFERealK = mrlfeResult;
 rawResult.models.mRLFE = mrlfeResult;
 elapsedSeconds = toc(elapsedTimer);
@@ -58,36 +74,71 @@ result.branches = filterMRLFEBranches(result.branches);
 result.diagnostics.branchCount = numel(result.branches);
 result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.diagnostics.seedBranchesHiddenFromPlotSurface = true;
-result.diagnostics.mrlfeUseUnifiedAtlasRoute = shouldUseUnifiedAtlas(options, computeVisco);
+result.diagnostics.mrlfeUseUnifiedAtlasRoute = useViscousAtlas || (useElasticAtlas && ~elasticAtlasFallback);
+result.diagnostics.mrlfeUseElasticAtlasGuiRoute = useElasticAtlas;
+result.diagnostics.mrlfeElasticAtlasFallback = elasticAtlasFallback;
+result.diagnostics.mrlfeGuiActualRoute = actualRoute;
 result.diagnostics.mrlfeA0Policy = options.mrlfeA0Policy;
 result.diagnostics.mrlfeGuiAtlasPreset = getStructField(options, 'mrlfeGuiAtlasPreset', "none");
 result.metadata.params = params;
 result.metadata.options = options;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.seedBranchesHiddenFromPlotSurface = true;
-result.metadata.mrlfeUseUnifiedAtlasRoute = shouldUseUnifiedAtlas(options, computeVisco);
+result.metadata.mrlfeUseUnifiedAtlasRoute = result.diagnostics.mrlfeUseUnifiedAtlasRoute;
+result.metadata.mrlfeUseElasticAtlasGuiRoute = useElasticAtlas;
+result.metadata.mrlfeElasticAtlasFallback = elasticAtlasFallback;
+result.metadata.mrlfeGuiActualRoute = actualRoute;
 result.metadata.mrlfeA0Policy = options.mrlfeA0Policy;
 result.metadata.mrlfeGuiAtlasPreset = getStructField(options, 'mrlfeGuiAtlasPreset', "none");
 end
 
+function mrlfeResult = computeElasticReference(rawResult, options)
+elasticParams = options.mrlfeParams;
+elasticParams.etaS = 0;
+mrlfeResult = computeMRLFE(rawResult.grid.frequency(:), rawResult.material, rawResult.geometry, rawResult.modes, elasticParams, options);
+end
+
 function tf = shouldUseUnifiedAtlas(options, computeVisco)
+etaS = getEtaS(options);
+tf = logical(computeVisco) && etaS > 0 && logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', true));
+end
+
+function tf = shouldUseElasticAtlas(options, computeVisco)
+etaS = getEtaS(options);
+tf = ~logical(computeVisco) && etaS == 0 && logical(getStructField(options, 'mrlfeUseElasticAtlasGuiRoute', false));
+end
+
+function etaS = getEtaS(options)
 etaS = 0;
 if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS') && ~isempty(options.mrlfeParams.etaS)
     etaS = options.mrlfeParams.etaS;
 end
-tf = logical(computeVisco) && etaS > 0 && logical(getStructField(options, 'mrlfeUseUnifiedAtlasRoute', true));
 end
 
-function options = applyGuiAtlasPreset(options, computeVisco)
+function options = applyGuiAtlasPreset(options, routeMode)
 if ~logical(getStructField(options, 'mrlfeUseGuiFastAtlasPreset', true))
     options.mrlfeGuiAtlasPreset = "off";
     return;
 end
-if computeVisco
-    options.mrlfeGuiAtlasPreset = "fast_viscous";
-else
-    options.mrlfeGuiAtlasPreset = "elastic_reference";
+routeMode = string(routeMode);
+switch routeMode
+    case "viscous"
+        options.mrlfeGuiAtlasPreset = "fast_viscous";
+    case "elastic_atlas"
+        options.mrlfeGuiAtlasPreset = "fast_elastic_atlas_guarded";
+    otherwise
+        options.mrlfeGuiAtlasPreset = "elastic_reference";
 end
+
+% Elastic modal-atlas GUI trial settings. The guarded route falls back to the
+% elastic reference branch if the atlas returns no finite normalized Cp.
+options.mrlfeModalAtlasApplyAmbiguityCut = getStructField(options, 'mrlfeModalAtlasApplyAmbiguityCut', false);
+options.mrlfeModalAtlasCpScanPoints = getStructField(options, 'mrlfeModalAtlasCpScanPoints', 420);
+options.mrlfeModalAtlasTopNMinima = getStructField(options, 'mrlfeModalAtlasTopNMinima', 12);
+options.mrlfeModalAtlasRefineMinima = getStructField(options, 'mrlfeModalAtlasRefineMinima', false);
+options.mrlfeModalAtlasRequireResidualValidity = getStructField(options, 'mrlfeModalAtlasRequireResidualValidity', false);
+
+% Viscous atlas GUI settings.
 options.mrlfeViscoAtlasCpScanPoints = getStructField(options, 'mrlfeViscoAtlasCpScanPoints', 260);
 options.mrlfeA0DPCpScanPoints = getStructField(options, 'mrlfeA0DPCpScanPoints', 260);
 options.mrlfeA0DPCandidates = getStructField(options, 'mrlfeA0DPCandidates', 5);
@@ -96,6 +147,25 @@ options.mrlfeAdaptiveCpScanPoints = getStructField(options, 'mrlfeAdaptiveCpScan
 options.mrlfeAdaptiveRefineCandidates = getStructField(options, 'mrlfeAdaptiveRefineCandidates', false);
 options.mrlfeAdaptiveWindows = getStructField(options, 'mrlfeAdaptiveWindows', [0.20 0.40 0.80]);
 options.mrlfeAdaptiveValleyFallbackRelativeWindow = getStructField(options, 'mrlfeAdaptiveValleyFallbackRelativeWindow', 0.12);
+end
+
+function tf = mrlfeResultHasFiniteCp(mrlfeResult)
+tf = false;
+if ~isstruct(mrlfeResult) || ~isfield(mrlfeResult, 'branches') || ~isstruct(mrlfeResult.branches)
+    return;
+end
+branchNames = fieldnames(mrlfeResult.branches);
+for i = 1:numel(branchNames)
+    branch = mrlfeResult.branches.(branchNames{i});
+    if isfield(branch, 'Cp') && any(isfinite(branch.Cp(:)))
+        tf = true;
+        return;
+    end
+    if isfield(branch, 'phaseVelocity') && any(isfinite(branch.phaseVelocity(:)))
+        tf = true;
+        return;
+    end
+end
 end
 
 function branches = filterMRLFEBranches(branches)
