@@ -39,6 +39,25 @@ The fitting validation suite is documented in:
 docs/fitting/validation_suite.md
 ```
 
+## Focused mRLFE atlas validation
+
+The mRLFE atlas contract suite is separate from the broader mRLFE smoke suite because it checks branch-policy routing, direct-visco atlas compatibility, adaptive continuation, delayed modal cuts, and the high-level A0 policy selector.
+
+Run after changes to mRLFE atlas solvers, branch policies, or atlas diagnostics:
+
+```matlab
+tests/run_mrlfe_atlas_tests
+```
+
+For dense numerical evidence, use the primary diagnostics documented in:
+
+```text
+examples/mrlfe/diagnostics/README.md
+docs/mrlfe_atlas_policy_notes.md
+```
+
+Dense diagnostics are not a replacement for contract tests and should not be added to lightweight smoke suites unless they are explicitly bounded in runtime.
+
 ## Acoustoelastic IOP/HGO validation
 
 The maintained acoustoelastic IOP/HGO smoke suite includes tests for the official `atlasA0` policy, fallback invalidation, and identity-A0 diagnostic policy.
@@ -77,6 +96,12 @@ run_gui_smoke_tests
 run_acoustoelastic_smoke_tests
 run_mrlfe_smoke_tests
 run_fit_validation_tests
+```
+
+For mRLFE atlas-specific changes, additionally run:
+
+```matlab
+tests/run_mrlfe_atlas_tests
 ```
 
 For documentation-only changes, it is sufficient to run the affected smoke groups and confirm there are no broken documentation links by grep/search.
