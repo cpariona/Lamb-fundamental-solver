@@ -22,8 +22,10 @@ for i = 1:numCases
     corridorOptions = struct();
     corridorOptions.minRatioToGuide = 0.70;
     corridorOptions.maxRatioToGuide = inf;
-    corridorOptions.minFrequencyHz = 10;
+    corridorOptions.minFrequencyHz = 1000;
     corridorOptions.minValidRunBeforeCut = 8;
+    corridorOptions.maxLocalDropRelative = 0.05;
+    corridorOptions.maxTwoStepDropRelative = 0.10;
     guidedA0 = mrlfeApplyPhysicalCorridorCut(adaptiveA0, seedModes.A0.Cp, frequency, corridorOptions);
 
     results{i} = struct('params', params, 'direct', directResult, ...
@@ -140,6 +142,8 @@ row.GuidedLastValidHz = nan;
 row.GuidedMaxJumpRelative = nan;
 row.GuidedMinRatio = nan;
 row.GuidedMedianRatio = nan;
+row.GuidedMaxLocalDrop = nan;
+row.GuidedMaxTwoStepDrop = nan;
 row.GuidedCutFrequencyHz = nan;
 row.GuidedCutReason = "none";
 end
@@ -151,12 +155,27 @@ row.TotalPoints = numel(frequency);
 [row.DirectValidPoints, row.DirectLastValidHz, row.DirectMaxJumpRelative] = branchStats(frequency, directA0);
 [row.AdaptiveValidPoints, row.AdaptiveLastValidHz, row.AdaptiveMaxJumpRelative] = branchStats(frequency, adaptiveA0);
 [row.GuidedValidPoints, row.GuidedLastValidHz, row.GuidedMaxJumpRelative] = branchStats(frequency, guidedA0);
+validGuided = isfinite(guidedA0.Cp(:)) & guidedA0.Cp(:) > 0;
 if isfield(guidedA0, 'guideRatio')
     r = guidedA0.guideRatio(:);
-    valid = isfinite(guidedA0.Cp(:)) & guidedA0.Cp(:) > 0 & isfinite(r);
+    valid = validGuided & isfinite(r);
     if any(valid)
         row.GuidedMinRatio = min(r(valid));
         row.GuidedMedianRatio = median(r(valid));
+    end
+end
+if isfield(guidedA0, 'localDropRelative')
+    d = guidedA0.localDropRelative(:);
+    valid = validGuided & isfinite(d);
+    if any(valid)
+        row.GuidedMaxLocalDrop = max(d(valid));
+    end
+end
+if isfield(guidedA0, 'twoStepDropRelative')
+    d = guidedA0.twoStepDropRelative(:);
+    valid = validGuided & isfinite(d);
+    if any(valid)
+        row.GuidedMaxTwoStepDrop = max(d(valid));
     end
 end
 if isfield(guidedA0, 'physicalCorridor')
