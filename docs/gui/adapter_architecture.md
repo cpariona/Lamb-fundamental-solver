@@ -23,6 +23,30 @@ lastGuiResult
 
 `lastResults` is kept for compatibility and diagnostics. `lastGuiResult` is the preferred GUI-facing structure for plotting and table export.
 
+### mRLFE atlas policy integration
+
+The mRLFE GUI path exposes the unified real-k atlas route and A0 policy selector through adapters rather than by calling solver internals directly.
+
+The integration contract is documented in:
+
+```text
+docs/gui/mrlfe_atlas_policy_integration.md
+```
+
+The maintained GUI-facing mRLFE policy fields are:
+
+```matlab
+mrlfeUseUnifiedAtlasRoute
+mrlfeA0Policy
+```
+
+The supported A0 policies are:
+
+```matlab
+"delayedCut"
+"adaptivePhysicalTail"
+```
+
 ### SweepTool flow
 
 ```text
@@ -49,8 +73,12 @@ Visible families:
 
 ```text
 mRLFE
-    parameters: etaS, E, thickness
+    parameters: etaS, mu, thickness
     branches: A0Like, S0Like
+
+Rayleigh-Lamb
+    parameters: thickness, mu
+    branches: A0, S0
 
 AE IOP/HGO
     parameters: IOP, mu
@@ -66,6 +94,8 @@ Current sweep adapters:
 ```text
 app/adapters/guiRunMRLFESweep.m
 app/adapters/guiNormalizeMRLFESweep.m
+app/adapters/guiRunRLSweep.m
+app/adapters/guiNormalizeRLSweep.m
 app/adapters/guiRunAcoustoelasticIOPHGOSweep.m
 app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m
 ```
