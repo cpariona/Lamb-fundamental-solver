@@ -1,5 +1,5 @@
 function test_mrlfe_unified_atlas_route_contract()
-%TEST_MRLFE_UNIFIED_ATLAS_ROUTE_CONTRACT Unified atlas route uses fast seeds, not elastic mRLFE reference.
+%TEST_MRLFE_UNIFIED_ATLAS_ROUTE_CONTRACT Unified atlas route uses fast RL seeds, not elastic mRLFE reference.
 
 params = rlDefaultParams();
 params.modelType = "ShearPoisson";
@@ -19,10 +19,11 @@ if isfield(geometry, 'halfThickness')
     geometry = rmfield(geometry, 'halfThickness');
 end
 frequency = rlBuildFrequencyVector(params);
+omega = 2*pi*frequency(:);
 
 seedModes = struct();
-seedModes.A0 = mrlfeMakePhysicalSeedMode("A0Like", frequency, material, geometry, struct());
-seedModes.S0 = mrlfeMakePhysicalSeedMode("S0Like", frequency, material, geometry, struct());
+seedModes.A0 = makeCheapRLSeed("A0", frequency, omega, material.CT);
+seedModes.S0 = makeCheapRLSeed("S0", frequency, omega, sqrt(material.E / (material.rho * (1 - material.nu^2))));
 
 mrlfeParams = defaultMRLFEParams();
 mrlfeParams.fluidDensity = 1000;
@@ -49,8 +50,25 @@ assert(isfield(result.branches, 'A0Like'));
 assert(isfield(result.branches, 'S0Like'));
 assert(result.branches.A0Like.solverRoute == "atlasUnified");
 assert(result.branches.S0Like.solverRoute == "atlasUnified");
-assert(isfield(result.branches.A0Like, 'seedMode'));
-assert(isfield(result.branches.S0Like, 'seedMode'));
+assert(result.branches.A0Like.seedMode.seedSource == "RayleighLambSeed");
+assert(result.branches.S0Like.seedMode.seedSource == "RayleighLambSeed");
 
 fprintf('test_mrlfe_unified_atlas_route_contract passed.\n');
+end
+
+function seed = makeCheapRLSeed(name, frequency, omega, cp0)
+frequency = frequency(:);
+cp = cp0 * ones(size(frequency));
+if string(name) == "A0"
+    scale = sqrt(max(frequency ./ max(max(frequency), eps), 0.02));
+    cp = max(0.2 * cp0, min(cp0, 0.35 * cp0 .* scale));
+end
+seed = struct();
+seed.name = string(name);
+seed.family = string(name);
+seed.frequency = frequency;
+seed.omega = omega(:);
+seed.Cp = cp(:);
+seed.k = seed.omega ./ seed.Cp;
+seed.valid = true(size(frequency));
 end
