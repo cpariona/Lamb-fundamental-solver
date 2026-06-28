@@ -71,6 +71,16 @@ options.mrlfeRealKPreviousCpWeight = 0.0;
 options.mrlfeRealKPreviousKWeight = 0.0;
 options.mrlfeRealKPreviousCpMaxRelativeJump = inf;
 
+% Experimental direct-viscous atlas route. The default is the maintained
+% reference-based route. A0DelayedCut is allowed only for A0Like, etaS > 0,
+% real-k, and with S0Like disabled by the caller.
+options.mrlfeDirectViscoAtlasPolicy = "maintained"; % "maintained" or "A0DelayedCut"
+options.mrlfeDirectViscoAtlasComputeElasticReference = false;
+options.mrlfeDelayedCutMinValidRun = 8;
+options.mrlfeDelayedCutStopAtFirstMissingAfterValidRun = true;
+options.mrlfeDelayedCutPreviousCpMaxRelativeJump = 0.18;
+options.mrlfeDelayedCutResidualTolerance = 1e-3;
+
 % Viscoelastic real-k modal-local tracker controls. These are enabled
 % internally only for the viscous etaS > 0 real-k branch by rlComputeFundamentalLambModes.
 options.mrlfeViscoUseModalLocalTracker = true;

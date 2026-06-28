@@ -74,8 +74,6 @@ end
 end
 
 function tf = shouldComputeMRLFERealK(options)
-% Maintained real-k flags are computeMRLFEElasticRealK and
-% computeMRLFEViscoRealK. computeMRLFERealK remains a unified real-k selector.
 tf = getOption(options, 'computeMRLFERealK', false) || ...
     getOption(options, 'computeMRLFEElasticRealK', false) || ...
     getOption(options, 'computeMRLFEViscoRealK', false) || ...
@@ -95,6 +93,16 @@ if ~isViscoelastic
     return;
 end
 
+if shouldUseA0DelayedDirectViscoAtlas(options, mrlfeParams, seedModes)
+    if getOption(options, 'mrlfeDirectViscoAtlasComputeElasticReference', false)
+        elasticReference = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options);
+    else
+        elasticReference = makeSkippedElasticReferenceResult(frequency, mrlfeParams, options);
+    end
+    realKResult = computeA0DelayedDirectViscoAtlasRealK(frequency, material, geometry, seedModes.A0, mrlfeParams, options);
+    return;
+end
+
 elasticReference = getElasticReferenceResult(options, frequency, seedModes);
 if isempty(elasticReference)
     elasticReference = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options);
@@ -102,6 +110,112 @@ end
 
 viscoOptions = makeViscoRealKOptions(options);
 realKResult = computeMRLFE(frequency, material, geometry, elasticReference.branches, mrlfeParams, viscoOptions);
+end
+
+function tf = shouldUseA0DelayedDirectViscoAtlas(options, mrlfeParams, seedModes)
+policy = string(getOption(options, 'mrlfeDirectViscoAtlasPolicy', "maintained"));
+tf = policy == "A0DelayedCut" && ...
+    getOption(mrlfeParams, 'etaS', 0) > 0 && ...
+    ~getOption(mrlfeParams, 'solveComplexK', false) && ...
+    getOption(options, 'mrlfeComputeA0Like', true) && ...
+    ~getOption(options, 'mrlfeComputeS0Like', true) && ...
+    isfield(seedModes, 'A0');
+end
+
+function realKResult = computeA0DelayedDirectViscoAtlasRealK(frequency, material, geometry, seedA0, mrlfeParams, options)
+timerStart = tic;
+policyOptions = mrlfeMakeDirectViscoAtlasBranchOptions(options, "A0Like", options);
+policyOptions.mrlfeRealKStopAtFirstMissingModalMinimum = false;
+branch = solveMRLFEViscoBranchAtlas("A0Like", seedA0, material, geometry, mrlfeParams, policyOptions);
+[branch, delayedCutSummary] = mrlfeApplyDelayedViscoModalCut(branch, policyOptions);
+branch.experimentalPolicy = "A0DelayedCut";
+branch.delayedViscoModalCut = delayedCutSummary;
+
+realKResult = struct();
+realKResult.modelName = "mRLFE";
+realKResult.variant = "real-k";
+realKResult.description = "Experimental A0Like direct viscous real-k atlas with delayed modal cut.";
+realKResult.parameters = mrlfeParams;
+realKResult.requestedBranches = struct('A0Like', true, 'S0Like', false);
+realKResult.frequency = frequency(:);
+realKResult.tracking = struct();
+realKResult.tracking.usedInternalGrid = false;
+realKResult.tracking.requestedFrequency = frequency(:);
+realKResult.tracking.trackingFrequency = frequency(:);
+realKResult.branches = struct();
+realKResult.branches.A0Like = branch;
+realKResult.experimental = struct();
+realKResult.experimental.directViscoAtlasPolicy = "A0DelayedCut";
+realKResult.experimental.S0LikeExcluded = true;
+realKResult.experimental.elasticReferenceSkipped = ~getOption(options, 'mrlfeDirectViscoAtlasComputeElasticReference', false);
+realKResult.diagnostics = buildDirectAtlasDiagnostics(realKResult, toc(timerStart));
+end
+
+function elasticReference = makeSkippedElasticReferenceResult(frequency, mrlfeParams, options)
+elasticParams = mrlfeParams;
+elasticParams.etaS = 0;
+elasticReference = struct();
+elasticReference.modelName = "mRLFE";
+elasticReference.variant = "real-k-elastic-reference-skipped";
+elasticReference.description = "Elastic mRLFE reference skipped by experimental A0DelayedCut direct-visco atlas policy.";
+elasticReference.parameters = elasticParams;
+elasticReference.requestedBranches = struct('A0Like', false, 'S0Like', false);
+elasticReference.frequency = frequency(:);
+elasticReference.tracking = struct('usedInternalGrid', false, 'requestedFrequency', frequency(:), 'trackingFrequency', frequency(:));
+elasticReference.branches = struct();
+elasticReference.experimental = struct('directViscoAtlasPolicy', string(getOption(options, 'mrlfeDirectViscoAtlasPolicy', "maintained")));
+elasticReference.diagnostics = struct('elapsedSeconds', 0, 'variant', elasticReference.variant, 'branchNames', strings(0, 1), 'summary', struct());
+end
+
+function diagnostics = buildDirectAtlasDiagnostics(mrlfeResults, elapsedSeconds)
+diagnostics = struct();
+diagnostics.elapsedSeconds = elapsedSeconds;
+diagnostics.variant = mrlfeResults.variant;
+diagnostics.branchNames = string(fieldnames(mrlfeResults.branches));
+diagnostics.usedInternalTrackingGrid = false;
+diagnostics.requestedPointCount = numel(mrlfeResults.frequency);
+diagnostics.trackingPointCount = numel(mrlfeResults.frequency);
+diagnostics.summary = struct();
+branchNames = fieldnames(mrlfeResults.branches);
+for i = 1:numel(branchNames)
+    name = branchNames{i};
+    branch = mrlfeResults.branches.(name);
+    validCp = getBranchValidCp(branch);
+    finiteResidual = false(size(branch.Cp(:)));
+    if isfield(branch, 'residual')
+        finiteResidual = isfinite(branch.residual(:));
+    end
+    item = struct();
+    item.validPoints = nnz(validCp);
+    item.validCpPoints = nnz(validCp);
+    item.totalPoints = numel(branch.Cp);
+    item.maxCpJumpRelative = maxRelativeJump(branch.Cp(validCp));
+    if any(finiteResidual)
+        residual = branch.residual(:);
+        item.maxResidual = max(residual(finiteResidual));
+        item.meanResidual = mean(residual(finiteResidual));
+    else
+        item.maxResidual = nan;
+        item.meanResidual = nan;
+    end
+    if any(validCp)
+        item.minCp = min(branch.Cp(validCp));
+        item.maxCp = max(branch.Cp(validCp));
+    else
+        item.minCp = nan;
+        item.maxCp = nan;
+    end
+    diagnostics.summary.(name) = item;
+end
+end
+
+function validCp = getBranchValidCp(branch)
+validCp = isfinite(branch.Cp(:)) & branch.Cp(:) > 0;
+if isfield(branch, 'validCp')
+    validCp = validCp & logical(branch.validCp(:));
+elseif isfield(branch, 'valid')
+    validCp = validCp & logical(branch.valid(:));
+end
 end
 
 function results = registerMRLFERealKResults(results, realKResult, elasticReference, isViscoelastic)
@@ -256,6 +370,14 @@ mode = struct( ...
     'kThickness', k * thickness, ...
     'residual', residual, ...
     'valid', isfinite(Cp));
+end
+
+function value = maxRelativeJump(x)
+if numel(x) < 2
+    value = 0;
+else
+    value = max(abs(diff(x)) ./ max(abs(x(1:end-1)), eps));
+end
 end
 
 function value = getOption(options, fieldName, defaultValue)
