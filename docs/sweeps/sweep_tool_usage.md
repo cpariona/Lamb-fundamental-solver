@@ -15,7 +15,7 @@ SweepTool_GUI
 
 | Family | Parameters | Branches | Notes |
 | --- | --- | --- | --- |
-| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Uses the unified `mRLFE real-k` path. `etaS = 0` is the elastic limit; `etaS > 0` is the viscous case. The A0 atlas policy selector exposes `delayedCut` and `adaptivePhysicalTail`. |
+| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Routes each sweep point through the same `guiRunMRLFEModel` adapter used by the main GUI. `etaS = 0` uses the zero-eta adaptive GUI route with fallback; `etaS > 0` uses the viscous unified atlas route. The A0 atlas policy selector exposes `adaptivePhysicalTail` and `delayedCut`. |
 | `Rayleigh-Lamb` | `thickness`, `mu` | `A0`, `S0` | Uses the Rayleigh-Lamb sweep adapter and the maintained `rl*` API. |
 | `AE IOP/HGO` | `IOP`, `mu` | `atlasA0` | Uses the AE IOP/HGO sweep adapter and the maintained atlas branch policy. |
 
@@ -33,7 +33,7 @@ Model: mRLFE real-k
 Branch: A0Like
 Robustness: Fast
 etaS: 0.05 Pa*s
-A0 atlas policy: delayedCut
+A0 atlas policy: adaptivePhysicalTail
 ```
 
 Expected outcome:
@@ -42,7 +42,7 @@ Expected outcome:
 - The values are interpreted in kPa and converted to solver units by the registry scale.
 - The summary table has two rows.
 - The normalized model name is `mRLFERealK`.
-- `SweepToolOutput.atlasPolicy.mrlfeUseUnifiedAtlasRoute` is `true`.
+- `SweepToolOutput.atlasPolicy.guiRoutePolicy` is `guiRunMRLFEModel`.
 - `SweepToolOutput.atlasPolicy.mrlfeA0Policy` matches the selected A0 policy.
 - `SweepToolOutput`, `SweepToolRequest`, `SweepToolNormalized`, `SweepToolResults`, and `SweepToolSummary` export to the base workspace.
 
@@ -57,13 +57,13 @@ Values: 0, 0.05
 Model: mRLFE real-k
 Branch: A0Like
 Robustness: Fast
-A0 atlas policy: delayedCut
+A0 atlas policy: adaptivePhysicalTail
 ```
 
 Expected outcome:
 
-- `etaS = 0` gives the elastic fluid-loaded limit.
-- `etaS > 0` uses the same mRLFE real-k model with shear viscosity.
+- `etaS = 0` uses the same zero-eta adaptive GUI route validated by the main GUI adapter.
+- `etaS > 0` uses the viscous unified atlas route.
 - The normalized model name remains `mRLFERealK` for both cases.
 - The exported `SweepToolOutput.atlasPolicy` reports the selected atlas route and A0 policy.
 
@@ -185,6 +185,8 @@ guiRunMRLFESweep
 guiRunRLSweep
 guiRunAcoustoelasticIOPHGOSweep
 ```
+
+For mRLFE, `guiRunMRLFESweep` delegates each sweep point to `guiRunMRLFEModel` so that main-GUI and SweepTool mRLFE routing remain consistent.
 
 Current model normalizers:
 
