@@ -14,6 +14,16 @@ For FitTool route checks, use:
 run_mrlfe_fit_atlas_tests
 ```
 
+## Classification policy
+
+Diagnostic scripts are classified as:
+
+| Class | Meaning |
+|---|---|
+| Primary maintained diagnostic | Current diagnostic workflow for atlas policy, A0/S0 route quality, or FitTool-relevant behavior. |
+| Secondary investigation diagnostic | Useful for debugging known failure modes, but not part of the standard validation sequence. |
+| Historical/candidate for archive | Earlier exploratory diagnostic likely superseded by current tests, primary diagnostics, or policy docs. Do not delete until references and coverage are checked. |
+
 ## Recommended diagnostic workflow
 
 Use the scripts in this order when validating the current atlas implementation.
@@ -80,9 +90,9 @@ mrlfeA0PhysicalMaxTwoStepDropRelative
 mrlfeA0PhysicalMinValidRunBeforeCut
 ```
 
-## Primary scripts
+## Current script inventory
 
-These scripts are the main diagnostics for the current policy workflow.
+### Primary maintained diagnostics
 
 | Script | Role |
 |---|---|
@@ -90,19 +100,44 @@ These scripts are the main diagnostics for the current policy workflow.
 | `diagnose_mrlfe_a0_policy_parametric_sweep.m` | Broad A0 policy validation over `mu`, `etaS`, and thickness. |
 | `diagnose_mrlfe_a0_physical_corridor_mu_sweep.m` | Focused validation of the conditional physical tail cut. |
 | `diagnose_mrlfe_atlas_primary_policy_matrix.m` | High-level matrix of policy choices and routing behavior. |
+| `diagnose_fit_timing.m` | FitTool-oriented timing diagnostic for mRLFE fitting performance. |
+| `diagnose_fit_option_sensitivity.m` | FitTool-oriented option sensitivity diagnostic. |
+| `diagnose_etaS_forward_cache.m` | Checks etaS forward-cache behavior relevant to fitting and GUI consistency. |
+| `diagnose_etaS_direct_atlas_fit.m` | Direct-atlas etaS fitting diagnostic retained for comparison against maintained FitTool route. |
 
-## Secondary investigation scripts
-
-These scripts were used to isolate specific failure modes or guide policy design. They are useful for debugging but are not part of the standard validation sequence.
+### Secondary investigation diagnostics
 
 | Script | Role |
 |---|---|
-| `diagnose_mrlfe_a0_adaptive_policy_mu_sweep.m` | Early adaptive A0 policy sweep. Useful for comparing tracker options. |
+| `compare_mrlfe_tracker_vs_condition_peaks.m` | Tracker vs residual/condition-peak diagnostic; supports `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md`. |
+| `diagnose_mrlfe_visco_validity_breakdown.m` | Investigates valid/invalid real-k viscous branch segments. |
+| `diagnose_mrlfe_visco_residual_landscape.m` | Inspects viscous residual landscapes. |
+| `stress_test_mrlfe_real_k_range.m` | Heavy range stress test for material/frequency coverage. |
+| `diagnose_direct_atlas_etaS_zero_limit.m` | Checks whether direct atlas can reproduce etaS = 0 behavior; useful but not current default. |
+| `diagnose_mrlfe_a0_adaptive_policy_mu_sweep.m` | Early adaptive A0 policy sweep; useful for comparing tracker options. |
 | `diagnose_mrlfe_a0_direct_visco_atlas_start_failure.m` | Investigates early-start failure in direct viscous A0 atlas tracking. |
 | `diagnose_mrlfe_a0_direct_visco_atlas_vs_maintained.m` | Compares direct viscous atlas behavior against maintained/continued branches. |
 | `diagnose_mrlfe_a0_low_residual_basins_mu_sweep.m` | Inspects low-residual basin structure over a mu sweep. |
 | `diagnose_mrlfe_a0_residual_landscape_mu_sweep.m` | Inspects residual landscapes for A0 branch ambiguity. |
 | `diagnose_mrlfe_s0_direct_visco_atlas_cut_boundary.m` | Investigates S0 direct-visco cut boundaries. |
+| `diagnose_mrlfe_gui_performance_32kHz.m` | GUI performance diagnostic for high-frequency mRLFE cases. |
+| `diagnose_mrlfe_unified_atlas_mu_sweep.m` | Also used as a regression-like manual diagnostic after atlas policy changes. |
+
+### Historical or candidate-for-archive diagnostics
+
+These scripts should not be deleted yet. They should be checked for references and coverage first.
+
+| Script | Provisional reason |
+|---|---|
+| `diagnose_mrlfe_a0_dp_scan_cost.m` | Likely superseded by current fast atlas preset and timing diagnostics. |
+| `diagnose_mrlfe_a0_modal_atlas.m` | Earlier modal-atlas exploration; likely superseded by current adaptive/unified atlas docs. |
+| `diagnose_mrlfe_a0_modal_atlas_candidates_23kHz.m` | Narrow historical candidate exploration. |
+| `diagnose_mrlfe_a0_modal_atlas_cluster_cut_policy.m` | Earlier policy design diagnostic. |
+| `diagnose_mrlfe_a0_modal_atlas_error_map.m` | Earlier residual/error-map exploration. |
+| `diagnose_mrlfe_a0_modal_atlas_hook_policy.m` | Earlier hook-policy exploration. |
+| `diagnose_mrlfe_a0_modal_atlas_integrated_cut.m` | Earlier integrated-cut exploration. |
+| `diagnose_mrlfe_a0_modal_atlas_seed_identity.m` | Earlier seed-identity exploration. |
+| `diagnose_mrlfe_visco_direct_atlas.m` | Direct-viscous route exploration likely superseded by direct-atlas evaluator tests and route-policy docs. |
 
 ## Current A0 policy wording
 
@@ -156,3 +191,7 @@ Rerun the primary diagnostics after changes to:
 - default mRLFE atlas options
 
 For documentation-only changes, the lightweight test runner is normally sufficient.
+
+## Next cleanup step
+
+Before deleting or moving any diagnostic script, perform a reference search for its function name and verify that any protected behavior is covered by maintained tests or by a retained primary/secondary diagnostic.
