@@ -25,10 +25,6 @@ The maintained mRLFE sweep parameterization uses `mu` as the primary elastic sti
 
 Plots use AE-style two-line titles, frequency in kHz, and axes starting at zero. Data are written under `Results/mrlfe/<taskName>/`; figures are written under `examples/mrlfe/sweeps/figures/<taskName>/` as `.fig` and `.png`.
 
-Legacy compatibility wrapper:
+## Cleanup note
 
-```matlab
-sweep_mrlfe_shear_viscosity_phase_velocity
-```
-
-This wrapper is retained temporarily because the file still exists under `examples/mrlfe/sweeps/`. It no longer performs the old etaS phase-velocity sweep. It delegates to the maintained full-thickness workflow and runs both A0-like and S0-like sweeps for `2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm` with fixed `mu = 75 kPa` and `etaS = 0.05 Pa*s`.
+The old `sweep_mrlfe_shear_viscosity_phase_velocity` compatibility wrapper is no longer present in the repository. It should not be referenced as a maintained or temporary sweep entrypoint.
