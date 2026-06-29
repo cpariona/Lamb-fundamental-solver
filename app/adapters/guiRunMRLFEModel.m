@@ -43,6 +43,7 @@ rawResult = rlComputeFundamentalLambModes(params, seedOptions);
 useViscousAtlas = shouldUseUnifiedAtlas(options, computeVisco);
 useElasticAtlas = shouldUseElasticAtlas(options, computeVisco);
 elasticAtlasFallback = false;
+elasticAtlasQuality = struct('validFraction', NaN, 'validCount', 0, 'totalCount', 0);
 actualRoute = "elastic_reference";
 
 if useViscousAtlas
@@ -52,7 +53,9 @@ if useViscousAtlas
 elseif useElasticAtlas
     options = applyGuiAtlasPreset(options, "elastic_atlas");
     candidate = solveMRLFEAtlasUnified(rawResult.grid.frequency(:), rawResult.material, rawResult.geometry, rawResult.modes, options.mrlfeParams, options);
-    if mrlfeResultHasFiniteCp(candidate)
+    elasticAtlasQuality = summarizeMRLFEAtlasCpQuality(candidate);
+    minValidFraction = getStructField(options, 'mrlfeElasticAtlasGuiMinValidFraction', 0.85);
+    if elasticAtlasQuality.validFraction >= minValidFraction
         mrlfeResult = candidate;
         actualRoute = "elastic_modal_atlas";
     else
@@ -77,6 +80,7 @@ result.diagnostics.seedBranchesHiddenFromPlotSurface = true;
 result.diagnostics.mrlfeUseUnifiedAtlasRoute = useViscousAtlas || (useElasticAtlas && ~elasticAtlasFallback);
 result.diagnostics.mrlfeUseElasticAtlasGuiRoute = useElasticAtlas;
 result.diagnostics.mrlfeElasticAtlasFallback = elasticAtlasFallback;
+result.diagnostics.mrlfeElasticAtlasQuality = elasticAtlasQuality;
 result.diagnostics.mrlfeGuiActualRoute = actualRoute;
 result.diagnostics.mrlfeA0Policy = options.mrlfeA0Policy;
 result.diagnostics.mrlfeGuiAtlasPreset = getStructField(options, 'mrlfeGuiAtlasPreset', "none");
@@ -87,6 +91,7 @@ result.metadata.seedBranchesHiddenFromPlotSurface = true;
 result.metadata.mrlfeUseUnifiedAtlasRoute = result.diagnostics.mrlfeUseUnifiedAtlasRoute;
 result.metadata.mrlfeUseElasticAtlasGuiRoute = useElasticAtlas;
 result.metadata.mrlfeElasticAtlasFallback = elasticAtlasFallback;
+result.metadata.mrlfeElasticAtlasQuality = elasticAtlasQuality;
 result.metadata.mrlfeGuiActualRoute = actualRoute;
 result.metadata.mrlfeA0Policy = options.mrlfeA0Policy;
 result.metadata.mrlfeGuiAtlasPreset = getStructField(options, 'mrlfeGuiAtlasPreset', "none");
@@ -131,15 +136,13 @@ switch routeMode
         options.mrlfeGuiAtlasPreset = "elastic_reference";
 end
 
-% Elastic modal-atlas GUI settings. The guarded route falls back to the
-% elastic reference branch if the atlas returns no finite normalized Cp.
+options.mrlfeElasticAtlasGuiMinValidFraction = getStructField(options, 'mrlfeElasticAtlasGuiMinValidFraction', 0.85);
 options.mrlfeModalAtlasApplyAmbiguityCut = getStructField(options, 'mrlfeModalAtlasApplyAmbiguityCut', false);
 options.mrlfeModalAtlasCpScanPoints = getStructField(options, 'mrlfeModalAtlasCpScanPoints', 420);
 options.mrlfeModalAtlasTopNMinima = getStructField(options, 'mrlfeModalAtlasTopNMinima', 12);
 options.mrlfeModalAtlasRefineMinima = getStructField(options, 'mrlfeModalAtlasRefineMinima', false);
 options.mrlfeModalAtlasRequireResidualValidity = getStructField(options, 'mrlfeModalAtlasRequireResidualValidity', false);
 
-% Viscous atlas GUI settings.
 options.mrlfeViscoAtlasCpScanPoints = getStructField(options, 'mrlfeViscoAtlasCpScanPoints', 260);
 options.mrlfeA0DPCpScanPoints = getStructField(options, 'mrlfeA0DPCpScanPoints', 260);
 options.mrlfeA0DPCandidates = getStructField(options, 'mrlfeA0DPCandidates', 5);
@@ -150,22 +153,33 @@ options.mrlfeAdaptiveWindows = getStructField(options, 'mrlfeAdaptiveWindows', [
 options.mrlfeAdaptiveValleyFallbackRelativeWindow = getStructField(options, 'mrlfeAdaptiveValleyFallbackRelativeWindow', 0.12);
 end
 
-function tf = mrlfeResultHasFiniteCp(mrlfeResult)
-tf = false;
+function quality = summarizeMRLFEAtlasCpQuality(mrlfeResult)
+quality = struct('validFraction', NaN, 'validCount', 0, 'totalCount', 0);
 if ~isstruct(mrlfeResult) || ~isfield(mrlfeResult, 'branches') || ~isstruct(mrlfeResult.branches)
     return;
 end
 branchNames = fieldnames(mrlfeResult.branches);
 for i = 1:numel(branchNames)
     branch = mrlfeResult.branches.(branchNames{i});
-    if isfield(branch, 'Cp') && any(isfinite(branch.Cp(:)))
-        tf = true;
-        return;
+    if isfield(branch, 'Cp')
+        cp = branch.Cp(:);
+    elseif isfield(branch, 'phaseVelocity')
+        cp = branch.phaseVelocity(:);
+    else
+        continue;
     end
-    if isfield(branch, 'phaseVelocity') && any(isfinite(branch.phaseVelocity(:)))
-        tf = true;
-        return;
+    valid = isfinite(cp);
+    if isfield(branch, 'validCp') && numel(branch.validCp) == numel(cp)
+        valid = valid & logical(branch.validCp(:));
+    elseif isfield(branch, 'valid') && numel(branch.valid) == numel(cp)
+        valid = valid & logical(branch.valid(:));
     end
+    quality.totalCount = numel(cp);
+    quality.validCount = nnz(valid);
+    if quality.totalCount > 0
+        quality.validFraction = quality.validCount / quality.totalCount;
+    end
+    return;
 end
 end
 
