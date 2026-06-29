@@ -16,6 +16,7 @@ params.nu = 0.4999;
 params.etaS = etaS;
 
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
+options.mrlfeUseAtlasFitRoute = false; % Explicit legacy/diagnostic route for direct atlas option-alias checks.
 options.mrlfeUseDirectViscoAtlas = true;
 
 % Canonical values should take priority over legacy mrlfeViscoAtlas* aliases.
@@ -40,6 +41,8 @@ options.mrlfeViscoAtlasResidualTolerance = 1e-1;
 summary = rawAtlas.branch.viscoAtlas.options;
 
 assert(rawAtlas.evaluationPath.path == "direct_viscous_atlas", 'Expected direct atlas path.');
+assert(rawAtlas.evaluationPath.usedAtlasFitRoute == false, ...
+    'Direct alias test should run through the explicit legacy diagnostic route.');
 assert(summary.cpScanPoints == options.mrlfeA0DPCpScanPoints, 'Canonical cpScanPoints should override legacy alias.');
 assert(summary.maxCandidates == options.mrlfeA0DPCandidates, 'Canonical candidate count should override legacy alias.');
 assert(abs(summary.cpMinFactor - options.mrlfeViscoA0ModalCpWindow(1)) < eps, 'Canonical modal Cp window lower bound should override legacy alias.');

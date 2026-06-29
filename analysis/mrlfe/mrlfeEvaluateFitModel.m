@@ -3,26 +3,30 @@ function [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branc
 %
 % [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions)
 %
-% The helper evaluates the maintained mRLFE real-k workflow through
-% rlComputeFundamentalLambModes. The internal forward solve uses at least 10
-% frequency points to satisfy the Rayleigh-Lamb base solver validation, then
-% interpolates the branch back to the experimental fitting frequencies.
+% The maintained fitting path is atlas-first. By default this helper delegates
+% to mrlfeEvaluateAtlasFitModel, which evaluates the official mRLFE atlas output
+% surface in the same spirit as aeEvaluateFitModel for AE IOP/HGO fitting.
 %
-% The elastic/geometric parameters remain in params. The mRLFE viscosity
-% parameter etaS may also be passed in params for fitting; when present it is
-% propagated to solverOptions.mrlfeParams.etaS before the forward solve.
+% The older reference/direct-viscous workflow is retained only for explicit
+% diagnostic calls with solverOptions.mrlfeUseAtlasFitRoute = false.
 
 if nargin < 3 || isempty(branchName)
     branchName = "A0Like";
 end
 if nargin < 4 || isempty(solverOptions)
-    solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0.05);
+    solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0.05, ...
+        'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
 end
 
 branchName = string(branchName);
 frequencyInput = frequency_Hz(:);
 if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInput <= 0)
     error('frequency_Hz must contain positive finite values.');
+end
+
+if localShouldUseAtlasFitRoute(solverOptions)
+    [Cp_mps, rawResult] = mrlfeEvaluateAtlasFitModel(params, frequencyInput, branchName, solverOptions);
+    return;
 end
 
 [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequencyInput);
@@ -52,6 +56,13 @@ rawResult.params = params;
 rawResult.options = solverOptions;
 rawResult.fitPerformanceDefaults = localBuildFitPerformanceSummary(solverOptions);
 rawResult.evaluationPath = localEvaluationPathSummary(solverOptions, useDirectViscoAtlas);
+end
+
+function tf = localShouldUseAtlasFitRoute(options)
+tf = logical(getOption(options, 'mrlfeUseAtlasFitRoute', true));
+if logical(getOption(options, 'mrlfeUseLegacyFitRoute', false))
+    tf = false;
+end
 end
 
 function [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequency_Hz)
@@ -203,22 +214,11 @@ if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS') && ~i
     etaS = options.mrlfeParams.etaS;
 end
 
-% The fast fitting preset has been validated only for the elastic A0Like real-k
-% baseline. Viscous real-k branches use a different tracker/reference path and
-% can lose all valid Cp points if the elastic A0 DP scan is reduced too much.
-% Keep viscous and S0Like fitting on the maintained solver defaults until a
-% separate option-sensitivity diagnostic validates faster settings for them.
 if ~(branchName == "A0Like" && abs(etaS) <= eps(max(1, abs(etaS))))
     options.mrlfeFitPerformancePreset = "maintained_default";
     return;
 end
 
-% Fitting calls the forward mRLFE evaluator repeatedly. The maintained sweep
-% defaults are intentionally conservative, but they are too expensive for
-% iterative fitting. Diagnostics on the A0Like elastic real-k baseline showed
-% that 500 Cp scan points and a 10-point internal tracking grid preserve the
-% branch within a few millimetres per second while reducing forward time by
-% nearly one order of magnitude for the standard fitting data window.
 options.mrlfeFitPerformancePreset = getOption(options, 'mrlfeFitPerformancePreset', "fast_elastic_A0Like");
 options.mrlfeUseInternalTrackingGrid = getOption(options, 'mrlfeFitUseInternalTrackingGrid', true);
 options.mrlfeInternalTrackingMinPoints = getOption(options, 'mrlfeFitInternalTrackingMinPoints', 10);
@@ -230,6 +230,7 @@ end
 
 function summary = localBuildFitPerformanceSummary(options)
 summary = struct();
+summary.routeFamily = "legacy";
 summary.useFitPerformanceDefaults = getOption(options, 'mrlfeUseFitPerformanceDefaults', false);
 summary.preset = getOption(options, 'mrlfeFitPerformancePreset', "off");
 summary.useInternalTrackingGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', false);
@@ -244,6 +245,9 @@ function summary = localEvaluationPathSummary(options, usedDirectViscoAtlas)
 requestedDirectViscoAtlas = getOption(options, 'mrlfeUseDirectViscoAtlas', false);
 requestedUnifiedAtlas = getOption(options, 'mrlfeUseUnifiedAtlasRoute', false);
 summary = struct();
+summary.routeFamily = "legacy";
+summary.requestedAtlasFitRoute = false;
+summary.usedAtlasFitRoute = false;
 summary.requestedDirectViscoAtlas = logical(requestedDirectViscoAtlas);
 summary.requestedUnifiedAtlas = logical(requestedUnifiedAtlas);
 summary.useDirectViscoAtlas = logical(usedDirectViscoAtlas);
@@ -257,6 +261,7 @@ elseif requestedUnifiedAtlas
 else
     summary.path = "maintained_rl_mrlfe_workflow";
 end
+summary.actualPath = summary.path;
 end
 
 function branch = localExtractBranch(rawFullResult, branchName)

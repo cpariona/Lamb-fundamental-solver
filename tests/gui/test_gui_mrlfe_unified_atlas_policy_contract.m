@@ -20,8 +20,8 @@ options = rlDefaultOptions("Fast");
 options.computeA0 = true;
 options.computeS0 = false;
 options.computeMRLFERealK = true;
-options.computeMRLFEElasticRealK = true;
-options.computeMRLFEViscoRealK = true;
+options.computeMRLFEElasticRealK = false;
+options.computeMRLFEViscoRealK = false;
 options.computeMRLFEComplexK = false;
 options.mrlfeComputeA0Like = true;
 options.mrlfeComputeS0Like = false;
@@ -83,8 +83,10 @@ fitParams.etaS = 0.05;
 fitOptionsForSynthetic = mrlfeDefaultSweepOptions("A0Like", 'EtaS', fitParams.etaS, ...
     'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
 [CpSynthetic, rawSynthetic] = mrlfeEvaluateFitModel(fitParams, frequency_Hz, "A0Like", fitOptionsForSynthetic);
-assert(rawSynthetic.evaluationPath.path == "unified_atlas", ...
-    'Synthetic setup must use the unified atlas path.');
+assert(rawSynthetic.evaluationPath.routeFamily == "atlas", ...
+    'Synthetic setup must use the atlas fitting route.');
+assert(rawSynthetic.evaluationPath.path == "viscous_unified_atlas", ...
+    'Synthetic viscous setup must use the viscous unified atlas path.');
 
 experimental = struct();
 experimental.frequency_Hz = frequency_Hz;
@@ -108,12 +110,12 @@ fitRequest = guiBuildFitRequest("mrlfe", ...
 
 fitOutput = guiFitMRLFESolver(fitRequest);
 assert(isfield(fitOutput, 'routePolicy'), 'Fitting adapter must expose routePolicy metadata.');
-assert(fitOutput.routePolicy.requestUnifiedAtlas == true, ...
-    'Fitting adapter must report unified atlas request.');
-assert(fitOutput.routePolicy.expectedPath == "unified_atlas", ...
-    'Fitting adapter must expect the unified atlas path.');
-assert(fitOutput.routePolicy.actualPath == "unified_atlas", ...
-    'Fitting adapter must actually use the unified atlas path.');
+assert(fitOutput.routePolicy.requestAtlasFitRoute == true, ...
+    'Fitting adapter must report atlas-fit request.');
+assert(fitOutput.routePolicy.expectedPath == "mrlfe_atlas", ...
+    'Fitting adapter must expect the mRLFE atlas path family.');
+assert(fitOutput.routePolicy.actualPath == "viscous_unified_atlas", ...
+    'Fitting adapter must actually use the viscous unified atlas path.');
 assert(fitOutput.routePolicy.mrlfeA0Policy == "adaptivePhysicalTail", ...
     'Fitting adapter must preserve the requested A0 policy.');
 
