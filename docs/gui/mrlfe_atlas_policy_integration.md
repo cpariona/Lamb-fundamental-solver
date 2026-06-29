@@ -21,7 +21,7 @@ app/adapters/guiFitMRLFESolver.m
 analysis/mrlfe/mrlfeEvaluateFitModel.m
 ```
 
-The goal is not to claim external physical validation. The goal is to ensure that GUI requests can reach the maintained viscous mRLFE atlas route and preserve the selected A0 policy in metadata.
+The goal is not to claim external physical validation. The goal is to ensure that GUI requests can reach the maintained mRLFE atlas-style routes and preserve route/policy metadata.
 
 ## Supported A0 policies
 
@@ -36,10 +36,10 @@ Current interpretation:
 
 | Policy | Use |
 | --- | --- |
-| `adaptivePhysicalTail` | Recommended interactive policy for difficult soft, viscous, fluid-loaded A0-like branches. |
+| `adaptivePhysicalTail` | Recommended interactive policy for A0-like branches, including the zero-eta limit and viscous cases. |
 | `delayedCut` | Conservative/diagnostic A0 policy. It can truncate early or select a short tail in GUI-fast settings. |
 
-The solver default remains conservative in backend contexts. The GUI default is allowed to prioritize interactive branch coverage by selecting `adaptivePhysicalTail`.
+The solver default remains conservative in backend contexts. The GUI default prioritizes interactive branch coverage by selecting `adaptivePhysicalTail`.
 
 ## Main GUI contract
 
@@ -54,13 +54,59 @@ The main GUI adapter uses this route split:
 
 ```text
 Rayleigh-Lamb seed branch
-    -> computeMRLFE for etaS = 0
-    -> solveMRLFEAtlasUnified for etaS > 0
+    -> zero-eta adaptive route for etaS = 0
+    -> viscous unified atlas for etaS > 0
     -> mRLFERealK only
     -> normalized GUI branch
 ```
 
-`etaS = 0` is treated as an elastic reference route in the main GUI. The elastic modal-atlas route is not currently the GUI default because it can return invalid/fragmented normalized Cp in the lightweight smoke-test grid and needs a separate stabilization pass.
+The zero-eta route intentionally uses the same adaptive tracker family and A0 policy as the viscous route, rather than the separate elastic modal-atlas route. This checks the elastic limit of the adaptive policy more directly.
+
+## Zero-eta adaptive route
+
+For `etaS = 0`, the default GUI route is:
+
+```matlab
+options.mrlfeUseZeroViscosityAdaptiveGuiRoute = true;
+options.mrlfeA0Policy = "adaptivePhysicalTail";
+```
+
+The adapter calls the adaptive atlas tracker directly with `etaS = 0` and applies the same physical-tail policy used by the viscous A0 GUI route.
+
+The candidate must satisfy both GUI quality guards:
+
+```matlab
+options.mrlfeZeroViscosityAdaptiveGuiMinValidFraction = 0.85;
+options.mrlfeZeroViscosityAdaptiveGuiMaxJumpRelative = 0.25;
+```
+
+If the candidate does not meet these thresholds, the adapter falls back to:
+
+```text
+computeMRLFE -> elastic reference
+```
+
+The fallback is explicit and recorded:
+
+```matlab
+result.metadata.mrlfeUseZeroViscosityAdaptiveGuiRoute
+result.metadata.mrlfeZeroViscosityAdaptiveFallback
+result.metadata.mrlfeZeroViscosityAdaptiveQuality
+result.metadata.mrlfeGuiActualRoute
+result.diagnostics.mrlfeUseZeroViscosityAdaptiveGuiRoute
+result.diagnostics.mrlfeZeroViscosityAdaptiveFallback
+result.diagnostics.mrlfeZeroViscosityAdaptiveQuality
+result.diagnostics.mrlfeGuiActualRoute
+```
+
+Possible actual routes are:
+
+```text
+zero_viscosity_adaptive_atlas
+zero_viscosity_adaptive_fallback
+elastic_reference
+viscous_unified_atlas
+```
 
 The GUI-visible model should be:
 
@@ -70,16 +116,27 @@ mRLFERealK
 
 The raw/internal result may preserve Rayleigh-Lamb seed branches, but routine GUI computation should not expose redundant `mRLFEElasticRealK` and `mRLFEViscoRealK` branches on the plotting surface.
 
-## GUI fast viscous atlas preset
+## GUI atlas presets
 
-The main GUI uses a fast atlas preset for viscous mRLFE interaction:
+The main GUI uses fast atlas presets for interaction:
 
 ```matlab
 options.mrlfeUseGuiFastAtlasPreset = true;
-options.mrlfeGuiAtlasPreset = "fast_viscous";
 ```
 
-The preset reduces atlas scan density and candidate refinement for interactive use:
+For the viscous route, the preset is:
+
+```matlab
+result.metadata.mrlfeGuiAtlasPreset = "fast_viscous";
+```
+
+For the zero-eta adaptive route, the preset is:
+
+```matlab
+result.metadata.mrlfeGuiAtlasPreset = "fast_zero_viscosity_adaptive";
+```
+
+Both routes use reduced atlas scan density and candidate refinement:
 
 ```matlab
 mrlfeViscoAtlasCpScanPoints = 260
@@ -91,27 +148,29 @@ mrlfeAdaptiveRefineCandidates = false
 mrlfeAdaptiveWindows = [0.20 0.40 0.80]
 ```
 
-This preset is GUI-specific. Dense diagnostics and policy-validation scripts should keep their own explicit dense options. Disable the preset only for debugging:
+These presets are GUI-specific. Dense diagnostics and policy-validation scripts should keep their own explicit dense options. Disable the preset only for debugging:
 
 ```matlab
 options.mrlfeUseGuiFastAtlasPreset = false;
 ```
 
-For `etaS = 0`, the adapter reports:
-
-```matlab
-result.metadata.mrlfeGuiAtlasPreset = "elastic_reference";
-```
-
 ## Metadata contract
 
-The model adapter preserves route, policy, and preset metadata:
+The model adapter preserves route, policy, preset, quality, and fallback metadata:
 
 ```matlab
 result.metadata.mrlfeUseUnifiedAtlasRoute
+result.metadata.mrlfeUseZeroViscosityAdaptiveGuiRoute
+result.metadata.mrlfeZeroViscosityAdaptiveFallback
+result.metadata.mrlfeZeroViscosityAdaptiveQuality
+result.metadata.mrlfeGuiActualRoute
 result.metadata.mrlfeA0Policy
 result.metadata.mrlfeGuiAtlasPreset
 result.diagnostics.mrlfeUseUnifiedAtlasRoute
+result.diagnostics.mrlfeUseZeroViscosityAdaptiveGuiRoute
+result.diagnostics.mrlfeZeroViscosityAdaptiveFallback
+result.diagnostics.mrlfeZeroViscosityAdaptiveQuality
+result.diagnostics.mrlfeGuiActualRoute
 result.diagnostics.mrlfeA0Policy
 result.diagnostics.mrlfeGuiAtlasPreset
 ```
@@ -166,29 +225,55 @@ The GUI atlas integration is covered by:
 
 ```matlab
 tests/gui/test_gui_mrlfe_unified_atlas_policy_contract.m
+tests/gui/test_gui_mrlfe_elastic_atlas_guard_contract.m
 ```
 
-and the test is included in:
+The second test now verifies the zero-eta adaptive route despite its historical filename.
+
+Both tests are included in:
 
 ```matlab
 tests/run_gui_smoke_tests
 ```
 
-The contract checks that:
+The zero-eta adaptive contract checks that:
 
 ```text
-- main GUI adapter preserves mrlfeUseUnifiedAtlasRoute and mrlfeA0Policy
-- Sweep GUI adapter preserves atlasPolicy metadata
-- mRLFE fitting adapter reports actualPath = "unified_atlas" when requested
+- an etaS = 0 adaptive request is reported in metadata
+- the actual route is either zero_viscosity_adaptive_atlas or zero_viscosity_adaptive_fallback
+- the quality metadata includes validFraction and maxJumpRelative
+- direct zero_viscosity_adaptive_atlas output meets the GUI quality thresholds
+- the normalized GUI branch contains finite Cp values
 ```
 
-This is a routing and integration test, not a physical validation test.
+This is a routing and stabilization test, not a physical validation test.
 
 ## Manual GUI checks
 
 After contract tests pass, perform a short manual check before merging large GUI changes.
 
-### Main GUI
+### Main GUI zero-eta route
+
+```text
+Open: LambFundamental_GUI
+Model-specific settings > mRLFE
+Enable: mRLFE real-k
+Branch: A0-like
+etaS: 0
+A0 atlas policy: adaptivePhysicalTail
+Compute selected modes
+```
+
+Expected behavior:
+
+```text
+- no compute error
+- mRLFE real-k A0-like curve appears
+- diagnostics report zero_viscosity_adaptive_atlas or zero_viscosity_adaptive_fallback
+- fallback metadata is explicit if the adaptive route fails the quality guard
+```
+
+### Main GUI viscous route
 
 ```text
 Open: LambFundamental_GUI
@@ -211,48 +296,6 @@ Expected behavior:
 - raw/internal models contain mRLFERealK for the visible mRLFE result
 ```
 
-### SweepTool
-
-```text
-Open: SweepTool_GUI
-Model family: mRLFE
-Sweep parameter: etaS
-Values: 0, 0.05
-Branch: A0Like
-A0 atlas policy: adaptivePhysicalTail
-Run sweep
-```
-
-Expected behavior:
-
-```text
-- sweep completes
-- summary table is populated
-- exported SweepToolOutput contains atlasPolicy
-```
-
-### FitTool
-
-```text
-Open: FitTool_GUI
-Model: mRLFE
-Branch: A0Like
-Free parameter: mu or etaS
-A0 atlas policy: adaptivePhysicalTail
-Generate synthetic from setup
-Run fit
-```
-
-Expected behavior:
-
-```text
-- fitting completes or returns a controlled fitting-quality result
-- FitToolLastOutput.routePolicy.actualPath is "unified_atlas"
-- FitToolLastOutput.routePolicy.mrlfeA0Policy matches the selected policy
-```
-
 ## Current limitation
 
-This integration does not validate the atlas policy against complex-k solutions, FEM, or experimental data. It only ensures that the GUI can request and report the same maintained viscous solver policy used by the backend.
-
-The elastic modal-atlas GUI route remains a separate future task.
+This integration does not validate the atlas policy against complex-k solutions, FEM, or experimental data. It only ensures that the GUI can request and report maintained atlas-style routes and fallbacks explicitly.

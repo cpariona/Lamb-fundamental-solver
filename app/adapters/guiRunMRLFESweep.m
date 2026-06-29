@@ -2,8 +2,8 @@ function sweepOutput = guiRunMRLFESweep(request)
 %GUIRUNMRLFESWEEP Run an mRLFE one-parameter sweep from a GUI request.
 %
 % The adapter owns mRLFE-specific options, solver calls, and summary generation.
-% Display-to-solver conversion is taken from the normalized sweep request so
-% future model families can share the same registry/request pattern.
+% It routes each sweep point through guiRunMRLFEModel so SweepTool follows the
+% same GUI route policy as the main GUI.
 
 params = request.baseParams;
 params.numFrequencyPoints = "auto";
@@ -14,25 +14,25 @@ if ~isfield(controls, 'robustness') || strlength(string(controls.robustness)) ==
     controls.robustness = "Fast";
 end
 
-options = rlDefaultOptions(string(controls.robustness));
-options.computeMRLFEComplexK = false;
-options.mrlfeUseUnifiedAtlasRoute = logical(getControlValue(controls, 'mrlfeUseUnifiedAtlasRoute', true));
-options.mrlfeA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "delayedCut"));
-options.mrlfeParams = defaultMRLFEParams();
-options.mrlfeParams.fluidDensity = getControlValue(controls, 'fluidDensity', 1000);
-options.mrlfeParams.fluidSoundSpeed = getControlValue(controls, 'fluidSoundSpeed', 1500);
-options.mrlfeParams.etaS = getControlValue(controls, 'etaS', 0.05);
-options.mrlfeParams.etaL = 0;
-options.mrlfeParams.useComplexLambda = false;
+baseOptions = rlDefaultOptions(string(controls.robustness));
+baseOptions.computeMRLFEComplexK = false;
+baseOptions.mrlfeUseUnifiedAtlasRoute = logical(getControlValue(controls, 'mrlfeUseUnifiedAtlasRoute', true));
+baseOptions.mrlfeA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+baseOptions.mrlfeParams = defaultMRLFEParams();
+baseOptions.mrlfeParams.fluidDensity = getControlValue(controls, 'fluidDensity', 1000);
+baseOptions.mrlfeParams.fluidSoundSpeed = getControlValue(controls, 'fluidSoundSpeed', 1500);
+baseOptions.mrlfeParams.etaS = getControlValue(controls, 'etaS', 0.05);
+baseOptions.mrlfeParams.etaL = 0;
+baseOptions.mrlfeParams.useComplexLambda = false;
 
 branchName = string(request.branchName);
-options.computeA0 = branchName == "A0Like";
-options.computeS0 = branchName == "S0Like";
-options.mrlfeComputeA0Like = branchName == "A0Like";
-options.mrlfeComputeS0Like = branchName == "S0Like";
-options.computeMRLFERealK = true;
-options.computeMRLFEElasticRealK = true;
-options.computeMRLFEViscoRealK = true;
+baseOptions.computeA0 = branchName == "A0Like";
+baseOptions.computeS0 = branchName == "S0Like";
+baseOptions.mrlfeComputeA0Like = branchName == "A0Like";
+baseOptions.mrlfeComputeS0Like = branchName == "S0Like";
+baseOptions.computeMRLFERealK = true;
+baseOptions.computeMRLFEElasticRealK = false;
+baseOptions.computeMRLFEViscoRealK = false;
 
 modelName = "mRLFERealK";
 summaryModelName = "mRLFERealK";
@@ -45,7 +45,7 @@ sweepSpec.label = string(request.sweepLabel);
 sweepSpec.units = units;
 sweepSpec.displayScale = displayScale;
 
-rawResults = runParametricSweep(params, options, sweepSpec);
+rawResults = runMRLFEGuiAdapterSweep(params, baseOptions, sweepSpec);
 summaryTable = summarizeParametricSweepBranch(rawResults, summaryModelName, branchName, 'Print', false);
 normalized = guiNormalizeMRLFESweep(rawResults, summaryTable, request, modelName, branchName);
 
@@ -58,8 +58,68 @@ sweepOutput.sweepSpec = sweepSpec;
 sweepOutput.rawResults = rawResults;
 sweepOutput.summaryTable = summaryTable;
 sweepOutput.normalized = normalized;
-sweepOutput.atlasPolicy = struct('mrlfeUseUnifiedAtlasRoute', options.mrlfeUseUnifiedAtlasRoute, ...
-    'mrlfeA0Policy', options.mrlfeA0Policy);
+sweepOutput.atlasPolicy = struct('mrlfeUseUnifiedAtlasRoute', baseOptions.mrlfeUseUnifiedAtlasRoute, ...
+    'mrlfeA0Policy', baseOptions.mrlfeA0Policy, ...
+    'guiRoutePolicy', "guiRunMRLFEModel");
+end
+
+function sweepResults = runMRLFEGuiAdapterSweep(baseParams, baseOptions, sweepSpec)
+paramName = char(sweepSpec.parameter);
+values = sweepSpec.values(:).';
+n = numel(values);
+
+sweepResults = struct();
+sweepResults.spec = sweepSpec;
+sweepResults.parameter = string(paramName);
+sweepResults.values = values;
+sweepResults.displayValues = values ./ sweepSpec.displayScale;
+sweepResults.results = cell(1, n);
+sweepResults.params = cell(1, n);
+sweepResults.options = cell(1, n);
+sweepResults.elapsedSeconds = nan(1, n);
+sweepResults.guiResults = cell(1, n);
+
+for i = 1:n
+    params = baseParams;
+    options = baseOptions;
+    [params, options] = setSweepValue(params, options, paramName, values(i));
+
+    guiRequest = struct();
+    guiRequest.params = params;
+    guiRequest.options = options;
+    guiRequest.mrlfeParams = options.mrlfeParams;
+    guiRequest.computeElastic = true;
+    guiRequest.computeVisco = options.mrlfeParams.etaS > 0;
+
+    t = tic;
+    guiResult = guiRunMRLFEModel(guiRequest);
+    elapsed = toc(t);
+
+    sweepResults.results{i} = guiResult.metadata.rawResult;
+    sweepResults.params{i} = params;
+    sweepResults.options{i} = options;
+    sweepResults.elapsedSeconds(i) = elapsed;
+    sweepResults.guiResults{i} = guiResult;
+
+    fprintf('Sweep %s = %.6g complete in %.2f s (%d/%d).\n', ...
+        paramName, values(i), sweepResults.elapsedSeconds(i), i, n);
+end
+end
+
+function [params, options] = setSweepValue(params, options, paramName, value)
+if isfield(params, paramName)
+    params.(paramName) = value;
+    return;
+end
+if ~isfield(options, 'mrlfeParams') || isempty(options.mrlfeParams)
+    options.mrlfeParams = defaultMRLFEParams();
+end
+if isfield(options.mrlfeParams, paramName)
+    options.mrlfeParams.(paramName) = value;
+    options.mrlfeUseUnifiedAtlasRoute = options.mrlfeParams.etaS > 0;
+    return;
+end
+error('Sweep parameter "%s" was not found in params or options.mrlfeParams.', paramName);
 end
 
 function value = getControlValue(controls, fieldName, defaultValue)
