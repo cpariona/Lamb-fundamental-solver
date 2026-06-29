@@ -428,9 +428,10 @@ onFitModelChanged();
     function updateStatusFromFitOutput(fitOutput)
         normalized = fitOutput.normalized;
         pathText = getEvaluationPathText(fitOutput);
-        statusText = sprintf('Fit status: done | %s %s | RMSE %.4g m/s | %s%s', ...
+        curveText = getFullCurveStatusText(normalized);
+        statusText = sprintf('Fit status: done | %s %s | RMSE %.4g m/s | %s%s%s', ...
             normalized.modelName, normalized.branchName, normalized.metrics.RMSE, ...
-            string(normalized.identifiability.classification), pathText);
+            string(normalized.identifiability.classification), pathText, curveText);
         fitControls.status.Text = statusText;
     end
 
@@ -440,6 +441,30 @@ onFitModelChanged();
                 isfield(fitOutput.fitResult.rawSolverResult, 'evaluationPath') && ...
                 isfield(fitOutput.fitResult.rawSolverResult.evaluationPath, 'path')
             pathText = " | path " + string(fitOutput.fitResult.rawSolverResult.evaluationPath.path);
+        end
+    end
+
+    function curveText = getFullCurveStatusText(normalized)
+        curveText = "";
+        if ~isfield(normalized, 'fullCurve') || ~isstruct(normalized.fullCurve)
+            return;
+        end
+
+        if isfield(normalized.fullCurve, 'note')
+            note = string(normalized.fullCurve.note);
+            if contains(note, "in-band curve interpolates", 'IgnoreCase', true)
+                curveText = curveText + " | curve in-band interpolation";
+            elseif contains(note, "dense", 'IgnoreCase', true)
+                curveText = curveText + " | curve dense solver";
+            end
+        end
+
+        if isfield(normalized.fullCurve, 'extension') && isstruct(normalized.fullCurve.extension) && ...
+                isfield(normalized.fullCurve.extension, 'errorMessage')
+            extensionMessage = string(normalized.fullCurve.extension.errorMessage);
+            if strlength(extensionMessage) > 0 && contains(extensionMessage, "skipped", 'IgnoreCase', true)
+                curveText = curveText + " | extension skipped";
+            end
         end
     end
 end
