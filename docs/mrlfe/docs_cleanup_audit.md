@@ -36,33 +36,28 @@ examples/mrlfe/diagnostics/README.md
 - Updated `docs/gui/mrlfe_atlas_policy_integration.md` so the FitTool fitted-curve contract includes fit-consistent plotting and dense solver diagnostics.
 - Updated the GUI validation wording so `test_gui_mrlfe_fit_full_curve_fast_contract` is described as protecting fit-consistent plotting plus diagnostic dense re-evaluation, not merely extension skipping.
 
+## Resolved in pass 3
+
+- Removed the obsolete `sweep_mrlfe_shear_viscosity_phase_velocity` wrapper reference from `docs/mrlfe/current_sweeps.md` after code search showed it no longer exists.
+- Refreshed `docs/mrlfe/archive/pending_cleanup.md` so it clearly identifies itself as archived cleanup status, not active route/fitting/GUI documentation.
+- Added an explicit scope note to `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md` clarifying that it is tracker-behavior evidence, not the active FitTool contract.
+- Cross-linked active FitTool references from the archived cleanup status and tracker diagnostic summary.
+
 ## Remaining audit items
-
-### mRLFE docs
-
-Review these next for duplication and stale wording:
-
-```text
-docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
-docs/mrlfe/archive/pending_cleanup.md
-docs/mrlfe/current_sweeps.md
-```
-
-Expected actions:
-
-- Keep tracker evidence if it still documents unresolved numerical behavior.
-- Move stale implementation-status text to archive if it is still useful.
-- Remove references to nonexistent legacy wrappers or obsolete sweep scripts if confirmed by code search.
 
 ### mRLFE examples and diagnostics
 
-Review `examples/mrlfe/diagnostics/` after documentation is coherent. Do not delete scripts until each is classified as one of:
+Review `examples/mrlfe/diagnostics/` next. Do not delete scripts until each is classified as one of:
 
 - primary maintained diagnostic,
 - secondary investigation diagnostic,
 - historical diagnostic candidate for archive/removal.
 
-The current diagnostics README already defines primary and secondary categories. The next pass should compare that list against the actual files.
+The current diagnostics README already defines primary and secondary categories. The next pass should compare that list against the actual files and identify:
+
+- files listed as primary/secondary but missing,
+- files present but not classified,
+- files likely superseded by maintained tests or docs.
 
 ### mRLFE tests
 
