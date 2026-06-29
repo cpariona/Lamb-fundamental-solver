@@ -1,6 +1,6 @@
 # mRLFE atlas policy GUI integration
 
-This document records the GUI-facing integration of the unified real-k mRLFE atlas route.
+This document records the GUI-facing integration of the real-k mRLFE atlas routes.
 
 ## Scope
 
@@ -19,6 +19,7 @@ app/adapters/guiRunMRLFEModel.m
 app/adapters/guiRunMRLFESweep.m
 app/adapters/guiFitMRLFESolver.m
 analysis/mrlfe/mrlfeEvaluateFitModel.m
+analysis/mrlfe/mrlfeEvaluateAtlasFitModel.m
 ```
 
 The goal is not to claim external physical validation. The goal is to ensure that GUI requests can reach the maintained mRLFE atlas-style routes and preserve route/policy metadata.
@@ -28,8 +29,8 @@ The goal is not to claim external physical validation. The goal is to ensure tha
 The GUI exposes the same high-level A0 policy selector used by the solver:
 
 ```matlab
-options.mrlfeA0Policy = "delayedCut";
 options.mrlfeA0Policy = "adaptivePhysicalTail";
+options.mrlfeA0Policy = "delayedCut";
 ```
 
 Current interpretation:
@@ -39,7 +40,7 @@ Current interpretation:
 | `adaptivePhysicalTail` | Recommended interactive policy for A0-like branches, including the zero-eta limit and viscous cases. |
 | `delayedCut` | Conservative/diagnostic A0 policy. It can truncate early or select a short tail in GUI-fast settings. |
 
-The solver default remains conservative in backend contexts. The GUI default prioritizes interactive branch coverage by selecting `adaptivePhysicalTail`.
+The solver default remains conservative in backend contexts. The GUI and FitTool defaults prioritize interactive branch coverage by selecting `adaptivePhysicalTail`.
 
 ## Main GUI contract
 
@@ -198,26 +199,55 @@ The sweep output preserves:
 ```matlab
 sweepOutput.atlasPolicy.mrlfeUseUnifiedAtlasRoute
 sweepOutput.atlasPolicy.mrlfeA0Policy
+sweepOutput.atlasPolicy.guiRoutePolicy
 ```
 
 ## Fitting GUI contract
 
-The mRLFE fitting adapter accepts:
+The mRLFE fitting adapter defaults to atlas-first fitting, analogous to AE atlas fitting, but with both mRLFE branches available:
+
+```text
+A0Like
+S0Like
+```
+
+The FitTool adapter accepts:
 
 ```matlab
 controls.mrlfeUseUnifiedAtlasRoute
+controls.mrlfeUseAtlasFitRoute
 controls.mrlfeA0Policy
 ```
 
-When `mrlfeUseUnifiedAtlasRoute = true`, fitting evaluation should report:
+Default FitTool values are:
 
 ```matlab
-fitOutput.routePolicy.expectedPath = "unified_atlas";
-fitOutput.routePolicy.actualPath = "unified_atlas";
-fitOutput.routePolicy.mrlfeA0Policy
+controls.mrlfeUseUnifiedAtlasRoute = true;
+controls.mrlfeUseAtlasFitRoute = true;
+controls.mrlfeA0Policy = "adaptivePhysicalTail";
 ```
 
-The older direct viscous atlas route is preserved for backward-compatible programmatic calls when the unified atlas route is not requested.
+Fitting evaluation should report the atlas family:
+
+```matlab
+fitOutput.routePolicy.routeFamily = "atlas";
+fitOutput.routePolicy.expectedPath = "mrlfe_atlas";
+fitOutput.routePolicy.mrlfeA0Policy
+fitOutput.routePolicy.fitAtlasPreset
+```
+
+The actual path depends on viscosity:
+
+```matlab
+fitOutput.routePolicy.actualPath = "zero_viscosity_adaptive_atlas"; % etaS = 0
+fitOutput.routePolicy.actualPath = "viscous_unified_atlas";          % etaS > 0
+```
+
+The older reference/direct-viscous fitting workflow is preserved only for explicit diagnostic calls when atlas-fit routing is disabled programmatically:
+
+```matlab
+solverOptions.mrlfeUseAtlasFitRoute = false;
+```
 
 ## Validation contract
 
@@ -226,15 +256,19 @@ The GUI atlas integration is covered by:
 ```matlab
 tests/gui/test_gui_mrlfe_unified_atlas_policy_contract.m
 tests/gui/test_gui_mrlfe_elastic_atlas_guard_contract.m
+tests/gui/test_gui_mrlfe_fit_zero_eta_atlas_contract.m
+tests/gui/test_gui_mrlfe_fit_route_policy_contract.m
+tests/gui/test_gui_mrlfe_fixed_etaS_fit_contract.m
+tests/gui/test_gui_mrlfe_fit_full_curve_fast_contract.m
 ```
 
-The second test now verifies the zero-eta adaptive route despite its historical filename.
-
-Both tests are included in:
+The focused FitTool atlas runner is:
 
 ```matlab
-tests/run_gui_smoke_tests
+tests/run_mrlfe_fit_atlas_tests
 ```
+
+`test_gui_mrlfe_elastic_atlas_guard_contract` verifies the zero-eta adaptive main-GUI route despite its historical filename.
 
 The zero-eta adaptive contract checks that:
 
@@ -246,7 +280,18 @@ The zero-eta adaptive contract checks that:
 - the normalized GUI branch contains finite Cp values
 ```
 
-This is a routing and stabilization test, not a physical validation test.
+The fitting contracts check that:
+
+```text
+- FitTool uses routeFamily = atlas
+- etaS = 0 uses zero_viscosity_adaptive_atlas
+- etaS > 0 uses viscous_unified_atlas
+- A0Like and S0Like are both supported
+- fixed etaS is preserved in mu/thickness fits
+- in-band full-curve plotting remains available while mRLFE extension is skipped by default
+```
+
+This is routing and synthetic-contract validation, not physical validation.
 
 ## Manual GUI checks
 
