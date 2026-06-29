@@ -60,17 +60,17 @@ Rayleigh-Lamb seed branch
     -> normalized GUI branch
 ```
 
-For `etaS = 0`, the guarded elastic route tries the modal atlas first and falls back to the elastic reference route only if the atlas candidate does not produce finite Cp values.
+For `etaS = 0`, the guarded elastic route tries the modal atlas first and falls back to the elastic reference route if the atlas candidate does not meet the GUI quality guard.
 
 ## Guarded elastic atlas route
 
-The default `etaS = 0` GUI route is now guarded elastic atlas:
+The default `etaS = 0` GUI route is guarded elastic atlas:
 
 ```matlab
 options.mrlfeUseElasticAtlasGuiRoute = true;
 ```
 
-This is the default for main-GUI mRLFE calls when `etaS = 0`. It can be disabled programmatically for debugging:
+It can be disabled programmatically for debugging:
 
 ```matlab
 options.mrlfeUseElasticAtlasGuiRoute = false;
@@ -82,7 +82,13 @@ When this option is true and `etaS = 0`, the adapter tries:
 solveMRLFEAtlasUnified -> elastic modal atlas
 ```
 
-If the atlas candidate produces no finite branch Cp values, the adapter falls back to:
+The atlas candidate must satisfy the GUI coverage guard:
+
+```matlab
+options.mrlfeElasticAtlasGuiMinValidFraction = 0.85;
+```
+
+If the atlas candidate does not meet this threshold, the adapter falls back to:
 
 ```text
 computeMRLFE -> elastic reference
@@ -93,9 +99,11 @@ The fallback is explicit and recorded:
 ```matlab
 result.metadata.mrlfeUseElasticAtlasGuiRoute
 result.metadata.mrlfeElasticAtlasFallback
+result.metadata.mrlfeElasticAtlasQuality
 result.metadata.mrlfeGuiActualRoute
 result.diagnostics.mrlfeUseElasticAtlasGuiRoute
 result.diagnostics.mrlfeElasticAtlasFallback
+result.diagnostics.mrlfeElasticAtlasQuality
 result.diagnostics.mrlfeGuiActualRoute
 ```
 
@@ -156,6 +164,7 @@ mrlfeModalAtlasCpScanPoints = 420
 mrlfeModalAtlasTopNMinima = 12
 mrlfeModalAtlasRefineMinima = false
 mrlfeModalAtlasRequireResidualValidity = false
+mrlfeElasticAtlasGuiMinValidFraction = 0.85
 ```
 
 These presets are GUI-specific. Dense diagnostics and policy-validation scripts should keep their own explicit dense options. Disable the preset only for debugging:
@@ -172,12 +181,14 @@ The model adapter preserves route, policy, preset, and fallback metadata:
 result.metadata.mrlfeUseUnifiedAtlasRoute
 result.metadata.mrlfeUseElasticAtlasGuiRoute
 result.metadata.mrlfeElasticAtlasFallback
+result.metadata.mrlfeElasticAtlasQuality
 result.metadata.mrlfeGuiActualRoute
 result.metadata.mrlfeA0Policy
 result.metadata.mrlfeGuiAtlasPreset
 result.diagnostics.mrlfeUseUnifiedAtlasRoute
 result.diagnostics.mrlfeUseElasticAtlasGuiRoute
 result.diagnostics.mrlfeElasticAtlasFallback
+result.diagnostics.mrlfeElasticAtlasQuality
 result.diagnostics.mrlfeGuiActualRoute
 result.diagnostics.mrlfeA0Policy
 result.diagnostics.mrlfeGuiAtlasPreset
@@ -247,6 +258,8 @@ The guarded elastic atlas contract checks that:
 ```text
 - an etaS = 0 atlas request is reported in metadata
 - the actual route is either elastic_modal_atlas or elastic_reference_fallback
+- the atlas quality metadata includes validFraction
+- direct elastic_modal_atlas output meets the valid-fraction quality threshold
 - the normalized GUI branch contains finite Cp values
 - fallback metadata is consistent with the actual route
 ```
@@ -274,7 +287,7 @@ Expected behavior:
 - no compute error
 - mRLFE real-k A0-like curve appears
 - diagnostics report elastic_modal_atlas or elastic_reference_fallback
-- fallback metadata is explicit if the atlas path fails
+- fallback metadata is explicit if the atlas path fails the coverage guard
 ```
 
 ### Main GUI viscous route
