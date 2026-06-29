@@ -43,25 +43,40 @@ examples/mrlfe/diagnostics/README.md
 - Added an explicit scope note to `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md` clarifying that it is tracker-behavior evidence, not the active FitTool contract.
 - Cross-linked active FitTool references from the archived cleanup status and tracker diagnostic summary.
 
+## Resolved in pass 4
+
+- Expanded `examples/mrlfe/diagnostics/README.md` into a complete diagnostic inventory.
+- Classified scripts as primary maintained diagnostics, secondary investigation diagnostics, or historical/candidate-for-archive diagnostics.
+- Identified historical candidates that should receive reference-search and coverage checks before deletion or archival.
+- Preserved all scripts; this pass did not delete or move code.
+
 ## Remaining audit items
 
-### mRLFE examples and diagnostics
+### mRLFE diagnostic script cleanup candidates
 
-Review `examples/mrlfe/diagnostics/` next. Do not delete scripts until each is classified as one of:
+Before deleting or moving any historical diagnostic candidate, perform a reference search and coverage check for each script. Current candidates listed in `examples/mrlfe/diagnostics/README.md` include:
 
-- primary maintained diagnostic,
-- secondary investigation diagnostic,
-- historical diagnostic candidate for archive/removal.
+```text
+diagnose_mrlfe_a0_dp_scan_cost.m
+diagnose_mrlfe_a0_modal_atlas.m
+diagnose_mrlfe_a0_modal_atlas_candidates_23kHz.m
+diagnose_mrlfe_a0_modal_atlas_cluster_cut_policy.m
+diagnose_mrlfe_a0_modal_atlas_error_map.m
+diagnose_mrlfe_a0_modal_atlas_hook_policy.m
+diagnose_mrlfe_a0_modal_atlas_integrated_cut.m
+diagnose_mrlfe_a0_modal_atlas_seed_identity.m
+diagnose_mrlfe_visco_direct_atlas.m
+```
 
-The current diagnostics README already defines primary and secondary categories. The next pass should compare that list against the actual files and identify:
+Expected checks:
 
-- files listed as primary/secondary but missing,
-- files present but not classified,
-- files likely superseded by maintained tests or docs.
+- Search for references to the script/function name.
+- Confirm whether the behavior is covered by maintained tests or by retained primary/secondary diagnostics.
+- Delete only if no active docs/tests depend on it and the behavior is superseded.
 
 ### mRLFE tests
 
-Review mRLFE tests after docs/examples are classified. Start with:
+Review mRLFE tests after diagnostic scripts are classified. Start with:
 
 ```text
 tests/gui/test_gui_mrlfe_*.m
