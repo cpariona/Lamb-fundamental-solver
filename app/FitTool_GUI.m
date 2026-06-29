@@ -459,6 +459,13 @@ onFitModelChanged();
             end
         end
 
+        if isfield(normalized.fullCurve, 'denseSolver') && isstruct(normalized.fullCurve.denseSolver) && ...
+                isfield(normalized.fullCurve.denseSolver, 'hasGridMismatch') && ...
+                logical(normalized.fullCurve.denseSolver.hasGridMismatch)
+            mismatch = normalized.fullCurve.denseSolver.maxAbsDenseMinusFit_mps;
+            curveText = curveText + sprintf(' | dense/grid mismatch %.3g m/s', mismatch);
+        end
+
         if isfield(normalized.fullCurve, 'extension') && isstruct(normalized.fullCurve.extension) && ...
                 isfield(normalized.fullCurve.extension, 'errorMessage')
             extensionMessage = string(normalized.fullCurve.extension.errorMessage);
