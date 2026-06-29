@@ -105,7 +105,8 @@ end
 
 function tf = shouldUseElasticAtlas(options, computeVisco)
 etaS = getEtaS(options);
-tf = ~logical(computeVisco) && etaS == 0 && logical(getStructField(options, 'mrlfeUseElasticAtlasGuiRoute', false));
+defaultUseElasticAtlas = ~logical(computeVisco) && etaS == 0;
+tf = defaultUseElasticAtlas && logical(getStructField(options, 'mrlfeUseElasticAtlasGuiRoute', true));
 end
 
 function etaS = getEtaS(options)
@@ -130,7 +131,7 @@ switch routeMode
         options.mrlfeGuiAtlasPreset = "elastic_reference";
 end
 
-% Elastic modal-atlas GUI trial settings. The guarded route falls back to the
+% Elastic modal-atlas GUI settings. The guarded route falls back to the
 % elastic reference branch if the atlas returns no finite normalized Cp.
 options.mrlfeModalAtlasApplyAmbiguityCut = getStructField(options, 'mrlfeModalAtlasApplyAmbiguityCut', false);
 options.mrlfeModalAtlasCpScanPoints = getStructField(options, 'mrlfeModalAtlasCpScanPoints', 420);
