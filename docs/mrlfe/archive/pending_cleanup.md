@@ -1,10 +1,20 @@
-# mRLFE cleanup status
+# mRLFE archived cleanup status
+
+This document preserves historical cleanup status for mRLFE. It is not the active route, fitting, or GUI contract. Active references live in:
+
+```text
+docs/mrlfe/README.md
+docs/mrlfe/fitting_workflow.md
+docs/mrlfe/fittool_grid_path_sensitivity.md
+docs/mrlfe_atlas_policy_notes.md
+docs/gui/mrlfe_atlas_policy_integration.md
+```
 
 ## Material-parameter cleanup status
 
 Current status:
 
-- Rayleigh-Lamb and mRLFE maintained sweeps now expose `mu` as the primary elastic stiffness parameter.
+- Rayleigh-Lamb and mRLFE maintained sweeps expose `mu` as the primary elastic stiffness parameter.
 - The maintained linear-isotropic material contract is `ShearPoisson`: `mu`, `nu`, and `rho` are primary inputs.
 - `E`, `lambda_Lame`, `K`, `CT`, and `CL` are derived through shared helpers under `models/materials/`.
 - The previous `E = 3*mu` transition approximation has been removed from maintained sweep helpers.
@@ -23,8 +33,6 @@ Current status:
 - `etaS = 0` is treated as the elastic fluid-loaded limit.
 - `etaS > 0` is treated as the viscous case of the same mRLFE real-k model.
 - The maintained normalized model name is `mRLFERealK`.
-- The solver keeps the etaS = 0 branch as an internal reference/buffer when computing etaS > 0.
-- The main GUI reuses a compatible cached etaS = 0 reference when available.
 - The physical raw model names are `mRLFEElasticRealK` and `mRLFEViscoRealK`.
 - Author-dependent mRLFE model names have been removed from the maintained solver, GUI, docs, and smoke-test surface.
 - `tests/mrlfe/test_mrlfe_etaS_zero_limit.m` protects the etaS = 0 physical contract.
@@ -57,20 +65,21 @@ This mirrors the numerical lessons from the acoustoelastic solver: the determina
 
 ## mRLFE internal tracking grid status
 
-Current status:
+Historical status:
 
 - `options.mrlfeUseInternalTrackingGrid` enables the AE-style internal tracking grid explicitly for mRLFE real-k branches.
 - `options.mrlfeUseInternalTrackingGridForViscousRealK` enables the internal grid automatically for the viscous `etaS > 0` path by default.
-- The direct tracker remains the default for the `etaS = 0` elastic limit unless `mrlfeUseInternalTrackingGrid` is explicitly enabled.
 - When enabled, mRLFE tracks on a denser internal frequency grid and resamples the branch back to the requested frequency grid.
 - Internal tracking metadata is stored in `mrlfeResults.tracking` and in each branch under `branch.internalTracking`.
-- `tests/mrlfe/test_mrlfe_internal_tracking_grid.m` protects the contract that the external branch output remains on the requested grid.
-- `tests/mrlfe/test_mrlfe_internal_tracking_grid_with_buffer.m` protects the same contract for the etaS > 0 path using a compatible etaS = 0 reference buffer.
-- `tests/mrlfe/test_mrlfe_viscous_default_internal_tracking_grid.m` protects the policy that etaS > 0 uses the internal tracking grid by default.
+- Related tests protect the requested-grid output contract and the viscous internal-grid policy.
 
-Rationale:
+Current note:
 
-This introduces the main architectural lesson from AE where it is most useful: the viscous real-k path can have competing residual valleys and benefits from tracking on a denser internal grid while preserving the requested output grid.
+The FitTool route now uses the atlas-first fitting evaluator. FitTool dense solver re-evaluation can still show grid/path sensitivity, so current fitting behavior is documented in:
+
+```text
+docs/mrlfe/fittool_grid_path_sensitivity.md
+```
 
 ## mRLFE tracking quality summary status
 
