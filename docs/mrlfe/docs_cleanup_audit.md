@@ -2,7 +2,7 @@
 
 ## Scope
 
-This audit covers the first repository-hygiene pass for mRLFE documentation. It is intentionally documentation-focused and does not delete diagnostics, examples, or tests.
+This audit covers the repository-hygiene pass for mRLFE documentation. It is intentionally documentation-focused and does not delete diagnostics, examples, or tests.
 
 ## Current maintained references
 
@@ -16,16 +16,25 @@ docs/mrlfe/current_sweeps.md
 docs/mrlfe/diagnostics/README.md
 docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
 docs/mrlfe_atlas_policy_notes.md
+docs/gui/mrlfe_atlas_policy_integration.md
 examples/mrlfe/diagnostics/README.md
 ```
 
-## Resolved in this cleanup pass
+## Resolved in pass 1
 
 - Updated the mRLFE docs index so it describes the atlas-first FitTool route rather than the previous reference-based workflow.
 - Cross-linked the FitTool grid/path sensitivity note from the mRLFE README and fitting workflow.
 - Clarified that `adaptivePhysicalTail` is the current FitTool A0Like fitting default.
 - Clarified that `delayedCut` remains a conservative comparison policy for diagnostics and sweep-policy investigations.
 - Updated the diagnostics README so it no longer says that `adaptivePhysicalTail` improves difficult A0 branches without changing the default recommendation.
+
+## Resolved in pass 2
+
+- Rewrote `docs/mrlfe_atlas_policy_notes.md` to separate FitTool fitting defaults from forward/sweep diagnostic policy.
+- Clarified that `adaptivePhysicalTail` is the current FitTool A0Like fitting default, while `delayedCut` is a conservative diagnostic baseline.
+- Preserved the quantitative A0 policy evidence from dense diagnostics, but removed wording that treated `delayedCut` as the unconditional current default.
+- Updated `docs/gui/mrlfe_atlas_policy_integration.md` so the FitTool fitted-curve contract includes fit-consistent plotting and dense solver diagnostics.
+- Updated the GUI validation wording so `test_gui_mrlfe_fit_full_curve_fast_contract` is described as protecting fit-consistent plotting plus diagnostic dense re-evaluation, not merely extension skipping.
 
 ## Remaining audit items
 
@@ -34,17 +43,16 @@ examples/mrlfe/diagnostics/README.md
 Review these next for duplication and stale wording:
 
 ```text
-docs/mrlfe_atlas_policy_notes.md
-docs/gui/mrlfe_atlas_policy_integration.md
 docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
 docs/mrlfe/archive/pending_cleanup.md
+docs/mrlfe/current_sweeps.md
 ```
 
 Expected actions:
 
-- Keep one active route-policy summary.
-- Move older implementation-status text to archive if it is still useful.
-- Remove references to outdated defaults if they conflict with FitTool behavior.
+- Keep tracker evidence if it still documents unresolved numerical behavior.
+- Move stale implementation-status text to archive if it is still useful.
+- Remove references to nonexistent legacy wrappers or obsolete sweep scripts if confirmed by code search.
 
 ### mRLFE examples and diagnostics
 
@@ -72,9 +80,9 @@ Expected actions:
 - Identify duplicate tests that protect the same contract.
 - Consolidate runners only after confirming coverage.
 
-## Validation after this pass
+## Validation after documentation-only passes
 
-For this documentation-only pass, run:
+Run:
 
 ```matlab
 clear; clc; close all;
