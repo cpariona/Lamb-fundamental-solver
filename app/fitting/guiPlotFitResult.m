@@ -25,7 +25,16 @@ if isfield(normalizedFit, 'fullCurve') && isstruct(normalizedFit.fullCurve) && .
     fullValid = normalizedFit.fullCurve.validMask(:) & isfinite(fullFrequency_kHz) & isfinite(fullCp);
     if any(fullValid)
         plot(ax, fullFrequency_kHz(fullValid), fullCp(fullValid), '-', 'LineWidth', 1.5);
-        legendEntries{end+1} = 'Full fitted curve'; %#ok<AGROW>
+        fullCurveLegend = 'Full fitted curve';
+        if isfield(normalizedFit.fullCurve, 'note')
+            fullCurveNote = string(normalizedFit.fullCurve.note);
+            if contains(fullCurveNote, "in-band curve interpolates", 'IgnoreCase', true)
+                fullCurveLegend = 'Fitted curve, in-band interpolation';
+            elseif contains(fullCurveNote, "dense", 'IgnoreCase', true)
+                fullCurveLegend = 'Dense fitted solver curve';
+            end
+        end
+        legendEntries{end+1} = fullCurveLegend; %#ok<AGROW>
     end
 end
 
