@@ -21,7 +21,7 @@ app/adapters/guiFitMRLFESolver.m
 analysis/mrlfe/mrlfeEvaluateFitModel.m
 ```
 
-The goal is not to claim external physical validation. The goal is to ensure that GUI requests can reach the maintained mRLFE atlas routes and preserve route/policy metadata.
+The goal is not to claim external physical validation. The goal is to ensure that GUI requests can reach the maintained mRLFE atlas-style routes and preserve route/policy metadata.
 
 ## Supported A0 policies
 
@@ -36,10 +36,10 @@ Current interpretation:
 
 | Policy | Use |
 | --- | --- |
-| `adaptivePhysicalTail` | Recommended interactive policy for difficult soft, viscous, fluid-loaded A0-like branches. |
+| `adaptivePhysicalTail` | Recommended interactive policy for A0-like branches, including the zero-eta limit and viscous cases. |
 | `delayedCut` | Conservative/diagnostic A0 policy. It can truncate early or select a short tail in GUI-fast settings. |
 
-The solver default remains conservative in backend contexts. The GUI default is allowed to prioritize interactive branch coverage by selecting `adaptivePhysicalTail`.
+The solver default remains conservative in backend contexts. The GUI default prioritizes interactive branch coverage by selecting `adaptivePhysicalTail`.
 
 ## Main GUI contract
 
@@ -50,45 +50,37 @@ options.mrlfeUseUnifiedAtlasRoute = options.mrlfeParams.etaS > 0;
 options.mrlfeA0Policy = string(modelControls.mrlfe.a0Policy.Value);
 ```
 
-The main GUI adapter now uses this route split by default:
+The main GUI adapter uses this route split:
 
 ```text
 Rayleigh-Lamb seed branch
-    -> guarded elastic modal atlas for etaS = 0
+    -> zero-eta adaptive route for etaS = 0
     -> viscous unified atlas for etaS > 0
     -> mRLFERealK only
     -> normalized GUI branch
 ```
 
-For `etaS = 0`, the guarded elastic route tries the modal atlas first and falls back to the elastic reference route if the atlas candidate does not meet the GUI quality guard.
+The zero-eta route intentionally uses the same adaptive tracker family and A0 policy as the viscous route, rather than the separate elastic modal-atlas route. This checks the elastic limit of the adaptive policy more directly.
 
-## Guarded elastic atlas route
+## Zero-eta adaptive route
 
-The default `etaS = 0` GUI route is guarded elastic atlas:
-
-```matlab
-options.mrlfeUseElasticAtlasGuiRoute = true;
-```
-
-It can be disabled programmatically for debugging:
+For `etaS = 0`, the default GUI route is:
 
 ```matlab
-options.mrlfeUseElasticAtlasGuiRoute = false;
+options.mrlfeUseZeroViscosityAdaptiveGuiRoute = true;
+options.mrlfeA0Policy = "adaptivePhysicalTail";
 ```
 
-When this option is true and `etaS = 0`, the adapter tries:
+The adapter calls the adaptive atlas tracker directly with `etaS = 0` and applies the same physical-tail policy used by the viscous A0 GUI route.
 
-```text
-solveMRLFEAtlasUnified -> elastic modal atlas
-```
-
-The atlas candidate must satisfy the GUI coverage guard:
+The candidate must satisfy both GUI quality guards:
 
 ```matlab
-options.mrlfeElasticAtlasGuiMinValidFraction = 0.85;
+options.mrlfeZeroViscosityAdaptiveGuiMinValidFraction = 0.85;
+options.mrlfeZeroViscosityAdaptiveGuiMaxJumpRelative = 0.25;
 ```
 
-If the atlas candidate does not meet this threshold, the adapter falls back to:
+If the candidate does not meet these thresholds, the adapter falls back to:
 
 ```text
 computeMRLFE -> elastic reference
@@ -97,21 +89,21 @@ computeMRLFE -> elastic reference
 The fallback is explicit and recorded:
 
 ```matlab
-result.metadata.mrlfeUseElasticAtlasGuiRoute
-result.metadata.mrlfeElasticAtlasFallback
-result.metadata.mrlfeElasticAtlasQuality
+result.metadata.mrlfeUseZeroViscosityAdaptiveGuiRoute
+result.metadata.mrlfeZeroViscosityAdaptiveFallback
+result.metadata.mrlfeZeroViscosityAdaptiveQuality
 result.metadata.mrlfeGuiActualRoute
-result.diagnostics.mrlfeUseElasticAtlasGuiRoute
-result.diagnostics.mrlfeElasticAtlasFallback
-result.diagnostics.mrlfeElasticAtlasQuality
+result.diagnostics.mrlfeUseZeroViscosityAdaptiveGuiRoute
+result.diagnostics.mrlfeZeroViscosityAdaptiveFallback
+result.diagnostics.mrlfeZeroViscosityAdaptiveQuality
 result.diagnostics.mrlfeGuiActualRoute
 ```
 
 Possible actual routes are:
 
 ```text
-elastic_modal_atlas
-elastic_reference_fallback
+zero_viscosity_adaptive_atlas
+zero_viscosity_adaptive_fallback
 elastic_reference
 viscous_unified_atlas
 ```
@@ -132,13 +124,19 @@ The main GUI uses fast atlas presets for interaction:
 options.mrlfeUseGuiFastAtlasPreset = true;
 ```
 
-For the viscous atlas route, the preset is:
+For the viscous route, the preset is:
 
 ```matlab
 result.metadata.mrlfeGuiAtlasPreset = "fast_viscous";
 ```
 
-and uses reduced atlas scan density and candidate refinement:
+For the zero-eta adaptive route, the preset is:
+
+```matlab
+result.metadata.mrlfeGuiAtlasPreset = "fast_zero_viscosity_adaptive";
+```
+
+Both routes use reduced atlas scan density and candidate refinement:
 
 ```matlab
 mrlfeViscoAtlasCpScanPoints = 260
@@ -150,23 +148,6 @@ mrlfeAdaptiveRefineCandidates = false
 mrlfeAdaptiveWindows = [0.20 0.40 0.80]
 ```
 
-For the guarded elastic atlas route, the preset is:
-
-```matlab
-result.metadata.mrlfeGuiAtlasPreset = "fast_elastic_atlas_guarded";
-```
-
-and uses:
-
-```matlab
-mrlfeModalAtlasApplyAmbiguityCut = false
-mrlfeModalAtlasCpScanPoints = 420
-mrlfeModalAtlasTopNMinima = 12
-mrlfeModalAtlasRefineMinima = false
-mrlfeModalAtlasRequireResidualValidity = false
-mrlfeElasticAtlasGuiMinValidFraction = 0.85
-```
-
 These presets are GUI-specific. Dense diagnostics and policy-validation scripts should keep their own explicit dense options. Disable the preset only for debugging:
 
 ```matlab
@@ -175,20 +156,20 @@ options.mrlfeUseGuiFastAtlasPreset = false;
 
 ## Metadata contract
 
-The model adapter preserves route, policy, preset, and fallback metadata:
+The model adapter preserves route, policy, preset, quality, and fallback metadata:
 
 ```matlab
 result.metadata.mrlfeUseUnifiedAtlasRoute
-result.metadata.mrlfeUseElasticAtlasGuiRoute
-result.metadata.mrlfeElasticAtlasFallback
-result.metadata.mrlfeElasticAtlasQuality
+result.metadata.mrlfeUseZeroViscosityAdaptiveGuiRoute
+result.metadata.mrlfeZeroViscosityAdaptiveFallback
+result.metadata.mrlfeZeroViscosityAdaptiveQuality
 result.metadata.mrlfeGuiActualRoute
 result.metadata.mrlfeA0Policy
 result.metadata.mrlfeGuiAtlasPreset
 result.diagnostics.mrlfeUseUnifiedAtlasRoute
-result.diagnostics.mrlfeUseElasticAtlasGuiRoute
-result.diagnostics.mrlfeElasticAtlasFallback
-result.diagnostics.mrlfeElasticAtlasQuality
+result.diagnostics.mrlfeUseZeroViscosityAdaptiveGuiRoute
+result.diagnostics.mrlfeZeroViscosityAdaptiveFallback
+result.diagnostics.mrlfeZeroViscosityAdaptiveQuality
 result.diagnostics.mrlfeGuiActualRoute
 result.diagnostics.mrlfeA0Policy
 result.diagnostics.mrlfeGuiAtlasPreset
@@ -247,21 +228,22 @@ tests/gui/test_gui_mrlfe_unified_atlas_policy_contract.m
 tests/gui/test_gui_mrlfe_elastic_atlas_guard_contract.m
 ```
 
-and both tests are included in:
+The second test now verifies the zero-eta adaptive route despite its historical filename.
+
+Both tests are included in:
 
 ```matlab
 tests/run_gui_smoke_tests
 ```
 
-The guarded elastic atlas contract checks that:
+The zero-eta adaptive contract checks that:
 
 ```text
-- an etaS = 0 atlas request is reported in metadata
-- the actual route is either elastic_modal_atlas or elastic_reference_fallback
-- the atlas quality metadata includes validFraction
-- direct elastic_modal_atlas output meets the valid-fraction quality threshold
+- an etaS = 0 adaptive request is reported in metadata
+- the actual route is either zero_viscosity_adaptive_atlas or zero_viscosity_adaptive_fallback
+- the quality metadata includes validFraction and maxJumpRelative
+- direct zero_viscosity_adaptive_atlas output meets the GUI quality thresholds
 - the normalized GUI branch contains finite Cp values
-- fallback metadata is consistent with the actual route
 ```
 
 This is a routing and stabilization test, not a physical validation test.
@@ -270,7 +252,7 @@ This is a routing and stabilization test, not a physical validation test.
 
 After contract tests pass, perform a short manual check before merging large GUI changes.
 
-### Main GUI elastic route
+### Main GUI zero-eta route
 
 ```text
 Open: LambFundamental_GUI
@@ -278,6 +260,7 @@ Model-specific settings > mRLFE
 Enable: mRLFE real-k
 Branch: A0-like
 etaS: 0
+A0 atlas policy: adaptivePhysicalTail
 Compute selected modes
 ```
 
@@ -286,8 +269,8 @@ Expected behavior:
 ```text
 - no compute error
 - mRLFE real-k A0-like curve appears
-- diagnostics report elastic_modal_atlas or elastic_reference_fallback
-- fallback metadata is explicit if the atlas path fails the coverage guard
+- diagnostics report zero_viscosity_adaptive_atlas or zero_viscosity_adaptive_fallback
+- fallback metadata is explicit if the adaptive route fails the quality guard
 ```
 
 ### Main GUI viscous route
@@ -313,46 +296,6 @@ Expected behavior:
 - raw/internal models contain mRLFERealK for the visible mRLFE result
 ```
 
-### SweepTool
-
-```text
-Open: SweepTool_GUI
-Model family: mRLFE
-Sweep parameter: etaS
-Values: 0, 0.05
-Branch: A0Like
-A0 atlas policy: adaptivePhysicalTail
-Run sweep
-```
-
-Expected behavior:
-
-```text
-- sweep completes
-- summary table is populated
-- exported SweepToolOutput contains atlasPolicy
-```
-
-### FitTool
-
-```text
-Open: FitTool_GUI
-Model: mRLFE
-Branch: A0Like
-Free parameter: mu or etaS
-A0 atlas policy: adaptivePhysicalTail
-Generate synthetic from setup
-Run fit
-```
-
-Expected behavior:
-
-```text
-- fitting completes or returns a controlled fitting-quality result
-- FitToolLastOutput.routePolicy.actualPath is "unified_atlas"
-- FitToolLastOutput.routePolicy.mrlfeA0Policy matches the selected policy
-```
-
 ## Current limitation
 
-This integration does not validate the atlas policy against complex-k solutions, FEM, or experimental data. It only ensures that the GUI can request and report maintained atlas routes and fallbacks explicitly.
+This integration does not validate the atlas policy against complex-k solutions, FEM, or experimental data. It only ensures that the GUI can request and report maintained atlas-style routes and fallbacks explicitly.
