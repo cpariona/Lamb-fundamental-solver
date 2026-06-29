@@ -167,13 +167,13 @@ updateAxisFieldState();
         options.computeA0 = logical(modelControls.rl.computeA0.Value);
         options.computeS0 = logical(modelControls.rl.computeS0.Value);
         options.computeMRLFERealK = logical(modelControls.mrlfe.computeRealK.Value);
-        options.computeMRLFEElasticRealK = options.computeMRLFERealK;
-        options.computeMRLFEViscoRealK = options.computeMRLFERealK;
+        options.computeMRLFEElasticRealK = false;
+        options.computeMRLFEViscoRealK = false;
         options.computeMRLFEComplexK = false;
         options.mrlfeComputeA0Like = logical(modelControls.mrlfe.computeA0Like.Value);
         options.mrlfeComputeS0Like = logical(modelControls.mrlfe.computeS0Like.Value);
         options.mrlfeUseUnifiedAtlasRoute = false;
-        options.mrlfeA0Policy = "delayedCut";
+        options.mrlfeA0Policy = "adaptivePhysicalTail";
 
         if options.computeMRLFERealK
             if ~options.mrlfeComputeA0Like && ~options.mrlfeComputeS0Like
@@ -664,16 +664,56 @@ updateAxisFieldState();
     end
 
     function lines = appendOptionDiagnostics(lines)
-        lines(end+1) = "Requested options:";
+        lines(end+1) = "GUI route / policy:";
+        if isempty(lastGuiResult) || ~isfield(lastGuiResult, 'metadata')
+            lines(end+1) = "  unavailable";
+        else
+            md = lastGuiResult.metadata;
+            if isfield(md, 'mrlfeGuiActualRoute')
+                lines(end+1) = sprintf("  actual route: %s", string(md.mrlfeGuiActualRoute));
+            end
+            if isfield(md, 'mrlfeA0Policy')
+                lines(end+1) = sprintf("  A0 policy: %s", string(md.mrlfeA0Policy));
+            end
+            if isfield(md, 'mrlfeGuiAtlasPreset')
+                lines(end+1) = sprintf("  GUI preset: %s", string(md.mrlfeGuiAtlasPreset));
+            end
+            if isfield(md, 'mrlfeUseUnifiedAtlasRoute')
+                lines(end+1) = sprintf("  unified atlas route: %d", logical(md.mrlfeUseUnifiedAtlasRoute));
+            end
+            if isfield(md, 'mrlfeUseZeroViscosityAdaptiveGuiRoute')
+                lines(end+1) = sprintf("  zero-eta adaptive route: %d", logical(md.mrlfeUseZeroViscosityAdaptiveGuiRoute));
+            end
+            if isfield(md, 'mrlfeZeroViscosityAdaptiveFallback')
+                lines(end+1) = sprintf("  zero-eta fallback: %d", logical(md.mrlfeZeroViscosityAdaptiveFallback));
+            end
+            if isfield(md, 'mrlfeZeroViscosityAdaptiveQuality')
+                q = md.mrlfeZeroViscosityAdaptiveQuality;
+                if isfield(q, 'validFraction')
+                    lines(end+1) = sprintf("  zero-eta valid fraction: %.3f", q.validFraction);
+                end
+                if isfield(q, 'validCount') && isfield(q, 'totalCount')
+                    lines(end+1) = sprintf("  zero-eta valid points: %d/%d", q.validCount, q.totalCount);
+                end
+                if isfield(q, 'maxJumpRelative')
+                    lines(end+1) = sprintf("  zero-eta max jump relative: %.3g", q.maxJumpRelative);
+                end
+            end
+        end
+        lines(end+1) = "";
+
+        lines(end+1) = "Requested GUI options:";
         if isempty(lastOptions)
             lines(end+1) = "  unavailable";
         else
-            optionNames = ["computeA0", "computeS0", "computeMRLFERealK", "computeMRLFEElasticRealK", ...
-                "computeMRLFEViscoRealK", "mrlfeComputeA0Like", "mrlfeComputeS0Like", "computeAcoustoelasticIOPHGO"];
+            optionNames = ["computeA0", "computeS0", "computeMRLFERealK", ...
+                "mrlfeComputeA0Like", "mrlfeComputeS0Like", "computeAcoustoelasticIOPHGO"];
+            optionLabels = ["Rayleigh-Lamb seed A0", "Rayleigh-Lamb seed S0", ...
+                "mRLFE real-k", "mRLFE A0-like", "mRLFE S0-like", "AE IOP/HGO"];
             for i = 1:numel(optionNames)
                 name = optionNames(i);
                 if isfield(lastOptions, char(name))
-                    lines(end+1) = sprintf("  %s = %d", name, logical(lastOptions.(char(name))));
+                    lines(end+1) = sprintf("  %s = %d", optionLabels(i), logical(lastOptions.(char(name))));
                 end
             end
             if isfield(lastOptions, 'mrlfeParams') && isfield(lastOptions.mrlfeParams, 'etaS')
