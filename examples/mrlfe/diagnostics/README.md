@@ -8,6 +8,12 @@ For quick automated checks, use the test runner instead:
 tests/run_mrlfe_atlas_tests
 ```
 
+For FitTool route checks, use:
+
+```matlab
+run_mrlfe_fit_atlas_tests
+```
+
 ## Recommended diagnostic workflow
 
 Use the scripts in this order when validating the current atlas implementation.
@@ -22,7 +28,7 @@ Purpose:
 
 - Compare the conservative A0 policy against the adaptive physical-tail A0 policy.
 - Keep S0 adaptive continuation as reference.
-- Verify that `mrlfeA0Policy = "adaptivePhysicalTail"` improves difficult A0 branches without changing the default recommendation.
+- Verify that `mrlfeA0Policy = "adaptivePhysicalTail"` improves difficult A0 branches.
 
 Main output:
 
@@ -98,21 +104,35 @@ These scripts were used to isolate specific failure modes or guide policy design
 | `diagnose_mrlfe_a0_residual_landscape_mu_sweep.m` | Inspects residual landscapes for A0 branch ambiguity. |
 | `diagnose_mrlfe_s0_direct_visco_atlas_cut_boundary.m` | Investigates S0 direct-visco cut boundaries. |
 
-## Current A0 policy recommendation
+## Current A0 policy wording
 
-The conservative policy remains:
+The conservative comparison policy is:
 
 ```matlab
 options.mrlfeA0Policy = "delayedCut";
 ```
 
-The recommended opt-in policy for difficult soft, viscous, fluid-loaded A0 cases is:
+The current FitTool A0Like fitting default and recommended policy for difficult soft, viscous, fluid-loaded A0 cases is:
 
 ```matlab
 options.mrlfeA0Policy = "adaptivePhysicalTail";
 ```
 
-Do not treat `adaptivePhysicalTail` as a global default without additional physical validation. The parametric sweep showed robust coverage improvement, but a substantial fraction of difficult cases used `valleyFallback`, which should be reported as a confidence indicator.
+Do not treat either policy as experimentally validated for all physical regimes. `adaptivePhysicalTail` is the maintained FitTool route default because it improves the difficult A0-like fitting path, but the parametric sweep showed that some difficult cases use `valleyFallback`, which should be reported as a confidence indicator.
+
+## FitTool dense-grid diagnostic
+
+FitTool uses a fit-consistent primary curve and stores dense solver re-evaluation under:
+
+```matlab
+normalized.fullCurve.denseSolver
+```
+
+See:
+
+```text
+docs/mrlfe/fittool_grid_path_sensitivity.md
+```
 
 ## Outputs and generated files
 
