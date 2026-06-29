@@ -37,10 +37,10 @@ Current interpretation:
 
 | Policy | Use |
 | --- | --- |
-| `adaptivePhysicalTail` | Recommended interactive policy for A0-like branches, including the zero-eta limit and viscous cases. |
+| `adaptivePhysicalTail` | Current interactive and FitTool A0Like fitting default. Recommended for difficult A0-like branches, including the zero-eta limit and viscous cases. |
 | `delayedCut` | Conservative/diagnostic A0 policy. It can truncate early or select a short tail in GUI-fast settings. |
 
-The solver default remains conservative in backend contexts. The GUI and FitTool defaults prioritize interactive branch coverage by selecting `adaptivePhysicalTail`.
+The solver can still compare both policies in diagnostics. The GUI and FitTool defaults prioritize interactive branch coverage by selecting `adaptivePhysicalTail`.
 
 ## Main GUI contract
 
@@ -249,6 +249,23 @@ The older reference/direct-viscous fitting workflow is preserved only for explic
 solverOptions.mrlfeUseAtlasFitRoute = false;
 ```
 
+## FitTool fitted-curve contract
+
+The primary FitTool fitted curve is fit-consistent. It interpolates the model values used by the fitting objective at the experimental frequencies.
+
+Dense solver re-evaluation is preserved as diagnostic metadata:
+
+```matlab
+normalized.fullCurve.denseSolver
+normalized.fullCurve.denseSolver.maxAbsDenseMinusFit_mps
+normalized.fullCurve.denseSolver.hasGridMismatch
+normalized.fullCurve.denseSolver.warningMessage
+```
+
+If the dense re-evaluation differs from the fit-consistent values beyond the configured threshold, the status line reports a dense/grid mismatch. This is a grid/path sensitivity diagnostic, not a fitting failure by itself.
+
+The mRLFE extension curve remains skipped by default in the fast GUI fitting path.
+
 ## Validation contract
 
 The GUI atlas integration is covered by:
@@ -288,7 +305,9 @@ The fitting contracts check that:
 - etaS > 0 uses viscous_unified_atlas
 - A0Like and S0Like are both supported
 - fixed etaS is preserved in mu/thickness fits
-- in-band full-curve plotting remains available while mRLFE extension is skipped by default
+- in-band full-curve plotting remains fit-consistent
+- dense solver re-evaluation is diagnostic metadata
+- mRLFE extension is skipped by default
 ```
 
 This is routing and synthetic-contract validation, not physical validation.
@@ -308,39 +327,3 @@ etaS: 0
 A0 atlas policy: adaptivePhysicalTail
 Compute selected modes
 ```
-
-Expected behavior:
-
-```text
-- no compute error
-- mRLFE real-k A0-like curve appears
-- diagnostics report zero_viscosity_adaptive_atlas or zero_viscosity_adaptive_fallback
-- fallback metadata is explicit if the adaptive route fails the quality guard
-```
-
-### Main GUI viscous route
-
-```text
-Open: LambFundamental_GUI
-Model-specific settings > mRLFE
-Enable: mRLFE real-k
-Branch: A0-like
-etaS: 0.1
-A0 atlas policy: adaptivePhysicalTail
-Compute selected modes
-```
-
-Expected behavior:
-
-```text
-- no compute error
-- mRLFE real-k A0-like curve appears
-- status/diagnostics remain available
-- Rayleigh-Lamb seed branches are not exposed as mRLFE plot branches
-- elapsed time is suitable for interaction at the default 631-point grid
-- raw/internal models contain mRLFERealK for the visible mRLFE result
-```
-
-## Current limitation
-
-This integration does not validate the atlas policy against complex-k solutions, FEM, or experimental data. It only ensures that the GUI can request and report maintained atlas-style routes and fallbacks explicitly.
