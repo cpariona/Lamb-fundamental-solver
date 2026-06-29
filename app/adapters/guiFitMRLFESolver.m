@@ -35,10 +35,13 @@ if ~isfield(controls, 'fluidSoundSpeed') || isempty(controls.fluidSoundSpeed)
     controls.fluidSoundSpeed = 1500;
 end
 if ~isfield(controls, 'mrlfeUseUnifiedAtlasRoute') || isempty(controls.mrlfeUseUnifiedAtlasRoute)
-    controls.mrlfeUseUnifiedAtlasRoute = false;
+    controls.mrlfeUseUnifiedAtlasRoute = true;
 end
 if ~isfield(controls, 'mrlfeA0Policy') || isempty(controls.mrlfeA0Policy)
-    controls.mrlfeA0Policy = "delayedCut";
+    controls.mrlfeA0Policy = "adaptivePhysicalTail";
+end
+if ~isfield(controls, 'mrlfeUseAtlasFitRoute') || isempty(controls.mrlfeUseAtlasFitRoute)
+    controls.mrlfeUseAtlasFitRoute = true;
 end
 
 solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', controls.etaS, ...
@@ -46,10 +49,14 @@ solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', controls.etaS, ...
     'A0Policy', string(controls.mrlfeA0Policy));
 solverOptions.mrlfeParams.fluidDensity = controls.fluidDensity;
 solverOptions.mrlfeParams.fluidSoundSpeed = controls.fluidSoundSpeed;
+solverOptions.mrlfeUseAtlasFitRoute = logical(controls.mrlfeUseAtlasFitRoute);
+solverOptions.mrlfeFitAtlasPreset = "fast_fit_atlas";
+
 routePolicy = localRoutePolicy(branchName, request.freeParams, controls);
 if routePolicy.requestDirectViscoAtlas
     solverOptions.mrlfeUseDirectViscoAtlas = true;
     solverOptions.mrlfeDisableForwardCache = true;
+    solverOptions.mrlfeUseAtlasFitRoute = false;
 end
 
 fixedParams = request.fixedParams;
@@ -79,26 +86,35 @@ fitOutput.normalized = normalized;
 fitOutput.routePolicy = routePolicy;
 fitOutput.routePolicy.actualPath = localActualEvaluationPath(fitResult);
 fitOutput.routePolicy.mrlfeA0Policy = string(controls.mrlfeA0Policy);
+fitOutput.routePolicy.etaS = localActualEtaS(fitResult, controls.etaS);
+fitOutput.routePolicy.fitAtlasPreset = localFitAtlasPreset(fitResult);
 end
 
 function policy = localRoutePolicy(branchName, freeParams, controls)
 freeParams = string(freeParams(:));
+useAtlasFitRoute = isstruct(controls) && isfield(controls, 'mrlfeUseAtlasFitRoute') && ...
+    ~isempty(controls.mrlfeUseAtlasFitRoute) && logical(controls.mrlfeUseAtlasFitRoute);
 useUnifiedAtlas = isstruct(controls) && isfield(controls, 'mrlfeUseUnifiedAtlasRoute') && ...
     ~isempty(controls.mrlfeUseUnifiedAtlasRoute) && logical(controls.mrlfeUseUnifiedAtlasRoute);
 policy = struct();
 policy.branchName = string(branchName);
 policy.freeParams = freeParams;
+policy.routeFamily = "atlas";
+policy.requestAtlasFitRoute = logical(useAtlasFitRoute);
 policy.requestUnifiedAtlas = logical(useUnifiedAtlas);
-policy.requestDirectViscoAtlas = ~useUnifiedAtlas && branchName == "A0Like" && numel(freeParams) == 1 && freeParams(1) == "etaS";
-if policy.requestUnifiedAtlas
-    policy.expectedPath = "unified_atlas";
-    policy.description = "mRLFE fitting uses the unified real-k atlas route with explicit A0 policy metadata.";
+policy.requestDirectViscoAtlas = ~useAtlasFitRoute && ~useUnifiedAtlas && ...
+    branchName == "A0Like" && numel(freeParams) == 1 && freeParams(1) == "etaS";
+if policy.requestAtlasFitRoute
+    policy.expectedPath = "mrlfe_atlas";
+    policy.description = "mRLFE fitting uses the official atlas output surface for A0Like and S0Like, analogous to AE atlasA0 fitting.";
 elseif policy.requestDirectViscoAtlas
+    policy.routeFamily = "legacy";
     policy.expectedPath = "direct_viscous_atlas";
-    policy.description = "A0Like etaS fitting uses the validated direct viscous atlas route.";
+    policy.description = "Legacy A0Like etaS fitting uses the direct viscous atlas route only when atlas-fit routing is explicitly disabled.";
 else
+    policy.routeFamily = "legacy";
     policy.expectedPath = "maintained_rl_mrlfe_workflow";
-    policy.description = "mRLFE fitting uses the maintained reference-based workflow.";
+    policy.description = "Legacy mRLFE fitting uses the maintained reference-based workflow only when atlas-fit routing is explicitly disabled.";
 end
 end
 
@@ -111,5 +127,30 @@ try
     end
 catch
     path = "unknown";
+end
+end
+
+function etaS = localActualEtaS(fitResult, defaultEtaS)
+etaS = defaultEtaS;
+try
+    if isfield(fitResult, 'allParams') && isfield(fitResult.allParams, 'etaS')
+        etaS = fitResult.allParams.etaS;
+    end
+catch
+end
+end
+
+function preset = localFitAtlasPreset(fitResult)
+preset = "unknown";
+try
+    if isfield(fitResult, 'rawSolverResult') && isfield(fitResult.rawSolverResult, 'evaluationPath') && ...
+            isfield(fitResult.rawSolverResult.evaluationPath, 'fitAtlasPreset')
+        preset = string(fitResult.rawSolverResult.evaluationPath.fitAtlasPreset);
+    elseif isfield(fitResult, 'rawSolverResult') && isfield(fitResult.rawSolverResult, 'fitPerformanceDefaults') && ...
+            isfield(fitResult.rawSolverResult.fitPerformanceDefaults, 'preset')
+        preset = string(fitResult.rawSolverResult.fitPerformanceDefaults.preset);
+    end
+catch
+    preset = "unknown";
 end
 end
