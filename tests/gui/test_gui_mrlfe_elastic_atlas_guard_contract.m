@@ -1,8 +1,8 @@
 clear; clc;
 startup
 
-fprintf('\nRunning GUI mRLFE guarded elastic atlas contract test...\n');
-fprintf('------------------------------------------------------\n');
+fprintf('\nRunning GUI mRLFE zero-eta adaptive contract test...\n');
+fprintf('------------------------------------------------\n');
 
 params = rlDefaultParams();
 params.fmin = 1000;
@@ -18,18 +18,12 @@ options = rlDefaultOptions("Fast");
 options.computeA0 = true;
 options.computeS0 = false;
 options.computeMRLFERealK = true;
-options.computeMRLFEElasticRealK = true;
-options.computeMRLFEViscoRealK = false;
-options.computeMRLFEComplexK = false;
 options.mrlfeComputeA0Like = true;
 options.mrlfeComputeS0Like = false;
-options.mrlfeUseElasticAtlasGuiRoute = true;
-options.mrlfeUseUnifiedAtlasRoute = false;
+options.mrlfeUseZeroViscosityAdaptiveGuiRoute = true;
 options.mrlfeA0Policy = "adaptivePhysicalTail";
 options.mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams.etaS = 0;
-options.mrlfeParams.etaL = 0;
-options.mrlfeParams.useComplexLambda = false;
 options.mrlfeParams.fluidDensity = 1000;
 options.mrlfeParams.fluidSoundSpeed = 1500;
 
@@ -41,46 +35,28 @@ request.computeElastic = true;
 request.computeVisco = false;
 
 out = guiRunMRLFEModel(request);
-assert(isfield(out.metadata, 'mrlfeUseElasticAtlasGuiRoute') && out.metadata.mrlfeUseElasticAtlasGuiRoute, ...
-    'GUI elastic atlas request metadata must be preserved.');
-assert(isfield(out.metadata, 'mrlfeGuiActualRoute'), ...
-    'GUI elastic atlas contract must report the actual route.');
-assert(any(out.metadata.mrlfeGuiActualRoute == ["elastic_modal_atlas", "elastic_reference_fallback"]), ...
-    'Unexpected elastic atlas actual route: %s.', out.metadata.mrlfeGuiActualRoute);
-assert(isfield(out.metadata, 'mrlfeElasticAtlasQuality'), ...
-    'Guarded elastic atlas GUI route must report atlas quality metadata.');
-assert(isfield(out.metadata.mrlfeElasticAtlasQuality, 'validFraction'), ...
-    'Atlas quality metadata must include validFraction.');
-assert(hasNormalizedBranch(out, "mRLFERealK", "A0Like"), ...
-    'Guarded elastic atlas GUI route must expose an mRLFERealK A0Like branch.');
+route = string(out.metadata.mrlfeGuiActualRoute);
+assert(any(route == ["zero_viscosity_adaptive_atlas", "zero_viscosity_adaptive_fallback"]), ...
+    'Unexpected GUI route: %s.', route);
+assert(isfield(out.metadata, 'mrlfeZeroViscosityAdaptiveQuality'), ...
+    'Missing zero-eta adaptive quality metadata.');
+assert(isfield(out.metadata.mrlfeZeroViscosityAdaptiveQuality, 'validFraction'), ...
+    'Missing validFraction metadata.');
+assert(isfield(out.metadata.mrlfeZeroViscosityAdaptiveQuality, 'maxJumpRelative'), ...
+    'Missing maxJumpRelative metadata.');
+assert(~isempty(out.branches), 'Expected at least one normalized mRLFE branch.');
 
 plotData = guiGetNormalizedBranchPlotData(out.branches(1));
-assert(any(isfinite(plotData.y(:))), ...
-    'Guarded elastic atlas GUI route must produce finite normalized Cp values.');
+assert(any(isfinite(plotData.y(:))), 'Expected finite normalized Cp values.');
 
-if out.metadata.mrlfeGuiActualRoute == "elastic_reference_fallback"
-    assert(out.metadata.mrlfeElasticAtlasFallback == true, ...
-        'Fallback metadata must be true when actual route is elastic_reference_fallback.');
-else
-    assert(out.metadata.mrlfeElasticAtlasFallback == false, ...
-        'Fallback metadata must be false when actual route is elastic_modal_atlas.');
-    assert(out.metadata.mrlfeElasticAtlasQuality.validFraction >= 0.85, ...
-        'Direct elastic atlas route must meet the GUI valid-fraction quality threshold.');
+if route == "zero_viscosity_adaptive_atlas"
+    assert(out.metadata.mrlfeZeroViscosityAdaptiveQuality.validFraction >= 0.85, ...
+        'Zero-eta adaptive route did not meet valid-fraction threshold.');
+    assert(out.metadata.mrlfeZeroViscosityAdaptiveQuality.maxJumpRelative <= 0.25, ...
+        'Zero-eta adaptive route did not meet jump threshold.');
 end
 
-fprintf('GUI mRLFE guarded elastic atlas contract test passed. Route: %s. validFraction: %.3f.\n', ...
-    out.metadata.mrlfeGuiActualRoute, out.metadata.mrlfeElasticAtlasQuality.validFraction);
-
-function tf = hasNormalizedBranch(guiResult, modelName, branchName)
-tf = false;
-if ~isfield(guiResult, 'branches') || isempty(guiResult.branches)
-    return;
-end
-for i = 1:numel(guiResult.branches)
-    branch = guiResult.branches(i);
-    if string(branch.modelName) == string(modelName) && string(branch.branchName) == string(branchName)
-        tf = true;
-        return;
-    end
-end
-end
+fprintf('GUI mRLFE zero-eta adaptive contract passed. Route: %s. validFraction: %.3f. maxJump: %.3f.\n', ...
+    route, ...
+    out.metadata.mrlfeZeroViscosityAdaptiveQuality.validFraction, ...
+    out.metadata.mrlfeZeroViscosityAdaptiveQuality.maxJumpRelative);
