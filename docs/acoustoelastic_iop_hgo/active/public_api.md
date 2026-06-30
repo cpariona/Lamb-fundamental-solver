@@ -70,6 +70,16 @@ aeDefaultIdentityA0ValidationGrid
 
 `aeDefaultIdentityA0ValidationParams`, `aeDefaultIdentityA0ValidationOptions`, and `aeDefaultIdentityA0ValidationGrid` centralize the shared heavy-validation setup used by `validate_idA0_grid` and `validate_idA0_score_grid`.
 
+## Fitting helpers
+
+```matlab
+aeBuildFitProblem
+aeEvaluateFitModel
+aeFitDispersionData
+```
+
+The maintained fitting route uses the official `atlasA0` output only. Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, and branch-family candidates are not accepted as fitting outputs.
+
 ## Maintained public workflows
 
 ```matlab
@@ -106,9 +116,10 @@ track_raw_branch1
 
 ```matlab
 diagnose_modal_atlas_lowfreq
+diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas
 ```
 
-`diagnose_modal_atlas_lowfreq` was removed because low-frequency initialization is now implicit in `diagnose_modal_atlas`.
+The separate low-frequency modal-atlas entrypoints were removed because low-frequency initialization is now implicit in `diagnose_modal_atlas`.
 
 ## Maintained tests
 
@@ -122,6 +133,7 @@ test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 test_acoustoelastic_iop_hgo_short_entrypoints
 test_acoustoelastic_iop_hgo_branch_persistence_refinement
 test_ae_analyze_truncation_recovery
+test_ae_fit_synthetic_atlasA0
 ```
 
 ## Maintained smoke runners
@@ -129,7 +141,10 @@ test_ae_analyze_truncation_recovery
 ```matlab
 run_acoustoelastic_smoke_tests
 run_all_smoke_tests
+run_fit_validation_tests
 ```
+
+`run_acoustoelastic_smoke_tests` covers AE API/path contracts and the maintained AE atlasA0 fitting smoke test. `run_fit_validation_tests` covers focused synthetic fitting validation, including AE atlasA0 and AE hidden/fixed parameter cases.
 
 ## Policy for callers
 
