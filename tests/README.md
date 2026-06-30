@@ -21,6 +21,7 @@ tests/run_core_smoke_tests.m
 tests/run_gui_smoke_tests.m
 tests/run_mrlfe_atlas_tests.m
 tests/run_mrlfe_fit_atlas_tests.m
+tests/run_mrlfe_smoke_tests.m
 tests/fitting/run_fit_validation_tests.m
 ```
 
