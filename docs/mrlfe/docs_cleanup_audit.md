@@ -165,6 +165,14 @@ diagnose_mrlfe_a0_modal_atlas_seed_identity.m
   - `adaptivePhysicalTail` is the current FitTool A0Like fitting default.
   - `delayedCut` is the conservative comparison policy for diagnostics and sweep-policy investigations.
 
+## Resolved in pass 10
+
+- Updated `docs/README.md` so the repository-level index exposes the active mRLFE fitting, sweep, diagnostic, atlas-policy, GUI-integration, and cleanup-audit documents.
+- Updated `docs/maintained_entrypoints.md` after the test-layout migration.
+- Added `test_rl_fit_evaluator_branch_consistency` to the maintained Rayleigh-Lamb tests.
+- Refreshed the maintained mRLFE model-family, atlas/route-policy, and GUI mRLFE test lists using current test names.
+- Added an explicit note that test names are listed as MATLAB entrypoints and that folder layout is documented in `tests/README.md`.
+
 ## Remaining audit items
 
 ### mRLFE documentation
@@ -201,17 +209,6 @@ Expected actions:
 - Keep primary maintained diagnostics.
 - Keep secondary diagnostics that support active tests or unresolved solver questions.
 - Archive or delete only after reference and coverage checks.
-
-### Repository-level documentation
-
-Update repository-wide hygiene and entrypoint docs when they still mention pre-migration paths or outdated validation groupings.
-
-Priority files:
-
-```text
-docs/maintained_entrypoints.md
-docs/README.md
-```
 
 ## Validation after documentation-only passes
 
