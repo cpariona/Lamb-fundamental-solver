@@ -4,7 +4,7 @@
 
 This audit records the repository-wide documentation cleanup pass that follows the mRLFE-focused hygiene merge.
 
-The goal is to update active documentation indexes and high-level workflow references without changing solver behavior.
+The goal is to update active documentation indexes and high-level workflow references while keeping solver behavior unchanged. One validation-test correction was added after this pass exposed an unstable mRLFE etaS recovery case.
 
 ## Resolved in pass 1
 
@@ -13,6 +13,12 @@ The goal is to update active documentation indexes and high-level workflow refer
 - Reviewed `docs/maintained_entrypoints.md` and identified one minor stale validation-list issue: `run_mrlfe_atlas_tests` should be listed with the other focused runners because `run_all_smoke_tests` now runs it explicitly.
 - Refreshed `docs/fitting/architecture.md` so it describes the implemented fitting architecture instead of a Phase 0 plan.
 - Refreshed `docs/fitting/validation_suite.md` so it lists hidden-parameter validation tests and the current mRLFE FitTool atlas validation runner.
+
+## Resolved in pass 2
+
+- Fixed `test_fit_validation_mrlfe_hidden_params` after `run_fit_validation_tests` exposed that the previous A0Like etaS synthetic recovery case could generate zero valid points in the maintained fitting band.
+- Limited the mRLFE hidden-parameter validation to the stable A0Like thickness-recovery case with hidden/fixed material parameters and `etaS = 0`.
+- Clarified `docs/fitting/validation_suite.md` so mRLFE etaS fitting remains listed as a current validation limitation, not as a maintained synthetic parameter-recovery case.
 
 ## Pending items
 
@@ -73,7 +79,7 @@ Do not delete model-family docs until their active entrypoints and validation re
 
 ## Validation
 
-This pass only changes documentation. Recommended validation:
+Recommended validation:
 
 ```matlab
 clear; clc; close all;
