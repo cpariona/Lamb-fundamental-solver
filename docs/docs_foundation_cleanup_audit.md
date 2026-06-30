@@ -36,11 +36,19 @@ The goal is to update active documentation indexes and high-level workflow refer
 - Corrected `docs/gui/mrlfe_atlas_policy_integration.md` so `test_gui_mrlfe_elastic_atlas_guard_contract` is documented under `run_gui_smoke_tests`, not under the focused FitTool atlas runner.
 - Clarified that `run_mrlfe_fit_atlas_tests` covers FitTool atlas-route contracts only.
 
+## Resolved in pass 5
+
+- Reviewed `docs/rayleigh_lamb/overview.md`, `docs/rayleigh_lamb/public_api.md`, and `docs/rayleigh_lamb/fitting_workflow.md` against current tests and runner behavior.
+- Removed stale Rayleigh-Lamb documentation references to the non-existing `test_rl_fit_evaluator_branch_consistency` test.
+- Refreshed Rayleigh-Lamb fitting validation wording so active checks are `test_rl_fit_synthetic_A0` through `run_core_smoke_tests` and the Rayleigh-Lamb cases inside `run_fit_validation_tests`.
+- Updated the Rayleigh-Lamb public API fitting notes so maintained validation covers `RL_A0_mu_exact`, `RL_A0_thickness_exact`, and `RL_A0_mu_perturbed`.
+- Updated the Rayleigh-Lamb overview validation guidance to distinguish `run_core_smoke_tests`, `run_fit_validation_tests`, and `run_all_smoke_tests`.
+
 ## Pending items
 
-### maintained_entrypoints runner wording
+### maintained_entrypoints runner and test wording
 
-`docs/maintained_entrypoints.md` still has a minor wording issue in the focused runner list. It should include:
+`docs/maintained_entrypoints.md` still has minor wording issues. It should include:
 
 ```matlab
 run_mrlfe_atlas_tests
@@ -63,18 +71,23 @@ run_mrlfe_fit_atlas_tests
 
 as the focused mRLFE FitTool fitting-route validation runner.
 
-This was not edited in this pass because the connector blocked a full-file update. It is documentation-only and does not affect test behavior.
+It also still lists the removed/non-existing Rayleigh-Lamb test:
+
+```matlab
+test_rl_fit_evaluator_branch_consistency
+```
+
+This file was not edited in this pass because the connector blocked a full-file update. The issue is documentation-only and does not affect test behavior.
 
 ### Model-family docs
 
-After GUI and fitting docs are coherent, review:
+Review next:
 
 ```text
-docs/rayleigh_lamb/
 docs/acoustoelastic_iop_hgo/
 ```
 
-Do not delete model-family docs until their active entrypoints and validation references are checked.
+Do not delete model-family docs until active entrypoints and validation references are checked.
 
 ## Validation
 
