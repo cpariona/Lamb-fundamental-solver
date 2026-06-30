@@ -8,6 +8,24 @@ The `startup` function adds `tests/` recursively to the MATLAB path. Therefore, 
 
 Do not move large groups of tests without updating the relevant runners and documentation in the same PR.
 
+## Migration status
+
+Initial runner migration started:
+
+```text
+tests/runners/run_all_smoke_tests.m
+tests/runners/run_mrlfe_fit_atlas_tests.m
+```
+
+Compatibility wrappers remain in their previous public locations:
+
+```text
+tests/run_all_smoke_tests.m
+tests/run_mrlfe_fit_atlas_tests.m
+```
+
+Remaining runners should be migrated in later small passes after this wrapper pattern is validated.
+
 ## Target structure
 
 ```text
