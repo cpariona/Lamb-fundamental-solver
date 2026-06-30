@@ -51,7 +51,26 @@ tests/app/fitting/test_gui_mrlfe_fixed_etaS_fit_contract.m
 tests/app/fitting/test_gui_mrlfe_unified_atlas_policy_contract.m
 ```
 
-FitTool registry and shared fitting tests remain in their current locations until their focused fitting/shared migration pass.
+Shared fitting validation and fitting-QC tests have started moving under:
+
+```text
+tests/shared/fitting/
+```
+
+Current shared-fitting tests:
+
+```text
+tests/shared/fitting/test_fit_physical_qc_flat_rl.m
+tests/shared/fitting/test_fit_physical_qc_synthetic_pass.m
+tests/shared/fitting/test_fit_validation_ae_iop_hgo.m
+tests/shared/fitting/test_fit_validation_ae_iop_hgo_hidden_params.m
+tests/shared/fitting/test_fit_validation_mrlfe.m
+tests/shared/fitting/test_fit_validation_mrlfe_hidden_params.m
+tests/shared/fitting/test_fit_validation_rayleigh_lamb.m
+tests/shared/fitting/test_rl_fit_rejects_prediction_fallback.m
+```
+
+FitTool registry/app-facing tests remain in their current locations until their focused app-fitting migration pass.
 
 ## Target structure
 
@@ -181,6 +200,15 @@ clear; clc; close all;
 startup
 run_mrlfe_fit_atlas_tests
 run_gui_smoke_tests
+run_all_smoke_tests
+```
+
+For shared fitting moves, run:
+
+```matlab
+clear; clc; close all;
+startup
+run_fit_validation_tests
 run_all_smoke_tests
 ```
 
