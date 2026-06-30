@@ -2,7 +2,7 @@
 
 ## Scope
 
-This audit covers the repository-hygiene pass for mRLFE documentation. It is intentionally documentation-focused and does not delete diagnostics, examples, or tests.
+This audit covers the repository-hygiene pass for mRLFE documentation and diagnostics. It keeps solver behavior unchanged.
 
 ## Current maintained references
 
@@ -57,11 +57,13 @@ examples/mrlfe/diagnostics/README.md
 - Updated the root `README.md` so the mRLFE section reflects the current atlas-first FitTool fitting route and no longer presents `diagnose_mrlfe_visco_direct_atlas` as a focused maintained diagnostic.
 - Updated `docs/maintained_entrypoints.md` so maintained mRLFE diagnostics list only current primary diagnostics, while secondary and historical diagnostics are delegated to `examples/mrlfe/diagnostics/README.md`.
 
-## Remaining audit items
+## Resolved in pass 6
 
-### mRLFE diagnostic script cleanup candidates
+- Removed eight historical A0 modal-atlas / DP-cost exploration scripts from `examples/mrlfe/diagnostics/`.
+- Kept `diagnose_mrlfe_visco_direct_atlas.m` as a secondary diagnostic because it is still tied to direct-atlas route-policy tests and documentation context.
+- Updated `examples/mrlfe/diagnostics/README.md` so removed scripts are recorded under historical diagnostics removed in cleanup.
 
-Before deleting or moving any historical diagnostic candidate, perform a reference search and coverage check for each script. Current candidates listed in `examples/mrlfe/diagnostics/README.md` include:
+Removed scripts:
 
 ```text
 diagnose_mrlfe_a0_dp_scan_cost.m
@@ -72,18 +74,13 @@ diagnose_mrlfe_a0_modal_atlas_error_map.m
 diagnose_mrlfe_a0_modal_atlas_hook_policy.m
 diagnose_mrlfe_a0_modal_atlas_integrated_cut.m
 diagnose_mrlfe_a0_modal_atlas_seed_identity.m
-diagnose_mrlfe_visco_direct_atlas.m
 ```
 
-Expected checks:
-
-- Search for references to the script/function name.
-- Confirm whether the behavior is covered by maintained tests or by retained primary/secondary diagnostics.
-- Delete only if no active docs/tests depend on it and the behavior is superseded.
+## Remaining audit items
 
 ### mRLFE tests
 
-Review mRLFE tests after diagnostic scripts are classified. Start with:
+Review mRLFE tests after diagnostic pruning is validated. Start with:
 
 ```text
 tests/gui/test_gui_mrlfe_*.m
@@ -108,7 +105,7 @@ run_gui_smoke_tests
 run_mrlfe_fit_atlas_tests
 ```
 
-Before any deletion or test consolidation, also run:
+After diagnostic script pruning, run:
 
 ```matlab
 clear; clc; close all;
@@ -117,4 +114,12 @@ run_mrlfe_smoke_tests
 run_mrlfe_atlas_tests
 run_mrlfe_fit_atlas_tests
 run_gui_smoke_tests
+```
+
+Before any test consolidation, also run:
+
+```matlab
+clear; clc; close all;
+startup
+run_all_smoke_tests
 ```
