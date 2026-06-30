@@ -124,7 +124,7 @@ Available robustness presets:
 * `Balanced`: default setting for routine exploration.
 * `Robust`: more scan points and wider search windows for difficult cases.
 
-## mRLFE solver and fitting workflow
+## mRLFE solver workflow
 
 The maintained mRLFE GUI surface exposes a single real-k model family:
 
