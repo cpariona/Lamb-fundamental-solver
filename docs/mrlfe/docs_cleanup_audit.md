@@ -50,6 +50,13 @@ examples/mrlfe/diagnostics/README.md
 - Identified historical candidates that should receive reference-search and coverage checks before deletion or archival.
 - Preserved all scripts; this pass did not delete or move code.
 
+## Resolved in pass 5
+
+- Started reference checks for historical diagnostic candidates.
+- Found active maintained-entrypoint references to `diagnose_mrlfe_visco_direct_atlas`, so it was not deleted.
+- Updated the root `README.md` so the mRLFE section reflects the current atlas-first FitTool fitting route and no longer presents `diagnose_mrlfe_visco_direct_atlas` as a focused maintained diagnostic.
+- Updated `docs/maintained_entrypoints.md` so maintained mRLFE diagnostics list only current primary diagnostics, while secondary and historical diagnostics are delegated to `examples/mrlfe/diagnostics/README.md`.
+
 ## Remaining audit items
 
 ### mRLFE diagnostic script cleanup candidates
