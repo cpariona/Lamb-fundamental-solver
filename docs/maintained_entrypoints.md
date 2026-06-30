@@ -94,7 +94,6 @@ test_gui_fit_registry_contract
 test_fit_tool_model_registry_contract
 test_fit_physical_qc_flat_rl
 test_fit_physical_qc_synthetic_pass
-test_rl_fit_evaluator_branch_consistency
 ```
 
 Focused fitting validation suite:
@@ -154,7 +153,19 @@ Maintained Rayleigh-Lamb tests:
 
 ```matlab
 test_rl_fit_synthetic_A0
-test_rl_fit_evaluator_branch_consistency
+```
+
+Focused Rayleigh-Lamb fitting validation is covered by:
+
+```matlab
+run_fit_validation_tests
+```
+
+with Rayleigh-Lamb cases documented in:
+
+```text
+docs/rayleigh_lamb/fitting_workflow.md
+docs/fitting/validation_suite.md
 ```
 
 ## Acoustoelastic IOP/HGO model
@@ -353,7 +364,7 @@ test_mrlfe_fit_fast_options_quality
 Maintained mRLFE atlas tests:
 
 ```matlab
-tests/run_mrlfe_atlas_tests
+run_mrlfe_atlas_tests
 test_mrlfe_modal_atlas_ambiguity_contract
 test_mrlfe_modal_atlas_s0_contract
 test_mrlfe_atlas_policy_matrix_contract
@@ -392,6 +403,7 @@ run_core_smoke_tests
 run_gui_smoke_tests
 run_acoustoelastic_smoke_tests
 run_mrlfe_smoke_tests
+run_mrlfe_atlas_tests
 ```
 
 Run focused fitting validation separately:
@@ -400,10 +412,10 @@ Run focused fitting validation separately:
 run_fit_validation_tests
 ```
 
-Run focused atlas validation after mRLFE atlas changes:
+Run focused mRLFE FitTool atlas validation after mRLFE fitting-route or fitted-curve changes:
 
 ```matlab
-tests/run_mrlfe_atlas_tests
+run_mrlfe_fit_atlas_tests
 ```
 
 ## Active documentation links
@@ -415,6 +427,7 @@ docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
 docs/repository_hygiene_plan.md
+docs/docs_foundation_cleanup_audit.md
 docs/fitting/README.md
 docs/fitting/architecture.md
 docs/fitting/validation_suite.md
@@ -432,6 +445,7 @@ docs/gui/main_pending_cleanup.md
 docs/sweeps/parametric_sweeps.md
 docs/sweeps/sweep_tool_usage.md
 docs/acoustoelastic_iop_hgo/README.md
+docs/acoustoelastic_iop_hgo/documentation_index.md
 ```
 
 ## Archived or historical documentation

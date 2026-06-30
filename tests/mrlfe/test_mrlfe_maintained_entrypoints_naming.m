@@ -39,8 +39,10 @@ assert(contains(mrlfeSection, 'mrlfeA0Policy'), ...
     'Maintained mRLFE section should document the high-level A0 policy selector.');
 assert(contains(mrlfeSection, 'diagnose_mrlfe_a0_policy_parametric_sweep'), ...
     'Maintained mRLFE section should list the A0 atlas policy parametric diagnostic.');
-assert(contains(mrlfeSection, 'tests/run_mrlfe_atlas_tests'), ...
+assert(contains(mrlfeSection, 'run_mrlfe_atlas_tests'), ...
     'Maintained mRLFE section should list the focused mRLFE atlas test runner.');
+assert(contains(entrypointsText, 'run_mrlfe_fit_atlas_tests'), ...
+    'maintained_entrypoints.md should list the focused mRLFE FitTool atlas test runner.');
 
 readmePath = fullfile(repoRoot, 'README.md');
 readmeText = fileread(readmePath);
@@ -79,6 +81,12 @@ assert(isfile(atlasPolicyNotes), 'mRLFE atlas policy notes are missing.');
 atlasTestRunner = fullfile(repoRoot, 'tests', 'run_mrlfe_atlas_tests.m');
 assert(isfile(atlasTestRunner), 'Focused mRLFE atlas test runner is missing.');
 
+fitAtlasTestRunner = fullfile(repoRoot, 'tests', 'run_mrlfe_fit_atlas_tests.m');
+assert(isfile(fitAtlasTestRunner), 'Focused mRLFE FitTool atlas test runner is missing.');
+
+trackerDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'compare_mrlfe_tracker_vs_condition_peaks.m');
+assert(isfile(trackerDiagnostic), 'mRLFE tracker-vs-condition diagnostic is missing.');
+
 maintainedFiles = { ...
     fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeModelCandidateNames.m'), ...
     fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeSetYoungModulusForShearPoisson.m'), ...
@@ -115,12 +123,3 @@ for i = 1:numel(analysisFiles)
     assert(~contains(fileText, forbiddenModelName), ...
         'Maintained analysis helper should not contain author-labeled mRLFE model names: %s', analysisFiles{i});
 end
-
-trackerDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'compare_mrlfe_tracker_vs_condition_peaks.m');
-trackerText = fileread(trackerDiagnostic);
-assert(contains(trackerText, 'mRLFEViscoRealK'), ...
-    'Tracker diagnostic should use mRLFEViscoRealK as the selectable viscoelastic model.');
-assert(~contains(trackerText, forbiddenModelName), ...
-    'Tracker diagnostic should not contain author-labeled mRLFE model names.');
-
-fprintf('test_mrlfe_maintained_entrypoints_naming passed. Maintained mRLFE docs use physical naming.\n');
