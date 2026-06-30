@@ -10,40 +10,32 @@ Do not move large groups of tests without updating the relevant runners and docu
 
 ## Migration status
 
-Initial runner migration started.
+Runner implementations live under `tests/runners/`, with public runner commands preserved through wrappers or direct runner files.
 
-Runner implementations created under `tests/runners/`:
-
-```text
-tests/runners/run_all_smoke_tests.m
-tests/runners/run_core_smoke_tests.m
-tests/runners/run_gui_smoke_tests.m
-tests/runners/run_acoustoelastic_smoke_tests.m
-tests/runners/run_mrlfe_fit_atlas_tests.m
-tests/runners/run_fit_validation_tests.m
-```
-
-Compatibility wrappers applied in previous public locations:
+Model-family mRLFE tests have been moved under:
 
 ```text
-tests/run_all_smoke_tests.m
-tests/run_core_smoke_tests.m
-tests/run_acoustoelastic_smoke_tests.m
-tests/run_mrlfe_fit_atlas_tests.m
+tests/models/mrlfe/
 ```
 
-Pending runner wrappers:
+mRLFE FitTool/app-layer contracts have started moving under:
 
 ```text
-tests/run_gui_smoke_tests.m
-tests/run_mrlfe_smoke_tests.m
-tests/run_mrlfe_atlas_tests.m
-tests/fitting/run_fit_validation_tests.m
+tests/app/fitting/
 ```
 
-`tests/run_gui_smoke_tests.m` and `tests/fitting/run_fit_validation_tests.m` still contain legacy implementations because the connector blocked the wrapper updates in this pass. This is a migration-status issue only; the public runner commands remain valid.
+Current app-fitting mRLFE tests:
 
-Remaining runners should be migrated in later small passes after this wrapper pattern is validated.
+```text
+tests/app/fitting/test_gui_mrlfe_elastic_atlas_guard_contract.m
+tests/app/fitting/test_gui_mrlfe_fit_full_curve_fast_contract.m
+tests/app/fitting/test_gui_mrlfe_fit_route_policy_contract.m
+tests/app/fitting/test_gui_mrlfe_fit_zero_eta_atlas_contract.m
+tests/app/fitting/test_gui_mrlfe_fixed_etaS_fit_contract.m
+tests/app/fitting/test_gui_mrlfe_unified_atlas_policy_contract.m
+```
+
+General GUI and sweep tests remain in their current locations until their focused app-layer migration pass.
 
 ## Target structure
 
@@ -115,7 +107,7 @@ Subfolders:
 
 ```text
 tests/models/rayleigh_lamb/           Rayleigh-Lamb solver, residual, branch, and fitting tests
-tests/models/mrlfe/                   mRLFE real-k, atlas, policy, and fitting tests
+tests/models/mrlfe/                   mRLFE real-k, atlas, policy, and model-family tests
 tests/models/acoustoelastic_iop_hgo/  AE IOP/HGO solver, atlasA0, sweep, fitting, and diagnostic-policy tests
 ```
 
@@ -155,6 +147,16 @@ startup
 run_all_smoke_tests
 run_fit_validation_tests
 run_mrlfe_fit_atlas_tests
+```
+
+For app/FitTool mRLFE moves, run:
+
+```matlab
+clear; clc; close all;
+startup
+run_mrlfe_fit_atlas_tests
+run_gui_smoke_tests
+run_all_smoke_tests
 ```
 
 For a focused model-family move, also run the corresponding focused runner when available.
