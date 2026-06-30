@@ -2,7 +2,7 @@
 
 ## Scope
 
-This audit covers the repository-hygiene pass for mRLFE documentation, diagnostics, and test runners. It keeps solver behavior unchanged.
+This audit covers the repository-hygiene pass for mRLFE documentation, diagnostics, examples, and test-runner references. It keeps solver behavior unchanged.
 
 ## Current maintained references
 
@@ -19,6 +19,67 @@ docs/mrlfe_atlas_policy_notes.md
 docs/gui/mrlfe_atlas_policy_integration.md
 examples/mrlfe/diagnostics/README.md
 ```
+
+## Current audit status
+
+The mRLFE documentation is mostly consistent on the active FitTool route:
+
+```text
+mrlfeFitDispersionData
+  -> mrlfeBuildFitProblem
+  -> mrlfeEvaluateFitModel
+  -> mrlfeEvaluateAtlasFitModel
+  -> official mRLFE atlas branch output
+```
+
+Current active-doc wording consistently treats:
+
+```text
+adaptivePhysicalTail  -> current FitTool A0Like fitting default
+delayedCut            -> conservative comparison/diagnostic policy
+legacy reference/DP   -> explicit diagnostic route only
+```
+
+The main cleanup need is no longer test relocation. The test layout migration has been completed, and mRLFE tests now live under:
+
+```text
+tests/models/mrlfe/
+tests/app/fitting/
+tests/app/gui/
+tests/runners/
+```
+
+Remaining cleanup should focus on documentation consistency, diagnostics classification, examples/diagnostic inventory, and stale historical references.
+
+## Audit findings in this pass
+
+### Active route documentation
+
+Status: keep.
+
+`docs/mrlfe/fitting_workflow.md`, `docs/mrlfe/README.md`, `docs/mrlfe_atlas_policy_notes.md`, and `docs/gui/mrlfe_atlas_policy_integration.md` agree on the maintained atlas-first FitTool fitting route and on the `adaptivePhysicalTail` A0Like FitTool default.
+
+No solver behavior change is implied by this audit.
+
+### Diagnostic documentation
+
+Status: keep, but treat as diagnostic evidence rather than active API contract.
+
+`docs/mrlfe/diagnostics/README.md`, `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md`, and `examples/mrlfe/diagnostics/README.md` preserve useful evidence about tracker behavior, direct-atlas limitations, A0 policy comparisons, and dense diagnostics.
+
+These files should not override the active fitting contract unless the conclusion is also summarized in `docs/mrlfe/fitting_workflow.md` or `docs/mrlfe/README.md`.
+
+### Archived cleanup documentation
+
+Status: keep, but refresh stale paths when they can confuse active maintenance.
+
+`docs/mrlfe/archive/pending_cleanup.md` is correctly marked as archived historical cleanup status. However, some historical test references still used pre-migration paths such as `tests/mrlfe/...`. Those should be updated to current paths or explicitly identified as historical references.
+
+### Repository hygiene plan
+
+Status: keep and update.
+
+`docs/repository_hygiene_plan.md` still describes some pre-migration test locations. The plan remains useful as a hygiene policy document, but its mRLFE test-audit targets should be updated to the current test layout.
 
 ## Resolved in pass 1
 
@@ -83,23 +144,64 @@ diagnose_mrlfe_a0_modal_atlas_seed_identity.m
 - Updated `run_all_smoke_tests` so the complete suite now explicitly runs both `run_mrlfe_smoke_tests` and `run_mrlfe_atlas_tests`.
 - Kept all atlas contract tests in the focused atlas runner.
 
+## Resolved in pass 8
+
+- Completed the test-layout migration.
+- Moved mRLFE model-family tests under `tests/models/mrlfe/`.
+- Moved mRLFE FitTool/app-layer contracts under `tests/app/fitting/`.
+- Kept GUI-surface contracts under `tests/app/gui/`.
+- Moved maintained runner implementations under `tests/runners/` while preserving compatibility wrappers under `tests/`.
+- Documented the final test-layout audit in `tests/README.md`.
+
 ## Remaining audit items
 
-### mRLFE tests
+### mRLFE documentation
 
-Review individual mRLFE tests only after runner consolidation is validated. Start with:
+Review active mRLFE docs for duplication and decide whether some content should be shortened now that the maintained route is stable.
+
+Priority files:
 
 ```text
-tests/gui/test_gui_mrlfe_*.m
-tests/mrlfe/test_mrlfe_*.m
-root-level tests/test_mrlfe_*.m
+docs/mrlfe/README.md
+docs/mrlfe/fitting_workflow.md
+docs/mrlfe_atlas_policy_notes.md
+docs/gui/mrlfe_atlas_policy_integration.md
 ```
 
 Expected actions:
 
-- Keep tests that protect current route contracts.
-- Identify duplicate tests that protect the same contract.
-- Delete or merge individual tests only if coverage remains protected by a focused runner and a maintained contract test.
+- Keep `docs/mrlfe/fitting_workflow.md` as the active FitTool fitting route contract.
+- Keep `docs/mrlfe_atlas_policy_notes.md` as the detailed policy/evidence note.
+- Keep `docs/gui/mrlfe_atlas_policy_integration.md` as the GUI adapter and metadata contract.
+- Keep `docs/mrlfe/README.md` as a short index, not a second full workflow specification.
+
+### mRLFE diagnostics and examples
+
+Review diagnostic scripts only after reference checks. Do not delete diagnostics solely because they are slow.
+
+Priority file:
+
+```text
+examples/mrlfe/diagnostics/README.md
+```
+
+Expected actions:
+
+- Keep primary maintained diagnostics.
+- Keep secondary diagnostics that support active tests or unresolved solver questions.
+- Archive or delete only after reference and coverage checks.
+
+### Repository-level documentation
+
+Update repository-wide hygiene and entrypoint docs when they still mention pre-migration paths or outdated validation groupings.
+
+Priority files:
+
+```text
+docs/repository_hygiene_plan.md
+docs/maintained_entrypoints.md
+docs/README.md
+```
 
 ## Validation after documentation-only passes
 
@@ -123,7 +225,7 @@ run_mrlfe_fit_atlas_tests
 run_gui_smoke_tests
 ```
 
-After runner consolidation, run:
+After runner or test-layout changes, run:
 
 ```matlab
 clear; clc; close all;
