@@ -44,6 +44,16 @@ The goal is to update active documentation indexes and high-level workflow refer
 - Updated the Rayleigh-Lamb public API fitting notes so maintained validation covers `RL_A0_mu_exact`, `RL_A0_thickness_exact`, and `RL_A0_mu_perturbed`.
 - Updated the Rayleigh-Lamb overview validation guidance to distinguish `run_core_smoke_tests`, `run_fit_validation_tests`, and `run_all_smoke_tests`.
 
+## Resolved in pass 6
+
+- Reviewed the AE IOP/HGO README, documentation index, public API, fitting workflow, sweep workflow, examples inventory, and framework hygiene status against current smoke-runner behavior.
+- Added AE fitting helpers (`aeBuildFitProblem`, `aeEvaluateFitModel`, `aeFitDispersionData`) to the active public API document.
+- Updated AE fitting workflow wording to reflect current FitTool/registry support and focused fitting validation.
+- Removed stale wording that treated visible AE FitTool controls as unimplemented.
+- Refreshed AE framework hygiene status so removed low-frequency modal-atlas scripts are no longer listed as retained implementation targets.
+- Corrected the naming convention path in AE framework hygiene status to `docs/acoustoelastic_iop_hgo/active/naming_and_paths_convention.md`.
+- Refreshed the AE documentation index so active operational docs, maintainer-facing framework status, and fitting update policy are separated more clearly.
+
 ## Pending items
 
 ### maintained_entrypoints runner and test wording
@@ -78,16 +88,6 @@ test_rl_fit_evaluator_branch_consistency
 ```
 
 This file was not edited in this pass because the connector blocked a full-file update. The issue is documentation-only and does not affect test behavior.
-
-### Model-family docs
-
-Review next:
-
-```text
-docs/acoustoelastic_iop_hgo/
-```
-
-Do not delete model-family docs until active entrypoints and validation references are checked.
 
 ## Validation
 
