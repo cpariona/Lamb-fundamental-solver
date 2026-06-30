@@ -8,6 +8,22 @@ The `startup` function adds `tests/` recursively to the MATLAB path. Therefore, 
 
 Do not move large groups of tests without updating the relevant runners and documentation in the same PR.
 
+## Current compatibility wrappers
+
+Some root-level and legacy-folder runner wrappers are intentionally preserved while the layout is migrated. These wrappers keep older public commands working and delegate to maintained runner implementations under `tests/runners/`.
+
+Current compatibility wrappers include:
+
+```text
+tests/run_acoustoelastic_smoke_tests.m
+tests/run_all_smoke_tests.m
+tests/run_core_smoke_tests.m
+tests/run_gui_smoke_tests.m
+tests/run_mrlfe_atlas_tests.m
+tests/run_mrlfe_fit_atlas_tests.m
+tests/fitting/run_fit_validation_tests.m
+```
+
 ## Migration status
 
 Runner implementations live under `tests/runners/`, with public runner commands preserved through wrappers or direct runner files.
@@ -21,6 +37,7 @@ tests/models/rayleigh_lamb/
 Current Rayleigh-Lamb model tests:
 
 ```text
+tests/models/rayleigh_lamb/test_rl_fit_evaluator_branch_consistency.m
 tests/models/rayleigh_lamb/test_rl_fit_synthetic_A0.m
 ```
 
@@ -97,15 +114,16 @@ tests/app/fitting/test_gui_mrlfe_fixed_etaS_fit_contract.m
 tests/app/fitting/test_gui_mrlfe_unified_atlas_policy_contract.m
 ```
 
-Shared fitting validation and fitting-QC tests have started moving under:
+Shared fitting validation, fitting-QC, and fitting-helper tests have started moving under:
 
 ```text
 tests/shared/fitting/
 ```
 
-Current shared-fitting tests:
+Current shared-fitting tests and helpers:
 
 ```text
+tests/shared/fitting/assertFitRecovery.m
 tests/shared/fitting/test_fit_physical_qc_flat_rl.m
 tests/shared/fitting/test_fit_physical_qc_synthetic_pass.m
 tests/shared/fitting/test_fit_validation_ae_iop_hgo.m
@@ -113,6 +131,7 @@ tests/shared/fitting/test_fit_validation_ae_iop_hgo_hidden_params.m
 tests/shared/fitting/test_fit_validation_mrlfe.m
 tests/shared/fitting/test_fit_validation_mrlfe_hidden_params.m
 tests/shared/fitting/test_fit_validation_rayleigh_lamb.m
+tests/shared/fitting/test_fitting_helpers_smoke.m
 tests/shared/fitting/test_rl_fit_rejects_prediction_fallback.m
 ```
 
@@ -270,6 +289,7 @@ For shared fitting moves, run:
 ```matlab
 clear; clc; close all;
 startup
+test_fitting_helpers_smoke
 run_fit_validation_tests
 run_all_smoke_tests
 ```
@@ -280,6 +300,7 @@ For Rayleigh-Lamb model-family moves, run:
 clear; clc; close all;
 startup
 test_rl_fit_synthetic_A0
+test_rl_fit_evaluator_branch_consistency
 run_fit_validation_tests
 run_all_smoke_tests
 ```
