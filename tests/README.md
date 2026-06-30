@@ -10,19 +10,37 @@ Do not move large groups of tests without updating the relevant runners and docu
 
 ## Migration status
 
-Initial runner migration started:
+Initial runner migration started.
+
+Runner implementations created under `tests/runners/`:
 
 ```text
 tests/runners/run_all_smoke_tests.m
+tests/runners/run_core_smoke_tests.m
+tests/runners/run_gui_smoke_tests.m
+tests/runners/run_acoustoelastic_smoke_tests.m
 tests/runners/run_mrlfe_fit_atlas_tests.m
 ```
 
-Compatibility wrappers remain in their previous public locations:
+Compatibility wrappers applied in previous public locations:
 
 ```text
 tests/run_all_smoke_tests.m
+tests/run_core_smoke_tests.m
+tests/run_acoustoelastic_smoke_tests.m
 tests/run_mrlfe_fit_atlas_tests.m
 ```
+
+Pending runner wrappers:
+
+```text
+tests/run_gui_smoke_tests.m
+tests/run_mrlfe_smoke_tests.m
+tests/run_mrlfe_atlas_tests.m
+tests/fitting/run_fit_validation_tests.m
+```
+
+`tests/run_gui_smoke_tests.m` still contains the legacy implementation because the connector blocked the wrapper update in this pass. This is a migration-status issue only; the public runner command remains valid.
 
 Remaining runners should be migrated in later small passes after this wrapper pattern is validated.
 
