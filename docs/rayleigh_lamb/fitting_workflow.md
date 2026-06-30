@@ -14,13 +14,15 @@ rlEvaluateFitModel
 rlFitDispersionData
 ```
 
-The first tested use case is:
+The first maintained tested use case is:
 
 ```text
 branch: A0
 free parameter: mu
 fixed parameters: thickness, rho, nu
 ```
+
+Additional synthetic fitting validation cases are covered by `run_fit_validation_tests`.
 
 ## Data contract
 
@@ -37,7 +39,7 @@ Only `frequency_Hz` and `Cp_mps` are required.
 
 ## Branch-coherent fitting evaluation
 
-`rlEvaluateFitModel` now evaluates Rayleigh-Lamb fitting data using a branch-coherent internal tracking grid.
+`rlEvaluateFitModel` evaluates Rayleigh-Lamb fitting data using a branch-coherent internal tracking grid.
 
 The evaluator:
 
@@ -89,7 +91,7 @@ Bounds are still declared in the fit configuration:
 fitConfig.bounds.mu = [20e3, 200e3];
 ```
 
-Fase 11A did not change the optimizer. The priority was to stabilize the forward model used by the optimizer. If the `RMSE(mu)` landscape remains irregular after branch-coherent evaluation, the next step should be a shared coarse-global plus local-refine optimizer policy in `analysis/fitting`, not model-specific optimizer logic inside GUI code.
+The current optimizer policy is deliberately simple. If the `RMSE(mu)` landscape remains irregular after branch-coherent evaluation, the next step should be a shared coarse-global plus local-refine optimizer policy in `analysis/fitting`, not model-specific optimizer logic inside GUI code.
 
 ## Example
 
@@ -106,21 +108,36 @@ The example generates synthetic A0 data with a known shear modulus and fits `mu`
 
 ## Tests
 
-Run:
+Core smoke validation runs:
 
 ```matlab
 clear functions
 rehash toolboxcache
 startup
-test_rl_fit_synthetic_A0
-test_rl_fit_evaluator_branch_consistency
+run_core_smoke_tests
 ```
 
-`test_rl_fit_synthetic_A0` checks that the synthetic A0 fit recovers `mu` within tolerance.
+The core runner checks Rayleigh-Lamb API/helper path coverage and runs:
 
-`test_rl_fit_evaluator_branch_consistency` compares `rlEvaluateFitModel` against the maintained A0 branch from `rlComputeFundamentalLambModes` and checks that the fitting evaluator reports the branch-coherent tracking mode without prediction fallback.
+```matlab
+test_rl_fit_synthetic_A0
+```
 
-`run_core_smoke_tests` also checks the Rayleigh-Lamb fitting helper path and runs the maintained fitting tests.
+Focused fitting validation runs:
+
+```matlab
+run_fit_validation_tests
+```
+
+Rayleigh-Lamb cases inside the focused validation suite include:
+
+```text
+RL_A0_mu_exact
+RL_A0_thickness_exact
+RL_A0_mu_perturbed
+```
+
+Use the focused suite after fitting-related changes. Use the core smoke suite after path/API or Rayleigh-Lamb baseline changes.
 
 ## Current limitations
 
@@ -128,9 +145,8 @@ This phase does not implement:
 
 ```text
 new optimizer policy
-mRLFE branch-coherent fitting changes
 fitting against multiple Rayleigh-Lamb branches simultaneously
 advanced uncertainty estimates for fitted parameters
 ```
 
-Multi-parameter fitting is structurally supported by the helper contracts, but the first maintained validation target remains the one-parameter synthetic A0 case.
+Multi-parameter fitting is structurally supported by the helper contracts, but the maintained validation targets remain synthetic single-parameter cases.
