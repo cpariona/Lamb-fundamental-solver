@@ -20,6 +20,14 @@ The goal is to update active documentation indexes and high-level workflow refer
 - Limited the mRLFE hidden-parameter validation to the stable A0Like thickness-recovery case with hidden/fixed material parameters and `etaS = 0`.
 - Clarified `docs/fitting/validation_suite.md` so mRLFE etaS fitting remains listed as a current validation limitation, not as a maintained synthetic parameter-recovery case.
 
+## Resolved in pass 3
+
+- Refreshed `docs/gui/integration_audit.md` as the active overview for `LambFundamental_GUI`, `SweepTool_GUI`, and `FitTool_GUI`.
+- Corrected the SweepTool mRLFE parameter list from stale `E` wording to the active registry parameters: `etaS`, `mu`, and `thickness`.
+- Added FitTool as an active GUI surface in the GUI integration audit.
+- Reframed `docs/gui/main_pending_cleanup.md` as an active cleanup roadmap rather than a post-AE temporary cleanup note.
+- Kept unresolved AE branch-sensitivity and layout items as roadmap items rather than deleting them.
+
 ## Pending items
 
 ### maintained_entrypoints runner wording
@@ -54,17 +62,14 @@ This was not edited in this pass because the connector blocked a full-file updat
 Review next:
 
 ```text
-docs/gui/integration_audit.md
-docs/gui/main_pending_cleanup.md
 docs/gui/adapter_architecture.md
 docs/gui/mrlfe_atlas_policy_integration.md
 ```
 
 Likely updates:
 
-- distinguish active GUI architecture from historical SweepTool cleanup notes;
-- ensure FitTool is represented as an active GUI surface;
-- decide whether `main_pending_cleanup.md` should remain active or move to an archive/roadmap location after AE cleanup status is reviewed.
+- decide whether `adapter_architecture.md` should be the detailed GUI architecture doc while `integration_audit.md` remains the status overview;
+- ensure the mRLFE atlas policy document still matches the active tests and route metadata after the mRLFE hygiene merge.
 
 ### Model-family docs
 
