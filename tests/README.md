@@ -18,6 +18,27 @@ Model-family mRLFE tests have been moved under:
 tests/models/mrlfe/
 ```
 
+Model-family AE IOP/HGO tests have been moved under:
+
+```text
+tests/models/acoustoelastic_iop_hgo/
+```
+
+Current AE IOP/HGO model tests:
+
+```text
+tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_atlasA0_smoke.m
+tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_branch_persistence_refinement.m
+tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_branch_policy_validation.m
+tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_constitutive_identity.m
+tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_fallback_invalidation.m
+tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy.m
+tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_internal_tracking_grid.m
+tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_short_entrypoints.m
+tests/models/acoustoelastic_iop_hgo/test_ae_analyze_truncation_recovery.m
+tests/models/acoustoelastic_iop_hgo/test_ae_fit_synthetic_atlasA0.m
+```
+
 GUI/app-layer smoke tests have started moving under:
 
 ```text
@@ -238,6 +259,15 @@ For shared fitting moves, run:
 clear; clc; close all;
 startup
 run_fit_validation_tests
+run_all_smoke_tests
+```
+
+For AE IOP/HGO model-family moves, run:
+
+```matlab
+clear; clc; close all;
+startup
+run_acoustoelastic_smoke_tests
 run_all_smoke_tests
 ```
 
