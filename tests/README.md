@@ -25,6 +25,19 @@ tests/run_mrlfe_smoke_tests.m
 tests/fitting/run_fit_validation_tests.m
 ```
 
+## Final layout audit
+
+The test-layout migration has reached its intended steady state. All non-wrapper test files now live under one of the layout-owned folders:
+
+```text
+tests/app/
+tests/models/
+tests/runners/
+tests/shared/
+```
+
+The only MATLAB files intentionally left outside those folders are the compatibility wrappers listed above. Do not add new test implementations at the root of `tests/` or under legacy folders such as `tests/fitting/`; add new tests to the appropriate layout-owned folder instead.
+
 ## Migration status
 
 Runner implementations live under `tests/runners/`, with public runner commands preserved through wrappers or direct runner files.
