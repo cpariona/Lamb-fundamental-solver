@@ -14,7 +14,7 @@ models/rayleigh_lamb/tracking/
 models/materials/
 ```
 
-These folders contain the active Rayleigh-Lamb implementation and shared isotropic elastic-material helpers. The material input contract is now `ShearPoisson` for soft-material workflows and `LameParameters` for explicit Lamé diagnostics.
+These folders contain the active Rayleigh-Lamb implementation and shared isotropic elastic-material helpers. The material input contract is now `ShearPoisson` for soft-material workflows and `LameParameters` for explicit Lame diagnostics.
 
 ## Material inputs
 
@@ -100,6 +100,18 @@ The validation script lives under:
 examples/rayleigh_lamb/validation/
 ```
 
+Current fitting example:
+
+```matlab
+fit_default_A0
+```
+
+The fitting example lives under:
+
+```text
+examples/rayleigh_lamb/fitting/
+```
+
 The old top-level example folders were removed. Rayleigh-Lamb examples should remain grouped by model under `examples/rayleigh_lamb/`.
 
 ## Sweep helper layer
@@ -139,17 +151,24 @@ This keeps the public sweep examples short while aligning Rayleigh-Lamb sweep na
 
 ## Tests and validation
 
-`tests/run_all_smoke_tests.m` validates the modern Rayleigh-Lamb API by checking that the primary `rl*` entrypoints, shared material helpers, and sweep helpers are on the MATLAB path, then running minimal A0/S0 numerical regression fixtures. The same smoke suite continues to include non-Rayleigh-Lamb mRLFE and Acoustoelastic IOP/HGO smoke coverage.
+`run_core_smoke_tests` validates the modern Rayleigh-Lamb API by checking that the primary `rl*` entrypoints, shared material helpers, fitting helpers, and sweep helpers are on the MATLAB path, then running minimal A0/S0 numerical regression fixtures and the maintained Rayleigh-Lamb synthetic fitting smoke test.
 
-Recommended local validation from the repository root:
+`run_fit_validation_tests` runs the focused synthetic fitting validation suite, including Rayleigh-Lamb A0 single-parameter recovery cases for `mu` and `thickness`.
+
+`run_all_smoke_tests` runs the complete smoke suite across core, GUI, AE IOP/HGO, mRLFE smoke, and mRLFE atlas groups.
+
+Recommended local validation from the repository root after Rayleigh-Lamb documentation or helper changes:
 
 ```matlab
-clear functions
-rehash toolboxcache
+clear; clc; close all;
 startup
-sweep_thickness_A0_elastic
-sweep_thickness_S0_elastic
-check_default_outputs
+run_core_smoke_tests
+run_fit_validation_tests
+```
+
+For a complete repository-level check, run:
+
+```matlab
 run_all_smoke_tests
 ```
 

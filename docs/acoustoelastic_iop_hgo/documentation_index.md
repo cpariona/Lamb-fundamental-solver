@@ -23,9 +23,10 @@ For normal use, read in this order:
 3. active/branch_policy.md
 4. active/solver_optimization_status.md
 5. active/solver_pending_work.md
-6. active/main_gui_integration_closure.md
-7. active/examples_inventory.md
-8. active/naming_and_paths_convention.md
+6. active/sweep_workflow.md
+7. active/fitting_workflow.md
+8. active/examples_inventory.md
+9. active/naming_and_paths_convention.md
 ```
 
 For branch-policy reasoning, read:
@@ -33,10 +34,10 @@ For branch-policy reasoning, read:
 ```text
 1. active/branch_policy.md
 2. active/solver_optimization_status.md
-3. active/main_gui_integration_closure.md
-4. diagnostics/atlas_vs_raw_branch1_diagnostic.md
-5. diagnostics/branch_families_diagnostic.md
-6. diagnostics/identityA0_diagnostic_policy.md
+3. diagnostics/atlas_vs_raw_branch1_diagnostic.md
+4. diagnostics/branch_families_diagnostic.md
+5. diagnostics/identityA0_diagnostic_policy.md
+6. active/main_gui_integration_closure.md
 7. archive/phase_closure_atlasA0_only.md
 8. archive/phase_closure_atlasA0.md
 ```
@@ -44,8 +45,8 @@ For branch-policy reasoning, read:
 For cleanup or refactor work, read:
 
 ```text
-1. audits/framework_hygiene_status.md
-2. active/main_gui_integration_closure.md
+1. active/framework_hygiene_status.md
+2. audits/framework_hygiene_status.md if present in future cleanup passes
 3. active/examples_inventory.md
 4. audits/retained_diagnostic_dependency_review.md
 5. audits/code_retention_review_plan.md
@@ -58,16 +59,16 @@ These documents should remain concise and current. They are the first layer for 
 
 | Document | Role |
 |---|---|
-| `active/public_api.md` | Public API list. |
+| `active/public_api.md` | Public API list, including solver, sweep, fitting, diagnostic helper, and validation entrypoints. |
 | `active/branch_policy.md` | Branch policy summary and official atlas-A0 selection rule. |
 | `active/sweep_workflow.md` | Sweep workflow documentation. |
-| `active/fitting_workflow.md` | Fitting workflow documentation. |
+| `active/fitting_workflow.md` | Fitting workflow documentation for atlasA0 fitting and FitTool adapter use. |
 | `active/examples_inventory.md` | Current executable inventory under `examples/acoustoelastic_iop_hgo/`. |
 | `active/naming_and_paths_convention.md` | Short-name and output-path convention for the module. |
 | `active/solver_optimization_status.md` | Current solver status and official `atlasA0` policy. |
 | `active/solver_pending_work.md` | Pending solver-side numerical work. |
 | `active/main_gui_integration_closure.md` | Closure note for the first main-GUI integration and handoff into solver-interface work. |
-| `active/framework_hygiene_status.md` | Short current cleanup status if kept active. |
+| `active/framework_hygiene_status.md` | Current framework hygiene status; maintainer-facing, not a user workflow. |
 
 ## Diagnostic evidence
 
@@ -145,6 +146,14 @@ When changing solver policy, update:
 active/solver_optimization_status.md
 active/branch_policy.md
 active/main_gui_integration_closure.md
+```
+
+When changing fitting behavior, update:
+
+```text
+active/fitting_workflow.md
+../../fitting/architecture.md
+../../fitting/validation_suite.md
 ```
 
 When changing output paths, update:

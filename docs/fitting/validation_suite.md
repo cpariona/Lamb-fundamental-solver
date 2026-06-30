@@ -1,12 +1,12 @@
 # Focused fitting validation suite
 
-This document describes the validation suite added after the first Rayleigh-Lamb, mRLFE, and AE IOP/HGO fitting backends were implemented.
+This document describes the maintained validation suite for fitting backends.
 
 ## Purpose
 
-The smoke tests check that the maintained APIs, adapters, and minimal synthetic cases run without breaking.
+Smoke tests check that maintained APIs, adapters, and minimal synthetic cases run without breaking.
 
-The focused fitting validation suite is different. It checks whether the implemented fitting backends can recover known synthetic parameters within explicit tolerances.
+The focused fitting validation suite is different. It checks whether implemented fitting backends can recover known synthetic parameters within explicit tolerances.
 
 The suite is intentionally separate from:
 
@@ -14,7 +14,7 @@ The suite is intentionally separate from:
 run_all_smoke_tests
 ```
 
-because fitting validation may be slower, especially for AE IOP/HGO atlas-based fitting.
+because fitting validation may be slower, especially for atlas-based model families.
 
 ## Main entrypoint
 
@@ -32,7 +32,9 @@ This executes:
 ```matlab
 test_fit_validation_rayleigh_lamb
 test_fit_validation_mrlfe
+test_fit_validation_mrlfe_hidden_params
 test_fit_validation_ae_iop_hgo
+test_fit_validation_ae_iop_hgo_hidden_params
 ```
 
 The combined summary is assigned to the MATLAB base workspace as:
@@ -104,7 +106,13 @@ free parameter: mu
 etaS: 0 Pa*s
 ```
 
-Viscous fitting of `etaS` is not yet part of the maintained validation suite.
+`test_fit_validation_mrlfe_hidden_params` currently validates A0Like thickness recovery with hidden/fixed material parameters in the stable zero-viscosity fitting path. It does not validate `etaS` recovery.
+
+mRLFE FitTool route-specific contracts are validated separately by:
+
+```matlab
+run_mrlfe_fit_atlas_tests
+```
 
 ## AE IOP/HGO validation cases
 
@@ -114,6 +122,8 @@ Viscous fitting of `etaS` is not yet part of the maintained validation suite.
 AE_atlasA0_mu_exact
 AE_atlasA0_mu_app_adapter
 ```
+
+`test_fit_validation_ae_iop_hgo_hidden_params` validates hidden/fixed parameter handling for the AE fitting path.
 
 The AE validation uses only the official atlas output:
 
@@ -141,8 +151,8 @@ Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, or branch-fam
 This validation phase does not yet validate:
 
 ```text
-mRLFE etaS fitting
-mRLFE thickness fitting
+mRLFE etaS fitting as a parameter-recovery case
+mRLFE thickness fitting outside the stable zero-viscosity hidden-parameter case
 AE IOP fitting
 AE thickness fitting
 AE multiparameter fitting
@@ -158,16 +168,16 @@ Those should be added as separate validation cases only after their synthetic be
 After fitting-related changes, run:
 
 ```matlab
-run_core_smoke_tests
-run_gui_smoke_tests
-run_acoustoelastic_smoke_tests
-run_mrlfe_smoke_tests
+clear; clc; close all;
+startup
+run_all_smoke_tests
+run_fit_validation_tests
 ```
 
-Then run the focused fitting validation suite:
+For mRLFE FitTool route or plotting behavior, also run:
 
 ```matlab
-run_fit_validation_tests
+run_mrlfe_fit_atlas_tests
 ```
 
 If the focused suite fails, run individual groups:
@@ -175,5 +185,7 @@ If the focused suite fails, run individual groups:
 ```matlab
 test_fit_validation_rayleigh_lamb
 test_fit_validation_mrlfe
+test_fit_validation_mrlfe_hidden_params
 test_fit_validation_ae_iop_hgo
+test_fit_validation_ae_iop_hgo_hidden_params
 ```

@@ -10,6 +10,7 @@ docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
 docs/repository_hygiene_plan.md
+docs/docs_foundation_cleanup_audit.md
 ```
 
 ## Active topic folders
@@ -67,9 +68,10 @@ docs/acoustoelastic_iop_hgo/documentation_index.md
 
 ```text
 docs/repository_hygiene_plan.md
+docs/docs_foundation_cleanup_audit.md
 ```
 
-Use this document before deleting, archiving, or consolidating documentation, examples, diagnostics, or tests.
+Use these documents before deleting, archiving, or consolidating documentation, examples, diagnostics, or tests.
 
 ## Archived documentation
 

@@ -6,7 +6,7 @@ The `rl*` functions under `models/rayleigh_lamb/` are the supported Rayleigh-Lam
 
 For architecture, path behavior, validation, and GUI guidance, see [Rayleigh-Lamb solver overview](overview.md).
 
-For the first model-specific fitting workflow, see [Rayleigh-Lamb fitting workflow](fitting_workflow.md).
+For the model-specific fitting workflow, see [Rayleigh-Lamb fitting workflow](fitting_workflow.md).
 
 ## Material-parameter convention
 
@@ -67,7 +67,7 @@ These names should be used for maintained examples, documentation, application c
 
 ## Fitting helpers
 
-The first maintained Rayleigh-Lamb fitting helpers live under:
+The maintained Rayleigh-Lamb fitting helpers live under:
 
 ```text
 analysis/rayleigh_lamb/
@@ -83,7 +83,13 @@ rlFitDispersionData
 
 `rlEvaluateFitModel` evaluates A0/S0 directly on a supplied fitting frequency grid. It does not use `rlBuildFrequencyVector`, which allows one-point frequency-speed fitting workflows.
 
-The first validated fitting workflow is synthetic A0 data with `mu` as the only free parameter.
+Maintained synthetic validation covers A0 single-parameter recovery cases through `run_fit_validation_tests`:
+
+```text
+RL_A0_mu_exact
+RL_A0_thickness_exact
+RL_A0_mu_perturbed
+```
 
 ## Maintained examples
 

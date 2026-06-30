@@ -1,6 +1,6 @@
 # AE IOP/HGO fitting workflow
 
-This document records the first Acoustoelastic IOP/HGO dispersion fitting implementation.
+This document records the Acoustoelastic IOP/HGO dispersion fitting implementation.
 
 ## Scope
 
@@ -14,13 +14,15 @@ aeEvaluateFitModel
 aeFitDispersionData
 ```
 
-The first tested use case is:
+The first maintained tested use case is:
 
 ```text
 branch: atlasA0
 free parameter: mu
 fixed parameters: IOP, thickness, R, k1, k2, rho, rhoF, fluidBulkModulus
 ```
+
+Additional hidden/fixed-parameter behavior is checked by the focused fitting validation suite.
 
 ## Production branch policy
 
@@ -74,15 +76,7 @@ and force:
 options.atlasBranchPolicy = "atlasA0";
 ```
 
-The first synthetic fitting test uses a reduced atlas configuration for speed:
-
-```matlab
-options.atlasNumYPoints = 120;
-options.atlasTopNMinima = 8;
-options.atlasInitializationNumFrequencyPoints = 16;
-```
-
-This is intended as a contract test, not as a final production-quality fitting configuration.
+The synthetic fitting tests use reduced atlas configurations for speed. These are contract tests, not final production-quality fitting configurations.
 
 ## Optimizer policy
 
@@ -114,24 +108,40 @@ The example assigns the result to the base workspace as:
 AEAtlasA0FitResult
 ```
 
-## Test
+## Tests
 
-Run:
+AE smoke validation runs:
 
 ```matlab
 clear functions
 rehash toolboxcache
 startup
+run_acoustoelastic_smoke_tests
+```
+
+The AE smoke runner checks the AE fitting helper path and runs:
+
+```matlab
 test_ae_fit_synthetic_atlasA0
 ```
 
-The test checks that the synthetic atlasA0 fit recovers `mu` within tolerance and verifies that the fitting branch remains `atlasA0`.
+Focused fitting validation runs:
 
-`run_acoustoelastic_smoke_tests` checks the AE fitting helper path and runs this fitting test.
+```matlab
+run_fit_validation_tests
+```
+
+AE cases inside the focused validation suite include:
+
+```text
+AE_atlasA0_mu_exact
+AE_atlasA0_mu_app_adapter
+AE hidden/fixed parameter validation
+```
 
 ## App-level integration
 
-The app-level fitting dispatcher now supports:
+The app-level fitting dispatcher supports:
 
 ```matlab
 guiRunFit(request)
@@ -150,17 +160,23 @@ The AE fitting adapter is:
 guiFitAcoustoelasticIOPHGOSolver
 ```
 
+The fitting registry exposes AE IOP/HGO through:
+
+```matlab
+guiGetFitRegistry
+FitTool_GUI
+```
+
 ## Current limitations
 
 This phase does not implement:
 
 ```text
-visible AE controls inside FitTool_GUI
 fitting against diagnostic branches
-multi-parameter AE fitting validation
-IOP fitting validation
-thickness fitting validation
+AE IOP fitting validation
+AE thickness fitting validation
+AE multiparameter fitting validation
 parameter covariance/uncertainty estimates
 ```
 
-Multi-parameter fitting is structurally supported by the helper contracts, but the first maintained validation target is the one-parameter synthetic atlasA0 case.
+Multi-parameter fitting is structurally supported by the helper contracts, but the maintained validation targets remain synthetic single-parameter cases and hidden/fixed-parameter contract checks.

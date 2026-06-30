@@ -1,8 +1,8 @@
-### Framework hygiene status
+# Framework hygiene status
 
 This document records the current framework-structure status after closing the `atlasA0` solver optimization phase, targeted naming cleanup, modal-atlas output-path cleanup, simple compatibility-alias cleanup, exploratory archival passes, raw-branch helper extraction, and documentation cleanup.
 
-### Overall status
+## Overall status
 
 ```text
 Solver status: closed for the current atlasA0 optimization phase
@@ -10,11 +10,11 @@ Critical naming status: closed; Over63Chars = 0 after targeted rename
 Simple alias cleanup status: closed after reference checks and smoke-test validation
 Exploratory examples status: archived after documentation preservation
 Raw branch status: helper-backed via aeExtractRawBranch1Candidate
-Documentation cleanup status: superseded wrapper/backlog/overview/meta-audit docs removed
+Documentation cleanup status: active operational docs separated from audit/archive docs
 Framework cleanup status: partially complete; heavy validation wrappers and modal-atlas implementations remain by design
 ```
 
-### Current structure
+## Current structure
 
 ```text
 analysis/acoustoelastic_iop_hgo/              reusable helpers
@@ -29,7 +29,7 @@ Results/ae_iop_hgo/<task>                     generated outputs relative to the 
 
 This structure should be preserved.
 
-### Maintained layer
+## Maintained layer
 
 The maintained user-facing layer uses short task-oriented names.
 
@@ -37,16 +37,19 @@ The maintained user-facing layer uses short task-oriented names.
 run_atlas_branch
 sweep_iop
 sweep_mu
+sweep_mu_iop
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
 diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-track_raw_branch1
+diagnose_idA0_plausibility
 ```
 
-### Reusable analysis helper layer
+`track_raw_branch1` is retained as a reproducibility entrypoint, but it is not routine maintained diagnostic evidence.
+
+## Reusable analysis helper layer
 
 Raw-branch extraction now lives in:
 
@@ -62,7 +65,7 @@ analysis/acoustoelastic_iop_hgo/aeExtractRawBranch1Candidate.m
 
 `track_raw_branch1` calls this helper directly. `compare_atlasA0_vs_raw_branch1` can regenerate `raw_branch1_curve.csv` through this helper if the CSV artifact is missing.
 
-### Retained implementation layer
+## Retained implementation layer
 
 Long descriptive files that remain should be treated as implementation targets, retained diagnostics, or heavy validation scripts, not as preferred user-facing commands.
 
@@ -70,14 +73,15 @@ Remaining long descriptive implementation targets:
 
 ```text
 diagnose_acoustoelastic_iop_hgo_modal_atlas.m
-diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
 validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid.m
 validate_acoustoelastic_iop_hgo_branch_identity_score_grid.m
 ```
 
 Do not delete these solely because they look similar to short entrypoints. They contain retained implementation or heavy-validation logic.
 
-### Naming status
+The removed low-frequency modal-atlas implementation is no longer part of the retained implementation layer. Low-frequency initialization is handled by the standard `diagnose_modal_atlas` workflow.
+
+## Naming status
 
 The previous known `namelengthmax` issue in the identity-A0 plausibility diagnostic has been resolved by renaming the implementation file to:
 
@@ -97,10 +101,10 @@ Current naming policy is maintained in:
 
 ```text
 docs/naming_strategy.md
-docs/acoustoelastic_iop_hgo/naming_and_paths_convention.md
+docs/acoustoelastic_iop_hgo/active/naming_and_paths_convention.md
 ```
 
-### Result path convention
+## Result path convention
 
 New outputs should be written under:
 
@@ -117,72 +121,3 @@ aeOutputFolder(launchFolder, taskName)
 ```
 
 Legacy result folders may remain available for fallback reads, but new work should not add new `Results/acoustoelastic_iop_hgo_*` output roots.
-
-### Current documentation references
-
-Use the curated documentation index as the entry point:
-
-```text
-docs/acoustoelastic_iop_hgo/documentation_index.md
-```
-
-Current executable inventory:
-
-```text
-docs/acoustoelastic_iop_hgo/examples_inventory.md
-```
-
-Current cleanup/refactor status:
-
-```text
-docs/acoustoelastic_iop_hgo/structural_audit_refresh.md
-docs/acoustoelastic_iop_hgo/retained_diagnostic_dependency_review.md
-docs/acoustoelastic_iop_hgo/code_retention_review_plan.md
-```
-
-### What is considered closed
-
-1. `atlasA0` optimization for the current conservative production policy.
-2. The identity-A0 plausibility filename exceeding MATLAB `namelengthmax`.
-3. Standard and low-frequency modal-atlas output-path migration.
-4. Simple compatibility-alias deletion after reference checks.
-5. Exploratory example archival passes E1-E3.
-6. Raw-branch helper extraction into `analysis/`.
-7. Documentation landing-page simplification and curated index creation.
-8. Removal of superseded wrapper/backlog/overview/meta-audit documents.
-
-### What is not yet closed
-
-1. Optional consolidation of heavy validation wrappers.
-2. Optional migration of modal-atlas implementation code into reusable helpers.
-3. Long-term decision on whether retained historical diagnostics should remain script-based.
-4. Occasional documentation-only stale references that may be found by future broad grep passes.
-
-### Cleanup policy
-
-Future cleanup should start from the curated documentation index and current executable inventory, not from manual filename inspection alone.
-
-Each commit should keep MATLAB logic changes minimal and should pass:
-
-```matlab
-test_acoustoelastic_iop_hgo_short_entrypoints
-run_all_smoke_tests
-```
-
-For raw-branch work, also run:
-
-```matlab
-diagnose_modal_atlas_lowfreq
-track_raw_branch1
-compare_atlasA0_vs_raw_branch1
-```
-
-For deletions or consolidation, also run:
-
-```bash
-git grep "<candidate_name>"
-```
-
-### Current conclusion
-
-The framework is stable enough to build on. Critical renaming, modal-atlas output-path cleanup, simple alias deletion, exploratory archival, raw-branch helper extraction, documentation indexing, and removal of superseded documentation are closed. Remaining cleanup should be limited to heavy validation wrappers or modal-atlas implementation extraction unless a new concrete duplication or stale dependency is found.
