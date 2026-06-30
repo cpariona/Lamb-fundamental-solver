@@ -12,6 +12,18 @@ Do not move large groups of tests without updating the relevant runners and docu
 
 Runner implementations live under `tests/runners/`, with public runner commands preserved through wrappers or direct runner files.
 
+Model-family Rayleigh-Lamb tests have been moved under:
+
+```text
+tests/models/rayleigh_lamb/
+```
+
+Current Rayleigh-Lamb model tests:
+
+```text
+tests/models/rayleigh_lamb/test_rl_fit_synthetic_A0.m
+```
+
 Model-family mRLFE tests have been moved under:
 
 ```text
@@ -258,6 +270,16 @@ For shared fitting moves, run:
 ```matlab
 clear; clc; close all;
 startup
+run_fit_validation_tests
+run_all_smoke_tests
+```
+
+For Rayleigh-Lamb model-family moves, run:
+
+```matlab
+clear; clc; close all;
+startup
+test_rl_fit_synthetic_A0
 run_fit_validation_tests
 run_all_smoke_tests
 ```
