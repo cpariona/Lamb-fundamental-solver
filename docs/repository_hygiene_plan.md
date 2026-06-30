@@ -51,6 +51,7 @@ Review these first:
 - docs/mrlfe/diagnostics/README.md
 - docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
 - docs/mrlfe/archive/pending_cleanup.md
+- docs/mrlfe/docs_cleanup_audit.md
 - docs/mrlfe_atlas_policy_notes.md
 - docs/gui/mrlfe_atlas_policy_integration.md
 
@@ -71,18 +72,20 @@ Review examples/mrlfe/diagnostics/ as a separate pass. The likely outcome is not
 
 ### Tests
 
-Review tests in three groups:
+The test-layout migration is complete. Current mRLFE test and runner locations are:
 
 - `tests/models/mrlfe/test_mrlfe_*.m` for model-family, atlas, residual, and diagnostic-policy contracts.
-- `tests/test_gui_mrlfe_*.m` for GUI/FitTool-facing mRLFE contracts that should move later under `tests/app/fitting/` or `tests/app/gui/`.
-- `tests/runners/run_mrlfe_*.m` plus public wrappers under `tests/run_mrlfe_*.m` for runner coverage and command compatibility.
+- `tests/app/fitting/test_gui_mrlfe_*.m` for FitTool-facing mRLFE contracts.
+- `tests/app/gui/test_gui_*mrlfe*.m` for main GUI or GUI-surface contracts when present.
+- `tests/runners/run_mrlfe_*.m` for maintained runner implementations.
+- `tests/run_mrlfe_*.m` for compatibility wrappers only.
 
 Expected cleanup:
 
 - Keep route and FitTool contracts that protect current behavior.
-- Identify overlapping tests that protect the same contract.
-- Consolidate runners only after duplicate coverage is confirmed.
-- Avoid moving GUI/FitTool tests into `tests/models/mrlfe/`; those belong to the app-layer migration.
+- Identify overlapping tests that protect the same contract only after the focused runners are stable.
+- Consolidate or delete individual tests only after duplicate coverage is confirmed.
+- Avoid moving GUI/FitTool tests into `tests/models/mrlfe/`; those belong to the app layer.
 
 ## Validation policy
 
@@ -116,7 +119,9 @@ run_all_smoke_tests
 
 ## Branch policy
 
-Use small cleanup branches. Do not mix solver behavior changes with repository hygiene changes.
+Use small cleanup branches when changes affect behavior, tests, diagnostics, or large file groups. Documentation-only cleanup may be batched into a single hygiene branch if each edit remains audit-driven.
+
+Do not mix solver behavior changes with repository hygiene changes.
 
 Suggested branch naming:
 
@@ -124,6 +129,7 @@ Suggested branch naming:
 repo-hygiene-mrlfe-first
 repo-hygiene-docs-consolidation
 repo-hygiene-test-consolidation
+repo-hygiene-mrlfe-docs-audit
 ```
 
 Merged feature branches can be deleted after confirming their changes are present in main.
