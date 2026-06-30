@@ -106,7 +106,7 @@ free parameter: mu
 etaS: 0 Pa*s
 ```
 
-`test_fit_validation_mrlfe_hidden_params` validates that hidden or fixed parameters are preserved correctly by the fitting configuration.
+`test_fit_validation_mrlfe_hidden_params` currently validates A0Like thickness recovery with hidden/fixed material parameters in the stable zero-viscosity fitting path. It does not validate `etaS` recovery.
 
 mRLFE FitTool route-specific contracts are validated separately by:
 
@@ -152,7 +152,7 @@ This validation phase does not yet validate:
 
 ```text
 mRLFE etaS fitting as a parameter-recovery case
-mRLFE thickness fitting as a parameter-recovery case
+mRLFE thickness fitting outside the stable zero-viscosity hidden-parameter case
 AE IOP fitting
 AE thickness fitting
 AE multiparameter fitting
