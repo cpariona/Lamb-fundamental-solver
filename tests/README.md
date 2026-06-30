@@ -18,6 +18,22 @@ Model-family mRLFE tests have been moved under:
 tests/models/mrlfe/
 ```
 
+GUI/app-layer smoke tests have started moving under:
+
+```text
+tests/app/gui/
+```
+
+Current app-gui tests:
+
+```text
+tests/app/gui/test_gui_acoustoelastic_iop_hgo_main_adapter_smoke.m
+tests/app/gui/test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke.m
+tests/app/gui/test_gui_normalized_adapters_smoke.m
+tests/app/gui/test_gui_sweep_adapters_smoke.m
+tests/app/gui/test_gui_sweep_registry_smoke.m
+```
+
 mRLFE FitTool/app-layer contracts have started moving under:
 
 ```text
@@ -35,7 +51,7 @@ tests/app/fitting/test_gui_mrlfe_fixed_etaS_fit_contract.m
 tests/app/fitting/test_gui_mrlfe_unified_atlas_policy_contract.m
 ```
 
-General GUI and sweep tests remain in their current locations until their focused app-layer migration pass.
+FitTool registry and shared fitting tests remain in their current locations until their focused fitting/shared migration pass.
 
 ## Target structure
 
@@ -147,6 +163,15 @@ startup
 run_all_smoke_tests
 run_fit_validation_tests
 run_mrlfe_fit_atlas_tests
+```
+
+For app/GUI moves, run:
+
+```matlab
+clear; clc; close all;
+startup
+run_gui_smoke_tests
+run_all_smoke_tests
 ```
 
 For app/FitTool mRLFE moves, run:
