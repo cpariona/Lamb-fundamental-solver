@@ -2,7 +2,7 @@
 
 ## Scope
 
-This audit covers the repository-hygiene pass for mRLFE documentation and diagnostics. It keeps solver behavior unchanged.
+This audit covers the repository-hygiene pass for mRLFE documentation, diagnostics, and test runners. It keeps solver behavior unchanged.
 
 ## Current maintained references
 
@@ -76,11 +76,18 @@ diagnose_mrlfe_a0_modal_atlas_integrated_cut.m
 diagnose_mrlfe_a0_modal_atlas_seed_identity.m
 ```
 
+## Resolved in pass 7
+
+- Consolidated mRLFE test runners without deleting individual tests.
+- Removed atlas-specific test execution from `run_mrlfe_smoke_tests` to avoid duplicating `run_mrlfe_atlas_tests`.
+- Updated `run_all_smoke_tests` so the complete suite now explicitly runs both `run_mrlfe_smoke_tests` and `run_mrlfe_atlas_tests`.
+- Kept all atlas contract tests in the focused atlas runner.
+
 ## Remaining audit items
 
 ### mRLFE tests
 
-Review mRLFE tests after diagnostic pruning is validated. Start with:
+Review individual mRLFE tests only after runner consolidation is validated. Start with:
 
 ```text
 tests/gui/test_gui_mrlfe_*.m
@@ -92,7 +99,7 @@ Expected actions:
 
 - Keep tests that protect current route contracts.
 - Identify duplicate tests that protect the same contract.
-- Consolidate runners only after confirming coverage.
+- Delete or merge individual tests only if coverage remains protected by a focused runner and a maintained contract test.
 
 ## Validation after documentation-only passes
 
@@ -116,10 +123,11 @@ run_mrlfe_fit_atlas_tests
 run_gui_smoke_tests
 ```
 
-Before any test consolidation, also run:
+After runner consolidation, run:
 
 ```matlab
 clear; clc; close all;
 startup
 run_all_smoke_tests
+run_mrlfe_fit_atlas_tests
 ```
