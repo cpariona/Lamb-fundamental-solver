@@ -34,15 +34,17 @@ tests/app/gui/test_gui_sweep_adapters_smoke.m
 tests/app/gui/test_gui_sweep_registry_smoke.m
 ```
 
-mRLFE FitTool/app-layer contracts have started moving under:
+FitTool/app-layer contracts have started moving under:
 
 ```text
 tests/app/fitting/
 ```
 
-Current app-fitting mRLFE tests:
+Current app-fitting tests:
 
 ```text
+tests/app/fitting/test_fit_tool_model_registry_contract.m
+tests/app/fitting/test_gui_fit_registry_contract.m
 tests/app/fitting/test_gui_mrlfe_elastic_atlas_guard_contract.m
 tests/app/fitting/test_gui_mrlfe_fit_full_curve_fast_contract.m
 tests/app/fitting/test_gui_mrlfe_fit_route_policy_contract.m
@@ -69,8 +71,6 @@ tests/shared/fitting/test_fit_validation_mrlfe_hidden_params.m
 tests/shared/fitting/test_fit_validation_rayleigh_lamb.m
 tests/shared/fitting/test_rl_fit_rejects_prediction_fallback.m
 ```
-
-FitTool registry/app-facing tests remain in their current locations until their focused app-fitting migration pass.
 
 ## Target structure
 
@@ -185,6 +185,15 @@ run_mrlfe_fit_atlas_tests
 ```
 
 For app/GUI moves, run:
+
+```matlab
+clear; clc; close all;
+startup
+run_gui_smoke_tests
+run_all_smoke_tests
+```
+
+For app/FitTool moves, run:
 
 ```matlab
 clear; clc; close all;
