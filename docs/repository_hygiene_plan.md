@@ -71,16 +71,18 @@ Review examples/mrlfe/diagnostics/ as a separate pass. The likely outcome is not
 
 ### Tests
 
-Review tests in two groups:
+Review tests in three groups:
 
-- tests/gui/test_gui_mrlfe_*.m
-- tests/mrlfe/test_mrlfe_*.m plus root-level mRLFE tests.
+- `tests/models/mrlfe/test_mrlfe_*.m` for model-family, atlas, residual, and diagnostic-policy contracts.
+- `tests/test_gui_mrlfe_*.m` for GUI/FitTool-facing mRLFE contracts that should move later under `tests/app/fitting/` or `tests/app/gui/`.
+- `tests/runners/run_mrlfe_*.m` plus public wrappers under `tests/run_mrlfe_*.m` for runner coverage and command compatibility.
 
 Expected cleanup:
 
 - Keep route and FitTool contracts that protect current behavior.
 - Identify overlapping tests that protect the same contract.
 - Consolidate runners only after duplicate coverage is confirmed.
+- Avoid moving GUI/FitTool tests into `tests/models/mrlfe/`; those belong to the app-layer migration.
 
 ## Validation policy
 
