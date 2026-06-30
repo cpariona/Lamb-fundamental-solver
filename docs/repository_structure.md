@@ -95,17 +95,13 @@ mRLFE examples live in:
 examples/mrlfe/
 ```
 
-Current mRLFE tests live in:
-
-```text
-tests/mrlfe/
-```
-
-Target mRLFE tests should move gradually to:
+mRLFE model tests now live in:
 
 ```text
 tests/models/mrlfe/
 ```
+
+mRLFE app/FitTool tests remain outside the model-test folder until the app-layer test migration is performed.
 
 mRLFE documentation lives in:
 
