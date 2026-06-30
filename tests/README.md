@@ -1,0 +1,160 @@
+# Tests layout
+
+This document defines the target organization for the repository test suite. It is a migration contract: new tests should follow this structure, and existing tests should be moved gradually in small PRs.
+
+## Current policy
+
+The `startup` function adds `tests/` recursively to the MATLAB path. Therefore, internal test folders can be reorganized as long as maintained runner names remain available and test function/script names remain unique.
+
+Do not move large groups of tests without updating the relevant runners and documentation in the same PR.
+
+## Migration status
+
+Initial runner migration started.
+
+Runner implementations created under `tests/runners/`:
+
+```text
+tests/runners/run_all_smoke_tests.m
+tests/runners/run_core_smoke_tests.m
+tests/runners/run_gui_smoke_tests.m
+tests/runners/run_acoustoelastic_smoke_tests.m
+tests/runners/run_mrlfe_fit_atlas_tests.m
+tests/runners/run_fit_validation_tests.m
+```
+
+Compatibility wrappers applied in previous public locations:
+
+```text
+tests/run_all_smoke_tests.m
+tests/run_core_smoke_tests.m
+tests/run_acoustoelastic_smoke_tests.m
+tests/run_mrlfe_fit_atlas_tests.m
+```
+
+Pending runner wrappers:
+
+```text
+tests/run_gui_smoke_tests.m
+tests/run_mrlfe_smoke_tests.m
+tests/run_mrlfe_atlas_tests.m
+tests/fitting/run_fit_validation_tests.m
+```
+
+`tests/run_gui_smoke_tests.m` and `tests/fitting/run_fit_validation_tests.m` still contain legacy implementations because the connector blocked the wrapper updates in this pass. This is a migration-status issue only; the public runner commands remain valid.
+
+Remaining runners should be migrated in later small passes after this wrapper pattern is validated.
+
+## Target structure
+
+```text
+tests/
+├─ README.md
+├─ runners/
+├─ shared/
+│  ├─ fitting/
+│  ├─ sweeps/
+│  └─ utilities/
+├─ models/
+│  ├─ rayleigh_lamb/
+│  ├─ mrlfe/
+│  └─ acoustoelastic_iop_hgo/
+└─ app/
+   ├─ gui/
+   ├─ fitting/
+   └─ sweeps/
+```
+
+## Folder responsibilities
+
+### `tests/runners/`
+
+Contains maintained runner entrypoints that orchestrate groups of tests.
+
+Examples:
+
+```matlab
+run_all_smoke_tests
+run_core_smoke_tests
+run_gui_smoke_tests
+run_acoustoelastic_smoke_tests
+run_mrlfe_smoke_tests
+run_mrlfe_atlas_tests
+run_mrlfe_fit_atlas_tests
+run_fit_validation_tests
+```
+
+During migration, root-level wrappers may remain under `tests/` so existing commands keep working. Wrappers should be thin and should delegate to the implementation under `tests/runners/`.
+
+### `tests/shared/`
+
+Contains tests for reusable infrastructure that is not owned by one model family or one app surface.
+
+Use this folder for tests of:
+
+```text
+shared fitting helpers
+shared sweep helpers
+shared plotting or utility contracts
+path-independent helper behavior
+```
+
+Subfolders:
+
+```text
+tests/shared/fitting/     shared fitting contracts and quality-control tests
+tests/shared/sweeps/      shared parametric sweep tests
+tests/shared/utilities/   path, naming, and general utility tests
+```
+
+### `tests/models/`
+
+Contains model-family tests. A test belongs here when it validates a physical model, numerical solver, model-specific residual, model-specific fitting adapter, or model-specific diagnostic policy.
+
+Subfolders:
+
+```text
+tests/models/rayleigh_lamb/           Rayleigh-Lamb solver, residual, branch, and fitting tests
+tests/models/mrlfe/                   mRLFE real-k, atlas, policy, and fitting tests
+tests/models/acoustoelastic_iop_hgo/  AE IOP/HGO solver, atlasA0, sweep, fitting, and diagnostic-policy tests
+```
+
+Model-family tests should not depend on GUI state. If a test requires GUI request/normalization code, place it under `tests/app/` instead.
+
+### `tests/app/`
+
+Contains tests for GUI and app-layer behavior. A test belongs here when it validates request building, registries, adapters, normalization, plotting contracts, FitTool, SweepTool, or main GUI integration.
+
+Subfolders:
+
+```text
+tests/app/gui/      main GUI and GUI-surface contracts
+tests/app/fitting/  FitTool and app-level fitting dispatch contracts
+tests/app/sweeps/   SweepTool and app-level sweep dispatch contracts
+```
+
+App tests may call model adapters, but they should focus on app-layer contracts rather than solver physics.
+
+## Migration rules
+
+1. Keep public runner commands stable unless there is a deliberate deprecation plan.
+2. Prefer moving one coherent test family at a time.
+3. Update runner files in the same commit as each move.
+4. Update `docs/maintained_entrypoints.md` when runner names or maintained test groups change.
+5. Use wrappers temporarily when preserving old runner commands reduces disruption.
+6. Avoid mixing test moves with solver behavior changes.
+7. Run the relevant focused runner after each move, then run the full smoke suite before merging.
+
+## Validation after test-layout changes
+
+For runner or path changes, run:
+
+```matlab
+clear; clc; close all;
+startup
+run_all_smoke_tests
+run_fit_validation_tests
+run_mrlfe_fit_atlas_tests
+```
+
+For a focused model-family move, also run the corresponding focused runner when available.
