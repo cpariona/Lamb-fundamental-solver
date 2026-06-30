@@ -153,6 +153,18 @@ diagnose_mrlfe_a0_modal_atlas_seed_identity.m
 - Moved maintained runner implementations under `tests/runners/` while preserving compatibility wrappers under `tests/`.
 - Documented the final test-layout audit in `tests/README.md`.
 
+## Resolved in pass 9
+
+- Shortened `docs/mrlfe/README.md` into a true index instead of a second workflow specification.
+- Added an explicit document-role section to the mRLFE index.
+- Preserved the current route summary in the index, but delegated detailed behavior to:
+  - `docs/mrlfe/fitting_workflow.md` for the fitting-route contract,
+  - `docs/mrlfe_atlas_policy_notes.md` for atlas policy evidence,
+  - `docs/gui/mrlfe_atlas_policy_integration.md` for GUI adapter and metadata behavior.
+- Kept the active A0 policy wording centralized and concise:
+  - `adaptivePhysicalTail` is the current FitTool A0Like fitting default.
+  - `delayedCut` is the conservative comparison policy for diagnostics and sweep-policy investigations.
+
 ## Remaining audit items
 
 ### mRLFE documentation
@@ -162,7 +174,6 @@ Review active mRLFE docs for duplication and decide whether some content should 
 Priority files:
 
 ```text
-docs/mrlfe/README.md
 docs/mrlfe/fitting_workflow.md
 docs/mrlfe_atlas_policy_notes.md
 docs/gui/mrlfe_atlas_policy_integration.md
@@ -173,7 +184,7 @@ Expected actions:
 - Keep `docs/mrlfe/fitting_workflow.md` as the active FitTool fitting route contract.
 - Keep `docs/mrlfe_atlas_policy_notes.md` as the detailed policy/evidence note.
 - Keep `docs/gui/mrlfe_atlas_policy_integration.md` as the GUI adapter and metadata contract.
-- Keep `docs/mrlfe/README.md` as a short index, not a second full workflow specification.
+- Avoid duplicating long policy tables in the mRLFE index.
 
 ### mRLFE diagnostics and examples
 
@@ -198,7 +209,6 @@ Update repository-wide hygiene and entrypoint docs when they still mention pre-m
 Priority files:
 
 ```text
-docs/repository_hygiene_plan.md
 docs/maintained_entrypoints.md
 docs/README.md
 ```
