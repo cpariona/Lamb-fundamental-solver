@@ -28,10 +28,21 @@ Current app-gui tests:
 
 ```text
 tests/app/gui/test_gui_acoustoelastic_iop_hgo_main_adapter_smoke.m
-tests/app/gui/test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke.m
 tests/app/gui/test_gui_normalized_adapters_smoke.m
-tests/app/gui/test_gui_sweep_adapters_smoke.m
-tests/app/gui/test_gui_sweep_registry_smoke.m
+```
+
+SweepTool/app-layer contracts have started moving under:
+
+```text
+tests/app/sweeps/
+```
+
+Current app-sweeps tests:
+
+```text
+tests/app/sweeps/test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke.m
+tests/app/sweeps/test_gui_sweep_adapters_smoke.m
+tests/app/sweeps/test_gui_sweep_registry_smoke.m
 ```
 
 FitTool/app-layer contracts have started moving under:
@@ -185,6 +196,15 @@ run_mrlfe_fit_atlas_tests
 ```
 
 For app/GUI moves, run:
+
+```matlab
+clear; clc; close all;
+startup
+run_gui_smoke_tests
+run_all_smoke_tests
+```
+
+For app/SweepTool moves, run:
 
 ```matlab
 clear; clc; close all;
