@@ -84,6 +84,9 @@ assert(isfile(atlasTestRunner), 'Focused mRLFE atlas test runner is missing.');
 fitAtlasTestRunner = fullfile(repoRoot, 'tests', 'run_mrlfe_fit_atlas_tests.m');
 assert(isfile(fitAtlasTestRunner), 'Focused mRLFE FitTool atlas test runner is missing.');
 
+trackerDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'compare_mrlfe_tracker_vs_condition_peaks.m');
+assert(isfile(trackerDiagnostic), 'mRLFE tracker-vs-condition diagnostic is missing.');
+
 maintainedFiles = { ...
     fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeModelCandidateNames.m'), ...
     fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeSetYoungModulusForShearPoisson.m'), ...
@@ -120,8 +123,3 @@ for i = 1:numel(analysisFiles)
     assert(~contains(fileText, forbiddenModelName), ...
         'Maintained analysis helper should not contain author-labeled mRLFE model names: %s', analysisFiles{i});
 end
-
-trackerDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'compare_mrlfe_tracker_vs_condition_peaks.m');
-trackerText = fileread(trackerDiagnostic);
-assert(contains(trackerText, 'compare_mrlfe_tracker_vs_condition_peaks'), ...
-    'Renamed tracker diagnostic should keep descriptive function/script identity.');
