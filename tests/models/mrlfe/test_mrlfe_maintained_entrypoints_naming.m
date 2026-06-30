@@ -5,7 +5,7 @@ startup
 %
 % The maintained mRLFE execution surface should expose physical/model names.
 
-repoRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 forbiddenToken = char([72 97 110]);
 forbiddenModelName = char([109 82 76 70 69 72 97 110 86 105 115 99 111 82 101 97 108 75]);
 
