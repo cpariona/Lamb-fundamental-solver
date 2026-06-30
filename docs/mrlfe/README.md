@@ -110,7 +110,7 @@ run_mrlfe_smoke_tests
 Focused atlas tests:
 
 ```matlab
-tests/run_mrlfe_atlas_tests
+run_mrlfe_atlas_tests
 ```
 
 Focused FitTool atlas tests:
