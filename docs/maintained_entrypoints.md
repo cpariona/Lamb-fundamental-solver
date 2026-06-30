@@ -252,6 +252,7 @@ Maintained mRLFE fitting helpers:
 ```matlab
 mrlfeBuildFitProblem
 mrlfeEvaluateFitModel
+mrlfeEvaluateAtlasFitModel
 mrlfeFitDispersionData
 ```
 
@@ -264,12 +265,18 @@ solveMRLFEBranchAdaptiveAtlas
 mrlfeMakePhysicalSeedMode
 ```
 
-`solveMRLFEViscoBranchAtlas` remains the direct viscous atlas route. `solveMRLFEAtlasUnified` is the unified real-k atlas route used by `computeMRLFE` when `mrlfeUseUnifiedAtlasRoute = true`.
+`solveMRLFEViscoBranchAtlas` remains the direct viscous atlas route. `solveMRLFEAtlasUnified` is the unified real-k atlas route. FitTool fitting uses the atlas-first evaluator by default.
 
 Current A0 policy selector:
 
 ```matlab
 options.mrlfeA0Policy = "delayedCut";
+options.mrlfeA0Policy = "adaptivePhysicalTail";
+```
+
+For A0Like FitTool fitting, the current default is:
+
+```matlab
 options.mrlfeA0Policy = "adaptivePhysicalTail";
 ```
 
@@ -298,7 +305,6 @@ diagnose_etaS_direct_atlas_fit
 diagnose_etaS_forward_cache
 diagnose_fit_timing
 diagnose_fit_option_sensitivity
-diagnose_mrlfe_visco_direct_atlas
 diagnose_mrlfe_visco_validity_breakdown
 diagnose_mrlfe_visco_residual_landscape
 stress_test_mrlfe_real_k_range
@@ -313,7 +319,7 @@ diagnose_mrlfe_a0_physical_corridor_mu_sweep
 diagnose_mrlfe_atlas_primary_policy_matrix
 ```
 
-Additional mRLFE atlas investigation diagnostics are documented in:
+Additional mRLFE secondary and historical diagnostics are documented in:
 
 ```text
 examples/mrlfe/diagnostics/README.md
@@ -361,10 +367,14 @@ test_mrlfe_unified_atlas_mu_sweep_contract
 test_mrlfe_a0_policy_selector_contract
 ```
 
-Maintained GUI mRLFE atlas integration test:
+Maintained GUI mRLFE atlas integration tests:
 
 ```matlab
 test_gui_mrlfe_unified_atlas_policy_contract
+test_gui_mrlfe_fit_zero_eta_atlas_contract
+test_gui_mrlfe_fit_route_policy_contract
+test_gui_mrlfe_fixed_etaS_fit_contract
+test_gui_mrlfe_fit_full_curve_fast_contract
 ```
 
 ## Smoke-test scope
@@ -404,12 +414,15 @@ docs/repository_structure.md
 docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
+docs/repository_hygiene_plan.md
 docs/fitting/README.md
 docs/fitting/architecture.md
 docs/fitting/validation_suite.md
 docs/mrlfe/README.md
 docs/mrlfe/fitting_workflow.md
+docs/mrlfe/fittool_grid_path_sensitivity.md
 docs/mrlfe/current_sweeps.md
+docs/mrlfe/docs_cleanup_audit.md
 docs/mrlfe_atlas_policy_notes.md
 examples/mrlfe/diagnostics/README.md
 docs/gui/adapter_architecture.md
@@ -426,6 +439,5 @@ docs/acoustoelastic_iop_hgo/README.md
 ```text
 docs/archive/fitting_phase_logs.md
 docs/archive/fitting_phases/fitting_phase*_status.md
+docs/mrlfe/archive/pending_cleanup.md
 ```
-
-The fitting phase logs are retained as implementation history. They are not active API or workflow references.
