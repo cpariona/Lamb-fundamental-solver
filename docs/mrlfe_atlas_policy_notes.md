@@ -1,36 +1,27 @@
 # mRLFE atlas policy notes
 
-This note records the current findings for the real-k mRLFE atlas solver and its branch-selection policies. The main purpose is to document what was learned during the A0/S0 policy development, which options are currently supported, and which diagnostics should be used before changing defaults.
+This note records the current findings for the real-k mRLFE atlas solver and its branch-selection policies. It is a policy and diagnostic reference, not a claim of external physical validation.
 
 ## Scope
 
-The notes apply to the unified real-k atlas route:
+The notes apply to real-k mRLFE atlas-style routes, including:
 
 ```matlab
 options.mrlfeUseUnifiedAtlasRoute = true;
 ```
 
-with viscous mRLFE cases, i.e.
+and to FitTool fitting through:
 
 ```matlab
-mrlfeParams.etaS > 0;
-mrlfeParams.solveComplexK = false;
+mrlfeEvaluateFitModel
+mrlfeEvaluateAtlasFitModel
 ```
 
-The current implementation uses Rayleigh-Lamb or physically synthesized dry-like seed modes as the guide for branch tracking. The solver does not use the etaS = 0 mRLFE solution as the viscous seed.
+Important distinction:
 
-## Problem observed in viscous real-k A0 tracking
-
-The A0 branch is difficult to track in soft, viscous, fluid-loaded cases. In these cases, the residual valley can become broad, weak, or ambiguous. Direct residual minimization can either stop too early or fall into a slow leaky/math root at high frequency.
-
-The main observed failure modes were:
-
-- The direct viscous A0 atlas route can terminate almost immediately for soft cases.
-- A low-residual branch can continue into a nonphysical slow tail.
-- A pointwise corridor against the dry RL guide is too aggressive because fluid loading can legitimately reduce A0 speed below the dry reference.
-- A lightweight unit-test grid is not reliable for quantitative physical coverage assertions; dense diagnostics are required.
-
-The important distinction is that the fluid-loaded viscous A0 speed may be below the dry RL guide for physically valid reasons. Therefore, a simple lower-bound filter such as Cp_mRLFE / Cp_RL > 0.70 is not a sufficient policy by itself.
+- FitTool A0Like fitting currently defaults to `adaptivePhysicalTail`.
+- `delayedCut` remains a conservative comparison policy in diagnostics and forward/sweep investigations.
+- Dense diagnostics should continue to compare both policies before changing solver-wide defaults.
 
 ## Supported A0 policies
 
@@ -47,15 +38,13 @@ options.mrlfeA0Policy = "adaptivePhysicalTail";
 options.mrlfeA0Policy = "delayedCut";
 ```
 
-This is the conservative/default A0 policy. It uses the direct viscous atlas route and then applies a delayed modal cut when the branch loses continuity or residual quality after an established valid run.
+This is a conservative diagnostic baseline. It uses the direct viscous atlas route and then applies a delayed modal cut when the branch loses continuity or residual quality after an established valid run.
 
 The resulting policy label is:
 
 ```text
 viscousA0DelayedCut
 ```
-
-This route is useful as a conservative baseline and should remain the default until broader validation supports changing it.
 
 Known limitation: in soft A0 cases it can fail very early, even when a physically useful branch exists.
 
@@ -80,25 +69,35 @@ The policy does two things:
 
 The tail cut is intentionally not a pointwise corridor filter. It only removes the tail after collapse-like behavior is detected.
 
-Typical options used in diagnostics:
+## Current FitTool policy
+
+For A0Like FitTool fitting, the current maintained default is:
 
 ```matlab
 options.mrlfeA0Policy = "adaptivePhysicalTail";
-options.mrlfeAdaptiveCpScanPoints = 900;
-options.mrlfeAdaptiveWindows = [0.20 0.35 0.50 0.80 1.20];
-options.mrlfeAdaptiveMaxJumpRelative = 0.12;
-options.mrlfeAdaptiveMaxPredictionError = 0.12;
-options.mrlfeAdaptivePredictionWeight = 45.0;
-options.mrlfeAdaptiveResidualWeight = 0.45;
-options.mrlfeAdaptiveAllowValleyFallback = true;
-options.mrlfeAdaptiveValleyFallbackRelativeWindow = 0.10;
-options.mrlfeAdaptiveValleyFallbackPredictionWeight = 65.0;
-options.mrlfeAdaptiveValleyFallbackResidualWeight = 0.30;
-options.mrlfeA0PhysicalMinRatioToGuide = 0.70;
-options.mrlfeA0PhysicalMinFrequencyHz = 1000;
-options.mrlfeA0PhysicalMinValidRunBeforeCut = 8;
-options.mrlfeA0PhysicalMaxLocalDropRelative = 0.05;
-options.mrlfeA0PhysicalMaxTwoStepDropRelative = 0.10;
+```
+
+The fitting route is atlas-first:
+
+```text
+mrlfeFitDispersionData
+  -> mrlfeBuildFitProblem
+  -> mrlfeEvaluateFitModel
+  -> mrlfeEvaluateAtlasFitModel
+  -> official mRLFE atlas branch output
+```
+
+Actual route metadata depends on `etaS`:
+
+```text
+etaS = 0  -> zero_viscosity_adaptive_atlas
+etaS > 0  -> viscous_unified_atlas
+```
+
+The previous reference/direct-viscous fitting workflow is retained only for explicit diagnostics with:
+
+```matlab
+solverOptions.mrlfeUseAtlasFitRoute = false;
 ```
 
 ## S0 policy
@@ -107,13 +106,6 @@ The S0 branch currently uses an adaptive atlas continuation policy by default in
 
 ```text
 viscousS0AdaptiveContinuation
-```
-
-The S0 adaptive policy uses narrower windows than the A0 adaptive physical-tail policy:
-
-```matlab
-options.mrlfeUseAdaptiveS0AtlasTracker = true;
-options.mrlfeAdaptiveWindows = [0.12 0.20 0.35 0.50];
 ```
 
 S0 was generally more stable than soft A0, but it can still need adaptive continuation and delayed cut diagnostics in fluid-loaded viscous cases.
@@ -162,7 +154,7 @@ options.mrlfeA0Policy = "delayedCut";
 options.mrlfeA0Policy = "adaptivePhysicalTail";
 ```
 
-for the same set of material parameters. A representative result for etaS = 0.05 and h = 0.5 mm was:
+for the same set of material parameters. A representative result for `etaS = 0.05` and `h = 0.5 mm` was:
 
 | mu | delayedCut valid range | adaptivePhysicalTail valid range | interpretation |
 |---:|---|---|---|
@@ -190,12 +182,6 @@ etaSValues = [0.01 0.03 0.05 0.10];
 thicknessValues = [0.3e-3 0.5e-3 1.0e-3];
 ```
 
-Total cases:
-
-```text
-84
-```
-
 Aggregate findings:
 
 | metric | value |
@@ -216,28 +202,7 @@ Additional stability checks:
 - adaptivePhysicalTail had no cases with max relative jump greater than 0.12 in the tested grid.
 - the minimum adaptive valid fraction was about 0.51, while delayedCut could fail nearly at the beginning of the branch.
 
-The difficult cases were primarily low mu, high etaS, and/or larger thickness. For example, h = 1.0 mm, etaS = 0.10, mu = 30 kPa remained difficult, but adaptivePhysicalTail still extended the branch from an almost immediate delayedCut failure to several kHz.
-
-## Generated diagnostic figures
-
-The parametric sweep generates PNG and FIG files in:
-
-```text
-outputs/mrlfe/figures
-```
-
-Generated figures include:
-
-```text
-valid_point_gain.png
-adaptive_last_valid_hz.png
-adaptive_valley_fallback_count.png
-adaptive_cut_frequency_hz.png
-valid_point_gain_scatter.png
-adaptive_last_valid_hz_scatter.png
-```
-
-These figures are intended for quick identification of regions where the adaptive policy is useful, where it cuts, and where it relies on valley fallback.
+The difficult cases were primarily low `mu`, high `etaS`, and/or larger thickness. For example, `h = 1.0 mm`, `etaS = 0.10`, `mu = 30 kPa` remained difficult, but adaptivePhysicalTail still extended the branch from an almost immediate delayedCut failure to several kHz.
 
 ## Interpretation of valleyFallback
 
@@ -251,61 +216,42 @@ Recommended interpretation:
 - moderate fallback with smooth Cp and no tail collapse: acceptable but should be reported.
 - high fallback in soft/high-loss/thick cases: inspect residual landscapes or compare against complex-k solutions if available.
 
-## Current recommendation
+## FitTool dense-grid diagnostic
 
-Keep the default conservative:
-
-```matlab
-options.mrlfeA0Policy = "delayedCut";
-```
-
-Use the adaptive policy explicitly for difficult A0 viscous cases:
+FitTool keeps the primary fitted curve fit-consistent with the solver values used by the objective function. Dense solver re-evaluation is stored as diagnostic metadata:
 
 ```matlab
-options.mrlfeA0Policy = "adaptivePhysicalTail";
+normalized.fullCurve.denseSolver
+normalized.fullCurve.denseSolver.maxAbsDenseMinusFit_mps
+normalized.fullCurve.denseSolver.hasGridMismatch
+normalized.fullCurve.denseSolver.warningMessage
 ```
 
-This is currently the recommended policy for soft, viscous, fluid-loaded A0 branches when the direct delayedCut policy fails early or returns insufficient coverage.
+This avoids silently treating a second grid/path continuation as the fitted curve. See:
 
-Do not make adaptivePhysicalTail the global default yet because a substantial fraction of parametric cases used valleyFallback. The current evidence supports it as an opt-in policy with diagnostics, not yet as an unconditional default.
+```text
+docs/mrlfe/fittool_grid_path_sensitivity.md
+```
 
 ## Tests and contracts
 
-The atlas test runner includes a high-level policy selector contract:
+The atlas test runner includes the high-level policy selector contract:
 
 ```matlab
 tests/run_mrlfe_atlas_tests
 ```
 
-The policy selector test verifies that:
+The FitTool atlas route contracts are run with:
 
 ```matlab
-options.mrlfeA0Policy = "delayedCut";
-```
-
-routes to:
-
-```text
-viscousA0DelayedCut
-```
-
-and that:
-
-```matlab
-options.mrlfeA0Policy = "adaptivePhysicalTail";
-```
-
-routes to:
-
-```text
-viscousA0AdaptivePhysicalTailCut
+run_mrlfe_fit_atlas_tests
 ```
 
 The lightweight tests intentionally do not assert dense physical coverage of A0. Physical coverage must be checked with dense diagnostics, because the A0 branch is sensitive to frequency grid density and material regime.
 
 ## Suggested next checks
 
-Before changing defaults, run additional validation in at least one of the following directions:
+Before changing solver-wide defaults, run additional validation in at least one of the following directions:
 
 1. Compare adaptivePhysicalTail against complex-k mRLFE where available.
 2. Inspect residual landscapes for cases with high valleyFallbackCount.
@@ -315,7 +261,7 @@ Before changing defaults, run additional validation in at least one of the follo
 
 ## Practical usage example
 
-Conservative baseline:
+Conservative diagnostic baseline:
 
 ```matlab
 options = rlDefaultOptions("Fast");
@@ -323,7 +269,7 @@ options.mrlfeUseUnifiedAtlasRoute = true;
 options.mrlfeA0Policy = "delayedCut";
 ```
 
-Recommended difficult-case A0 route:
+Current FitTool A0Like fitting default and recommended difficult-case A0 route:
 
 ```matlab
 options = rlDefaultOptions("Fast");
@@ -338,7 +284,4 @@ branch.atlasUnifiedPolicy
 branch.physicalCorridor
 branch.candidateType
 branch.guideRatio
-branch.residual
 ```
-
-These fields are necessary to distinguish a clean physical branch from a branch that required fallback or tail cutting.

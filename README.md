@@ -7,9 +7,9 @@ MATLAB project for computing and plotting fundamental Lamb-wave phase velocity c
 * Rayleigh-Lamb A0 phase velocity using the antisymmetric residual.
 * Experimental Rayleigh-Lamb S0 phase velocity using the symmetric residual.
 * Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
-* mRLFE elastic and viscoelastic real-k dispersion for fluid-loaded layers.
+* mRLFE real-k dispersion and fitting for fluid-loaded layers.
 * Acoustoelastic IOP/HGO atlas-branch solver for prestress studies.
-* GUI plotting of phase velocity Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
+* GUI plotting and fitting of phase velocity Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
 
 ## Repository structure
 
@@ -49,6 +49,12 @@ The current GUI integration audit and adapter plan are documented in:
 
 ```text
 docs/gui/integration_audit.md
+```
+
+Repository cleanup policy is tracked in:
+
+```text
+docs/repository_hygiene_plan.md
 ```
 
 ## Launching the GUI
@@ -120,13 +126,29 @@ Available robustness presets:
 
 ## mRLFE solver workflow
 
-The mRLFE real-k model is solved using an intentionally chained workflow:
+The maintained mRLFE GUI surface exposes a single real-k model family:
 
 ```text
-Rayleigh-Lamb A0/S0
-    -> mRLFE elastic real-k A0-like/S0-like
-        -> mRLFE viscoelastic real-k A0-like/S0-like
+mRLFERealK
 ```
+
+The forward solver and sweep workflows still use the Rayleigh-Lamb seed and maintained mRLFE real-k branch machinery. The FitTool fitting route is atlas-first:
+
+```text
+mrlfeFitDispersionData
+    -> mrlfeBuildFitProblem
+    -> mrlfeEvaluateFitModel
+    -> mrlfeEvaluateAtlasFitModel
+    -> official mRLFE atlas branch output
+```
+
+For A0Like FitTool fitting, the current default policy is:
+
+```matlab
+options.mrlfeA0Policy = "adaptivePhysicalTail";
+```
+
+The conservative `delayedCut` policy remains available for diagnostics and policy comparisons.
 
 Main mRLFE folders:
 
@@ -175,8 +197,14 @@ Focused mRLFE diagnostics:
 ```matlab
 compare_mrlfe_tracker_vs_condition_peaks
 diagnose_etaS_direct_atlas_fit
-diagnose_mrlfe_visco_direct_atlas
+diagnose_etaS_forward_cache
+diagnose_fit_timing
+diagnose_fit_option_sensitivity
 stress_test_mrlfe_real_k_range
 ```
 
-The optional direct viscous atlas route is limited to the validated A0-like `etaS` fitting path. The general GUI and sweep workflows use the maintained reference-based mRLFE workflow.
+The complete mRLFE diagnostic inventory and historical cleanup candidates are documented in:
+
+```text
+examples/mrlfe/diagnostics/README.md
+```

@@ -1,6 +1,6 @@
 # mRLFE fitting workflow
 
-This document records the maintained mRLFE dispersion fitting workflow after the FitTool route-consistency update.
+This document records the maintained mRLFE dispersion fitting workflow after the FitTool route-consistency and visualization updates.
 
 ## Scope
 
@@ -38,7 +38,7 @@ Only `frequency_Hz` and `Cp_mps` are required.
 
 ## Atlas-first route policy
 
-The maintained mRLFE fitting route is now atlas-first, analogous to AE IOP/HGO fitting:
+The maintained mRLFE fitting route is atlas-first, analogous to AE IOP/HGO fitting:
 
 ```text
 mrlfeFitDispersionData
@@ -105,7 +105,7 @@ Rayleigh-Lamb seed
   -> official A0Like/S0Like fit branch
 ```
 
-For A0Like, the default A0 policy is:
+For A0Like FitTool fitting, the current default A0 policy is:
 
 ```matlab
 options.mrlfeA0Policy = "adaptivePhysicalTail";
@@ -167,6 +167,25 @@ Actual path examples:
 ```matlab
 fitOutput.routePolicy.actualPath == "zero_viscosity_adaptive_atlas"
 fitOutput.routePolicy.actualPath == "viscous_unified_atlas"
+```
+
+## FitTool fitted-curve policy
+
+The primary FitTool curve is fit-consistent. It interpolates the solver values used by the objective function at the experimental frequencies. This avoids silently plotting a second branch-continuation path as if it were the fitted curve.
+
+Dense solver re-evaluation is still computed and stored as diagnostic metadata:
+
+```matlab
+normalized.fullCurve.denseSolver
+normalized.fullCurve.denseSolver.maxAbsDenseMinusFit_mps
+normalized.fullCurve.denseSolver.hasGridMismatch
+normalized.fullCurve.denseSolver.warningMessage
+```
+
+If dense re-evaluation differs from the fit-consistent values beyond the configured threshold, the FitTool status reports a dense/grid mismatch. See:
+
+```text
+docs/mrlfe/fittool_grid_path_sensitivity.md
 ```
 
 ## Fit atlas preset

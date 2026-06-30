@@ -1,8 +1,22 @@
 # mRLFE tracker diagnostic summary
 
-This note summarizes the diagnostic evidence from `examples/mrlfe/diagnostics/compare_mrlfe_tracker_vs_condition_peaks.m` and records the maintained mRLFE stress-test diagnostics.
+This note summarizes diagnostic evidence from `examples/mrlfe/diagnostics/compare_mrlfe_tracker_vs_condition_peaks.m` and records maintained mRLFE stress-test diagnostics.
 
-The tracker diagnostic compares the current tracked mRLFE branch against a brute-force residual/condition scan over phase velocity `Cp`. It is intended to answer four questions:
+## Scope note
+
+This document is a tracker-behavior diagnostic reference. It explains why mRLFE branch selection cannot be reduced to global residual minimization and why local-minimum, modal-reference, and continuity information remain necessary.
+
+It is not the active FitTool fitting contract. Current FitTool fitting behavior is documented in:
+
+```text
+docs/mrlfe/fitting_workflow.md
+docs/mrlfe/fittool_grid_path_sensitivity.md
+docs/gui/mrlfe_atlas_policy_integration.md
+```
+
+The current FitTool route is atlas-first and keeps the primary fitted curve fit-consistent. Dense solver re-evaluation is diagnostic metadata.
+
+The tracker diagnostic compares the tracked mRLFE branch against a brute-force residual/condition scan over phase velocity `Cp`. It is intended to answer four questions:
 
 1. Is the tracked branch continuous?
 2. Does the tracked branch lie near a true local residual minimum?
@@ -39,14 +53,14 @@ Reference case used in the tracker comparison tests:
 | `nu` | `0.4999` |
 | `rho` | `1050 kg/m^3` |
 | `thickness` | `0.5 mm` |
-| Frequency range | `500–16000 Hz` |
+| Frequency range | `500-16000 Hz` |
 | Frequency points | `120` |
 | Fluid density | `1000 kg/m^3` |
 | Fluid sound speed | `1500 m/s` |
 | Viscoelastic shear viscosity `etaS` | `0.1 Pa*s` |
-| Cp scan range | `0.25–80 m/s` |
+| Cp scan range | `0.25-80 m/s` |
 | Cp scan points | `5000` |
-| Tight local window | `SolverCp ± 2%`, minimum half-width `0.05 m/s` |
+| Tight local window | `SolverCp +/- 2%`, minimum half-width `0.05 m/s` |
 
 ## Summary of tested cases
 

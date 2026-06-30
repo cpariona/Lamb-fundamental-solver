@@ -7,6 +7,7 @@ This folder contains active mRLFE model, fitting, sweep, diagnostic, and archive
 ```text
 README.md
 fitting_workflow.md
+fittool_grid_path_sensitivity.md
 current_sweeps.md
 diagnostics/
 archive/
@@ -16,38 +17,58 @@ archive/
 
 ```text
 docs/mrlfe/fitting_workflow.md
+docs/mrlfe/fittool_grid_path_sensitivity.md
 docs/mrlfe/current_sweeps.md
+docs/mrlfe/diagnostics/README.md
+docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
 docs/mrlfe_atlas_policy_notes.md
 examples/mrlfe/diagnostics/README.md
 ```
 
 ## Fitting workflow
 
-`fitting_workflow.md` is the current reference for mRLFE fitting routes:
+`fitting_workflow.md` is the current reference for mRLFE FitTool fitting routes. The maintained fitting route is atlas-first:
 
 ```text
-maintained/reference-based workflow
-etaS elastic-reference forward cache
-direct viscous atlas evaluator
+mrlfeFitDispersionData
+  -> mrlfeBuildFitProblem
+  -> mrlfeEvaluateFitModel
+  -> mrlfeEvaluateAtlasFitModel
+  -> official mRLFE atlas branch output
 ```
 
-It also documents the direct viscous atlas naming policy:
+For A0Like FitTool fitting, the current default A0 policy is:
 
-```text
-canonical option names: mrlfeA0DP*, mrlfeVisco*, mrlfeRealK*
-legacy aliases:        mrlfeViscoAtlas* compatibility only
+```matlab
+options.mrlfeA0Policy = "adaptivePhysicalTail";
+```
+
+The older reference/direct workflow remains available only for explicit diagnostics with:
+
+```matlab
+solverOptions.mrlfeUseAtlasFitRoute = false;
+```
+
+## FitTool grid/path sensitivity
+
+`fittool_grid_path_sensitivity.md` records a known visualization diagnostic: re-evaluating the dense mRLFE solver on a plotting grid can differ from the fit-consistent values used by the objective function. The FitTool therefore keeps the primary fitted curve fit-consistent and stores dense solver re-evaluation under:
+
+```matlab
+normalized.fullCurve.denseSolver
 ```
 
 ## Atlas policy notes
 
-`docs/mrlfe_atlas_policy_notes.md` records the current real-k atlas policy findings, including the A0 policy selector, S0 continuation route, conditional physical tail cut, dense diagnostics, and parametric sweep results.
+`docs/mrlfe_atlas_policy_notes.md` records real-k atlas policy findings, including the A0 policy selector, S0 continuation route, conditional physical-tail cut, dense diagnostics, and parametric sweep results.
 
-Current A0 policies:
+Current A0 policies used in diagnostics and comparisons:
 
 ```matlab
 options.mrlfeA0Policy = "delayedCut";
 options.mrlfeA0Policy = "adaptivePhysicalTail";
 ```
+
+`adaptivePhysicalTail` is the current FitTool A0Like fitting default. `delayedCut` remains a conservative comparison policy in diagnostics and sweep-policy investigations.
 
 ## Sweep status
 
@@ -90,6 +111,12 @@ Focused atlas tests:
 
 ```matlab
 tests/run_mrlfe_atlas_tests
+```
+
+Focused FitTool atlas tests:
+
+```matlab
+run_mrlfe_fit_atlas_tests
 ```
 
 Focused fitting validation:

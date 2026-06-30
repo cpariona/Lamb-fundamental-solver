@@ -9,6 +9,7 @@ docs/repository_structure.md
 docs/naming_strategy.md
 docs/validation_status.md
 docs/maintained_entrypoints.md
+docs/repository_hygiene_plan.md
 ```
 
 ## Active topic folders
@@ -61,6 +62,14 @@ docs/mrlfe/README.md
 docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/documentation_index.md
 ```
+
+## Cleanup planning
+
+```text
+docs/repository_hygiene_plan.md
+```
+
+Use this document before deleting, archiving, or consolidating documentation, examples, diagnostics, or tests.
 
 ## Archived documentation
 

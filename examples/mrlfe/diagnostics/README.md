@@ -8,6 +8,22 @@ For quick automated checks, use the test runner instead:
 tests/run_mrlfe_atlas_tests
 ```
 
+For FitTool route checks, use:
+
+```matlab
+run_mrlfe_fit_atlas_tests
+```
+
+## Classification policy
+
+Diagnostic scripts are classified as:
+
+| Class | Meaning |
+|---|---|
+| Primary maintained diagnostic | Current diagnostic workflow for atlas policy, A0/S0 route quality, or FitTool-relevant behavior. |
+| Secondary investigation diagnostic | Useful for debugging known failure modes, but not part of the standard validation sequence. |
+| Historical/candidate for removal | Earlier exploratory diagnostic likely superseded by current tests, primary diagnostics, or policy docs. Do not delete until references and coverage are checked. |
+
 ## Recommended diagnostic workflow
 
 Use the scripts in this order when validating the current atlas implementation.
@@ -22,7 +38,7 @@ Purpose:
 
 - Compare the conservative A0 policy against the adaptive physical-tail A0 policy.
 - Keep S0 adaptive continuation as reference.
-- Verify that `mrlfeA0Policy = "adaptivePhysicalTail"` improves difficult A0 branches without changing the default recommendation.
+- Verify that `mrlfeA0Policy = "adaptivePhysicalTail"` improves difficult A0 branches.
 
 Main output:
 
@@ -74,9 +90,9 @@ mrlfeA0PhysicalMaxTwoStepDropRelative
 mrlfeA0PhysicalMinValidRunBeforeCut
 ```
 
-## Primary scripts
+## Current script inventory
 
-These scripts are the main diagnostics for the current policy workflow.
+### Primary maintained diagnostics
 
 | Script | Role |
 |---|---|
@@ -84,35 +100,73 @@ These scripts are the main diagnostics for the current policy workflow.
 | `diagnose_mrlfe_a0_policy_parametric_sweep.m` | Broad A0 policy validation over `mu`, `etaS`, and thickness. |
 | `diagnose_mrlfe_a0_physical_corridor_mu_sweep.m` | Focused validation of the conditional physical tail cut. |
 | `diagnose_mrlfe_atlas_primary_policy_matrix.m` | High-level matrix of policy choices and routing behavior. |
+| `diagnose_fit_timing.m` | FitTool-oriented timing diagnostic for mRLFE fitting performance. |
+| `diagnose_fit_option_sensitivity.m` | FitTool-oriented option sensitivity diagnostic. |
+| `diagnose_etaS_forward_cache.m` | Checks etaS forward-cache behavior relevant to fitting and GUI consistency. |
+| `diagnose_etaS_direct_atlas_fit.m` | Direct-atlas etaS fitting diagnostic retained for comparison against maintained FitTool route. |
 
-## Secondary investigation scripts
-
-These scripts were used to isolate specific failure modes or guide policy design. They are useful for debugging but are not part of the standard validation sequence.
+### Secondary investigation diagnostics
 
 | Script | Role |
 |---|---|
-| `diagnose_mrlfe_a0_adaptive_policy_mu_sweep.m` | Early adaptive A0 policy sweep. Useful for comparing tracker options. |
+| `compare_mrlfe_tracker_vs_condition_peaks.m` | Tracker vs residual/condition-peak diagnostic; supports `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md`. |
+| `diagnose_mrlfe_visco_validity_breakdown.m` | Investigates valid/invalid real-k viscous branch segments. |
+| `diagnose_mrlfe_visco_residual_landscape.m` | Inspects viscous residual landscapes. |
+| `stress_test_mrlfe_real_k_range.m` | Heavy range stress test for material/frequency coverage. |
+| `diagnose_direct_atlas_etaS_zero_limit.m` | Checks whether direct atlas can reproduce etaS = 0 behavior; useful but not current default. |
+| `diagnose_mrlfe_a0_adaptive_policy_mu_sweep.m` | Early adaptive A0 policy sweep; useful for comparing tracker options. |
 | `diagnose_mrlfe_a0_direct_visco_atlas_start_failure.m` | Investigates early-start failure in direct viscous A0 atlas tracking. |
 | `diagnose_mrlfe_a0_direct_visco_atlas_vs_maintained.m` | Compares direct viscous atlas behavior against maintained/continued branches. |
 | `diagnose_mrlfe_a0_low_residual_basins_mu_sweep.m` | Inspects low-residual basin structure over a mu sweep. |
 | `diagnose_mrlfe_a0_residual_landscape_mu_sweep.m` | Inspects residual landscapes for A0 branch ambiguity. |
 | `diagnose_mrlfe_s0_direct_visco_atlas_cut_boundary.m` | Investigates S0 direct-visco cut boundaries. |
+| `diagnose_mrlfe_gui_performance_32kHz.m` | GUI performance diagnostic for high-frequency mRLFE cases. |
+| `diagnose_mrlfe_visco_direct_atlas.m` | Direct-viscous route comparison retained as secondary diagnostic while direct-atlas tests and route-policy docs remain active. |
 
-## Current A0 policy recommendation
+### Historical diagnostics removed in cleanup
 
-The conservative policy remains:
+The following exploratory diagnostics were removed after reference and coverage review because their role is superseded by current diagnostics, tests, or policy documentation:
+
+```text
+diagnose_mrlfe_a0_dp_scan_cost.m
+diagnose_mrlfe_a0_modal_atlas.m
+diagnose_mrlfe_a0_modal_atlas_candidates_23kHz.m
+diagnose_mrlfe_a0_modal_atlas_cluster_cut_policy.m
+diagnose_mrlfe_a0_modal_atlas_error_map.m
+diagnose_mrlfe_a0_modal_atlas_hook_policy.m
+diagnose_mrlfe_a0_modal_atlas_integrated_cut.m
+diagnose_mrlfe_a0_modal_atlas_seed_identity.m
+```
+
+## Current A0 policy wording
+
+The conservative comparison policy is:
 
 ```matlab
 options.mrlfeA0Policy = "delayedCut";
 ```
 
-The recommended opt-in policy for difficult soft, viscous, fluid-loaded A0 cases is:
+The current FitTool A0Like fitting default and recommended policy for difficult soft, viscous, fluid-loaded A0 cases is:
 
 ```matlab
 options.mrlfeA0Policy = "adaptivePhysicalTail";
 ```
 
-Do not treat `adaptivePhysicalTail` as a global default without additional physical validation. The parametric sweep showed robust coverage improvement, but a substantial fraction of difficult cases used `valleyFallback`, which should be reported as a confidence indicator.
+Do not treat either policy as experimentally validated for all physical regimes. `adaptivePhysicalTail` is the maintained FitTool route default because it improves the difficult A0-like fitting path, but the parametric sweep showed that some difficult cases use `valleyFallback`, which should be reported as a confidence indicator.
+
+## FitTool dense-grid diagnostic
+
+FitTool uses a fit-consistent primary curve and stores dense solver re-evaluation under:
+
+```matlab
+normalized.fullCurve.denseSolver
+```
+
+See:
+
+```text
+docs/mrlfe/fittool_grid_path_sensitivity.md
+```
 
 ## Outputs and generated files
 
@@ -136,3 +190,7 @@ Rerun the primary diagnostics after changes to:
 - default mRLFE atlas options
 
 For documentation-only changes, the lightweight test runner is normally sufficient.
+
+## Next cleanup step
+
+Review mRLFE tests for duplicate coverage only after diagnostic script pruning has been validated with the focused mRLFE runners.
