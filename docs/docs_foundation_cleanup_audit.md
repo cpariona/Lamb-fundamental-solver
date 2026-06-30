@@ -28,6 +28,14 @@ The goal is to update active documentation indexes and high-level workflow refer
 - Reframed `docs/gui/main_pending_cleanup.md` as an active cleanup roadmap rather than a post-AE temporary cleanup note.
 - Kept unresolved AE branch-sensitivity and layout items as roadmap items rather than deleting them.
 
+## Resolved in pass 4
+
+- Refreshed `docs/gui/adapter_architecture.md` as the detailed GUI/backend boundary reference.
+- Added FitTool flow, fitting registry, fitting adapters, normalized fit schema, and `FitToolLastOutput` contract to the GUI adapter architecture document.
+- Clarified that `docs/gui/integration_audit.md` is the GUI status overview while `docs/gui/adapter_architecture.md` is the detailed architecture reference.
+- Corrected `docs/gui/mrlfe_atlas_policy_integration.md` so `test_gui_mrlfe_elastic_atlas_guard_contract` is documented under `run_gui_smoke_tests`, not under the focused FitTool atlas runner.
+- Clarified that `run_mrlfe_fit_atlas_tests` covers FitTool atlas-route contracts only.
+
 ## Pending items
 
 ### maintained_entrypoints runner wording
@@ -56,20 +64,6 @@ run_mrlfe_fit_atlas_tests
 as the focused mRLFE FitTool fitting-route validation runner.
 
 This was not edited in this pass because the connector blocked a full-file update. It is documentation-only and does not affect test behavior.
-
-### GUI docs
-
-Review next:
-
-```text
-docs/gui/adapter_architecture.md
-docs/gui/mrlfe_atlas_policy_integration.md
-```
-
-Likely updates:
-
-- decide whether `adapter_architecture.md` should be the detailed GUI architecture doc while `integration_audit.md` remains the status overview;
-- ensure the mRLFE atlas policy document still matches the active tests and route metadata after the mRLFE hygiene merge.
 
 ### Model-family docs
 
