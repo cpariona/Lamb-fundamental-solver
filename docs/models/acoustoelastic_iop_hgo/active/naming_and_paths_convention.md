@@ -70,11 +70,12 @@ validate_idA0_score_grid
 validate_idA0_grid
 diagnose_idA0_score
 diagnose_modal_atlas
-diagnose_modal_atlas_lowfreq
 track_raw_branch1
 ```
 
 instead of repeating the full model name in every script filename.
+
+`diagnose_modal_atlas` now starts at low frequency by design. The separate `diagnose_modal_atlas_lowfreq` entrypoint was removed and should not be listed as a retained command.
 
 Long descriptive files can remain as implementation files for backward compatibility, but user-facing execution should use the short entrypoints.
 
@@ -98,7 +99,6 @@ Results/ae_iop_hgo/sweep_reliability
 Results/ae_iop_hgo/atlas_truncation
 Results/ae_iop_hgo/idA0_score
 Results/ae_iop_hgo/modal_atlas
-Results/ae_iop_hgo/modal_atlas_lowfreq
 Results/ae_iop_hgo/raw_branch1
 Results/ae_iop_hgo/atlas_vs_raw_branch1
 Results/ae_iop_hgo/atlas_vs_raw_branch1_grid
@@ -111,6 +111,7 @@ Legacy folders remain valid and should not be deleted automatically:
 ```text
 Results/acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 Results/acoustoelastic_iop_hgo_identityA0_physical_plausibility
+Results/ae_iop_hgo/modal_atlas_lowfreq
 ```
 
 ### Helper functions
@@ -172,7 +173,6 @@ validate_idA0_score_grid
 validate_idA0_grid
 diagnose_idA0_score
 diagnose_modal_atlas
-diagnose_modal_atlas_lowfreq
 track_raw_branch1
 ```
 
