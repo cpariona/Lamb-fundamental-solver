@@ -124,8 +124,8 @@ docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
 | `active/branch_policy.md` | Active policy | Official atlasA0 policy. | Keep. |
 | `active/solver_optimization_status.md` | Active policy/evidence | May overlap with branch policy and diagnostics. | Review for shortening only after technical AE audit. |
 | `active/solver_pending_work.md` | Active planning | Useful if still current. | Review after AE technical diagnostic. |
-| `active/framework_hygiene_status.md` | Audit / maintenance record | Maintainer-facing, not user workflow. | Candidate to move under `audits/` after reference check. |
-| `active/main_gui_integration_closure.md` | Closure record | Reads like completed phase closure, not active workflow. | Candidate to move under `archive/` after GUI reference check. |
+| `audits/framework_hygiene_status.md` | Audit / maintenance record | Maintainer-facing, not user workflow. | Moved from `active/` to `audits/`. |
+| `archive/main_gui_integration_closure.md` | Closure record | Completed first GUI integration closure and solver-interface handoff note. | Moved from `active/` to `archive/`. |
 | `audits/*.md` | Audit / retention records | Many are historical maintenance records. | Keep for now; possible future archive consolidation. |
 | `diagnostics/*.md` | Diagnostic evidence | Retain until AE physical/numerical audit decides what evidence remains relevant. | Do not delete now. |
 | `archive/*.md` | Archive records | Already archived. | Keep. |
@@ -150,7 +150,7 @@ The safe actions for this branch are limited to:
 
 ```text
 1. Fix stale links created or exposed by the docs layout move.
-2. Add this audit file.
+2. Move completed closure and maintenance notes to archive/audit folders.
 3. Update indexes so future cleanup uses this audit.
 ```
 
