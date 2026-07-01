@@ -116,7 +116,7 @@ Remaining investigation items:
 Solver-side residual waviness is tracked separately in:
 
 ```text
-docs/models/acoustoelastic_iop_hgo/solver_pending_work.md
+docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md
 ```
 
 ## 5. Numerical-resolution policy across models
