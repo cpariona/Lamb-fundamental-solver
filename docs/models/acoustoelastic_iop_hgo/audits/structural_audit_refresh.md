@@ -12,7 +12,8 @@ models/acoustoelastic_iop_hgo/
 examples/acoustoelastic_iop_hgo/basic/
 examples/acoustoelastic_iop_hgo/sweeps/
 examples/acoustoelastic_iop_hgo/diagnostics/
-tests/acoustoelastic_iop_hgo/
+tests/models/acoustoelastic_iop_hgo/
+tests/app/
 docs/models/acoustoelastic_iop_hgo/
 ```
 
