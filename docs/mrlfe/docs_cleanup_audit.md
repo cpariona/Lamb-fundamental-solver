@@ -181,6 +181,24 @@ diagnose_mrlfe_a0_modal_atlas_seed_identity.m
 - Marked weakly referenced exploratory diagnostics as archive candidates after exact-name searches found no active references outside the diagnostics README.
 - Added explicit criteria before any future archive/delete action: exact reference search, unresolved-issue check, coverage check, and focused validation.
 
+## Resolved in pass 12
+
+- Moved six weakly referenced exploratory mRLFE diagnostics into `examples/mrlfe/diagnostics/archive/` instead of deleting them.
+- Added `examples/mrlfe/diagnostics/archive/README.md` to mark the folder as historical and non-maintained.
+- Updated `examples/mrlfe/diagnostics/README.md` so these scripts are classified as archived diagnostics rather than active archive candidates.
+- Preserved the scripts for traceability while removing them from the maintained diagnostic workflow.
+
+Archived scripts:
+
+```text
+examples/mrlfe/diagnostics/archive/diagnose_mrlfe_a0_adaptive_policy_mu_sweep.m
+examples/mrlfe/diagnostics/archive/diagnose_mrlfe_a0_direct_visco_atlas_start_failure.m
+examples/mrlfe/diagnostics/archive/diagnose_mrlfe_a0_direct_visco_atlas_vs_maintained.m
+examples/mrlfe/diagnostics/archive/diagnose_mrlfe_a0_low_residual_basins_mu_sweep.m
+examples/mrlfe/diagnostics/archive/diagnose_mrlfe_a0_residual_landscape_mu_sweep.m
+examples/mrlfe/diagnostics/archive/diagnose_mrlfe_s0_direct_visco_atlas_cut_boundary.m
+```
+
 ## Remaining audit items
 
 ### mRLFE documentation
@@ -202,18 +220,6 @@ Expected actions:
 - Keep `docs/gui/mrlfe_atlas_policy_integration.md` as the GUI adapter and metadata contract.
 - Avoid duplicating long policy tables in the mRLFE index.
 
-### Archive candidates
-
-The next cleanup step is optional and should not be done without local validation. For each archive candidate in `examples/mrlfe/diagnostics/README.md`, choose one outcome:
-
-```text
-keep as secondary diagnostic
-move to an archive folder with historical status wording
-delete after validation if fully superseded
-```
-
-Do not delete diagnostics solely because they are slow.
-
 ## Validation after documentation-only passes
 
 Run:
@@ -225,7 +231,7 @@ run_gui_smoke_tests
 run_mrlfe_fit_atlas_tests
 ```
 
-After diagnostic script pruning, run:
+After diagnostic script pruning or archiving, run:
 
 ```matlab
 clear; clc; close all;
