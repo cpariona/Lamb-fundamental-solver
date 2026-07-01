@@ -2,6 +2,8 @@
 
 This folder contains active mRLFE model, fitting, sweep, diagnostic, and archived cleanup documentation.
 
+This file is an index. It should summarize where the maintained information lives, not duplicate the full fitting, GUI, or atlas-policy contracts.
+
 ## Folder map
 
 ```text
@@ -15,19 +17,20 @@ archive/
 
 ## Active references
 
-```text
-docs/mrlfe/fitting_workflow.md
-docs/mrlfe/fittool_grid_path_sensitivity.md
-docs/mrlfe/current_sweeps.md
-docs/mrlfe/diagnostics/README.md
-docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
-docs/mrlfe_atlas_policy_notes.md
-examples/mrlfe/diagnostics/README.md
-```
+| Topic | Maintained reference |
+|---|---|
+| FitTool fitting route | `docs/mrlfe/fitting_workflow.md` |
+| Dense-grid / plotting diagnostic | `docs/mrlfe/fittool_grid_path_sensitivity.md` |
+| Maintained sweeps | `docs/mrlfe/current_sweeps.md` |
+| Diagnostic summaries | `docs/mrlfe/diagnostics/README.md` |
+| Tracker diagnostic evidence | `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md` |
+| Atlas policy evidence | `docs/mrlfe_atlas_policy_notes.md` |
+| GUI adapter integration | `docs/gui/mrlfe_atlas_policy_integration.md` |
+| Diagnostic script inventory | `examples/mrlfe/diagnostics/README.md` |
 
-## Fitting workflow
+## Current maintained route summary
 
-`fitting_workflow.md` is the current reference for mRLFE FitTool fitting routes. The maintained fitting route is atlas-first:
+The maintained FitTool fitting route is atlas-first:
 
 ```text
 mrlfeFitDispersionData
@@ -49,79 +52,31 @@ The older reference/direct workflow remains available only for explicit diagnost
 solverOptions.mrlfeUseAtlasFitRoute = false;
 ```
 
-## FitTool grid/path sensitivity
+## Document roles
 
-`fittool_grid_path_sensitivity.md` records a known visualization diagnostic: re-evaluating the dense mRLFE solver on a plotting grid can differ from the fit-consistent values used by the objective function. The FitTool therefore keeps the primary fitted curve fit-consistent and stores dense solver re-evaluation under:
+- `fitting_workflow.md` is the active fitting-route contract.
+- `fittool_grid_path_sensitivity.md` records the fit-consistent curve policy and dense solver re-evaluation diagnostic.
+- `current_sweeps.md` records maintained sweep scripts and generated-output conventions.
+- `docs/mrlfe_atlas_policy_notes.md` records atlas policy evidence and diagnostic findings.
+- `docs/gui/mrlfe_atlas_policy_integration.md` records GUI-facing adapter metadata and route contracts.
+- `diagnostics/` and `examples/mrlfe/diagnostics/README.md` preserve diagnostic evidence and script classification.
+- `archive/` preserves historical cleanup notes only.
 
-```matlab
-normalized.fullCurve.denseSolver
-```
-
-## Atlas policy notes
-
-`docs/mrlfe_atlas_policy_notes.md` records real-k atlas policy findings, including the A0 policy selector, S0 continuation route, conditional physical-tail cut, dense diagnostics, and parametric sweep results.
-
-Current A0 policies used in diagnostics and comparisons:
-
-```matlab
-options.mrlfeA0Policy = "delayedCut";
-options.mrlfeA0Policy = "adaptivePhysicalTail";
-```
-
-`adaptivePhysicalTail` is the current FitTool A0Like fitting default. `delayedCut` remains a conservative comparison policy in diagnostics and sweep-policy investigations.
-
-## Sweep status
-
-`current_sweeps.md` records the current mRLFE sweep scripts and generated-output conventions.
-
-## Diagnostic evidence
-
-Diagnostic documentation lives in:
+## Current A0 policy wording
 
 ```text
-docs/mrlfe/diagnostics/
-examples/mrlfe/diagnostics/README.md
+adaptivePhysicalTail  -> current FitTool A0Like fitting default
+delayedCut            -> conservative comparison policy for diagnostics and sweep-policy investigations
 ```
 
-Current diagnostic summary:
+Neither policy should be described as externally validated for every physical regime without additional FEM, experiment, or complex-k comparison evidence.
 
-```text
-docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
-```
-
-## Archived cleanup records
-
-Historical cleanup notes live in:
-
-```text
-docs/mrlfe/archive/
-```
-
-These records are retained for traceability. They are not active API or workflow documentation.
-
-## Related tests
-
-Primary mRLFE smoke entrypoint:
+## Related tests and runners
 
 ```matlab
 run_mrlfe_smoke_tests
-```
-
-Focused atlas tests:
-
-```matlab
-tests/run_mrlfe_atlas_tests
-```
-
-Focused FitTool atlas tests:
-
-```matlab
+run_mrlfe_atlas_tests
 run_mrlfe_fit_atlas_tests
-```
-
-Focused fitting validation:
-
-```matlab
 run_fit_validation_tests
 ```
 

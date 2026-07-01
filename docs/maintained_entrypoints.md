@@ -1,6 +1,6 @@
 # Maintained entrypoints
 
-This document lists the current maintained execution surface of the repository.
+This document lists the current maintained execution surface of the repository. Test names are listed by MATLAB entrypoint name; the current folder layout is documented in `tests/README.md`.
 
 ## Setup
 
@@ -153,6 +153,7 @@ Maintained Rayleigh-Lamb tests:
 
 ```matlab
 test_rl_fit_synthetic_A0
+test_rl_fit_evaluator_branch_consistency
 ```
 
 Focused Rayleigh-Lamb fitting validation is covered by:
@@ -336,14 +337,10 @@ Additional mRLFE secondary and historical diagnostics are documented in:
 examples/mrlfe/diagnostics/README.md
 ```
 
-Maintained mRLFE tests:
+Maintained mRLFE model-family tests:
 
 ```matlab
 test_mrlfe_smoke
-test_mrlfe_direct_visco_atlas_evaluator
-test_mrlfe_direct_visco_atlas_modal_cut_policy
-test_mrlfe_direct_visco_atlas_option_alias_contract
-test_mrlfe_etaS_fit_forward_cache
 test_mrlfe_etaS_zero_limit
 test_mrlfe_elastic_reference_buffer
 test_mrlfe_residual_objective_contract
@@ -359,15 +356,19 @@ test_mrlfe_diagnostic_material_sweep_contract
 test_mrlfe_etaS_zero_diagnostic_selection
 test_mrlfe_fit_synthetic_A0Like
 test_mrlfe_fit_fast_options_quality
+test_mrlfe_etaS_fit_forward_cache
 ```
 
-Maintained mRLFE atlas tests:
+Maintained mRLFE atlas and route-policy tests:
 
 ```matlab
 run_mrlfe_atlas_tests
 test_mrlfe_modal_atlas_ambiguity_contract
 test_mrlfe_modal_atlas_s0_contract
 test_mrlfe_atlas_policy_matrix_contract
+test_mrlfe_direct_visco_atlas_evaluator
+test_mrlfe_direct_visco_atlas_modal_cut_policy
+test_mrlfe_direct_visco_atlas_option_alias_contract
 test_mrlfe_direct_visco_branch_policy_contract
 test_mrlfe_delayed_visco_modal_cut_contract
 test_mrlfe_a0_delayed_direct_visco_opt_in_contract
@@ -376,11 +377,13 @@ test_mrlfe_unified_atlas_route_contract
 test_mrlfe_s0_adaptive_atlas_tracker_contract
 test_mrlfe_unified_atlas_mu_sweep_contract
 test_mrlfe_a0_policy_selector_contract
+test_mrlfe_a0_adaptive_physical_tail_contract
 ```
 
 Maintained GUI mRLFE atlas integration tests:
 
 ```matlab
+test_gui_mrlfe_elastic_atlas_guard_contract
 test_gui_mrlfe_unified_atlas_policy_contract
 test_gui_mrlfe_fit_zero_eta_atlas_contract
 test_gui_mrlfe_fit_route_policy_contract
@@ -436,6 +439,8 @@ docs/mrlfe/fitting_workflow.md
 docs/mrlfe/fittool_grid_path_sensitivity.md
 docs/mrlfe/current_sweeps.md
 docs/mrlfe/docs_cleanup_audit.md
+docs/mrlfe/diagnostics/README.md
+docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
 docs/mrlfe_atlas_policy_notes.md
 examples/mrlfe/diagnostics/README.md
 docs/gui/adapter_architecture.md

@@ -35,10 +35,10 @@ Current status:
 - The maintained normalized model name is `mRLFERealK`.
 - The physical raw model names are `mRLFEElasticRealK` and `mRLFEViscoRealK`.
 - Author-dependent mRLFE model names have been removed from the maintained solver, GUI, docs, and smoke-test surface.
-- `tests/mrlfe/test_mrlfe_etaS_zero_limit.m` protects the etaS = 0 physical contract.
-- `tests/mrlfe/test_mrlfe_elastic_reference_buffer.m` protects the etaS > 0 buffer contract.
-- `tests/mrlfe/test_mrlfe_model_candidate_names.m` protects the canonical model-name contract.
-- `tests/mrlfe/test_mrlfe_maintained_entrypoints_naming.m` guards maintained mRLFE files against reintroducing author-dependent names.
+- `tests/models/mrlfe/test_mrlfe_etaS_zero_limit.m` protects the etaS = 0 physical contract.
+- `tests/models/mrlfe/test_mrlfe_elastic_reference_buffer.m` protects the etaS > 0 buffer contract.
+- `tests/models/mrlfe/test_mrlfe_model_candidate_names.m` protects the canonical model-name contract.
+- `tests/models/mrlfe/test_mrlfe_maintained_entrypoints_naming.m` guards maintained mRLFE files against reintroducing author-dependent names.
 
 Remaining cleanup:
 
@@ -57,7 +57,7 @@ Current status:
 - The maintained default objective is `minSingularValueRatio`, defined as `sigma_min(M)/sigma_max(M)`.
 - The determinant-based objective remains available only through the explicit `determinant` method for comparison or focused diagnostics.
 - `mrlfeResidual` remains as a compatibility wrapper around `objectiveMRLFEResidual`.
-- `tests/mrlfe/test_mrlfe_residual_objective_contract.m` protects the objective default and wrapper behavior.
+- `tests/models/mrlfe/test_mrlfe_residual_objective_contract.m` protects the objective default and wrapper behavior.
 
 Rationale:
 
@@ -89,9 +89,9 @@ Current status:
 - `compareMRLFETrackingStrategies` is the maintained comparison helper for running direct and internal-grid strategies on the same mRLFE branch setup.
 - The helpers accept full mRLFE result structs or individual branch structs and do not create files or figures.
 - They report valid fraction, frequency span, Cp range, relative jumps, roughness, residual metrics, internal-grid usage, and a compact quality score.
-- `tests/mrlfe/test_mrlfe_tracking_quality_summary.m` protects the summary helper contract.
-- `tests/mrlfe/test_mrlfe_tracking_strategy_comparison.m` protects the direct/internal-grid comparison helper contract.
-- `tests/mrlfe/test_mrlfe_internal_grid_quality_guard.m` protects that the viscous internal-grid policy does not degrade severely relative to direct tracking in a representative A0-like case.
+- `tests/models/mrlfe/test_mrlfe_tracking_quality_summary.m` protects the summary helper contract.
+- `tests/models/mrlfe/test_mrlfe_tracking_strategy_comparison.m` protects the direct/internal-grid comparison helper contract.
+- `tests/models/mrlfe/test_mrlfe_internal_grid_quality_guard.m` protects that the viscous internal-grid policy does not degrade severely relative to direct tracking in a representative A0-like case.
 
 Rationale:
 

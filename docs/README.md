@@ -41,6 +41,7 @@ docs/acoustoelastic_iop_hgo/active/fitting_workflow.md
 docs/gui/adapter_architecture.md
 docs/gui/integration_audit.md
 docs/gui/main_pending_cleanup.md
+docs/gui/mrlfe_atlas_policy_integration.md
 docs/acoustoelastic_iop_hgo/active/main_gui_integration_closure.md
 ```
 
@@ -60,6 +61,12 @@ docs/rayleigh_lamb/overview.md
 docs/rayleigh_lamb/public_api.md
 docs/rayleigh_lamb/fitting_workflow.md
 docs/mrlfe/README.md
+docs/mrlfe/fitting_workflow.md
+docs/mrlfe/fittool_grid_path_sensitivity.md
+docs/mrlfe/current_sweeps.md
+docs/mrlfe/diagnostics/README.md
+docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
+docs/mrlfe_atlas_policy_notes.md
 docs/acoustoelastic_iop_hgo/README.md
 docs/acoustoelastic_iop_hgo/documentation_index.md
 ```
@@ -69,6 +76,7 @@ docs/acoustoelastic_iop_hgo/documentation_index.md
 ```text
 docs/repository_hygiene_plan.md
 docs/docs_foundation_cleanup_audit.md
+docs/mrlfe/docs_cleanup_audit.md
 ```
 
 Use these documents before deleting, archiving, or consolidating documentation, examples, diagnostics, or tests.
@@ -78,6 +86,7 @@ Use these documents before deleting, archiving, or consolidating documentation, 
 ```text
 docs/archive/fitting_phase_logs.md
 docs/archive/fitting_phases/
+docs/mrlfe/archive/
 docs/acoustoelastic_iop_hgo/archive/
 ```
 
