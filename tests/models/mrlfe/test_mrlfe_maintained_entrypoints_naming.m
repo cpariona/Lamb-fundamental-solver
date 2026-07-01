@@ -9,7 +9,7 @@ repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 forbiddenToken = char([72 97 110]);
 forbiddenModelName = char([109 82 76 70 69 72 97 110 86 105 115 99 111 82 101 97 108 75]);
 
-entrypointsPath = fullfile(repoRoot, 'docs', 'maintained_entrypoints.md');
+entrypointsPath = fullfile(repoRoot, 'docs', 'repository', 'maintained_entrypoints.md');
 entrypointsText = fileread(entrypointsPath);
 sectionStart = strfind(entrypointsText, '## mRLFE model');
 sectionEnd = strfind(entrypointsText, '## Smoke-test scope');
@@ -75,7 +75,7 @@ assert(~isfile(fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_te
 atlasDiagnosticReadme = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'README.md');
 assert(isfile(atlasDiagnosticReadme), 'mRLFE diagnostics README is missing.');
 
-atlasPolicyNotes = fullfile(repoRoot, 'docs', 'mrlfe_atlas_policy_notes.md');
+atlasPolicyNotes = fullfile(repoRoot, 'docs', 'models', 'mrlfe', 'atlas_policy_notes.md');
 assert(isfile(atlasPolicyNotes), 'mRLFE atlas policy notes are missing.');
 
 atlasTestRunner = fullfile(repoRoot, 'tests', 'run_mrlfe_atlas_tests.m');
