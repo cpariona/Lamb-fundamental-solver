@@ -120,7 +120,6 @@ The following long descriptive files are not simple duplicates; they are impleme
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid.m
 examples/acoustoelastic_iop_hgo/diagnostics/validate_acoustoelastic_iop_hgo_branch_identity_score_grid.m
 ```
@@ -153,7 +152,7 @@ diagnose_acoustoelastic_iop_hgo_modal_atlas.m
   uses aeOutputFolder for Results/ae_iop_hgo/modal_atlas.
 
 diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
-  uses aeOutputFolder for Results/ae_iop_hgo/modal_atlas_lowfreq.
+  removed; old outputs may still be read as legacy fallback inputs by raw-branch diagnostics.
 ```
 
 The remaining `Results/acoustoelastic_iop_hgo...` occurrences in documentation are historical notes, migration notes, or compatibility descriptions.
@@ -182,16 +181,14 @@ Do not delete in the next deletion pass:
 
 ```text
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas_lowfreq.m
 examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_modal_atlas.m
-examples/acoustoelastic_iop_hgo/diagnostics/diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas.m
 ```
 
 Rationale:
 
 ```text
-The short files preserve launch-folder behavior.
-The long files contain retained modal-atlas implementation logic.
+The short file preserves launch-folder behavior.
+The long file contains retained modal-atlas implementation logic.
 Any consolidation should be a dedicated helper-extraction design pass.
 ```
 

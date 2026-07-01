@@ -46,13 +46,13 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
 | `diagnose_modal_atlas` | `diagnose_acoustoelastic_iop_hgo_modal_atlas` | historical thesis-analysis diagnostic; short entrypoint writes to short output path |
-| `diagnose_modal_atlas_lowfreq` | `diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas` | historical thesis-analysis diagnostic; short entrypoint writes to short output path |
 | `track_raw_branch1` | `track_acoustoelastic_iop_hgo_raw_branch1_candidate` | archived implementation; use `track_raw_branch1` or `aeExtractRawBranch1Candidate` |
 
 ### Archived diagnostics and aliases removed from examples
 
 | Removed short entrypoint or alias | Removed legacy/descriptive file | Replacement or retained evidence |
 |---|---|---|
+| `diagnose_modal_atlas_lowfreq` | `diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas` | use `diagnose_modal_atlas`; low-frequency initialization is implicit |
 | `run_acoustoelastic_iop_hgo_atlas_branch` | same file | use `run_atlas_branch` |
 | `sweep_acoustoelastic_iop_hgo_iop` | same file | use `sweep_iop` |
 | `sweep_acoustoelastic_iop_hgo_mu` | same file | use `sweep_mu` |

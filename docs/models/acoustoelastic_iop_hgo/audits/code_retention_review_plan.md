@@ -84,7 +84,7 @@ test_ae_analyze_truncation_recovery
 | `validate_idA0_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy grid validation for `identityA0Diagnostic` official-output preservation. | Keep outside routine workflow. |
 | `validate_idA0_score_grid` | `KEEP_FOR_THESIS_ANALYSIS` | Heavy score-grid validation for branch-identity scoring. | Keep outside routine workflow. |
 | `diagnose_modal_atlas` | `KEEP_FOR_THESIS_ANALYSIS` | Useful evidence for modal-family ambiguity. | Keep outside routine workflow. |
-| `diagnose_modal_atlas_lowfreq` | `KEEP_FOR_THESIS_ANALYSIS` | Useful low-frequency modal-family interpretation. | Keep outside routine workflow. |
+| `diagnose_modal_atlas_lowfreq` | `REMOVED_AFTER_MODAL_ATLAS_CONSOLIDATION` | Low-frequency initialization is now implicit in `diagnose_modal_atlas`. | Removed; keep historical evidence in archive/audit docs only. |
 | `track_raw_branch1` | `RETAIN_FOR_COMPARISON_REPRODUCIBILITY` | Produces `Results/ae_iop_hgo/raw_branch1/raw_branch1_curve.csv` through `aeExtractRawBranch1Candidate`; this curve is consumed by `compare_atlasA0_vs_raw_branch1`. | Keep. |
 | `diagnose_truncation_cases` | `DELETED_AFTER_TESTS` | Superseded by `diagnose_atlas_truncation` and retained truncation docs. | Removed with legacy implementation. |
 | `diagnose_landscape_failure` | `DELETED_AFTER_TESTS` | Superseded by `diagnose_atlas_truncation` and retained failure-landscape docs. | Removed with legacy implementation. |
