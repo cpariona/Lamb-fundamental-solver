@@ -42,7 +42,6 @@ docs/workflows/gui/adapter_architecture.md
 docs/workflows/gui/integration_audit.md
 docs/workflows/gui/main_pending_cleanup.md
 docs/workflows/gui/mrlfe_atlas_policy_integration.md
-docs/models/acoustoelastic_iop_hgo/active/main_gui_integration_closure.md
 ```
 
 ## Active sweep documentation
