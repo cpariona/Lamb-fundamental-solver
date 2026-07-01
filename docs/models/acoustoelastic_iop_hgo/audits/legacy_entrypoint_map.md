@@ -61,11 +61,11 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | same file | use `diagnose_atlas_truncation` |
 | `diagnose_identityA0_plausibility` | same file | use `diagnose_idA0_plausibility` |
 | `track_acoustoelastic_iop_hgo_raw_branch1_candidate` | same file | use `track_raw_branch1`; implementation moved to `aeExtractRawBranch1Candidate` |
-| `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | `atlasA0` policy closure is documented in `docs/models/acoustoelastic_iop_hgo/phase_closure_atlasA0.md` and `docs/models/acoustoelastic_iop_hgo/solver_optimization_status.md` |
+| `compare_branch_policies` | `compare_acoustoelastic_iop_hgo_branch_policies` | `atlasA0` policy closure is documented in `docs/models/acoustoelastic_iop_hgo/archive/phase_closure_atlasA0.md` and `docs/models/acoustoelastic_iop_hgo/active/solver_optimization_status.md` |
 | `diagnose_branch_policy` | `diagnose_acoustoelastic_iop_hgo_branch_policy` | branch-policy comparison history retained in documentation; use maintained `atlasA0` policy |
-| `diagnose_atlas_resolution` | `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity` | resolution-sensitivity conclusions retained in `docs/models/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md` |
-| `diagnose_truncation_cases` | `diagnose_acoustoelastic_iop_hgo_truncation_cases` | use `diagnose_atlas_truncation`; see `docs/models/acoustoelastic_iop_hgo/atlasA0_truncation_validation.md` |
-| `diagnose_landscape_failure` | `diagnose_acoustoelastic_iop_hgo_failure_landscape` | use `diagnose_atlas_truncation`; see `docs/models/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md` |
+| `diagnose_atlas_resolution` | `diagnose_acoustoelastic_iop_hgo_atlasA0_resolution_sensitivity` | resolution-sensitivity conclusions retained in `docs/models/acoustoelastic_iop_hgo/diagnostics/atlasA0_truncation_cause_diagnostic.md` |
+| `diagnose_truncation_cases` | `diagnose_acoustoelastic_iop_hgo_truncation_cases` | use `diagnose_atlas_truncation`; see `docs/models/acoustoelastic_iop_hgo/diagnostics/atlasA0_truncation_validation.md` |
+| `diagnose_landscape_failure` | `diagnose_acoustoelastic_iop_hgo_failure_landscape` | use `diagnose_atlas_truncation`; see `docs/models/acoustoelastic_iop_hgo/diagnostics/atlasA0_truncation_cause_diagnostic.md` |
 | `diagnose_branch_persistence` | `diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement` | helper behavior retained in `aeAnalyzeBranchPersistenceCandidates`, `aeRefineAtlasA0BranchPersistence`, and `test_acoustoelastic_iop_hgo_branch_persistence_refinement` |
 
 ### New diagnostics without legacy counterpart

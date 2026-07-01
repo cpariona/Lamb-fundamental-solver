@@ -160,11 +160,11 @@ diagnose_acoustoelastic_iop_hgo_branch_persistence_refinement.m
 Replacement or retained evidence:
 
 ```text
-docs/models/acoustoelastic_iop_hgo/phase_closure_atlasA0.md
-docs/models/acoustoelastic_iop_hgo/solver_optimization_status.md
+docs/models/acoustoelastic_iop_hgo/archive/phase_closure_atlasA0.md
+docs/models/acoustoelastic_iop_hgo/active/solver_optimization_status.md
 diagnose_atlas_truncation
-docs/models/acoustoelastic_iop_hgo/atlasA0_truncation_validation.md
-docs/models/acoustoelastic_iop_hgo/atlasA0_truncation_cause_diagnostic.md
+docs/models/acoustoelastic_iop_hgo/diagnostics/atlasA0_truncation_validation.md
+docs/models/acoustoelastic_iop_hgo/diagnostics/atlasA0_truncation_cause_diagnostic.md
 ```
 
 The branch-persistence executable diagnostic was removed, but the reusable helper behavior remains in:
@@ -189,7 +189,7 @@ diagnose_acoustoelastic_iop_hgo_residual_landscape.m
 Retained evidence:
 
 ```text
-docs/models/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
+docs/models/acoustoelastic_iop_hgo/archive/direct_matrix_landscape_archive.md
 ```
 
 ### Archived E2 exploratory diagnostics
@@ -206,7 +206,7 @@ diagnose_acoustoelastic_iop_hgo_grid_convergence.m
 Retained evidence:
 
 ```text
-docs/models/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+docs/models/acoustoelastic_iop_hgo/archive/a0_backward_tracking_archive.md
 ```
 
 ### Archived E3 exploratory diagnostic
@@ -220,7 +220,7 @@ run_acoustoelastic_iop_hgo_A0_complexC.m
 Retained evidence:
 
 ```text
-docs/models/acoustoelastic_iop_hgo/complex_c_continuation_archive.md
+docs/models/acoustoelastic_iop_hgo/archive/complex_c_continuation_archive.md
 ```
 
 Retained implementation capability:
