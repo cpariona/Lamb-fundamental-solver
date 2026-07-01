@@ -126,9 +126,9 @@ end
 
 function assertMaintainedDocsContain(maintainedHelpers, maintainedWorkflows, maintainedDiagnostics)
 repoRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
-entrypointsText = fileread(fullfile(repoRoot, 'docs', 'maintained_entrypoints.md'));
-publicApiText = fileread(fullfile(repoRoot, 'docs', 'acoustoelastic_iop_hgo', 'public_api.md'));
-readmeText = fileread(fullfile(repoRoot, 'docs', 'acoustoelastic_iop_hgo', 'README.md'));
+entrypointsText = fileread(fullfile(repoRoot, 'docs', 'repository', 'maintained_entrypoints.md'));
+publicApiText = fileread(fullfile(repoRoot, 'docs', 'models', 'acoustoelastic_iop_hgo', 'active', 'public_api.md'));
+readmeText = fileread(fullfile(repoRoot, 'docs', 'models', 'acoustoelastic_iop_hgo', 'README.md'));
 
 for iName = 1:numel([maintainedHelpers, maintainedWorkflows, maintainedDiagnostics])
     entryName = [maintainedHelpers, maintainedWorkflows, maintainedDiagnostics];

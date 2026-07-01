@@ -12,7 +12,7 @@ Updated files:
 app/FitTool_GUI.m
 app/createFittingTab.m
 tests/run_gui_smoke_tests.m
-docs/maintained_entrypoints.md
+docs/repository/maintained_entrypoints.md
 ```
 
 Added file:

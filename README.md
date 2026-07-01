@@ -30,31 +30,31 @@ references/                           Reference material for development and val
 A more detailed structure map is available in:
 
 ```text
-docs/repository_structure.md
+docs/repository/repository_structure.md
 ```
 
 Maintained solver, example, diagnostic, and test entrypoints are listed in:
 
 ```text
-docs/maintained_entrypoints.md
+docs/repository/maintained_entrypoints.md
 ```
 
 The repository naming strategy is documented in:
 
 ```text
-docs/naming_strategy.md
+docs/repository/naming_strategy.md
 ```
 
 The current GUI integration audit and adapter plan are documented in:
 
 ```text
-docs/gui/integration_audit.md
+docs/workflows/gui/integration_audit.md
 ```
 
 Repository cleanup policy is tracked in:
 
 ```text
-docs/repository_hygiene_plan.md
+docs/repository/repository_hygiene_plan.md
 ```
 
 ## Launching the GUI
