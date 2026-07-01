@@ -173,6 +173,14 @@ diagnose_mrlfe_a0_modal_atlas_seed_identity.m
 - Refreshed the maintained mRLFE model-family, atlas/route-policy, and GUI mRLFE test lists using current test names.
 - Added an explicit note that test names are listed as MATLAB entrypoints and that folder layout is documented in `tests/README.md`.
 
+## Resolved in pass 11
+
+- Refined `examples/mrlfe/diagnostics/README.md` without moving or deleting scripts.
+- Replaced the obsolete runner path `tests/run_mrlfe_atlas_tests` with the maintained command `run_mrlfe_atlas_tests`.
+- Split diagnostics into primary maintained, secondary investigation, archive candidates, and removed historical diagnostics.
+- Marked weakly referenced exploratory diagnostics as archive candidates after exact-name searches found no active references outside the diagnostics README.
+- Added explicit criteria before any future archive/delete action: exact reference search, unresolved-issue check, coverage check, and focused validation.
+
 ## Remaining audit items
 
 ### mRLFE documentation
@@ -194,21 +202,17 @@ Expected actions:
 - Keep `docs/gui/mrlfe_atlas_policy_integration.md` as the GUI adapter and metadata contract.
 - Avoid duplicating long policy tables in the mRLFE index.
 
-### mRLFE diagnostics and examples
+### Archive candidates
 
-Review diagnostic scripts only after reference checks. Do not delete diagnostics solely because they are slow.
-
-Priority file:
+The next cleanup step is optional and should not be done without local validation. For each archive candidate in `examples/mrlfe/diagnostics/README.md`, choose one outcome:
 
 ```text
-examples/mrlfe/diagnostics/README.md
+keep as secondary diagnostic
+move to an archive folder with historical status wording
+delete after validation if fully superseded
 ```
 
-Expected actions:
-
-- Keep primary maintained diagnostics.
-- Keep secondary diagnostics that support active tests or unresolved solver questions.
-- Archive or delete only after reference and coverage checks.
+Do not delete diagnostics solely because they are slow.
 
 ## Validation after documentation-only passes
 
