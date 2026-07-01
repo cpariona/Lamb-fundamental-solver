@@ -101,7 +101,7 @@ mRLFE model tests now live in:
 tests/models/mrlfe/
 ```
 
-mRLFE app/FitTool tests remain outside the model-test folder until the app-layer test migration is performed.
+mRLFE app/FitTool tests live under the app-layer test folders when they validate GUI or FitTool contracts rather than model-family physics.
 
 mRLFE documentation lives in:
 
@@ -160,16 +160,16 @@ examples/acoustoelastic_iop_hgo/sweeps/
 examples/acoustoelastic_iop_hgo/diagnostics/
 ```
 
-Current tests live in:
-
-```text
-tests/acoustoelastic_iop_hgo/
-```
-
-Target AE IOP/HGO tests should move gradually to:
+Current AE IOP/HGO tests live in:
 
 ```text
 tests/models/acoustoelastic_iop_hgo/
+```
+
+App-layer AE IOP/HGO tests live in:
+
+```text
+tests/app/
 ```
 
 Documentation lives in:
@@ -190,15 +190,11 @@ Rayleigh-Lamb helpers use the `rl*` naming convention and live primarily under:
 models/rayleigh_lamb/
 analysis/rayleigh_lamb/
 examples/rayleigh_lamb/
-tests/rayleigh_lamb/
+tests/models/rayleigh_lamb/
 docs/models/rayleigh_lamb/
 ```
 
-Target Rayleigh-Lamb tests should move gradually to:
-
-```text
-tests/models/rayleigh_lamb/
-```
+App-layer Rayleigh-Lamb tests belong under `tests/app/` when they validate GUI, fitting, sweep, or adapter behavior.
 
 ## GUI layout
 
@@ -211,13 +207,15 @@ app/
 └─ plotting/helpers as needed
 ```
 
-Current GUI/app tests are mixed under `tests/` and `tests/fitting/`. Target GUI/app tests should move gradually to:
+GUI/app tests live under:
 
 ```text
 tests/app/gui/
 tests/app/fitting/
 tests/app/sweeps/
 ```
+
+Legacy wrapper files may remain outside these folders only to preserve documented public runner commands.
 
 GUI documentation lives in:
 

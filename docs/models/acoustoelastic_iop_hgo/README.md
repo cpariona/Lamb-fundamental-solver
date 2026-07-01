@@ -117,7 +117,8 @@ models/acoustoelastic_iop_hgo/                model and solver implementation
 examples/acoustoelastic_iop_hgo/basic/        simple executable examples
 examples/acoustoelastic_iop_hgo/sweeps/       sweep entrypoints
 examples/acoustoelastic_iop_hgo/diagnostics/  diagnostics and validations
-tests/acoustoelastic_iop_hgo/                 tests
+tests/models/acoustoelastic_iop_hgo/          model tests
+tests/app/                                    app-layer integration tests
 docs/models/acoustoelastic_iop_hgo/active/           current module documentation
 docs/models/acoustoelastic_iop_hgo/diagnostics/      diagnostic evidence
 docs/models/acoustoelastic_iop_hgo/audits/           maintenance records
