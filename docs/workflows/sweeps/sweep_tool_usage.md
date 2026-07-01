@@ -201,7 +201,7 @@ The GUI should not call scripts under `examples/` directly. Example scripts and 
 mRLFE atlas policy integration is documented in:
 
 ```text
-docs/gui/mrlfe_atlas_policy_integration.md
+docs/workflows/gui/mrlfe_atlas_policy_integration.md
 ```
 
 ## Export contract

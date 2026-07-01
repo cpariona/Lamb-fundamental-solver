@@ -29,7 +29,7 @@ tests/fitting/run_fit_validation_tests.m
 Updated documentation:
 
 ```text
-docs/maintained_entrypoints.md
+docs/repository/maintained_entrypoints.md
 docs/fitting_phase8_status.md
 ```
 

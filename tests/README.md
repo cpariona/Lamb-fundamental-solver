@@ -244,7 +244,7 @@ App tests may call model adapters, but they should focus on app-layer contracts 
 1. Keep public runner commands stable unless there is a deliberate deprecation plan.
 2. Prefer moving one coherent test family at a time.
 3. Update runner files in the same commit as each move.
-4. Update `docs/maintained_entrypoints.md` when runner names or maintained test groups change.
+4. Update `docs/repository/maintained_entrypoints.md` when runner names or maintained test groups change.
 5. Use wrappers temporarily when preserving old runner commands reduces disruption.
 6. Avoid mixing test moves with solver behavior changes.
 7. Run the relevant focused runner after each move, then run the full smoke suite before merging.

@@ -15,7 +15,7 @@ analysis/mrlfe/mrlfeFitDispersionData.m
 app/adapters/guiFitMRLFESolver.m
 examples/mrlfe/fitting/fit_mrlfe_A0Like.m
 tests/mrlfe/test_mrlfe_fit_synthetic_A0Like.m
-docs/mrlfe/fitting_workflow.md
+docs/models/mrlfe/fitting_workflow.md
 ```
 
 It updates:
@@ -27,7 +27,7 @@ app/fitting/guiNormalizeFitResult.m
 tests/run_core_smoke_tests.m
 tests/run_gui_smoke_tests.m
 tests/gui/test_gui_fit_registry_contract.m
-docs/maintained_entrypoints.md
+docs/repository/maintained_entrypoints.md
 ```
 
 It does not add:

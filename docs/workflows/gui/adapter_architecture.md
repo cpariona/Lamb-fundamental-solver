@@ -1,6 +1,6 @@
 # GUI adapter architecture
 
-This document records the maintained GUI adapter structure. It is the detailed architecture reference for GUI/backend boundaries; `docs/gui/integration_audit.md` is the status overview.
+This document records the maintained GUI adapter structure. It is the detailed architecture reference for GUI/backend boundaries; `docs/workflows/gui/integration_audit.md` is the status overview.
 
 ## Dependency direction
 
@@ -214,7 +214,7 @@ The mRLFE GUI path exposes the unified real-k atlas route and A0 policy selector
 The integration contract is documented in:
 
 ```text
-docs/gui/mrlfe_atlas_policy_integration.md
+docs/workflows/gui/mrlfe_atlas_policy_integration.md
 ```
 
 The maintained GUI-facing mRLFE policy fields are:

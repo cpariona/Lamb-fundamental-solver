@@ -106,7 +106,7 @@ mRLFE app/FitTool tests remain outside the model-test folder until the app-layer
 mRLFE documentation lives in:
 
 ```text
-docs/mrlfe/
+docs/models/mrlfe/
 ```
 
 ## Acoustoelastic IOP/HGO layout
@@ -136,7 +136,7 @@ solveAcoustoelasticIOPHGODispersion
 defaultAcoustoelasticIOPHGOOptions
 ```
 
-GUI code, examples, diagnostics, tests, and analysis scripts should call the author-neutral acoustoelastic IOP/HGO API documented in `docs/acoustoelastic_iop_hgo/active/public_api.md`.
+GUI code, examples, diagnostics, tests, and analysis scripts should call the author-neutral acoustoelastic IOP/HGO API documented in `docs/models/acoustoelastic_iop_hgo/active/public_api.md`.
 
 Model-specific analysis helpers for diagnostics and output paths live in:
 
@@ -175,7 +175,7 @@ tests/models/acoustoelastic_iop_hgo/
 Documentation lives in:
 
 ```text
-docs/acoustoelastic_iop_hgo/
+docs/models/acoustoelastic_iop_hgo/
 ├─ active/
 ├─ diagnostics/
 ├─ audits/
@@ -191,7 +191,7 @@ models/rayleigh_lamb/
 analysis/rayleigh_lamb/
 examples/rayleigh_lamb/
 tests/rayleigh_lamb/
-docs/rayleigh_lamb/
+docs/models/rayleigh_lamb/
 ```
 
 Target Rayleigh-Lamb tests should move gradually to:
@@ -222,7 +222,7 @@ tests/app/sweeps/
 GUI documentation lives in:
 
 ```text
-docs/gui/
+docs/workflows/gui/
 ```
 
 ## Sweeps
@@ -230,7 +230,7 @@ docs/gui/
 Generic sweep documentation lives in:
 
 ```text
-docs/sweeps/
+docs/workflows/sweeps/
 ```
 
 Model-specific sweep documents may remain under the model-family docs folder.

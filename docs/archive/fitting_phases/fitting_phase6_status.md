@@ -15,7 +15,7 @@ analysis/acoustoelastic_iop_hgo/aeFitDispersionData.m
 app/adapters/guiFitAcoustoelasticIOPHGOSolver.m
 examples/acoustoelastic_iop_hgo/fitting/fit_ae_atlasA0.m
 tests/acoustoelastic_iop_hgo/test_ae_fit_synthetic_atlasA0.m
-docs/acoustoelastic_iop_hgo/fitting_workflow.md
+docs/models/acoustoelastic_iop_hgo/fitting_workflow.md
 ```
 
 It updates:
@@ -27,7 +27,7 @@ app/fitting/guiNormalizeFitResult.m
 tests/run_acoustoelastic_smoke_tests.m
 tests/run_gui_smoke_tests.m
 tests/gui/test_gui_fit_registry_contract.m
-docs/maintained_entrypoints.md
+docs/repository/maintained_entrypoints.md
 ```
 
 It does not add:

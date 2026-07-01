@@ -9,11 +9,11 @@ They are retained for traceability, but they are not the active source of truth 
 Use these active documents instead:
 
 ```text
-docs/fitting/README.md
-docs/fitting/architecture.md
-docs/fitting/validation_suite.md
-docs/mrlfe/fitting_workflow.md
-docs/maintained_entrypoints.md
+docs/workflows/fitting/README.md
+docs/workflows/fitting/architecture.md
+docs/workflows/fitting/validation_suite.md
+docs/models/mrlfe/fitting_workflow.md
+docs/repository/maintained_entrypoints.md
 ```
 
 ## Historical phase logs

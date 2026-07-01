@@ -9,9 +9,9 @@ This document is a tracker-behavior diagnostic reference. It explains why mRLFE 
 It is not the active FitTool fitting contract. Current FitTool fitting behavior is documented in:
 
 ```text
-docs/mrlfe/fitting_workflow.md
-docs/mrlfe/fittool_grid_path_sensitivity.md
-docs/gui/mrlfe_atlas_policy_integration.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/mrlfe/fittool_grid_path_sensitivity.md
+docs/workflows/gui/mrlfe_atlas_policy_integration.md
 ```
 
 The current FitTool route is atlas-first and keeps the primary fitted curve fit-consistent. Dense solver re-evaluation is diagnostic metadata.

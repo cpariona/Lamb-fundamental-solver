@@ -152,9 +152,9 @@ Exploratory groups E1-E3 were archived after preserving conclusions in documenta
 Archive documents:
 
 ```text
-docs/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
-docs/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
-docs/acoustoelastic_iop_hgo/complex_c_continuation_archive.md
+docs/models/acoustoelastic_iop_hgo/direct_matrix_landscape_archive.md
+docs/models/acoustoelastic_iop_hgo/a0_backward_tracking_archive.md
+docs/models/acoustoelastic_iop_hgo/complex_c_continuation_archive.md
 ```
 
 ### Current action recommendation

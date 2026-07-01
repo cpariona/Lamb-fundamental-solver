@@ -24,7 +24,7 @@ app/fitting/guiNormalizeFitResult.m
 app/fitting/guiPlotFitResult.m
 tests/fitting/run_fit_validation_tests.m
 tests/run_core_smoke_tests.m
-docs/maintained_entrypoints.md
+docs/repository/maintained_entrypoints.md
 ```
 
 ## New diagnostics

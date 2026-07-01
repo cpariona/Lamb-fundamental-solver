@@ -112,7 +112,7 @@ mrlfeA0PhysicalMinValidRunBeforeCut
 
 | Script | Role |
 |---|---|
-| `compare_mrlfe_tracker_vs_condition_peaks.m` | Tracker vs residual/condition-peak diagnostic; supports `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md`. |
+| `compare_mrlfe_tracker_vs_condition_peaks.m` | Tracker vs residual/condition-peak diagnostic; supports `docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md`. |
 | `diagnose_mrlfe_visco_validity_breakdown.m` | Investigates valid/invalid real-k viscous branch segments. |
 | `diagnose_mrlfe_visco_residual_landscape.m` | Inspects viscous residual landscapes. |
 | `stress_test_mrlfe_real_k_range.m` | Heavy range stress test for material/frequency coverage. |
@@ -188,7 +188,7 @@ normalized.fullCurve.denseSolver
 See:
 
 ```text
-docs/mrlfe/fittool_grid_path_sensitivity.md
+docs/models/mrlfe/fittool_grid_path_sensitivity.md
 ```
 
 ## Outputs and generated files

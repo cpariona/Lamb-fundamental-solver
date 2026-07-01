@@ -36,7 +36,7 @@ run_fit_validation_tests
 The fitting validation suite is documented in:
 
 ```text
-docs/fitting/validation_suite.md
+docs/workflows/fitting/validation_suite.md
 ```
 
 ## Focused mRLFE atlas validation
@@ -53,7 +53,7 @@ For dense numerical evidence, use the primary diagnostics documented in:
 
 ```text
 examples/mrlfe/diagnostics/README.md
-docs/mrlfe_atlas_policy_notes.md
+docs/models/mrlfe/atlas_policy_notes.md
 ```
 
 Dense diagnostics are not a replacement for contract tests and should not be added to lightweight smoke suites unless they are explicitly bounded in runtime.
@@ -75,11 +75,11 @@ test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 For API, branch-policy, and module documentation, see:
 
 ```text
-docs/acoustoelastic_iop_hgo/active/public_api.md
-docs/acoustoelastic_iop_hgo/active/branch_policy.md
-docs/acoustoelastic_iop_hgo/README.md
-docs/acoustoelastic_iop_hgo/documentation_index.md
-docs/acoustoelastic_iop_hgo/active/main_gui_integration_closure.md
+docs/models/acoustoelastic_iop_hgo/active/public_api.md
+docs/models/acoustoelastic_iop_hgo/active/branch_policy.md
+docs/models/acoustoelastic_iop_hgo/README.md
+docs/models/acoustoelastic_iop_hgo/documentation_index.md
+docs/models/acoustoelastic_iop_hgo/active/main_gui_integration_closure.md
 ```
 
 ## Recommended validation command

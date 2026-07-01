@@ -7,16 +7,16 @@ This folder-level index separates active fitting documentation from historical p
 Use these documents for the current fitting architecture and validation workflow:
 
 ```text
-docs/fitting/architecture.md
-docs/fitting/validation_suite.md
-docs/mrlfe/fitting_workflow.md
-docs/rayleigh_lamb/fitting_workflow.md
-docs/acoustoelastic_iop_hgo/active/fitting_workflow.md
+docs/workflows/fitting/architecture.md
+docs/workflows/fitting/validation_suite.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/rayleigh_lamb/fitting_workflow.md
+docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
 ```
 
 ## Current architecture
 
-`docs/fitting/architecture.md` defines the model-independent fitting layer:
+`docs/workflows/fitting/architecture.md` defines the model-independent fitting layer:
 
 ```text
 experimental data contract
@@ -29,7 +29,7 @@ Treat this document as the high-level architecture reference, not as a phase log
 
 ## Current validation suite
 
-`docs/fitting/validation_suite.md` describes the focused synthetic parameter-recovery suite:
+`docs/workflows/fitting/validation_suite.md` describes the focused synthetic parameter-recovery suite:
 
 ```matlab
 run_fit_validation_tests
@@ -40,9 +40,9 @@ This suite is separate from smoke tests and should be run after fitting-related 
 ## Model-specific fitting workflow references
 
 ```text
-docs/mrlfe/fitting_workflow.md
-docs/rayleigh_lamb/fitting_workflow.md
-docs/acoustoelastic_iop_hgo/active/fitting_workflow.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/rayleigh_lamb/fitting_workflow.md
+docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
 ```
 
 ## Historical phase logs

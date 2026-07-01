@@ -117,10 +117,10 @@ examples/acoustoelastic_iop_hgo/basic/        simple executable examples
 examples/acoustoelastic_iop_hgo/sweeps/       sweep entrypoints
 examples/acoustoelastic_iop_hgo/diagnostics/  diagnostics and validations
 tests/acoustoelastic_iop_hgo/                 tests
-docs/acoustoelastic_iop_hgo/active/           current module documentation
-docs/acoustoelastic_iop_hgo/diagnostics/      diagnostic evidence
-docs/acoustoelastic_iop_hgo/audits/           maintenance records
-docs/acoustoelastic_iop_hgo/archive/          historical notes
+docs/models/acoustoelastic_iop_hgo/active/           current module documentation
+docs/models/acoustoelastic_iop_hgo/diagnostics/      diagnostic evidence
+docs/models/acoustoelastic_iop_hgo/audits/           maintenance records
+docs/models/acoustoelastic_iop_hgo/archive/          historical notes
 Results/ae_iop_hgo/<task>                     generated outputs
 ```
 

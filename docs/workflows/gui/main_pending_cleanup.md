@@ -5,8 +5,8 @@ This document records known cleanup items for `LambFundamental_GUI` and related 
 It is an active roadmap, not an API contract. Maintained entrypoints and validation commands are listed in:
 
 ```text
-docs/maintained_entrypoints.md
-docs/gui/integration_audit.md
+docs/repository/maintained_entrypoints.md
+docs/workflows/gui/integration_audit.md
 ```
 
 ## 1. Temporary helper bridges
@@ -116,7 +116,7 @@ Remaining investigation items:
 Solver-side residual waviness is tracked separately in:
 
 ```text
-docs/acoustoelastic_iop_hgo/solver_pending_work.md
+docs/models/acoustoelastic_iop_hgo/solver_pending_work.md
 ```
 
 ## 5. Numerical-resolution policy across models

@@ -5,78 +5,78 @@ This folder is organized by active documentation, model-family documentation, an
 ## Active repository-level references
 
 ```text
-docs/repository_structure.md
-docs/naming_strategy.md
-docs/validation_status.md
-docs/maintained_entrypoints.md
-docs/repository_hygiene_plan.md
-docs/docs_foundation_cleanup_audit.md
+docs/repository/repository_structure.md
+docs/repository/naming_strategy.md
+docs/repository/validation_status.md
+docs/repository/maintained_entrypoints.md
+docs/repository/repository_hygiene_plan.md
+docs/repository/docs_foundation_cleanup_audit.md
 ```
 
 ## Active topic folders
 
 ```text
-docs/fitting/
-docs/gui/
-docs/sweeps/
-docs/rayleigh_lamb/
-docs/mrlfe/
-docs/acoustoelastic_iop_hgo/
+docs/workflows/fitting/
+docs/workflows/gui/
+docs/workflows/sweeps/
+docs/models/rayleigh_lamb/
+docs/models/mrlfe/
+docs/models/acoustoelastic_iop_hgo/
 ```
 
 ## Active fitting documentation
 
 ```text
-docs/fitting/README.md
-docs/fitting/architecture.md
-docs/fitting/validation_suite.md
-docs/mrlfe/fitting_workflow.md
-docs/rayleigh_lamb/fitting_workflow.md
-docs/acoustoelastic_iop_hgo/active/fitting_workflow.md
+docs/workflows/fitting/README.md
+docs/workflows/fitting/architecture.md
+docs/workflows/fitting/validation_suite.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/rayleigh_lamb/fitting_workflow.md
+docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
 ```
 
 ## Active GUI documentation
 
 ```text
-docs/gui/adapter_architecture.md
-docs/gui/integration_audit.md
-docs/gui/main_pending_cleanup.md
-docs/gui/mrlfe_atlas_policy_integration.md
-docs/acoustoelastic_iop_hgo/active/main_gui_integration_closure.md
+docs/workflows/gui/adapter_architecture.md
+docs/workflows/gui/integration_audit.md
+docs/workflows/gui/main_pending_cleanup.md
+docs/workflows/gui/mrlfe_atlas_policy_integration.md
+docs/models/acoustoelastic_iop_hgo/active/main_gui_integration_closure.md
 ```
 
 ## Active sweep documentation
 
 ```text
-docs/sweeps/parametric_sweeps.md
-docs/sweeps/sweep_tool_usage.md
-docs/mrlfe/current_sweeps.md
-docs/acoustoelastic_iop_hgo/active/sweep_workflow.md
+docs/workflows/sweeps/parametric_sweeps.md
+docs/workflows/sweeps/sweep_tool_usage.md
+docs/models/mrlfe/current_sweeps.md
+docs/models/acoustoelastic_iop_hgo/active/sweep_workflow.md
 ```
 
 ## Model-family documentation
 
 ```text
-docs/rayleigh_lamb/overview.md
-docs/rayleigh_lamb/public_api.md
-docs/rayleigh_lamb/fitting_workflow.md
-docs/mrlfe/README.md
-docs/mrlfe/fitting_workflow.md
-docs/mrlfe/fittool_grid_path_sensitivity.md
-docs/mrlfe/current_sweeps.md
-docs/mrlfe/diagnostics/README.md
-docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
-docs/mrlfe_atlas_policy_notes.md
-docs/acoustoelastic_iop_hgo/README.md
-docs/acoustoelastic_iop_hgo/documentation_index.md
+docs/models/rayleigh_lamb/overview.md
+docs/models/rayleigh_lamb/public_api.md
+docs/models/rayleigh_lamb/fitting_workflow.md
+docs/models/mrlfe/README.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/mrlfe/fittool_grid_path_sensitivity.md
+docs/models/mrlfe/current_sweeps.md
+docs/models/mrlfe/diagnostics/README.md
+docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md
+docs/models/mrlfe/atlas_policy_notes.md
+docs/models/acoustoelastic_iop_hgo/README.md
+docs/models/acoustoelastic_iop_hgo/documentation_index.md
 ```
 
 ## Cleanup planning
 
 ```text
-docs/repository_hygiene_plan.md
-docs/docs_foundation_cleanup_audit.md
-docs/mrlfe/docs_cleanup_audit.md
+docs/repository/repository_hygiene_plan.md
+docs/repository/docs_foundation_cleanup_audit.md
+docs/models/mrlfe/docs_cleanup_audit.md
 ```
 
 Use these documents before deleting, archiving, or consolidating documentation, examples, diagnostics, or tests.
@@ -86,8 +86,8 @@ Use these documents before deleting, archiving, or consolidating documentation, 
 ```text
 docs/archive/fitting_phase_logs.md
 docs/archive/fitting_phases/
-docs/mrlfe/archive/
-docs/acoustoelastic_iop_hgo/archive/
+docs/models/mrlfe/archive/
+docs/models/acoustoelastic_iop_hgo/archive/
 ```
 
 Historical phase logs and exploratory notes are retained for traceability. They are not active API or workflow references.

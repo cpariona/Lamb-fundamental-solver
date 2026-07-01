@@ -206,7 +206,7 @@ rlFitDispersionData
 Active workflow reference:
 
 ```text
-docs/rayleigh_lamb/fitting_workflow.md
+docs/models/rayleigh_lamb/fitting_workflow.md
 ```
 
 ### mRLFE
@@ -239,8 +239,8 @@ options.mrlfeA0Policy = "adaptivePhysicalTail";
 Dense mRLFE solver re-evaluation is diagnostic metadata, not the primary fit curve. Active workflow references:
 
 ```text
-docs/mrlfe/fitting_workflow.md
-docs/mrlfe/fittool_grid_path_sensitivity.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/mrlfe/fittool_grid_path_sensitivity.md
 ```
 
 ### Acoustoelastic IOP/HGO
@@ -258,7 +258,7 @@ It uses the official atlas output for fitting and does not accept diagnostic bra
 Active workflow reference:
 
 ```text
-docs/acoustoelastic_iop_hgo/active/fitting_workflow.md
+docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
 ```
 
 ## Physical quality and identifiability
@@ -298,5 +298,5 @@ run_mrlfe_fit_atlas_tests
 Detailed validation reference:
 
 ```text
-docs/fitting/validation_suite.md
+docs/workflows/fitting/validation_suite.md
 ```

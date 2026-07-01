@@ -27,7 +27,7 @@ Results/ae_iop_hgo/<task>/
 The current naming convention is documented in:
 
 ```text
-docs/acoustoelastic_iop_hgo/active/naming_and_paths_convention.md
+docs/models/acoustoelastic_iop_hgo/active/naming_and_paths_convention.md
 ```
 
 ## IOP sweep
@@ -67,7 +67,7 @@ Results/acoustoelastic_iop_hgo_mu_sweep/
 The earlier executable branch-policy comparison has been archived. Current branch-policy status and retained evidence are documented in:
 
 ```text
-docs/acoustoelastic_iop_hgo/archive/phase_closure_atlasA0.md
-docs/acoustoelastic_iop_hgo/active/solver_optimization_status.md
-docs/acoustoelastic_iop_hgo/active/branch_policy.md
+docs/models/acoustoelastic_iop_hgo/archive/phase_closure_atlasA0.md
+docs/models/acoustoelastic_iop_hgo/active/solver_optimization_status.md
+docs/models/acoustoelastic_iop_hgo/active/branch_policy.md
 ```

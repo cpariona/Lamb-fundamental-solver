@@ -9,14 +9,14 @@ This audit covers the repository-hygiene pass for mRLFE documentation, diagnosti
 Active mRLFE documentation should point to these files first:
 
 ```text
-docs/mrlfe/README.md
-docs/mrlfe/fitting_workflow.md
-docs/mrlfe/fittool_grid_path_sensitivity.md
-docs/mrlfe/current_sweeps.md
-docs/mrlfe/diagnostics/README.md
-docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
-docs/mrlfe_atlas_policy_notes.md
-docs/gui/mrlfe_atlas_policy_integration.md
+docs/models/mrlfe/README.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/mrlfe/fittool_grid_path_sensitivity.md
+docs/models/mrlfe/current_sweeps.md
+docs/models/mrlfe/diagnostics/README.md
+docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md
+docs/models/mrlfe/atlas_policy_notes.md
+docs/workflows/gui/mrlfe_atlas_policy_integration.md
 examples/mrlfe/diagnostics/README.md
 ```
 
@@ -57,7 +57,7 @@ Remaining cleanup should focus on documentation consistency, diagnostics classif
 
 Status: keep.
 
-`docs/mrlfe/fitting_workflow.md`, `docs/mrlfe/README.md`, `docs/mrlfe_atlas_policy_notes.md`, and `docs/gui/mrlfe_atlas_policy_integration.md` agree on the maintained atlas-first FitTool fitting route and on the `adaptivePhysicalTail` A0Like FitTool default.
+`docs/models/mrlfe/fitting_workflow.md`, `docs/models/mrlfe/README.md`, `docs/models/mrlfe/atlas_policy_notes.md`, and `docs/workflows/gui/mrlfe_atlas_policy_integration.md` agree on the maintained atlas-first FitTool fitting route and on the `adaptivePhysicalTail` A0Like FitTool default.
 
 No solver behavior change is implied by this audit.
 
@@ -65,21 +65,21 @@ No solver behavior change is implied by this audit.
 
 Status: keep, but treat as diagnostic evidence rather than active API contract.
 
-`docs/mrlfe/diagnostics/README.md`, `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md`, and `examples/mrlfe/diagnostics/README.md` preserve useful evidence about tracker behavior, direct-atlas limitations, A0 policy comparisons, and dense diagnostics.
+`docs/models/mrlfe/diagnostics/README.md`, `docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md`, and `examples/mrlfe/diagnostics/README.md` preserve useful evidence about tracker behavior, direct-atlas limitations, A0 policy comparisons, and dense diagnostics.
 
-These files should not override the active fitting contract unless the conclusion is also summarized in `docs/mrlfe/fitting_workflow.md` or `docs/mrlfe/README.md`.
+These files should not override the active fitting contract unless the conclusion is also summarized in `docs/models/mrlfe/fitting_workflow.md` or `docs/models/mrlfe/README.md`.
 
 ### Archived cleanup documentation
 
 Status: keep, but refresh stale paths when they can confuse active maintenance.
 
-`docs/mrlfe/archive/pending_cleanup.md` is correctly marked as archived historical cleanup status. However, some historical test references still used pre-migration paths such as `tests/mrlfe/...`. Those should be updated to current paths or explicitly identified as historical references.
+`docs/models/mrlfe/archive/pending_cleanup.md` is correctly marked as archived historical cleanup status. However, some historical test references still used pre-migration paths such as `tests/mrlfe/...`. Those should be updated to current paths or explicitly identified as historical references.
 
 ### Repository hygiene plan
 
 Status: keep and update.
 
-`docs/repository_hygiene_plan.md` still describes some pre-migration test locations. The plan remains useful as a hygiene policy document, but its mRLFE test-audit targets should be updated to the current test layout.
+`docs/repository/repository_hygiene_plan.md` still describes some pre-migration test locations. The plan remains useful as a hygiene policy document, but its mRLFE test-audit targets should be updated to the current test layout.
 
 ## Resolved in pass 1
 
@@ -91,17 +91,17 @@ Status: keep and update.
 
 ## Resolved in pass 2
 
-- Rewrote `docs/mrlfe_atlas_policy_notes.md` to separate FitTool fitting defaults from forward/sweep diagnostic policy.
+- Rewrote `docs/models/mrlfe/atlas_policy_notes.md` to separate FitTool fitting defaults from forward/sweep diagnostic policy.
 - Clarified that `adaptivePhysicalTail` is the current FitTool A0Like fitting default, while `delayedCut` is a conservative diagnostic baseline.
 - Preserved the quantitative A0 policy evidence from dense diagnostics, but removed wording that treated `delayedCut` as the unconditional current default.
-- Updated `docs/gui/mrlfe_atlas_policy_integration.md` so the FitTool fitted-curve contract includes fit-consistent plotting and dense solver diagnostics.
+- Updated `docs/workflows/gui/mrlfe_atlas_policy_integration.md` so the FitTool fitted-curve contract includes fit-consistent plotting and dense solver diagnostics.
 - Updated the GUI validation wording so `test_gui_mrlfe_fit_full_curve_fast_contract` is described as protecting fit-consistent plotting plus diagnostic dense re-evaluation, not merely extension skipping.
 
 ## Resolved in pass 3
 
-- Removed the obsolete `sweep_mrlfe_shear_viscosity_phase_velocity` wrapper reference from `docs/mrlfe/current_sweeps.md` after code search showed it no longer exists.
-- Refreshed `docs/mrlfe/archive/pending_cleanup.md` so it clearly identifies itself as archived cleanup status, not active route/fitting/GUI documentation.
-- Added an explicit scope note to `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md` clarifying that it is tracker-behavior evidence, not the active FitTool contract.
+- Removed the obsolete `sweep_mrlfe_shear_viscosity_phase_velocity` wrapper reference from `docs/models/mrlfe/current_sweeps.md` after code search showed it no longer exists.
+- Refreshed `docs/models/mrlfe/archive/pending_cleanup.md` so it clearly identifies itself as archived cleanup status, not active route/fitting/GUI documentation.
+- Added an explicit scope note to `docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md` clarifying that it is tracker-behavior evidence, not the active FitTool contract.
 - Cross-linked active FitTool references from the archived cleanup status and tracker diagnostic summary.
 
 ## Resolved in pass 4
@@ -116,7 +116,7 @@ Status: keep and update.
 - Started reference checks for historical diagnostic candidates.
 - Found active maintained-entrypoint references to `diagnose_mrlfe_visco_direct_atlas`, so it was not deleted.
 - Updated the root `README.md` so the mRLFE section reflects the current atlas-first FitTool fitting route and no longer presents `diagnose_mrlfe_visco_direct_atlas` as a focused maintained diagnostic.
-- Updated `docs/maintained_entrypoints.md` so maintained mRLFE diagnostics list only current primary diagnostics, while secondary and historical diagnostics are delegated to `examples/mrlfe/diagnostics/README.md`.
+- Updated `docs/repository/maintained_entrypoints.md` so maintained mRLFE diagnostics list only current primary diagnostics, while secondary and historical diagnostics are delegated to `examples/mrlfe/diagnostics/README.md`.
 
 ## Resolved in pass 6
 
@@ -155,12 +155,12 @@ diagnose_mrlfe_a0_modal_atlas_seed_identity.m
 
 ## Resolved in pass 9
 
-- Shortened `docs/mrlfe/README.md` into a true index instead of a second workflow specification.
+- Shortened `docs/models/mrlfe/README.md` into a true index instead of a second workflow specification.
 - Added an explicit document-role section to the mRLFE index.
 - Preserved the current route summary in the index, but delegated detailed behavior to:
-  - `docs/mrlfe/fitting_workflow.md` for the fitting-route contract,
-  - `docs/mrlfe_atlas_policy_notes.md` for atlas policy evidence,
-  - `docs/gui/mrlfe_atlas_policy_integration.md` for GUI adapter and metadata behavior.
+  - `docs/models/mrlfe/fitting_workflow.md` for the fitting-route contract,
+  - `docs/models/mrlfe/atlas_policy_notes.md` for atlas policy evidence,
+  - `docs/workflows/gui/mrlfe_atlas_policy_integration.md` for GUI adapter and metadata behavior.
 - Kept the active A0 policy wording centralized and concise:
   - `adaptivePhysicalTail` is the current FitTool A0Like fitting default.
   - `delayedCut` is the conservative comparison policy for diagnostics and sweep-policy investigations.
@@ -168,7 +168,7 @@ diagnose_mrlfe_a0_modal_atlas_seed_identity.m
 ## Resolved in pass 10
 
 - Updated `docs/README.md` so the repository-level index exposes the active mRLFE fitting, sweep, diagnostic, atlas-policy, GUI-integration, and cleanup-audit documents.
-- Updated `docs/maintained_entrypoints.md` after the test-layout migration.
+- Updated `docs/repository/maintained_entrypoints.md` after the test-layout migration.
 - Added `test_rl_fit_evaluator_branch_consistency` to the maintained Rayleigh-Lamb tests.
 - Refreshed the maintained mRLFE model-family, atlas/route-policy, and GUI mRLFE test lists using current test names.
 - Added an explicit note that test names are listed as MATLAB entrypoints and that folder layout is documented in `tests/README.md`.
@@ -208,16 +208,16 @@ Review active mRLFE docs for duplication and decide whether some content should 
 Priority files:
 
 ```text
-docs/mrlfe/fitting_workflow.md
-docs/mrlfe_atlas_policy_notes.md
-docs/gui/mrlfe_atlas_policy_integration.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/mrlfe/atlas_policy_notes.md
+docs/workflows/gui/mrlfe_atlas_policy_integration.md
 ```
 
 Expected actions:
 
-- Keep `docs/mrlfe/fitting_workflow.md` as the active FitTool fitting route contract.
-- Keep `docs/mrlfe_atlas_policy_notes.md` as the detailed policy/evidence note.
-- Keep `docs/gui/mrlfe_atlas_policy_integration.md` as the GUI adapter and metadata contract.
+- Keep `docs/models/mrlfe/fitting_workflow.md` as the active FitTool fitting route contract.
+- Keep `docs/models/mrlfe/atlas_policy_notes.md` as the detailed policy/evidence note.
+- Keep `docs/workflows/gui/mrlfe_atlas_policy_integration.md` as the GUI adapter and metadata contract.
 - Avoid duplicating long policy tables in the mRLFE index.
 
 ## Validation after documentation-only passes

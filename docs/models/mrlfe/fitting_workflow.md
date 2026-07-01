@@ -185,7 +185,7 @@ normalized.fullCurve.denseSolver.warningMessage
 If dense re-evaluation differs from the fit-consistent values beyond the configured threshold, the FitTool status reports a dense/grid mismatch. See:
 
 ```text
-docs/mrlfe/fittool_grid_path_sensitivity.md
+docs/models/mrlfe/fittool_grid_path_sensitivity.md
 ```
 
 ## Fit atlas preset

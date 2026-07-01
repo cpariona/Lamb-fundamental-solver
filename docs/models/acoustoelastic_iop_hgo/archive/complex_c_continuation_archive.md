@@ -87,7 +87,7 @@ models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticComplexCDispersion.m
 Related public/API docs:
 
 ```text
-docs/acoustoelastic_iop_hgo/active/public_api.md
+docs/models/acoustoelastic_iop_hgo/active/public_api.md
 ```
 
 Future work, if complex-C is revisited, should happen through the model/API layer and dedicated tests or diagnostics, not by restoring the archived long example script.

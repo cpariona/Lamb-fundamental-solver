@@ -12,7 +12,7 @@ Updated files:
 app/FitTool_GUI.m
 app/createFittingTab.m
 tests/gui/test_fit_tool_model_registry_contract.m
-docs/maintained_entrypoints.md
+docs/repository/maintained_entrypoints.md
 ```
 
 Added file:

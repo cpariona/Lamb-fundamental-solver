@@ -3,11 +3,11 @@
 This document preserves historical cleanup status for mRLFE. It is not the active route, fitting, or GUI contract. Active references live in:
 
 ```text
-docs/mrlfe/README.md
-docs/mrlfe/fitting_workflow.md
-docs/mrlfe/fittool_grid_path_sensitivity.md
-docs/mrlfe_atlas_policy_notes.md
-docs/gui/mrlfe_atlas_policy_integration.md
+docs/models/mrlfe/README.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/mrlfe/fittool_grid_path_sensitivity.md
+docs/models/mrlfe/atlas_policy_notes.md
+docs/workflows/gui/mrlfe_atlas_policy_integration.md
 ```
 
 ## Material-parameter cleanup status
@@ -78,7 +78,7 @@ Current note:
 The FitTool route now uses the atlas-first fitting evaluator. FitTool dense solver re-evaluation can still show grid/path sensitivity, so current fitting behavior is documented in:
 
 ```text
-docs/mrlfe/fittool_grid_path_sensitivity.md
+docs/models/mrlfe/fittool_grid_path_sensitivity.md
 ```
 
 ## mRLFE tracking quality summary status

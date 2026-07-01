@@ -44,16 +44,16 @@ Delete files only when they satisfy all of these conditions:
 
 Review these first:
 
-- docs/mrlfe/README.md
-- docs/mrlfe/fitting_workflow.md
-- docs/mrlfe/current_sweeps.md
-- docs/mrlfe/fittool_grid_path_sensitivity.md
-- docs/mrlfe/diagnostics/README.md
-- docs/mrlfe/diagnostics/tracker_diagnostic_summary.md
-- docs/mrlfe/archive/pending_cleanup.md
-- docs/mrlfe/docs_cleanup_audit.md
-- docs/mrlfe_atlas_policy_notes.md
-- docs/gui/mrlfe_atlas_policy_integration.md
+- docs/models/mrlfe/README.md
+- docs/models/mrlfe/fitting_workflow.md
+- docs/models/mrlfe/current_sweeps.md
+- docs/models/mrlfe/fittool_grid_path_sensitivity.md
+- docs/models/mrlfe/diagnostics/README.md
+- docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md
+- docs/models/mrlfe/archive/pending_cleanup.md
+- docs/models/mrlfe/docs_cleanup_audit.md
+- docs/models/mrlfe/atlas_policy_notes.md
+- docs/workflows/gui/mrlfe_atlas_policy_integration.md
 
 Expected cleanup:
 

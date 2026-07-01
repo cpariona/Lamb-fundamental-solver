@@ -1,6 +1,6 @@
 # Fitting Phase 1 status
 
-This document records the implementation status of the generic fitting backend introduced after `docs/fitting/architecture.md`.
+This document records the implementation status of the generic fitting backend introduced after `docs/workflows/fitting/architecture.md`.
 
 ## Scope
 

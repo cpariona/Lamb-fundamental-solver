@@ -130,9 +130,9 @@ guiFitAcoustoelasticIOPHGOSolver
 Model-specific fitting workflows are documented in:
 
 ```text
-docs/rayleigh_lamb/fitting_workflow.md
-docs/mrlfe/fitting_workflow.md
-docs/acoustoelastic_iop_hgo/active/fitting_workflow.md
+docs/models/rayleigh_lamb/fitting_workflow.md
+docs/models/mrlfe/fitting_workflow.md
+docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
 ```
 
 ## Dependency policy
@@ -159,7 +159,7 @@ GUI -> diagnostic-only branch families as production outputs
 - Main GUI mRLFE policy still has some logic in callbacks.
 - Some plot styling issues remain in `SweepTool_GUI`; these are UI polish, not structural blockers.
 - `app/createAdvancedTab.m` still has stale text mentioning `defaultOptions.m`; this should be corrected in a later UI-copy cleanup.
-- `docs/gui/main_pending_cleanup.md` should be reviewed after AE GUI cleanup is rechecked; it may be better treated as a roadmap or moved to archive if all actionable items are resolved elsewhere.
+- `docs/workflows/gui/main_pending_cleanup.md` should be reviewed after AE GUI cleanup is rechecked; it may be better treated as a roadmap or moved to archive if all actionable items are resolved elsewhere.
 
 ## Validation
 
@@ -185,6 +185,6 @@ FitTool_GUI
 SweepTool and FitTool usage are documented in:
 
 ```text
-docs/sweeps/sweep_tool_usage.md
-docs/fitting/architecture.md
+docs/workflows/sweeps/sweep_tool_usage.md
+docs/workflows/fitting/architecture.md
 ```

@@ -165,12 +165,12 @@ redundant low-frequency modal-atlas wrapper and implementation
 Relevant archive and review documents:
 
 ```text
-docs/acoustoelastic_iop_hgo/audits/legacy_entrypoint_map.md
-docs/acoustoelastic_iop_hgo/audits/code_retention_review_plan.md
-docs/acoustoelastic_iop_hgo/archive/direct_matrix_landscape_archive.md
-docs/acoustoelastic_iop_hgo/archive/a0_backward_tracking_archive.md
-docs/acoustoelastic_iop_hgo/archive/complex_c_continuation_archive.md
-docs/acoustoelastic_iop_hgo/audits/retained_diagnostic_dependency_review.md
+docs/models/acoustoelastic_iop_hgo/audits/legacy_entrypoint_map.md
+docs/models/acoustoelastic_iop_hgo/audits/code_retention_review_plan.md
+docs/models/acoustoelastic_iop_hgo/archive/direct_matrix_landscape_archive.md
+docs/models/acoustoelastic_iop_hgo/archive/a0_backward_tracking_archive.md
+docs/models/acoustoelastic_iop_hgo/archive/complex_c_continuation_archive.md
+docs/models/acoustoelastic_iop_hgo/audits/retained_diagnostic_dependency_review.md
 ```
 
 ### Deletion recommendation

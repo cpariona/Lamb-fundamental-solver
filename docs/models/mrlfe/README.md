@@ -19,13 +19,13 @@ archive/
 
 | Topic | Maintained reference |
 |---|---|
-| FitTool fitting route | `docs/mrlfe/fitting_workflow.md` |
-| Dense-grid / plotting diagnostic | `docs/mrlfe/fittool_grid_path_sensitivity.md` |
-| Maintained sweeps | `docs/mrlfe/current_sweeps.md` |
-| Diagnostic summaries | `docs/mrlfe/diagnostics/README.md` |
-| Tracker diagnostic evidence | `docs/mrlfe/diagnostics/tracker_diagnostic_summary.md` |
-| Atlas policy evidence | `docs/mrlfe_atlas_policy_notes.md` |
-| GUI adapter integration | `docs/gui/mrlfe_atlas_policy_integration.md` |
+| FitTool fitting route | `docs/models/mrlfe/fitting_workflow.md` |
+| Dense-grid / plotting diagnostic | `docs/models/mrlfe/fittool_grid_path_sensitivity.md` |
+| Maintained sweeps | `docs/models/mrlfe/current_sweeps.md` |
+| Diagnostic summaries | `docs/models/mrlfe/diagnostics/README.md` |
+| Tracker diagnostic evidence | `docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md` |
+| Atlas policy evidence | `docs/models/mrlfe/atlas_policy_notes.md` |
+| GUI adapter integration | `docs/workflows/gui/mrlfe_atlas_policy_integration.md` |
 | Diagnostic script inventory | `examples/mrlfe/diagnostics/README.md` |
 
 ## Current maintained route summary
@@ -57,8 +57,8 @@ solverOptions.mrlfeUseAtlasFitRoute = false;
 - `fitting_workflow.md` is the active fitting-route contract.
 - `fittool_grid_path_sensitivity.md` records the fit-consistent curve policy and dense solver re-evaluation diagnostic.
 - `current_sweeps.md` records maintained sweep scripts and generated-output conventions.
-- `docs/mrlfe_atlas_policy_notes.md` records atlas policy evidence and diagnostic findings.
-- `docs/gui/mrlfe_atlas_policy_integration.md` records GUI-facing adapter metadata and route contracts.
+- `docs/models/mrlfe/atlas_policy_notes.md` records atlas policy evidence and diagnostic findings.
+- `docs/workflows/gui/mrlfe_atlas_policy_integration.md` records GUI-facing adapter metadata and route contracts.
 - `diagnostics/` and `examples/mrlfe/diagnostics/README.md` preserve diagnostic evidence and script classification.
 - `archive/` preserves historical cleanup notes only.
 

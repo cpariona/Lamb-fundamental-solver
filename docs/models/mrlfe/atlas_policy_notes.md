@@ -230,7 +230,7 @@ normalized.fullCurve.denseSolver.warningMessage
 This avoids silently treating a second grid/path continuation as the fitted curve. See:
 
 ```text
-docs/mrlfe/fittool_grid_path_sensitivity.md
+docs/models/mrlfe/fittool_grid_path_sensitivity.md
 ```
 
 ## Tests and contracts

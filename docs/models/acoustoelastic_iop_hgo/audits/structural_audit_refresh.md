@@ -13,7 +13,7 @@ examples/acoustoelastic_iop_hgo/basic/
 examples/acoustoelastic_iop_hgo/sweeps/
 examples/acoustoelastic_iop_hgo/diagnostics/
 tests/acoustoelastic_iop_hgo/
-docs/acoustoelastic_iop_hgo/
+docs/models/acoustoelastic_iop_hgo/
 ```
 
 The goal is to identify safe next cleanup targets before deleting or consolidating scripts.
