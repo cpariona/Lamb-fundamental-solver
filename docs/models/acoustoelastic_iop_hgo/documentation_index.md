@@ -46,11 +46,10 @@ For cleanup or refactor work, read:
 
 ```text
 1. active/framework_hygiene_status.md
-2. audits/framework_hygiene_status.md if present in future cleanup passes
-3. active/examples_inventory.md
-4. audits/retained_diagnostic_dependency_review.md
-5. audits/code_retention_review_plan.md
-6. audits/structural_audit_refresh.md
+2. active/examples_inventory.md
+3. audits/retained_diagnostic_dependency_review.md
+4. audits/code_retention_review_plan.md
+5. audits/structural_audit_refresh.md
 ```
 
 ## Active operational documentation
@@ -136,7 +135,7 @@ When adding or deleting an executable file under `examples/acoustoelastic_iop_hg
 
 ```text
 active/examples_inventory.md
-../maintained_entrypoints.md
+docs/repository/maintained_entrypoints.md
 audits/code_retention_review_plan.md
 ```
 
@@ -152,8 +151,8 @@ When changing fitting behavior, update:
 
 ```text
 active/fitting_workflow.md
-../../fitting/architecture.md
-../../fitting/validation_suite.md
+docs/workflows/fitting/architecture.md
+docs/workflows/fitting/validation_suite.md
 ```
 
 When changing output paths, update:
