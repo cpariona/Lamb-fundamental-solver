@@ -37,7 +37,7 @@ For branch-policy reasoning, read:
 3. diagnostics/atlas_vs_raw_branch1_diagnostic.md
 4. diagnostics/branch_families_diagnostic.md
 5. diagnostics/identityA0_diagnostic_policy.md
-6. active/main_gui_integration_closure.md
+6. archive/main_gui_integration_closure.md
 7. archive/phase_closure_atlasA0_only.md
 8. archive/phase_closure_atlasA0.md
 ```
@@ -45,7 +45,7 @@ For branch-policy reasoning, read:
 For cleanup or refactor work, read:
 
 ```text
-1. active/framework_hygiene_status.md
+1. audits/framework_hygiene_status.md
 2. active/examples_inventory.md
 3. audits/retained_diagnostic_dependency_review.md
 4. audits/code_retention_review_plan.md
@@ -66,8 +66,6 @@ These documents should remain concise and current. They are the first layer for 
 | `active/naming_and_paths_convention.md` | Short-name and output-path convention for the module. |
 | `active/solver_optimization_status.md` | Current solver status and official `atlasA0` policy. |
 | `active/solver_pending_work.md` | Pending solver-side numerical work. |
-| `active/main_gui_integration_closure.md` | Closure note for the first main-GUI integration and handoff into solver-interface work. |
-| `active/framework_hygiene_status.md` | Current framework hygiene status; maintainer-facing, not a user workflow. |
 
 ## Diagnostic evidence
 
@@ -91,6 +89,7 @@ These documents are primarily for maintainers. They should not be treated as use
 
 | Document | Role |
 |---|---|
+| `audits/framework_hygiene_status.md` | Current framework hygiene status; maintainer-facing, not a user workflow. |
 | `audits/code_retention_review_plan.md` | Retention policy and archival history. |
 | `audits/legacy_entrypoint_map.md` | Mapping from short entrypoints to archived or retained descriptive files. |
 | `audits/structural_audit_refresh.md` | Refreshed cleanup audit and candidate-group history. |
@@ -109,6 +108,7 @@ These documents preserve conclusions from scripts that were removed from `exampl
 | `archive/direct_matrix_landscape_archive.md` | Direct alpha-beta-gamma, M54, dimensionless A1, residual landscape. |
 | `archive/a0_backward_tracking_archive.md` | A0 backward tracking, sweep, strategy comparison, grid convergence. |
 | `archive/complex_c_continuation_archive.md` | Complex-C continuation example. |
+| `archive/main_gui_integration_closure.md` | First main-GUI integration closure and solver-interface handoff notes. |
 | `archive/phase_closure_atlasA0.md` | Earlier closure note for the atlasA0 optimization phase. |
 | `archive/phase_closure_atlasA0_only.md` | Final closure note for the single production atlasA0 policy. |
 
@@ -124,7 +124,6 @@ active/sweep_workflow.md
 active/fitting_workflow.md
 active/solver_optimization_status.md
 active/solver_pending_work.md
-active/main_gui_integration_closure.md
 active/examples_inventory.md
 active/naming_and_paths_convention.md
 ```
@@ -144,7 +143,6 @@ When changing solver policy, update:
 ```text
 active/solver_optimization_status.md
 active/branch_policy.md
-active/main_gui_integration_closure.md
 ```
 
 When changing fitting behavior, update:
