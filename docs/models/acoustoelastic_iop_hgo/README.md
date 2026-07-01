@@ -104,7 +104,8 @@ Do not execute long legacy scripts directly unless reproducing historical behavi
 | `active/solver_optimization_status.md` | Current solver policy, validation status, and ambiguity boundary. |
 | `active/naming_and_paths_convention.md` | Short-name and result-path convention. |
 | `active/solver_pending_work.md` | Pending solver-side numerical work. |
-| `active/main_gui_integration_closure.md` | Main-GUI integration closure note. |
+| `archive/main_gui_integration_closure.md` | Main-GUI integration closure note. |
+| `audits/framework_hygiene_status.md` | Framework hygiene and retained implementation status. |
 
 ## Structure convention
 
