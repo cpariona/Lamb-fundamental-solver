@@ -2,10 +2,10 @@
 
 This folder contains diagnostic scripts used to validate and compare real-k mRLFE atlas policies. These scripts are not lightweight unit tests. They are intended for numerical inspection, policy validation, and generation of `.mat` outputs and figures.
 
-For quick automated checks, use the test runner instead:
+For quick automated checks, use the focused test runner instead:
 
 ```matlab
-tests/run_mrlfe_atlas_tests
+run_mrlfe_atlas_tests
 ```
 
 For FitTool route checks, use:
@@ -22,7 +22,10 @@ Diagnostic scripts are classified as:
 |---|---|
 | Primary maintained diagnostic | Current diagnostic workflow for atlas policy, A0/S0 route quality, or FitTool-relevant behavior. |
 | Secondary investigation diagnostic | Useful for debugging known failure modes, but not part of the standard validation sequence. |
-| Historical/candidate for removal | Earlier exploratory diagnostic likely superseded by current tests, primary diagnostics, or policy docs. Do not delete until references and coverage are checked. |
+| Archive candidate | Earlier exploratory diagnostic that appears superseded or weakly referenced. Do not move or delete until reference and coverage checks are complete. |
+| Removed historical diagnostic | Exploratory diagnostic already removed after reference and coverage review. |
+
+A diagnostic can be slow and still be maintained. Do not archive diagnostics based on runtime alone.
 
 ## Recommended diagnostic workflow
 
@@ -114,16 +117,30 @@ mrlfeA0PhysicalMinValidRunBeforeCut
 | `diagnose_mrlfe_visco_residual_landscape.m` | Inspects viscous residual landscapes. |
 | `stress_test_mrlfe_real_k_range.m` | Heavy range stress test for material/frequency coverage. |
 | `diagnose_direct_atlas_etaS_zero_limit.m` | Checks whether direct atlas can reproduce etaS = 0 behavior; useful but not current default. |
-| `diagnose_mrlfe_a0_adaptive_policy_mu_sweep.m` | Early adaptive A0 policy sweep; useful for comparing tracker options. |
-| `diagnose_mrlfe_a0_direct_visco_atlas_start_failure.m` | Investigates early-start failure in direct viscous A0 atlas tracking. |
-| `diagnose_mrlfe_a0_direct_visco_atlas_vs_maintained.m` | Compares direct viscous atlas behavior against maintained/continued branches. |
-| `diagnose_mrlfe_a0_low_residual_basins_mu_sweep.m` | Inspects low-residual basin structure over a mu sweep. |
-| `diagnose_mrlfe_a0_residual_landscape_mu_sweep.m` | Inspects residual landscapes for A0 branch ambiguity. |
-| `diagnose_mrlfe_s0_direct_visco_atlas_cut_boundary.m` | Investigates S0 direct-visco cut boundaries. |
-| `diagnose_mrlfe_gui_performance_32kHz.m` | GUI performance diagnostic for high-frequency mRLFE cases. |
 | `diagnose_mrlfe_visco_direct_atlas.m` | Direct-viscous route comparison retained as secondary diagnostic while direct-atlas tests and route-policy docs remain active. |
+| `diagnose_mrlfe_gui_performance_32kHz.m` | GUI performance diagnostic for high-frequency mRLFE cases. |
 
-### Historical diagnostics removed in cleanup
+### Archive candidates
+
+These scripts appear to be earlier focused investigations. Current repository search found no active references outside this README for these names. Keep them for now, but treat them as archive candidates unless a future audit finds active coverage, unique unresolved evidence, or a need to rerun them.
+
+| Script | Reason to review before archiving |
+|---|---|
+| `diagnose_mrlfe_a0_adaptive_policy_mu_sweep.m` | Likely superseded by `diagnose_mrlfe_unified_atlas_mu_sweep.m` and `diagnose_mrlfe_a0_policy_parametric_sweep.m`. |
+| `diagnose_mrlfe_a0_direct_visco_atlas_start_failure.m` | Focused direct-atlas failure investigation; likely superseded by route-policy tests plus direct-atlas secondary diagnostics. |
+| `diagnose_mrlfe_a0_direct_visco_atlas_vs_maintained.m` | Focused direct-vs-maintained comparison; likely overlaps with retained direct-atlas diagnostics and route-policy tests. |
+| `diagnose_mrlfe_a0_low_residual_basins_mu_sweep.m` | Residual-basin exploration; likely overlaps with residual landscape diagnostics. |
+| `diagnose_mrlfe_a0_residual_landscape_mu_sweep.m` | Residual landscape exploration; may be redundant with maintained/secondary residual diagnostics. |
+| `diagnose_mrlfe_s0_direct_visco_atlas_cut_boundary.m` | Focused S0 direct-atlas boundary investigation; likely historical unless S0 direct-atlas validation is resumed. |
+
+Before moving or deleting any archive candidate:
+
+1. Search active docs, tests, and code references by exact script name.
+2. Check whether the diagnostic reproduces an unresolved numerical issue not covered elsewhere.
+3. Confirm that primary diagnostics and focused runners still cover the maintained behavior.
+4. Run the relevant focused validation before merge.
+
+### Removed historical diagnostics
 
 The following exploratory diagnostics were removed after reference and coverage review because their role is superseded by current diagnostics, tests, or policy documentation:
 
@@ -193,4 +210,10 @@ For documentation-only changes, the lightweight test runner is normally sufficie
 
 ## Next cleanup step
 
-Review mRLFE tests for duplicate coverage only after diagnostic script pruning has been validated with the focused mRLFE runners.
+For archive candidates, decide between three outcomes only after reference and coverage checks:
+
+```text
+keep as secondary diagnostic
+move to an archive folder with historical status wording
+delete after validation if fully superseded
+```
