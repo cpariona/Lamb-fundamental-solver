@@ -79,7 +79,7 @@ docs/models/acoustoelastic_iop_hgo/active/public_api.md
 docs/models/acoustoelastic_iop_hgo/active/branch_policy.md
 docs/models/acoustoelastic_iop_hgo/README.md
 docs/models/acoustoelastic_iop_hgo/documentation_index.md
-docs/models/acoustoelastic_iop_hgo/active/main_gui_integration_closure.md
+docs/models/acoustoelastic_iop_hgo/archive/main_gui_integration_closure.md
 ```
 
 ## Recommended validation command
