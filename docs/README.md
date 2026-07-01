@@ -76,6 +76,7 @@ docs/models/acoustoelastic_iop_hgo/documentation_index.md
 ```text
 docs/repository/repository_hygiene_plan.md
 docs/repository/docs_foundation_cleanup_audit.md
+docs/repository/docs_redundancy_audit.md
 docs/models/mrlfe/docs_cleanup_audit.md
 ```
 
