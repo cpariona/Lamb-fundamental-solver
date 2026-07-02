@@ -30,6 +30,7 @@ callbacks = struct();
 callbacks.onFitModelChanged = @(~,~)[];
 callbacks.onFitParameterChanged = @(~,~)[];
 callbacks.onPopulateFitData = @(~,~)[];
+callbacks.onResetDefaults = @(~,~)[];
 callbacks.onRunFit = @(~,~)[];
 
 controls = createFittingTab(tabs, rlDefaultParams(), callbacks);

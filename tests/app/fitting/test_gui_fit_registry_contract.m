@@ -62,7 +62,15 @@ assert(relativeMuError < 0.03, 'App-level Rayleigh-Lamb fit did not recover mu w
 assert(fitOutput.normalized.metrics.RMSE < 0.05, 'Normalized app-level fit RMSE is unexpectedly high.');
 assert(fitOutput.normalized.identifiability.classification == "locally_identifiable", ...
     'App-level synthetic fit should be locally identifiable.');
-assert(height(fitOutput.normalized.summaryTable) == 1, 'Normalized summary table should contain one free parameter.');
+rlSummary = fitOutput.normalized.summaryTable;
+assert(height(rlSummary) == numel(rlFamily.parameters), ...
+    'Normalized Rayleigh-Lamb summary must contain every registered parameter.');
+assert(nnz(string(rlSummary.Role) == "Fit") == 1, ...
+    'Normalized Rayleigh-Lamb summary must contain exactly one fitted parameter.');
+assert(nnz(string(rlSummary.Role) == "Fixed") == numel(rlFamily.parameters) - 1, ...
+    'Normalized Rayleigh-Lamb summary must contain all fixed parameters.');
+assert(any(string(rlSummary.Parameter) == "Shear modulus" & string(rlSummary.Role) == "Fit"), ...
+    'Normalized Rayleigh-Lamb summary must identify shear modulus as fitted.');
 fprintf('Rayleigh-Lamb recovered mu: %.3f kPa\n', fitOutput.fitResult.bestParams.mu / 1e3);
 
 %% mRLFE app-level fit
@@ -104,7 +112,15 @@ assert(mrlfeRelativeMuError < 0.05, 'App-level mRLFE fit did not recover mu with
 assert(mrlfeFitOutput.normalized.metrics.RMSE < 0.10, 'Normalized app-level mRLFE fit RMSE is unexpectedly high.');
 assert(mrlfeFitOutput.normalized.identifiability.classification == "locally_identifiable", ...
     'App-level mRLFE synthetic fit should be locally identifiable.');
-assert(height(mrlfeFitOutput.normalized.summaryTable) == 1, 'mRLFE normalized summary table should contain one free parameter.');
+mrlfeSummary = mrlfeFitOutput.normalized.summaryTable;
+assert(height(mrlfeSummary) == numel(mrlfeFamily.parameters), ...
+    'Normalized mRLFE summary must contain every registered parameter.');
+assert(nnz(string(mrlfeSummary.Role) == "Fit") == 1, ...
+    'Normalized mRLFE summary must contain exactly one fitted parameter.');
+assert(nnz(string(mrlfeSummary.Role) == "Fixed") == numel(mrlfeFamily.parameters) - 1, ...
+    'Normalized mRLFE summary must contain all fixed parameters.');
+assert(any(string(mrlfeSummary.Parameter) == "Shear modulus" & string(mrlfeSummary.Role) == "Fit"), ...
+    'Normalized mRLFE summary must identify shear modulus as fitted.');
 fprintf('mRLFE recovered mu: %.3f kPa\n', mrlfeFitOutput.fitResult.bestParams.mu / 1e3);
 
 fprintf('\nGUI fitting backend contract test passed.\n');
