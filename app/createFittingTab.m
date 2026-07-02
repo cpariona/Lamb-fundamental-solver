@@ -1,8 +1,5 @@
 function h = createFittingTab(tabs, params0, callbacks)
-%CREATEFITTINGTAB Build minimal experimental fitting controls.
-%
-% The tab prepares GUI inputs for the app-level fitting backend and does not
-% implement model-specific fitting algorithms.
+%CREATEFITTINGTAB Build experimental fitting controls.
 
 registry = guiGetFitRegistry();
 families = registry.modelFamilies;
@@ -16,9 +13,9 @@ CpExample = sqrt(params0.mu / params0.rho);
 defaultData = [1000, CpExample, 1; 3000, CpExample, 1; 5000, CpExample, 1; 7000, CpExample, 1];
 
 tab = uitab(tabs, 'Title', 'Fitting');
-g = uigridlayout(tab, [15 4]);
-g.ColumnWidth = {115, '1x', 115, '1x'};
-g.RowHeight = {22, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, '1x', 28, 26, 26};
+g = uigridlayout(tab, [14 4]);
+g.ColumnWidth = {105, '1x', 105, '1x'};
+g.RowHeight = {22, 24, 24, 20, 155, 24, 20, 20, 20, '1x', 28, 26, 34, 34};
 g.Padding = [10 8 10 8];
 g.RowSpacing = 3;
 g.ColumnSpacing = 8;
@@ -65,61 +62,39 @@ h.robustness = uidropdown(g, 'Items', cellstr(family.robustnessPresets), 'Value'
 h.robustness.Layout.Row = 3;
 h.robustness.Layout.Column = 4;
 
-h.initialGuessLabel = uilabel(g, 'Text', 'Initial mu [kPa]');
-h.initialGuessLabel.Layout.Row = 4;
-h.initialGuessLabel.Layout.Column = 1;
-h.initialGuess = uieditfield(g, 'numeric', 'Value', params0.mu / 1e3, 'Limits', [0 Inf]);
-h.initialGuess.Layout.Row = 4;
-h.initialGuess.Layout.Column = 2;
+parameterNote = uilabel(g, 'Text', ...
+    'All physical parameters are shown. Value is used for Fixed rows; Initial/Lower/Upper are used for the Fit row.', ...
+    'FontSize', 9, 'WordWrap', 'on');
+parameterNote.Layout.Row = 4;
+parameterNote.Layout.Column = [1 4];
 
-h.lowerBoundLabel = uilabel(g, 'Text', 'Lower mu [kPa]');
-h.lowerBoundLabel.Layout.Row = 4;
-h.lowerBoundLabel.Layout.Column = 3;
-h.lowerBound = uieditfield(g, 'numeric', 'Value', max(1, 0.20 * params0.mu / 1e3), 'Limits', [0 Inf]);
-h.lowerBound.Layout.Row = 4;
-h.lowerBound.Layout.Column = 4;
-
-h.upperBoundLabel = uilabel(g, 'Text', 'Upper mu [kPa]');
-h.upperBoundLabel.Layout.Row = 5;
-h.upperBoundLabel.Layout.Column = 1;
-h.upperBound = uieditfield(g, 'numeric', 'Value', 5.0 * params0.mu / 1e3, 'Limits', [0 Inf]);
-h.upperBound.Layout.Row = 5;
-h.upperBound.Layout.Column = 2;
-
-h.fixedHeader = uilabel(g, 'Text', 'Fixed defaults depend on the selected model.', 'FontSize', 10);
-h.fixedHeader.Layout.Row = 5;
-h.fixedHeader.Layout.Column = [3 4];
-
-h.fixedEtaSLabel = uilabel(g, 'Text', 'Fixed etaS [Pa*s]');
-h.fixedEtaSLabel.Layout.Row = 6;
-h.fixedEtaSLabel.Layout.Column = 1;
-h.fixedEtaS = uieditfield(g, 'numeric', 'Value', 0.0, 'Limits', [0 Inf]);
-h.fixedEtaS.Layout.Row = 6;
-h.fixedEtaS.Layout.Column = 2;
-h.fixedEtaSLabel.Visible = 'off';
-h.fixedEtaS.Visible = 'off';
+h.parameterTable = uitable(g, 'Data', table(), ...
+    'ColumnName', {'ID', 'Parameter', 'Role', 'Value', 'Unit', 'Initial', 'Lower', 'Upper'}, ...
+    'ColumnEditable', [false false false true false true true true]);
+h.parameterTable.Layout.Row = 5;
+h.parameterTable.Layout.Column = [1 4];
 
 h.a0PolicyLabel = uilabel(g, 'Text', 'mRLFE A0 atlas policy');
-h.a0PolicyLabel.Layout.Row = 7;
+h.a0PolicyLabel.Layout.Row = 6;
 h.a0PolicyLabel.Layout.Column = [1 2];
 h.a0Policy = uidropdown(g, 'Items', {'adaptivePhysicalTail', 'delayedCut'}, 'Value', 'adaptivePhysicalTail');
-h.a0Policy.Layout.Row = 7;
+h.a0Policy.Layout.Row = 6;
 h.a0Policy.Layout.Column = [3 4];
 h.a0PolicyLabel.Visible = 'off';
 h.a0Policy.Visible = 'off';
 
-note = uilabel(g, 'Text', 'Data table columns: frequency_Hz | Cp_mps | Use(1/0).', 'FontSize', 10);
-note.Layout.Row = 8;
-note.Layout.Column = [1 4];
+dataNote = uilabel(g, 'Text', 'Data table columns: frequency_Hz | Cp_mps | Use(1/0).', 'FontSize', 10);
+dataNote.Layout.Row = 7;
+dataNote.Layout.Column = [1 4];
 
 h.dataTable = uitable(g, 'Data', defaultData, ...
     'ColumnName', {'frequency_Hz', 'Cp_mps', 'Use'}, ...
     'ColumnEditable', [true true true]);
-h.dataTable.Layout.Row = [9 12];
+h.dataTable.Layout.Row = [8 10];
 h.dataTable.Layout.Column = [1 4];
 
 buttonGrid = uigridlayout(g, [1 2]);
-buttonGrid.Layout.Row = 13;
+buttonGrid.Layout.Row = 11;
 buttonGrid.Layout.Column = [1 4];
 buttonGrid.ColumnWidth = {'1x', '1x'};
 buttonGrid.Padding = [0 0 0 0];
@@ -131,11 +106,18 @@ h.runButton = uibutton(buttonGrid, 'Text', 'Run fit', ...
     'ButtonPushedFcn', callbacks.onRunFit);
 
 h.status = uilabel(g, 'Text', 'Fit status: ready.', 'FontSize', 10, 'WordWrap', 'on');
-h.status.Layout.Row = 14;
+h.status.Layout.Row = 12;
 h.status.Layout.Column = [1 4];
 
-h.note = uilabel(g, 'Text', 'Visible one-parameter fitting: RL mu/thickness; mRLFE mu/thickness/etaS; AE atlasA0 mu/thickness/IOP.', ...
+h.fixedHeader = uilabel(g, ...
+    'Text', 'One parameter is fitted; every other registered physical parameter remains editable.', ...
     'FontSize', 10, 'WordWrap', 'on');
-h.note.Layout.Row = 15;
+h.fixedHeader.Layout.Row = 13;
+h.fixedHeader.Layout.Column = [1 4];
+
+h.note = uilabel(g, ...
+    'Text', 'Solver controls such as robustness and atlas policy remain separate from physical parameters.', ...
+    'FontSize', 10, 'WordWrap', 'on');
+h.note.Layout.Row = 14;
 h.note.Layout.Column = [1 4];
 end
