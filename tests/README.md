@@ -146,6 +146,7 @@ tests/shared/fitting/test_fit_validation_mrlfe.m
 tests/shared/fitting/test_fit_validation_mrlfe_hidden_params.m
 tests/shared/fitting/test_fit_validation_rayleigh_lamb.m
 tests/shared/fitting/test_fitting_helpers_smoke.m
+tests/shared/regression/test_lightweight_numerical_regression.m
 tests/shared/utilities/runRepositoryTestRunner.m
 tests/shared/utilities/test_model_output_folder_helpers.m
 tests/shared/utilities/test_repository_root_utilities.m
@@ -208,12 +209,14 @@ shared plotting or utility contracts
 path-independent helper behavior
 public runner wrapper dispatch
 shared output-folder helper behavior
+lightweight numerical regression snapshots
 ```
 
 Subfolders:
 
 ```text
 tests/shared/fitting/     shared fitting contracts and quality-control tests
+tests/shared/regression/  lightweight deterministic numerical regression tests
 tests/shared/sweeps/      shared parametric sweep tests
 tests/shared/utilities/   path, naming, and general utility tests
 ```

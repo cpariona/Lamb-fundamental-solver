@@ -149,6 +149,10 @@ assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol,
 assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
     'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
 
+%% Lightweight cross-model numerical regression
+fprintf('\nChecking lightweight cross-model numerical regression snapshots...\n');
+test_lightweight_numerical_regression
+
 %% Shared fitting helper smoke test
 fprintf('\nRunning shared fitting helper smoke test from core suite...\n');
 test_fitting_helpers_smoke

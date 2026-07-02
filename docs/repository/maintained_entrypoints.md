@@ -107,6 +107,20 @@ test_repository_root_utilities
 test_startup_path_policy
 ```
 
+Shared app adapter infrastructure:
+
+```matlab
+guiGetStructField
+guiMergeStructs
+test_gui_struct_helpers_contract
+```
+
+Shared numerical regression:
+
+```matlab
+test_lightweight_numerical_regression
+```
+
 Focused fitting validation suite:
 
 ```matlab

@@ -98,6 +98,8 @@ run_mrlfe_smoke_tests
 run_fit_validation_tests
 ```
 
+`run_core_smoke_tests` includes `test_lightweight_numerical_regression`, a lightweight Rayleigh-Lamb, mRLFE, and AE IOP/HGO snapshot suite that does not write generated outputs.
+
 For mRLFE atlas-specific changes, additionally run:
 
 ```matlab
