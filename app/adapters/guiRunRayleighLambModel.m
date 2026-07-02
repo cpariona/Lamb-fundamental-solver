@@ -15,8 +15,8 @@ if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
 end
 
-params = mergeStructs(rlDefaultParams(), getStructField(guiRequest, 'params', struct()));
-options = mergeStructs(rlDefaultOptions(), getStructField(guiRequest, 'options', struct()));
+params = guiMergeStructs(rlDefaultParams(), guiGetStructField(guiRequest, 'params', struct()));
+options = guiMergeStructs(rlDefaultOptions(), guiGetStructField(guiRequest, 'options', struct()));
 
 elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, options);
@@ -27,22 +27,4 @@ result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.metadata.params = params;
 result.metadata.options = options;
 result.metadata.elapsedSeconds = elapsedSeconds;
-end
-
-function value = getStructField(s, name, defaultValue)
-if isstruct(s) && isfield(s, name) && ~isempty(s.(name))
-    value = s.(name);
-else
-    value = defaultValue;
-end
-end
-
-function base = mergeStructs(base, overlay)
-if ~isstruct(overlay)
-    return;
-end
-names = fieldnames(overlay);
-for i = 1:numel(names)
-    base.(names{i}) = overlay.(names{i});
-end
 end

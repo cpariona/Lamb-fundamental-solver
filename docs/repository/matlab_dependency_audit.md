@@ -71,6 +71,8 @@ tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_short_entrypoint
 tests/shared/utilities/test_startup_path_policy.m
 tests/shared/utilities/test_repository_root_utilities.m
 tests/shared/utilities/test_model_output_folder_helpers.m
+tests/app/gui/test_gui_struct_helpers_contract.m
+tests/shared/regression/test_lightweight_numerical_regression.m
 ```
 
 Rayleigh-Lamb, mRLFE, AE IOP/HGO, app, fitting, and runner coverage should continue to be updated with focused tests rather than by broad automated deletion of apparently unused `.m` files.
@@ -97,6 +99,30 @@ test_repository_root_utilities
 test_model_output_folder_helpers
 run_core_smoke_tests
 ```
+
+GUI adapter struct-field/default overlay helpers are centralized in:
+
+```text
+app/adapters/guiGetStructField.m
+app/adapters/guiMergeStructs.m
+```
+
+These helpers preserve the existing adapter convention that non-struct overlays are ignored, overlay fields take precedence, and empty fields are treated as missing for read access. They are covered by:
+
+```matlab
+test_gui_struct_helpers_contract
+run_gui_smoke_tests
+```
+
+## Dependency findings
+
+| Function/File | Classification | Direct callers | Indirect-call risk | Action |
+| --- | --- | --- | --- | --- |
+| `guiGetStructField` | app adapter helper | GUI model/sweep adapters | Low; direct helper calls only | Consolidated duplicate local helpers and added contract test. |
+| `guiMergeStructs` | app adapter helper | GUI model/sweep adapters | Low; direct helper calls only | Consolidated duplicate overlay helpers and preserved precedence. |
+| `test_lightweight_numerical_regression` | regression test | `run_core_smoke_tests` | Low; direct test invocation | Added deterministic snapshots for RL, mRLFE, and AE IOP/HGO. |
+| `aeRunLegacyScript` | retained legacy runner | short AE diagnostic wrappers | Medium; executes scripts via `run` | Preserve; do not classify targets as dead by grep alone. |
+| `runRepositoryTestRunner` | public runner dispatch helper | root runner wrappers | Medium; executes runner by computed file path | Preserve and keep runner-wrapper shadowing intentional. |
 
 ## Dynamic-call caveats
 
