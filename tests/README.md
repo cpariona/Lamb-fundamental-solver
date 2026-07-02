@@ -146,6 +146,7 @@ tests/shared/fitting/test_fit_validation_mrlfe.m
 tests/shared/fitting/test_fit_validation_mrlfe_hidden_params.m
 tests/shared/fitting/test_fit_validation_rayleigh_lamb.m
 tests/shared/fitting/test_fitting_helpers_smoke.m
+tests/shared/utilities/test_startup_path_policy.m
 tests/shared/fitting/test_rl_fit_rejects_prediction_fallback.m
 ```
 

@@ -105,3 +105,11 @@ tests/run_mrlfe_atlas_tests
 ```
 
 For documentation-only changes, it is sufficient to run the affected smoke groups and confirm there are no broken documentation links by grep/search.
+
+For startup/path policy changes, run:
+
+```matlab
+test_startup_path_policy
+run_core_smoke_tests
+run_all_smoke_tests
+```

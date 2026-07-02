@@ -9,6 +9,7 @@ docs/repository/repository_structure.md
 docs/repository/naming_strategy.md
 docs/repository/validation_status.md
 docs/repository/maintained_entrypoints.md
+docs/repository/matlab_dependency_audit.md
 docs/repository/repository_hygiene_plan.md
 docs/repository/docs_foundation_cleanup_audit.md
 ```
@@ -76,6 +77,7 @@ docs/models/acoustoelastic_iop_hgo/documentation_index.md
 docs/repository/repository_hygiene_plan.md
 docs/repository/docs_foundation_cleanup_audit.md
 docs/repository/docs_redundancy_audit.md
+docs/repository/matlab_dependency_audit.md
 docs/models/mrlfe/docs_cleanup_audit.md
 ```
 

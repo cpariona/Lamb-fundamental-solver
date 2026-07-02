@@ -96,6 +96,12 @@ test_fit_physical_qc_flat_rl
 test_fit_physical_qc_synthetic_pass
 ```
 
+Shared path and utility tests:
+
+```matlab
+test_startup_path_policy
+```
+
 Focused fitting validation suite:
 
 ```matlab
@@ -429,6 +435,7 @@ docs/repository/repository_structure.md
 docs/repository/naming_strategy.md
 docs/repository/validation_status.md
 docs/repository/maintained_entrypoints.md
+docs/repository/matlab_dependency_audit.md
 docs/repository/repository_hygiene_plan.md
 docs/repository/docs_foundation_cleanup_audit.md
 docs/workflows/fitting/README.md
