@@ -1,0 +1,68 @@
+clear; clc;
+startup
+
+fprintf('\nRunning execution profile current-behavior contract test...\n');
+fprintf('----------------------------------------------------------\n');
+
+%% Rayleigh-Lamb presets are materially different.
+fast = rlDefaultOptions("Fast");
+balanced = rlDefaultOptions("Balanced");
+robust = rlDefaultOptions("Robust");
+
+assert(fast.gridPointsInitial < balanced.gridPointsInitial, ...
+    'Fast RL gridPointsInitial should be lower than Balanced.');
+assert(balanced.gridPointsInitial < robust.gridPointsInitial, ...
+    'Balanced RL gridPointsInitial should be lower than Robust.');
+assert(fast.gridPointsTracking < balanced.gridPointsTracking, ...
+    'Fast RL gridPointsTracking should be lower than Balanced.');
+assert(balanced.gridPointsTracking < robust.gridPointsTracking, ...
+    'Balanced RL gridPointsTracking should be lower than Robust.');
+assert(fast.mrlfeGridPoints < balanced.mrlfeGridPoints && balanced.mrlfeGridPoints < robust.mrlfeGridPoints, ...
+    'RL robustness presets should alter mRLFE seed grid density.');
+
+%% AE default sweep preset mapping is the public atlas-density behavior.
+aeFast = aeDefaultSweepOptions("Fast");
+aeBalanced = aeDefaultSweepOptions("Balanced");
+aeRobust = aeDefaultSweepOptions("Robust");
+
+assert(aeFast.atlasNumYPoints == 300 && aeFast.atlasTopNMinima == 12, ...
+    'AE Fast should map to atlas 300/12.');
+assert(aeBalanced.atlasNumYPoints == 600 && aeBalanced.atlasTopNMinima == 16, ...
+    'AE Balanced should map to atlas 600/16.');
+assert(aeRobust.atlasNumYPoints == 900 && aeRobust.atlasTopNMinima == 20, ...
+    'AE Robust should map to atlas 900/20.');
+
+%% Fit mRLFE currently accepts robustness in controls but uses mrlfeDefaultSweepOptions Fast.
+requestedRobustControls = struct('robustness', "Robust", 'etaS', 0.05, ...
+    'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
+    'mrlfeUseUnifiedAtlasRoute', true, 'mrlfeA0Policy', "adaptivePhysicalTail");
+mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', requestedRobustControls.etaS, ...
+    'UseUnifiedAtlasRoute', requestedRobustControls.mrlfeUseUnifiedAtlasRoute, ...
+    'A0Policy', requestedRobustControls.mrlfeA0Policy);
+assert(mrlfeOptions.robustness == "Fast", ...
+    'mRLFE default sweep options currently force rlDefaultOptions("Fast") independent of Fit controls.robustness.');
+
+%% mRLFE atlas fit route applies the fast_fit_atlas preset by default.
+params = mrlfeDefaultSweepParams();
+frequency_Hz = linspace(1000, 5000, 5).';
+[~, raw] = mrlfeEvaluateFitModel(params, frequency_Hz, "A0Like", mrlfeOptions);
+assert(raw.evaluationPath.routeFamily == "atlas", 'mRLFE Fit evaluator should default to atlas route family.');
+assert(raw.evaluationPath.fitAtlasPreset == "fast_fit_atlas", ...
+    'mRLFE Fit evaluator should report the fast_fit_atlas preset.');
+assert(raw.fitPerformanceDefaults.atlasCpScanPoints == 260, ...
+    'mRLFE fast_fit_atlas should use 260 Cp scan points by default.');
+
+%% Fit AE can silently override a requested Robust atlas density through controls.
+controls = struct('robustness', "Robust", 'atlasNumYPoints', 300, ...
+    'atlasTopNMinima', 12, 'atlasInitializationNumFrequencyPoints', 50);
+solverOptions = aeDefaultSweepOptions(string(controls.robustness));
+solverOptions.atlasBranchPolicy = "atlasA0";
+solverOptions.atlasNumYPoints = controls.atlasNumYPoints;
+solverOptions.atlasTopNMinima = controls.atlasTopNMinima;
+solverOptions.atlasInitializationNumFrequencyPoints = controls.atlasInitializationNumFrequencyPoints;
+assert(solverOptions.atlasNumYPoints == 300 && solverOptions.atlasTopNMinima == 12, ...
+    'AE Fit controls currently override robustness-derived Robust atlas density.');
+assert(solverOptions.atlasInitializationNumFrequencyPoints == 50, ...
+    'AE Fit controls currently add atlasInitializationNumFrequencyPoints = 50.');
+
+fprintf('Execution profile current-behavior contract test passed.\n');
