@@ -45,6 +45,7 @@ guiPlotFitResult
 runParametricSweep
 plotParametricSweepCp
 summarizeParametricSweepBranch
+resolveModelOutputFolder
 ```
 
 mRLFE sweep helpers:
@@ -96,9 +97,13 @@ test_fit_physical_qc_flat_rl
 test_fit_physical_qc_synthetic_pass
 ```
 
-Shared path and utility tests:
+Shared path and utility helpers/tests:
 
 ```matlab
+runRepositoryTestRunner
+testRepositoryRoot
+test_model_output_folder_helpers
+test_repository_root_utilities
 test_startup_path_policy
 ```
 

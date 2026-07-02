@@ -25,6 +25,10 @@ assert(elastic.lambda > 0 && elastic.K > 0 && elastic.CL > elastic.CT, ...
 fprintf('\nChecking startup path policy...\n');
 test_startup_path_policy
 
+fprintf('\nChecking shared path and output-folder utilities...\n');
+test_repository_root_utilities
+test_model_output_folder_helpers
+
 %% Shared fitting helpers
 fprintf('\nChecking shared fitting helper functions...\n');
 assertFunctionsOnPath({ ...

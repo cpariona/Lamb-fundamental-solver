@@ -110,6 +110,14 @@ For startup/path policy changes, run:
 
 ```matlab
 test_startup_path_policy
+test_repository_root_utilities
 run_core_smoke_tests
 run_all_smoke_tests
+```
+
+For shared output-folder helper changes, run:
+
+```matlab
+test_model_output_folder_helpers
+run_core_smoke_tests
 ```

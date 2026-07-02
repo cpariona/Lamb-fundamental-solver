@@ -1,6 +1,6 @@
 startup
 
-repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+repoRoot = testRepositoryRoot(mfilename('fullpath'));
 pathEntries = strsplit(path, pathsep);
 
 assertPathContains(pathEntries, fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics'), ...

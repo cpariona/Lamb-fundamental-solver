@@ -13,10 +13,5 @@ if nargin < 2 || isempty(taskName)
 end
 
 taskName = char(string(taskName));
-rootFolder = fullfile(launchFolder, 'Results', 'mrlfe');
-outputFolder = fullfile(rootFolder, taskName);
-
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = resolveModelOutputFolder(launchFolder, 'mrlfe', taskName);
 end

@@ -16,10 +16,5 @@ if nargin < 2 || isempty(taskName)
 end
 
 taskName = char(string(taskName));
-rootFolder = fullfile(launchFolder, 'Results', 'ae_iop_hgo');
-outputFolder = fullfile(rootFolder, taskName);
-
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', taskName);
 end

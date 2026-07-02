@@ -69,9 +69,34 @@ docs/repository/maintained_entrypoints.md
 tests/models/mrlfe/test_mrlfe_maintained_entrypoints_naming.m
 tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_short_entrypoints.m
 tests/shared/utilities/test_startup_path_policy.m
+tests/shared/utilities/test_repository_root_utilities.m
+tests/shared/utilities/test_model_output_folder_helpers.m
 ```
 
 Rayleigh-Lamb, mRLFE, AE IOP/HGO, app, fitting, and runner coverage should continue to be updated with focused tests rather than by broad automated deletion of apparently unused `.m` files.
+
+## Shared infrastructure consolidation
+
+Root-level public test runner wrappers remain in place, but their repository-root lookup and runner dispatch now flow through:
+
+```text
+tests/shared/utilities/testRepositoryRoot.m
+tests/shared/utilities/runRepositoryTestRunner.m
+```
+
+Model-specific output-folder helpers continue to own public names and model folder labels. Their shared create-if-needed behavior is centralized in:
+
+```text
+analysis/resolveModelOutputFolder.m
+```
+
+Validation:
+
+```matlab
+test_repository_root_utilities
+test_model_output_folder_helpers
+run_core_smoke_tests
+```
 
 ## Dynamic-call caveats
 
@@ -89,5 +114,4 @@ These patterns mean a helper should not be deleted or renamed based only on exac
 ## Deferred items
 
 - Build a fuller dependency graph with MATLAB-aware parsing before declaring internal helpers unused.
-- Consider a shared test utility for repo-root detection only if more tests start duplicating fragile path calculations.
 - Keep archived diagnostics out of the startup path, but preserve them on disk for traceability.
