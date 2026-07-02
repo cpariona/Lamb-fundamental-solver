@@ -10,11 +10,15 @@ params.numFrequencyPoints = "auto";
 params.frequencySpacing = "hybrid";
 
 controls = request.controls;
-if ~isfield(controls, 'robustness') || strlength(string(controls.robustness)) == 0
-    controls.robustness = "Fast";
-end
-
-baseOptions = rlDefaultOptions(string(controls.robustness));
+[baseOptions, profileMetadata] = mrlfeResolveExecutionProfile(string(request.branchName), controls, ...
+    'Surface', "sweep", ...
+    'DefaultProfile', "Fast", ...
+    'DefaultSource', "SweepTool default", ...
+    'EtaS', getControlValue(controls, 'etaS', 0.05), ...
+    'UseUnifiedAtlasRoute', logical(getControlValue(controls, 'mrlfeUseUnifiedAtlasRoute', true)), ...
+    'A0Policy', string(getControlValue(controls, 'mrlfeA0Policy', "adaptivePhysicalTail")));
+controls.executionProfile = profileMetadata.requestedExecutionProfile;
+controls.robustness = profileMetadata.requestedExecutionProfile;
 baseOptions.computeMRLFEComplexK = false;
 baseOptions.mrlfeUseUnifiedAtlasRoute = logical(getControlValue(controls, 'mrlfeUseUnifiedAtlasRoute', true));
 baseOptions.mrlfeA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "adaptivePhysicalTail"));
@@ -48,9 +52,12 @@ sweepSpec.displayScale = displayScale;
 rawResults = runMRLFEGuiAdapterSweep(params, baseOptions, sweepSpec);
 summaryTable = summarizeParametricSweepBranch(rawResults, summaryModelName, branchName, 'Print', false);
 normalized = guiNormalizeMRLFESweep(rawResults, summaryTable, request, modelName, branchName);
+profileMetadata.internalAtlasPreset = inferSweepAtlasPreset(rawResults, profileMetadata.internalAtlasPreset);
+normalized.metadata.executionProfile = profileMetadata;
 
 sweepOutput = struct();
 sweepOutput.request = request;
+sweepOutput.request.controls = controls;
 sweepOutput.modelFamily = "mrlfe";
 sweepOutput.modelName = modelName;
 sweepOutput.branchName = branchName;
@@ -61,6 +68,7 @@ sweepOutput.normalized = normalized;
 sweepOutput.atlasPolicy = struct('mrlfeUseUnifiedAtlasRoute', baseOptions.mrlfeUseUnifiedAtlasRoute, ...
     'mrlfeA0Policy', baseOptions.mrlfeA0Policy, ...
     'guiRoutePolicy', "guiRunMRLFEModel");
+sweepOutput.executionProfile = profileMetadata;
 end
 
 function sweepResults = runMRLFEGuiAdapterSweep(baseParams, baseOptions, sweepSpec)
@@ -141,5 +149,20 @@ if isstruct(request) && isfield(request, fieldName) && ~isempty(request.(fieldNa
     value = request.(fieldName);
 else
     value = defaultValue;
+end
+end
+
+function preset = inferSweepAtlasPreset(rawResults, defaultPreset)
+preset = string(defaultPreset);
+if ~isfield(rawResults, 'guiResults') || isempty(rawResults.guiResults)
+    return;
+end
+for i = 1:numel(rawResults.guiResults)
+    guiResult = rawResults.guiResults{i};
+    if isstruct(guiResult) && isfield(guiResult, 'metadata') && ...
+            isfield(guiResult.metadata, 'mrlfeGuiAtlasPreset')
+        preset = string(guiResult.metadata.mrlfeGuiAtlasPreset);
+        return;
+    end
 end
 end

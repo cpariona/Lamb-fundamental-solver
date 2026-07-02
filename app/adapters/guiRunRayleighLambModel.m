@@ -17,6 +17,17 @@ end
 
 params = guiMergeStructs(rlDefaultParams(), guiGetStructField(guiRequest, 'params', struct()));
 options = guiMergeStructs(rlDefaultOptions(), guiGetStructField(guiRequest, 'options', struct()));
+[profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
+    'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
+    'DefaultSource', "model default");
+options.executionProfile = profile;
+options.robustness = profile;
+profileMetadata.internalSolverPreset = profile;
+profileMetadata.internalAtlasPreset = "";
+profileMetadata.profileOverrideApplied = false;
+profileMetadata.profileOverrideReason = "";
+profileMetadata.routePolicy = "direct";
+profileMetadata.optimizerProfile = "";
 
 elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, options);
@@ -27,4 +38,6 @@ result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.metadata.params = params;
 result.metadata.options = options;
 result.metadata.elapsedSeconds = elapsedSeconds;
+result.metadata.executionProfile = profileMetadata;
+result.diagnostics.executionProfile = profileMetadata;
 end

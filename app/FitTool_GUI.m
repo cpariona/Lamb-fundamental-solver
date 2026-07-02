@@ -145,6 +145,7 @@ onFitModelChanged();
         fitParameterState = readParameterState();
         parts = guiBuildFitParameterRequest(fitParameterState);
         parts.controls.robustness = string(fitControls.robustness.Value);
+        parts.controls.executionProfile = parts.controls.robustness;
         parts.fitOptions = struct('useStandardErrorWeights', false);
 
         switch getSelectedModelFamily()

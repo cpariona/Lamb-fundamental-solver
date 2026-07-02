@@ -242,6 +242,7 @@ updateFamilySpecificControls();
     function controls = buildControlsForActiveFamily()
         controls = struct();
         controls.robustness = string(robustnessDrop.Value);
+        controls.executionProfile = controls.robustness;
 
         switch activeModelFamily
             case "mrlfe"

@@ -10,11 +10,11 @@ if ~isfield(params, 'frequencySpacing') || isempty(params.frequencySpacing)
 end
 
 controls = request.controls;
-if ~isfield(controls, 'robustness') || strlength(string(controls.robustness)) == 0
-    controls.robustness = "Balanced";
-end
-
-options = rlDefaultOptions(string(controls.robustness));
+[options, profileMetadata] = rlResolveExecutionProfile(controls, ...
+    'DefaultProfile', "Balanced", ...
+    'DefaultSource', "SweepTool default");
+controls.executionProfile = profileMetadata.requestedExecutionProfile;
+controls.robustness = profileMetadata.requestedExecutionProfile;
 branchName = string(request.branchName);
 options.computeA0 = branchName == "A0";
 options.computeS0 = branchName == "S0";
@@ -33,9 +33,11 @@ modelName = "RayleighLamb";
 rawResults = runParametricSweep(params, options, sweepSpec);
 summaryTable = summarizeParametricSweepBranch(rawResults, modelName, branchName, 'Print', false);
 normalized = guiNormalizeRLSweep(rawResults, summaryTable, request, modelName, branchName);
+normalized.metadata.executionProfile = profileMetadata;
 
 sweepOutput = struct();
 sweepOutput.request = request;
+sweepOutput.request.controls = controls;
 sweepOutput.modelFamily = "rayleigh_lamb";
 sweepOutput.modelName = modelName;
 sweepOutput.branchName = branchName;
@@ -43,4 +45,5 @@ sweepOutput.sweepSpec = sweepSpec;
 sweepOutput.rawResults = rawResults;
 sweepOutput.summaryTable = summaryTable;
 sweepOutput.normalized = normalized;
+sweepOutput.executionProfile = profileMetadata;
 end

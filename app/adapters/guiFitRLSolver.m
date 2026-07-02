@@ -22,9 +22,12 @@ if ~(branchName == "A0" || branchName == "S0")
 end
 
 controls = request.controls;
-if ~isfield(controls, 'robustness') || strlength(string(controls.robustness)) == 0
-    controls.robustness = "Fast";
-end
+[solverOptions, profileMetadata] = rlResolveExecutionProfile(controls, ...
+    'DefaultProfile', "Fast", ...
+    'DefaultSource', "FitTool default");
+controls.executionProfile = profileMetadata.requestedExecutionProfile;
+controls.robustness = profileMetadata.requestedExecutionProfile;
+request.controls = controls;
 
 fitConfig = struct();
 fitConfig.branchName = branchName;
@@ -32,11 +35,12 @@ fitConfig.freeParams = request.freeParams;
 fitConfig.fixedParams = request.fixedParams;
 fitConfig.initialGuess = request.initialGuess;
 fitConfig.bounds = request.bounds;
-fitConfig.solverOptions = rlDefaultOptions(string(controls.robustness));
+fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = request.fitOptions;
 
 fitResult = rlFitDispersionData(request.experimental, fitConfig);
 normalized = guiNormalizeFitResult(fitResult, request);
+normalized.executionProfile = profileMetadata;
 
 fitOutput = struct();
 fitOutput.request = request;
@@ -45,4 +49,5 @@ fitOutput.modelName = "RayleighLamb";
 fitOutput.branchName = branchName;
 fitOutput.fitResult = fitResult;
 fitOutput.normalized = normalized;
+fitOutput.executionProfile = profileMetadata;
 end

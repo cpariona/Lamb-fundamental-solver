@@ -19,6 +19,9 @@ sweepConfig.ValueFormatter = '%.1f';
 rawResults = aeRunSweep(params, string(request.sweepField), valuesSolver, options, sweepConfig);
 summary = aeSummarizeSweep(rawResults);
 normalized = guiNormalizeAcoustoelasticIOPHGOSweep(rawResults, summary, request);
+if isfield(options, 'executionProfileMetadata')
+    normalized.metadata.executionProfile = options.executionProfileMetadata;
+end
 
 sweepOutput = struct();
 sweepOutput.request = request;
@@ -35,6 +38,9 @@ sweepOutput.rawResults = rawResults;
 sweepOutput.summary = summary;
 sweepOutput.summaryTable = summary.conditionTable;
 sweepOutput.normalized = normalized;
+if isfield(options, 'executionProfileMetadata')
+    sweepOutput.executionProfile = options.executionProfileMetadata;
+end
 end
 
 function params = buildAcoustoelasticBaseParams(request)
@@ -60,13 +66,14 @@ end
 end
 
 function options = buildAcoustoelasticOptions(request)
-options = defaultAcoustoelasticIOPHGOOptions();
+controls = getRequestField(request, 'controls', struct());
+[options, profileMetadata] = aeResolveExecutionProfile(controls, ...
+    'DefaultProfile', "Fast", ...
+    'DefaultSource', "SweepTool default");
 
 if isfield(request, 'baseOptions') && isstruct(request.baseOptions) && isfield(request.baseOptions, 'atlasBranchPolicy')
     options = guiMergeStructs(options, request.baseOptions);
 end
-
-controls = getRequestField(request, 'controls', struct());
 
 options.M54_variant = getControlValue(controls, 'M54_variant', "corrected");
 options.normalizeRows = getControlValue(controls, 'normalizeRows', false);
@@ -74,6 +81,26 @@ options.usePhysicalCpWindow = getControlValue(controls, 'usePhysicalCpWindow', f
 options.atlasBranchPolicy = getControlValue(controls, 'atlasBranchPolicy', "atlasA0");
 options.atlasNumYPoints = getControlValue(controls, 'atlasNumYPoints', 300);
 options.atlasTopNMinima = getControlValue(controls, 'atlasTopNMinima', 12);
+profileMetadata.atlasNumYPoints = options.atlasNumYPoints;
+profileMetadata.atlasTopNMinima = options.atlasTopNMinima;
+profileMetadata.internalAtlasPreset = "ae_atlas_" + string(options.atlasNumYPoints) + "x" + string(options.atlasTopNMinima);
+profileMetadata.routePolicy = string(options.atlasBranchPolicy);
+profileMetadata.profileOverrideApplied = profileMetadata.requestedExecutionProfile ~= profileMetadata.effectiveExecutionProfile;
+profileMetadata.profileOverrideReason = "";
+requestedOptions = aeDefaultSweepOptions(profileMetadata.requestedExecutionProfile);
+if options.atlasNumYPoints ~= requestedOptions.atlasNumYPoints || ...
+        options.atlasTopNMinima ~= requestedOptions.atlasTopNMinima
+    profileMetadata.profileOverrideApplied = true;
+    profileMetadata.profileOverrideReason = "SweepTool AE controls override atlas density while preserving visible defaults.";
+    if options.atlasNumYPoints == 300 && options.atlasTopNMinima == 12
+        profileMetadata.effectiveExecutionProfile = "Fast";
+    elseif options.atlasNumYPoints == 600 && options.atlasTopNMinima == 16
+        profileMetadata.effectiveExecutionProfile = "Balanced";
+    elseif options.atlasNumYPoints == 900 && options.atlasTopNMinima == 20
+        profileMetadata.effectiveExecutionProfile = "Robust";
+    end
+end
+options.executionProfileMetadata = profileMetadata;
 end
 
 function params = fillParamDefault(params, fieldName, defaultValue)

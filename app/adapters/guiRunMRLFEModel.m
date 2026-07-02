@@ -5,6 +5,11 @@ end
 
 params = guiMergeStructs(rlDefaultParams(), guiGetStructField(guiRequest, 'params', struct()));
 options = guiMergeStructs(rlDefaultOptions(), guiGetStructField(guiRequest, 'options', struct()));
+[profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
+    'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
+    'DefaultSource', "model default");
+options.executionProfile = profile;
+options.robustness = profile;
 computeVisco = logical(guiGetStructField(guiRequest, 'computeVisco', false));
 computeA0Like = guiGetStructField(options, 'mrlfeComputeA0Like', true);
 computeS0Like = guiGetStructField(options, 'mrlfeComputeS0Like', true);
@@ -85,6 +90,12 @@ result.diagnostics.mrlfeZeroViscosityAdaptiveQuality = zeroViscosityQuality;
 result.diagnostics.mrlfeGuiActualRoute = actualRoute;
 result.diagnostics.mrlfeA0Policy = options.mrlfeA0Policy;
 result.diagnostics.mrlfeGuiAtlasPreset = guiGetStructField(options, 'mrlfeGuiAtlasPreset', "none");
+profileMetadata.internalSolverPreset = profile;
+profileMetadata.internalAtlasPreset = guiGetStructField(options, 'mrlfeGuiAtlasPreset', "none");
+profileMetadata.profileOverrideApplied = false;
+profileMetadata.profileOverrideReason = "";
+profileMetadata.routePolicy = actualRoute;
+profileMetadata.optimizerProfile = "";
 result.metadata.params = params;
 result.metadata.options = options;
 result.metadata.elapsedSeconds = elapsedSeconds;
@@ -96,6 +107,8 @@ result.metadata.mrlfeZeroViscosityAdaptiveQuality = zeroViscosityQuality;
 result.metadata.mrlfeGuiActualRoute = actualRoute;
 result.metadata.mrlfeA0Policy = options.mrlfeA0Policy;
 result.metadata.mrlfeGuiAtlasPreset = guiGetStructField(options, 'mrlfeGuiAtlasPreset', "none");
+result.metadata.executionProfile = profileMetadata;
+result.diagnostics.executionProfile = profileMetadata;
 end
 
 function mrlfeResult = computeElasticReference(rawResult, options)
