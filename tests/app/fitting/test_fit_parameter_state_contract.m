@@ -15,8 +15,19 @@ for iFamily = 1:numel(registry.modelFamilies)
     assert(height(data) == numel(family.parameters), ...
         'FitTool table must expose every registered parameter.');
 
+    fitIndex = find(string(data.Role) == "Fit", 1, 'first');
     fixedIndex = find(string(data.Role) == "Fixed", 1, 'first');
-    data.Value(fixedIndex) = data.Value(fixedIndex) + 1;
+    assert(isempty(data.Value{fitIndex}), ...
+        'The fitted row must not display a fixed Value.');
+    assert(~isempty(data.Initial{fitIndex}) && ~isempty(data.Lower{fitIndex}) && ~isempty(data.Upper{fitIndex}), ...
+        'The fitted row must display Initial, Lower, and Upper values.');
+    assert(~isempty(data.Value{fixedIndex}), ...
+        'Fixed rows must display a fixed Value.');
+    assert(isempty(data.Initial{fixedIndex}) && isempty(data.Lower{fixedIndex}) && isempty(data.Upper{fixedIndex}), ...
+        'Fixed rows must not display Initial, Lower, or Upper values.');
+
+    data.Value{fixedIndex} = data.Value{fixedIndex} + 1;
+    originalFitValue = state.parameters(fitIndex).valueDisplay;
     state = guiApplyFitParameterTable(state, data);
     config = guiBuildFitParameterRequest(state);
 
@@ -34,6 +45,8 @@ for iFamily = 1:numel(registry.modelFamilies)
     end
     assert(actual == expected, ...
         'Edited fixed parameter value was not preserved in the request.');
+    assert(state.parameters(fitIndex).valueDisplay == originalFitValue, ...
+        'The hidden fixed value of the fitted row must be preserved.');
 
     assert(numel(config.freeParams) == 1 && config.freeParams == fitIds(1), ...
         'FitTool request must contain exactly one free parameter.');
@@ -48,4 +61,4 @@ assert(isfield(mrlfeConfig.controls, 'fluidDensity'), ...
 assert(isfield(mrlfeConfig.controls, 'fluidSoundSpeed'), ...
     'mRLFE fluidSoundSpeed must be routed through controls.');
 
-fprintf('test_fit_parameter_state_contract passed. FitTool exposes and routes all registered parameters.\n');
+fprintf('test_fit_parameter_state_contract passed. FitTool exposes role-specific editable cells and routes all registered parameters.\n');
