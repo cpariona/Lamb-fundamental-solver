@@ -11,6 +11,8 @@ assertFunctionsOnPath({ ...
     'LambFundamental_GUI', ...
     'FitTool_GUI', ...
     'createFittingTab', ...
+    'guiGetStructField', ...
+    'guiMergeStructs', ...
     'guiRunRayleighLambModel', ...
     'guiRunMRLFEModel', ...
     'guiRunAcoustoelasticIOPHGOModel', ...
@@ -41,40 +43,43 @@ assertFunctionsOnPath({ ...
     'guiPlotFitResult'}, ...
     'GUI adapter/helper');
 
-fprintf('\n[GUI 1/12] GUI normalized adapters smoke test\n');
+fprintf('\n[GUI 1/13] GUI struct helper contract test\n');
+test_gui_struct_helpers_contract;
+
+fprintf('\n[GUI 2/13] GUI normalized adapters smoke test\n');
 test_gui_normalized_adapters_smoke;
 
-fprintf('\n[GUI 2/12] GUI sweep adapters smoke test\n');
+fprintf('\n[GUI 3/13] GUI sweep adapters smoke test\n');
 test_gui_sweep_adapters_smoke;
 
-fprintf('\n[GUI 3/12] GUI sweep registry smoke test\n');
+fprintf('\n[GUI 4/13] GUI sweep registry smoke test\n');
 test_gui_sweep_registry_smoke;
 
-fprintf('\n[GUI 4/12] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
+fprintf('\n[GUI 5/13] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke;
 
-fprintf('\n[GUI 5/12] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
+fprintf('\n[GUI 6/13] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_main_adapter_smoke;
 
-fprintf('\n[GUI 6/12] GUI fitting backend contract test\n');
+fprintf('\n[GUI 7/13] GUI fitting backend contract test\n');
 test_gui_fit_registry_contract;
 
-fprintf('\n[GUI 7/12] FitTool model registry contract test\n');
+fprintf('\n[GUI 8/13] FitTool model registry contract test\n');
 test_fit_tool_model_registry_contract;
 
-fprintf('\n[GUI 8/12] GUI mRLFE fixed etaS fit contract test\n');
+fprintf('\n[GUI 9/13] GUI mRLFE fixed etaS fit contract test\n');
 test_gui_mrlfe_fixed_etaS_fit_contract;
 
-fprintf('\n[GUI 9/12] GUI mRLFE fit route policy contract test\n');
+fprintf('\n[GUI 10/13] GUI mRLFE fit route policy contract test\n');
 test_gui_mrlfe_fit_route_policy_contract;
 
-fprintf('\n[GUI 10/12] GUI mRLFE unified atlas policy contract test\n');
+fprintf('\n[GUI 11/13] GUI mRLFE unified atlas policy contract test\n');
 test_gui_mrlfe_unified_atlas_policy_contract;
 
-fprintf('\n[GUI 11/12] GUI mRLFE guarded elastic atlas contract test\n');
+fprintf('\n[GUI 12/13] GUI mRLFE guarded elastic atlas contract test\n');
 test_gui_mrlfe_elastic_atlas_guard_contract;
 
-fprintf('\n[GUI 12/12] GUI mRLFE fast full-curve test\n');
+fprintf('\n[GUI 13/13] GUI mRLFE fast full-curve test\n');
 test_gui_mrlfe_fit_full_curve_fast_contract;
 
 fprintf('\nGUI smoke tests passed.\n');

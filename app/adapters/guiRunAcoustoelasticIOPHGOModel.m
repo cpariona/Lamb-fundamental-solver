@@ -24,7 +24,7 @@ if ~isfield(guiRequest, 'params') || ~isstruct(guiRequest.params)
 end
 
 params = guiRequest.params;
-options = mergeStructs(defaultAcoustoelasticIOPHGOOptions(), getStructField(guiRequest, 'options', struct()));
+options = guiMergeStructs(defaultAcoustoelasticIOPHGOOptions(), guiGetStructField(guiRequest, 'options', struct()));
 options = applyGuiFastAEPreset(options);
 
 elapsedTimer = tic;
@@ -33,7 +33,7 @@ elapsedSeconds = toc(elapsedTimer);
 
 result = struct();
 result.modelName = "AcoustoelasticIOPHGO";
-result.branchName = getStructField(options, 'branch', "A0");
+result.branchName = guiGetStructField(options, 'branch', "A0");
 result.frequency = getFieldOrDefault(rawResult, 'frequency', []);
 result.phaseVelocity = getFieldOrDefault(rawResult, 'Cp', []);
 result.wavenumber = computeWavenumber(result.frequency, result.phaseVelocity);
@@ -45,31 +45,31 @@ result.metadata.options = options;
 result.metadata.rawResult = rawResult;
 result.metadata.adapter = mfilename;
 result.metadata.elapsedSeconds = elapsedSeconds;
-result.metadata.aeGuiAtlasPreset = getStructField(options, 'aeGuiAtlasPreset', "none");
+result.metadata.aeGuiAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
 result.diagnostics = getFieldOrDefault(rawResult, 'diagnostics', struct());
 result.diagnostics.elapsedSeconds = elapsedSeconds;
-result.diagnostics.aeGuiAtlasPreset = getStructField(options, 'aeGuiAtlasPreset', "none");
+result.diagnostics.aeGuiAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
 if isfield(rawResult, 'reliability')
     result.diagnostics.reliability = rawResult.reliability;
 end
 end
 
 function options = applyGuiFastAEPreset(options)
-usePreset = logical(getStructField(options, 'aeUseGuiFastAtlasPreset', true));
+usePreset = logical(guiGetStructField(options, 'aeUseGuiFastAtlasPreset', true));
 if ~usePreset
     options.aeGuiAtlasPreset = "off";
     return;
 end
 options.aeGuiAtlasPreset = "fast";
-options.numCpScanPoints = getStructField(options, 'numCpScanPoints', 420);
-options.maxLocalCandidates = getStructField(options, 'maxLocalCandidates', 8);
-options.refineLocalMinima = getStructField(options, 'refineLocalMinima', false);
-options.atlasInitializationNumFrequencyPoints = getStructField(options, 'atlasInitializationNumFrequencyPoints', 25);
-options.trackingMethod = getStructField(options, 'trackingMethod', "predictiveContinuation");
-options.localContinuationFallback = getStructField(options, 'localContinuationFallback', "globalScan");
-options.predictiveWindow = getStructField(options, 'predictiveWindow', 0.22);
-options.predictionWeight = getStructField(options, 'predictionWeight', 8.0);
-options.curvatureWeight = getStructField(options, 'curvatureWeight', 4.0);
+options.numCpScanPoints = guiGetStructField(options, 'numCpScanPoints', 420);
+options.maxLocalCandidates = guiGetStructField(options, 'maxLocalCandidates', 8);
+options.refineLocalMinima = guiGetStructField(options, 'refineLocalMinima', false);
+options.atlasInitializationNumFrequencyPoints = guiGetStructField(options, 'atlasInitializationNumFrequencyPoints', 25);
+options.trackingMethod = guiGetStructField(options, 'trackingMethod', "predictiveContinuation");
+options.localContinuationFallback = guiGetStructField(options, 'localContinuationFallback', "globalScan");
+options.predictiveWindow = guiGetStructField(options, 'predictiveWindow', 0.22);
+options.predictionWeight = guiGetStructField(options, 'predictionWeight', 8.0);
+options.curvatureWeight = guiGetStructField(options, 'curvatureWeight', 4.0);
 end
 
 function branch = normalizeAcoustoelasticBranch(result, rawResult, params, options)
@@ -104,24 +104,6 @@ if isfield(params, 'thickness') && ~isempty(params.thickness)
     kThickness = k(:) .* params.thickness;
 else
     kThickness = nan(size(k(:)));
-end
-end
-
-function value = getStructField(s, name, defaultValue)
-if isstruct(s) && isfield(s, name) && ~isempty(s.(name))
-    value = s.(name);
-else
-    value = defaultValue;
-end
-end
-
-function base = mergeStructs(base, overlay)
-if ~isstruct(overlay)
-    return;
-end
-names = fieldnames(overlay);
-for i = 1:numel(names)
-    base.(names{i}) = overlay.(names{i});
 end
 end
 

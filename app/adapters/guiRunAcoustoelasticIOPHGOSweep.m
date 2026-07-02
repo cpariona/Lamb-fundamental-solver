@@ -63,7 +63,7 @@ function options = buildAcoustoelasticOptions(request)
 options = defaultAcoustoelasticIOPHGOOptions();
 
 if isfield(request, 'baseOptions') && isstruct(request.baseOptions) && isfield(request.baseOptions, 'atlasBranchPolicy')
-    options = mergeStructFields(options, request.baseOptions);
+    options = guiMergeStructs(options, request.baseOptions);
 end
 
 controls = getRequestField(request, 'controls', struct());
@@ -82,31 +82,16 @@ if ~isfield(params, fieldName) || isempty(params.(fieldName))
 end
 end
 
-function target = mergeStructFields(target, source)
-fields = fieldnames(source);
-for i = 1:numel(fields)
-    target.(fields{i}) = source.(fields{i});
-end
-end
-
 function [valuesSolver, displayScale, units] = convertRequestDisplayValues(request)
-displayScale = getRequestField(request, 'displayScale', 1);
-units = string(getRequestField(request, 'displayUnit', ""));
+displayScale = guiGetStructField(request, 'displayScale', 1);
+units = string(guiGetStructField(request, 'displayUnit', ""));
 valuesSolver = request.sweepValuesDisplay .* displayScale;
 end
 
 function value = getControlValue(controls, fieldName, defaultValue)
-if isstruct(controls) && isfield(controls, fieldName) && ~isempty(controls.(fieldName))
-    value = controls.(fieldName);
-else
-    value = defaultValue;
-end
+value = guiGetStructField(controls, fieldName, defaultValue);
 end
 
 function value = getRequestField(request, fieldName, defaultValue)
-if isstruct(request) && isfield(request, fieldName) && ~isempty(request.(fieldName))
-    value = request.(fieldName);
-else
-    value = defaultValue;
-end
+value = guiGetStructField(request, fieldName, defaultValue);
 end
