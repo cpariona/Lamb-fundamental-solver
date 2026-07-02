@@ -21,6 +21,7 @@ callbacks = struct();
 callbacks.onFitModelChanged = @(~,~)onFitModelChanged();
 callbacks.onFitParameterChanged = @(~,~)onFitParameterChanged();
 callbacks.onPopulateFitData = @(~,~)onPopulateFitData();
+callbacks.onResetDefaults = @(~,~)onResetDefaults();
 callbacks.onRunFit = @(~,~)onRunFit();
 fitControls = createFittingTab(tabs, rlDefaultParams(), callbacks);
 
@@ -64,6 +65,19 @@ onFitModelChanged();
         freeParam = string(fitControls.freeParam.Value);
         fitParameterState = guiBuildFitParameterState(modelFamily, freeParam, fitParameterState);
         updateParameterTable();
+    end
+
+    function onResetDefaults()
+        modelFamily = getSelectedModelFamily();
+        family = getSelectedFamily();
+        freeParam = string(fitControls.freeParam.Value);
+        fitParameterState = guiBuildFitParameterState(modelFamily, freeParam);
+        fitControls.robustness.Value = char(family.defaultRobustness);
+        if modelFamily == "mrlfe"
+            fitControls.a0Policy.Value = 'adaptivePhysicalTail';
+        end
+        updateParameterTable();
+        fitControls.status.Text = sprintf('Fit status: restored %s defaults.', string(family.label));
     end
 
     function updateParameterTable()
@@ -172,30 +186,26 @@ onFitModelChanged();
     end
 
     function [frequency_Hz, Cp_mps, validMask] = generateSyntheticData(modelFamily, branchName, parts)
-        allParams = guiMergeStructs(parts.fixedParams, parts.initialGuess);
         switch modelFamily
             case "rayleigh_lamb"
-                params = guiMergeStructs(rlDefaultParams(), allParams);
+                [params, resolvedControls] = guiResolveFitModelSetup(modelFamily, rlDefaultParams(), parts);
                 frequency_Hz = linspace(1000, 8000, 12).';
                 options = rlDefaultOptions(string(fitControls.robustness.Value));
                 Cp_mps = rlEvaluateFitModel(params, frequency_Hz, branchName, options);
                 validMask = isfinite(Cp_mps(:));
             case "mrlfe"
-                params = guiMergeStructs(mrlfeDefaultSweepParams(), allParams);
-                if isfield(parts.controls, 'etaS')
-                    params.etaS = parts.controls.etaS;
-                end
+                [params, resolvedControls] = guiResolveFitModelSetup(modelFamily, mrlfeDefaultSweepParams(), parts);
                 frequency_Hz = linspace(1000, 8000, 10).';
                 options = mrlfeDefaultSweepOptions(branchName, ...
-                    'EtaS', parts.controls.etaS, ...
+                    'EtaS', resolvedControls.etaS, ...
                     'UseUnifiedAtlasRoute', true, ...
                     'A0Policy', string(fitControls.a0Policy.Value));
-                options.mrlfeParams.fluidDensity = parts.controls.fluidDensity;
-                options.mrlfeParams.fluidSoundSpeed = parts.controls.fluidSoundSpeed;
+                options.mrlfeParams.fluidDensity = resolvedControls.fluidDensity;
+                options.mrlfeParams.fluidSoundSpeed = resolvedControls.fluidSoundSpeed;
                 Cp_mps = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
                 validMask = isfinite(Cp_mps(:));
             case "acoustoelastic_iop_hgo"
-                params = guiMergeStructs(defaultAEParams(), allParams);
+                [params, ~] = guiResolveFitModelSetup(modelFamily, defaultAEParams(), parts);
                 frequency_Hz = params.frequency(:);
                 options = defaultAEOptions();
                 [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, "atlasA0", options);
@@ -244,9 +254,9 @@ onFitModelChanged();
         params = struct();
         params.R = 7.8e-3;
         params.thickness = 550e-6;
-        params.mu = 50e3;
-        params.k1 = 25e3;
-        params.k2 = 100;
+        params.mu = 64e3;
+        params.k1 = 50e3;
+        params.k2 = 200;
         params.rho = 1060;
         params.rhoF = 1000;
         params.fluidBulkModulus = 2.2e9;

@@ -93,15 +93,17 @@ h.dataTable = uitable(g, 'Data', defaultData, ...
 h.dataTable.Layout.Row = [8 10];
 h.dataTable.Layout.Column = [1 4];
 
-buttonGrid = uigridlayout(g, [1 2]);
+buttonGrid = uigridlayout(g, [1 3]);
 buttonGrid.Layout.Row = 11;
 buttonGrid.Layout.Column = [1 4];
-buttonGrid.ColumnWidth = {'1x', '1x'};
+buttonGrid.ColumnWidth = {'1x', '1x', '1x'};
 buttonGrid.Padding = [0 0 0 0];
 buttonGrid.ColumnSpacing = 6;
 
 h.populateButton = uibutton(buttonGrid, 'Text', 'Generate synthetic from setup', ...
     'ButtonPushedFcn', callbacks.onPopulateFitData);
+h.resetButton = uibutton(buttonGrid, 'Text', 'Restore model defaults', ...
+    'ButtonPushedFcn', callbacks.onResetDefaults);
 h.runButton = uibutton(buttonGrid, 'Text', 'Run fit', ...
     'ButtonPushedFcn', callbacks.onRunFit);
 
