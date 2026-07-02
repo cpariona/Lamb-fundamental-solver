@@ -10,7 +10,7 @@ Do not move large groups of tests without updating the relevant runners and docu
 
 ## Current compatibility wrappers
 
-Some root-level and legacy-folder runner wrappers are intentionally preserved while the layout is migrated. These wrappers keep older public commands working and delegate to maintained runner implementations under `tests/runners/`.
+Some root-level and legacy-folder runner wrappers are intentionally preserved while the layout is migrated. These wrappers keep older public commands working and delegate through shared utilities to maintained runner implementations under `tests/runners/`.
 
 Current compatibility wrappers include:
 
@@ -146,6 +146,10 @@ tests/shared/fitting/test_fit_validation_mrlfe.m
 tests/shared/fitting/test_fit_validation_mrlfe_hidden_params.m
 tests/shared/fitting/test_fit_validation_rayleigh_lamb.m
 tests/shared/fitting/test_fitting_helpers_smoke.m
+tests/shared/utilities/runRepositoryTestRunner.m
+tests/shared/utilities/test_model_output_folder_helpers.m
+tests/shared/utilities/test_repository_root_utilities.m
+tests/shared/utilities/testRepositoryRoot.m
 tests/shared/utilities/test_startup_path_policy.m
 tests/shared/fitting/test_rl_fit_rejects_prediction_fallback.m
 ```
@@ -202,6 +206,8 @@ shared fitting helpers
 shared sweep helpers
 shared plotting or utility contracts
 path-independent helper behavior
+public runner wrapper dispatch
+shared output-folder helper behavior
 ```
 
 Subfolders:

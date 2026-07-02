@@ -5,7 +5,7 @@ This repository follows a model-family layout. Reusable analysis helpers, model 
 ## Top-level layout
 
 ```text
-analysis/    reusable analysis helpers and fitting backends
+analysis/    reusable analysis helpers, shared infrastructure, and fitting backends
 app/         GUI entrypoints, adapters, plotting, and request/result normalization
 docs/        documentation and validation notes
 examples/    executable examples, sweeps, and diagnostics
@@ -73,7 +73,7 @@ Migration policy:
 5. Run focused tests plus the full smoke suite before merge.
 ```
 
-The current `startup.m` adds `tests/` recursively to the MATLAB path, so internal test folder moves are path-safe as long as test names remain unique and runner names remain available. Example trees are added with path filters so `archive/` and generated `figures/` folders do not resolve as active entrypoints.
+The current `startup.m` adds `tests/` recursively to the MATLAB path, so internal test folder moves are path-safe as long as test names remain unique and runner names remain available. Root-level runner wrappers delegate through shared test utilities to implementations under `tests/runners/`. Example trees are added with path filters so `archive/` and generated `figures/` folders do not resolve as active entrypoints.
 
 ## mRLFE layout
 
@@ -261,4 +261,4 @@ tests/models/<model_family>/
 
 ## Output paths
 
-Generated outputs should go under `Results/`, not under source folders. Model-specific helpers should own output-folder construction where possible.
+Generated outputs should go under `Results/`, not under source folders. Model-specific helpers should own public output-folder names, while shared infrastructure can provide the generic create-if-needed operation. Current helpers preserve the existing `Results/<model_family>/<task>` layout.

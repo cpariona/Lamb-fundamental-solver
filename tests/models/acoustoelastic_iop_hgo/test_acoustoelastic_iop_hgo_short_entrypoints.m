@@ -5,7 +5,7 @@ function test_acoustoelastic_iop_hgo_short_entrypoints()
 % Optional historical diagnostics are checked only while they are still present;
 % they are not part of the primary maintained surface.
 
-repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+repoRoot = testRepositoryRoot(mfilename('fullpath'));
 
 maintainedHelpers = [ ...
     "aeOutputFolder", ...
@@ -125,7 +125,7 @@ assert(isempty(which('diagnose_modal_atlas_lowfreq')), ...
 end
 
 function assertMaintainedDocsContain(maintainedHelpers, maintainedWorkflows, maintainedDiagnostics)
-repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+repoRoot = testRepositoryRoot(mfilename('fullpath'));
 entrypointsText = fileread(fullfile(repoRoot, 'docs', 'repository', 'maintained_entrypoints.md'));
 publicApiText = fileread(fullfile(repoRoot, 'docs', 'models', 'acoustoelastic_iop_hgo', 'active', 'public_api.md'));
 readmeText = fileread(fullfile(repoRoot, 'docs', 'models', 'acoustoelastic_iop_hgo', 'README.md'));
