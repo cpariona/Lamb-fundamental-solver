@@ -152,3 +152,130 @@ FitTool_GUI         -> Fast
 - Add future tests for requested/effective metadata on Main, Sweep, Fit, and API calls.
 - Add one non-fragile benchmark smoke that verifies benchmark table shape, not timing thresholds.
 - Avoid fragile Cp snapshots except for small, model-owned numerical regression cases.
+
+## Implemented PR 2 infrastructure
+
+This phase adds the first additive infrastructure layer. It does not change
+visible defaults, solver densities, atlas densities, route policies, fitting
+optimizer options, or public compatibility with `robustness`.
+
+### Canonical app-level API
+
+The canonical app-level field is:
+
+```matlab
+executionProfile
+```
+
+The historical field remains supported:
+
+```matlab
+robustness
+```
+
+The shared helper is:
+
+```matlab
+[profile, metadata] = guiNormalizeExecutionProfile(input, ...)
+```
+
+It accepts char, string, or a struct containing `executionProfile` and/or
+`robustness`.
+
+Precedence and validation rules:
+
+1. If only `executionProfile` exists, it is used.
+2. If only `robustness` exists, it is used as a compatibility alias.
+3. If both exist and canonicalize to the same value, execution continues.
+4. If both exist and differ, `guiNormalizeExecutionProfile:ConflictingProfiles`
+   is raised and includes both values.
+5. Input is case-insensitive, but output is canonical: `Fast`, `Balanced`, or
+   `Robust`.
+
+### Model resolvers
+
+The maintained resolver entrypoints are:
+
+```matlab
+rlResolveExecutionProfile
+mrlfeResolveExecutionProfile
+aeResolveExecutionProfile
+```
+
+Rayleigh-Lamb delegates directly to `rlDefaultOptions(profile)` and records
+the profile as both requested and effective.
+
+AE IOP/HGO delegates to `aeDefaultSweepOptions(profile)` and preserves the
+current atlas mapping:
+
+| Profile | atlasNumYPoints | atlasTopNMinima |
+| --- | ---: | ---: |
+| `Fast` | 300 | 12 |
+| `Balanced` | 600 | 16 |
+| `Robust` | 900 | 20 |
+
+mRLFE is surface-aware:
+
+| Surface | Requested profile | Effective profile | Preserved internal preset |
+| --- | --- | --- | --- |
+| Main/Sweep/API-style GUI | selected profile | selected profile | GUI route preset selected later (`fast_viscous`, `fast_zero_viscosity_adaptive`, or `elastic_reference`) |
+| Fit | selected profile | `Fast` | `fast_fit_atlas` |
+
+This records the existing mRLFE FitTool limitation instead of pretending that
+`Balanced` or `Robust` changed the maintained atlas fit route.
+
+### Metadata contract
+
+Adapters now attach profile metadata where applicable:
+
+```matlab
+requestedExecutionProfile
+effectiveExecutionProfile
+executionProfileSource
+internalSolverPreset
+internalAtlasPreset
+profileOverrideApplied
+profileOverrideReason
+routePolicy
+optimizerProfile
+```
+
+Normalized sweep and fit outputs also receive the profile metadata when their
+adapter has enough context to provide it.
+
+### Preserved overrides
+
+The following behavior remains intentionally unchanged and is now explicit in
+metadata:
+
+- mRLFE Fit keeps `fast_fit_atlas` and effective profile `Fast`.
+- mRLFE Main/Sweep keeps the GUI fast atlas presets and route-specific actual
+  paths.
+- AE Fit can still preserve the 300/12/50 fitting controls even if the user
+  requested `Robust`; this is recorded as an override.
+- AE Main still applies the maintained fast interactive AE GUI preset after
+  resolving the app-level profile.
+
+### Tests
+
+Focused coverage lives in:
+
+```matlab
+run_execution_profile_infrastructure_tests
+```
+
+It covers:
+
+- profile normalization and alias conflicts;
+- RL, mRLFE, and AE resolvers;
+- current-behavior compatibility from the audit;
+- representative surface metadata and deterministic RL equivalence.
+
+### Remaining PR 3 work
+
+- Display requested/effective profile metadata in more GUI diagnostics.
+- Decide whether any surface should expose a visible `executionProfile` label
+  instead of `robustness`.
+- Decide whether SweepTool RL should move to the future proposed Fast default.
+- Decide whether SweepTool AE should expose `Robust`.
+- Add richer normalized metadata for every curve in multi-case sweeps.
