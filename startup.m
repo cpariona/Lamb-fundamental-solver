@@ -7,13 +7,38 @@ function startup()
 projectRoot = fileparts(mfilename('fullpath'));
 
 addpath(projectRoot);
-addpath(genpath(fullfile(projectRoot, 'app')));
-addpath(genpath(fullfile(projectRoot, 'models')));
-addpath(genpath(fullfile(projectRoot, 'analysis')));
-addpath(genpath(fullfile(projectRoot, 'examples', 'rayleigh_lamb')));
-addpath(genpath(fullfile(projectRoot, 'examples', 'acoustoelastic_iop_hgo')));
-addpath(genpath(fullfile(projectRoot, 'examples', 'mrlfe')));
-addpath(genpath(fullfile(projectRoot, 'tests')));
+addProjectTree(fullfile(projectRoot, 'app'), {});
+addProjectTree(fullfile(projectRoot, 'models'), {});
+addProjectTree(fullfile(projectRoot, 'analysis'), {});
+addProjectTree(fullfile(projectRoot, 'examples', 'rayleigh_lamb'), {'archive', 'figures'});
+addProjectTree(fullfile(projectRoot, 'examples', 'acoustoelastic_iop_hgo'), {'archive', 'figures'});
+addProjectTree(fullfile(projectRoot, 'examples', 'mrlfe'), {'archive', 'figures'});
+addProjectTree(fullfile(projectRoot, 'tests'), {});
 
 fprintf('Lamb Fundamental Solver active paths added from:\n%s\n', projectRoot);
+end
+
+function addProjectTree(treeRoot, excludedFolderNames)
+if ~exist(treeRoot, 'dir')
+    return;
+end
+
+pathEntries = strsplit(genpath(treeRoot), pathsep);
+for i = 1:numel(pathEntries)
+    folder = pathEntries{i};
+    if isempty(folder) || containsExcludedFolder(folder, excludedFolderNames)
+        continue;
+    end
+    addpath(folder);
+end
+end
+
+function tf = containsExcludedFolder(folder, excludedFolderNames)
+if isempty(excludedFolderNames)
+    tf = false;
+    return;
+end
+
+parts = regexp(folder, '[\\/]', 'split');
+tf = any(ismember(lower(parts), lower(excludedFolderNames)));
 end

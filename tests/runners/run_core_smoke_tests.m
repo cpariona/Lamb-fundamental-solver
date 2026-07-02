@@ -21,6 +21,10 @@ assertNumericClose(elastic.mu, 75e3, 1e-12, ...
 assert(elastic.lambda > 0 && elastic.K > 0 && elastic.CL > elastic.CT, ...
     'elasticFromMuNu should return positive lambda/K and CL > CT.');
 
+%% Startup/path policy
+fprintf('\nChecking startup path policy...\n');
+test_startup_path_policy
+
 %% Shared fitting helpers
 fprintf('\nChecking shared fitting helper functions...\n');
 assertFunctionsOnPath({ ...

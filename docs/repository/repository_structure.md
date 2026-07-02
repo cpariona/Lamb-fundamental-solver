@@ -73,7 +73,7 @@ Migration policy:
 5. Run focused tests plus the full smoke suite before merge.
 ```
 
-The current `startup.m` adds `tests/` recursively to the MATLAB path, so internal test folder moves are path-safe as long as test names remain unique and runner names remain available.
+The current `startup.m` adds `tests/` recursively to the MATLAB path, so internal test folder moves are path-safe as long as test names remain unique and runner names remain available. Example trees are added with path filters so `archive/` and generated `figures/` folders do not resolve as active entrypoints.
 
 ## mRLFE layout
 
