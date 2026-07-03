@@ -156,8 +156,6 @@ onFitModelChanged();
                 parts.fitOptions.optimizerOptions = optimset( ...
                     'Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-5);
             case "acoustoelastic_iop_hgo"
-                parts.controls.atlasNumYPoints = 300;
-                parts.controls.atlasTopNMinima = 12;
                 parts.controls.atlasInitializationNumFrequencyPoints = 50;
                 parts.fitOptions.optimizerOptions = optimset( ...
                     'Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3);
@@ -208,7 +206,7 @@ onFitModelChanged();
             case "acoustoelastic_iop_hgo"
                 [params, ~] = guiResolveFitModelSetup(modelFamily, defaultAEParams(), parts);
                 frequency_Hz = params.frequency(:);
-                options = defaultAEOptions();
+                options = defaultAEOptions(parts.controls.executionProfile);
                 [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, "atlasA0", options);
                 validMask = rawResult.validMask(:);
                 if ~any(validMask)
@@ -265,13 +263,13 @@ onFitModelChanged();
         params.frequency = logspace(log10(300), log10(15e3), 35);
     end
 
-    function options = defaultAEOptions()
-        options = defaultAcoustoelasticIOPHGOOptions();
+    function options = defaultAEOptions(executionProfile)
+        [options, ~] = aeResolveExecutionProfile(executionProfile, ...
+            'DefaultProfile', "Fast", ...
+            'DefaultSource', "FitTool synthetic default");
         options.M54_variant = "corrected";
         options.normalizeRows = false;
         options.usePhysicalCpWindow = false;
-        options.atlasNumYPoints = 300;
-        options.atlasTopNMinima = 12;
         options.atlasBranchPolicy = "atlasA0";
         options.atlasInitializationNumFrequencyPoints = 50;
     end
@@ -280,9 +278,9 @@ onFitModelChanged();
         normalized = fitOutput.normalized;
         pathText = getEvaluationPathText(fitOutput);
         curveText = getFullCurveStatusText(normalized);
-        fitControls.status.Text = sprintf('Fit status: done | %s %s | RMSE %.4g m/s | %s%s%s', ...
+        fitControls.status.Text = string(sprintf('Fit status: done | %s %s | RMSE %.4g m/s | %s%s%s', ...
             normalized.modelName, normalized.branchName, normalized.metrics.RMSE, ...
-            string(normalized.identifiability.classification), pathText, curveText);
+            string(normalized.identifiability.classification), pathText, curveText)) + getProfileStatusText(fitOutput);
     end
 
     function pathText = getEvaluationPathText(fitOutput)
@@ -312,6 +310,18 @@ onFitModelChanged();
                 logical(normalized.fullCurve.denseSolver.hasGridMismatch)
             mismatch = normalized.fullCurve.denseSolver.maxAbsDenseMinusFit_mps;
             curveText = curveText + sprintf(' | dense/grid mismatch %.3g m/s', mismatch);
+        end
+    end
+
+    function profileText = getProfileStatusText(fitOutput)
+        profileText = "";
+        if ~isfield(fitOutput, 'executionProfile') || ~isstruct(fitOutput.executionProfile)
+            return;
+        end
+        profile = fitOutput.executionProfile;
+        if isfield(profile, 'profileOverrideApplied') && logical(profile.profileOverrideApplied)
+            profileText = sprintf(' | profile %s->%s', ...
+                string(profile.requestedExecutionProfile), string(profile.effectiveExecutionProfile));
         end
     end
 end

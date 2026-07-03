@@ -10,12 +10,12 @@ g.Padding = [12 12 12 12];
 uilabel(g, 'Text', 'Numerical solver', 'FontWeight', 'bold');
 uilabel(g, 'Text', '');
 
-uilabel(g, 'Text', 'robustness');
+uilabel(g, 'Text', 'execution profile');
 h.robustness = uidropdown(g, 'Items', {'Fast', 'Balanced', 'Robust'}, 'Value', 'Balanced', 'ValueChangedFcn', callbacks.markDirty);
 
 uilabel(g, 'Text', 'preset effect');
-uilabel(g, 'Text', 'Fast uses fewer scan points. Robust uses more points and wider search windows.', 'WordWrap', 'on');
+uilabel(g, 'Text', 'Model-specific cost/robustness profile. Metadata reports the effective internal preset.', 'WordWrap', 'on');
 
 uilabel(g, 'Text', 'settings');
-uilabel(g, 'Text', 'Detailed numerical tuning is currently configured in defaultOptions.m.', 'WordWrap', 'on', 'FontAngle', 'italic');
+uilabel(g, 'Text', 'Route policy, atlas branch selection, and optimizer options remain configured separately.', 'WordWrap', 'on', 'FontAngle', 'italic');
 end

@@ -52,17 +52,18 @@ result.metadata.adapter = mfilename;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.aeGuiAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
 profileMetadata.internalSolverPreset = "";
-profileMetadata.internalAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
-profileMetadata.profileOverrideApplied = guiGetStructField(options, 'aeGuiAtlasPreset', "none") == "fast";
-if profileMetadata.profileOverrideApplied
-    profileMetadata.profileOverrideReason = "Main GUI AE uses the maintained fast interactive atlas preset.";
-else
-    profileMetadata.profileOverrideReason = "";
-end
+profileMetadata.internalAtlasPreset = "ae_atlas_" + string(guiGetStructField(options, 'atlasNumYPoints', NaN)) + ...
+    "x" + string(guiGetStructField(options, 'atlasTopNMinima', NaN));
+profileMetadata.aeGuiInteractivePreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
+profileMetadata.profileOverrideApplied = false;
+profileMetadata.profileOverrideReason = "";
 profileMetadata.routePolicy = string(guiGetStructField(options, 'atlasBranchPolicy', "atlasA0"));
 profileMetadata.optimizerProfile = "";
 profileMetadata.atlasNumYPoints = guiGetStructField(options, 'atlasNumYPoints', NaN);
 profileMetadata.atlasTopNMinima = guiGetStructField(options, 'atlasTopNMinima', NaN);
+profileMetadata.supportedExecutionProfiles = ["Fast", "Balanced", "Robust"];
+profileMetadata.profileSupportMode = "fully_supported";
+profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
 result.metadata.executionProfile = profileMetadata;
 result.diagnostics = getFieldOrDefault(rawResult, 'diagnostics', struct());
 result.diagnostics.elapsedSeconds = elapsedSeconds;

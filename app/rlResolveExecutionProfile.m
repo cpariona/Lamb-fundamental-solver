@@ -23,4 +23,7 @@ metadata.optimizerProfile = "";
 metadata.gridPointsInitial = options.gridPointsInitial;
 metadata.gridPointsTracking = options.gridPointsTracking;
 metadata.jumpTol = options.jumpTol;
+metadata.supportedExecutionProfiles = ["Fast", "Balanced", "Robust"];
+metadata.profileSupportMode = "fully_supported";
+metadata.surfaceDefaultExecutionProfile = string(p.Results.DefaultProfile);
 end

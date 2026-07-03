@@ -55,7 +55,7 @@ h.freeParam = uidropdown(g, 'Items', {'mu', 'thickness'}, 'Value', 'mu', ...
 h.freeParam.Layout.Row = 3;
 h.freeParam.Layout.Column = 2;
 
-label = uilabel(g, 'Text', 'Robustness');
+label = uilabel(g, 'Text', 'Execution profile');
 label.Layout.Row = 3;
 label.Layout.Column = 3;
 h.robustness = uidropdown(g, 'Items', cellstr(family.robustnessPresets), 'Value', char(family.defaultRobustness));
@@ -118,7 +118,7 @@ h.fixedHeader.Layout.Row = 13;
 h.fixedHeader.Layout.Column = [1 4];
 
 h.note = uilabel(g, ...
-    'Text', 'Solver controls such as robustness and atlas policy remain separate from physical parameters.', ...
+    'Text', 'Execution profile, route policy, and optimizer options remain separate from physical parameters.', ...
     'FontSize', 10, 'WordWrap', 'on');
 h.note.Layout.Row = 14;
 h.note.Layout.Column = [1 4];

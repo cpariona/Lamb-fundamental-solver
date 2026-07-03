@@ -1,10 +1,9 @@
 function [options, metadata] = mrlfeResolveExecutionProfile(branchName, profileInput, varargin)
 %MRLFERESOLVEEXECUTIONPROFILE Resolve app-level profile for mRLFE workflows.
 %
-% Surface "gui" preserves the requested profile as the Rayleigh-Lamb seed
-% profile. Surface "fit" preserves the current maintained FitTool behavior:
-% the effective solver profile remains Fast and the atlas fit preset remains
-% route-specific metadata rather than a branch-policy change.
+% Surface "gui"/"sweep" preserves the current maintained fast atlas routes
+% and records non-Fast requests as mapped to the validated Fast internal
+% preset. Surface "fit" preserves the fast_fit_atlas route.
 
 p = inputParser;
 addRequired(p, 'branchName', @(x)ischar(x) || isstring(x));
@@ -25,8 +24,8 @@ surface = lower(string(p.Results.Surface));
 
 switch surface
     case {"gui", "main", "sweep", "api"}
-        effectiveProfile = requestedProfile;
-        options = rlDefaultOptions(effectiveProfile);
+        effectiveProfile = "Fast";
+        options = rlDefaultOptions(requestedProfile);
         options.computeMRLFEComplexK = false;
         options.mrlfeUseUnifiedAtlasRoute = logical(p.Results.UseUnifiedAtlasRoute);
         options.mrlfeA0Policy = string(p.Results.A0Policy);
@@ -35,8 +34,12 @@ switch surface
         options.mrlfeParams.etaL = 0;
         options.mrlfeParams.useComplexLambda = false;
         options = localApplyBranchFlags(options, branchName);
-        overrideApplied = false;
-        overrideReason = "";
+        overrideApplied = requestedProfile ~= effectiveProfile;
+        if overrideApplied
+            overrideReason = "mRLFE GUI and sweep surfaces preserve validated fast atlas presets.";
+        else
+            overrideReason = "";
+        end
         internalAtlasPreset = "gui_fast_route_selected_later";
     case "fit"
         effectiveProfile = "Fast";
@@ -63,7 +66,11 @@ options.robustness = effectiveProfile;
 
 metadata.requestedExecutionProfile = requestedProfile;
 metadata.effectiveExecutionProfile = effectiveProfile;
-metadata.internalSolverPreset = effectiveProfile;
+if surface == "fit"
+    metadata.internalSolverPreset = effectiveProfile;
+else
+    metadata.internalSolverPreset = requestedProfile;
+end
 metadata.internalAtlasPreset = internalAtlasPreset;
 metadata.profileOverrideApplied = logical(overrideApplied);
 metadata.profileOverrideReason = overrideReason;
@@ -73,6 +80,9 @@ metadata.surface = surface;
 metadata.branchName = branchName;
 metadata.etaS = p.Results.EtaS;
 metadata.useUnifiedAtlasRoute = logical(p.Results.UseUnifiedAtlasRoute);
+metadata.supportedExecutionProfiles = ["Fast", "Balanced", "Robust"];
+metadata.profileSupportMode = "mapped_to_fast";
+metadata.surfaceDefaultExecutionProfile = string(p.Results.DefaultProfile);
 end
 
 function options = localApplyBranchFlags(options, branchName)
