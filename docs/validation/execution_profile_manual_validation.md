@@ -88,3 +88,20 @@ FitTool_GUI
 | New scripts with `controls.executionProfile = "Fast"` | Run without requiring `robustness`. | Not tested |  |
 | Case-insensitive inputs | `"fast"` and `"FAST"` canonicalize to `Fast`. | Not tested |  |
 | Contradictory aliases | `executionProfile = "Robust"` and `robustness = "Fast"` fail before an expensive solver run. | Not tested |  |
+
+## Second Diagnostics Pass
+
+These checks focus on the harmonized diagnostic text. They do not require a
+full physical revalidation.
+
+| Surface | Check | Expected result | Status | Notes |
+| --- | --- | --- | --- | --- |
+| Main GUI | Rayleigh-Lamb Fast/Balanced/Robust | Diagnostics show control value, requested, effective, route `direct`, elapsed time, valid points, and RL settings such as grid/search fields. | Not tested |  |
+| Main GUI | AE Fast/Balanced/Robust | Diagnostics show `ae_atlas_300x12`, `ae_atlas_600x16`, or `ae_atlas_900x20`, plus `atlasNumYPoints`, `atlasTopNMinima`, route `atlasA0`, elapsed time, and valid points. | Not tested |  |
+| Main GUI | mRLFE Balanced/Robust | Diagnostics show requested non-Fast, effective `Fast`, `mapped_to_fast`, override reason, fast atlas preset, actual route, A0 policy, `etaS`, fallback, elapsed time, and valid points. | Not tested |  |
+| SweepTool | Any completed sweep | Status area shows elapsed time, sweep cases, valid cases, requested/effective profile, internal preset, and route policy. | Not tested |  |
+| SweepTool | AE Robust | Status shows `ae_atlas_900x20`, `atlasNumYPoints = 900`, `atlasTopNMinima = 20`, route `atlasA0`. | Not tested |  |
+| SweepTool | mRLFE Balanced/Robust | Status shows requested non-Fast, effective `Fast`, mapped-to-Fast reason, fast preset, actual route when available, and does not present Balanced/Robust as effective. | Not tested |  |
+| FitTool | Synthetic generation | Status distinguishes synthetic diagnostics and shows requested/effective profile plus elapsed time. | Not tested |  |
+| FitTool | AE fit | Fit status shows effective atlas preset and 300/12, 600/16, or 900/20 according to profile. | Not tested |  |
+| FitTool | mRLFE fit | Fit status shows `fast_fit_atlas`, requested/effective mapping, override reason, actual route, fit elapsed, and fitted-curve elapsed. | Not tested |  |

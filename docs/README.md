@@ -46,6 +46,8 @@ docs/workflows/gui/mrlfe_atlas_policy_integration.md
 docs/architecture/execution_profiles_surface_integration.md
 docs/validation/execution_profile_end_to_end_validation.md
 docs/validation/execution_profile_manual_validation.md
+docs/validation/execution_profile_diagnostics_validation.md
+docs/validation/mrlfe_execution_profile_benchmark.md
 ```
 
 ## Active sweep documentation
