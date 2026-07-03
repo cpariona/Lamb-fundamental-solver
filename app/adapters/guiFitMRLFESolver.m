@@ -22,9 +22,6 @@ if ~(branchName == "A0Like" || branchName == "S0Like")
 end
 
 controls = request.controls;
-if ~isfield(controls, 'robustness') || strlength(string(controls.robustness)) == 0
-    controls.robustness = "Fast";
-end
 if ~isfield(controls, 'etaS') || isempty(controls.etaS)
     controls.etaS = 0.05;
 end
@@ -44,9 +41,16 @@ if ~isfield(controls, 'mrlfeUseAtlasFitRoute') || isempty(controls.mrlfeUseAtlas
     controls.mrlfeUseAtlasFitRoute = true;
 end
 
-solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', controls.etaS, ...
+[solverOptions, profileMetadata] = mrlfeResolveExecutionProfile(branchName, controls, ...
+    'Surface', "fit", ...
+    'DefaultProfile', "Fast", ...
+    'DefaultSource', "FitTool default", ...
+    'EtaS', controls.etaS, ...
     'UseUnifiedAtlasRoute', logical(controls.mrlfeUseUnifiedAtlasRoute), ...
     'A0Policy', string(controls.mrlfeA0Policy));
+controls.executionProfile = profileMetadata.requestedExecutionProfile;
+controls.robustness = profileMetadata.requestedExecutionProfile;
+request.controls = controls;
 solverOptions.mrlfeParams.fluidDensity = controls.fluidDensity;
 solverOptions.mrlfeParams.fluidSoundSpeed = controls.fluidSoundSpeed;
 solverOptions.mrlfeUseAtlasFitRoute = logical(controls.mrlfeUseAtlasFitRoute);
@@ -75,6 +79,9 @@ fitConfig.fitOptions = request.fitOptions;
 
 fitResult = mrlfeFitDispersionData(request.experimental, fitConfig);
 normalized = guiNormalizeFitResult(fitResult, request);
+profileMetadata.internalAtlasPreset = localFitAtlasPreset(fitResult);
+profileMetadata.routePolicy = localActualEvaluationPath(fitResult);
+normalized.executionProfile = profileMetadata;
 
 fitOutput = struct();
 fitOutput.request = request;
@@ -88,6 +95,7 @@ fitOutput.routePolicy.actualPath = localActualEvaluationPath(fitResult);
 fitOutput.routePolicy.mrlfeA0Policy = string(controls.mrlfeA0Policy);
 fitOutput.routePolicy.etaS = localActualEtaS(fitResult, controls.etaS);
 fitOutput.routePolicy.fitAtlasPreset = localFitAtlasPreset(fitResult);
+fitOutput.executionProfile = profileMetadata;
 end
 
 function policy = localRoutePolicy(branchName, freeParams, controls)

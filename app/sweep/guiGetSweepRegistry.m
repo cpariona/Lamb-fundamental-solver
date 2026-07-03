@@ -23,9 +23,11 @@ family.defaultParameter = "etaS";
 family.defaultModelLabel = "mRLFE real-k";
 family.defaultBranchName = "A0Like";
 family.defaultRobustness = "Fast";
+family.defaultExecutionProfile = family.defaultRobustness;
 family.modelLabels = "mRLFE real-k";
 family.branchNames = ["A0Like", "S0Like"];
 family.robustnessPresets = ["Fast", "Balanced", "Robust"];
+family.executionProfiles = family.robustnessPresets;
 family.outputTaskName = "mrlfe_sweep";
 family.parameters = [ ...
     makeParameter("etaS", "etaS", [0, 0.01, 0.05, 0.10, 0.20, 0.30, 0.50], "Pa*s", 1, ...
@@ -47,9 +49,11 @@ family.defaultParameter = "thickness";
 family.defaultModelLabel = "Rayleigh-Lamb";
 family.defaultBranchName = "A0";
 family.defaultRobustness = "Balanced";
+family.defaultExecutionProfile = family.defaultRobustness;
 family.modelLabels = "Rayleigh-Lamb";
 family.branchNames = ["A0", "S0"];
 family.robustnessPresets = ["Fast", "Balanced", "Robust"];
+family.executionProfiles = family.robustnessPresets;
 family.outputTaskName = "rayleigh_lamb_sweep";
 family.parameters = [ ...
     makeParameter("thickness", "thickness", [0.3, 0.4, 0.5, 0.6, 0.7], "mm", 1e-3, ...
@@ -69,9 +73,11 @@ family.defaultParameter = "IOP";
 family.defaultModelLabel = "AE IOP/HGO";
 family.defaultBranchName = "atlasA0";
 family.defaultRobustness = "Fast";
+family.defaultExecutionProfile = family.defaultRobustness;
 family.modelLabels = "AE IOP/HGO";
 family.branchNames = "atlasA0";
 family.robustnessPresets = ["Fast", "Balanced"];
+family.executionProfiles = family.robustnessPresets;
 family.outputTaskName = "ae_iop_hgo_sweep";
 family.parameters = [ ...
     makeParameter("IOP", "IOP", [5, 10, 15, 20, 25], "mmHg", 133.322, ...
@@ -91,9 +97,11 @@ family.defaultParameter = "";
 family.defaultModelLabel = "";
 family.defaultBranchName = "";
 family.defaultRobustness = "";
+family.defaultExecutionProfile = "";
 family.modelLabels = strings(1, 0);
 family.branchNames = strings(1, 0);
 family.robustnessPresets = strings(1, 0);
+family.executionProfiles = strings(1, 0);
 family.outputTaskName = "sweep";
 family.parameters = repmat(emptyParameter(), 1, 0);
 end

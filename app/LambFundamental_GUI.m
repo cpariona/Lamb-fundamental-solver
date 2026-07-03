@@ -148,7 +148,10 @@ updateAxisFieldState();
     end
 
     function options = readOptionsFromGui(params)
-        options = rlDefaultOptions(string(advanced.robustness.Value));
+        [options, profileMetadata] = rlResolveExecutionProfile(string(advanced.robustness.Value), ...
+            'DefaultProfile', "Balanced", ...
+            'DefaultSource', "Main GUI default");
+        options.executionProfileMetadata = profileMetadata;
         options.computeAcoustoelasticIOPHGO = logical(modelControls.ae.computeAtlasA0.Value);
 
         if options.computeAcoustoelasticIOPHGO
@@ -160,7 +163,7 @@ updateAxisFieldState();
             options.computeMRLFEComplexK = false;
             options.mrlfeComputeA0Like = false;
             options.mrlfeComputeS0Like = false;
-            options.acoustoelasticOptions = guiBuildAcoustoelasticIOPHGOOptions(options.robustness);
+            options.acoustoelasticOptions = guiBuildAcoustoelasticIOPHGOOptions(options.executionProfile);
             return;
         end
 
@@ -706,6 +709,12 @@ updateAxisFieldState();
         if isempty(lastOptions)
             lines(end+1) = "  unavailable";
         else
+            if isfield(lastOptions, 'executionProfileMetadata')
+                mdProfile = lastOptions.executionProfileMetadata;
+                lines(end+1) = sprintf("  execution profile requested/effective: %s/%s", ...
+                    string(mdProfile.requestedExecutionProfile), string(mdProfile.effectiveExecutionProfile));
+                lines(end+1) = sprintf("  execution profile source: %s", string(mdProfile.executionProfileSource));
+            end
             optionNames = ["computeA0", "computeS0", "computeMRLFERealK", ...
                 "mrlfeComputeA0Like", "mrlfeComputeS0Like", "computeAcoustoelasticIOPHGO"];
             optionLabels = ["Rayleigh-Lamb seed A0", "Rayleigh-Lamb seed S0", ...

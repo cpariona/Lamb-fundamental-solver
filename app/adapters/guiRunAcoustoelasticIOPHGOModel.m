@@ -25,6 +25,11 @@ end
 
 params = guiRequest.params;
 options = guiMergeStructs(defaultAcoustoelasticIOPHGOOptions(), guiGetStructField(guiRequest, 'options', struct()));
+[profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
+    'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
+    'DefaultSource', "model default");
+options.executionProfile = profile;
+options.robustness = profile;
 options = applyGuiFastAEPreset(options);
 
 elapsedTimer = tic;
@@ -46,9 +51,23 @@ result.metadata.rawResult = rawResult;
 result.metadata.adapter = mfilename;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.aeGuiAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
+profileMetadata.internalSolverPreset = "";
+profileMetadata.internalAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
+profileMetadata.profileOverrideApplied = guiGetStructField(options, 'aeGuiAtlasPreset', "none") == "fast";
+if profileMetadata.profileOverrideApplied
+    profileMetadata.profileOverrideReason = "Main GUI AE uses the maintained fast interactive atlas preset.";
+else
+    profileMetadata.profileOverrideReason = "";
+end
+profileMetadata.routePolicy = string(guiGetStructField(options, 'atlasBranchPolicy', "atlasA0"));
+profileMetadata.optimizerProfile = "";
+profileMetadata.atlasNumYPoints = guiGetStructField(options, 'atlasNumYPoints', NaN);
+profileMetadata.atlasTopNMinima = guiGetStructField(options, 'atlasTopNMinima', NaN);
+result.metadata.executionProfile = profileMetadata;
 result.diagnostics = getFieldOrDefault(rawResult, 'diagnostics', struct());
 result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.diagnostics.aeGuiAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
+result.diagnostics.executionProfile = profileMetadata;
 if isfield(rawResult, 'reliability')
     result.diagnostics.reliability = rawResult.reliability;
 end

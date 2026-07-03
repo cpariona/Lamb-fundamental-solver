@@ -23,11 +23,12 @@ if branchName ~= "atlasA0"
 end
 
 controls = request.controls;
-if ~isfield(controls, 'robustness') || strlength(string(controls.robustness)) == 0
-    controls.robustness = "Fast";
-end
-
-solverOptions = aeDefaultSweepOptions(string(controls.robustness));
+[solverOptions, profileMetadata] = aeResolveExecutionProfile(controls, ...
+    'DefaultProfile', "Fast", ...
+    'DefaultSource', "FitTool default");
+controls.executionProfile = profileMetadata.requestedExecutionProfile;
+controls.robustness = profileMetadata.requestedExecutionProfile;
+request.controls = controls;
 solverOptions.atlasBranchPolicy = "atlasA0";
 if isfield(controls, 'atlasNumYPoints') && ~isempty(controls.atlasNumYPoints)
     solverOptions.atlasNumYPoints = controls.atlasNumYPoints;
@@ -38,6 +39,7 @@ end
 if isfield(controls, 'atlasInitializationNumFrequencyPoints') && ~isempty(controls.atlasInitializationNumFrequencyPoints)
     solverOptions.atlasInitializationNumFrequencyPoints = controls.atlasInitializationNumFrequencyPoints;
 end
+profileMetadata = localApplyAEFitOverrideMetadata(profileMetadata, solverOptions);
 
 fitConfig = struct();
 fitConfig.branchName = branchName;
@@ -50,6 +52,7 @@ fitConfig.fitOptions = request.fitOptions;
 
 fitResult = aeFitDispersionData(request.experimental, fitConfig);
 normalized = guiNormalizeFitResult(fitResult, request);
+normalized.executionProfile = profileMetadata;
 
 fitOutput = struct();
 fitOutput.request = request;
@@ -58,4 +61,31 @@ fitOutput.modelName = "AcoustoelasticIOPHGO";
 fitOutput.branchName = branchName;
 fitOutput.fitResult = fitResult;
 fitOutput.normalized = normalized;
+fitOutput.executionProfile = profileMetadata;
+end
+
+function metadata = localApplyAEFitOverrideMetadata(metadata, solverOptions)
+metadata.atlasNumYPoints = solverOptions.atlasNumYPoints;
+metadata.atlasTopNMinima = solverOptions.atlasTopNMinima;
+metadata.internalAtlasPreset = "ae_atlas_" + string(solverOptions.atlasNumYPoints) + "x" + string(solverOptions.atlasTopNMinima);
+metadata.routePolicy = string(solverOptions.atlasBranchPolicy);
+if isfield(solverOptions, 'atlasInitializationNumFrequencyPoints')
+    metadata.atlasInitializationNumFrequencyPoints = solverOptions.atlasInitializationNumFrequencyPoints;
+end
+requestedOptions = aeDefaultSweepOptions(metadata.requestedExecutionProfile);
+if solverOptions.atlasNumYPoints ~= requestedOptions.atlasNumYPoints || ...
+        solverOptions.atlasTopNMinima ~= requestedOptions.atlasTopNMinima
+    metadata.profileOverrideApplied = true;
+    metadata.profileOverrideReason = "FitTool AE preserves the maintained fast atlas fitting controls.";
+    if solverOptions.atlasNumYPoints == 300 && solverOptions.atlasTopNMinima == 12
+        metadata.effectiveExecutionProfile = "Fast";
+    elseif solverOptions.atlasNumYPoints == 600 && solverOptions.atlasTopNMinima == 16
+        metadata.effectiveExecutionProfile = "Balanced";
+    elseif solverOptions.atlasNumYPoints == 900 && solverOptions.atlasTopNMinima == 20
+        metadata.effectiveExecutionProfile = "Robust";
+    end
+else
+    metadata.profileOverrideApplied = false;
+    metadata.profileOverrideReason = "";
+end
 end
