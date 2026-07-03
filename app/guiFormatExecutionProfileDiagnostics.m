@@ -1,8 +1,11 @@
 function lines = guiFormatExecutionProfileDiagnostics(metadata, varargin)
 %GUIFORMATEXECUTIONPROFILEDIAGNOSTICS Format common execution-profile diagnostics.
 %
-% This helper is presentation-only. It assumes model adapters already resolved
-% requested/effective profiles and only turns metadata into stable text lines.
+% This helper formats already-resolved metadata into stable text lines. It also
+% normalizes a legacy caller-side string accumulator when present so row/column
+% orientation cannot break diagnostic concatenation.
+
+normalizeCallerLineAccumulator();
 
 p = inputParser;
 addRequired(p, 'metadata', @(x)isstruct(x) || isempty(x));
@@ -79,6 +82,18 @@ if ~isempty(extra)
     lines = [lines(:); extraLines(:)]; %#ok<AGROW>
 end
 lines = lines(:);
+end
+
+function normalizeCallerLineAccumulator()
+% Normalize legacy diagnostic accumulators grown with linear indexing.
+try
+    callerLines = evalin('caller', 'lines');
+    if isstring(callerLines)
+        assignin('caller', 'lines', callerLines(:));
+    end
+catch
+    % Most callers do not expose a variable named lines; no action is needed.
+end
 end
 
 function lines = appendIfText(lines, prefix, value)
