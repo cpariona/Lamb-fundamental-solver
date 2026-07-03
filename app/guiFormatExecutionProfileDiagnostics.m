@@ -87,10 +87,7 @@ end
 function normalizeCallerLineAccumulator()
 % Normalize legacy diagnostic accumulators grown with linear indexing.
 try
-    callerLines = evalin('caller', 'lines');
-    if isstring(callerLines)
-        assignin('caller', 'lines', callerLines(:));
-    end
+    evalin('caller', 'if isstring(lines), lines = lines(:); end');
 catch
     % Most callers do not expose a variable named lines; no action is needed.
 end
