@@ -34,6 +34,7 @@ rawResults = runParametricSweep(params, options, sweepSpec);
 summaryTable = summarizeParametricSweepBranch(rawResults, modelName, branchName, 'Print', false);
 normalized = guiNormalizeRLSweep(rawResults, summaryTable, request, modelName, branchName);
 normalized.metadata.executionProfile = profileMetadata;
+normalized.metadata.elapsedSeconds = sum(rawResults.elapsedSeconds, 'omitnan');
 
 sweepOutput = struct();
 sweepOutput.request = request;
@@ -46,4 +47,5 @@ sweepOutput.rawResults = rawResults;
 sweepOutput.summaryTable = summaryTable;
 sweepOutput.normalized = normalized;
 sweepOutput.executionProfile = profileMetadata;
+sweepOutput.elapsedSeconds = normalized.metadata.elapsedSeconds;
 end

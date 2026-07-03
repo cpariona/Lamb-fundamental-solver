@@ -3,6 +3,7 @@ function FitTool_GUI()
 
 lastFitOutput = [];
 fitParameterState = struct();
+lastSyntheticDiagnostics = strings(0, 1);
 
 fig = uifigure('Name', 'Experimental Dispersion Fitting Tool', 'Position', [120 120 1280 760]);
 root = uigridlayout(fig, [1 2]);
@@ -99,9 +100,13 @@ onFitModelChanged();
             requestParts = buildParameterConfig();
             modelFamily = getSelectedModelFamily();
             branchName = string(fitControls.branch.Value);
+            tSynthetic = tic;
             [frequency_Hz, Cp_mps, validMask] = generateSyntheticData(modelFamily, branchName, requestParts);
+            syntheticElapsed = toc(tSynthetic);
             fitControls.dataTable.Data = [frequency_Hz(:), Cp_mps(:), double(validMask(:))];
-            fitControls.status.Text = sprintf('Fit status: synthetic %s data generated from current setup.', modelFamily);
+            lastSyntheticDiagnostics = buildSyntheticDiagnosticsStatusLines(modelFamily, branchName, requestParts, ...
+                syntheticElapsed, nnz(validMask), numel(validMask));
+            fitControls.status.Text = strjoin(lastSyntheticDiagnostics, newline);
         catch ME
             fitControls.status.Text = ['Fit status: error generating data: ', ME.message];
             uialert(fig, ME.message, 'Synthetic data error');
@@ -278,9 +283,25 @@ onFitModelChanged();
         normalized = fitOutput.normalized;
         pathText = getEvaluationPathText(fitOutput);
         curveText = getFullCurveStatusText(normalized);
-        fitControls.status.Text = string(sprintf('Fit status: done | %s %s | RMSE %.4g m/s | %s%s%s', ...
+        header = string(sprintf('Fit status: done | %s %s | RMSE %.4g m/s | %s%s%s', ...
             normalized.modelName, normalized.branchName, normalized.metrics.RMSE, ...
-            string(normalized.identifiability.classification), pathText, curveText)) + getProfileStatusText(fitOutput);
+            string(normalized.identifiability.classification), pathText, curveText));
+        elapsedLines = [
+            "fit elapsed: " + formatSeconds(getFitElapsedSeconds(fitOutput))
+            "fitted-curve elapsed: " + formatSeconds(getFullCurveElapsedSeconds(normalized))
+            ];
+        validCount = nnz(normalized.validMask(:));
+        totalCount = numel(normalized.validMask);
+        profileLines = guiFormatExecutionProfileDiagnostics(fitOutput.executionProfile, ...
+            'Surface', "FitTool", ...
+            'Model', normalized.modelName, ...
+            'ControlProfile', string(fitOutput.request.controls.executionProfile), ...
+            'VisibleBranch', normalized.branchName, ...
+            'ValidCount', validCount, ...
+            'TotalCount', totalCount, ...
+            'ElapsedSeconds', getFitElapsedSeconds(fitOutput), ...
+            'ExtraLines', fitExtraLines(fitOutput));
+        fitControls.status.Text = strjoin([header; elapsedLines; profileLines(:)], newline);
     end
 
     function pathText = getEvaluationPathText(fitOutput)
@@ -322,6 +343,98 @@ onFitModelChanged();
         if isfield(profile, 'profileOverrideApplied') && logical(profile.profileOverrideApplied)
             profileText = sprintf(' | profile %s->%s', ...
                 string(profile.requestedExecutionProfile), string(profile.effectiveExecutionProfile));
+        end
+    end
+
+    function lines = buildSyntheticDiagnosticsStatusLines(modelFamily, branchName, parts, elapsedSeconds, validCount, totalCount)
+        metadata = syntheticExecutionProfileMetadata(modelFamily, branchName, parts);
+        lines = ["Fit status: synthetic " + string(modelFamily) + " data generated from current setup.";
+            guiFormatExecutionProfileDiagnostics(metadata, ...
+                'Surface', "FitTool synthetic", ...
+                'Model', string(modelFamily), ...
+                'ControlProfile', string(parts.controls.executionProfile), ...
+                'VisibleBranch', string(branchName), ...
+                'ValidCount', validCount, ...
+                'TotalCount', totalCount, ...
+                'ElapsedSeconds', elapsedSeconds, ...
+                'ExtraLines', syntheticExtraLines(modelFamily, parts))];
+    end
+
+    function metadata = syntheticExecutionProfileMetadata(modelFamily, branchName, parts)
+        switch string(modelFamily)
+            case "rayleigh_lamb"
+                [~, metadata] = rlResolveExecutionProfile(parts.controls, ...
+                    'DefaultProfile', "Fast", 'DefaultSource', "FitTool synthetic default");
+            case "mrlfe"
+                etaS = getControlField(parts.controls, 'etaS', 0.05);
+                [~, metadata] = mrlfeResolveExecutionProfile(branchName, parts.controls, ...
+                    'Surface', "fit", ...
+                    'DefaultProfile', "Fast", ...
+                    'DefaultSource', "FitTool synthetic default", ...
+                    'EtaS', etaS, ...
+                    'UseUnifiedAtlasRoute', true, ...
+                    'A0Policy', string(getControlField(parts.controls, 'mrlfeA0Policy', "adaptivePhysicalTail")));
+            case "acoustoelastic_iop_hgo"
+                [~, metadata] = aeResolveExecutionProfile(parts.controls, ...
+                    'DefaultProfile', "Fast", 'DefaultSource', "FitTool synthetic default");
+                metadata.atlasInitializationNumFrequencyPoints = getControlField(parts.controls, ...
+                    'atlasInitializationNumFrequencyPoints', 50);
+            otherwise
+                metadata = struct();
+        end
+    end
+
+    function extra = syntheticExtraLines(modelFamily, parts)
+        extra = strings(0, 1);
+        if string(modelFamily) == "mrlfe"
+            extra(end+1) = "A0 policy: " + string(getControlField(parts.controls, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+        end
+    end
+
+    function extra = fitExtraLines(fitOutput)
+        extra = strings(0, 1);
+        if isfield(fitOutput, 'routePolicy')
+            if isfield(fitOutput.routePolicy, 'actualPath')
+                extra(end+1) = "actual route: " + string(fitOutput.routePolicy.actualPath);
+            end
+            if isfield(fitOutput.routePolicy, 'mrlfeA0Policy')
+                extra(end+1) = "A0 policy: " + string(fitOutput.routePolicy.mrlfeA0Policy);
+            end
+        end
+        if isfield(fitOutput, 'fitResult') && isfield(fitOutput.fitResult, 'rawSolverResult') && ...
+                isfield(fitOutput.fitResult.rawSolverResult, 'evaluationPath') && ...
+                isfield(fitOutput.fitResult.rawSolverResult.evaluationPath, 'fitAtlasPreset')
+            extra(end+1) = "fit atlas preset: " + string(fitOutput.fitResult.rawSolverResult.evaluationPath.fitAtlasPreset);
+        end
+    end
+
+    function elapsed = getFitElapsedSeconds(fitOutput)
+        elapsed = nan;
+        if isfield(fitOutput, 'fitElapsedSeconds') && ~isempty(fitOutput.fitElapsedSeconds)
+            elapsed = fitOutput.fitElapsedSeconds;
+        end
+    end
+
+    function elapsed = getFullCurveElapsedSeconds(normalized)
+        elapsed = nan;
+        if isfield(normalized, 'fullCurve') && isfield(normalized.fullCurve, 'elapsedSeconds')
+            elapsed = normalized.fullCurve.elapsedSeconds;
+        end
+    end
+
+    function text = formatSeconds(elapsed)
+        if isfinite(elapsed)
+            text = sprintf('%.6g s', elapsed);
+        else
+            text = 'not available';
+        end
+    end
+
+    function value = getControlField(controls, fieldName, defaultValue)
+        if isstruct(controls) && isfield(controls, fieldName) && ~isempty(controls.(fieldName))
+            value = controls.(fieldName);
+        else
+            value = defaultValue;
         end
     end
 end

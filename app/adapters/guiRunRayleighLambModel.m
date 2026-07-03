@@ -28,6 +28,16 @@ profileMetadata.profileOverrideApplied = false;
 profileMetadata.profileOverrideReason = "";
 profileMetadata.routePolicy = "direct";
 profileMetadata.optimizerProfile = "";
+profileMetadata.gridPointsInitial = options.gridPointsInitial;
+profileMetadata.gridPointsTracking = options.gridPointsTracking;
+profileMetadata.jumpTol = options.jumpTol;
+profileMetadata.searchFactors = options.searchFactors;
+profileMetadata.mrlfeGridPoints = options.mrlfeGridPoints;
+profileMetadata.mrlfeComplexMaxIter = options.mrlfeComplexMaxIter;
+profileMetadata.mrlfeComplexMaxFunEvals = options.mrlfeComplexMaxFunEvals;
+profileMetadata.supportedExecutionProfiles = guiExecutionProfileValues();
+profileMetadata.profileSupportMode = "fully_supported";
+profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
 
 elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, options);

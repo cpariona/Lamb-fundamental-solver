@@ -36,7 +36,8 @@ end
 [guiOptions, guiMetadata] = mrlfeResolveExecutionProfile("A0Like", struct('robustness', "Robust"), ...
     'Surface', "sweep", 'EtaS', 0.05, 'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
 assert(guiOptions.executionProfile == "Robust", 'mRLFE GUI/Sweep should preserve requested executionProfile.');
-assert(guiOptions.robustness == "Fast", 'mRLFE GUI/Sweep effective robustness should remain Fast.');
+assert(guiOptions.robustness == "Robust", 'mRLFE GUI/Sweep robustness alias should match requested executionProfile.');
+assert(guiOptions.effectiveExecutionProfile == "Fast", 'mRLFE GUI/Sweep effective profile should remain Fast.');
 assert(guiMetadata.requestedExecutionProfile == "Robust", 'mRLFE GUI requested profile mismatch.');
 assert(guiMetadata.effectiveExecutionProfile == "Fast", 'mRLFE GUI effective profile mismatch.');
 assert(guiMetadata.profileOverrideApplied == true, 'mRLFE GUI resolver should report mapped-to-Fast support.');
@@ -46,8 +47,9 @@ assert(guiMetadata.routePolicy == "adaptivePhysicalTail", 'mRLFE A0 policy must 
 %% mRLFE Fit preserves maintained Fast effective route and reports override.
 [fitOptions, fitMetadata] = mrlfeResolveExecutionProfile("A0Like", struct('executionProfile', "Robust"), ...
     'Surface', "fit", 'EtaS', 0.05, 'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
-assert(fitOptions.robustness == "Fast", 'mRLFE Fit effective robustness should remain Fast.');
 assert(fitOptions.executionProfile == "Robust", 'mRLFE Fit should preserve requested executionProfile.');
+assert(fitOptions.robustness == "Robust", 'mRLFE Fit robustness alias should match requested executionProfile.');
+assert(fitOptions.effectiveExecutionProfile == "Fast", 'mRLFE Fit effective profile should remain Fast.');
 assert(fitOptions.mrlfeFitAtlasPreset == "fast_fit_atlas", 'mRLFE Fit atlas preset changed.');
 assert(fitMetadata.requestedExecutionProfile == "Robust", 'mRLFE Fit requested metadata mismatch.');
 assert(fitMetadata.effectiveExecutionProfile == "Fast", 'mRLFE Fit effective metadata mismatch.');

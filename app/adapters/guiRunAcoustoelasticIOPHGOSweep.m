@@ -16,12 +16,15 @@ sweepConfig.Unit = char(units);
 sweepConfig.ValueScale = displayScale;
 sweepConfig.ValueFormatter = '%.1f';
 
+elapsedTimer = tic;
 rawResults = aeRunSweep(params, string(request.sweepField), valuesSolver, options, sweepConfig);
+elapsedSeconds = toc(elapsedTimer);
 summary = aeSummarizeSweep(rawResults);
 normalized = guiNormalizeAcoustoelasticIOPHGOSweep(rawResults, summary, request);
 if isfield(options, 'executionProfileMetadata')
     normalized.metadata.executionProfile = options.executionProfileMetadata;
 end
+normalized.metadata.elapsedSeconds = elapsedSeconds;
 
 sweepOutput = struct();
 sweepOutput.request = request;
@@ -41,6 +44,7 @@ sweepOutput.normalized = normalized;
 if isfield(options, 'executionProfileMetadata')
     sweepOutput.executionProfile = options.executionProfileMetadata;
 end
+sweepOutput.elapsedSeconds = elapsedSeconds;
 end
 
 function params = buildAcoustoelasticBaseParams(request)

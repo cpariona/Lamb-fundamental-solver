@@ -50,9 +50,13 @@ fitConfig.bounds = request.bounds;
 fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = request.fitOptions;
 
+tFit = tic;
 fitResult = aeFitDispersionData(request.experimental, fitConfig);
+fitElapsedSeconds = toc(tFit);
 normalized = guiNormalizeFitResult(fitResult, request);
 normalized.executionProfile = profileMetadata;
+normalized.fullCurve.executionProfile = profileMetadata;
+normalized.fitElapsedSeconds = fitElapsedSeconds;
 
 fitOutput = struct();
 fitOutput.request = request;
@@ -62,6 +66,7 @@ fitOutput.branchName = branchName;
 fitOutput.fitResult = fitResult;
 fitOutput.normalized = normalized;
 fitOutput.executionProfile = profileMetadata;
+fitOutput.fitElapsedSeconds = fitElapsedSeconds;
 end
 
 function metadata = localApplyAEFitOverrideMetadata(metadata, solverOptions)
