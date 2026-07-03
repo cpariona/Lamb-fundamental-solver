@@ -44,6 +44,8 @@ docs/workflows/gui/integration_audit.md
 docs/workflows/gui/main_pending_cleanup.md
 docs/workflows/gui/mrlfe_atlas_policy_integration.md
 docs/architecture/execution_profiles_surface_integration.md
+docs/validation/execution_profile_end_to_end_validation.md
+docs/validation/execution_profile_manual_validation.md
 ```
 
 ## Active sweep documentation
