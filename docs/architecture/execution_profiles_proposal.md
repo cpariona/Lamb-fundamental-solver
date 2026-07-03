@@ -296,3 +296,16 @@ zero-viscosity adaptive atlas/fallback, viscous unified atlas, and
 
 See `docs/architecture/execution_profiles_surface_integration.md` for the
 surface contract, support matrix, preserved overrides, and manual GUI checklist.
+
+## Implemented PR 4 cleanup
+
+The cleanup phase keeps `executionProfile` as the canonical app-level field and
+keeps `robustness` as a compatibility alias. It centralizes the canonical
+profile list, shares request-control normalization between Fit and Sweep
+builders, and documents residual alias usage.
+
+The active closure document is:
+
+```text
+docs/architecture/execution_profiles_cleanup.md
+```

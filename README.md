@@ -100,7 +100,7 @@ This project uses explicit thickness naming to avoid ambiguity with classical Ra
 
 Public GUI labels, exported tables, and result structures should use `thickness` and `kThickness`, not `h`, `kh`, or `kH`.
 
-## Defaults and robustness presets
+## Defaults and execution profiles
 
 Default physical and frequency parameters are provided by the Rayleigh-Lamb API function:
 
@@ -110,7 +110,7 @@ rlDefaultParams
 
 Current file: `models/rayleigh_lamb/core/rlDefaultParams.m`.
 
-Default numerical options and robustness presets are provided by the Rayleigh-Lamb API function:
+Default Rayleigh-Lamb numerical options are provided by:
 
 ```matlab
 rlDefaultOptions
@@ -118,11 +118,36 @@ rlDefaultOptions
 
 Current file: `models/rayleigh_lamb/core/rlDefaultOptions.m`.
 
-Available robustness presets:
+The canonical app-level field is:
+
+```matlab
+executionProfile
+```
+
+The historical field remains supported as a compatibility alias:
+
+```matlab
+robustness
+```
+
+Available execution profiles:
 
 * `Fast`: fewer scan points and faster calculations.
 * `Balanced`: default setting for routine exploration.
 * `Robust`: more scan points and wider search windows for difficult cases.
+
+Visible GUI defaults are:
+
+| Surface | Default |
+| --- | --- |
+| `LambFundamental_GUI` | `Balanced` |
+| `SweepTool_GUI` | `Fast` |
+| `FitTool_GUI` | `Fast` |
+
+Model-specific adapters report requested and effective profile metadata. mRLFE
+keeps maintained fast atlas presets for GUI and fitting routes; inspect
+`requestedExecutionProfile`, `effectiveExecutionProfile`, and
+`profileOverrideReason` when comparing requested versus effective behavior.
 
 ## mRLFE solver workflow
 

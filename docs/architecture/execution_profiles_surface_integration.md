@@ -58,6 +58,12 @@ For fully supported RL and AE cases, `requestedExecutionProfile` and
 value is preserved and the effective value is reported as `Fast` with
 `profileSupportMode = "mapped_to_fast"`.
 
+Fields that are not applicable use the string scalar `""` in execution-profile
+metadata. For example, Rayleigh-Lamb has `internalAtlasPreset = ""`, and AE has
+`internalSolverPreset = ""`. When `profileOverrideApplied = false`,
+`profileOverrideReason` is `""`. Model-specific diagnostic metadata can still
+use its established vocabulary outside the execution-profile metadata struct.
+
 ## Overrides Removed
 
 The normal FitTool AE path no longer forces atlas density to 300/12 after the
@@ -170,4 +176,8 @@ thresholds.
 - Add named optimizer profiles in a later phase.
 - Decide whether to hide unsupported mRLFE non-Fast choices on selected
   surfaces or keep the current requested/effective metadata representation.
+- Keep `robustness` as a compatibility alias for at least one migration cycle.
+  Future retirement should start with an external-consumer inventory, then an
+  optional non-repeating deprecation warning, and removal only after downstream
+  calls have migrated to `executionProfile`.
 - Complete manual GUI review using the checklist above.

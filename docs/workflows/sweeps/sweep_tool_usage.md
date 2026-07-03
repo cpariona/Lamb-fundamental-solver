@@ -31,7 +31,7 @@ Sweep parameter: mu
 Values: 60, 75
 Model: mRLFE real-k
 Branch: A0Like
-Robustness: Fast
+Execution profile: Fast
 etaS: 0.05 Pa*s
 A0 atlas policy: adaptivePhysicalTail
 ```
@@ -56,7 +56,7 @@ Sweep parameter: etaS
 Values: 0, 0.05
 Model: mRLFE real-k
 Branch: A0Like
-Robustness: Fast
+Execution profile: Fast
 A0 atlas policy: adaptivePhysicalTail
 ```
 
@@ -77,7 +77,7 @@ Sweep parameter: etaS
 Values: 0.05
 Model: mRLFE real-k
 Branch: A0Like
-Robustness: Fast
+Execution profile: Fast
 A0 atlas policy: adaptivePhysicalTail
 ```
 
@@ -98,7 +98,7 @@ Sweep parameter: thickness
 Values: 0.3, 0.4
 Model: Rayleigh-Lamb
 Branch: A0
-Robustness: Balanced
+Execution profile: Fast
 ```
 
 Expected outcome:
@@ -118,7 +118,7 @@ Sweep parameter: mu
 Values: 60, 75
 Model: Rayleigh-Lamb
 Branch: A0
-Robustness: Balanced
+Execution profile: Fast
 ```
 
 Expected outcome:
@@ -137,7 +137,7 @@ Sweep parameter: IOP
 Values: 10, 15
 Model: AE IOP/HGO
 Branch: atlasA0
-Robustness: Fast
+Execution profile: Fast
 ```
 
 Expected outcome:
@@ -156,7 +156,7 @@ Sweep parameter: mu
 Values: 25, 50
 Model: AE IOP/HGO
 Branch: atlasA0
-Robustness: Fast
+Execution profile: Fast
 ```
 
 Expected outcome:
