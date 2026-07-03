@@ -32,13 +32,15 @@ for i = 1:numel(profiles)
     assert(metadata.effectiveExecutionProfile == profiles(i), 'AE effective profile metadata mismatch.');
 end
 
-%% mRLFE GUI/Sweep preserves requested seed profile.
+%% mRLFE GUI/Sweep preserves fast internal atlas support as explicit metadata.
 [guiOptions, guiMetadata] = mrlfeResolveExecutionProfile("A0Like", struct('robustness', "Robust"), ...
     'Surface', "sweep", 'EtaS', 0.05, 'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
-assert(guiOptions.robustness == "Robust", 'mRLFE GUI/Sweep should preserve requested seed robustness.');
+assert(guiOptions.executionProfile == "Robust", 'mRLFE GUI/Sweep should preserve requested executionProfile.');
+assert(guiOptions.robustness == "Fast", 'mRLFE GUI/Sweep effective robustness should remain Fast.');
 assert(guiMetadata.requestedExecutionProfile == "Robust", 'mRLFE GUI requested profile mismatch.');
-assert(guiMetadata.effectiveExecutionProfile == "Robust", 'mRLFE GUI effective profile mismatch.');
-assert(guiMetadata.profileOverrideApplied == false, 'mRLFE GUI resolver should not override execution profile.');
+assert(guiMetadata.effectiveExecutionProfile == "Fast", 'mRLFE GUI effective profile mismatch.');
+assert(guiMetadata.profileOverrideApplied == true, 'mRLFE GUI resolver should report mapped-to-Fast support.');
+assert(strlength(guiMetadata.profileOverrideReason) > 0, 'mRLFE GUI override reason should be stable and nonempty.');
 assert(guiMetadata.routePolicy == "adaptivePhysicalTail", 'mRLFE A0 policy must remain separate metadata.');
 
 %% mRLFE Fit preserves maintained Fast effective route and reports override.
