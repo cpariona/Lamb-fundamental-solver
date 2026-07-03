@@ -53,6 +53,7 @@ fitConfig.fitOptions = request.fitOptions;
 fitResult = aeFitDispersionData(request.experimental, fitConfig);
 normalized = guiNormalizeFitResult(fitResult, request);
 normalized.executionProfile = profileMetadata;
+normalized.fullCurve.executionProfile = profileMetadata;
 
 fitOutput = struct();
 fitOutput.request = request;

@@ -62,7 +62,7 @@ end
 
 options.executionProfile = requestedProfile;
 options.effectiveExecutionProfile = effectiveProfile;
-options.robustness = effectiveProfile;
+options.robustness = requestedProfile;
 
 metadata.requestedExecutionProfile = requestedProfile;
 metadata.effectiveExecutionProfile = effectiveProfile;

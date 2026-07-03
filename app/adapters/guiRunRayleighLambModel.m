@@ -28,6 +28,9 @@ profileMetadata.profileOverrideApplied = false;
 profileMetadata.profileOverrideReason = "";
 profileMetadata.routePolicy = "direct";
 profileMetadata.optimizerProfile = "";
+profileMetadata.supportedExecutionProfiles = guiExecutionProfileValues();
+profileMetadata.profileSupportMode = "fully_supported";
+profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
 
 elapsedTimer = tic;
 rawResult = rlComputeFundamentalLambModes(params, options);

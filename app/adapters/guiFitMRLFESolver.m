@@ -82,6 +82,7 @@ normalized = guiNormalizeFitResult(fitResult, request);
 profileMetadata.internalAtlasPreset = localFitAtlasPreset(fitResult);
 profileMetadata.routePolicy = localActualEvaluationPath(fitResult);
 normalized.executionProfile = profileMetadata;
+normalized.fullCurve.executionProfile = profileMetadata;
 
 fitOutput = struct();
 fitOutput.request = request;

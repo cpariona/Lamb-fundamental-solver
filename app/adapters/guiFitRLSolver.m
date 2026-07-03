@@ -41,6 +41,7 @@ fitConfig.fitOptions = request.fitOptions;
 fitResult = rlFitDispersionData(request.experimental, fitConfig);
 normalized = guiNormalizeFitResult(fitResult, request);
 normalized.executionProfile = profileMetadata;
+normalized.fullCurve.executionProfile = profileMetadata;
 
 fitOutput = struct();
 fitOutput.request = request;
