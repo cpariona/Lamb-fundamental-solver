@@ -387,6 +387,8 @@ onFitModelChanged();
             ];
         validCount = nnz(normalized.validMask(:));
         totalCount = numel(normalized.validMask);
+        fitLines = fitExtraLines(fitOutput);
+        dataLines = dataSourceExtraLines();
         profileLines = guiFormatExecutionProfileDiagnostics(fitOutput.executionProfile, ...
             'Surface', "FitTool", ...
             'Model', normalized.modelName, ...
@@ -395,7 +397,7 @@ onFitModelChanged();
             'ValidCount', validCount, ...
             'TotalCount', totalCount, ...
             'ElapsedSeconds', getFitElapsedSeconds(fitOutput), ...
-            'ExtraLines', [fitExtraLines(fitOutput); dataSourceExtraLines()]);
+            'ExtraLines', [fitLines(:); dataLines(:)]);
         fitControls.status.Text = strjoin([header; elapsedLines; profileLines(:)], newline);
     end
 
@@ -407,6 +409,7 @@ onFitModelChanged();
         if isstruct(lastDataMetadata) && isfield(lastDataMetadata, 'fileName')
             extra(end+1) = "data file: " + string(lastDataMetadata.fileName);
         end
+        extra = extra(:);
     end
 
     function pathText = getEvaluationPathText(fitOutput)
@@ -482,6 +485,7 @@ onFitModelChanged();
         if string(modelFamily) == "mrlfe"
             extra(end+1) = "A0 policy: " + string(getControlField(parts.controls, 'mrlfeA0Policy', "adaptivePhysicalTail"));
         end
+        extra = extra(:);
     end
 
     function extra = fitExtraLines(fitOutput)
@@ -499,6 +503,7 @@ onFitModelChanged();
                 isfield(fitOutput.fitResult.rawSolverResult.evaluationPath, 'fitAtlasPreset')
             extra(end+1) = "fit atlas preset: " + string(fitOutput.fitResult.rawSolverResult.evaluationPath.fitAtlasPreset);
         end
+        extra = extra(:);
     end
 
     function elapsed = getFitElapsedSeconds(fitOutput)
