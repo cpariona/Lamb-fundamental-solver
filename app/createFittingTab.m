@@ -13,9 +13,9 @@ CpExample = sqrt(params0.mu / params0.rho);
 defaultData = [1000, CpExample, 1; 3000, CpExample, 1; 5000, CpExample, 1; 7000, CpExample, 1];
 
 tab = uitab(tabs, 'Title', 'Fitting');
-g = uigridlayout(tab, [14 4]);
+g = uigridlayout(tab, [15 4]);
 g.ColumnWidth = {105, '1x', 105, '1x'};
-g.RowHeight = {22, 24, 24, 20, 155, 24, 20, 20, 20, '1x', 28, 26, 34, 34};
+g.RowHeight = {22, 24, 24, 20, 155, 24, 20, 20, 20, '1x', 28, 24, 26, 34, 34};
 g.Padding = [10 8 10 8];
 g.RowSpacing = 3;
 g.ColumnSpacing = 8;
@@ -93,33 +93,39 @@ h.dataTable = uitable(g, 'Data', defaultData, ...
 h.dataTable.Layout.Row = [8 10];
 h.dataTable.Layout.Column = [1 4];
 
-buttonGrid = uigridlayout(g, [1 3]);
+buttonGrid = uigridlayout(g, [1 4]);
 buttonGrid.Layout.Row = 11;
 buttonGrid.Layout.Column = [1 4];
-buttonGrid.ColumnWidth = {'1x', '1x', '1x'};
+buttonGrid.ColumnWidth = {'1x', '1x', '1x', '1x'};
 buttonGrid.Padding = [0 0 0 0];
 buttonGrid.ColumnSpacing = 6;
 
-h.populateButton = uibutton(buttonGrid, 'Text', 'Generate synthetic from setup', ...
+h.loadButton = uibutton(buttonGrid, 'Text', 'Load experimental data', ...
+    'ButtonPushedFcn', callbacks.onLoadFitData);
+h.populateButton = uibutton(buttonGrid, 'Text', 'Generate synthetic', ...
     'ButtonPushedFcn', callbacks.onPopulateFitData);
-h.resetButton = uibutton(buttonGrid, 'Text', 'Restore model defaults', ...
+h.resetButton = uibutton(buttonGrid, 'Text', 'Restore defaults', ...
     'ButtonPushedFcn', callbacks.onResetDefaults);
 h.runButton = uibutton(buttonGrid, 'Text', 'Run fit', ...
     'ButtonPushedFcn', callbacks.onRunFit);
 
+h.dataSource = uilabel(g, 'Text', 'Data source: editable table', 'FontSize', 10, 'WordWrap', 'on');
+h.dataSource.Layout.Row = 12;
+h.dataSource.Layout.Column = [1 4];
+
 h.status = uilabel(g, 'Text', 'Fit status: ready.', 'FontSize', 10, 'WordWrap', 'on');
-h.status.Layout.Row = 12;
+h.status.Layout.Row = 13;
 h.status.Layout.Column = [1 4];
 
 h.fixedHeader = uilabel(g, ...
     'Text', 'One parameter is fitted; every other registered physical parameter remains editable.', ...
     'FontSize', 10, 'WordWrap', 'on');
-h.fixedHeader.Layout.Row = 13;
+h.fixedHeader.Layout.Row = 14;
 h.fixedHeader.Layout.Column = [1 4];
 
 h.note = uilabel(g, ...
     'Text', 'Execution profile, route policy, and optimizer options remain separate from physical parameters.', ...
     'FontSize', 10, 'WordWrap', 'on');
-h.note.Layout.Row = 14;
+h.note.Layout.Row = 15;
 h.note.Layout.Column = [1 4];
 end
