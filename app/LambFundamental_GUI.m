@@ -673,12 +673,28 @@ updateAxisFieldState();
         else
             md = lastGuiResult.metadata;
             if isfield(md, 'executionProfile')
-                mdProfile = md.executionProfile;
-                lines(end+1) = sprintf("  execution profile requested/effective: %s/%s", ...
-                    string(mdProfile.requestedExecutionProfile), string(mdProfile.effectiveExecutionProfile));
-                if isfield(mdProfile, 'profileOverrideApplied') && logical(mdProfile.profileOverrideApplied)
-                    lines(end+1) = sprintf("  execution profile override: %s", string(mdProfile.profileOverrideReason));
+                profileExtra = strings(0, 1);
+                if isfield(md, 'mrlfeA0Policy')
+                    profileExtra(end+1) = "A0 policy: " + string(md.mrlfeA0Policy);
                 end
+                if isfield(md, 'mrlfeUseUnifiedAtlasRoute')
+                    profileExtra(end+1) = "unified atlas route: " + string(logical(md.mrlfeUseUnifiedAtlasRoute));
+                end
+                if isfield(md, 'mrlfeUseZeroViscosityAdaptiveGuiRoute')
+                    profileExtra(end+1) = "zero-eta adaptive route: " + string(logical(md.mrlfeUseZeroViscosityAdaptiveGuiRoute));
+                end
+                [visibleBranch, validCount, totalCount] = firstVisibleBranchSummary();
+                formatted = guiFormatExecutionProfileDiagnostics(md.executionProfile, ...
+                    'Surface', "Main GUI", ...
+                    'Model', mainDiagnosticModelName(), ...
+                    'ControlProfile', getControlExecutionProfileText(), ...
+                    'VisibleBranch', visibleBranch, ...
+                    'ValidCount', validCount, ...
+                    'TotalCount', totalCount, ...
+                    'ElapsedSeconds', getGuiElapsedSeconds(), ...
+                    'Fallback', getMainFallbackText(md), ...
+                    'ExtraLines', profileExtra);
+                lines = [lines; "  " + formatted(:)]; %#ok<AGROW>
             end
             if isfield(md, 'mrlfeGuiActualRoute')
                 lines(end+1) = sprintf("  actual route: %s", string(md.mrlfeGuiActualRoute));
@@ -719,9 +735,10 @@ updateAxisFieldState();
         else
             if isfield(lastOptions, 'executionProfileMetadata')
                 mdProfile = lastOptions.executionProfileMetadata;
-                lines(end+1) = sprintf("  execution profile requested/effective: %s/%s", ...
-                    string(mdProfile.requestedExecutionProfile), string(mdProfile.effectiveExecutionProfile));
-                lines(end+1) = sprintf("  execution profile source: %s", string(mdProfile.executionProfileSource));
+                lines(end+1) = sprintf("  control execution profile: %s", getControlExecutionProfileText());
+                lines(end+1) = sprintf("  normalized requested profile: %s", ...
+                    string(mdProfile.requestedExecutionProfile));
+                lines(end+1) = sprintf("  control profile source: %s", string(mdProfile.executionProfileSource));
             end
             optionNames = ["computeA0", "computeS0", "computeMRLFERealK", ...
                 "mrlfeComputeA0Like", "mrlfeComputeS0Like", "computeAcoustoelasticIOPHGO"];
@@ -756,6 +773,45 @@ updateAxisFieldState();
             lines(end+1) = sprintf("  CT %.6g m/s", lastParams.CT);
             lines(end+1) = sprintf("  2h %.6g m", lastParams.thickness);
         end
+    end
+
+    function text = getControlExecutionProfileText()
+        if ~isempty(lastOptions) && isfield(lastOptions, 'executionProfile')
+            text = string(lastOptions.executionProfile);
+        elseif ~isempty(advanced) && isfield(advanced, 'robustness')
+            text = string(advanced.robustness.Value);
+        else
+            text = "";
+        end
+    end
+
+    function modelName = mainDiagnosticModelName()
+        modelName = "Rayleigh-Lamb";
+        if ~isempty(lastOptions) && getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
+            modelName = "AE IOP/HGO";
+        elseif ~isempty(lastOptions) && getOptionValueLocal(lastOptions, 'computeMRLFERealK', false)
+            modelName = "mRLFE";
+        end
+    end
+
+    function fallback = getMainFallbackText(md)
+        fallback = "";
+        if isfield(md, 'mrlfeZeroViscosityAdaptiveFallback')
+            fallback = string(logical(md.mrlfeZeroViscosityAdaptiveFallback));
+        end
+    end
+
+    function [visibleBranch, validCount, totalCount] = firstVisibleBranchSummary()
+        visibleBranch = "";
+        validCount = nan;
+        totalCount = nan;
+        if isempty(lastGuiResult) || ~isfield(lastGuiResult, 'branches') || isempty(lastGuiResult.branches)
+            return;
+        end
+        branch = lastGuiResult.branches(1);
+        visibleBranch = string(branch.modelName) + " " + string(branch.branchName);
+        totalCount = numel(branch.phaseVelocity);
+        validCount = getBranchValidCount(branch);
     end
 
     function nValid = getBranchValidCount(branch)

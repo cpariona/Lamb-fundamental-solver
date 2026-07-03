@@ -77,12 +77,15 @@ fitConfig.bounds = request.bounds;
 fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = request.fitOptions;
 
+tFit = tic;
 fitResult = mrlfeFitDispersionData(request.experimental, fitConfig);
+fitElapsedSeconds = toc(tFit);
 normalized = guiNormalizeFitResult(fitResult, request);
 profileMetadata.internalAtlasPreset = localFitAtlasPreset(fitResult);
 profileMetadata.routePolicy = localActualEvaluationPath(fitResult);
 normalized.executionProfile = profileMetadata;
 normalized.fullCurve.executionProfile = profileMetadata;
+normalized.fitElapsedSeconds = fitElapsedSeconds;
 
 fitOutput = struct();
 fitOutput.request = request;
@@ -97,6 +100,7 @@ fitOutput.routePolicy.mrlfeA0Policy = string(controls.mrlfeA0Policy);
 fitOutput.routePolicy.etaS = localActualEtaS(fitResult, controls.etaS);
 fitOutput.routePolicy.fitAtlasPreset = localFitAtlasPreset(fitResult);
 fitOutput.executionProfile = profileMetadata;
+fitOutput.fitElapsedSeconds = fitElapsedSeconds;
 end
 
 function policy = localRoutePolicy(branchName, freeParams, controls)

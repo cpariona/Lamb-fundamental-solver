@@ -216,8 +216,7 @@ updateFamilySpecificControls();
             summaryTableUI.Data = lastSweepSummary;
             summaryTableUI.ColumnName = lastSweepSummary.Properties.VariableNames;
 
-            setStatus({sprintf('Status: complete. %d sweep cases.', numel(lastSweepOutput.sweepSpec.values)), ...
-                sprintf('Family: %s | Model: %s | Branch: %s', activeFamily.label, lastModelName, lastBranchName)});
+            setStatus(buildSweepDiagnosticsStatusLines(lastSweepOutput, string(robustnessDrop.Value)));
         catch ME
             setStatus({['Status: error: ', ME.message]});
             uialert(fig, ME.message, 'Sweep error');
@@ -288,6 +287,54 @@ updateFamilySpecificControls();
             statusBox.Value = cellstr(lines);
         else
             statusBox.Value = lines;
+        end
+    end
+
+    function lines = buildSweepDiagnosticsStatusLines(sweepOutput, controlProfile)
+        nCases = numel(sweepOutput.sweepSpec.values);
+        validCases = countValidSweepCases(sweepOutput);
+        metadata = sweepOutput.executionProfile;
+        extra = strings(0, 1);
+        if isfield(metadata, 'actualRoute') && strlength(string(metadata.actualRoute)) > 0
+            extra(end+1) = "actual route: " + string(metadata.actualRoute);
+        end
+        if isfield(sweepOutput, 'atlasPolicy')
+            extra(end+1) = "A0 policy: " + string(sweepOutput.atlasPolicy.mrlfeA0Policy);
+        end
+        if isfield(metadata, 'fallback')
+            extra(end+1) = "fallback: " + string(logical(metadata.fallback));
+        end
+        lines = ["Status: complete. " + string(nCases) + " sweep cases.";
+            "Valid cases: " + string(validCases) + "/" + string(nCases);
+            guiFormatExecutionProfileDiagnostics(metadata, ...
+                'Surface', "SweepTool", ...
+                'Model', string(sweepOutput.modelName), ...
+                'ControlProfile', controlProfile, ...
+                'VisibleBranch', string(sweepOutput.branchName), ...
+                'ElapsedSeconds', getSweepElapsedSeconds(sweepOutput), ...
+                'ExtraLines', extra)];
+    end
+
+    function nValid = countValidSweepCases(sweepOutput)
+        nValid = 0;
+        try
+            curves = sweepOutput.normalized.curves;
+            for iCurve = 1:numel(curves)
+                if isfield(curves(iCurve), 'validMask') && any(logical(curves(iCurve).validMask(:)))
+                    nValid = nValid + 1;
+                end
+            end
+        catch
+            nValid = 0;
+        end
+    end
+
+    function elapsed = getSweepElapsedSeconds(sweepOutput)
+        elapsed = nan;
+        if isfield(sweepOutput, 'elapsedSeconds') && ~isempty(sweepOutput.elapsedSeconds)
+            elapsed = sweepOutput.elapsedSeconds;
+        elseif isfield(sweepOutput, 'rawResults') && isfield(sweepOutput.rawResults, 'elapsedSeconds')
+            elapsed = sum(sweepOutput.rawResults.elapsedSeconds, 'omitnan');
         end
     end
 end

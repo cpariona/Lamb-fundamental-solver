@@ -53,7 +53,10 @@ rawResults = runMRLFEGuiAdapterSweep(params, baseOptions, sweepSpec);
 summaryTable = summarizeParametricSweepBranch(rawResults, summaryModelName, branchName, 'Print', false);
 normalized = guiNormalizeMRLFESweep(rawResults, summaryTable, request, modelName, branchName);
 profileMetadata.internalAtlasPreset = inferSweepAtlasPreset(rawResults, profileMetadata.internalAtlasPreset);
+profileMetadata.actualRoute = inferSweepActualRoute(rawResults, "");
+profileMetadata.fallback = inferSweepFallback(rawResults, false);
 normalized.metadata.executionProfile = profileMetadata;
+normalized.metadata.elapsedSeconds = sum(rawResults.elapsedSeconds, 'omitnan');
 
 sweepOutput = struct();
 sweepOutput.request = request;
@@ -69,6 +72,7 @@ sweepOutput.atlasPolicy = struct('mrlfeUseUnifiedAtlasRoute', baseOptions.mrlfeU
     'mrlfeA0Policy', baseOptions.mrlfeA0Policy, ...
     'guiRoutePolicy', "guiRunMRLFEModel");
 sweepOutput.executionProfile = profileMetadata;
+sweepOutput.elapsedSeconds = normalized.metadata.elapsedSeconds;
 end
 
 function sweepResults = runMRLFEGuiAdapterSweep(baseParams, baseOptions, sweepSpec)
@@ -162,6 +166,36 @@ for i = 1:numel(rawResults.guiResults)
     if isstruct(guiResult) && isfield(guiResult, 'metadata') && ...
             isfield(guiResult.metadata, 'mrlfeGuiAtlasPreset')
         preset = string(guiResult.metadata.mrlfeGuiAtlasPreset);
+        return;
+    end
+end
+end
+
+function route = inferSweepActualRoute(rawResults, defaultRoute)
+route = string(defaultRoute);
+if ~isfield(rawResults, 'guiResults') || isempty(rawResults.guiResults)
+    return;
+end
+for i = 1:numel(rawResults.guiResults)
+    guiResult = rawResults.guiResults{i};
+    if isstruct(guiResult) && isfield(guiResult, 'metadata') && ...
+            isfield(guiResult.metadata, 'mrlfeGuiActualRoute')
+        route = string(guiResult.metadata.mrlfeGuiActualRoute);
+        return;
+    end
+end
+end
+
+function fallback = inferSweepFallback(rawResults, defaultFallback)
+fallback = logical(defaultFallback);
+if ~isfield(rawResults, 'guiResults') || isempty(rawResults.guiResults)
+    return;
+end
+for i = 1:numel(rawResults.guiResults)
+    guiResult = rawResults.guiResults{i};
+    if isstruct(guiResult) && isfield(guiResult, 'metadata') && ...
+            isfield(guiResult.metadata, 'mrlfeZeroViscosityAdaptiveFallback')
+        fallback = logical(guiResult.metadata.mrlfeZeroViscosityAdaptiveFallback);
         return;
     end
 end

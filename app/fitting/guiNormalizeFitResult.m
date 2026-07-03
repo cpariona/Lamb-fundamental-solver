@@ -5,7 +5,9 @@ validMask = fitResult.validMask(:) & isfinite(fitResult.frequency_Hz(:)) & ...
     isfinite(fitResult.Cp_exp_mps(:)) & isfinite(fitResult.Cp_fit_mps(:));
 
 qc = assessFitPhysicalQuality(fitResult);
+tFullCurve = tic;
 fullCurve = guiEvaluateFitFullCurve(fitResult);
+fullCurve.elapsedSeconds = toc(tFullCurve);
 
 normalized = struct();
 normalized.modelFamily = string(fitResult.modelFamily);
