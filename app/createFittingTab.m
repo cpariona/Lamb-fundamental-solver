@@ -36,7 +36,7 @@ label = uilabel(g, 'Text', 'Model');
 label.Layout.Row = 2;
 label.Layout.Column = 1;
 h.model = uidropdown(g, 'Items', cellstr(modelLabels), 'Value', char(modelLabels(1)), ...
-    'ValueChangedFcn', callbacks.onFitModelChanged);
+    'ValueChangedFcn', getCallback(callbacks, 'onFitModelChanged'));
 h.model.Layout.Row = 2;
 h.model.Layout.Column = 2;
 
@@ -51,7 +51,7 @@ label = uilabel(g, 'Text', 'Free parameter');
 label.Layout.Row = 3;
 label.Layout.Column = 1;
 h.freeParam = uidropdown(g, 'Items', {'mu', 'thickness'}, 'Value', 'mu', ...
-    'ValueChangedFcn', callbacks.onFitParameterChanged);
+    'ValueChangedFcn', getCallback(callbacks, 'onFitParameterChanged'));
 h.freeParam.Layout.Row = 3;
 h.freeParam.Layout.Column = 2;
 
@@ -101,13 +101,13 @@ buttonGrid.Padding = [0 0 0 0];
 buttonGrid.ColumnSpacing = 6;
 
 h.loadButton = uibutton(buttonGrid, 'Text', 'Load experimental data', ...
-    'ButtonPushedFcn', callbacks.onLoadFitData);
+    'ButtonPushedFcn', getCallback(callbacks, 'onLoadFitData'));
 h.populateButton = uibutton(buttonGrid, 'Text', 'Generate synthetic', ...
-    'ButtonPushedFcn', callbacks.onPopulateFitData);
+    'ButtonPushedFcn', getCallback(callbacks, 'onPopulateFitData'));
 h.resetButton = uibutton(buttonGrid, 'Text', 'Restore defaults', ...
-    'ButtonPushedFcn', callbacks.onResetDefaults);
+    'ButtonPushedFcn', getCallback(callbacks, 'onResetDefaults'));
 h.runButton = uibutton(buttonGrid, 'Text', 'Run fit', ...
-    'ButtonPushedFcn', callbacks.onRunFit);
+    'ButtonPushedFcn', getCallback(callbacks, 'onRunFit'));
 
 h.dataSource = uilabel(g, 'Text', 'Data source: editable table', 'FontSize', 10, 'WordWrap', 'on');
 h.dataSource.Layout.Row = 12;
@@ -128,4 +128,11 @@ h.note = uilabel(g, ...
     'FontSize', 10, 'WordWrap', 'on');
 h.note.Layout.Row = 15;
 h.note.Layout.Column = [1 4];
+end
+
+function callback = getCallback(callbacks, fieldName)
+callback = @(~,~)[];
+if isstruct(callbacks) && isfield(callbacks, fieldName) && ~isempty(callbacks.(fieldName))
+    callback = callbacks.(fieldName);
+end
 end
