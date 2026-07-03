@@ -218,7 +218,7 @@ mRLFE is surface-aware:
 
 | Surface | Requested profile | Effective profile | Preserved internal preset |
 | --- | --- | --- | --- |
-| Main/Sweep/API-style GUI | selected profile | selected profile | GUI route preset selected later (`fast_viscous`, `fast_zero_viscosity_adaptive`, or `elastic_reference`) |
+| Main/Sweep/API-style GUI | selected profile | `Fast` when the maintained GUI fast atlas preset is used | GUI route preset selected later (`fast_viscous`, `fast_zero_viscosity_adaptive`, or `elastic_reference`) |
 | Fit | selected profile | `Fast` | `fast_fit_atlas` |
 
 This records the existing mRLFE FitTool limitation instead of pretending that
@@ -271,11 +271,28 @@ It covers:
 - current-behavior compatibility from the audit;
 - representative surface metadata and deterministic RL equivalence.
 
-### Remaining PR 3 work
+## Implemented PR 3 surface integration
 
-- Display requested/effective profile metadata in more GUI diagnostics.
-- Decide whether any surface should expose a visible `executionProfile` label
-  instead of `robustness`.
-- Decide whether SweepTool RL should move to the future proposed Fast default.
-- Decide whether SweepTool AE should expose `Robust`.
-- Add richer normalized metadata for every curve in multi-case sweeps.
+The surface-integration phase applies the proposed visible defaults:
+
+```text
+LambFundamental_GUI -> Balanced
+SweepTool_GUI       -> Fast
+FitTool_GUI         -> Fast
+```
+
+Rayleigh-Lamb and AE IOP/HGO now apply the selected execution profile directly
+on Main, Sweep, and Fit surfaces. SweepTool AE exposes `Robust`, and AE Fit no
+longer forces 300/12 atlas density from the normal FitTool control path.
+Explicit legacy atlas-density controls are still honored and reported as
+overrides.
+
+mRLFE remains intentionally mapped to the maintained fast internal atlas
+presets. Requests for `Balanced` or `Robust` preserve the requested metadata but
+report effective `Fast`, `profileSupportMode = "mapped_to_fast"`, and a stable
+override reason. Route policies such as `adaptivePhysicalTail`, `delayedCut`,
+zero-viscosity adaptive atlas/fallback, viscous unified atlas, and
+`fast_fit_atlas` remain separate from execution profile.
+
+See `docs/architecture/execution_profiles_surface_integration.md` for the
+surface contract, support matrix, preserved overrides, and manual GUI checklist.
