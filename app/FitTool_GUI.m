@@ -4,6 +4,7 @@ function FitTool_GUI()
 lastFitOutput = [];
 fitParameterState = struct();
 lastSyntheticDiagnostics = strings(0, 1);
+lastDataMetadata = struct('sourceType', "editable_table");
 
 fig = uifigure('Name', 'Experimental Dispersion Fitting Tool', 'Position', [120 120 1280 760]);
 root = uigridlayout(fig, [1 2]);
@@ -21,6 +22,7 @@ fitControls = [];
 callbacks = struct();
 callbacks.onFitModelChanged = @(~,~)onFitModelChanged();
 callbacks.onFitParameterChanged = @(~,~)onFitParameterChanged();
+callbacks.onLoadFitData = @(~,~)onLoadFitData();
 callbacks.onPopulateFitData = @(~,~)onPopulateFitData();
 callbacks.onResetDefaults = @(~,~)onResetDefaults();
 callbacks.onRunFit = @(~,~)onRunFit();
@@ -95,6 +97,89 @@ onFitModelChanged();
         state = guiApplyFitParameterTable(fitParameterState, fitControls.parameterTable.Data);
     end
 
+    function onLoadFitData()
+        [fileName, folder] = uigetfile({'*.csv;*.txt;*.dat;*.mat', ...
+            'Experimental dispersion data (*.csv, *.txt, *.dat, *.mat)'}, ...
+            'Load experimental dispersion data');
+        if isequal(fileName, 0)
+            return;
+        end
+
+        try
+            imported = guiReadExperimentalFitFile(string(fullfile(folder, fileName)));
+            columnNames = cellstr(imported.columnNames);
+            frequencyColumn = chooseColumn('Select frequency column', columnNames, localSuggestedColumn(imported.columnNames, ["frequency", "freq", "f"]));
+            phaseSpeedColumn = chooseColumn('Select phase-speed column', columnNames, localSuggestedColumn(imported.columnNames, ["cp", "phase", "velocity", "speed"]));
+            if frequencyColumn == phaseSpeedColumn
+                error('Frequency and phase-speed columns must be different.');
+            end
+
+            unitChoice = questdlg('Frequency unit in the selected file:', 'Frequency unit', 'Hz', 'kHz', 'Hz');
+            if isempty(unitChoice)
+                return;
+            end
+
+            useColumn = localSuggestedColumn(imported.columnNames, ["use", "valid", "mask"]);
+            prepared = guiPrepareExperimentalFitData(imported, ...
+                'FrequencyColumn', frequencyColumn, ...
+                'PhaseSpeedColumn', phaseSpeedColumn, ...
+                'UseColumn', useColumn, ...
+                'FrequencyUnit', string(unitChoice), ...
+                'PhaseSpeedUnit', "m/s", ...
+                'DuplicatePolicy', "mean");
+
+            fitControls.dataTable.Data = prepared.tableData;
+            lastDataMetadata = prepared.metadata;
+            fitControls.dataSource.Text = sprintf('Data source: %s | %d rows | frequency %s -> Hz', ...
+                prepared.metadata.fileName, prepared.metadata.outputRows, prepared.metadata.inputFrequencyUnit);
+            plotExperimentalInput(prepared.frequency_Hz, prepared.Cp_mps, prepared.validMask);
+            fitControls.status.Text = sprintf(['Fit status: loaded experimental data from %s. ', ...
+                'Removed %d invalid rows; collapsed %d duplicate rows.'], ...
+                prepared.metadata.fileName, prepared.metadata.removedInvalidRows, ...
+                prepared.metadata.duplicateRowsCollapsed);
+        catch ME
+            fitControls.status.Text = ['Fit status: data import error: ', ME.message];
+            uialert(fig, ME.message, 'Experimental data import error');
+        end
+    end
+
+    function index = chooseColumn(prompt, columnNames, suggestedIndex)
+        initialValue = max(1, min(numel(columnNames), suggestedIndex));
+        [selection, ok] = listdlg('PromptString', prompt, 'SelectionMode', 'single', ...
+            'ListString', columnNames, 'InitialValue', initialValue, 'ListSize', [360 220]);
+        if ~ok
+            error('FitDataImport:Cancelled', 'Experimental data import was cancelled.');
+        end
+        index = selection;
+    end
+
+    function index = localSuggestedColumn(names, tokens)
+        index = 0;
+        normalizedNames = lower(string(names));
+        for token = string(tokens)
+            match = find(contains(normalizedNames, lower(token)), 1, 'first');
+            if ~isempty(match)
+                index = match;
+                return;
+            end
+        end
+        if index == 0
+            index = 1;
+        end
+    end
+
+    function plotExperimentalInput(frequency_Hz, Cp_mps, validMask)
+        cla(ax);
+        valid = logical(validMask(:)) & isfinite(frequency_Hz(:)) & isfinite(Cp_mps(:));
+        plot(ax, frequency_Hz(valid) / 1e3, Cp_mps(valid), 'o', ...
+            'LineStyle', 'none', 'DisplayName', 'Experimental data');
+        grid(ax, 'on');
+        xlabel(ax, 'Frequency [kHz]');
+        ylabel(ax, 'Phase speed [m/s]');
+        title(ax, 'Imported experimental data');
+        legend(ax, 'Location', 'best');
+    end
+
     function onPopulateFitData()
         try
             requestParts = buildParameterConfig();
@@ -104,6 +189,12 @@ onFitModelChanged();
             [frequency_Hz, Cp_mps, validMask] = generateSyntheticData(modelFamily, branchName, requestParts);
             syntheticElapsed = toc(tSynthetic);
             fitControls.dataTable.Data = [frequency_Hz(:), Cp_mps(:), double(validMask(:))];
+            lastDataMetadata = struct('sourceType', "synthetic", ...
+                'modelFamily', modelFamily, 'branchName', branchName, ...
+                'outputRows', numel(frequency_Hz));
+            fitControls.dataSource.Text = sprintf('Data source: synthetic %s %s | %d rows', ...
+                modelFamily, branchName, numel(frequency_Hz));
+            plotExperimentalInput(frequency_Hz, Cp_mps, validMask);
             lastSyntheticDiagnostics = buildSyntheticDiagnosticsStatusLines(modelFamily, branchName, requestParts, ...
                 syntheticElapsed, nnz(validMask), numel(validMask));
             fitControls.status.Text = strjoin(lastSyntheticDiagnostics, newline);
@@ -119,6 +210,7 @@ onFitModelChanged();
             fitControls.status.Text = 'Fit status: running...';
             drawnow;
             lastFitOutput = guiRunFit(request);
+            lastFitOutput.experimentalDataMetadata = lastDataMetadata;
             guiPlotFitResult(lastFitOutput.normalized, ax);
             resultTable.Data = lastFitOutput.normalized.summaryTable;
             resultTable.ColumnName = lastFitOutput.normalized.summaryTable.Properties.VariableNames;
@@ -179,20 +271,23 @@ onFitModelChanged();
         if ~isnumeric(data) || size(data, 2) < 2
             error('Experimental table must contain numeric frequency_Hz and Cp_mps columns.');
         end
+        imported = struct('numericData', data, 'columnNames', ["frequency_Hz", "Cp_mps", "Use"]);
+        prepared = guiPrepareExperimentalFitData(imported, ...
+            'FrequencyColumn', 1, 'PhaseSpeedColumn', 2, ...
+            'UseColumn', min(3, size(data,2)), ...
+            'FrequencyUnit', "Hz", 'PhaseSpeedUnit', "m/s", ...
+            'DuplicatePolicy', "mean");
         experimental = struct();
-        experimental.frequency_Hz = data(:, 1);
-        experimental.Cp_mps = data(:, 2);
-        if size(data, 2) >= 3
-            experimental.validMask = logical(data(:, 3));
-        else
-            experimental.validMask = true(size(data, 1), 1);
-        end
+        experimental.frequency_Hz = prepared.frequency_Hz;
+        experimental.Cp_mps = prepared.Cp_mps;
+        experimental.validMask = prepared.validMask;
+        experimental.metadata = lastDataMetadata;
     end
 
     function [frequency_Hz, Cp_mps, validMask] = generateSyntheticData(modelFamily, branchName, parts)
         switch modelFamily
             case "rayleigh_lamb"
-                [params, resolvedControls] = guiResolveFitModelSetup(modelFamily, rlDefaultParams(), parts);
+                [params, ~] = guiResolveFitModelSetup(modelFamily, rlDefaultParams(), parts);
                 frequency_Hz = linspace(1000, 8000, 12).';
                 options = rlDefaultOptions(string(fitControls.robustness.Value));
                 Cp_mps = rlEvaluateFitModel(params, frequency_Hz, branchName, options);
@@ -300,8 +395,18 @@ onFitModelChanged();
             'ValidCount', validCount, ...
             'TotalCount', totalCount, ...
             'ElapsedSeconds', getFitElapsedSeconds(fitOutput), ...
-            'ExtraLines', fitExtraLines(fitOutput));
+            'ExtraLines', [fitExtraLines(fitOutput); dataSourceExtraLines()]);
         fitControls.status.Text = strjoin([header; elapsedLines; profileLines(:)], newline);
+    end
+
+    function extra = dataSourceExtraLines()
+        extra = strings(0,1);
+        if isstruct(lastDataMetadata) && isfield(lastDataMetadata, 'sourceType')
+            extra(end+1) = "data source: " + string(lastDataMetadata.sourceType);
+        end
+        if isstruct(lastDataMetadata) && isfield(lastDataMetadata, 'fileName')
+            extra(end+1) = "data file: " + string(lastDataMetadata.fileName);
+        end
     end
 
     function pathText = getEvaluationPathText(fitOutput)
@@ -331,18 +436,6 @@ onFitModelChanged();
                 logical(normalized.fullCurve.denseSolver.hasGridMismatch)
             mismatch = normalized.fullCurve.denseSolver.maxAbsDenseMinusFit_mps;
             curveText = curveText + sprintf(' | dense/grid mismatch %.3g m/s', mismatch);
-        end
-    end
-
-    function profileText = getProfileStatusText(fitOutput)
-        profileText = "";
-        if ~isfield(fitOutput, 'executionProfile') || ~isstruct(fitOutput.executionProfile)
-            return;
-        end
-        profile = fitOutput.executionProfile;
-        if isfield(profile, 'profileOverrideApplied') && logical(profile.profileOverrideApplied)
-            profileText = sprintf(' | profile %s->%s', ...
-                string(profile.requestedExecutionProfile), string(profile.effectiveExecutionProfile));
         end
     end
 
