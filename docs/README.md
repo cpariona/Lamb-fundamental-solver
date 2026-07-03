@@ -43,6 +43,7 @@ docs/workflows/gui/adapter_architecture.md
 docs/workflows/gui/integration_audit.md
 docs/workflows/gui/main_pending_cleanup.md
 docs/workflows/gui/mrlfe_atlas_policy_integration.md
+docs/architecture/execution_profiles_surface_integration.md
 ```
 
 ## Active sweep documentation
@@ -74,6 +75,7 @@ docs/models/acoustoelastic_iop_hgo/documentation_index.md
 ## Cleanup planning
 
 ```text
+docs/architecture/execution_profiles_cleanup.md
 docs/repository/repository_hygiene_plan.md
 docs/repository/docs_foundation_cleanup_audit.md
 docs/repository/docs_redundancy_audit.md

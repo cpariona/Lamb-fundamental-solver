@@ -256,17 +256,11 @@ updateFamilySpecificControls();
                 controls.normalizeRows = false;
                 controls.usePhysicalCpWindow = false;
                 controls.atlasBranchPolicy = "atlasA0";
-                switch string(robustnessDrop.Value)
-                    case "Robust"
-                        controls.atlasNumYPoints = 900;
-                        controls.atlasTopNMinima = 20;
-                    case "Balanced"
-                        controls.atlasNumYPoints = 600;
-                        controls.atlasTopNMinima = 16;
-                    otherwise
-                        controls.atlasNumYPoints = 300;
-                        controls.atlasTopNMinima = 12;
-                end
+                aeProfileOptions = aeResolveExecutionProfile(controls.executionProfile, ...
+                    'DefaultProfile', "Fast", ...
+                    'DefaultSource', "SweepTool default");
+                controls.atlasNumYPoints = aeProfileOptions.atlasNumYPoints;
+                controls.atlasTopNMinima = aeProfileOptions.atlasTopNMinima;
         end
     end
 

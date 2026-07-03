@@ -80,7 +80,7 @@ metadata.surface = surface;
 metadata.branchName = branchName;
 metadata.etaS = p.Results.EtaS;
 metadata.useUnifiedAtlasRoute = logical(p.Results.UseUnifiedAtlasRoute);
-metadata.supportedExecutionProfiles = ["Fast", "Balanced", "Robust"];
+metadata.supportedExecutionProfiles = guiExecutionProfileValues();
 metadata.profileSupportMode = "mapped_to_fast";
 metadata.surfaceDefaultExecutionProfile = string(p.Results.DefaultProfile);
 end

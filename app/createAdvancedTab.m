@@ -11,7 +11,7 @@ uilabel(g, 'Text', 'Numerical solver', 'FontWeight', 'bold');
 uilabel(g, 'Text', '');
 
 uilabel(g, 'Text', 'execution profile');
-h.robustness = uidropdown(g, 'Items', {'Fast', 'Balanced', 'Robust'}, 'Value', 'Balanced', 'ValueChangedFcn', callbacks.markDirty);
+h.robustness = uidropdown(g, 'Items', cellstr(guiExecutionProfileValues()), 'Value', 'Balanced', 'ValueChangedFcn', callbacks.markDirty);
 
 uilabel(g, 'Text', 'preset effect');
 uilabel(g, 'Text', 'Model-specific cost/robustness profile. Metadata reports the effective internal preset.', 'WordWrap', 'on');

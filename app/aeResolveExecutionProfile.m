@@ -22,7 +22,7 @@ metadata.routePolicy = string(options.atlasBranchPolicy);
 metadata.optimizerProfile = "";
 metadata.atlasNumYPoints = options.atlasNumYPoints;
 metadata.atlasTopNMinima = options.atlasTopNMinima;
-metadata.supportedExecutionProfiles = ["Fast", "Balanced", "Robust"];
+metadata.supportedExecutionProfiles = guiExecutionProfileValues();
 metadata.profileSupportMode = "fully_supported";
 metadata.surfaceDefaultExecutionProfile = string(p.Results.DefaultProfile);
 end

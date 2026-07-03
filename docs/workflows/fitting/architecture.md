@@ -163,6 +163,34 @@ fitRequest.options.useStandardErrorWeights = false;
 
 The exact fields may evolve, but the separation between experimental data, fixed parameters, free parameters, bounds, and options should remain stable.
 
+## Execution profile controls
+
+The canonical numerical profile field for GUI and adapter requests is:
+
+```matlab
+controls.executionProfile
+```
+
+The historical field remains accepted as a compatibility alias:
+
+```matlab
+controls.robustness
+```
+
+New code should set `executionProfile`. Builders canonicalize either field to
+`Fast`, `Balanced`, or `Robust`, reject contradictory values, and preserve the
+legacy alias for older consumers. The selected execution profile is separate
+from:
+
+- route policies such as mRLFE `adaptivePhysicalTail` or `delayedCut`;
+- AE `atlasA0` branch policy;
+- optimizer options such as `MaxIter`, `MaxFunEvals`, and `TolX`.
+
+FitTool defaults to `Fast` for all maintained model families. Rayleigh-Lamb and
+AE IOP/HGO apply all three profiles directly. mRLFE keeps the maintained
+`fast_fit_atlas` route and reports non-Fast requests through requested/effective
+profile metadata.
+
 ## FitResult contract
 
 A fitting result exposes the fitted values used by the objective and preserves raw solver metadata for diagnostics:
