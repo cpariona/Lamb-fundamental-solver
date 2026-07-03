@@ -31,7 +31,9 @@ request = fillDefault(request, 'baseOptions', struct());
 request = fillDefault(request, 'controls', struct());
 request = fillDefault(request, 'outputMode', "workspace");
 request = fillDefault(request, 'outputTaskName', "sweep");
-request.controls = normalizeControlProfileAlias(request.controls);
+request.controls = guiNormalizeControlExecutionProfile(request.controls, ...
+    'DefaultProfile', "Fast", ...
+    'DefaultSource', "SweepTool default");
 
 if strlength(request.sweepField) == 0
     error('Sweep request requires sweepField.');
@@ -47,21 +49,4 @@ function s = fillDefault(s, fieldName, defaultValue)
 if ~isfield(s, fieldName) || isempty(s.(fieldName))
     s.(fieldName) = defaultValue;
 end
-end
-
-function controls = normalizeControlProfileAlias(controls)
-if ~isstruct(controls)
-    controls = struct();
-    return;
-end
-hasExecutionProfile = isfield(controls, 'executionProfile') && ~isempty(controls.executionProfile) && ...
-    strlength(string(controls.executionProfile)) > 0;
-hasRobustness = isfield(controls, 'robustness') && ~isempty(controls.robustness) && ...
-    strlength(string(controls.robustness)) > 0;
-if ~(hasExecutionProfile || hasRobustness)
-    return;
-end
-[profile, ~] = guiNormalizeExecutionProfile(controls, 'DefaultProfile', "Fast");
-controls.executionProfile = profile;
-controls.robustness = profile;
 end
