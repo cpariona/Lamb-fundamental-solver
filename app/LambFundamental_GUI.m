@@ -672,6 +672,14 @@ updateAxisFieldState();
             lines(end+1) = "  unavailable";
         else
             md = lastGuiResult.metadata;
+            if isfield(md, 'executionProfile')
+                mdProfile = md.executionProfile;
+                lines(end+1) = sprintf("  execution profile requested/effective: %s/%s", ...
+                    string(mdProfile.requestedExecutionProfile), string(mdProfile.effectiveExecutionProfile));
+                if isfield(mdProfile, 'profileOverrideApplied') && logical(mdProfile.profileOverrideApplied)
+                    lines(end+1) = sprintf("  execution profile override: %s", string(mdProfile.profileOverrideReason));
+                end
+            end
             if isfield(md, 'mrlfeGuiActualRoute')
                 lines(end+1) = sprintf("  actual route: %s", string(md.mrlfeGuiActualRoute));
             end

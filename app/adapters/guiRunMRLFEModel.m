@@ -90,12 +90,20 @@ result.diagnostics.mrlfeZeroViscosityAdaptiveQuality = zeroViscosityQuality;
 result.diagnostics.mrlfeGuiActualRoute = actualRoute;
 result.diagnostics.mrlfeA0Policy = options.mrlfeA0Policy;
 result.diagnostics.mrlfeGuiAtlasPreset = guiGetStructField(options, 'mrlfeGuiAtlasPreset', "none");
+profileMetadata.effectiveExecutionProfile = "Fast";
 profileMetadata.internalSolverPreset = profile;
 profileMetadata.internalAtlasPreset = guiGetStructField(options, 'mrlfeGuiAtlasPreset', "none");
-profileMetadata.profileOverrideApplied = false;
-profileMetadata.profileOverrideReason = "";
+profileMetadata.profileOverrideApplied = profileMetadata.requestedExecutionProfile ~= profileMetadata.effectiveExecutionProfile;
+if profileMetadata.profileOverrideApplied
+    profileMetadata.profileOverrideReason = "mRLFE Main GUI preserves validated fast atlas presets.";
+else
+    profileMetadata.profileOverrideReason = "";
+end
 profileMetadata.routePolicy = actualRoute;
 profileMetadata.optimizerProfile = "";
+profileMetadata.supportedExecutionProfiles = ["Fast", "Balanced", "Robust"];
+profileMetadata.profileSupportMode = "mapped_to_fast";
+profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
 result.metadata.params = params;
 result.metadata.options = options;
 result.metadata.elapsedSeconds = elapsedSeconds;

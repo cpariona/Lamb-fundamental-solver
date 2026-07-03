@@ -86,7 +86,7 @@ branchDrop = uidropdown(cg, ...
 setGridPosition(branchDrop, row, [1 2]);
 
 row = row + 1;
-addLabel(cg, row, [1 2], 'Robustness', 'FontWeight', 'bold');
+addLabel(cg, row, [1 2], 'Execution profile', 'FontWeight', 'bold');
 row = row + 1;
 robustnessDrop = uidropdown(cg, ...
     'Items', cellstr(activeFamily.robustnessPresets), ...
@@ -256,12 +256,16 @@ updateFamilySpecificControls();
                 controls.normalizeRows = false;
                 controls.usePhysicalCpWindow = false;
                 controls.atlasBranchPolicy = "atlasA0";
-                if string(robustnessDrop.Value) == "Balanced"
-                    controls.atlasNumYPoints = 600;
-                    controls.atlasTopNMinima = 16;
-                else
-                    controls.atlasNumYPoints = 300;
-                    controls.atlasTopNMinima = 12;
+                switch string(robustnessDrop.Value)
+                    case "Robust"
+                        controls.atlasNumYPoints = 900;
+                        controls.atlasTopNMinima = 20;
+                    case "Balanced"
+                        controls.atlasNumYPoints = 600;
+                        controls.atlasTopNMinima = 16;
+                    otherwise
+                        controls.atlasNumYPoints = 300;
+                        controls.atlasTopNMinima = 12;
                 end
         end
     end
