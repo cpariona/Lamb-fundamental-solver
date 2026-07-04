@@ -61,6 +61,8 @@ assert(isequaln(normalized.summaryTable, normalized.parameterSummaryTable), ...
 
 parameterSummary = normalized.parameterSummaryTable;
 qualitySummary = normalized.fitQualitySummaryTable;
+parameterDisplay = guiBuildFitParameterDisplayTable(parameterSummary);
+qualityDisplay = guiBuildFitQualityDisplayTable(qualitySummary);
 globalMetricColumns = ["RMSE_mps", "MAE_mps", "R2", "AIC", "BIC", "Warning", "Identifiability"];
 assert(~any(ismember(globalMetricColumns, string(parameterSummary.Properties.VariableNames))), ...
     'Parameter summary must not repeat global fit metrics.');
@@ -71,6 +73,22 @@ assert(all(ismember(["RMSE_mps", "MAE_mps", "R2", "AIC", "BIC", "Warning", "Iden
     string(qualitySummary.Properties.VariableNames))), ...
     'Fit quality summary is missing expected global metric columns.');
 assert(height(qualitySummary) == 1, 'Fit quality summary should contain one global row.');
+assert(height(parameterDisplay) == 1, 'Visible parameter summary should show only the fitted parameter.');
+assert(~ismember("Role", string(parameterDisplay.Properties.VariableNames)), ...
+    'Visible parameter summary should not show Role when only the fitted parameter is displayed.');
+assert(any(string(parameterDisplay.Parameter) == "Shear modulus"), ...
+    'Visible parameter summary should show the fitted parameter.');
+assert(~any(string(parameterDisplay.Parameter) == "Thickness"), ...
+    'Visible parameter summary should not show fixed parameters.');
+assert(~any(ismember(["StandardError", "ConfidenceLower", "ConfidenceUpper"], ...
+    string(parameterDisplay.Properties.VariableNames))), ...
+    'Visible parameter summary should hide unavailable uncertainty columns.');
+assert(isequal(string(qualityDisplay.Properties.VariableNames), ["Metric", "Value"]), ...
+    'Visible fit quality summary should use Metric/Value columns.');
+assert(any(qualityDisplay.Metric == "RMSE [m/s]"), 'Fit quality display should use readable RMSE label.');
+assert(any(qualityDisplay.Metric == "R^2"), 'Fit quality display should use readable R2 label.');
+assert(~any(qualityDisplay.Metric == "AIC"), 'Fit quality display should hide unavailable AIC.');
+assert(~any(qualityDisplay.Metric == "BIC"), 'Fit quality display should hide unavailable BIC.');
 
 fixedRows = string(parameterSummary.Role) == "Fixed";
 assert(all(isnan(parameterSummary.Initial(fixedRows))), 'Fixed rows should not repeat fitted initial guesses.');
@@ -101,6 +119,16 @@ for i = 1:numel(requiredControls)
     assert(isfield(controls, requiredControls(i)), ...
         'createFittingTab missing control %s.', requiredControls(i));
 end
+assert(strcmp(controls.dataTable.ColumnName{1}, 'Frequency [Hz]'), ...
+    'Data table should show readable frequency label.');
+assert(strcmp(controls.dataTable.ColumnName{2}, 'Phase speed [m/s]'), ...
+    'Data table should show readable phase-speed label.');
+assert(strcmp(controls.axisXMinKHz.Value, ''), 'Auto axis mode should not display zero X min.');
+assert(strcmp(controls.axisXMaxKHz.Value, ''), 'Auto axis mode should not display zero X max.');
+assert(guiFitDisplayLabel("branch", "A0Like") == "A0-like", ...
+    'A0Like display label should be readable.');
+assert(guiFitDisplayLabel("policy", "adaptivePhysicalTail") == "Adaptive physical tail", ...
+    'mRLFE A0 policy display label should be readable.');
 
 fprintf('\nFitTool interaction helper test passed.\n');
 

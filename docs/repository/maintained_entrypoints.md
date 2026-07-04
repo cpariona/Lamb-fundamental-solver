@@ -37,6 +37,9 @@ guiFitAcoustoelasticIOPHGOSolver
 guiNormalizeFitResult
 guiBuildFitParameterSummaryTable
 guiBuildFitQualitySummaryTable
+guiBuildFitParameterDisplayTable
+guiBuildFitQualityDisplayTable
+guiFitDisplayLabel
 guiEvaluateFitFullCurve
 guiEvaluateRequestedFitCurve
 guiPlotFitResult

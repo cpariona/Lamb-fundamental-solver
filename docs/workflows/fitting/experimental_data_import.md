@@ -56,8 +56,10 @@ The GUI table stays editable after import.
 FitTool keeps the loaded or generated data in an editable table with columns:
 
 ```text
-frequency_Hz | Cp_mps | Use
+Frequency [Hz] | Phase speed [m/s] | Use
 ```
+
+The internal normalized field names remain `frequency_Hz` and `Cp_mps`.
 
 The table supports:
 
@@ -111,6 +113,8 @@ Apply axes, Auto axes
 update a local `axisViewState` and are not included in `guiBuildFitRequest`.
 Manual limits persist across replotting, synthetic generation, model changes,
 fits, and requested fitted-curve evaluation until **Auto axes** is selected.
+Automatic mode leaves the editable limit fields blank; `0` is not used as an
+auto-mode sentinel.
 
 ## Architecture
 

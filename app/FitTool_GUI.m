@@ -40,7 +40,7 @@ fitControls = createFittingTab(tabs, rlDefaultParams(), callbacks);
 
 rightGrid = uigridlayout(root, [3 1]);
 rightGrid.Layout.Column = 2;
-rightGrid.RowHeight = {'1x', 150, 115};
+rightGrid.RowHeight = {'1x', 82, 185};
 rightGrid.Padding = [0 0 0 0];
 rightGrid.RowSpacing = 8;
 
@@ -56,12 +56,14 @@ parameterPanel.Layout.Row = 2;
 parameterPanelGrid = uigridlayout(parameterPanel, [1 1]);
 parameterPanelGrid.Padding = [0 0 0 0];
 parameterResultTable = uitable(parameterPanelGrid, 'Data', table(), 'ColumnName', {});
+parameterResultTable.ColumnWidth = {150, 70, 60, 70, 70, 70};
 
 qualityPanel = uipanel(rightGrid, 'Title', 'Fit quality summary');
 qualityPanel.Layout.Row = 3;
 qualityPanelGrid = uigridlayout(qualityPanel, [1 1]);
 qualityPanelGrid.Padding = [0 0 0 0];
 fitQualityTable = uitable(qualityPanelGrid, 'Data', table(), 'ColumnName', {});
+fitQualityTable.ColumnWidth = {240, 170};
 
 onFitModelChanged();
 
@@ -105,7 +107,7 @@ onFitModelChanged();
     function updateParameterTable()
         fitControls.parameterTable.Data = guiFitParameterStateToTable(fitParameterState);
         fitControls.fixedHeader.Text = sprintf( ...
-            'Free parameter: %s. All other rows are fixed and editable.', fitParameterState.freeParam);
+            'Fitted parameter: %s. All other rows are fixed and editable.', fitParameterState.freeParam);
     end
 
     function state = readParameterState()
@@ -319,9 +321,10 @@ onFitModelChanged();
     function onApplyFitAxes()
         try
             axisViewState = guiValidateFitAxisLimits( ...
-                [fitControls.axisXMinKHz.Value, fitControls.axisXMaxKHz.Value], ...
-                [fitControls.axisYMinMps.Value, fitControls.axisYMaxMps.Value]);
+                [str2double(fitControls.axisXMinKHz.Value), str2double(fitControls.axisXMaxKHz.Value)], ...
+                [str2double(fitControls.axisYMinMps.Value), str2double(fitControls.axisYMaxMps.Value)]);
             guiApplyFitAxisView(ax, axisViewState);
+            fitControls.axisHeader.Text = 'Axis view (Manual)';
             fitControls.status.Text = 'Fit status: manual axis limits applied.';
         catch ME
             fitControls.status.Text = ['Fit status: axis limit error: ', ME.message];
@@ -332,10 +335,11 @@ onFitModelChanged();
     function onAutoFitAxes()
         axisViewState = struct('xMode', "auto", 'yMode', "auto", ...
             'xLimits_kHz', [nan nan], 'yLimits_mps', [nan nan]);
-        fitControls.axisXMinKHz.Value = 0;
-        fitControls.axisXMaxKHz.Value = 0;
-        fitControls.axisYMinMps.Value = 0;
-        fitControls.axisYMaxMps.Value = 0;
+        fitControls.axisXMinKHz.Value = '';
+        fitControls.axisXMaxKHz.Value = '';
+        fitControls.axisYMinMps.Value = '';
+        fitControls.axisYMaxMps.Value = '';
+        fitControls.axisHeader.Text = 'Axis view (Auto)';
         guiApplyFitAxisView(ax, axisViewState);
         fitControls.status.Text = 'Fit status: automatic axes restored.';
     end
@@ -386,19 +390,32 @@ onFitModelChanged();
 
     function updateResultTables(normalized)
         if isfield(normalized, 'parameterSummaryTable')
-            parameterResultTable.Data = normalized.parameterSummaryTable;
-            parameterResultTable.ColumnName = normalized.parameterSummaryTable.Properties.VariableNames;
+            parameterDisplay = guiBuildFitParameterDisplayTable(normalized.parameterSummaryTable);
         else
-            parameterResultTable.Data = normalized.summaryTable;
-            parameterResultTable.ColumnName = normalized.summaryTable.Properties.VariableNames;
+            parameterDisplay = guiBuildFitParameterDisplayTable(normalized.summaryTable);
         end
+        parameterResultTable.Data = parameterDisplay;
+        parameterResultTable.ColumnName = readableColumnNames(parameterDisplay.Properties.VariableNames);
         if isfield(normalized, 'fitQualitySummaryTable')
-            fitQualityTable.Data = normalized.fitQualitySummaryTable;
-            fitQualityTable.ColumnName = normalized.fitQualitySummaryTable.Properties.VariableNames;
+            qualityDisplay = guiBuildFitQualityDisplayTable(normalized.fitQualitySummaryTable);
+            fitQualityTable.Data = qualityDisplay;
+            fitQualityTable.ColumnName = qualityDisplay.Properties.VariableNames;
         else
             fitQualityTable.Data = table();
             fitQualityTable.ColumnName = {};
         end
+    end
+
+    function names = readableColumnNames(names)
+        names = string(names);
+        names(names == "StandardError") = "Standard error";
+        names(names == "ConfidenceLower") = "Confidence lower";
+        names(names == "ConfidenceUpper") = "Confidence upper";
+        names = replace(names, "_", " ");
+        names(names == "Standard error") = "Standard error";
+        names(names == "Confidence lower") = "Confidence lower";
+        names(names == "Confidence upper") = "Confidence upper";
+        names = cellstr(names);
     end
 
     function request = buildRequestFromControls()

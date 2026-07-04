@@ -18,6 +18,11 @@ CpFit = normalizedFit.Cp_fit_mps(:);
 valid = normalizedFit.validMask(:) & isfinite(frequency_kHz) & isfinite(CpExp) & isfinite(CpFit);
 legendEntries = {};
 
+plot(ax, frequency_kHz(valid), CpExp(valid), 'o', 'LineWidth', 1.2);
+legendEntries{end+1} = 'Experimental data';
+plot(ax, frequency_kHz(valid), CpFit(valid), '.', 'MarkerSize', 14);
+legendEntries{end+1} = 'Model at data points';
+
 if isfield(normalizedFit, 'fullCurve') && isstruct(normalizedFit.fullCurve) && ...
         isfield(normalizedFit.fullCurve, 'frequency_Hz') && ~isempty(normalizedFit.fullCurve.frequency_Hz)
     fullFrequency_kHz = normalizedFit.fullCurve.frequency_Hz(:) ./ 1e3;
@@ -25,16 +30,7 @@ if isfield(normalizedFit, 'fullCurve') && isstruct(normalizedFit.fullCurve) && .
     fullValid = normalizedFit.fullCurve.validMask(:) & isfinite(fullFrequency_kHz) & isfinite(fullCp);
     if any(fullValid)
         plot(ax, fullFrequency_kHz(fullValid), fullCp(fullValid), '-', 'LineWidth', 1.5);
-        fullCurveLegend = 'Full fitted curve';
-        if isfield(normalizedFit.fullCurve, 'note')
-            fullCurveNote = string(normalizedFit.fullCurve.note);
-            if contains(fullCurveNote, "in-band curve interpolates", 'IgnoreCase', true)
-                fullCurveLegend = 'Fitted curve, in-band interpolation';
-            elseif contains(fullCurveNote, "dense", 'IgnoreCase', true)
-                fullCurveLegend = 'Dense fitted solver curve';
-            end
-        end
-        legendEntries{end+1} = fullCurveLegend; %#ok<AGROW>
+        legendEntries{end+1} = 'Fitted curve'; %#ok<AGROW>
     end
 end
 
@@ -46,7 +42,7 @@ if isfield(normalizedFit, 'requestedCurve') && isstruct(normalizedFit.requestedC
     if any(requestedValid)
         plot(ax, requestedFrequency_kHz(requestedValid), requestedCp(requestedValid), '-', ...
             'LineWidth', 1.8, 'LineStyle', '-.');
-        legendEntries{end+1} = 'Requested solver curve'; %#ok<AGROW>
+        legendEntries{end+1} = 'Evaluated solver curve'; %#ok<AGROW>
     end
 end
 
@@ -56,21 +52,21 @@ if isfield(normalizedFit, 'qc') && isfield(normalizedFit.qc, 'baseline') && ...
     baselineCp = normalizedFit.qc.baseline.Cp0_mps * ones(size(baselineFrequency));
     if ~isempty(baselineFrequency)
         plot(ax, baselineFrequency, baselineCp, '--', 'LineWidth', 1.0);
-        legendEntries{end+1} = 'Constant-speed baseline'; %#ok<AGROW>
+        legendEntries{end+1} = 'Constant baseline'; %#ok<AGROW>
     end
 end
-
-plot(ax, frequency_kHz(valid), CpExp(valid), 'o', 'LineWidth', 1.2);
-legendEntries{end+1} = 'Experimental data';
-plot(ax, frequency_kHz(valid), CpFit(valid), '.', 'MarkerSize', 14);
-legendEntries{end+1} = 'Model at data points';
 
 xlabel(ax, 'Frequency [kHz]');
 ylabel(ax, 'Phase speed [m/s]');
 if isfield(normalizedFit, 'qc')
-    title(ax, sprintf('%s %s fit | PhysicalQC: %s', normalizedFit.modelName, normalizedFit.branchName, string(normalizedFit.qc.classification)), 'Interpreter', 'none');
+    title(ax, [ ...
+        sprintf('%s - %s fit', char(guiFitDisplayLabel("model", normalizedFit.modelName)), ...
+            char(guiFitDisplayLabel("branch", normalizedFit.branchName))); ...
+        sprintf('Physical quality check: %s', char(guiFitDisplayLabel("quality", string(normalizedFit.qc.classification))))], ...
+        'Interpreter', 'none');
 else
-    title(ax, sprintf('%s %s fit', normalizedFit.modelName, normalizedFit.branchName), 'Interpreter', 'none');
+    title(ax, sprintf('%s - %s fit', char(guiFitDisplayLabel("model", normalizedFit.modelName)), ...
+        char(guiFitDisplayLabel("branch", normalizedFit.branchName))), 'Interpreter', 'none');
 end
 legend(ax, legendEntries, 'Location', 'best', 'Interpreter', 'none');
 applyPhysicalYLimits(ax, CpExp(valid), CpFit(valid), normalizedFit);
