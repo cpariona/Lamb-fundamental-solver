@@ -6,10 +6,11 @@ Default branch: main
 
 ## Current development focus
 
-Bootstrap of persistent project context and session handoff.
+Persistent project context and session handoff are now available on `main`.
 
-After this branch is merged, the next technical objective still needs to be
-selected.
+The next technical objective has not yet been selected. The next session should
+recover the current state from these documents, compare the remaining options,
+and define one focused engineering task before creating a feature branch.
 
 ## Recently completed capabilities
 
@@ -20,6 +21,7 @@ selected.
 - Persistent axis controls.
 - Explicit requested fitted-curve solver evaluation.
 - Separated parameter and fit-quality summaries.
+- Persistent project context, session handoff, reusable task templates, and initial ADRs.
 
 ## Active architectural contracts
 
@@ -42,9 +44,9 @@ selected.
 
 This list is provisional:
 
-1. Complete persistent context and handoff bootstrap.
-2. Select the next engineering objective.
-3. Audit model execution architecture before designing real mRLFE profiles.
+1. Select the next engineering objective in a new chat.
+2. Create one focused feature branch from updated `origin/main`.
+3. Audit model execution architecture before designing real mRLFE profiles, if that objective is selected.
 4. Keep solver refactors separate from GUI and documentation tasks.
 
 ## Primary references
