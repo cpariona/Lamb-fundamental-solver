@@ -14,6 +14,16 @@ tests/       smoke tests, contract tests, and focused validation tests
 Results/     generated outputs; not source code
 ```
 
+## Documentation layout
+
+`docs/project/` contains operational project state, session handoff notes, and
+small reusable task templates. It is not a technical contract and should link to
+the maintained repository, workflow, model, validation, and ADR documents rather
+than duplicating them.
+
+`docs/architecture/decisions/` contains accepted, proposed, superseded, or
+rejected architecture decision records for durable cross-cutting decisions.
+
 ## Target cross-cutting layout
 
 Long-term organization should distinguish three layers consistently across source, docs, and tests:
