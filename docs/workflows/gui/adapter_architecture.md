@@ -36,7 +36,23 @@ lastResults
 lastGuiResult
 ```
 
-`lastResults` is kept for compatibility and diagnostics. `lastGuiResult` is the preferred GUI-facing structure for plotting and table export.
+`lastResults` is kept for compatibility and diagnostics. `lastGuiResult` is the preferred GUI-facing structure for plotting and export.
+
+### Main GUI export
+
+`LambFundamental_GUI` exports only the normalized GUI-visible curves and the
+physical parameters captured from the interface at the time of computation:
+
+```text
+lastGuiResult.branches
+    -> guiBuildMainResultExport
+    -> guiSaveMainResultExport
+    -> LambExport
+```
+
+Each exported curve contains only `Frequency_Hz`, `PhaseVelocity_mps`, and
+`Valid`. Raw solver results, model diagnostics, route metadata, wavenumber, and
+`kThickness` are intentionally excluded from this public export.
 
 ## SweepTool flow
 

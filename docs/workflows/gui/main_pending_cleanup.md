@@ -182,7 +182,7 @@ app/sweep/
 app/fitting/
 ```
 
-`LambFundamental_GUI.m` still contains plotting, status, diagnostics, export, and some model-routing logic. Future GUI work should avoid adding more solver-specific logic directly to this file.
+`LambFundamental_GUI.m` still contains plotting, status, diagnostics, and some model-routing logic. Main-result export construction and MAT-file writing now live under `app/export/`, while the callback remains a thin GUI coordinator. Future GUI work should avoid adding more solver-specific logic directly to this file.
 
 Recommended direction:
 

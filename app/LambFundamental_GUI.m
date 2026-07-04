@@ -7,6 +7,7 @@ lastResults = [];
 lastGuiResult = [];
 lastOptions = [];
 lastParams = [];
+lastPhysicalParameters = [];
 inputsAreDirty = false;
 
 colors.A0 = [0.0000 0.4470 0.7410];
@@ -137,6 +138,7 @@ updateAxisFieldState();
             [lastResults, lastGuiResult] = runModelRequestThroughAdapter(params, options);
             lastParams = params;
             lastOptions = options;
+            lastPhysicalParameters = readPhysicalParametersFromGui(params, options);
             inputsAreDirty = false;
             updatePlotCheckboxesFromResults();
             updatePlot();
@@ -224,6 +226,32 @@ updateAxisFieldState();
         mrlfeParams.etaS = modelControls.mrlfe.etaS.Value;
         mrlfeParams.etaL = 0;
         mrlfeParams.useComplexLambda = false;
+    end
+
+    function physicalParameters = readPhysicalParametersFromGui(params, options)
+        physicalParameters = struct();
+        physicalParameters.modelType = string(params.modelType);
+        physicalParameters.rho_kg_m3 = params.rho;
+        physicalParameters.mu_Pa = params.mu;
+        if string(params.modelType) == "ShearPoisson"
+            physicalParameters.nu = params.nu;
+        else
+            physicalParameters.lambda_Lame_Pa = params.lambda;
+        end
+        physicalParameters.thickness_m = params.thickness;
+
+        if getOptionValueLocal(options, 'computeAcoustoelasticIOPHGO', false)
+            physicalParameters.IOP_mmHg = modelControls.ae.IOP.Value;
+            physicalParameters.radius_mm = modelControls.ae.R.Value;
+            physicalParameters.k1_Pa = modelControls.ae.k1.Value * 1e3;
+            physicalParameters.k2 = modelControls.ae.k2.Value;
+            physicalParameters.fluidDensity_kg_m3 = modelControls.ae.rhoF.Value;
+            physicalParameters.fluidBulkModulus_Pa = modelControls.ae.fluidBulkModulus.Value * 1e9;
+        elseif getOptionValueLocal(options, 'computeMRLFERealK', false)
+            physicalParameters.fluidDensity_kg_m3 = options.mrlfeParams.fluidDensity;
+            physicalParameters.fluidSoundSpeed_m_s = options.mrlfeParams.fluidSoundSpeed;
+            physicalParameters.etaS_Pa_s = options.mrlfeParams.etaS;
+        end
     end
 
     function options = attachCachedElasticReferenceIfUseful(options, params)
@@ -843,23 +871,37 @@ updateAxisFieldState();
     end
 
     function onExport()
-        if isempty(lastResults)
-            uialert(fig,'Compute first.','No results');
+        if isempty(lastGuiResult) || isempty(lastPhysicalParameters)
+            uialert(fig, 'Compute first.', 'No results');
             return;
         end
-        defaultName = ['LambResults_', datestr(now,'yyyymmdd_HHMMSS'), '.mat'];
-        [file,path] = uiputfile('*.mat','Save results',defaultName);
-        if isequal(file,0)
+
+        if inputsAreDirty
+            choice = uiconfirm(fig, ...
+                'The controls have changed since the last computation. Export the last computed result?', ...
+                'Inputs changed', ...
+                'Options', {'Export last computed result', 'Cancel'}, ...
+                'DefaultOption', 2, ...
+                'CancelOption', 2);
+            if string(choice) ~= "Export last computed result"
+                return;
+            end
+        end
+
+        defaultName = ['LambExport_', datestr(now, 'yyyymmdd_HHMMSS'), '.mat'];
+        [file, path] = uiputfile('*.mat', 'Save results', defaultName);
+        if isequal(file, 0)
             return;
         end
-        LambResults = lastResults; %#ok<NASGU>
-        GuiResults = lastGuiResult; %#ok<NASGU>
-        GuiBranchTables = [];
-        if ~isempty(lastGuiResult)
-            GuiBranchTables = guiNormalizedBranchesToTables(lastGuiResult.branches); %#ok<NASGU>
+
+        try
+            exportData = guiBuildMainResultExport(lastGuiResult, lastPhysicalParameters);
+            savedPath = guiSaveMainResultExport(fullfile(path, file), exportData);
+            setStatusText({['Status: saved ', savedPath]});
+        catch ME
+            setStatusText({['Status: export error: ', ME.message]});
+            uialert(fig, ME.message, 'Export error');
         end
-        save(fullfile(path,file),'LambResults','GuiResults','GuiBranchTables','lastParams','lastOptions');
-        setStatusText({['Status: saved ', fullfile(path,file)]});
     end
 
     function setStatusText(lines)

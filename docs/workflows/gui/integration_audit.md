@@ -58,7 +58,7 @@ lastResults
 lastGuiResult
 ```
 
-The raw output is preserved for diagnostics and compatibility. The normalized output is preferred for plotting and table export.
+The raw output is preserved for diagnostics and compatibility. The normalized output is preferred for plotting and export. The **Export results** action writes one `LambExport` MAT variable containing only GUI-visible frequency/phase-velocity curves, validity masks, and the physical parameters captured from the interface.
 
 Current model-family coverage:
 
