@@ -17,6 +17,9 @@ docs/repository/docs_foundation_cleanup_audit.md
 ## Active topic folders
 
 ```text
+docs/project/
+docs/architecture/
+docs/validation/
 docs/workflows/fitting/
 docs/workflows/gui/
 docs/workflows/sweeps/
@@ -24,6 +27,18 @@ docs/models/rayleigh_lamb/
 docs/models/mrlfe/
 docs/models/acoustoelastic_iop_hgo/
 ```
+
+## Starting a development session
+
+Read the operational project state before modifying files:
+
+```text
+docs/project/README.md
+docs/project/active_context.md
+docs/project/session_handoff.md
+```
+
+Then follow the task-specific contracts linked from the project index.
 
 ## Active fitting documentation
 
