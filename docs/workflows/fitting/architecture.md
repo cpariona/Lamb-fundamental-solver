@@ -215,9 +215,43 @@ The normalized GUI result may add plotting and route metadata, including:
 
 ```matlab
 normalized.fullCurve
+normalized.requestedCurve
 normalized.routePolicy
 normalized.fitQuality
 ```
+
+FitTool presents fit results as two separate summaries:
+
+```matlab
+normalized.parameterSummaryTable
+normalized.fitQualitySummaryTable
+```
+
+`parameterSummaryTable` contains per-parameter fields such as role, value, unit,
+initial guess, and bounds. `fitQualitySummaryTable` contains global fit quality
+metrics such as RMSE, MAE, R2, baseline comparison, physical-quality warning,
+and identifiability. `normalized.summaryTable` is retained as a compatibility
+alias for the parameter summary.
+
+The GUI derives compact display tables from those normalized outputs:
+
+```matlab
+guiBuildFitParameterDisplayTable
+guiBuildFitQualityDisplayTable
+```
+
+The visible parameter summary shows only the fitted parameter. Fixed parameters
+remain available in the normalized table and request metadata but are not
+repeated below the plot. The visible fit-quality summary is displayed vertically
+as `Metric | Value`; unavailable metrics such as AIC/BIC are hidden when their
+values are not finite.
+
+The optional `normalized.requestedCurve` is created only when the user explicitly
+presses **Evaluate fitted curve**. It is a fresh forward solver evaluation using
+the fitted parameter, fixed parameters, branch, execution profile, and route
+policy from the completed fit. It does not call the optimizer and is distinct
+from `normalized.fullCurve`, whose primary in-band curve remains fit-consistent
+with the objective values.
 
 ## Model-specific fitting routes
 
@@ -303,6 +337,18 @@ assessFitIdentifiability
 ```
 
 These helpers provide basic numerical and physical sanity checks. They are not a replacement for experimental validation.
+
+## FitTool visual state
+
+FitTool keeps axis limits in GUI-local state:
+
+```matlab
+axisViewState
+```
+
+This state controls only plotting and is intentionally excluded from fitting
+requests and solver options. In automatic mode, FitTool leaves the visible axis
+limit fields blank rather than using `0` as a sentinel value.
 
 ## Validation
 

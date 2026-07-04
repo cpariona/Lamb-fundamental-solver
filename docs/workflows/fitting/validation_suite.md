@@ -180,6 +180,22 @@ For mRLFE FitTool route or plotting behavior, also run:
 run_mrlfe_fit_atlas_tests
 ```
 
+For FitTool interaction changes that do not alter solvers, run:
+
+```matlab
+run_fit_tool_interaction_tests
+```
+
+This focal runner checks:
+
+```text
+parameter summary versus global fit quality summary
+manual experimental table row helpers
+axis limit validation
+explicit requested fitted-curve evaluation
+presence of the new FitTool controls
+```
+
 If the focused suite fails, run individual groups:
 
 ```matlab
