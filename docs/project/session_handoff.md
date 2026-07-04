@@ -2,53 +2,62 @@
 
 Updated: 2026-07-04
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: docs-project-handoff-bootstrap
-Base branch: origin/main
-Last known good commit: 03fa28d
+Current branch: main
+Base branch: main
+Last known good commit: 5f44ce0
 
 ## Current task
 
-Create persistent project-context and session-handoff documentation.
+Close the documentation-bootstrap phase and prepare migration to a new chat.
 
 ## Completed
 
-- Created `docs/project/README.md` as the operational session index.
-- Created `docs/project/active_context.md` for current global project state.
-- Created `docs/project/session_handoff.md` for closeout state.
-- Created reusable templates under `docs/project/templates/`.
-- Created ADR index and initial accepted ADRs under `docs/architecture/decisions/`.
-- Updated `docs/README.md` to expose project, architecture, and validation documentation.
-- Updated `docs/repository/repository_structure.md` with the new project and ADR locations.
+- Created the persistent project-context and session-handoff structure.
+- Added reusable templates for new chats, Codex tasks, and session closeout.
+- Added the ADR index and initial accepted ADRs.
+- Updated the documentation index and repository structure references.
+- Opened PR #105: `Add persistent project context and session handoff`.
+- PR #105 was reviewed and merged into `main`.
+- Updated `active_context.md` and this handoff after the merge.
 
 ## Validation performed
 
-- `git diff --check`
-- `git grep --untracked -n "docs/project/"`
-- `git grep --untracked -n "docs/architecture/decisions/"`
-- PowerShell path-existence check for referenced `docs/...` paths in new and updated documents.
+For the documentation-bootstrap branch:
 
-No MATLAB suites were run because this branch changes documentation only.
+- `git diff --check`
+- documentation path and reference searches
+- path-existence checks for referenced `docs/...` files
+- human review of the operational documents and templates
+- confirmation that PR #105 was merged into `main`
+
+No MATLAB suites were run because the completed phase changed documentation only.
 
 ## Manual validation
 
-Human review of the documentation is still required before the PR.
+The documentation structure, templates, and ADRs were reviewed before merge.
+The project is ready to migrate to a new chat using
+`docs/project/templates/new_chat_bootstrap.md`.
 
 ## Open issues
 
-- Review whether existing pending or audit documents need status headers in a future documentation-cleanup branch.
-- Select the next engineering objective after this documentation branch is merged.
+- Select the next engineering objective.
+- Create a new feature branch from updated `origin/main` after that objective is confirmed.
+- Review whether older pending or audit documents need status headers in a future documentation-cleanup branch.
 
 ## Next action
 
-Human review of the documentation, then PR and manual merge.
+Start a new chat, recover the state from `docs/project/`, and select one focused
+engineering objective before modifying files.
 
 ## Do not change
 
-- No solver code.
-- No GUI behavior.
-- No tests unrelated to documentation paths.
-- No broad documentation deletion.
-- No rewriting historical evidence.
+Until the next objective is confirmed:
+
+- Do not modify solver code.
+- Do not modify GUI behavior.
+- Do not create a feature branch without a defined task.
+- Do not reopen completed documentation-bootstrap work.
+- Do not treat archived audits as current contracts.
 
 ## Relevant files
 
@@ -61,15 +70,13 @@ Human review of the documentation, then PR and manual merge.
 - `docs/architecture/decisions/README.md`
 - `docs/architecture/decisions/ADR-001-gui-adapter-boundary.md`
 - `docs/architecture/decisions/ADR-002-execution-profile-semantics.md`
-- `docs/README.md`
-- `docs/repository/repository_structure.md`
 
 ## Commands to resume
 
 ```bash
 git fetch origin
-git switch docs-project-handoff-bootstrap
-git pull --ff-only
+git switch main
+git pull --ff-only origin main
 git status -sb
 git log --oneline --decorate -5
 ```
