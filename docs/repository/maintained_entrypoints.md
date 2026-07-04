@@ -35,8 +35,16 @@ guiFitRLSolver
 guiFitMRLFESolver
 guiFitAcoustoelasticIOPHGOSolver
 guiNormalizeFitResult
+guiBuildFitParameterSummaryTable
+guiBuildFitQualitySummaryTable
 guiEvaluateFitFullCurve
+guiEvaluateRequestedFitCurve
 guiPlotFitResult
+guiAppendExperimentalFitRow
+guiDeleteExperimentalFitRows
+guiMarkExperimentalFitDataEdited
+guiValidateFitAxisLimits
+guiApplyFitAxisView
 ```
 
 ## Shared sweep helpers
@@ -125,6 +133,7 @@ Focused fitting validation suite:
 
 ```matlab
 run_fit_validation_tests
+run_fit_tool_interaction_tests
 test_fit_validation_rayleigh_lamb
 test_fit_validation_mrlfe
 test_fit_validation_mrlfe_hidden_params

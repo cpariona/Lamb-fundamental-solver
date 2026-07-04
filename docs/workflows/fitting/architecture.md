@@ -215,9 +215,30 @@ The normalized GUI result may add plotting and route metadata, including:
 
 ```matlab
 normalized.fullCurve
+normalized.requestedCurve
 normalized.routePolicy
 normalized.fitQuality
 ```
+
+FitTool presents fit results as two separate summaries:
+
+```matlab
+normalized.parameterSummaryTable
+normalized.fitQualitySummaryTable
+```
+
+`parameterSummaryTable` contains only per-parameter fields such as role, value,
+unit, initial guess, and bounds. `fitQualitySummaryTable` contains global fit
+quality metrics such as RMSE, MAE, R2, baseline comparison, physical-quality
+warning, and identifiability. `normalized.summaryTable` is retained as a
+compatibility alias for the parameter summary.
+
+The optional `normalized.requestedCurve` is created only when the user explicitly
+presses **Evaluate fitted curve**. It is a fresh forward solver evaluation using
+the fitted parameter, fixed parameters, branch, execution profile, and route
+policy from the completed fit. It does not call the optimizer and is distinct
+from `normalized.fullCurve`, whose primary in-band curve remains fit-consistent
+with the objective values.
 
 ## Model-specific fitting routes
 
@@ -303,6 +324,17 @@ assessFitIdentifiability
 ```
 
 These helpers provide basic numerical and physical sanity checks. They are not a replacement for experimental validation.
+
+## FitTool visual state
+
+FitTool keeps axis limits in GUI-local state:
+
+```matlab
+axisViewState
+```
+
+This state controls only plotting and is intentionally excluded from fitting
+requests and solver options.
 
 ## Validation
 

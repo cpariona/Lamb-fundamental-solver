@@ -51,6 +51,24 @@ experimental.validMask
 
 The GUI table stays editable after import.
 
+## Manual table editing
+
+FitTool keeps the loaded or generated data in an editable table with columns:
+
+```text
+frequency_Hz | Cp_mps | Use
+```
+
+The table supports:
+
+- **Add row**, which appends `[NaN, NaN, 1]`;
+- **Delete selected row**, which removes the selected row or rows;
+- direct cell editing.
+
+Manual edits do not run validation immediately. Validation remains centralized in
+`guiPrepareExperimentalFitData` and occurs when a fit request is built. A fit
+still requires at least two valid positive finite frequency/speed pairs.
+
 ## Provenance metadata
 
 Imported data records:
@@ -70,6 +88,29 @@ The most recent fit output exposes this as:
 ```matlab
 FitToolLastOutput.experimentalDataMetadata
 ```
+
+If imported or synthetic data are edited in the GUI, the original provenance is
+preserved and the metadata adds:
+
+```matlab
+wasManuallyEdited = true
+```
+
+For example, an edited file import keeps `sourceType = "experimental_file"` and
+the original `fileName`.
+
+## Axis view controls
+
+FitTool axis limits are visual state only. The controls:
+
+```text
+X min [kHz], X max [kHz], Y min [m/s], Y max [m/s]
+Apply axes, Auto axes
+```
+
+update a local `axisViewState` and are not included in `guiBuildFitRequest`.
+Manual limits persist across replotting, synthetic generation, model changes,
+fits, and requested fitted-curve evaluation until **Auto axes** is selected.
 
 ## Architecture
 

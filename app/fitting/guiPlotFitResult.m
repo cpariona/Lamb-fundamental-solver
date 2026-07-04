@@ -38,6 +38,18 @@ if isfield(normalizedFit, 'fullCurve') && isstruct(normalizedFit.fullCurve) && .
     end
 end
 
+if isfield(normalizedFit, 'requestedCurve') && isstruct(normalizedFit.requestedCurve) && ...
+        isfield(normalizedFit.requestedCurve, 'frequency_Hz') && ~isempty(normalizedFit.requestedCurve.frequency_Hz)
+    requestedFrequency_kHz = normalizedFit.requestedCurve.frequency_Hz(:) ./ 1e3;
+    requestedCp = normalizedFit.requestedCurve.Cp_mps(:);
+    requestedValid = normalizedFit.requestedCurve.validMask(:) & isfinite(requestedFrequency_kHz) & isfinite(requestedCp);
+    if any(requestedValid)
+        plot(ax, requestedFrequency_kHz(requestedValid), requestedCp(requestedValid), '-', ...
+            'LineWidth', 1.8, 'LineStyle', '-.');
+        legendEntries{end+1} = 'Requested solver curve'; %#ok<AGROW>
+    end
+end
+
 if isfield(normalizedFit, 'qc') && isfield(normalizedFit.qc, 'baseline') && ...
         isfield(normalizedFit.qc.baseline, 'Cp0_mps') && isfinite(normalizedFit.qc.baseline.Cp0_mps)
     baselineFrequency = frequency_kHz(valid);
@@ -69,6 +81,9 @@ function applyPhysicalYLimits(ax, CpExp_mps, CpFit_mps, normalizedFit)
 CpAll = [CpExp_mps(:); CpFit_mps(:)];
 if nargin >= 4 && isfield(normalizedFit, 'fullCurve') && isfield(normalizedFit.fullCurve, 'Cp_mps')
     CpAll = [CpAll; normalizedFit.fullCurve.Cp_mps(:)];
+end
+if nargin >= 4 && isfield(normalizedFit, 'requestedCurve') && isfield(normalizedFit.requestedCurve, 'Cp_mps')
+    CpAll = [CpAll; normalizedFit.requestedCurve.Cp_mps(:)];
 end
 CpAll = CpAll(isfinite(CpAll));
 if isempty(CpAll)

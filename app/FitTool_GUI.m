@@ -5,10 +5,13 @@ lastFitOutput = [];
 fitParameterState = struct();
 lastSyntheticDiagnostics = strings(0, 1);
 lastDataMetadata = struct('sourceType', "editable_table");
+selectedDataRows = [];
+axisViewState = struct('xMode', "auto", 'yMode', "auto", ...
+    'xLimits_kHz', [nan nan], 'yLimits_mps', [nan nan]);
 
-fig = uifigure('Name', 'Experimental Dispersion Fitting Tool', 'Position', [120 120 1280 760]);
+fig = uifigure('Name', 'Experimental Dispersion Fitting Tool', 'Position', [120 80 1360 840]);
 root = uigridlayout(fig, [1 2]);
-root.ColumnWidth = {620, '1x'};
+root.ColumnWidth = {680, '1x'};
 root.Padding = [8 8 8 8];
 root.ColumnSpacing = 8;
 
@@ -26,11 +29,18 @@ callbacks.onLoadFitData = @(~,~)onLoadFitData();
 callbacks.onPopulateFitData = @(~,~)onPopulateFitData();
 callbacks.onResetDefaults = @(~,~)onResetDefaults();
 callbacks.onRunFit = @(~,~)onRunFit();
+callbacks.onAddFitDataRow = @(~,~)onAddFitDataRow();
+callbacks.onDeleteFitDataRows = @(~,~)onDeleteFitDataRows();
+callbacks.onFitDataCellSelected = @(~,event)onFitDataCellSelected(event);
+callbacks.onFitDataCellEdited = @(~,~)onFitDataCellEdited();
+callbacks.onApplyFitAxes = @(~,~)onApplyFitAxes();
+callbacks.onAutoFitAxes = @(~,~)onAutoFitAxes();
+callbacks.onEvaluateFittedCurve = @(~,~)onEvaluateFittedCurve();
 fitControls = createFittingTab(tabs, rlDefaultParams(), callbacks);
 
-rightGrid = uigridlayout(root, [2 1]);
+rightGrid = uigridlayout(root, [3 1]);
 rightGrid.Layout.Column = 2;
-rightGrid.RowHeight = {'1x', 150};
+rightGrid.RowHeight = {'1x', 150, 115};
 rightGrid.Padding = [0 0 0 0];
 rightGrid.RowSpacing = 8;
 
@@ -41,8 +51,17 @@ xlabel(ax, 'Frequency [kHz]');
 ylabel(ax, 'Phase speed [m/s]');
 title(ax, 'Experimental fit');
 
-resultTable = uitable(rightGrid, 'Data', table(), 'ColumnName', {});
-resultTable.Layout.Row = 2;
+parameterPanel = uipanel(rightGrid, 'Title', 'Parameter summary');
+parameterPanel.Layout.Row = 2;
+parameterPanelGrid = uigridlayout(parameterPanel, [1 1]);
+parameterPanelGrid.Padding = [0 0 0 0];
+parameterResultTable = uitable(parameterPanelGrid, 'Data', table(), 'ColumnName', {});
+
+qualityPanel = uipanel(rightGrid, 'Title', 'Fit quality summary');
+qualityPanel.Layout.Row = 3;
+qualityPanelGrid = uigridlayout(qualityPanel, [1 1]);
+qualityPanelGrid.Padding = [0 0 0 0];
+fitQualityTable = uitable(qualityPanelGrid, 'Data', table(), 'ColumnName', {});
 
 onFitModelChanged();
 
@@ -129,10 +148,13 @@ onFitModelChanged();
                 'DuplicatePolicy', "mean");
 
             fitControls.dataTable.Data = prepared.tableData;
+            selectedDataRows = [];
             lastDataMetadata = prepared.metadata;
+            lastDataMetadata.wasManuallyEdited = false;
             fitControls.dataSource.Text = sprintf('Data source: %s | %d rows | frequency %s -> Hz', ...
                 prepared.metadata.fileName, prepared.metadata.outputRows, prepared.metadata.inputFrequencyUnit);
             plotExperimentalInput(prepared.frequency_Hz, prepared.Cp_mps, prepared.validMask);
+            updateCurveRangeControls(prepared.frequency_Hz);
             fitControls.status.Text = sprintf(['Fit status: loaded experimental data from %s. ', ...
                 'Removed %d invalid rows; collapsed %d duplicate rows.'], ...
                 prepared.metadata.fileName, prepared.metadata.removedInvalidRows, ...
@@ -178,6 +200,76 @@ onFitModelChanged();
         ylabel(ax, 'Phase speed [m/s]');
         title(ax, 'Imported experimental data');
         legend(ax, 'Location', 'best');
+        guiApplyFitAxisView(ax, axisViewState);
+    end
+
+    function onAddFitDataRow()
+        try
+            fitControls.dataTable.Data = guiAppendExperimentalFitRow(fitControls.dataTable.Data);
+            selectedDataRows = size(fitControls.dataTable.Data, 1);
+            markDataManuallyEdited();
+            updateDataPreviewFromTable();
+            fitControls.status.Text = 'Fit status: added editable experimental data row.';
+        catch ME
+            fitControls.status.Text = ['Fit status: add-row error: ', ME.message];
+        end
+    end
+
+    function onDeleteFitDataRows()
+        try
+            beforeRows = size(fitControls.dataTable.Data, 1);
+            fitControls.dataTable.Data = guiDeleteExperimentalFitRows(fitControls.dataTable.Data, selectedDataRows);
+            afterRows = size(fitControls.dataTable.Data, 1);
+            selectedDataRows = [];
+            if afterRows ~= beforeRows
+                markDataManuallyEdited();
+                updateDataPreviewFromTable();
+                fitControls.status.Text = sprintf('Fit status: deleted %d selected experimental row(s).', beforeRows - afterRows);
+            end
+        catch ME
+            fitControls.status.Text = ['Fit status: delete-row error: ', ME.message];
+        end
+    end
+
+    function onFitDataCellSelected(event)
+        selectedDataRows = [];
+        if isprop(event, 'Indices') && ~isempty(event.Indices)
+            selectedDataRows = unique(event.Indices(:, 1));
+        end
+    end
+
+    function onFitDataCellEdited()
+        markDataManuallyEdited();
+        updateDataPreviewFromTable();
+    end
+
+    function markDataManuallyEdited()
+        lastDataMetadata = guiMarkExperimentalFitDataEdited(lastDataMetadata);
+        lastDataMetadata.inputRows = size(fitControls.dataTable.Data, 1);
+        lastDataMetadata.outputRows = size(fitControls.dataTable.Data, 1);
+        fitControls.dataSource.Text = "Data source: " + string(lastDataMetadata.sourceType) + " | manually edited";
+    end
+
+    function updateDataPreviewFromTable()
+        data = fitControls.dataTable.Data;
+        if istable(data)
+            data = table2array(data);
+        end
+        if ~isnumeric(data) || size(data, 2) < 2
+            return;
+        end
+        frequency_Hz = data(:, 1);
+        Cp_mps = data(:, 2);
+        if size(data, 2) >= 3
+            validMask = logical(data(:, 3));
+        else
+            validMask = true(size(frequency_Hz));
+        end
+        plotExperimentalInput(frequency_Hz, Cp_mps, validMask);
+        finiteFrequency = frequency_Hz(isfinite(frequency_Hz) & frequency_Hz > 0);
+        if ~isempty(finiteFrequency)
+            updateCurveRangeControls(finiteFrequency);
+        end
     end
 
     function onPopulateFitData()
@@ -189,12 +281,14 @@ onFitModelChanged();
             [frequency_Hz, Cp_mps, validMask] = generateSyntheticData(modelFamily, branchName, requestParts);
             syntheticElapsed = toc(tSynthetic);
             fitControls.dataTable.Data = [frequency_Hz(:), Cp_mps(:), double(validMask(:))];
+            selectedDataRows = [];
             lastDataMetadata = struct('sourceType', "synthetic", ...
                 'modelFamily', modelFamily, 'branchName', branchName, ...
-                'outputRows', numel(frequency_Hz));
+                'outputRows', numel(frequency_Hz), 'wasManuallyEdited', false);
             fitControls.dataSource.Text = sprintf('Data source: synthetic %s %s | %d rows', ...
                 modelFamily, branchName, numel(frequency_Hz));
             plotExperimentalInput(frequency_Hz, Cp_mps, validMask);
+            updateCurveRangeControls(frequency_Hz);
             lastSyntheticDiagnostics = buildSyntheticDiagnosticsStatusLines(modelFamily, branchName, requestParts, ...
                 syntheticElapsed, nnz(validMask), numel(validMask));
             fitControls.status.Text = strjoin(lastSyntheticDiagnostics, newline);
@@ -212,13 +306,98 @@ onFitModelChanged();
             lastFitOutput = guiRunFit(request);
             lastFitOutput.experimentalDataMetadata = lastDataMetadata;
             guiPlotFitResult(lastFitOutput.normalized, ax);
-            resultTable.Data = lastFitOutput.normalized.summaryTable;
-            resultTable.ColumnName = lastFitOutput.normalized.summaryTable.Properties.VariableNames;
+            guiApplyFitAxisView(ax, axisViewState);
+            updateResultTables(lastFitOutput.normalized);
             updateStatusFromFitOutput(lastFitOutput);
             assignin('base', 'FitToolLastOutput', lastFitOutput);
         catch ME
             fitControls.status.Text = ['Fit status: error: ', ME.message];
             uialert(fig, ME.message, 'Fitting error');
+        end
+    end
+
+    function onApplyFitAxes()
+        try
+            axisViewState = guiValidateFitAxisLimits( ...
+                [fitControls.axisXMinKHz.Value, fitControls.axisXMaxKHz.Value], ...
+                [fitControls.axisYMinMps.Value, fitControls.axisYMaxMps.Value]);
+            guiApplyFitAxisView(ax, axisViewState);
+            fitControls.status.Text = 'Fit status: manual axis limits applied.';
+        catch ME
+            fitControls.status.Text = ['Fit status: axis limit error: ', ME.message];
+            uialert(fig, ME.message, 'Axis limit error');
+        end
+    end
+
+    function onAutoFitAxes()
+        axisViewState = struct('xMode', "auto", 'yMode', "auto", ...
+            'xLimits_kHz', [nan nan], 'yLimits_mps', [nan nan]);
+        fitControls.axisXMinKHz.Value = 0;
+        fitControls.axisXMaxKHz.Value = 0;
+        fitControls.axisYMinMps.Value = 0;
+        fitControls.axisYMaxMps.Value = 0;
+        guiApplyFitAxisView(ax, axisViewState);
+        fitControls.status.Text = 'Fit status: automatic axes restored.';
+    end
+
+    function onEvaluateFittedCurve()
+        try
+            if isempty(lastFitOutput) || ~isstruct(lastFitOutput)
+                error('Run a fit before evaluating the fitted curve.');
+            end
+            [frequency_Hz, nPoints] = requestedCurveFrequencyVector();
+            requestedCurve = guiEvaluateRequestedFitCurve(lastFitOutput, frequency_Hz);
+            requestedCurve.requestedNumPoints = nPoints;
+            lastFitOutput.requestedCurve = requestedCurve;
+            lastFitOutput.normalized.requestedCurve = requestedCurve;
+            guiPlotFitResult(lastFitOutput.normalized, ax);
+            guiApplyFitAxisView(ax, axisViewState);
+            updateResultTables(lastFitOutput.normalized);
+            updateStatusFromRequestedCurve(requestedCurve);
+            assignin('base', 'FitToolLastOutput', lastFitOutput);
+        catch ME
+            fitControls.status.Text = ['Fit status: requested-curve error: ', ME.message];
+            uialert(fig, ME.message, 'Requested curve error');
+        end
+    end
+
+    function [frequency_Hz, nPoints] = requestedCurveFrequencyVector()
+        fmin_kHz = fitControls.curveMinKHz.Value;
+        fmax_kHz = fitControls.curveMaxKHz.Value;
+        nPoints = round(fitControls.curvePoints.Value);
+        if ~isfinite(fmin_kHz) || ~isfinite(fmax_kHz) || fmin_kHz <= 0 || fmax_kHz <= fmin_kHz
+            error('Curve frequency min/max must be finite, positive, and increasing.');
+        end
+        if ~isfinite(nPoints) || nPoints < 2
+            error('Curve point count must be at least 2.');
+        end
+        frequency_Hz = linspace(fmin_kHz * 1e3, fmax_kHz * 1e3, nPoints).';
+    end
+
+    function updateCurveRangeControls(frequency_Hz)
+        frequency_Hz = frequency_Hz(:);
+        frequency_Hz = frequency_Hz(isfinite(frequency_Hz) & frequency_Hz > 0);
+        if isempty(frequency_Hz)
+            return;
+        end
+        fitControls.curveMinKHz.Value = min(frequency_Hz) / 1e3;
+        fitControls.curveMaxKHz.Value = max(frequency_Hz) / 1e3;
+    end
+
+    function updateResultTables(normalized)
+        if isfield(normalized, 'parameterSummaryTable')
+            parameterResultTable.Data = normalized.parameterSummaryTable;
+            parameterResultTable.ColumnName = normalized.parameterSummaryTable.Properties.VariableNames;
+        else
+            parameterResultTable.Data = normalized.summaryTable;
+            parameterResultTable.ColumnName = normalized.summaryTable.Properties.VariableNames;
+        end
+        if isfield(normalized, 'fitQualitySummaryTable')
+            fitQualityTable.Data = normalized.fitQualitySummaryTable;
+            fitQualityTable.ColumnName = normalized.fitQualitySummaryTable.Properties.VariableNames;
+        else
+            fitQualityTable.Data = table();
+            fitQualityTable.ColumnName = {};
         end
     end
 
@@ -399,6 +578,32 @@ onFitModelChanged();
             'ElapsedSeconds', getFitElapsedSeconds(fitOutput), ...
             'ExtraLines', [fitLines(:); dataLines(:)]);
         fitControls.status.Text = strjoin([header; elapsedLines; profileLines(:)], newline);
+    end
+
+    function updateStatusFromRequestedCurve(requestedCurve)
+        validCount = nnz(requestedCurve.validMask(:));
+        totalCount = numel(requestedCurve.validMask);
+        extra = [
+            "requested curve elapsed: " + formatSeconds(requestedCurve.elapsedSeconds)
+            "requested curve points: " + string(totalCount)
+            "requested curve valid points: " + string(validCount)
+            "requested curve note: " + string(requestedCurve.note)
+            ];
+        profileMetadata = requestedCurve.executionProfile;
+        if isempty(profileMetadata) || ~isstruct(profileMetadata)
+            profileMetadata = struct();
+        end
+        lines = ["Fit status: requested solver curve evaluated with fitted parameters.";
+            guiFormatExecutionProfileDiagnostics(profileMetadata, ...
+                'Surface', "FitTool requested curve", ...
+                'Model', string(requestedCurve.modelFamily), ...
+                'ControlProfile', string(lastFitOutput.request.controls.executionProfile), ...
+                'VisibleBranch', string(requestedCurve.branchName), ...
+                'ValidCount', validCount, ...
+                'TotalCount', totalCount, ...
+                'ElapsedSeconds', requestedCurve.elapsedSeconds, ...
+                'ExtraLines', extra)];
+        fitControls.status.Text = strjoin(lines, newline);
     end
 
     function extra = dataSourceExtraLines()
