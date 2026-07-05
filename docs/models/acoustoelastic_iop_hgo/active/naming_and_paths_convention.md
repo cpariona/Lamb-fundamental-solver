@@ -49,6 +49,11 @@ Sweeps:
 ```matlab
 sweep_iop
 sweep_mu
+sweep_thickness
+sweep_k1
+sweep_k2
+sweep_radius
+sweep_mu_iop
 ```
 
 Maintained diagnostics:
@@ -92,6 +97,11 @@ Examples:
 ```text
 Results/ae_iop_hgo/iop_sweep
 Results/ae_iop_hgo/mu_sweep
+Results/ae_iop_hgo/thickness_sweep
+Results/ae_iop_hgo/k1_sweep
+Results/ae_iop_hgo/k2_sweep
+Results/ae_iop_hgo/radius_sweep
+Results/ae_iop_hgo/mu_iop_sweep
 Results/ae_iop_hgo/idA0_score_grid
 Results/ae_iop_hgo/idA0_grid
 Results/ae_iop_hgo/idA0_plausibility
@@ -162,6 +172,11 @@ Prefer:
 run_atlas_branch
 sweep_iop
 sweep_mu
+sweep_thickness
+sweep_k1
+sweep_k2
+sweep_radius
+sweep_mu_iop
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
 diagnose_raw_branch_corner

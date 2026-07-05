@@ -2,6 +2,39 @@
 
 This document summarizes the maintained one-parameter sweep examples.
 
+## Maintained acoustoelastic IOP/HGO examples
+
+Maintained AE sweep entrypoints live under:
+
+```text
+examples/acoustoelastic_iop_hgo/sweeps/
+```
+
+Current one-parameter scripts and values:
+
+```matlab
+sweep_iop        % [5, 10, 15, 20, 25] mmHg
+sweep_mu         % [25, 50, 75, 100] kPa
+sweep_thickness  % [400, 475, 550, 625, 700] um
+sweep_k1         % [10, 25, 50, 75, 100] kPa
+sweep_k2         % [50, 100, 200, 300, 400]
+sweep_radius     % [7.0, 7.4, 7.8, 8.2, 8.6] mm
+```
+
+The maintained two-parameter case study is `sweep_mu_iop`.
+
+One-parameter scripts use the existing AE structure:
+`aeDefaultSweepParams` -> `aeDefaultSweepOptions` -> `aeRunSweep` ->
+`aeSummarizeSweep` -> `aeWriteSweepOutputs` -> `aePlotSweepCp` ->
+`aeSaveExampleFigure`.
+
+Outputs follow:
+
+```text
+Results/ae_iop_hgo/<task>/
+examples/acoustoelastic_iop_hgo/sweeps/figures/<task>/
+```
+
 ## Maintained mRLFE examples
 
 The maintained mRLFE examples live under:
@@ -161,6 +194,13 @@ clear functions
 rehash toolboxcache
 startup
 
+sweep_iop
+sweep_mu
+sweep_thickness
+sweep_k1
+sweep_k2
+sweep_radius
+sweep_mu_iop
 sweep_mu_A0Like_viscoelastic
 sweep_mu_S0Like_viscoelastic
 sweep_etaS_A0Like_viscoelastic
