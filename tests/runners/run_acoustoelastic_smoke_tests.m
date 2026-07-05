@@ -69,7 +69,11 @@ assertFunctionsOnPath({ ...
     'run_atlas_branch', ...
     'sweep_iop', ...
     'sweep_mu', ...
-    'sweep_mu_iop'}, ...
+    'sweep_mu_iop', ...
+    'sweep_thickness', ...
+    'sweep_k1', ...
+    'sweep_k2', ...
+    'sweep_radius'}, ...
     'Acoustoelastic maintained public workflow');
 
 fprintf('\nChecking maintained acoustoelastic diagnostic evidence entrypoints...\n');
@@ -94,31 +98,35 @@ assertFunctionsOnPath({ ...
     'test_acoustoelastic_iop_hgo_short_entrypoints', ...
     'test_acoustoelastic_iop_hgo_branch_persistence_refinement', ...
     'test_ae_analyze_truncation_recovery', ...
-    'test_ae_fit_synthetic_atlasA0'}, ...
+    'test_ae_fit_synthetic_atlasA0', ...
+    'test_ae_physical_sweep_examples_contract'}, ...
     'Acoustoelastic maintained test');
 
-fprintf('\n[AE 1/8] Acoustoelastic atlas branch policy validation test\n');
+fprintf('\n[AE 1/9] Acoustoelastic atlas branch policy validation test\n');
 test_acoustoelastic_iop_hgo_branch_policy_validation;
 
-fprintf('\n[AE 2/8] Acoustoelastic fallback invalidation policy test\n');
+fprintf('\n[AE 2/9] Acoustoelastic fallback invalidation policy test\n');
 test_acoustoelastic_iop_hgo_fallback_invalidation;
 
-fprintf('\n[AE 3/8] Acoustoelastic internal tracking grid test\n');
+fprintf('\n[AE 3/9] Acoustoelastic internal tracking grid test\n');
 test_acoustoelastic_iop_hgo_internal_tracking_grid;
 
-fprintf('\n[AE 4/8] Acoustoelastic truncation recovery helper unit test\n');
+fprintf('\n[AE 4/9] Acoustoelastic truncation recovery helper unit test\n');
 test_ae_analyze_truncation_recovery;
 
-fprintf('\n[AE 5/8] Acoustoelastic branch-persistence refinement unit test\n');
+fprintf('\n[AE 5/9] Acoustoelastic branch-persistence refinement unit test\n');
 test_acoustoelastic_iop_hgo_branch_persistence_refinement;
 
-fprintf('\n[AE 6/8] Acoustoelastic IOP/HGO constitutive identity test\n');
+fprintf('\n[AE 6/9] Acoustoelastic IOP/HGO constitutive identity test\n');
 test_acoustoelastic_iop_hgo_constitutive_identity;
 
-fprintf('\n[AE 7/8] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
+fprintf('\n[AE 7/9] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
 test_acoustoelastic_iop_hgo_atlasA0_smoke;
 
-fprintf('\n[AE 8/8] Acoustoelastic IOP/HGO atlasA0 fitting test\n');
+fprintf('\n[AE 8/9] Acoustoelastic physical sweep example contract test\n');
+test_ae_physical_sweep_examples_contract;
+
+fprintf('\n[AE 9/9] Acoustoelastic IOP/HGO atlasA0 fitting test\n');
 test_ae_fit_synthetic_atlasA0;
 
 fprintf('\nAcoustoelastic IOP/HGO smoke tests passed.\n');
