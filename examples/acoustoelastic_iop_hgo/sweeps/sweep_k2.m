@@ -19,7 +19,7 @@ k2_values = [50, 100, 200, 300, 400];
 sweepConfig = struct();
 sweepConfig.Name = "k2";
 sweepConfig.Label = "Fiber nonlinearity k2";
-sweepConfig.Unit = "-";
+sweepConfig.Unit = "";
 sweepConfig.ValueScale = 1;
 sweepConfig.ValueFormatter = "%.0f";
 
