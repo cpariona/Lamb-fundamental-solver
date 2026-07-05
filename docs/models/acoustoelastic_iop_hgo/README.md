@@ -69,6 +69,10 @@ Sweeps:
 ```matlab
 sweep_iop
 sweep_mu
+sweep_thickness
+sweep_k1
+sweep_k2
+sweep_radius
 sweep_mu_iop
 ```
 
