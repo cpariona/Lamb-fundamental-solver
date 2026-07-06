@@ -82,7 +82,7 @@ etaS = [0, 0.1, 0.2, 0.3, 0.4, 0.5] Pa*s
 2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
 ```
 
-mRLFE plots use the shared sweep renderer: the Cp(f) axes stay on the left, and fixed reference parameters plus sweep values are displayed in a separate right-side information panel. Figures use frequency in kHz. The frequency and Cp axes start at zero.
+mRLFE plots use the shared sweep renderer with one standard MATLAB axes. Fixed reference parameters are shown compactly in the subtitle, and the moving sweep values use a native MATLAB legend in the lower-right corner. Figures use frequency in kHz, and both axes start at zero.
 
 mRLFE outputs follow the AE example pattern:
 
@@ -158,7 +158,7 @@ Current Rayleigh-Lamb sweep values:
 2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
 ```
 
-Rayleigh-Lamb plots use the shared sweep renderer with a single-line title, frequency in kHz, axes starting at zero, and the same right-side information panel used by AE and mRLFE. Outputs follow:
+Rayleigh-Lamb plots use the shared sweep renderer with a single-line title, a compact fixed-parameter subtitle, a native lower-right legend, frequency in kHz, and axes starting at zero. Outputs follow:
 
 ```text
 Results/rayleigh_lamb/thickness_sweep/
@@ -179,7 +179,7 @@ summarizeParametricSweepBranch
 
 `runParametricSweep` changes one scalar solver parameter. It supports optional `displayValues`, used by the mRLFE and Rayleigh-Lamb examples to display `2h` or `mu` while preserving current internal solver fields.
 
-`plotParametricSweepCp` adapts Rayleigh-Lamb and mRLFE sweep results into neutral plot data. `plotSweepCpFigure` then renders `Cp(f)` with a main data axes and a right-side information panel. The shared renderer preserves the Alternative B boundary: model-specific branch extraction remains in `buildParametricSweepPlotData` or `aeBuildSweepPlotData`, not in the renderer.
+`plotParametricSweepCp` adapts Rayleigh-Lamb and mRLFE sweep results into neutral plot data. `plotSweepCpFigure` then renders `Cp(f)` with one standard MATLAB axes, a compact fixed-parameter subtitle, and a native lower-right legend. The shared renderer preserves the Alternative B boundary: model-specific branch extraction remains in `buildParametricSweepPlotData` or `aeBuildSweepPlotData`, not in the renderer.
 
 `summarizeParametricSweepBranch` reports branch validity, frequency range, Cp range, and elapsed time for each sweep case.
 

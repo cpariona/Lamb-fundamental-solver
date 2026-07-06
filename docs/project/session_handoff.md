@@ -16,7 +16,7 @@ pull-request review. Do not merge into `main` from this branch.
 - Preserved Alternative B sweep plotting architecture:
   - AE: `aeRunSweep` output -> `aeBuildSweepPlotData` -> `plotSweepCpFigure`.
   - mRLFE/Rayleigh-Lamb: `runParametricSweep` output -> `buildParametricSweepPlotData` -> `plotSweepCpFigure`.
-- Updated `plotSweepCpFigure` to use a main left Cp(f) axes and a separate right-side information panel for fixed parameters and sweep values.
+- Updated `plotSweepCpFigure` to use one standard MATLAB axes, a compact fixed-parameter subtitle, and a native lower-right legend for sweep values.
 - Kept model-specific result extraction out of the shared renderer.
 - Renamed maintained sweep entrypoints directly:
   - AE IOP/HGO: `ae_sweep_iop_A0Like`, `ae_sweep_mu_A0Like`, `ae_sweep_thickness_A0Like`, `ae_sweep_k1_A0Like`, `ae_sweep_k2_A0Like`, `ae_sweep_radius_A0Like`, `ae_sweep_mu_iop_A0Like`.
@@ -78,20 +78,22 @@ rl_sweep_thickness_A0
 rl_sweep_thickness_S0
 ```
 
-Programmatic saved-figure validation confirmed that representative `.fig` files
-have one main data axes, one right-side `SweepInfoPanel`, fixed-parameter and
-sweep-value headings, and matching `.png` files.
+The earlier external-panel layout was fully validated but was replaced after
+manual review. The current native subtitle/legend layout still requires final
+local visual validation and a rerun of the focused and complete smoke suites.
 
 ## Open issues
 
-- No known task-blocking issues remain after validation.
+- Final validation is pending for the native subtitle/legend layout.
+- The previously identified solver-route consistency audit remains a separate future task and is not part of this branch.
 - Generated Results and example figure artifacts from manual sweep validation are ignored artifacts and should not be committed.
 
 ## Next action
 
-Commit the validated sweep-unification changes and push
-`ae-add-physical-parameter-sweeps` to origin. Do not open or merge a pull
-request unless the user explicitly requests it.
+Run the focused renderer test, representative AE/mRLFE/RL sweeps, and
+`run_all_smoke_tests`. After visual approval, commit any local documentation
+patch, push `ae-add-physical-parameter-sweeps`, and prepare it for user-owned
+pull-request review. Do not merge into `main`.
 
 ## Do not change
 
