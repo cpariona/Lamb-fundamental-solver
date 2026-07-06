@@ -19,6 +19,8 @@ addParameter(p, 'ShowLastValidPoint', false, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'LastValidPointMarkerSize', 7, @(x)isnumeric(x) && isscalar(x) && x > 0);
 addParameter(p, 'LineWidth', 1.8, @(x)isnumeric(x) && isscalar(x) && x > 0);
 addParameter(p, 'InfoPanelLocation', "southeast", @(x)ischar(x) || isstring(x));
+addParameter(p, 'LegendLocation', "", @(x)ischar(x) || isstring(x));
+addParameter(p, 'FixedParameterLocation', "", @(x)ischar(x) || isstring(x));
 parse(p, varargin{:});
 
 validatePlotData(plotData);
