@@ -8,6 +8,7 @@ function fig = plotSweepCpFigure(plotData, varargin)
 p = inputParser;
 addParameter(p, 'Title', "", @(x)ischar(x) || isstring(x) || iscellstr(x));
 addParameter(p, 'FigureName', "Parameter sweep Cp", @(x)ischar(x) || isstring(x));
+addParameter(p, 'NewFigure', true, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'FrequencyScale', 1e3, @(x)isnumeric(x) && isscalar(x) && x > 0);
 addParameter(p, 'FrequencyUnit', "kHz", @(x)ischar(x) || isstring(x));
 addParameter(p, 'StartFrequencyAtZero', true, @(x)islogical(x) || isnumeric(x));
@@ -17,13 +18,19 @@ addParameter(p, 'FixedParameterLocation', "northeast", @(x)ischar(x) || isstring
 addParameter(p, 'ShowFixedParameters', true, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'ShowInvalidPoints', false, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'ShowLastValidPoint', false, @(x)islogical(x) || isnumeric(x));
+addParameter(p, 'LastValidPointMarkerSize', 7, @(x)isnumeric(x) && isscalar(x) && x > 0);
 addParameter(p, 'LineWidth', 1.8, @(x)isnumeric(x) && isscalar(x) && x > 0);
 parse(p, varargin{:});
 
 validatePlotData(plotData);
 
-fig = figure('Name', char(string(p.Results.FigureName)), 'Color', 'w');
-ax = axes(fig);
+if logical(p.Results.NewFigure)
+    fig = figure('Name', char(string(p.Results.FigureName)), 'Color', 'w');
+    ax = axes(fig);
+else
+    fig = gcf;
+    ax = gca;
+end
 hold(ax, 'on');
 grid(ax, 'on');
 
@@ -59,7 +66,8 @@ for i = 1:numel(plotData.curves)
     if logical(p.Results.ShowLastValidPoint) && any(valid)
         lastValid = find(valid, 1, 'last');
         plot(ax, frequency(lastValid), Cp(lastValid), 'o', ...
-            'MarkerSize', 7, 'LineWidth', 1.4, ...
+            'MarkerSize', p.Results.LastValidPointMarkerSize, ...
+            'LineWidth', 1.4, ...
             'Color', h.Color, 'MarkerFaceColor', h.Color, ...
             'HandleVisibility', 'off');
     end
