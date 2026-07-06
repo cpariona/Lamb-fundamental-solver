@@ -1,8 +1,5 @@
 function fig = aePlotSweepCp(sweepResult, varargin)
 %AEPLOTSWEEPCP Plot AE IOP/HGO sweep curves with the shared renderer.
-%
-% The public AE helper is retained as a compatibility wrapper. It adapts
-% aeRunSweep output to the neutral plotSweepCpFigure contract.
 
 p = inputParser;
 addParameter(p, 'Title', "", @(x)ischar(x) || isstring(x) || iscellstr(x));
@@ -11,10 +8,9 @@ addParameter(p, 'FrequencyScale', 1e3, @(x)isnumeric(x) && isscalar(x) && x > 0)
 addParameter(p, 'FrequencyUnit', "kHz", @(x)ischar(x) || isstring(x));
 addParameter(p, 'StartFrequencyAtZero', true, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'StartCpAtZero', true, @(x)islogical(x) || isnumeric(x));
-addParameter(p, 'LegendLocation', "northwest", @(x)ischar(x) || isstring(x));
-addParameter(p, 'FixedParameterLocation', "northeast", @(x)ischar(x) || isstring(x));
 addParameter(p, 'ShowFixedParameters', true, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'LineWidth', 1.8, @(x)isnumeric(x) && isscalar(x) && x > 0);
+addParameter(p, 'LegendLocation', "southeast", @(x)ischar(x) || isstring(x));
 parse(p, varargin{:});
 
 plotData = aeBuildSweepPlotData(sweepResult);
@@ -25,9 +21,8 @@ fig = plotSweepCpFigure(plotData, ...
     'FrequencyUnit', p.Results.FrequencyUnit, ...
     'StartFrequencyAtZero', p.Results.StartFrequencyAtZero, ...
     'StartCpAtZero', p.Results.StartCpAtZero, ...
-    'LegendLocation', p.Results.LegendLocation, ...
-    'FixedParameterLocation', p.Results.FixedParameterLocation, ...
     'ShowFixedParameters', p.Results.ShowFixedParameters, ...
     'ShowInvalidPoints', p.Results.ShowInvalidPoints, ...
-    'LineWidth', p.Results.LineWidth);
+    'LineWidth', p.Results.LineWidth, ...
+    'LegendLocation', p.Results.LegendLocation);
 end
