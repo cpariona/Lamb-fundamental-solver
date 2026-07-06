@@ -11,9 +11,11 @@ unification work. The maintained sweep plotting architecture is Alternative B:
 model-specific adapters produce neutral plot data, and `plotSweepCpFigure`
 renders the shared figure layout.
 
-The active sweep plotting layout uses a main Cp(f) data axes on the left and a
-separate right-side information panel for fixed parameters and sweep values. The
-fixed-parameter block excludes the swept parameter.
+The active one-parameter sweep layout uses one standard MATLAB data axes. Fixed
+parameters are shown compactly in the subtitle, and the moving sweep values use
+a native MATLAB legend in the lower-right corner. The fixed-parameter subtitle
+excludes the swept parameter, and the native legend remains editable in saved
+`.fig` files.
 
 Maintained public sweep entrypoints use the canonical
 `<model>_sweep_<parameter>_<branch>` convention across AE IOP/HGO, mRLFE, and
@@ -29,7 +31,7 @@ Rayleigh-Lamb. Old sweep entrypoints were removed directly without wrappers.
 - Explicit requested fitted-curve solver evaluation.
 - Separated parameter and fit-quality summaries.
 - Persistent project context, session handoff, reusable task templates, and initial ADRs.
-- Cross-model sweep figure layout unification with external information panel.
+- Cross-model sweep figure unification with compact subtitles and native legends.
 - Canonical maintained sweep entrypoint names across AE IOP/HGO, mRLFE, and Rayleigh-Lamb.
 
 ## Active architectural contracts
@@ -53,9 +55,9 @@ Rayleigh-Lamb. Old sweep entrypoints were removed directly without wrappers.
 
 This list is provisional:
 
-1. Finish validation, commit, and push `ae-add-physical-parameter-sweeps`.
+1. Finish visual validation and close `ae-add-physical-parameter-sweeps`.
 2. Prepare the branch for user-owned pull-request review.
-3. Keep solver-physics refactors separate from sweep plotting and naming work.
+3. Keep solver-route and solver-physics audits separate from sweep plotting and naming work.
 
 ## Primary references
 
