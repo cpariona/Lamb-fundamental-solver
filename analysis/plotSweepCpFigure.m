@@ -18,13 +18,86 @@ addParameter(p, 'ShowInvalidPoints', false, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'ShowLastValidPoint', false, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'LastValidPointMarkerSize', 7, @(x)isnumeric(x) && isscalar(x) && x > 0);
 addParameter(p, 'LineWidth', 1.8, @(x)isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'InfoPanelLocation', "southeast", @(x)ischar(x) || isstring(x));
-addParameter(p, 'LegendLocation', "", @(x)ischar(x) || isstring(x));
-addParameter(p, 'FixedParameterLocation', "", @(x)ischar(x) || isstring(x));
+addParameter(p, 'LegendLocation', "southeast", @(x)ischar(x) || isstring(x));
 parse(p, varargin{:});
 
 validatePlotData(plotData);
-fig = renderSweepCpInsetFigure(plotData, p.Results);
+
+if logical(p.Results.NewFigure)
+    fig = figure('Name', char(string(p.Results.FigureName)), 'Color', 'w');
+else
+    fig = gcf;
+    clf(fig);
+    fig.Color = 'w';
+end
+
+ax = axes(fig);
+hold(ax, 'on');
+grid(ax, 'on');
+
+legendHandles = gobjects(0);
+legendLabels = strings(0);
+for i = 1:numel(plotData.curves)
+    curve = plotData.curves(i);
+    frequency = curve.frequency_Hz(:) ./ p.Results.FrequencyScale;
+    Cp = curve.Cp_mps(:);
+    valid = logical(curve.valid(:)) & isfinite(frequency) & isfinite(Cp);
+
+    x = frequency;
+    y = Cp;
+    x(~valid) = nan;
+    y(~valid) = nan;
+
+    h = plot(ax, x, y, '-', 'LineWidth', p.Results.LineWidth);
+    if any(valid)
+        legendHandles(end+1) = h; %#ok<AGROW>
+        legendLabels(end+1) = string(curve.legendLabel); %#ok<AGROW>
+    else
+        h.HandleVisibility = 'off';
+    end
+
+    if logical(p.Results.ShowInvalidPoints)
+        invalid = ~valid & isfinite(frequency) & isfinite(Cp);
+        if any(invalid)
+            plot(ax, frequency(invalid), Cp(invalid), '.', ...
+                'Color', h.Color, 'HandleVisibility', 'off');
+        end
+    end
+
+    if logical(p.Results.ShowLastValidPoint) && any(valid)
+        lastValid = find(valid, 1, 'last');
+        plot(ax, frequency(lastValid), Cp(lastValid), 'o', ...
+            'MarkerSize', p.Results.LastValidPointMarkerSize, ...
+            'LineWidth', 1.4, 'Color', h.Color, ...
+            'MarkerFaceColor', h.Color, 'HandleVisibility', 'off');
+    end
+end
+
+xlabel(ax, "Frequency [" + string(p.Results.FrequencyUnit) + "]");
+ylabel(ax, 'Phase velocity Cp [m/s]');
+applyAxisLimits(ax, logical(p.Results.StartFrequencyAtZero), logical(p.Results.StartCpAtZero));
+
+requestedTitle = string(p.Results.Title);
+if any(strlength(requestedTitle(:)) > 0)
+    title(ax, makeSingleLine(requestedTitle), 'Interpreter', 'none');
+else
+    title(ax, makeSingleLine(string(plotData.titleText)), 'Interpreter', 'none');
+end
+
+if logical(p.Results.ShowFixedParameters) && ...
+        isfield(plotData, 'fixedParameterLines') && ...
+        ~isempty(plotData.fixedParameterLines)
+    fixedText = "Fixed: " + strjoin(string(plotData.fixedParameterLines(:)).', ", ");
+    subtitle(ax, fixedText, 'Interpreter', 'none', 'FontWeight', 'normal');
+end
+
+if ~isempty(legendHandles)
+    legend(ax, legendHandles, cellstr(legendLabels), ...
+        'Location', char(string(p.Results.LegendLocation)), ...
+        'Interpreter', 'none');
+end
+
+hold(ax, 'off');
 end
 
 function validatePlotData(plotData)
@@ -46,4 +119,20 @@ for i = 1:numel(plotData.curves)
             'Curve %d has inconsistent frequency, Cp, and validity lengths.', i);
     end
 end
+end
+
+function applyAxisLimits(ax, startFrequencyAtZero, startCpAtZero)
+setSweepPlotLimits(ax, 'CpAxis', 'y');
+if startFrequencyAtZero
+    xl = xlim(ax);
+    xlim(ax, [0 max(xl(2), eps)]);
+end
+if startCpAtZero
+    yl = ylim(ax);
+    ylim(ax, [0 max(yl(2), eps)]);
+end
+end
+
+function value = makeSingleLine(value)
+value = strjoin(strtrim(string(value(:))).', " ");
 end
