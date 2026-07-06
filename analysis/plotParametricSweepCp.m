@@ -2,8 +2,8 @@ function fig = plotParametricSweepCp(sweepResults, modelName, branchName, vararg
 %PLOTPARAMETRICSWEEPCP Plot RL/mRLFE sweep curves with the shared renderer.
 %
 % Supported maintained model names include RayleighLamb, mRLFERealK, and
-% mRLFEViscoRealK. Existing options remain supported. The function adapts
-% runParametricSweep output to the neutral plotSweepCpFigure contract.
+% mRLFEViscoRealK. The function adapts runParametricSweep output to the
+% neutral plotSweepCpFigure contract.
 
 p = inputParser;
 addParameter(p, 'Title', "", @(x)ischar(x) || isstring(x) || iscellstr(x));
@@ -16,7 +16,7 @@ addParameter(p, 'StartFrequencyAtZero', false, @(x)islogical(x) || isnumeric(x))
 addParameter(p, 'StartCpAtZero', true, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'ShowFixedParameters', true, @(x)islogical(x) || isnumeric(x));
 addParameter(p, 'LineWidth', 1.8, @(x)isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'InfoPanelLocation', "southeast", @(x)ischar(x) || isstring(x));
+addParameter(p, 'LegendLocation', "southeast", @(x)ischar(x) || isstring(x));
 parse(p, varargin{:});
 
 plotData = buildParametricSweepPlotData(sweepResults, modelName, branchName);
@@ -32,5 +32,5 @@ fig = plotSweepCpFigure(plotData, ...
     'StartCpAtZero', p.Results.StartCpAtZero, ...
     'ShowFixedParameters', p.Results.ShowFixedParameters, ...
     'LineWidth', p.Results.LineWidth, ...
-    'InfoPanelLocation', p.Results.InfoPanelLocation);
+    'LegendLocation', p.Results.LegendLocation);
 end
