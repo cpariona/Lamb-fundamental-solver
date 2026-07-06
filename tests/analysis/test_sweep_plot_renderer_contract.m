@@ -23,8 +23,10 @@ assert(numel(findobj(ax, 'Type', 'line')) == 2, ...
     'Shared renderer should create one primary line per curve.');
 assert(hasFixedParameterBlock(ax), ...
     'Shared renderer did not create the fixed-parameter block.');
-assert(xlim(ax(1))(1) == 0, 'Frequency axis should start at zero by default.');
-assert(ylim(ax(1))(1) == 0, 'Cp axis should start at zero by default.');
+xl = xlim(ax(1));
+yl = ylim(ax(1));
+assert(xl(1) == 0, 'Frequency axis should start at zero by default.');
+assert(yl(1) == 0, 'Cp axis should start at zero by default.');
 close(fig);
 
 %% Rayleigh-Lamb adapter and wrapper
