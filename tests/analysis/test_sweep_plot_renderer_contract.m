@@ -10,7 +10,7 @@ frequency = [1000; 2000; 3000];
 %% Neutral renderer
 plotData = struct();
 plotData.titleText = "Synthetic sweep";
-plotData.fixedParameterLines = ["mu = 50 kPa"; "Thickness = 0.5 mm"];
+plotData.fixedParameterLines = ["mu = 50 kPa"; "2h = 0.5 mm"];
 plotData.curves = [ ...
     makeCurve(frequency, [4; 5; 6], [true; true; true], "p = 1"); ...
     makeCurve(frequency, [5; 6; 7], [true; false; true], "p = 2")];
@@ -19,20 +19,17 @@ fig = plotSweepCpFigure(plotData);
 assert(isgraphics(fig, 'figure'), 'Shared renderer did not return a figure.');
 ax = findDataAxes(fig);
 infoAx = findInfoPanel(fig);
-assert(~isempty(ax), 'Shared renderer did not create the main data axes.');
-assert(~isempty(infoAx), 'Shared renderer did not create a separate information panel.');
 assert(numel(findobj(ax, 'Type', 'line')) == 2, ...
     'Shared renderer should create one primary line per curve.');
 assert(~hasPanelText(ax, "Fixed parameters"), ...
-    'Fixed-parameter text should not be inside the main data axes.');
+    'Fixed-parameter text should not be attached to the data axes.');
 assert(hasPanelText(infoAx, "Fixed parameters"), ...
-    'Information panel is missing the fixed-parameter heading.');
+    'Inset panel is missing the fixed-parameter heading.');
 assert(hasPanelText(infoAx, "mu = 50 kPa"), ...
-    'Information panel is missing fixed-parameter text.');
+    'Inset panel is missing fixed-parameter text.');
 assert(hasPanelText(infoAx, "p = 1"), ...
-    'Information panel is missing sweep labels.');
-assert(infoAx.Position(1) > ax.Position(1) + ax.Position(3), ...
-    'Information panel should be to the right of the main data axes.');
+    'Inset panel is missing sweep labels.');
+assertPanelInsideLowerRight(ax, infoAx);
 xl = xlim(ax);
 yl = ylim(ax);
 assert(xl(1) == 0, 'Frequency axis should start at zero by default.');
@@ -54,17 +51,17 @@ rlData = buildParametricSweepPlotData(rlSweep, "RayleighLamb", "A0");
 assert(numel(rlData.curves) == 2, 'RL adapter returned the wrong curve count.');
 assert(any(contains(rlData.fixedParameterLines, "mu = 75.0 kPa")), ...
     'RL adapter is missing fixed mu metadata.');
-assert(~any(contains(rlData.fixedParameterLines, "Full thickness")), ...
+assert(~any(contains(rlData.fixedParameterLines, "2h =")), ...
     'RL adapter should not list the swept thickness as fixed.');
+assert(string(rlData.curves(1).legendLabel) == "2h = 0.4 mm", ...
+    'RL adapter should use the compact 2h sweep label.');
 fig = plotParametricSweepCp(rlSweep, "RayleighLamb", "A0", ...
     'FrequencyScale', 1e3, 'FrequencyUnit', "kHz", ...
     'StartFrequencyAtZero', true);
-assert(hasPanelText(findInfoPanel(fig), "Full thickness 2h = 0.4 mm"), ...
-    'RL wrapper should put sweep labels in the external panel.');
+assert(hasPanelText(findInfoPanel(fig), "2h = 0.4 mm"), ...
+    'RL wrapper should put compact sweep labels in the inset panel.');
 assert(hasPanelText(findInfoPanel(fig), "mu = 75.0 kPa"), ...
-    'RL wrapper did not use the shared external fixed-parameter panel.');
-assert(~hasPanelText(findDataAxes(fig), "mu = 75.0 kPa"), ...
-    'RL wrapper should not place fixed parameters in the data axes.');
+    'RL wrapper did not use the shared inset fixed-parameter panel.');
 close(fig);
 
 %% mRLFE adapter excludes moving parameters
@@ -85,6 +82,8 @@ assert(any(contains(mrlfeData.fixedParameterLines, "mu = 75.0 kPa")), ...
     'mRLFE adapter is missing fixed mu metadata.');
 assert(~any(contains(mrlfeData.fixedParameterLines, "etaS =")), ...
     'mRLFE adapter should not list the swept etaS as fixed.');
+assert(string(mrlfeData.curves(2).legendLabel) == "etaS = 0.1 Pa*s", ...
+    'mRLFE adapter should use a compact etaS sweep label.');
 
 %% AE adapter and wrapper
 aeSweep = struct();
@@ -100,13 +99,15 @@ aeData = aeBuildSweepPlotData(aeSweep);
 assert(numel(aeData.curves) == 2, 'AE adapter returned the wrong curve count.');
 assert(any(contains(aeData.fixedParameterLines, "IOP = 15.0 mmHg")), ...
     'AE adapter is missing fixed IOP metadata.');
-assert(~any(contains(aeData.fixedParameterLines, "Thickness =")), ...
+assert(~any(contains(aeData.fixedParameterLines, "h =")), ...
     'AE adapter should not list the swept thickness as fixed.');
+assert(string(aeData.curves(1).legendLabel) == "h = 400 um", ...
+    'AE adapter should use the compact h sweep label.');
 fig = aePlotSweepCp(aeSweep);
 assert(hasPanelText(findInfoPanel(fig), "IOP = 15.0 mmHg"), ...
-    'AE wrapper did not use the shared external fixed-parameter panel.');
-assert(~hasPanelText(findDataAxes(fig), "IOP = 15.0 mmHg"), ...
-    'AE wrapper should not place fixed parameters in the data axes.');
+    'AE wrapper did not use the shared inset fixed-parameter panel.');
+assert(hasPanelText(findInfoPanel(fig), "h = 400 um"), ...
+    'AE wrapper did not use compact sweep labels.');
 close(fig);
 
 %% AE unitless k2 formatting
@@ -149,6 +150,19 @@ end
 function ax = findInfoPanel(fig)
 ax = findobj(fig, 'Type', 'axes', 'Tag', 'SweepInfoPanel');
 assert(numel(ax) == 1, 'Expected exactly one sweep information panel axes.');
+end
+
+function assertPanelInsideLowerRight(ax, infoAx)
+axPos = ax.Position;
+panelPos = infoAx.Position;
+assert(panelPos(1) >= axPos(1) + 0.50 * axPos(3), ...
+    'Information panel should be in the right half of the data axes.');
+assert(panelPos(2) < axPos(2) + 0.35 * axPos(4), ...
+    'Information panel should be in the lower portion of the data axes.');
+assert(panelPos(1) + panelPos(3) <= axPos(1) + axPos(3), ...
+    'Information panel should stay inside the data axes horizontally.');
+assert(panelPos(2) + panelPos(4) <= axPos(2) + axPos(4), ...
+    'Information panel should stay inside the data axes vertically.');
 end
 
 function tf = hasPanelText(ax, expectedText)
