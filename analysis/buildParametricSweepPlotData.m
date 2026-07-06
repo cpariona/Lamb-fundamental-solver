@@ -62,10 +62,11 @@ end
 function txt = makeLegendLabel(sweepResults, idx)
 spec = sweepResults.spec;
 value = sweepResults.displayValues(idx);
+label = compactLabel(string(sweepResults.parameter));
 if isfield(spec, 'units') && strlength(string(spec.units)) > 0
-    txt = sprintf('%s = %.4g %s', string(spec.label), value, string(spec.units));
+    txt = sprintf('%s = %.4g %s', label, value, string(spec.units));
 else
-    txt = sprintf('%s = %.4g', string(spec.label), value);
+    txt = sprintf('%s = %.4g', label, value);
 end
 end
 
@@ -90,6 +91,15 @@ switch string(branchName)
 end
 end
 
+function label = compactLabel(parameter)
+switch string(parameter)
+    case "thickness"
+        label = "2h";
+    otherwise
+        label = string(parameter);
+end
+end
+
 function lines = makeFixedParameterLines(sweepResults, modelName, sweptParameter)
 lines = strings(0, 1);
 if ~isfield(sweepResults, 'params') || isempty(sweepResults.params)
@@ -100,14 +110,14 @@ params = sweepResults.params{1};
 if modelName == "RayleighLamb"
     lines = addIfFixed(lines, sweptParameter, "mu", "mu = " + formatValue(params, 'mu', 1e3, '%.1f', 'kPa'));
     lines = addIfFixed(lines, sweptParameter, "nu", "nu = " + formatValue(params, 'nu', 1, '%.4f', ''));
-    lines = addIfFixed(lines, sweptParameter, "thickness", "Full thickness 2h = " + formatValue(params, 'thickness', 1e-3, '%.1f', 'mm'));
+    lines = addIfFixed(lines, sweptParameter, "thickness", "2h = " + formatValue(params, 'thickness', 1e-3, '%.1f', 'mm'));
     lines = addIfFixed(lines, sweptParameter, "rho", "rho = " + formatValue(params, 'rho', 1, '%.0f', 'kg/m^3'));
     return;
 end
 
 if modelName == "mRLFERealK" || modelName == "mRLFEViscoRealK"
     lines = addIfFixed(lines, sweptParameter, "mu", "mu = " + formatValue(params, 'mu', 1e3, '%.1f', 'kPa'));
-    lines = addIfFixed(lines, sweptParameter, "thickness", "Full thickness 2h = " + formatValue(params, 'thickness', 1e-3, '%.1f', 'mm'));
+    lines = addIfFixed(lines, sweptParameter, "thickness", "2h = " + formatValue(params, 'thickness', 1e-3, '%.1f', 'mm'));
     lines = addIfFixed(lines, sweptParameter, "rho", "rho = " + formatValue(params, 'rho', 1, '%.0f', 'kg/m^3'));
     if isfield(sweepResults, 'options') && ~isempty(sweepResults.options)
         options = sweepResults.options{1};
