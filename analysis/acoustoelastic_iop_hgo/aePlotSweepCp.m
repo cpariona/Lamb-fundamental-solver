@@ -1,46 +1,33 @@
 function fig = aePlotSweepCp(sweepResult, varargin)
-%AEPLOTSWEEPCP Plot Cp(f) curves from an AE IOP/HGO sweep result.
+%AEPLOTSWEEPCP Plot AE IOP/HGO sweep curves with the shared renderer.
+%
+% The public AE helper is retained as a compatibility wrapper. It adapts
+% aeRunSweep output to the neutral plotSweepCpFigure contract.
 
-p = inputParser();
-addParameter(p, 'Title', '', @(x)ischar(x) || isstring(x));
+p = inputParser;
+addParameter(p, 'Title', "", @(x)ischar(x) || isstring(x) || iscellstr(x));
 addParameter(p, 'ShowInvalidPoints', false, @(x)islogical(x) || isnumeric(x));
+addParameter(p, 'FrequencyScale', 1e3, @(x)isnumeric(x) && isscalar(x) && x > 0);
+addParameter(p, 'FrequencyUnit', "kHz", @(x)ischar(x) || isstring(x));
+addParameter(p, 'StartFrequencyAtZero', true, @(x)islogical(x) || isnumeric(x));
+addParameter(p, 'StartCpAtZero', true, @(x)islogical(x) || isnumeric(x));
+addParameter(p, 'LegendLocation', "northwest", @(x)ischar(x) || isstring(x));
+addParameter(p, 'FixedParameterLocation', "northeast", @(x)ischar(x) || isstring(x));
+addParameter(p, 'ShowFixedParameters', true, @(x)islogical(x) || isnumeric(x));
+addParameter(p, 'LineWidth', 1.8, @(x)isnumeric(x) && isscalar(x) && x > 0);
 parse(p, varargin{:});
 
-fig = figure('Name', 'AE IOP/HGO sweep Cp', 'Color', 'w');
-ax = axes(fig);
-hold(ax, 'on');
-
-for i = 1:numel(sweepResult.conditions)
-    condition = sweepResult.conditions(i);
-    result = condition.result;
-    frequency_kHz = result.frequency(:) / 1e3;
-    Cp = result.Cp(:);
-    valid = result.validCp(:) & isfinite(frequency_kHz) & isfinite(Cp);
-
-    if any(valid)
-        plot(ax, frequency_kHz(valid), Cp(valid), '-', 'LineWidth', 1.8, ...
-            'DisplayName', char(condition.sweepValueDisplay));
-    end
-
-    if p.Results.ShowInvalidPoints
-        invalid = ~valid & isfinite(frequency_kHz) & isfinite(Cp);
-        if any(invalid)
-            plot(ax, frequency_kHz(invalid), Cp(invalid), '.', 'HandleVisibility', 'off');
-        end
-    end
-end
-
-xlabel(ax, 'Frequency [kHz]');
-ylabel(ax, 'Phase velocity Cp [m/s]');
-grid(ax, 'on');
-setSweepPlotLimits(ax, 'CpAxis', 'y');
-legend(ax, 'Location', 'best');
-
-if strlength(string(p.Results.Title)) > 0
-    title(ax, string(p.Results.Title));
-else
-    title(ax, sweepResult.label + " sweep");
-end
-
-hold(ax, 'off');
+plotData = aeBuildSweepPlotData(sweepResult);
+fig = plotSweepCpFigure(plotData, ...
+    'Title', p.Results.Title, ...
+    'FigureName', "AE IOP/HGO sweep Cp", ...
+    'FrequencyScale', p.Results.FrequencyScale, ...
+    'FrequencyUnit', p.Results.FrequencyUnit, ...
+    'StartFrequencyAtZero', p.Results.StartFrequencyAtZero, ...
+    'StartCpAtZero', p.Results.StartCpAtZero, ...
+    'LegendLocation', p.Results.LegendLocation, ...
+    'FixedParameterLocation', p.Results.FixedParameterLocation, ...
+    'ShowFixedParameters', p.Results.ShowFixedParameters, ...
+    'ShowInvalidPoints', p.Results.ShowInvalidPoints, ...
+    'LineWidth', p.Results.LineWidth);
 end
