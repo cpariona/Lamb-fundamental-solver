@@ -1,7 +1,8 @@
 function fig = plotParametricSweepCp(sweepResults, modelName, branchName, varargin)
 %PLOTPARAMETRICSWEEPCP Plot RL/mRLFE sweep curves with the shared renderer.
 %
-% Existing options remain supported. The function now adapts
+% Supported maintained model names include RayleighLamb, mRLFERealK, and
+% mRLFEViscoRealK. Existing options remain supported. The function adapts
 % runParametricSweep output to the neutral plotSweepCpFigure contract.
 
 p = inputParser;
