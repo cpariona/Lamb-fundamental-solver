@@ -86,13 +86,13 @@ No basic alias file remains.
 
 | File | Classification | Output behavior | Action |
 |---|---|---|---|
-| `sweeps/sweep_iop.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/iop_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/iop_sweep`. | Keep. |
-| `sweeps/sweep_mu.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/mu_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_sweep`. | Keep. |
-| `sweeps/sweep_thickness.m` | `PUBLIC_WORKFLOW` | Sweeps thickness from 400 to 700 um and writes to `Results/ae_iop_hgo/thickness_sweep`; saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/thickness_sweep`. | Keep. |
-| `sweeps/sweep_k1.m` | `PUBLIC_WORKFLOW` | Sweeps HGO fiber stiffness `k1` from 10 to 100 kPa and writes to `Results/ae_iop_hgo/k1_sweep`; saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/k1_sweep`. | Keep. |
-| `sweeps/sweep_k2.m` | `PUBLIC_WORKFLOW` | Sweeps dimensionless HGO nonlinearity `k2` from 50 to 400 and writes to `Results/ae_iop_hgo/k2_sweep`; saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/k2_sweep`. | Keep. |
-| `sweeps/sweep_radius.m` | `PUBLIC_WORKFLOW` | Sweeps curvature radius `R` from 7.0 to 8.6 mm and writes to `Results/ae_iop_hgo/radius_sweep`; saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/radius_sweep`. | Keep. |
-| `sweeps/sweep_mu_iop.m` | `PUBLIC_WORKFLOW` | Runs a combined mu-IOP case-study grid sweep with `mu = 60:5:80 kPa` and `IOP = [12.5, 15, 17.5] mmHg`. Writes tables/workspace to `Results/ae_iop_hgo/mu_iop_sweep`; shows one Cp figure per IOP with a common Cp axis and one interactive Cp(f, IOP) surface with a mu slider. Static `.fig`/`.png` curve figures are saved under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_iop_sweep`; obsolete `mu_iop_sweep_cp_surface_5kHz` files are deleted if present; the interactive surface is displayed only and is not saved automatically. | Keep. |
+| `sweeps/ae_sweep_iop_A0Like.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/iop_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/iop_sweep`. | Keep. |
+| `sweeps/ae_sweep_mu_A0Like.m` | `PUBLIC_WORKFLOW` | Writes tables/workspace to `Results/ae_iop_hgo/mu_sweep`; shows Cp figure and saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_sweep`. | Keep. |
+| `sweeps/ae_sweep_thickness_A0Like.m` | `PUBLIC_WORKFLOW` | Sweeps thickness from 400 to 700 um and writes to `Results/ae_iop_hgo/thickness_sweep`; saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/thickness_sweep`. | Keep. |
+| `sweeps/ae_sweep_k1_A0Like.m` | `PUBLIC_WORKFLOW` | Sweeps HGO fiber stiffness `k1` from 10 to 100 kPa and writes to `Results/ae_iop_hgo/k1_sweep`; saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/k1_sweep`. | Keep. |
+| `sweeps/ae_sweep_k2_A0Like.m` | `PUBLIC_WORKFLOW` | Sweeps dimensionless HGO nonlinearity `k2` from 50 to 400 and writes to `Results/ae_iop_hgo/k2_sweep`; saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/k2_sweep`. | Keep. |
+| `sweeps/ae_sweep_radius_A0Like.m` | `PUBLIC_WORKFLOW` | Sweeps curvature radius `R` from 7.0 to 8.6 mm and writes to `Results/ae_iop_hgo/radius_sweep`; saves `.fig`/`.png` under `examples/acoustoelastic_iop_hgo/sweeps/figures/radius_sweep`. | Keep. |
+| `sweeps/ae_sweep_mu_iop_A0Like.m` | `PUBLIC_WORKFLOW` | Runs a combined mu-IOP case-study grid sweep with `mu = 60:5:80 kPa` and `IOP = [12.5, 15, 17.5] mmHg`. Writes tables/workspace to `Results/ae_iop_hgo/mu_iop_sweep`; shows one Cp figure per IOP with a common Cp axis and one interactive Cp(f, IOP) surface with a mu slider. Static `.fig`/`.png` curve figures are saved under `examples/acoustoelastic_iop_hgo/sweeps/figures/mu_iop_sweep`; obsolete `mu_iop_sweep_cp_surface_5kHz` files are deleted if present; the interactive surface is displayed only and is not saved automatically. | Keep. |
 
 Notes:
 

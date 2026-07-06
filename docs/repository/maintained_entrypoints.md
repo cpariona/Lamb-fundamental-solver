@@ -180,8 +180,8 @@ Maintained Rayleigh-Lamb examples:
 ```matlab
 run_default_A0
 run_default_A0_S0
-sweep_thickness_A0_elastic
-sweep_thickness_S0_elastic
+rl_sweep_thickness_A0
+rl_sweep_thickness_S0
 check_default_outputs
 fit_default_A0
 ```
@@ -244,13 +244,13 @@ Maintained public workflows:
 
 ```matlab
 run_atlas_branch
-sweep_iop
-sweep_mu
-sweep_thickness
-sweep_k1
-sweep_k2
-sweep_radius
-sweep_mu_iop
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
+ae_sweep_thickness_A0Like
+ae_sweep_k1_A0Like
+ae_sweep_k2_A0Like
+ae_sweep_radius_A0Like
+ae_sweep_mu_iop_A0Like
 ```
 
 Maintained AE IOP/HGO fitting example:
@@ -320,6 +320,8 @@ mrlfeMakePhysicalSeedMode
 
 `solveMRLFEViscoBranchAtlas` remains the direct viscous atlas route. `solveMRLFEAtlasUnified` is the unified real-k atlas route. FitTool fitting uses the atlas-first evaluator by default.
 
+Maintained sweep plotting and summaries may use the normalized model name `mRLFEViscoRealK` for etaS > 0 real-k cases.
+
 Current A0 policy selector:
 
 ```matlab
@@ -333,15 +335,15 @@ For A0Like FitTool fitting, the current default is:
 options.mrlfeA0Policy = "adaptivePhysicalTail";
 ```
 
-Maintained public sweep wrappers:
+Maintained public sweep entrypoints:
 
 ```matlab
-sweep_mu_A0Like_viscoelastic
-sweep_mu_S0Like_viscoelastic
-sweep_etaS_A0Like_viscoelastic
-sweep_etaS_S0Like_viscoelastic
-sweep_thickness_A0Like_viscoelastic
-sweep_thickness_S0Like_viscoelastic
+mrlfe_sweep_mu_A0Like
+mrlfe_sweep_mu_S0Like
+mrlfe_sweep_etaS_A0Like
+mrlfe_sweep_etaS_S0Like
+mrlfe_sweep_thickness_A0Like
+mrlfe_sweep_thickness_S0Like
 ```
 
 Maintained mRLFE fitting example:

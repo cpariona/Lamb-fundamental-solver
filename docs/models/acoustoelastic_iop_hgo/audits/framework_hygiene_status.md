@@ -36,9 +36,9 @@ The maintained user-facing layer uses short task-oriented names.
 
 ```matlab
 run_atlas_branch
-sweep_iop
-sweep_mu
-sweep_mu_iop
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
+ae_sweep_mu_iop_A0Like
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
 diagnose_raw_branch_corner

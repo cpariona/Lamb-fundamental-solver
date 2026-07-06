@@ -47,13 +47,13 @@ run_atlas_branch
 Sweeps:
 
 ```matlab
-sweep_iop
-sweep_mu
-sweep_thickness
-sweep_k1
-sweep_k2
-sweep_radius
-sweep_mu_iop
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
+ae_sweep_thickness_A0Like
+ae_sweep_k1_A0Like
+ae_sweep_k2_A0Like
+ae_sweep_radius_A0Like
+ae_sweep_mu_iop_A0Like
 ```
 
 Maintained diagnostics:
@@ -82,7 +82,7 @@ instead of repeating the full model name in every script filename.
 
 `diagnose_modal_atlas` now starts at low frequency by design. The separate `diagnose_modal_atlas_lowfreq` entrypoint was removed and should not be listed as a retained command.
 
-Long descriptive files can remain as implementation files for backward compatibility, but user-facing execution should use the short entrypoints.
+Long descriptive files can remain as implementation files for retained diagnostics, but user-facing execution should use the maintained entrypoints. Do not retain compatibility aliases for renamed sweep entrypoints.
 
 ### Result folder convention
 
@@ -152,17 +152,11 @@ Use:
 aeRunLegacyScript(scriptPath)
 ```
 
-for short wrappers that need to execute legacy descriptive scripts. This helper copies the legacy script to a short temporary filename, restores the caller launch folder, and runs the copy. It avoids MATLAB `namelengthmax` failures without duplicating implementation code.
+only for retained diagnostic wrappers that need to execute legacy descriptive implementation scripts. Do not use it to preserve old sweep names after a maintained sweep entrypoint is renamed.
 
 ### Migration rule
 
-Do not mass-delete existing scripts or result folders unless necessary. Instead:
-
-1. Add a short entrypoint.
-2. Keep the legacy descriptive script for backward compatibility.
-3. Write new outputs to `Results/ae_iop_hgo/<task>`.
-4. Resolve inputs from short paths first, then legacy paths.
-5. Update documentation to show the short entrypoint.
+Do not mass-delete existing scripts or result folders unless necessary. For maintained sweep entrypoint renames, rename the entrypoint directly, update active callers and documentation, and do not leave a wrapper or alias under the old name. Generated result folders do not need gratuitous renames.
 
 ### Recommended user commands
 
@@ -170,13 +164,13 @@ Prefer:
 
 ```matlab
 run_atlas_branch
-sweep_iop
-sweep_mu
-sweep_thickness
-sweep_k1
-sweep_k2
-sweep_radius
-sweep_mu_iop
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
+ae_sweep_thickness_A0Like
+ae_sweep_k1_A0Like
+ae_sweep_k2_A0Like
+ae_sweep_radius_A0Like
+ae_sweep_mu_iop_A0Like
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
 diagnose_raw_branch_corner

@@ -84,13 +84,13 @@ The maintained fitting route uses the official `atlasA0` output only. Diagnostic
 
 ```matlab
 run_atlas_branch
-sweep_iop
-sweep_mu
-sweep_thickness
-sweep_k1
-sweep_k2
-sweep_radius
-sweep_mu_iop
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
+ae_sweep_thickness_A0Like
+ae_sweep_k1_A0Like
+ae_sweep_k2_A0Like
+ae_sweep_radius_A0Like
+ae_sweep_mu_iop_A0Like
 ```
 
 ## Maintained diagnostic evidence

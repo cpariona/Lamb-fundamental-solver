@@ -3,7 +3,7 @@ launchFolder = pwd;
 scriptFile = mfilename('fullpath');
 startup
 
-%SWEEP_THICKNESS_A0LIKE_VISCOELASTIC Maintained full-thickness sweep for mRLFE A0-like.
+%MRLFE_SWEEP_THICKNESS_A0LIKE Maintained full-thickness sweep for mRLFE A0-like.
 %
 % Tables/workspace are written to:
 %   Results/mrlfe/thickness_sweep

@@ -115,8 +115,8 @@ examples/rayleigh_lamb/sweeps/
 Current sweep scripts:
 
 ```matlab
-sweep_thickness_A0_elastic
-sweep_thickness_S0_elastic
+rl_sweep_thickness_A0
+rl_sweep_thickness_S0
 ```
 
 Rayleigh-Lamb validation scripts live under:
@@ -159,7 +159,7 @@ This helper lives under:
 analysis/rayleigh_lamb/
 ```
 
-It is a workflow helper, not a replacement for the `rl*` solver API. Use it for maintained branch-specific sweep examples or for creating similar short examples.
+It is a workflow helper, not a replacement for the `rl*` solver API. Use it for maintained branch-specific sweep examples or for creating similar short examples. Rayleigh-Lamb sweep plotting follows `runParametricSweep -> buildParametricSweepPlotData -> plotSweepCpFigure`, with fixed parameters and sweep labels rendered outside the main data axes.
 
 ## Internal/helper entrypoints
 

@@ -3,7 +3,7 @@ launchFolder = pwd;
 scriptFile = mfilename('fullpath');
 startup
 
-%SWEEP_MU Maintained shear-modulus sweep for the acoustoelastic IOP/HGO model.
+%AE_SWEEP_MU_A0LIKE Maintained shear-modulus sweep for the acoustoelastic IOP/HGO A0-like branch.
 %
 % Tables/workspace are written to:
 %   Results/ae_iop_hgo/mu_sweep

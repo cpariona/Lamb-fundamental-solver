@@ -1,62 +1,105 @@
 # Session handoff
 
-Updated: 2026-07-04
+Updated: 2026-07-06
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: main
+Current branch: ae-add-physical-parameter-sweeps
 Base branch: main
-Last known good commit: 5f44ce0
+Last known good commit: branch HEAD after final validation
 
 ## Current task
 
-Close the documentation-bootstrap phase and prepare migration to a new chat.
+Close the cross-model sweep unification branch and prepare it for user-owned
+pull-request review. Do not merge into `main` from this branch.
 
 ## Completed
 
-- Created the persistent project-context and session-handoff structure.
-- Added reusable templates for new chats, Codex tasks, and session closeout.
-- Added the ADR index and initial accepted ADRs.
-- Updated the documentation index and repository structure references.
-- Opened PR #105: `Add persistent project context and session handoff`.
-- PR #105 was reviewed and merged into `main`.
-- Updated `active_context.md` and this handoff after the merge.
+- Preserved Alternative B sweep plotting architecture:
+  - AE: `aeRunSweep` output -> `aeBuildSweepPlotData` -> `plotSweepCpFigure`.
+  - mRLFE/Rayleigh-Lamb: `runParametricSweep` output -> `buildParametricSweepPlotData` -> `plotSweepCpFigure`.
+- Updated `plotSweepCpFigure` to use a main left Cp(f) axes and a separate right-side information panel for fixed parameters and sweep values.
+- Kept model-specific result extraction out of the shared renderer.
+- Renamed maintained sweep entrypoints directly:
+  - AE IOP/HGO: `ae_sweep_iop_A0Like`, `ae_sweep_mu_A0Like`, `ae_sweep_thickness_A0Like`, `ae_sweep_k1_A0Like`, `ae_sweep_k2_A0Like`, `ae_sweep_radius_A0Like`, `ae_sweep_mu_iop_A0Like`.
+  - mRLFE: `mrlfe_sweep_mu_A0Like`, `mrlfe_sweep_mu_S0Like`, `mrlfe_sweep_etaS_A0Like`, `mrlfe_sweep_etaS_S0Like`, `mrlfe_sweep_thickness_A0Like`, `mrlfe_sweep_thickness_S0Like`.
+  - Rayleigh-Lamb: `rl_sweep_thickness_A0`, `rl_sweep_thickness_S0`.
+- Removed old maintained sweep entrypoint names without compatibility wrappers.
+- Updated active docs, tests, runners, and validation commands to canonical names.
 
 ## Validation performed
 
-For the documentation-bootstrap branch:
+MATLAB validation was run locally from the repository root after:
 
-- `git diff --check`
-- documentation path and reference searches
-- path-existence checks for referenced `docs/...` files
-- human review of the operational documents and templates
-- confirmation that PR #105 was merged into `main`
+```matlab
+restoredefaultpath
+clear functions
+rehash toolboxcache
+startup
+```
 
-No MATLAB suites were run because the completed phase changed documentation only.
+Focused tests:
+
+```matlab
+startup
+startup
+startup
+test_startup_path_policy
+test_mrlfe_maintained_entrypoints_naming
+test_acoustoelastic_iop_hgo_short_entrypoints
+test_ae_physical_sweep_examples_contract
+test_sweep_plot_renderer_contract
+```
+
+Focused suites:
+
+```matlab
+run_core_smoke_tests
+run_mrlfe_smoke_tests
+run_acoustoelastic_smoke_tests
+```
+
+Complete maintained suite:
+
+```matlab
+run_all_smoke_tests
+```
+
+Result: `Complete smoke-test suite passed.`
 
 ## Manual validation
 
-The documentation structure, templates, and ADRs were reviewed before merge.
-The project is ready to migrate to a new chat using
-`docs/project/templates/new_chat_bootstrap.md`.
+Representative renamed sweeps were executed:
+
+```matlab
+ae_sweep_iop_A0Like
+ae_sweep_k2_A0Like
+mrlfe_sweep_mu_A0Like
+mrlfe_sweep_etaS_A0Like
+rl_sweep_thickness_A0
+rl_sweep_thickness_S0
+```
+
+Programmatic saved-figure validation confirmed that representative `.fig` files
+have one main data axes, one right-side `SweepInfoPanel`, fixed-parameter and
+sweep-value headings, and matching `.png` files.
 
 ## Open issues
 
-- Select the next engineering objective.
-- Create a new feature branch from updated `origin/main` after that objective is confirmed.
-- Review whether older pending or audit documents need status headers in a future documentation-cleanup branch.
+- No known task-blocking issues remain after validation.
+- Generated Results and example figure artifacts from manual sweep validation are ignored artifacts and should not be committed.
 
 ## Next action
 
-Start a new chat, recover the state from `docs/project/`, and select one focused
-engineering objective before modifying files.
+Commit the validated sweep-unification changes and push
+`ae-add-physical-parameter-sweeps` to origin. Do not open or merge a pull
+request unless the user explicitly requests it.
 
 ## Do not change
 
-Until the next objective is confirmed:
-
-- Do not modify solver code.
-- Do not modify GUI behavior.
-- Do not create a feature branch without a defined task.
-- Do not reopen completed documentation-bootstrap work.
+- Do not work on `main`.
+- Do not merge this branch.
+- Do not open a pull request unless explicitly requested.
+- Do not reintroduce old sweep wrappers or aliases.
+- Do not modify numerical solver, AE branch-selection, mRLFE branch-selection, Rayleigh-Lamb numerical behavior, fitting behavior, GUI behavior, or SweepTool behavior unless a future task explicitly requires it.
 - Do not treat archived audits as current contracts.
 
 ## Relevant files
@@ -64,19 +107,32 @@ Until the next objective is confirmed:
 - `docs/project/README.md`
 - `docs/project/active_context.md`
 - `docs/project/session_handoff.md`
-- `docs/project/templates/new_chat_bootstrap.md`
-- `docs/project/templates/codex_task.md`
-- `docs/project/templates/session_closeout.md`
-- `docs/architecture/decisions/README.md`
-- `docs/architecture/decisions/ADR-001-gui-adapter-boundary.md`
-- `docs/architecture/decisions/ADR-002-execution-profile-semantics.md`
+- `analysis/plotSweepCpFigure.m`
+- `analysis/buildParametricSweepPlotData.m`
+- `analysis/acoustoelastic_iop_hgo/aeBuildSweepPlotData.m`
+- `analysis/acoustoelastic_iop_hgo/aePlotSweepCp.m`
+- `analysis/mrlfe/mrlfeRunSweepExample.m`
+- `analysis/rayleigh_lamb/rlRunSweepExample.m`
+- `docs/workflows/sweeps/parametric_sweeps.md`
+- `docs/repository/maintained_entrypoints.md`
+- `docs/repository/naming_strategy.md`
+- `docs/models/acoustoelastic_iop_hgo/active/sweep_workflow.md`
+- `docs/models/mrlfe/current_sweeps.md`
+- `docs/models/rayleigh_lamb/overview.md`
+- `tests/analysis/test_sweep_plot_renderer_contract.m`
+- `tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_short_entrypoints.m`
+- `tests/models/acoustoelastic_iop_hgo/test_ae_physical_sweep_examples_contract.m`
+- `tests/models/mrlfe/test_mrlfe_maintained_entrypoints_naming.m`
+- `tests/runners/run_core_smoke_tests.m`
+- `tests/runners/run_mrlfe_smoke_tests.m`
+- `tests/runners/run_acoustoelastic_smoke_tests.m`
 
 ## Commands to resume
 
 ```bash
 git fetch origin
-git switch main
-git pull --ff-only origin main
+git switch ae-add-physical-parameter-sweeps
+git pull --ff-only origin ae-add-physical-parameter-sweeps
 git status -sb
-git log --oneline --decorate -5
+git log --oneline --decorate -10
 ```

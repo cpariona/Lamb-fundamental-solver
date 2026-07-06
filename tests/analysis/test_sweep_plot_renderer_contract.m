@@ -17,14 +17,24 @@ plotData.curves = [ ...
 
 fig = plotSweepCpFigure(plotData);
 assert(isgraphics(fig, 'figure'), 'Shared renderer did not return a figure.');
-ax = findobj(fig, 'Type', 'axes');
-assert(~isempty(ax), 'Shared renderer did not create axes.');
+ax = findDataAxes(fig);
+infoAx = findInfoPanel(fig);
+assert(~isempty(ax), 'Shared renderer did not create the main data axes.');
+assert(~isempty(infoAx), 'Shared renderer did not create a separate information panel.');
 assert(numel(findobj(ax, 'Type', 'line')) == 2, ...
     'Shared renderer should create one primary line per curve.');
-assert(hasFixedParameterBlock(ax), ...
-    'Shared renderer did not create the fixed-parameter block.');
-xl = xlim(ax(1));
-yl = ylim(ax(1));
+assert(~hasPanelText(ax, "Fixed parameters"), ...
+    'Fixed-parameter text should not be inside the main data axes.');
+assert(hasPanelText(infoAx, "Fixed parameters"), ...
+    'Information panel is missing the fixed-parameter heading.');
+assert(hasPanelText(infoAx, "mu = 50 kPa"), ...
+    'Information panel is missing fixed-parameter text.');
+assert(hasPanelText(infoAx, "p = 1"), ...
+    'Information panel is missing sweep labels.');
+assert(infoAx.Position(1) > ax.Position(1) + ax.Position(3), ...
+    'Information panel should be to the right of the main data axes.');
+xl = xlim(ax);
+yl = ylim(ax);
 assert(xl(1) == 0, 'Frequency axis should start at zero by default.');
 assert(yl(1) == 0, 'Cp axis should start at zero by default.');
 close(fig);
@@ -49,9 +59,32 @@ assert(~any(contains(rlData.fixedParameterLines, "Full thickness")), ...
 fig = plotParametricSweepCp(rlSweep, "RayleighLamb", "A0", ...
     'FrequencyScale', 1e3, 'FrequencyUnit', "kHz", ...
     'StartFrequencyAtZero', true);
-assert(hasFixedParameterBlock(findobj(fig, 'Type', 'axes')), ...
-    'RL wrapper did not use the shared fixed-parameter block.');
+assert(hasPanelText(findInfoPanel(fig), "Full thickness 2h = 0.4 mm"), ...
+    'RL wrapper should put sweep labels in the external panel.');
+assert(hasPanelText(findInfoPanel(fig), "mu = 75.0 kPa"), ...
+    'RL wrapper did not use the shared external fixed-parameter panel.');
+assert(~hasPanelText(findDataAxes(fig), "mu = 75.0 kPa"), ...
+    'RL wrapper should not place fixed parameters in the data axes.');
 close(fig);
+
+%% mRLFE adapter excludes moving parameters
+mrlfeSweep = rlSweep;
+mrlfeSweep.parameter = "etaS";
+mrlfeSweep.spec = struct('label', "etaS", 'units', "Pa*s");
+mrlfeSweep.displayValues = [0, 0.1];
+mrlfeSweep.params = { ...
+    struct('mu', 75e3, 'nu', 0.4999, 'thickness', 0.5e-3, 'rho', 1070), ...
+    struct('mu', 75e3, 'nu', 0.4999, 'thickness', 0.5e-3, 'rho', 1070)};
+mrlfeSweep.options = { ...
+    struct('mrlfeParams', struct('etaS', 0)), ...
+    struct('mrlfeParams', struct('etaS', 0.1))};
+mrlfeSweep.results = {makeMrlfeResult(frequency, [4; 5; 6]), makeMrlfeResult(frequency, [5; 6; 7])};
+
+mrlfeData = buildParametricSweepPlotData(mrlfeSweep, "mRLFEViscoRealK", "A0Like");
+assert(any(contains(mrlfeData.fixedParameterLines, "mu = 75.0 kPa")), ...
+    'mRLFE adapter is missing fixed mu metadata.');
+assert(~any(contains(mrlfeData.fixedParameterLines, "etaS =")), ...
+    'mRLFE adapter should not list the swept etaS as fixed.');
 
 %% AE adapter and wrapper
 aeSweep = struct();
@@ -70,9 +103,18 @@ assert(any(contains(aeData.fixedParameterLines, "IOP = 15.0 mmHg")), ...
 assert(~any(contains(aeData.fixedParameterLines, "Thickness =")), ...
     'AE adapter should not list the swept thickness as fixed.');
 fig = aePlotSweepCp(aeSweep);
-assert(hasFixedParameterBlock(findobj(fig, 'Type', 'axes')), ...
-    'AE wrapper did not use the shared fixed-parameter block.');
+assert(hasPanelText(findInfoPanel(fig), "IOP = 15.0 mmHg"), ...
+    'AE wrapper did not use the shared external fixed-parameter panel.');
+assert(~hasPanelText(findDataAxes(fig), "IOP = 15.0 mmHg"), ...
+    'AE wrapper should not place fixed parameters in the data axes.');
 close(fig);
+
+%% AE unitless k2 formatting
+aeSweep.sweepField = "k1";
+aeData = aeBuildSweepPlotData(aeSweep);
+k2Line = aeData.fixedParameterLines(contains(aeData.fixedParameterLines, "k2 ="));
+assert(numel(k2Line) == 1 && string(k2Line) == "k2 = 200", ...
+    'Unitless k2 should be formatted without a fake unit.');
 
 fprintf('Shared sweep plot renderer contract test passed.\n');
 end
@@ -87,21 +129,34 @@ branch = struct('frequency', frequency, 'Cp', Cp, 'validCp', true(size(Cp)));
 result = struct('modes', struct('A0', branch));
 end
 
+function result = makeMrlfeResult(frequency, Cp)
+branch = struct('frequency', frequency, 'Cp', Cp, 'validCp', true(size(Cp)));
+result = struct('models', struct('mRLFEViscoRealK', struct('branches', struct('A0Like', branch))));
+end
+
 function condition = makeAeCondition(frequency, Cp, displayValue)
 result = struct('frequency', frequency, 'Cp', Cp, ...
     'validCp', true(size(Cp)));
 condition = struct('result', result, 'sweepValueDisplay', string(displayValue));
 end
 
-function tf = hasFixedParameterBlock(ax)
-if numel(ax) > 1
-    ax = ax(1);
+function ax = findDataAxes(fig)
+axesObjects = findobj(fig, 'Type', 'axes');
+ax = axesObjects(arrayfun(@(h)~strcmp(string(h.Tag), "SweepInfoPanel"), axesObjects));
+assert(numel(ax) == 1, 'Expected exactly one main data axes.');
 end
+
+function ax = findInfoPanel(fig)
+ax = findobj(fig, 'Type', 'axes', 'Tag', 'SweepInfoPanel');
+assert(numel(ax) == 1, 'Expected exactly one sweep information panel axes.');
+end
+
+function tf = hasPanelText(ax, expectedText)
 textObjects = findobj(ax, 'Type', 'text');
 tf = false;
 for i = 1:numel(textObjects)
     value = string(textObjects(i).String);
-    if any(contains(value, "Fixed parameters"))
+    if any(contains(value, expectedText))
         tf = true;
         return;
     end

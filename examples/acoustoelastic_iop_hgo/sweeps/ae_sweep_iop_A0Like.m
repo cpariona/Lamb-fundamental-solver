@@ -3,7 +3,7 @@ launchFolder = pwd;
 scriptFile = mfilename('fullpath');
 startup
 
-%SWEEP_IOP Maintained IOP sweep for the acoustoelastic IOP/HGO model.
+%AE_SWEEP_IOP_A0LIKE Maintained IOP sweep for the acoustoelastic IOP/HGO A0-like branch.
 %
 % Tables/workspace are written to:
 %   Results/ae_iop_hgo/iop_sweep

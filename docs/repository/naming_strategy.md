@@ -173,8 +173,8 @@ Recommended user-facing entrypoints:
 
 ```matlab
 run_atlas_branch
-sweep_iop
-sweep_mu
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
 compare_atlasA0_vs_raw_branch1
 validate_atlas_raw_grid
 diagnose_raw_branch_corner
@@ -205,7 +205,7 @@ aeIOPHGOSolveDispersion
 ## Examples
 
 * Use `run_*` for basic executable examples.
-* Use `sweep_*` for parameter sweeps.
+* Use `<model>_sweep_<parameter>_<branch>` for maintained public sweep entrypoints.
 * Use `validate_*` for validation grids and regression-style checks.
 * Use `diagnose_*` for diagnostic scripts.
 * Use `compare_*` for comparative scripts.
@@ -216,7 +216,7 @@ aeIOPHGOSolveDispersion
 
 * GUI code should call model APIs, not scripts in `examples/`.
 * GUI code should expose `mu`, `nu`, `rho`, and `2h` as primary soft-material inputs, and display `E`, `lambda_Lame`, `K`, `CT`, and `CL` as derived quantities.
-* If shorter `ae*` aliases are later introduced, they should be added in a dedicated pull request with tests and documentation.
+* Do not add aliases for renamed sweep entrypoints.
 
 ## Renaming policy
 
@@ -228,4 +228,4 @@ Existing function names should not be renamed casually. Renames should happen on
 4. updated docs,
 5. a clear migration note.
 
-For current migration work, prefer short entrypoints plus short result paths. Retain long descriptive files only when they contain implementation, heavy validation, diagnostic, or reproducibility logic that has not been migrated into a short implementation file.
+For current migration work, prefer short entrypoints plus short result paths. Rename maintained sweep entrypoints directly, update active references, and do not keep compatibility wrappers for the old names. Retain long descriptive files only when they contain implementation, heavy validation, diagnostic, or reproducibility logic that has not been migrated into a short implementation file.

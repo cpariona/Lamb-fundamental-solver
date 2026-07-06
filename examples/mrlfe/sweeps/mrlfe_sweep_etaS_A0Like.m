@@ -3,16 +3,16 @@ launchFolder = pwd;
 scriptFile = mfilename('fullpath');
 startup
 
-%SWEEP_MU_S0LIKE_VISCOELASTIC Maintained shear-modulus sweep for mRLFE S0-like.
+%MRLFE_SWEEP_ETAS_A0LIKE Maintained shear-viscosity sweep for mRLFE A0-like.
 %
 % Tables/workspace are written to:
-%   Results/mrlfe/mu_sweep
+%   Results/mrlfe/etaS_sweep
 %
 % Figures are written next to this script under:
-%   figures/mu_sweep
+%   figures/etaS_sweep
 
 [sweepResults, sweepSummary, fig, outputFolder, figureFolder] = mrlfeRunSweepExample( ...
-    'mu', 'S0Like', ...
+    'viscosity', 'A0Like', ...
     'AssignToBase', true, ...
     'WriteOutputs', true, ...
     'LaunchFolder', launchFolder, ...

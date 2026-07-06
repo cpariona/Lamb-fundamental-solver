@@ -3,7 +3,7 @@ launchFolder = pwd;
 scriptFile = mfilename('fullpath');
 startup
 
-%SWEEP_K2 Maintained fiber-nonlinearity sweep for the AE IOP/HGO model.
+%AE_SWEEP_K2_A0LIKE Maintained fiber-nonlinearity sweep for the AE IOP/HGO A0-like branch.
 %
 % Tables/workspace are written to:
 %   Results/ae_iop_hgo/k2_sweep
