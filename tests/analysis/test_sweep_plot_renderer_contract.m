@@ -17,19 +17,20 @@ plotData.curves = [ ...
 
 fig = plotSweepCpFigure(plotData);
 assert(isgraphics(fig, 'figure'), 'Shared renderer did not return a figure.');
-ax = findDataAxes(fig);
-infoAx = findInfoPanel(fig);
+ax = findSingleDataAxes(fig);
+lgd = findSingleLegend(fig);
 assert(numel(findobj(ax, 'Type', 'line')) == 2, ...
     'Shared renderer should create one primary line per curve.');
-assert(~hasPanelText(ax, "Fixed parameters"), ...
-    'Fixed-parameter text should not be attached to the data axes.');
-assert(hasPanelText(infoAx, "Fixed parameters"), ...
-    'Inset panel is missing the fixed-parameter heading.');
-assert(hasPanelText(infoAx, "mu = 50 kPa"), ...
-    'Inset panel is missing fixed-parameter text.');
-assert(hasPanelText(infoAx, "p = 1"), ...
-    'Inset panel is missing sweep labels.');
-assertPanelInsideLowerRight(ax, infoAx);
+assert(contains(string(ax.Subtitle.String), "Fixed:"), ...
+    'Shared renderer should place fixed parameters in the subtitle.');
+assert(contains(string(ax.Subtitle.String), "mu = 50 kPa"), ...
+    'Subtitle is missing fixed-parameter text.');
+assert(string(lgd.Location) == "southeast", ...
+    'Native legend should default to southeast.');
+assert(any(string(lgd.String) == "p = 1"), ...
+    'Native legend is missing sweep labels.');
+assert(isempty(findobj(fig, 'Type', 'axes', 'Tag', 'SweepInfoPanel')), ...
+    'Obsolete SweepInfoPanel axes should not exist.');
 xl = xlim(ax);
 yl = ylim(ax);
 assert(xl(1) == 0, 'Frequency axis should start at zero by default.');
@@ -58,10 +59,12 @@ assert(string(rlData.curves(1).legendLabel) == "2h = 0.4 mm", ...
 fig = plotParametricSweepCp(rlSweep, "RayleighLamb", "A0", ...
     'FrequencyScale', 1e3, 'FrequencyUnit', "kHz", ...
     'StartFrequencyAtZero', true);
-assert(hasPanelText(findInfoPanel(fig), "2h = 0.4 mm"), ...
-    'RL wrapper should put compact sweep labels in the inset panel.');
-assert(hasPanelText(findInfoPanel(fig), "mu = 75.0 kPa"), ...
-    'RL wrapper did not use the shared inset fixed-parameter panel.');
+ax = findSingleDataAxes(fig);
+lgd = findSingleLegend(fig);
+assert(contains(string(ax.Subtitle.String), "mu = 75.0 kPa"), ...
+    'RL wrapper did not place fixed parameters in the subtitle.');
+assert(any(string(lgd.String) == "2h = 0.4 mm"), ...
+    'RL wrapper did not use compact legend labels.');
 close(fig);
 
 %% mRLFE adapter excludes moving parameters
@@ -104,10 +107,12 @@ assert(~any(contains(aeData.fixedParameterLines, "h =")), ...
 assert(string(aeData.curves(1).legendLabel) == "h = 400 um", ...
     'AE adapter should use the compact h sweep label.');
 fig = aePlotSweepCp(aeSweep);
-assert(hasPanelText(findInfoPanel(fig), "IOP = 15.0 mmHg"), ...
-    'AE wrapper did not use the shared inset fixed-parameter panel.');
-assert(hasPanelText(findInfoPanel(fig), "h = 400 um"), ...
-    'AE wrapper did not use compact sweep labels.');
+ax = findSingleDataAxes(fig);
+lgd = findSingleLegend(fig);
+assert(contains(string(ax.Subtitle.String), "IOP = 15.0 mmHg"), ...
+    'AE wrapper did not place fixed parameters in the subtitle.');
+assert(any(string(lgd.String) == "h = 400 um"), ...
+    'AE wrapper did not use compact legend labels.');
 close(fig);
 
 %% AE unitless k2 formatting
@@ -141,38 +146,12 @@ result = struct('frequency', frequency, 'Cp', Cp, ...
 condition = struct('result', result, 'sweepValueDisplay', string(displayValue));
 end
 
-function ax = findDataAxes(fig)
-axesObjects = findobj(fig, 'Type', 'axes');
-ax = axesObjects(arrayfun(@(h)~strcmp(string(h.Tag), "SweepInfoPanel"), axesObjects));
-assert(numel(ax) == 1, 'Expected exactly one main data axes.');
+function ax = findSingleDataAxes(fig)
+ax = findobj(fig, 'Type', 'axes');
+assert(numel(ax) == 1, 'Expected exactly one data axes.');
 end
 
-function ax = findInfoPanel(fig)
-ax = findobj(fig, 'Type', 'axes', 'Tag', 'SweepInfoPanel');
-assert(numel(ax) == 1, 'Expected exactly one sweep information panel axes.');
-end
-
-function assertPanelInsideLowerRight(ax, infoAx)
-axPos = ax.Position;
-panelPos = infoAx.Position;
-assert(panelPos(1) >= axPos(1) + 0.50 * axPos(3), ...
-    'Information panel should be in the right half of the data axes.');
-assert(panelPos(2) < axPos(2) + 0.35 * axPos(4), ...
-    'Information panel should be in the lower portion of the data axes.');
-assert(panelPos(1) + panelPos(3) <= axPos(1) + axPos(3), ...
-    'Information panel should stay inside the data axes horizontally.');
-assert(panelPos(2) + panelPos(4) <= axPos(2) + axPos(4), ...
-    'Information panel should stay inside the data axes vertically.');
-end
-
-function tf = hasPanelText(ax, expectedText)
-textObjects = findobj(ax, 'Type', 'text');
-tf = false;
-for i = 1:numel(textObjects)
-    value = string(textObjects(i).String);
-    if any(contains(value, expectedText))
-        tf = true;
-        return;
-    end
-end
+function lgd = findSingleLegend(fig)
+lgd = findobj(fig, 'Type', 'legend');
+assert(numel(lgd) == 1, 'Expected exactly one native legend.');
 end
