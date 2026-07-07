@@ -279,6 +279,23 @@ test_ae_fit_synthetic_atlasA0
 
 ## mRLFE model
 
+Initial maintained public real-k mRLFE contract:
+
+```matlab
+mrlfeSolve
+mrlfeDefaultParameters
+mrlfeDefaultOptions
+mrlfeValidateRequest
+mrlfeResolveConfiguration
+mrlfeGetNumericalPreset
+mrlfeBuildResult
+mrlfeEvaluateBranchQuality
+```
+
+This public contract is model-oriented and author-neutral. It is currently
+implemented as a transitional facade over the maintained FitTool atlas-first
+route; older mRLFE solver and fitting helpers remain available during migration.
+
 Main high-level function for the maintained forward workflow:
 
 ```matlab
@@ -383,6 +400,7 @@ examples/mrlfe/diagnostics/README.md
 Maintained mRLFE model-family tests:
 
 ```matlab
+run_mrlfe_public_contract_tests
 test_mrlfe_smoke
 test_mrlfe_etaS_zero_limit
 test_mrlfe_elastic_reference_buffer
