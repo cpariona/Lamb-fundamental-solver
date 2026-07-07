@@ -2,139 +2,99 @@
 
 Updated: 2026-07-06
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: ae-add-physical-parameter-sweeps
+Current branch: docs-refresh-project-state-after-pr107
 Base branch: main
-Last known good commit: branch HEAD after final validation
+Base commit: b544b70e8df518db8bd7402aa9d3868a9e280a74
 
 ## Current task
 
-Close the cross-model sweep unification branch and prepare it for user-owned
-pull-request review. Do not merge into `main` from this branch.
+Refresh the operational project-state documents after the merge of PR #107.
+This branch is documentation-only and must not change solver, GUI, sweep, fitting,
+or branch-selection behavior.
 
-## Completed
+## Current repository state
 
-- Preserved Alternative B sweep plotting architecture:
-  - AE: `aeRunSweep` output -> `aeBuildSweepPlotData` -> `plotSweepCpFigure`.
-  - mRLFE/Rayleigh-Lamb: `runParametricSweep` output -> `buildParametricSweepPlotData` -> `plotSweepCpFigure`.
-- Updated `plotSweepCpFigure` to use one standard MATLAB axes, a compact fixed-parameter subtitle, and a native lower-right legend for sweep values.
-- Kept model-specific result extraction out of the shared renderer.
-- Renamed maintained sweep entrypoints directly:
-  - AE IOP/HGO: `ae_sweep_iop_A0Like`, `ae_sweep_mu_A0Like`, `ae_sweep_thickness_A0Like`, `ae_sweep_k1_A0Like`, `ae_sweep_k2_A0Like`, `ae_sweep_radius_A0Like`, `ae_sweep_mu_iop_A0Like`.
-  - mRLFE: `mrlfe_sweep_mu_A0Like`, `mrlfe_sweep_mu_S0Like`, `mrlfe_sweep_etaS_A0Like`, `mrlfe_sweep_etaS_S0Like`, `mrlfe_sweep_thickness_A0Like`, `mrlfe_sweep_thickness_S0Like`.
-  - Rayleigh-Lamb: `rl_sweep_thickness_A0`, `rl_sweep_thickness_S0`.
-- Removed old maintained sweep entrypoint names without compatibility wrappers.
-- Updated active docs, tests, runners, and validation commands to canonical names.
+- PR #107, `Add and unify maintained physical-parameter sweeps`, is merged into `main`.
+- The maintained sweep plotting architecture is Alternative B:
+  - AE: `aeRunSweep` -> `aeBuildSweepPlotData` -> `plotSweepCpFigure`.
+  - mRLFE/Rayleigh-Lamb: `runParametricSweep` -> `buildParametricSweepPlotData` -> `plotSweepCpFigure`.
+- Maintained sweep entrypoints use the canonical `<model>_sweep_<parameter>_<branch>` naming convention.
+- Old maintained sweep aliases were removed without compatibility wrappers.
+- `startup` delegates to deterministic, idempotent project-path configuration.
+- The complete maintained smoke suite passed during PR #107 validation.
 
-## Validation performed
+## Active next technical task
 
-MATLAB validation was run locally from the repository root after:
+Perform a reproducible mRLFE route-consistency audit before proposing changes.
+The audit must compare:
 
-```matlab
-restoredefaultpath
-clear functions
-rehash toolboxcache
-startup
-```
+- Main GUI;
+- SweepTool;
+- FitTool;
+- maintained examples;
+- execution-profile mapping;
+- solver routes;
+- A0 branch-selection policies;
+- fallback and route metadata.
 
-Focused tests:
+The first audit should cover at least A0Like and S0Like, zero and nonzero `etaS`,
+and the `adaptivePhysicalTail` and `delayedCut` policies where applicable.
 
-```matlab
-startup
-startup
-startup
-test_startup_path_policy
-test_mrlfe_maintained_entrypoints_naming
-test_acoustoelastic_iop_hgo_short_entrypoints
-test_ae_physical_sweep_examples_contract
-test_sweep_plot_renderer_contract
-```
+## Confirmed open issues
 
-Focused suites:
-
-```matlab
-run_core_smoke_tests
-run_mrlfe_smoke_tests
-run_acoustoelastic_smoke_tests
-```
-
-Complete maintained suite:
-
-```matlab
-run_all_smoke_tests
-```
-
-Result: `Complete smoke-test suite passed.`
-
-## Manual validation
-
-Representative renamed sweeps were executed:
-
-```matlab
-ae_sweep_iop_A0Like
-ae_sweep_k2_A0Like
-mrlfe_sweep_mu_A0Like
-mrlfe_sweep_etaS_A0Like
-rl_sweep_thickness_A0
-rl_sweep_thickness_S0
-```
-
-The earlier external-panel layout was fully validated but was replaced after
-manual review. The current native subtitle/legend layout still requires final
-local visual validation and a rerun of the focused and complete smoke suites.
-
-## Open issues
-
-- Final validation is pending for the native subtitle/legend layout.
-- The previously identified solver-route consistency audit remains a separate future task and is not part of this branch.
-- Generated Results and example figure artifacts from manual sweep validation are ignored artifacts and should not be committed.
+- Main GUI and SweepTool route through `guiRunMRLFEModel`; FitTool and maintained examples use separate evaluation paths.
+- Maintained examples default to `delayedCut` and `UseUnifiedAtlasRoute = false`, unlike the interactive surfaces.
+- Main GUI and SweepTool can fall back from a zero-viscosity adaptive atlas result to an elastic reference result; FitTool does not apply the same fallback.
+- Main GUI, SweepTool, and FitTool preserve Fast internal mRLFE presets even when Balanced or Robust is requested.
+- Sweep-level route metadata may not represent every point in a mixed-route sweep.
+- Current tests validate routing and synthetic contracts, not external physical correctness.
 
 ## Next action
 
-Run the focused renderer test, representative AE/mRLFE/RL sweeps, and
-`run_all_smoke_tests`. After visual approval, commit any local documentation
-patch, push `ae-add-physical-parameter-sweeps`, and prepare it for user-owned
-pull-request review. Do not merge into `main`.
+1. Review and merge this documentation-only branch manually.
+2. Update local `main` from `origin/main` after the merge.
+3. Create a new branch dedicated to the mRLFE route-consistency audit.
+4. Add comparison evidence and tests before selecting any corrective implementation.
 
-## Do not change
+## Do not change in this branch
 
-- Do not work on `main`.
-- Do not merge this branch.
+- Numerical solver behavior.
+- mRLFE branch-selection or fallback policies.
+- Main GUI, SweepTool, or FitTool behavior.
+- Execution-profile mapping.
+- Maintained examples or sweep defaults.
+- Public API names, folder structure, or naming contracts.
 - Do not open a pull request unless explicitly requested.
-- Do not reintroduce old sweep wrappers or aliases.
-- Do not modify numerical solver, AE branch-selection, mRLFE branch-selection, Rayleigh-Lamb numerical behavior, fitting behavior, GUI behavior, or SweepTool behavior unless a future task explicitly requires it.
-- Do not treat archived audits as current contracts.
+- Do not merge this branch; the user performs merges manually.
 
-## Relevant files
+## Relevant files for the next task
 
-- `docs/project/README.md`
-- `docs/project/active_context.md`
-- `docs/project/session_handoff.md`
-- `analysis/plotSweepCpFigure.m`
-- `analysis/buildParametricSweepPlotData.m`
-- `analysis/acoustoelastic_iop_hgo/aeBuildSweepPlotData.m`
-- `analysis/acoustoelastic_iop_hgo/aePlotSweepCp.m`
+- `app/adapters/guiRunMRLFEModel.m`
+- `app/adapters/guiRunMRLFESweep.m`
+- `app/adapters/guiFitMRLFESolver.m`
+- `analysis/mrlfe/mrlfeEvaluateFitModel.m`
+- `analysis/mrlfe/mrlfeEvaluateAtlasFitModel.m`
+- `analysis/mrlfe/mrlfeDefaultSweepOptions.m`
 - `analysis/mrlfe/mrlfeRunSweepExample.m`
-- `analysis/rayleigh_lamb/rlRunSweepExample.m`
-- `docs/workflows/sweeps/parametric_sweeps.md`
-- `docs/repository/maintained_entrypoints.md`
-- `docs/repository/naming_strategy.md`
-- `docs/models/acoustoelastic_iop_hgo/active/sweep_workflow.md`
-- `docs/models/mrlfe/current_sweeps.md`
-- `docs/models/rayleigh_lamb/overview.md`
-- `tests/analysis/test_sweep_plot_renderer_contract.m`
-- `tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_short_entrypoints.m`
-- `tests/models/acoustoelastic_iop_hgo/test_ae_physical_sweep_examples_contract.m`
-- `tests/models/mrlfe/test_mrlfe_maintained_entrypoints_naming.m`
-- `tests/runners/run_core_smoke_tests.m`
-- `tests/runners/run_mrlfe_smoke_tests.m`
-- `tests/runners/run_acoustoelastic_smoke_tests.m`
+- `analysis/runParametricSweep.m`
+- `models/mrlfe/`
+- `examples/mrlfe/`
+- `tests/models/mrlfe/`
+- `tests/app/gui/`
+- `tests/app/fitting/`
+- `tests/app/sweeps/`
+- `docs/models/mrlfe/README.md`
+- `docs/models/mrlfe/fitting_workflow.md`
+- `docs/models/mrlfe/atlas_policy_notes.md`
+- `docs/workflows/gui/mrlfe_atlas_policy_integration.md`
+- `docs/architecture/execution_profiles_surface_integration.md`
 
-## Commands to resume
+## Commands to resume after this branch is merged
 
 ```bash
 git fetch origin
-git switch ae-add-physical-parameter-sweeps
-git pull --ff-only origin ae-add-physical-parameter-sweeps
+git switch main
+git pull --ff-only origin main
 git status -sb
 git log --oneline --decorate -10
 ```
