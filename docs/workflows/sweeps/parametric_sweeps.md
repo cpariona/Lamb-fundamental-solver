@@ -2,6 +2,39 @@
 
 This document summarizes the maintained one-parameter sweep examples.
 
+## Maintained acoustoelastic IOP/HGO examples
+
+Maintained AE sweep entrypoints live under:
+
+```text
+examples/acoustoelastic_iop_hgo/sweeps/
+```
+
+Current one-parameter scripts and values:
+
+```matlab
+ae_sweep_iop_A0Like        % [5, 10, 15, 20, 25] mmHg
+ae_sweep_mu_A0Like         % [25, 50, 75, 100] kPa
+ae_sweep_thickness_A0Like  % [400, 475, 550, 625, 700] um
+ae_sweep_k1_A0Like         % [10, 25, 50, 75, 100] kPa
+ae_sweep_k2_A0Like         % [50, 100, 200, 300, 400]
+ae_sweep_radius_A0Like     % [7.0, 7.4, 7.8, 8.2, 8.6] mm
+```
+
+The maintained two-parameter case study is `ae_sweep_mu_iop_A0Like`.
+
+One-parameter scripts use the existing AE structure:
+`aeDefaultSweepParams` -> `aeDefaultSweepOptions` -> `aeRunSweep` ->
+`aeSummarizeSweep` -> `aeWriteSweepOutputs` -> `aePlotSweepCp` ->
+`aeSaveExampleFigure`.
+
+Outputs follow:
+
+```text
+Results/ae_iop_hgo/<task>/
+examples/acoustoelastic_iop_hgo/sweeps/figures/<task>/
+```
+
 ## Maintained mRLFE examples
 
 The maintained mRLFE examples live under:
@@ -13,12 +46,12 @@ examples/mrlfe/sweeps/
 Current scripts:
 
 ```matlab
-sweep_mu_A0Like_viscoelastic
-sweep_mu_S0Like_viscoelastic
-sweep_etaS_A0Like_viscoelastic
-sweep_etaS_S0Like_viscoelastic
-sweep_thickness_A0Like_viscoelastic
-sweep_thickness_S0Like_viscoelastic
+mrlfe_sweep_mu_A0Like
+mrlfe_sweep_mu_S0Like
+mrlfe_sweep_etaS_A0Like
+mrlfe_sweep_etaS_S0Like
+mrlfe_sweep_thickness_A0Like
+mrlfe_sweep_thickness_S0Like
 ```
 
 All six scripts delegate to `mrlfeRunSweepExample` and share helpers under `analysis/mrlfe/`.
@@ -49,9 +82,7 @@ etaS = [0, 0.1, 0.2, 0.3, 0.4, 0.5] Pa*s
 2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
 ```
 
-mRLFE plots use AE-style two-line titles. The first line gives the sweep target and the second line gives fixed reference parameters without overloading the legend.
-
-mRLFE figures use frequency in kHz. The frequency and Cp axes start at zero.
+mRLFE plots use the shared sweep renderer with one standard MATLAB axes. Fixed reference parameters are shown compactly in the subtitle, and the moving sweep values use a native MATLAB legend in the lower-right corner. Figures use frequency in kHz, and both axes start at zero.
 
 mRLFE outputs follow the AE example pattern:
 
@@ -90,8 +121,8 @@ examples/rayleigh_lamb/sweeps/
 Current sweep scripts:
 
 ```matlab
-sweep_thickness_A0_elastic
-sweep_thickness_S0_elastic
+rl_sweep_thickness_A0
+rl_sweep_thickness_S0
 ```
 
 Both scripts delegate to:
@@ -127,7 +158,7 @@ Current Rayleigh-Lamb sweep values:
 2h = [0.3, 0.4, 0.5, 0.6, 0.7] mm
 ```
 
-Rayleigh-Lamb plots use AE-style two-line titles, frequency in kHz, and axes starting at zero. Outputs follow:
+Rayleigh-Lamb plots use the shared sweep renderer with a single-line title, a compact fixed-parameter subtitle, a native lower-right legend, frequency in kHz, and axes starting at zero. Outputs follow:
 
 ```text
 Results/rayleigh_lamb/thickness_sweep/
@@ -148,7 +179,7 @@ summarizeParametricSweepBranch
 
 `runParametricSweep` changes one scalar solver parameter. It supports optional `displayValues`, used by the mRLFE and Rayleigh-Lamb examples to display `2h` or `mu` while preserving current internal solver fields.
 
-`plotParametricSweepCp` plots `Cp(f)` for one model/branch pair and supports frequency scaling, zero-start frequency limits, and multiline titles.
+`plotParametricSweepCp` adapts Rayleigh-Lamb and mRLFE sweep results into neutral plot data. `plotSweepCpFigure` then renders `Cp(f)` with one standard MATLAB axes, a compact fixed-parameter subtitle, and a native lower-right legend. The shared renderer preserves the Alternative B boundary: model-specific branch extraction remains in `buildParametricSweepPlotData` or `aeBuildSweepPlotData`, not in the renderer.
 
 `summarizeParametricSweepBranch` reports branch validity, frequency range, Cp range, and elapsed time for each sweep case.
 
@@ -161,14 +192,21 @@ clear functions
 rehash toolboxcache
 startup
 
-sweep_mu_A0Like_viscoelastic
-sweep_mu_S0Like_viscoelastic
-sweep_etaS_A0Like_viscoelastic
-sweep_etaS_S0Like_viscoelastic
-sweep_thickness_A0Like_viscoelastic
-sweep_thickness_S0Like_viscoelastic
-sweep_thickness_A0_elastic
-sweep_thickness_S0_elastic
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
+ae_sweep_thickness_A0Like
+ae_sweep_k1_A0Like
+ae_sweep_k2_A0Like
+ae_sweep_radius_A0Like
+ae_sweep_mu_iop_A0Like
+mrlfe_sweep_mu_A0Like
+mrlfe_sweep_mu_S0Like
+mrlfe_sweep_etaS_A0Like
+mrlfe_sweep_etaS_S0Like
+mrlfe_sweep_thickness_A0Like
+mrlfe_sweep_thickness_S0Like
+rl_sweep_thickness_A0
+rl_sweep_thickness_S0
 
 run_all_smoke_tests
 ```

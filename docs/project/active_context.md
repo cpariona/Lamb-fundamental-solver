@@ -1,16 +1,25 @@
 # Active project context
 
-Last reviewed: 2026-07-04
+Last reviewed: 2026-07-06
 Repository: cpariona/Lamb-fundamental-solver
 Default branch: main
 
 ## Current development focus
 
-Persistent project context and session handoff are now available on `main`.
+Branch `ae-add-physical-parameter-sweeps` contains the current cross-model sweep
+unification work. The maintained sweep plotting architecture is Alternative B:
+model-specific adapters produce neutral plot data, and `plotSweepCpFigure`
+renders the shared figure layout.
 
-The next technical objective has not yet been selected. The next session should
-recover the current state from these documents, compare the remaining options,
-and define one focused engineering task before creating a feature branch.
+The active one-parameter sweep layout uses one standard MATLAB data axes. Fixed
+parameters are shown compactly in the subtitle, and the moving sweep values use
+a native MATLAB legend in the lower-right corner. The fixed-parameter subtitle
+excludes the swept parameter, and the native legend remains editable in saved
+`.fig` files.
+
+Maintained public sweep entrypoints use the canonical
+`<model>_sweep_<parameter>_<branch>` convention across AE IOP/HGO, mRLFE, and
+Rayleigh-Lamb. Old sweep entrypoints were removed directly without wrappers.
 
 ## Recently completed capabilities
 
@@ -22,6 +31,8 @@ and define one focused engineering task before creating a feature branch.
 - Explicit requested fitted-curve solver evaluation.
 - Separated parameter and fit-quality summaries.
 - Persistent project context, session handoff, reusable task templates, and initial ADRs.
+- Cross-model sweep figure unification with compact subtitles and native legends.
+- Canonical maintained sweep entrypoint names across AE IOP/HGO, mRLFE, and Rayleigh-Lamb.
 
 ## Active architectural contracts
 
@@ -44,10 +55,9 @@ and define one focused engineering task before creating a feature branch.
 
 This list is provisional:
 
-1. Select the next engineering objective in a new chat.
-2. Create one focused feature branch from updated `origin/main`.
-3. Audit model execution architecture before designing real mRLFE profiles, if that objective is selected.
-4. Keep solver refactors separate from GUI and documentation tasks.
+1. Finish visual validation and close `ae-add-physical-parameter-sweeps`.
+2. Prepare the branch for user-owned pull-request review.
+3. Keep solver-route and solver-physics audits separate from sweep plotting and naming work.
 
 ## Primary references
 
@@ -58,4 +68,8 @@ This list is provisional:
 - `docs/repository/validation_status.md`
 - `docs/workflows/gui/adapter_architecture.md`
 - `docs/workflows/fitting/architecture.md`
+- `docs/workflows/sweeps/parametric_sweeps.md`
+- `docs/models/acoustoelastic_iop_hgo/active/sweep_workflow.md`
+- `docs/models/mrlfe/current_sweeps.md`
+- `docs/models/rayleigh_lamb/overview.md`
 - `docs/architecture/execution_profiles_surface_integration.md`

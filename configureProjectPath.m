@@ -1,0 +1,64 @@
+function configureProjectPath(projectRoot)
+%CONFIGUREPROJECTPATH Reset and add only active repository folders.
+
+projectRoot = normalizePath(projectRoot);
+excludedNames = ["archive", "figures"];
+
+currentEntries = string(strsplit(path, pathsep));
+for i = 1:numel(currentEntries)
+    folder = normalizePath(currentEntries(i));
+    if strlength(folder) > 0 && isInsideProject(folder, projectRoot)
+        rmpath(char(folder));
+    end
+end
+
+addpath(char(projectRoot));
+roots = [ ...
+    fullfile(projectRoot, "app"), ...
+    fullfile(projectRoot, "models"), ...
+    fullfile(projectRoot, "analysis"), ...
+    fullfile(projectRoot, "examples", "rayleigh_lamb"), ...
+    fullfile(projectRoot, "examples", "acoustoelastic_iop_hgo"), ...
+    fullfile(projectRoot, "examples", "mrlfe"), ...
+    fullfile(projectRoot, "tests")];
+
+for i = 1:numel(roots)
+    addActiveTree(roots(i), excludedNames);
+end
+end
+
+function addActiveTree(treeRoot, excludedNames)
+if ~isfolder(treeRoot)
+    return;
+end
+entries = string(strsplit(genpath(treeRoot), pathsep));
+for i = 1:numel(entries)
+    folder = normalizePath(entries(i));
+    if strlength(folder) == 0 || containsExcludedPart(folder, excludedNames)
+        continue;
+    end
+    addpath(char(folder));
+end
+end
+
+function tf = containsExcludedPart(folder, excludedNames)
+parts = split(normalizePath(folder), filesep);
+tf = any(ismember(lower(parts), lower(excludedNames)));
+end
+
+function tf = isInsideProject(folder, projectRoot)
+folder = normalizePath(folder);
+projectRoot = normalizePath(projectRoot);
+if ispc
+    folder = lower(folder);
+    projectRoot = lower(projectRoot);
+end
+tf = folder == projectRoot || startsWith(folder, projectRoot + filesep);
+end
+
+function value = normalizePath(value)
+value = replace(string(value), ["/", "\\"], filesep);
+while strlength(value) > 1 && endsWith(value, filesep)
+    value = extractBefore(value, strlength(value));
+end
+end

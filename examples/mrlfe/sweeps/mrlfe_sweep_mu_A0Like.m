@@ -3,7 +3,7 @@ launchFolder = pwd;
 scriptFile = mfilename('fullpath');
 startup
 
-%SWEEP_MU_A0LIKE_VISCOELASTIC Maintained shear-modulus sweep for mRLFE A0-like.
+%MRLFE_SWEEP_MU_A0LIKE Maintained shear-modulus sweep for mRLFE A0-like.
 %
 % Tables/workspace are written to:
 %   Results/mrlfe/mu_sweep

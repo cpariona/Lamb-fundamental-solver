@@ -41,8 +41,8 @@ aeExtractRawBranch1Candidate
 
 ```matlab
 run_atlas_branch
-sweep_iop
-sweep_mu
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
 ```
 
 #### Maintained diagnostic evidence
@@ -108,8 +108,8 @@ Use the maintained short commands instead:
 
 ```matlab
 run_atlas_branch
-sweep_iop
-sweep_mu
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
 diagnose_sweep_reliability
 diagnose_idA0_score
 diagnose_atlas_truncation

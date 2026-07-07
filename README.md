@@ -157,6 +157,8 @@ The maintained mRLFE GUI surface exposes a single real-k model family:
 mRLFERealK
 ```
 
+Viscous real-k sweep and diagnostic outputs use the normalized model name `mRLFEViscoRealK` where model-specific result containers need to distinguish etaS > 0 cases.
+
 The forward solver and sweep workflows still use the Rayleigh-Lamb seed and maintained mRLFE real-k branch machinery. The FitTool fitting route is atlas-first:
 
 ```text
@@ -202,12 +204,12 @@ compareMRLFETrackingStrategies
 Maintained mRLFE sweeps:
 
 ```matlab
-sweep_mu_A0Like_viscoelastic
-sweep_mu_S0Like_viscoelastic
-sweep_etaS_A0Like_viscoelastic
-sweep_etaS_S0Like_viscoelastic
-sweep_thickness_A0Like_viscoelastic
-sweep_thickness_S0Like_viscoelastic
+mrlfe_sweep_mu_A0Like
+mrlfe_sweep_mu_S0Like
+mrlfe_sweep_etaS_A0Like
+mrlfe_sweep_etaS_S0Like
+mrlfe_sweep_thickness_A0Like
+mrlfe_sweep_thickness_S0Like
 ```
 
 Maintained mRLFE fitting and comparison examples:

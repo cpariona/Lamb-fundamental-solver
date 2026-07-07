@@ -21,8 +21,8 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 
 | Maintained entrypoint | Legacy/descriptive file | Status |
 |---|---|---|
-| `sweep_iop` | `sweep_acoustoelastic_iop_hgo_iop` | archived alias; use the maintained short entrypoint |
-| `sweep_mu` | `sweep_acoustoelastic_iop_hgo_mu` | archived alias; use the maintained short entrypoint |
+| `ae_sweep_iop_A0Like` | `sweep_acoustoelastic_iop_hgo_iop` | archived alias; use the maintained short entrypoint |
+| `ae_sweep_mu_A0Like` | `sweep_acoustoelastic_iop_hgo_mu` | archived alias; use the maintained short entrypoint |
 
 ### Branch policy and tracking diagnostics
 
@@ -54,8 +54,8 @@ Do not call long legacy scripts directly unless there is a specific reason to in
 |---|---|---|
 | `diagnose_modal_atlas_lowfreq` | `diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas` | use `diagnose_modal_atlas`; low-frequency initialization is implicit |
 | `run_acoustoelastic_iop_hgo_atlas_branch` | same file | use `run_atlas_branch` |
-| `sweep_acoustoelastic_iop_hgo_iop` | same file | use `sweep_iop` |
-| `sweep_acoustoelastic_iop_hgo_mu` | same file | use `sweep_mu` |
+| `sweep_acoustoelastic_iop_hgo_iop` | same file | use `ae_sweep_iop_A0Like` |
+| `sweep_acoustoelastic_iop_hgo_mu` | same file | use `ae_sweep_mu_A0Like` |
 | `diagnose_acoustoelastic_iop_hgo_sweep_reliability` | same file | use `diagnose_sweep_reliability` |
 | `diagnose_acoustoelastic_iop_hgo_branch_identity_score` | same file | use `diagnose_idA0_score` |
 | `diagnose_acoustoelastic_iop_hgo_atlasA0_truncation_cause` | same file | use `diagnose_atlas_truncation` |

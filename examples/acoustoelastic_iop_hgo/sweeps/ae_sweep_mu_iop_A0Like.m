@@ -3,7 +3,7 @@ launchFolder = pwd;
 scriptFile = mfilename('fullpath');
 startup
 
-%SWEEP_MU_IOP Combined mu and IOP case-study sweep for the AE IOP/HGO model.
+%AE_SWEEP_MU_IOP_A0LIKE Combined mu and IOP case-study sweep for the AE IOP/HGO A0-like branch.
 %
 % Case-study intent:
 %   Evaluate how a small physiological IOP range changes the A0-like curve

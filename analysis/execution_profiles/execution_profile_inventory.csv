@@ -344,9 +344,9 @@ examples\acoustoelastic_iop_hgo\fitting\fit_ae_atlasA0.m,28,atlasInitializationN
 examples\acoustoelastic_iop_hgo\fitting\fit_ae_atlasA0.m,51,MaxIter,"'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3));",AE,Fit,solver/API,low,preserve as historical context
 examples\acoustoelastic_iop_hgo\fitting\fit_ae_atlasA0.m,51,MaxFunEvals,"'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3));",AE,Fit,solver/API,low,preserve as historical context
 examples\acoustoelastic_iop_hgo\fitting\fit_ae_atlasA0.m,51,TolX,"'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3));",AE,Fit,solver/API,low,preserve as historical context
-examples\acoustoelastic_iop_hgo\sweeps\sweep_iop.m,15,Robust,"options = aeDefaultSweepOptions(""Robust"");",AE,Fit,solver/API,low,preserve as historical context
-examples\acoustoelastic_iop_hgo\sweeps\sweep_mu.m,15,Robust,"options = aeDefaultSweepOptions(""Robust"");",AE,Fit,solver/API,low,preserve as historical context
-examples\acoustoelastic_iop_hgo\sweeps\sweep_mu_iop.m,21,Robust,"options = aeDefaultSweepOptions(""Robust"");",AE,Fit,solver/API,low,preserve as historical context
+examples\acoustoelastic_iop_hgo\sweeps\ae_sweep_iop_A0Like.m,15,Robust,"options = aeDefaultSweepOptions(""Robust"");",AE,Fit,solver/API,low,preserve as historical context
+examples\acoustoelastic_iop_hgo\sweeps\ae_sweep_mu_A0Like.m,15,Robust,"options = aeDefaultSweepOptions(""Robust"");",AE,Fit,solver/API,low,preserve as historical context
+examples\acoustoelastic_iop_hgo\sweeps\ae_sweep_mu_iop_A0Like.m,21,Robust,"options = aeDefaultSweepOptions(""Robust"");",AE,Fit,solver/API,low,preserve as historical context
 examples\mrlfe\basic\compare_mrlfe_elastic_vs_visco_cp.m,22,Fast,"optionsBase = rlDefaultOptions(""Fast"");",mRLFE,Fit,solver/API,low,preserve as historical context
 examples\mrlfe\basic\run_mrlfe_prototype.m,13,Fast,"options = rlDefaultOptions(""Fast"");",mRLFE,Fit,solver/API,low,preserve as historical context
 examples\mrlfe\diagnostics\compare_mrlfe_tracker_vs_condition_peaks.m,26,Balanced,"options = rlDefaultOptions(""Balanced"");",mRLFE,Fit,diagnostic,low,preserve as historical context

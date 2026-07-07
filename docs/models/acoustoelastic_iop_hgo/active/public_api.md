@@ -84,9 +84,13 @@ The maintained fitting route uses the official `atlasA0` output only. Diagnostic
 
 ```matlab
 run_atlas_branch
-sweep_iop
-sweep_mu
-sweep_mu_iop
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
+ae_sweep_thickness_A0Like
+ae_sweep_k1_A0Like
+ae_sweep_k2_A0Like
+ae_sweep_radius_A0Like
+ae_sweep_mu_iop_A0Like
 ```
 
 ## Maintained diagnostic evidence
@@ -134,6 +138,7 @@ test_acoustoelastic_iop_hgo_short_entrypoints
 test_acoustoelastic_iop_hgo_branch_persistence_refinement
 test_ae_analyze_truncation_recovery
 test_ae_fit_synthetic_atlasA0
+test_ae_physical_sweep_examples_contract
 ```
 
 ## Maintained smoke runners
@@ -144,7 +149,7 @@ run_all_smoke_tests
 run_fit_validation_tests
 ```
 
-`run_acoustoelastic_smoke_tests` covers AE API/path contracts and the maintained AE atlasA0 fitting smoke test. `run_fit_validation_tests` covers focused synthetic fitting validation, including AE atlasA0 and AE hidden/fixed parameter cases.
+`run_acoustoelastic_smoke_tests` covers AE API/path contracts, the maintained physical-sweep source contract, and the AE atlasA0 fitting smoke test. `run_fit_validation_tests` covers focused synthetic fitting validation, including AE atlasA0 and AE hidden/fixed parameter cases.
 
 ## Policy for callers
 

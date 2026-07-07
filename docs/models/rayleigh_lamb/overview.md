@@ -78,8 +78,8 @@ and are reserved for minimal default runs without parametric sweeps.
 Current sweep scripts:
 
 ```matlab
-sweep_thickness_A0_elastic
-sweep_thickness_S0_elastic
+rl_sweep_thickness_A0
+rl_sweep_thickness_S0
 ```
 
 Sweep scripts live under:
@@ -119,8 +119,8 @@ The old top-level example folders were removed. Rayleigh-Lamb examples should re
 The maintained thickness sweep entrypoints are branch-specific:
 
 ```matlab
-sweep_thickness_A0_elastic
-sweep_thickness_S0_elastic
+rl_sweep_thickness_A0
+rl_sweep_thickness_S0
 ```
 
 They delegate reusable setup to:
@@ -139,11 +139,13 @@ It reuses the generic parametric sweep utilities:
 
 ```matlab
 runParametricSweep
+buildParametricSweepPlotData
 plotParametricSweepCp
+plotSweepCpFigure
 summarizeParametricSweepBranch
 ```
 
-This keeps the public sweep examples short while aligning Rayleigh-Lamb sweep naming and outputs with the maintained mRLFE and AE examples.
+This keeps the public sweep examples short while aligning Rayleigh-Lamb sweep naming and outputs with the maintained mRLFE and AE examples. The plotting path preserves Alternative B: `buildParametricSweepPlotData` handles Rayleigh-Lamb result extraction and fixed-parameter formatting, while `plotSweepCpFigure` only renders the neutral curves, main axes, and external information panel.
 
 ## Startup/path behavior
 

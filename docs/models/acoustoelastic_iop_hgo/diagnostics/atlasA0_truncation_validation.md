@@ -9,8 +9,8 @@ The validation focused on high-frequency truncation of the maintained `atlasA0` 
 The validated workspaces were generated from maintained short entrypoints:
 
 ```matlab
-sweep_iop
-sweep_mu
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
 diagnose_atlas_truncation
 ```
 

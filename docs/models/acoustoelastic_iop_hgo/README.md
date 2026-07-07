@@ -67,9 +67,13 @@ run_atlas_branch
 Sweeps:
 
 ```matlab
-sweep_iop
-sweep_mu
-sweep_mu_iop
+ae_sweep_iop_A0Like
+ae_sweep_mu_A0Like
+ae_sweep_thickness_A0Like
+ae_sweep_k1_A0Like
+ae_sweep_k2_A0Like
+ae_sweep_radius_A0Like
+ae_sweep_mu_iop_A0Like
 ```
 
 Maintained diagnostics:

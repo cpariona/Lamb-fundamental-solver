@@ -1,8 +1,5 @@
 function [sweepResults, sweepSummary, fig, outputFolder, figureFolder] = rlRunSweepExample(sweepName, branchName, varargin)
 %RLRUNSWEEPEXAMPLE Run a maintained Rayleigh-Lamb sweep example.
-%
-% Public scripts should define only the sweep name and branch name. Shared
-% setup, plotting, summaries, and output writing are centralized here.
 
 p = inputParser;
 addRequired(p, 'sweepName', @(x)ischar(x) || isstring(x));
@@ -33,10 +30,8 @@ fprintf('Branch: %s\n\n', char(branchName));
 sweepResults = runParametricSweep(baseParams, options, sweepSpec);
 sweepSummary = summarizeParametricSweepBranch(sweepResults, caseInfo.modelName, branchName);
 
-plotTitle = string({ ...
-    sprintf('Rayleigh-Lamb %s sensitivity to %s', char(branchName), char(caseInfo.titleParameter)); ...
-    sprintf('Elastic reference: mu = %.1f kPa', referenceMu_kPa)});
-
+plotTitle = "Rayleigh-Lamb " + branchName + ...
+    " sensitivity to " + string(caseInfo.titleParameter);
 fig = plotParametricSweepCp(sweepResults, caseInfo.modelName, branchName, ...
     'Title', plotTitle, ...
     'FrequencyScale', 1e3, ...
@@ -86,16 +81,12 @@ end
 end
 
 function [resultName, summaryName] = rlSweepWorkspaceNames(sweepName, branchName)
-sweepName = lower(string(sweepName));
-branchName = string(branchName);
-
-switch sweepName
+switch lower(string(sweepName))
     case "thickness"
         prefix = "RayleighLambThicknessSweep";
     otherwise
         error('Unsupported Rayleigh-Lamb sweepName "%s".', char(sweepName));
 end
-
-resultName = char(prefix + branchName + "Results");
-summaryName = char(prefix + branchName + "Summary");
+resultName = char(prefix + string(branchName) + "Results");
+summaryName = char(prefix + string(branchName) + "Summary");
 end

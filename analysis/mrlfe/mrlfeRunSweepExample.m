@@ -1,8 +1,5 @@
 function [sweepResults, sweepSummary, fig, outputFolder, figureFolder] = mrlfeRunSweepExample(sweepName, branchName, varargin)
 %MRLFERUNSWEEPEXAMPLE Run a maintained mRLFE sweep example.
-%
-% This helper centralizes the shared setup used by the public mRLFE sweep
-% entrypoints. Public scripts should define only the sweep and branch.
 
 p = inputParser;
 addRequired(p, 'sweepName', @(x)ischar(x) || isstring(x));
@@ -32,12 +29,10 @@ fprintf('Frequency range: %.3g Hz to %.3g kHz\n', baseParams.fmin, baseParams.fm
 fprintf('Branch: %s\n\n', char(branchName));
 
 sweepResults = runParametricSweep(baseParams, options, sweepSpec);
-sweepSummary = summarizeParametricSweepBranch(sweepResults, ...
-    caseInfo.modelName, branchName);
+sweepSummary = summarizeParametricSweepBranch(sweepResults, caseInfo.modelName, branchName);
 
-plotTitle = composeMrlfeSweepTitle(branchName, caseInfo.titleParameter, ...
-    sweepName, referenceMu_kPa, referenceEtaS, referenceThickness_mm);
-
+plotTitle = "mRLFE " + formatBranchForTitle(branchName) + ...
+    " sensitivity to " + string(caseInfo.titleParameter);
 fig = plotParametricSweepCp(sweepResults, caseInfo.modelName, branchName, ...
     'Title', plotTitle, ...
     'FrequencyScale', 1e3, ...
@@ -80,23 +75,6 @@ if logical(p.Results.AssignToBase)
 end
 end
 
-function titleText = composeMrlfeSweepTitle(branchName, titleParameter, sweepName, referenceMu_kPa, referenceEtaS, referenceThickness_mm)
-mainTitle = sprintf('mRLFE %s sensitivity to %s', ...
-    char(formatBranchForTitle(branchName)), char(titleParameter));
-
-switch lower(string(sweepName))
-    case "mu"
-        fixedText = sprintf('Fixed: etaS = %.3g Pa*s, 2h = %.1f mm', referenceEtaS, referenceThickness_mm);
-    case "thickness"
-        fixedText = sprintf('Fixed: mu = %.1f kPa, etaS = %.3g Pa*s', referenceMu_kPa, referenceEtaS);
-    otherwise
-        fixedText = sprintf('Fixed: mu = %.1f kPa, 2h = %.1f mm', ...
-            referenceMu_kPa, referenceThickness_mm);
-end
-
-titleText = string({mainTitle; fixedText});
-end
-
 function values = sweepResultsDisplayValues(sweepSpec)
 if isfield(sweepSpec, 'displayValues') && ~isempty(sweepSpec.displayValues)
     values = sweepSpec.displayValues;
@@ -106,22 +84,18 @@ end
 end
 
 function txt = formatBranchForTitle(branchName)
-branchName = string(branchName);
-switch branchName
+switch string(branchName)
     case "A0Like"
         txt = "A0-like";
     case "S0Like"
         txt = "S0-like";
     otherwise
-        txt = branchName;
+        txt = string(branchName);
 end
 end
 
 function [resultName, summaryName] = mrlfeSweepWorkspaceNames(sweepName, branchName)
-sweepName = lower(string(sweepName));
-branchName = string(branchName);
-
-switch sweepName
+switch lower(string(sweepName))
     case {"mu", "stiffness"}
         prefix = "MRLFEMuSweep";
     case "viscosity"
@@ -131,7 +105,6 @@ switch sweepName
     otherwise
         error('Unsupported mRLFE sweepName "%s".', char(sweepName));
 end
-
-resultName = char(prefix + branchName + "Results");
-summaryName = char(prefix + branchName + "Summary");
+resultName = char(prefix + string(branchName) + "Results");
+summaryName = char(prefix + string(branchName) + "Summary");
 end
