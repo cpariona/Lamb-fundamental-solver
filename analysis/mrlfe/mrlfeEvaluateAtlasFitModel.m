@@ -1,11 +1,14 @@
 function [Cp_mps, rawResult] = mrlfeEvaluateAtlasFitModel(params, frequency_Hz, branchName, solverOptions)
-%MRLFEEVALUATEATLASFITMODEL Evaluate official mRLFE atlas Cp for fitting.
+%MRLFEEVALUATEATLASFITMODEL Diagnostic/reference mRLFE atlas fitting oracle.
 %
 % [Cp_mps, rawResult] = mrlfeEvaluateAtlasFitModel(params, frequency_Hz,
 % branchName, solverOptions) evaluates A0Like or S0Like through the atlas-style
 % real-k mRLFE route and resamples the official atlas branch onto the requested
-% fitting frequencies. This is the mRLFE analogue of aeEvaluateFitModel: fitting
-% uses the atlas output surface, not diagnostic or reference-tracker branches.
+% fitting frequencies.
+%
+% This helper is not the maintained production evaluator. It is retained
+% temporarily as a diagnostic/reference oracle for characterization and
+% migration tests while FitTool fitting consumes the public mrlfeSolve API.
 
 if nargin < 3 || isempty(branchName)
     branchName = "A0Like";

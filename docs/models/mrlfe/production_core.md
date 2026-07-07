@@ -21,6 +21,20 @@ mrlfeSolve
 
 The core preserves the audited FitTool atlas-first numerical behavior without
 calling `mrlfeEvaluateAtlasFitModel`, `mrlfeEvaluateFitModel`, or GUI adapters.
+FitTool fitting now reaches this core through the public API:
+
+```text
+guiFitMRLFESolver
+  -> mrlfeFitDispersionData
+  -> mrlfeEvaluateFitModel
+  -> mrlfeBuildFitSolveRequest
+  -> mrlfeSolve
+```
+
+The fitting adapter does not select low-level trackers, fallback, or quality
+logic. It translates app input into the fitting workflow and normalizes the
+final fit result. Main GUI and SweepTool mRLFE routes are not migrated in this
+phase.
 
 ## Configuration
 
@@ -111,6 +125,14 @@ preserves diagnostic raw output. `mrlfeBuildResult` remains the public schema
 builder for units, vector orientation, invalid-value handling, execution
 metadata, termination metadata, fallback metadata, and quality metadata.
 
+FitTool fitting preserves the public `modelResult` in the compatibility-shaped
+fitting raw result. The compatibility fields still consumed by FitTool are the
+branch identity, requested frequencies, fitted Cp values, valid mask, route path
+metadata, preset metadata, and raw branch diagnostics used by full-curve
+diagnostics. New metadata comes from `mrlfeBuildResult`: requested/effective
+preset, neutral internal engine, termination policy, fallback policy/applied
+state, and quality summary.
+
 ## Remaining Transitional Dependencies
 
 The production core still calls these maintained lower-level helpers:
@@ -124,3 +146,7 @@ The production core still calls these maintained lower-level helpers:
 These dependencies are implementation details. The next migration phase should
 move or rename the lower-level helpers behind neutral model-layer names without
 changing numerical behavior.
+
+`mrlfeEvaluateAtlasFitModel` remains available only as a transitional
+diagnostic/reference oracle for characterization and migration tests. It should
+not be used as the maintained FitTool production evaluator.

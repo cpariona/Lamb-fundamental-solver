@@ -11,7 +11,8 @@ result = mrlfeSolve(request);
 ```
 
 This is an initial public contract. It preserves the currently validated
-FitTool atlas-first numerical behavior through a model-layer production core.
+FitTool numerical behavior through a model-layer production core. The maintained
+FitTool fitting path now consumes this API through `mrlfeEvaluateFitModel`.
 Old solvers and route helpers have not been removed, renamed, or migrated.
 
 ## Request
@@ -145,6 +146,33 @@ result.fallback.applied = false;
 Execution metadata reports requested preset, effective preset, internal engine,
 and elapsed seconds as distinct fields.
 
+## FitTool Fitting Use
+
+The maintained FitTool mRLFE fitting chain is:
+
+```text
+FitTool_GUI
+  -> guiFitMRLFESolver
+  -> mrlfeFitDispersionData
+  -> mrlfeEvaluateFitModel
+  -> mrlfeBuildFitSolveRequest
+  -> mrlfeSolve
+```
+
+The fitting request mapper translates the existing SI fitting parameters
+(`mu`, `etaS`, `rho`, `nu`, `thickness`, fluid density, and fluid sound speed)
+to public material, geometry, and fluid fields. The maintained fitting preset is
+public `fast`; the old internal `fast_fit_atlas` name is retained only as
+diagnostic metadata. A0Like fitting uses adaptive selection with
+`physicalTail` termination and no fallback. S0Like fitting uses adaptive
+selection with no additional termination and no fallback.
+
+Objective evaluations, automatic full-curve diagnostics, and explicit requested
+fitted-curve evaluations use the same public solver route with the final fitted
+parameters. `mrlfeEvaluateAtlasFitModel` is retained only as a
+diagnostic/reference oracle for characterization tests; it is not the maintained
+production evaluator.
+
 ## Production Core
 
 The current implementation uses this model-layer call graph:
@@ -162,8 +190,8 @@ mrlfeSolve
   -> mrlfeBuildResult
 ```
 
-The production core reproduces the audited FitTool route without calling the
-fitting evaluator:
+The production core reproduces the audited FitTool route without calling GUI
+adapters or fitting evaluators:
 
 ```text
 etaS = 0  -> zero-viscosity adaptive atlas

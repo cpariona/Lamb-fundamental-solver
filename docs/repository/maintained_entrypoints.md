@@ -301,8 +301,9 @@ mrlfeApplyTerminationPolicy
 
 This public contract is model-oriented and author-neutral. It is currently
 implemented through a model-layer production core that preserves the maintained
-FitTool atlas-first numerical behavior; older mRLFE solver and fitting helpers
-remain available during migration.
+FitTool numerical behavior. The maintained FitTool fitting path now reaches the
+core through `mrlfeEvaluateFitModel -> mrlfeBuildFitSolveRequest -> mrlfeSolve`;
+older mRLFE solver and fitting helpers remain available during migration.
 
 Main high-level function for the maintained forward workflow:
 
@@ -329,10 +330,15 @@ Maintained mRLFE fitting helpers:
 
 ```matlab
 mrlfeBuildFitProblem
+mrlfeBuildFitSolveRequest
 mrlfeEvaluateFitModel
-mrlfeEvaluateAtlasFitModel
 mrlfeFitDispersionData
 ```
+
+`mrlfeEvaluateFitModel` is the maintained production fitting evaluator and calls
+the public `mrlfeSolve` API for the default FitTool route. The retained
+`mrlfeEvaluateAtlasFitModel` helper is diagnostic/reference-only and is used for
+characterization and migration tests, not production FitTool evaluation.
 
 Maintained mRLFE real-k atlas solver helpers:
 
@@ -343,7 +349,10 @@ solveMRLFEBranchAdaptiveAtlas
 mrlfeMakePhysicalSeedMode
 ```
 
-`solveMRLFEViscoBranchAtlas` remains the direct viscous atlas route. `solveMRLFEAtlasUnified` is the unified real-k atlas route. FitTool fitting uses the atlas-first evaluator by default.
+`solveMRLFEViscoBranchAtlas` remains the direct viscous atlas route.
+`solveMRLFEAtlasUnified` is the unified real-k atlas route. FitTool fitting uses
+the public mRLFE solver by default; atlas helpers remain implementation details
+or diagnostics behind the model-layer core.
 
 Maintained sweep plotting and summaries may use the normalized model name `mRLFEViscoRealK` for etaS > 0 real-k cases.
 
@@ -429,6 +438,15 @@ test_mrlfe_fit_fast_options_quality
 test_mrlfe_etaS_fit_forward_cache
 ```
 
+Maintained mRLFE FitTool public-solver migration tests:
+
+```matlab
+run_mrlfe_fit_public_solver_tests
+test_mrlfe_fit_uses_public_solver
+test_mrlfe_fit_public_solver_characterization
+test_mrlfe_fit_public_solver_parameter_regression
+```
+
 Maintained mRLFE atlas and route-policy tests:
 
 ```matlab
@@ -488,6 +506,7 @@ run_fit_validation_tests
 Run focused mRLFE FitTool atlas validation after mRLFE fitting-route or fitted-curve changes:
 
 ```matlab
+run_mrlfe_fit_public_solver_tests
 run_mrlfe_fit_atlas_tests
 ```
 

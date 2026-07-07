@@ -3,9 +3,8 @@ function [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branc
 %
 % [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions)
 %
-% The maintained fitting path is atlas-first. By default this helper delegates
-% to mrlfeEvaluateAtlasFitModel, which evaluates the official mRLFE atlas output
-% surface in the same spirit as aeEvaluateFitModel for AE IOP/HGO fitting.
+% The maintained fitting path builds a public mRLFE request and evaluates it
+% through mrlfeSolve. Compatibility metadata is kept for FitTool diagnostics.
 %
 % The older reference/direct-viscous workflow is retained only for explicit
 % diagnostic calls with solverOptions.mrlfeUseAtlasFitRoute = false.
@@ -24,8 +23,11 @@ if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInp
     error('frequency_Hz must contain positive finite values.');
 end
 
-if localShouldUseAtlasFitRoute(solverOptions)
-    [Cp_mps, rawResult] = mrlfeEvaluateAtlasFitModel(params, frequencyInput, branchName, solverOptions);
+if localShouldUsePublicFitRoute(solverOptions)
+    request = mrlfeBuildFitSolveRequest(params, frequencyInput, branchName, solverOptions);
+    modelResult = mrlfeSolve(request);
+    Cp_mps = modelResult.phaseVelocity_mps(:);
+    rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions);
     return;
 end
 
@@ -58,11 +60,101 @@ rawResult.fitPerformanceDefaults = localBuildFitPerformanceSummary(solverOptions
 rawResult.evaluationPath = localEvaluationPathSummary(solverOptions, useDirectViscoAtlas);
 end
 
-function tf = localShouldUseAtlasFitRoute(options)
+function tf = localShouldUsePublicFitRoute(options)
 tf = logical(getOption(options, 'mrlfeUseAtlasFitRoute', true));
 if logical(getOption(options, 'mrlfeUseLegacyFitRoute', false))
     tf = false;
 end
+end
+
+function rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions)
+internal = modelResult.diagnostics.rawInternalResult;
+rawResult = struct();
+rawResult.modelFamily = "mrlfe";
+rawResult.modelName = "mRLFERealK";
+rawResult.branchName = modelResult.branch;
+rawResult.frequency_Hz = modelResult.frequency_Hz(:);
+rawResult.frequencySolve_Hz = internal.frequencySolve_Hz(:);
+rawResult.Cp_mps = modelResult.phaseVelocity_mps(:);
+rawResult.validMask = modelResult.validMask(:);
+rawResult.branch = internal.branch;
+rawResult.branchSolve = internal.branchSolve;
+rawResult.rawFullResult = internal.rawFullResult;
+rawResult.rawFullResult = localAddCompatibilityModelAliases(rawResult.rawFullResult, modelResult);
+rawResult.params = params;
+rawResult.options = localMergeReportedOptions(solverOptions, internal.options);
+rawResult.modelResult = modelResult;
+rawResult.fitPerformanceDefaults = localBuildPublicFitPerformanceSummary(modelResult);
+rawResult.evaluationPath = localPublicEvaluationPathSummary(modelResult, internal);
+end
+
+function rawFullResult = localAddCompatibilityModelAliases(rawFullResult, modelResult)
+if ~isstruct(rawFullResult) || ~isfield(rawFullResult, 'models') || ...
+        ~isfield(rawFullResult.models, 'mRLFERealK')
+    return;
+end
+
+switch string(modelResult.execution.internalEngine)
+    case "elastic_adaptive"
+        rawFullResult.models.mRLFEElasticRealK = rawFullResult.models.mRLFERealK;
+    case "viscoelastic_adaptive"
+        rawFullResult.models.mRLFEViscoRealK = rawFullResult.models.mRLFERealK;
+end
+end
+
+function options = localMergeReportedOptions(inputOptions, internalOptions)
+options = internalOptions;
+if ~isstruct(inputOptions)
+    return;
+end
+names = fieldnames(inputOptions);
+for i = 1:numel(names)
+    name = names{i};
+    if startsWith(name, 'mrlfeElasticReferenceResult')
+        options.(name) = inputOptions.(name);
+    end
+end
+end
+
+function summary = localBuildPublicFitPerformanceSummary(modelResult)
+preset = modelResult.configuration.numericalPreset;
+summary = struct();
+summary.routeFamily = "public_solver";
+summary.useFitAtlasPreset = logical(preset.useFitAtlasPreset);
+summary.preset = string(modelResult.execution.effectivePreset);
+summary.publicPreset = string(modelResult.execution.effectivePreset);
+summary.internalFitAtlasPreset = string(preset.internalFitAtlasPreset);
+summary.atlasCpScanPoints = preset.scanPoints;
+summary.a0DpCandidates = preset.candidateCount;
+summary.adaptiveWindows = preset.adaptiveWindows;
+summary.requestedPreset = string(modelResult.execution.requestedPreset);
+summary.effectivePreset = string(modelResult.execution.effectivePreset);
+end
+
+function summary = localPublicEvaluationPathSummary(modelResult, internal)
+summary = struct();
+summary.routeFamily = "atlas";
+summary.path = string(internal.executionPath.referenceOracle);
+summary.actualPath = summary.path;
+summary.expectedPath = "mrlfe_public_solver";
+summary.requestedAtlasFitRoute = true;
+summary.usedAtlasFitRoute = false;
+summary.usedPublicSolver = true;
+summary.requestedUnifiedAtlas = modelResult.configuration.parameters.etaS_Pas > 0;
+summary.usedUnifiedAtlas = modelResult.configuration.parameters.etaS_Pas > 0;
+summary.requestedDirectViscoAtlas = false;
+summary.usedDirectViscoAtlas = false;
+summary.etaS = modelResult.configuration.parameters.etaS_Pas;
+summary.mrlfeA0Policy = modelResult.termination.policy;
+summary.fitAtlasPreset = string(modelResult.configuration.numericalPreset.internalFitAtlasPreset);
+summary.internalFitAtlasPreset = string(modelResult.configuration.numericalPreset.internalFitAtlasPreset);
+summary.requestedPreset = string(modelResult.execution.requestedPreset);
+summary.effectivePreset = string(modelResult.execution.effectivePreset);
+summary.internalEngine = string(modelResult.execution.internalEngine);
+summary.terminationPolicy = string(modelResult.termination.policy);
+summary.fallbackPolicy = string(modelResult.fallback.policy);
+summary.fallbackApplied = logical(modelResult.fallback.applied);
+summary.quality = modelResult.quality;
 end
 
 function [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequency_Hz)
