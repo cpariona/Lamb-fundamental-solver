@@ -25,8 +25,7 @@ configuration.numericalPreset = preset;
 configuration.selectionStrategy = string(resolvedRequest.selection.strategy);
 configuration.terminationPolicy = string(resolvedRequest.termination.policy);
 configuration.fallbackPolicy = string(resolvedRequest.fallback.policy);
-configuration.internalEngine = ternary(etaS > 0, "mrlfeEvaluateAtlasFitModel:viscous_unified_atlas", ...
-    "mrlfeEvaluateAtlasFitModel:zero_viscosity_adaptive_atlas");
+configuration.internalEngine = ternary(etaS > 0, "viscoelastic_adaptive", "elastic_adaptive");
 configuration.request = resolvedRequest;
 configuration.parameters = publicParametersFromRequest(resolvedRequest);
 configuration.solverParams = buildSolverParams(resolvedRequest);
@@ -122,13 +121,20 @@ end
 function options = buildInternalOptions(request, preset)
 branch = string(request.branch);
 etaS = request.material.etaS_Pas;
-options = mrlfeDefaultSweepOptions(branch, ...
-    'EtaS', etaS, ...
-    'UseUnifiedAtlasRoute', true, ...
-    'A0Policy', "adaptivePhysicalTail");
+options = rlDefaultOptions("Fast");
+options.computeMRLFERealK = true;
+options.computeMRLFEElasticRealK = false;
+options.computeMRLFEViscoRealK = false;
+options.computeMRLFEComplexK = false;
+options.mrlfeUseAtlasFitRoute = true;
+options.mrlfeA0Policy = "adaptivePhysicalTail";
+options.mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams.fluidDensity = request.fluid.density_kgm3;
 options.mrlfeParams.fluidSoundSpeed = request.fluid.soundSpeed_mps;
-options.mrlfeUseAtlasFitRoute = true;
+options.mrlfeParams.etaS = etaS;
+options.mrlfeParams.etaL = 0;
+options.mrlfeParams.useComplexLambda = false;
+options.mrlfeParams.solveComplexK = false;
 options.mrlfeUseFitAtlasPreset = preset.useFitAtlasPreset;
 options.mrlfeFitAtlasPreset = preset.internalFitAtlasPreset;
 options.mrlfeFitAtlasCpScanPoints = preset.scanPoints;
@@ -142,6 +148,19 @@ options.mrlfeA0DPRefineCandidates = preset.refineCandidates;
 options.mrlfeAdaptiveRefineCandidates = preset.refineCandidates;
 options.mrlfeAdaptiveWindows = preset.adaptiveWindows;
 options.mrlfeUseA0PhysicalTailCut = string(request.termination.policy) == "physicalTail";
+
+switch branch
+    case "A0Like"
+        options.computeA0 = true;
+        options.computeS0 = false;
+        options.mrlfeComputeA0Like = true;
+        options.mrlfeComputeS0Like = false;
+    case "S0Like"
+        options.computeA0 = false;
+        options.computeS0 = true;
+        options.mrlfeComputeA0Like = false;
+        options.mrlfeComputeS0Like = true;
+end
 end
 
 function out = ternary(condition, a, b)

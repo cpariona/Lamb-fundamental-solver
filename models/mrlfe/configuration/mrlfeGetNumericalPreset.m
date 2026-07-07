@@ -10,7 +10,7 @@ switch name
     case "fast"
         preset = struct();
         preset.name = "fast";
-        preset.description = "Reduced atlas preset matching the maintained FitTool fast-atlas route.";
+        preset.description = "Reduced adaptive preset matching the maintained fast production route.";
         preset.scanPoints = 260;
         preset.candidateCount = 5;
         preset.refineCandidates = false;

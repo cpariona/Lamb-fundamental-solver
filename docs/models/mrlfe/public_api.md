@@ -11,9 +11,8 @@ result = mrlfeSolve(request);
 ```
 
 This is an initial public contract. It preserves the currently validated
-FitTool atlas-first numerical behavior through an internal transitional
-dependency on `mrlfeEvaluateAtlasFitModel`; old solvers and route helpers have
-not been removed, renamed, or migrated.
+FitTool atlas-first numerical behavior through a model-layer production core.
+Old solvers and route helpers have not been removed, renamed, or migrated.
 
 ## Request
 
@@ -146,17 +145,39 @@ result.fallback.applied = false;
 Execution metadata reports requested preset, effective preset, internal engine,
 and elapsed seconds as distinct fields.
 
-## Transitional State
+## Production Core
 
-The current implementation delegates internally to the maintained atlas fitting
-evaluator to reproduce the audited FitTool route:
+The current implementation uses this model-layer call graph:
+
+```text
+mrlfeSolve
+  -> mrlfeResolveConfiguration
+  -> mrlfeBuildProblem
+  -> mrlfeSolveBranch
+       -> mrlfeSolveElasticBranch
+       -> mrlfeSolveViscoelasticBranch
+       -> mrlfeBuildSeed
+       -> mrlfeTrackBranchAdaptive
+       -> mrlfeApplyTerminationPolicy
+  -> mrlfeBuildResult
+```
+
+The production core reproduces the audited FitTool route without calling the
+fitting evaluator:
 
 ```text
 etaS = 0  -> zero-viscosity adaptive atlas
 etaS > 0  -> viscous unified atlas
 ```
 
-This is temporary technical debt. The next migration phase should extract the
-atlas-first route into model-layer implementation helpers that no longer carry
-fitting-route names, then update existing app and analysis consumers to call the
-new public contract deliberately.
+The effective public engine names are neutral:
+
+```text
+elastic_adaptive
+viscoelastic_adaptive
+```
+
+The production core still uses lower-level maintained mRLFE helpers for seed
+construction, adaptive tracking, and A0 physical-tail cutting. Those remaining
+dependencies are transitional implementation details, not public request or
+result concepts.

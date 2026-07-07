@@ -290,11 +290,19 @@ mrlfeResolveConfiguration
 mrlfeGetNumericalPreset
 mrlfeBuildResult
 mrlfeEvaluateBranchQuality
+mrlfeBuildProblem
+mrlfeSolveBranch
+mrlfeSolveElasticBranch
+mrlfeSolveViscoelasticBranch
+mrlfeBuildSeed
+mrlfeTrackBranchAdaptive
+mrlfeApplyTerminationPolicy
 ```
 
 This public contract is model-oriented and author-neutral. It is currently
-implemented as a transitional facade over the maintained FitTool atlas-first
-route; older mRLFE solver and fitting helpers remain available during migration.
+implemented through a model-layer production core that preserves the maintained
+FitTool atlas-first numerical behavior; older mRLFE solver and fitting helpers
+remain available during migration.
 
 Main high-level function for the maintained forward workflow:
 
@@ -401,6 +409,7 @@ Maintained mRLFE model-family tests:
 
 ```matlab
 run_mrlfe_public_contract_tests
+run_mrlfe_production_core_tests
 test_mrlfe_smoke
 test_mrlfe_etaS_zero_limit
 test_mrlfe_elastic_reference_buffer
