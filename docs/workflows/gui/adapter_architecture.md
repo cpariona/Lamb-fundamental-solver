@@ -114,6 +114,20 @@ guiRun<ModelFamily>Sweep
 guiNormalize<ModelFamily>Sweep
 ```
 
+The maintained mRLFE SweepTool adapter is model-API based:
+
+```text
+guiRunMRLFESweep
+    -> mrlfeBuildSweepSolveRequest
+    -> mrlfeSolve, once per sweep point
+    -> guiNormalizeMRLFESweep
+```
+
+It does not call `guiRunMRLFEModel`, choose adaptive versus modal trackers,
+inspect atlas candidates, or apply Main GUI fallback. The per-point public
+`modelResult` remains available under `rawResults.points{i}.modelResult`, while
+the normalized curve schema remains the plotting contract.
+
 ### Normalized sweep curve schema
 
 `guiPlotSweepResult` expects:
@@ -124,6 +138,10 @@ normalized.curves(i).frequency_Hz
 normalized.curves(i).Cp_mps
 normalized.curves(i).validMask
 normalized.curves(i).lastValidFrequency_Hz
+normalized.curves(i).modelResult
+normalized.curves(i).status
+normalized.curves(i).errorIdentifier
+normalized.curves(i).errorMessage
 normalized.summaryTable
 ```
 

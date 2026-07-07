@@ -96,7 +96,7 @@ setGridPosition(robustnessDrop, row, [1 2]);
 row = row + 1;
 addLabel(cg, row, [1 2], 'mRLFE A0 atlas policy');
 row = row + 1;
-a0PolicyDrop = uidropdown(cg, 'Items', {'delayedCut', 'adaptivePhysicalTail'}, 'Value', 'delayedCut');
+a0PolicyDrop = uidropdown(cg, 'Items', {'adaptivePhysicalTail', 'delayedCut'}, 'Value', 'adaptivePhysicalTail');
 setGridPosition(a0PolicyDrop, row, [1 2]);
 
 row = row + 1;
@@ -299,7 +299,10 @@ updateFamilySpecificControls();
             extra(end+1) = "actual route: " + string(metadata.actualRoute);
         end
         if isfield(sweepOutput, 'atlasPolicy')
-            extra(end+1) = "A0 policy: " + string(sweepOutput.atlasPolicy.mrlfeA0Policy);
+            extra(end+1) = "requested A0 policy: " + string(sweepOutput.atlasPolicy.mrlfeA0Policy);
+            if isfield(sweepOutput.atlasPolicy, 'effectiveA0Policy')
+                extra(end+1) = "effective A0 policy: " + string(sweepOutput.atlasPolicy.effectiveA0Policy);
+            end
         end
         if isfield(metadata, 'fallback')
             extra(end+1) = "fallback: " + string(logical(metadata.fallback));

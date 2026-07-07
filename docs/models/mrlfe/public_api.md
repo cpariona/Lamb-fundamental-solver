@@ -13,6 +13,8 @@ result = mrlfeSolve(request);
 This is an initial public contract. It preserves the currently validated
 FitTool numerical behavior through a model-layer production core. The maintained
 FitTool fitting path now consumes this API through `mrlfeEvaluateFitModel`.
+The maintained SweepTool mRLFE path consumes the same API once per sweep point
+through `guiRunMRLFESweep`.
 Old solvers and route helpers have not been removed, renamed, or migrated.
 
 ## Request
@@ -172,6 +174,32 @@ fitted-curve evaluations use the same public solver route with the final fitted
 parameters. `mrlfeEvaluateAtlasFitModel` is retained only as a
 diagnostic/reference oracle for characterization tests; it is not the maintained
 production evaluator.
+
+## SweepTool Use
+
+The maintained SweepTool mRLFE chain is:
+
+```text
+SweepTool_GUI
+  -> guiBuildSweepRequest
+  -> guiRunSweep
+  -> guiRunMRLFESweep
+  -> mrlfeBuildSweepSolveRequest
+  -> mrlfeSolve, once per sweep point
+```
+
+The sweep request mapper translates current SweepTool SI parameters (`mu`,
+`etaS`, `rho`, `nu`, `thickness`, fluid density, and fluid sound speed) to the
+public material, geometry, and fluid fields. The maintained SweepTool preset is
+public `fast`. A0Like sweeps use adaptive selection with `physicalTail`
+termination and no fallback. S0Like sweeps use adaptive selection with no
+additional termination and no fallback.
+
+SweepTool no longer delegates mRLFE solving to `guiRunMRLFEModel` and no longer
+inherits Main GUI zero-viscosity fallback. Each point stores the full public
+model result under `rawResults.points{i}.modelResult`; aggregate sweep metadata
+reports all unique effective engines, presets, termination policies, and
+fallback policies represented by the points.
 
 ## Production Core
 

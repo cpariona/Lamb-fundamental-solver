@@ -33,8 +33,20 @@ guiFitMRLFESolver
 
 The fitting adapter does not select low-level trackers, fallback, or quality
 logic. It translates app input into the fitting workflow and normalizes the
-final fit result. Main GUI and SweepTool mRLFE routes are not migrated in this
-phase.
+final fit result.
+
+SweepTool mRLFE forward sweeps also reach this core through the public API:
+
+```text
+guiRunMRLFESweep
+  -> mrlfeBuildSweepSolveRequest
+  -> mrlfeSolve, once per sweep point
+```
+
+The sweep adapter translates each point into a public model request and
+normalizes point and aggregate metadata. It does not call the Main GUI adapter,
+select low-level trackers, or apply fallback. Main GUI mRLFE solving is not
+migrated in this phase.
 
 ## Configuration
 
@@ -132,6 +144,13 @@ metadata, preset metadata, and raw branch diagnostics used by full-curve
 diagnostics. New metadata comes from `mrlfeBuildResult`: requested/effective
 preset, neutral internal engine, termination policy, fallback policy/applied
 state, and quality summary.
+
+SweepTool stores the same public `modelResult` for each sweep point. Aggregate
+sweep metadata reports unique effective presets, engines, termination policies,
+and fallback policies across all points, plus point counts and failure counts,
+instead of reporting one point's route as sweep-wide state. The maintained
+SweepTool route uses the public `fast` preset, adaptive selection, no fallback,
+`physicalTail` termination for A0Like, and `none` termination for S0Like.
 
 ## Remaining Transitional Dependencies
 
