@@ -102,15 +102,17 @@ provided by the caller.
 
 ### mRLFE
 
-mRLFE intentionally remains mapped to maintained fast atlas routes:
+mRLFE intentionally remains mapped to the maintained public `fast` production
+preset on Main GUI, SweepTool, and FitTool. Historical atlas preset names remain
+diagnostic implementation metadata for legacy references and fitting oracles.
 
-| Surface | Scenario | Requested | Effective | Internal atlas preset | Route |
+| Surface | Scenario | Requested | Effective | Public preset | Route / engine |
 | --- | --- | --- | --- | --- | --- |
-| Main | `etaS = 0` | `Fast` | `Fast` | `fast_zero_viscosity_adaptive` | `zero_viscosity_adaptive_atlas` or fallback |
-| Main | `etaS > 0` | `Fast` | `Fast` | `fast_viscous` | `viscous_unified_atlas` |
-| SweepTool | `etaS = 0` | non-Fast | `Fast` | `fast_zero_viscosity_adaptive` | `adaptivePhysicalTail` route policy |
-| SweepTool | `etaS > 0` | non-Fast | `Fast` | `fast_viscous` | `adaptivePhysicalTail` route policy |
-| FitTool | any mRLFE fit scenario | non-Fast | `Fast` | `fast_fit_atlas` | actual atlas evaluation path |
+| Main | `etaS = 0` | non-Fast | `Fast` | `fast` | `elastic_adaptive`, fallback none |
+| Main | `etaS > 0` | non-Fast | `Fast` | `fast` | `viscoelastic_adaptive`, fallback none |
+| SweepTool | `etaS = 0` | non-Fast | `Fast` | `fast` | `elastic_adaptive`, fallback none |
+| SweepTool | `etaS > 0` | non-Fast | `Fast` | `fast` | `viscoelastic_adaptive`, fallback none |
+| FitTool | any mRLFE fit scenario | non-Fast | `Fast` | `fast` | public solver; legacy path metadata may remain diagnostic |
 
 Non-Fast mRLFE requests are not errors. They are explicit mapped cases with:
 

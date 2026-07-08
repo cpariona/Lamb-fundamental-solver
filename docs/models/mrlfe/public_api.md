@@ -11,10 +11,11 @@ result = mrlfeSolve(request);
 ```
 
 This is an initial public contract. It preserves the currently validated
-FitTool numerical behavior through a model-layer production core. The maintained
-FitTool fitting path now consumes this API through `mrlfeEvaluateFitModel`.
-The maintained SweepTool mRLFE path consumes the same API once per sweep point
-through `guiRunMRLFESweep`.
+FitTool numerical behavior through a model-layer production core. Main GUI
+forward solving, FitTool fitting, and SweepTool sweeps now consume this API.
+The maintained FitTool fitting path consumes this API through
+`mrlfeEvaluateFitModel`. The maintained SweepTool mRLFE path consumes the same
+API once per sweep point through `guiRunMRLFESweep`.
 Old solvers and route helpers have not been removed, renamed, or migrated.
 
 ## Request
@@ -147,6 +148,31 @@ result.fallback.applied = false;
 
 Execution metadata reports requested preset, effective preset, internal engine,
 and elapsed seconds as distinct fields.
+
+## Main GUI Use
+
+The maintained Main GUI mRLFE chain is:
+
+```text
+LambFundamental_GUI
+  -> guiRunMRLFEModel
+  -> mrlfeBuildGuiSolveRequest
+  -> mrlfeSolve
+  -> GUI result adapter
+```
+
+The GUI request mapper translates the current Main GUI SI parameters (`mu`,
+`etaS`, `rho`, `nu`, `thickness`, fluid density, fluid sound speed, frequency
+grid, and branch toggles) to the public material, geometry, and fluid fields.
+The maintained Main GUI preset is public `fast`. A0Like uses adaptive
+selection with `physicalTail` termination and no fallback. S0Like uses adaptive
+selection with no additional termination and no fallback.
+
+Main GUI no longer contains mRLFE seed construction, low-level tracker
+selection, atlas candidate inspection, physical-tail cutting, or zero-viscosity
+fallback logic. Partial-quality public results are returned and reported with
+their `quality.accepted` and `quality.reason` metadata; the GUI does not replace
+them with a legacy branch.
 
 ## FitTool Fitting Use
 

@@ -331,6 +331,7 @@ Maintained mRLFE fitting helpers:
 ```matlab
 mrlfeBuildFitProblem
 mrlfeBuildFitSolveRequest
+mrlfeBuildGuiSolveRequest
 mrlfeBuildSweepSolveRequest
 mrlfeEvaluateFitModel
 mrlfeFitDispersionData
@@ -346,6 +347,10 @@ calls the public `mrlfeSolve` API once per sweep point through
 `mrlfeBuildSweepSolveRequest`. SweepTool no longer delegates mRLFE solving to
 the Main GUI adapter, and the maintained sweep route does not apply legacy
 zero-viscosity fallback.
+
+`guiRunMRLFEModel` is the maintained production Main GUI mRLFE adapter and calls
+the public `mrlfeSolve` API through `mrlfeBuildGuiSolveRequest`. Main GUI no
+longer contains low-level mRLFE solver selection or zero-viscosity fallback.
 
 Maintained mRLFE real-k atlas solver helpers:
 
@@ -461,6 +466,16 @@ run_mrlfe_sweeptool_public_solver_tests
 test_mrlfe_sweep_uses_public_solver
 test_mrlfe_sweep_point_characterization
 test_mrlfe_sweep_metadata_and_mapping
+```
+
+Maintained mRLFE Main GUI public-solver migration tests:
+
+```matlab
+run_mrlfe_main_gui_public_solver_tests
+test_mrlfe_main_gui_uses_public_solver
+test_mrlfe_main_gui_characterization
+test_mrlfe_main_gui_consumer_equivalence
+test_mrlfe_main_gui_result_contract
 ```
 
 Maintained mRLFE atlas and route-policy tests:

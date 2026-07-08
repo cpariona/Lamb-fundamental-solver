@@ -1,5 +1,10 @@
 # mRLFE atlas policy GUI integration
 
+> Historical note: Main GUI, SweepTool, and FitTool maintained mRLFE production
+> routes now use the public `mrlfeSolve` API. The atlas-route details in this
+> document are retained for diagnostics, migration tests, and cleanup planning.
+> They are not the maintained Main GUI production route.
+
 This document records the GUI-facing integration of the real-k mRLFE atlas routes.
 
 ## Scope

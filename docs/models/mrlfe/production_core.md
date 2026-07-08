@@ -21,6 +21,18 @@ mrlfeSolve
 
 The core preserves the audited FitTool atlas-first numerical behavior without
 calling `mrlfeEvaluateAtlasFitModel`, `mrlfeEvaluateFitModel`, or GUI adapters.
+Main GUI forward solving reaches this core through the public API:
+
+```text
+guiRunMRLFEModel
+  -> mrlfeBuildGuiSolveRequest
+  -> mrlfeSolve
+```
+
+The Main GUI adapter translates app input and adapts the public result for
+plotting/export compatibility. It does not select low-level trackers, apply
+physical-tail cuts, or perform zero-viscosity fallback.
+
 FitTool fitting now reaches this core through the public API:
 
 ```text
@@ -45,8 +57,7 @@ guiRunMRLFESweep
 
 The sweep adapter translates each point into a public model request and
 normalizes point and aggregate metadata. It does not call the Main GUI adapter,
-select low-level trackers, or apply fallback. Main GUI mRLFE solving is not
-migrated in this phase.
+select low-level trackers, or apply fallback.
 
 ## Configuration
 
@@ -144,6 +155,13 @@ metadata, preset metadata, and raw branch diagnostics used by full-curve
 diagnostics. New metadata comes from `mrlfeBuildResult`: requested/effective
 preset, neutral internal engine, termination policy, fallback policy/applied
 state, and quality summary.
+
+Main GUI preserves the public `modelResult` for each requested visible branch
+under normalized metadata. Its compatibility raw result keeps the existing
+`models.mRLFERealK.branches.<branch>` shape required by normalized plotting,
+workspace inspection, and compact exports, but the branch data is adapted from
+`mrlfeBuildResult` output. Partial-quality results remain visible and are
+reported with neutral status metadata instead of being replaced by fallback.
 
 SweepTool stores the same public `modelResult` for each sweep point. Aggregate
 sweep metadata reports unique effective presets, engines, termination policies,

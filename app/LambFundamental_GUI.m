@@ -702,6 +702,21 @@ updateAxisFieldState();
             md = lastGuiResult.metadata;
             if isfield(md, 'executionProfile')
                 profileExtra = strings(0, 1);
+                if isfield(md, 'status')
+                    profileExtra(end+1) = "status: " + string(md.status);
+                end
+                if isfield(md, 'execution') && isstruct(md.execution)
+                    profileExtra = appendExecutionSummary(profileExtra, md.execution);
+                end
+                if isfield(md, 'termination') && isstruct(md.termination)
+                    profileExtra = appendPolicySummary(profileExtra, "termination", md.termination, "policy");
+                end
+                if isfield(md, 'fallback') && isstruct(md.fallback)
+                    profileExtra = appendPolicySummary(profileExtra, "fallback", md.fallback, "policy");
+                end
+                if isfield(md, 'quality') && isstruct(md.quality)
+                    profileExtra = appendQualitySummary(profileExtra, md.quality);
+                end
                 if isfield(md, 'mrlfeA0Policy')
                     profileExtra(end+1) = "A0 policy: " + string(md.mrlfeA0Policy);
                 end
@@ -824,8 +839,57 @@ updateAxisFieldState();
 
     function fallback = getMainFallbackText(md)
         fallback = "";
+        if isfield(md, 'executionProfile') && isfield(md.executionProfile, 'anyFallbackApplied')
+            fallback = string(logical(md.executionProfile.anyFallbackApplied));
+            return;
+        end
         if isfield(md, 'mrlfeZeroViscosityAdaptiveFallback')
             fallback = string(logical(md.mrlfeZeroViscosityAdaptiveFallback));
+        end
+    end
+
+    function linesOut = appendExecutionSummary(linesIn, execution)
+        linesOut = linesIn;
+        names = fieldnames(execution);
+        for iExec = 1:numel(names)
+            name = string(names{iExec});
+            value = execution.(char(name));
+            if isstruct(value) && isfield(value, 'internalEngine')
+                linesOut(end+1) = name + " engine: " + string(value.internalEngine);
+            end
+            if isstruct(value) && isfield(value, 'effectivePreset')
+                linesOut(end+1) = name + " preset: " + string(value.effectivePreset);
+            end
+        end
+    end
+
+    function linesOut = appendPolicySummary(linesIn, label, policies, fieldName)
+        linesOut = linesIn;
+        names = fieldnames(policies);
+        for iPolicy = 1:numel(names)
+            name = string(names{iPolicy});
+            value = policies.(char(name));
+            if isstruct(value) && isfield(value, fieldName)
+                linesOut(end+1) = name + " " + label + ": " + string(value.(fieldName));
+            end
+            if label == "fallback" && isstruct(value) && isfield(value, 'applied')
+                linesOut(end+1) = name + " fallback applied: " + string(logical(value.applied));
+            end
+        end
+    end
+
+    function linesOut = appendQualitySummary(linesIn, quality)
+        linesOut = linesIn;
+        names = fieldnames(quality);
+        for iQuality = 1:numel(names)
+            name = string(names{iQuality});
+            value = quality.(char(name));
+            if isstruct(value) && isfield(value, 'accepted')
+                linesOut(end+1) = name + " quality accepted: " + string(logical(value.accepted));
+            end
+            if isstruct(value) && isfield(value, 'reason')
+                linesOut(end+1) = name + " quality reason: " + string(value.reason);
+            end
         end
     end
 

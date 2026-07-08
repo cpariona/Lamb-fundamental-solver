@@ -38,6 +38,20 @@ lastGuiResult
 
 `lastResults` is kept for compatibility and diagnostics. `lastGuiResult` is the preferred GUI-facing structure for plotting and export.
 
+The maintained Main GUI mRLFE adapter is model-API based:
+
+```text
+guiRunMRLFEModel
+    -> mrlfeBuildGuiSolveRequest
+    -> mrlfeSolve
+    -> GUI result adapter
+```
+
+It does not call legacy mRLFE solver entrypoints, choose low-level trackers,
+apply physical-tail cutting directly, or perform zero-viscosity fallback.
+Partial-quality branches remain visible and are reported through neutral
+quality/status metadata.
+
 ### Main GUI export
 
 `LambFundamental_GUI` exports only the normalized GUI-visible curves and the
@@ -243,7 +257,9 @@ Model-specific route metadata should remain visible through normalized route/sta
 
 ## mRLFE atlas policy integration
 
-The mRLFE GUI path exposes the unified real-k atlas route and A0 policy selector through adapters rather than by calling solver internals directly.
+The mRLFE GUI path now uses the public production API. Historical atlas-route
+documentation is retained for diagnostics and cleanup planning rather than as
+the maintained Main GUI production route.
 
 The integration contract is documented in:
 
@@ -251,7 +267,7 @@ The integration contract is documented in:
 docs/workflows/gui/mrlfe_atlas_policy_integration.md
 ```
 
-The maintained GUI-facing mRLFE policy fields are:
+The historical GUI-facing mRLFE policy fields are:
 
 ```matlab
 mrlfeUseUnifiedAtlasRoute
@@ -276,6 +292,10 @@ For A0Like FitTool fitting, the current default is:
 ```matlab
 "adaptivePhysicalTail"
 ```
+
+For maintained Main GUI, SweepTool, and FitTool production routes, the public
+request policy is `physicalTail` for A0Like and `none` for S0Like, with
+`fallback.policy = "none"`.
 
 ## Validation
 
