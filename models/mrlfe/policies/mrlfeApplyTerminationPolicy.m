@@ -8,7 +8,7 @@ branchOut.terminationPolicy = policy;
 switch policy
     case "physicalTail"
         if configuration.branch == "A0Like"
-            branchOut = mrlfeApplyPhysicalCorridorCut(branchOut, seed.Cp, seed.frequency, ...
+            branchOut = mrlfeEvaluatePhysicalTail(branchOut, seed.Cp, seed.frequency, ...
                 makePhysicalTailOptions(configuration.internalOptions));
         end
     case "none"

@@ -34,11 +34,11 @@ out.branches = struct();
 out.atlasUnified = struct('usesElasticMRLFEReference', false, 'seedStrategy', "RayleighLambOrPhysicalSynthetic", 'isViscous', isViscous);
 
 if computeA0
-    seedA0 = mrlfeMakePhysicalSeedMode("A0Like", frequency, material, geometry, seedModes);
+    seedA0 = buildNeutralSeed("A0Like", frequency, material, geometry, seedModes);
     out.branches.A0Like = solveOneAtlasBranch("A0Like", seedA0, material, geometry, mrlfeParams, options, isViscous);
 end
 if computeS0
-    seedS0 = mrlfeMakePhysicalSeedMode("S0Like", frequency, material, geometry, seedModes);
+    seedS0 = buildNeutralSeed("S0Like", frequency, material, geometry, seedModes);
     out.branches.S0Like = solveOneAtlasBranch("S0Like", seedS0, material, geometry, mrlfeParams, options, isViscous);
 end
 
@@ -49,14 +49,14 @@ function branch = solveOneAtlasBranch(branchName, seedMode, material, geometry, 
 if isViscous
     opt = makeViscousOptions(branchName, options);
     if string(branchName) == "A0Like" && string(opt.mrlfeA0Policy) == "adaptivePhysicalTail"
-        branch = solveMRLFEBranchAdaptiveAtlas(branchName, seedMode, material, geometry, mrlfeParams, opt);
+        branch = trackNeutralBranch(branchName, seedMode, material, geometry, mrlfeParams, opt);
         branch.atlasUnifiedPolicy = "viscousA0AdaptivePhysicalTailCut";
         if getOption(opt, 'mrlfeUseA0PhysicalTailCut', true)
             corridorOptions = makeA0PhysicalTailCutOptions(opt);
-            branch = mrlfeApplyPhysicalCorridorCut(branch, seedMode.Cp, seedMode.frequency, corridorOptions);
+            branch = mrlfeEvaluatePhysicalTail(branch, seedMode.Cp, seedMode.frequency, corridorOptions);
         end
     elseif string(branchName) == "S0Like" && getOption(opt, 'mrlfeUseAdaptiveS0AtlasTracker', true)
-        branch = solveMRLFEBranchAdaptiveAtlas(branchName, seedMode, material, geometry, mrlfeParams, opt);
+        branch = trackNeutralBranch(branchName, seedMode, material, geometry, mrlfeParams, opt);
         branch.atlasUnifiedPolicy = "viscousS0AdaptiveContinuation";
     else
         branch = solveMRLFEViscoBranchAtlas(branchName, seedMode, material, geometry, mrlfeParams, opt);
@@ -77,6 +77,22 @@ else
 end
 branch.solverRoute = "atlasUnified";
 branch.seedMode = seedMode;
+end
+
+function seed = buildNeutralSeed(branchName, frequency, material, geometry, seedModes)
+problem = struct( ...
+    'frequencySolve_Hz', frequency(:), ...
+    'material', material, ...
+    'geometry', geometry, ...
+    'seedModes', seedModes);
+configuration = struct('branch', string(branchName));
+seed = mrlfeBuildSeed(problem, configuration);
+end
+
+function branch = trackNeutralBranch(branchName, seedMode, material, geometry, mrlfeParams, options)
+problem = struct('material', material, 'geometry', geometry);
+configuration = struct('branch', string(branchName));
+branch = mrlfeTrackBranchAdaptive(problem, seedMode, configuration, mrlfeParams, options);
 end
 
 function opt = makeElasticOptions(branchName, options)

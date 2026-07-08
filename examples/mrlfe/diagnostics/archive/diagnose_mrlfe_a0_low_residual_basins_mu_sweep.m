@@ -25,9 +25,8 @@ for iMu = 1:numel(muValues)
     [params, material, geometry, frequency, seedModes, mrlfeParams] = buildCase(mu);
 
     directResult = computeMRLFE(frequency, material, geometry, seedModes, mrlfeParams, makeDirectOptions());
-    adaptiveA0 = solveMRLFEBranchAdaptiveAtlas("A0Like", ...
-        mrlfeMakePhysicalSeedMode("A0Like", frequency, material, geometry, seedModes), ...
-        material, geometry, mrlfeParams, makeA0AdaptiveOptions());
+    seedA0 = buildNeutralSeed("A0Like", frequency, material, geometry, seedModes);
+    adaptiveA0 = trackNeutralBranch("A0Like", seedA0, material, geometry, mrlfeParams, makeA0AdaptiveOptions());
 
     selectedFreq = selectProbeFrequencies(frequency, directResult.branches.A0Like, adaptiveA0, probeFrequenciesHz);
     caseResults{iMu} = struct('params', params, 'frequency', frequency, ...
@@ -143,6 +142,19 @@ options.mrlfeAdaptiveResidualWeight = 0.45;
 options.mrlfeAdaptiveEstablishedMinValidRun = 8;
 options.mrlfeAdaptiveCutAfterEstablishedLoss = true;
 options.mrlfeResidualTolerance = 1e-3;
+end
+
+function seed = buildNeutralSeed(branchName, frequency, material, geometry, seedModes)
+problem = struct('frequencySolve_Hz', frequency(:), ...
+    'material', material, 'geometry', geometry, 'seedModes', seedModes);
+configuration = struct('branch', string(branchName));
+seed = mrlfeBuildSeed(problem, configuration);
+end
+
+function branch = trackNeutralBranch(branchName, seedMode, material, geometry, mrlfeParams, options)
+problem = struct('material', material, 'geometry', geometry);
+configuration = struct('branch', string(branchName));
+branch = mrlfeTrackBranchAdaptive(problem, seedMode, configuration, mrlfeParams, options);
 end
 
 function selectedFreq = selectProbeFrequencies(frequency, directA0, adaptiveA0, probeFrequenciesHz)

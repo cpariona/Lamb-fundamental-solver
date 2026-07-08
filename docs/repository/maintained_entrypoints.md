@@ -322,7 +322,7 @@ summarizeMRLFETrackingQuality
 compareMRLFETrackingStrategies
 compareMRLFEAtlasPolicy
 mrlfeApplyDelayedViscoModalCut
-mrlfeApplyPhysicalCorridorCut
+mrlfeEvaluatePhysicalTail
 mrlfeMakeDirectViscoAtlasBranchOptions
 ```
 
@@ -357,8 +357,8 @@ Maintained mRLFE real-k atlas solver helpers:
 ```matlab
 solveMRLFEViscoBranchAtlas
 solveMRLFEAtlasUnified
-solveMRLFEBranchAdaptiveAtlas
-mrlfeMakePhysicalSeedMode
+mrlfeTrackBranchAdaptive
+mrlfeBuildSeed
 ```
 
 `solveMRLFEViscoBranchAtlas` remains the direct viscous atlas route.

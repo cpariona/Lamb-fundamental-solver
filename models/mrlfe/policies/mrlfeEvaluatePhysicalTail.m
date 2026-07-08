@@ -1,11 +1,5 @@
-function branchOut = mrlfeApplyPhysicalCorridorCut(branchIn, guideCp, frequency, options)
-%MRLFEAPPLYPHYSICALCORRIDORCUT Conditionally cut a branch when it collapses.
-%
-% The guide is usually dry RL-A0. The policy is deliberately not a pointwise
-% filter: mRLFE may be slower than RL because of water loading and loss. The
-% branch is cut only when it leaves the guide-ratio corridor and simultaneously
-% shows a strong local downward trend, which is interpreted as collapse into a
-% different low-Cp mathematical/leaky root.
+function branchOut = mrlfeEvaluatePhysicalTail(branchIn, guideCp, frequency, options)
+%MRLFEEVALUATEPHYSICALTAIL Apply the maintained A0 physical-tail cut.
 
 if nargin < 4
     options = struct();

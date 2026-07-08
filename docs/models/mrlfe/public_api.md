@@ -16,7 +16,9 @@ forward solving, FitTool fitting, and SweepTool sweeps now consume this API.
 The maintained FitTool fitting path consumes this API through
 `mrlfeEvaluateFitModel`. The maintained SweepTool mRLFE path consumes the same
 API once per sweep point through `guiRunMRLFESweep`.
-Old solvers and route helpers have not been removed, renamed, or migrated.
+Broad legacy solvers and diagnostic route helpers still exist outside the
+public production core. The maintained seed, adaptive tracker, and physical-tail
+implementations now live behind neutral model-layer names.
 
 ## Request
 
@@ -148,6 +150,17 @@ result.fallback.applied = false;
 
 Execution metadata reports requested preset, effective preset, internal engine,
 and elapsed seconds as distinct fields.
+
+The production implementation path is neutral:
+
+```text
+mrlfeSolve
+  -> mrlfeBuildProblem
+  -> mrlfeBuildSeed
+  -> mrlfeTrackBranchAdaptive
+  -> mrlfeApplyTerminationPolicy
+  -> mrlfeBuildResult
+```
 
 ## Main GUI Use
 

@@ -125,9 +125,9 @@ maintained dense adaptive windows.
 ## Tracking
 
 `mrlfeTrackBranchAdaptive` is the neutral production entry point for adaptive
-tracking. It currently delegates to the maintained lower-level adaptive tracker
-to avoid duplicating the numerical algorithm while the public architecture is
-being separated.
+tracking. The maintained candidate generation, prediction, residual scoring,
+candidate selection, validity decisions, and adaptive continuation diagnostics
+now live behind this neutral model-layer name.
 
 ## Termination
 
@@ -140,6 +140,11 @@ continuity    preserves existing adaptive-continuation semantics
 ```
 
 No fallback occurs in termination policy handling.
+
+The A0 physical-tail evaluation is implemented by
+`mrlfeEvaluatePhysicalTail`, a neutral production helper called only through
+`mrlfeApplyTerminationPolicy`. The policy name remains `physicalTail`; no
+`physicalCorridor` public policy is exposed.
 
 ## Result Construction
 
@@ -170,19 +175,22 @@ instead of reporting one point's route as sweep-wide state. The maintained
 SweepTool route uses the public `fast` preset, adaptive selection, no fallback,
 `physicalTail` termination for A0Like, and `none` termination for S0Like.
 
-## Remaining Transitional Dependencies
+## Neutralized Helper Dependencies
 
-The production core still calls these maintained lower-level helpers:
+The maintained production core no longer depends on the historically named
+seed, adaptive tracker, or A0 tail-cut helpers. Their maintained implementations
+now reside behind:
 
-| Responsibility | Current helper |
-| --- | --- |
-| Seed construction logic | `mrlfeMakePhysicalSeedMode` |
-| Adaptive tracking algorithm | `solveMRLFEBranchAdaptiveAtlas` |
-| A0 physical-tail cut | `mrlfeApplyPhysicalCorridorCut` |
+```text
+mrlfeBuildSeed
+mrlfeTrackBranchAdaptive
+mrlfeApplyTerminationPolicy
+  -> mrlfeEvaluatePhysicalTail
+```
 
-These dependencies are implementation details. The next migration phase should
-move or rename the lower-level helpers behind neutral model-layer names without
-changing numerical behavior.
+The old historical helper files have been removed from the maintained
+production surface. Broad legacy diagnostic routes such as `computeMRLFE` and
+`solveMRLFEAtlasUnified` remain available for the next cleanup phase.
 
 `mrlfeEvaluateAtlasFitModel` remains available only as a transitional
 diagnostic/reference oracle for characterization and migration tests. It should

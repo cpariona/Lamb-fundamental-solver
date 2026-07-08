@@ -30,17 +30,19 @@ LambFundamental_GUI
   -> mrlfeUseUnifiedAtlasRoute = etaS > 0
   -> mrlfeA0Policy = adaptivePhysicalTail or UI value
   -> guiRunMRLFEModel
-  -> rlComputeFundamentalLambModes (seed)
-  -> applyGuiAtlasPreset
-  -> solveMRLFEAtlasUnified OR solveMRLFEBranchAdaptiveAtlas OR computeMRLFE
+  -> mrlfeBuildGuiSolveRequest
+  -> mrlfeSolve
+  -> mrlfeBuildSeed
+  -> mrlfeTrackBranchAdaptive
+  -> mrlfeApplyTerminationPolicy
 ```
 
 Overrides:
 
-- `guiRunMRLFEModel` resets compute flags and route flags before solving.
-- `applyGuiAtlasPreset` defaults `mrlfeUseGuiFastAtlasPreset=true`.
-- Effective atlas presets are `fast_viscous`, `fast_zero_viscosity_adaptive`, or `elastic_reference`.
-- Zero-viscosity adaptive route can fall back to elastic reference when quality gates fail.
+- `guiRunMRLFEModel` maps GUI inputs to the public request contract.
+- The maintained mRLFE preset is public `fast`.
+- A0Like uses `physicalTail`; S0Like uses `none`.
+- Fallback policy is `none`.
 
 ### AE IOP/HGO
 

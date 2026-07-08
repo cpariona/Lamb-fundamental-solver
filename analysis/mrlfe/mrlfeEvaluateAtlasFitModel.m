@@ -163,20 +163,36 @@ mrlfeResult.atlasUnified = struct('isViscous', false, ...
     'fitRoute', true, ...
     'seedStrategy', "RayleighLambOrPhysicalSynthetic");
 
-seedMode = mrlfeMakePhysicalSeedMode(branchName, frequency, rawRL.material, rawRL.geometry, rawRL.modes);
-branch = solveMRLFEBranchAdaptiveAtlas(branchName, seedMode, rawRL.material, rawRL.geometry, zeroParams, options);
+seedMode = localBuildNeutralSeed(branchName, frequency, rawRL.material, rawRL.geometry, rawRL.modes);
+branch = localTrackNeutralBranch(branchName, seedMode, rawRL.material, rawRL.geometry, zeroParams, options);
 branch.solverRoute = "zeroViscosityAdaptiveAtlasFit";
 branch.seedMode = seedMode;
 if branchName == "A0Like"
     branch.atlasUnifiedPolicy = "zeroViscosityA0AdaptivePhysicalTailCut";
     if localGetOption(options, 'mrlfeUseA0PhysicalTailCut', true)
-        branch = mrlfeApplyPhysicalCorridorCut(branch, seedMode.Cp, seedMode.frequency, localMakeA0PhysicalTailCutOptions(options));
+        branch = mrlfeEvaluatePhysicalTail(branch, seedMode.Cp, seedMode.frequency, localMakeA0PhysicalTailCutOptions(options));
     end
 else
     branch.atlasUnifiedPolicy = "zeroViscosityS0AdaptiveContinuation";
 end
 mrlfeResult.branches.(char(branchName)) = branch;
 mrlfeResult.diagnostics = struct('variant', mrlfeResult.variant, 'branchNames', branchName);
+end
+
+function seed = localBuildNeutralSeed(branchName, frequency, material, geometry, seedModes)
+problem = struct( ...
+    'frequencySolve_Hz', frequency(:), ...
+    'material', material, ...
+    'geometry', geometry, ...
+    'seedModes', seedModes);
+configuration = struct('branch', string(branchName));
+seed = mrlfeBuildSeed(problem, configuration);
+end
+
+function branch = localTrackNeutralBranch(branchName, seedMode, material, geometry, mrlfeParams, options)
+problem = struct('material', material, 'geometry', geometry);
+configuration = struct('branch', string(branchName));
+branch = mrlfeTrackBranchAdaptive(problem, seedMode, configuration, mrlfeParams, options);
 end
 
 function options = localApplyFitAtlasPreset(options)

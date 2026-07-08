@@ -17,9 +17,8 @@ for i = 1:numCases
     directOptions = makeAtlasOptions(false);
     directResult = computeMRLFE(frequency, material, geometry, seedModes, mrlfeParams, directOptions);
 
-    adaptiveA0 = solveMRLFEBranchAdaptiveAtlas("A0Like", ...
-        mrlfeMakePhysicalSeedMode("A0Like", frequency, material, geometry, seedModes), ...
-        material, geometry, mrlfeParams, makeA0AdaptiveOptions());
+    seedA0 = buildNeutralSeed("A0Like", frequency, material, geometry, seedModes);
+    adaptiveA0 = trackNeutralBranch("A0Like", seedA0, material, geometry, mrlfeParams, makeA0AdaptiveOptions());
     adaptiveA0.solverRoute = "a0AdaptiveDiagnostic";
     adaptiveA0.atlasUnifiedPolicy = "viscousA0AdaptiveContinuationDiagnostic";
 
@@ -123,6 +122,19 @@ options.mrlfeAdaptiveValleyFallbackRelativeWindow = 0.10;
 options.mrlfeAdaptiveValleyFallbackPredictionWeight = 65.0;
 options.mrlfeAdaptiveValleyFallbackResidualWeight = 0.30;
 options.mrlfeResidualTolerance = 1e-3;
+end
+
+function seed = buildNeutralSeed(branchName, frequency, material, geometry, seedModes)
+problem = struct('frequencySolve_Hz', frequency(:), ...
+    'material', material, 'geometry', geometry, 'seedModes', seedModes);
+configuration = struct('branch', string(branchName));
+seed = mrlfeBuildSeed(problem, configuration);
+end
+
+function branch = trackNeutralBranch(branchName, seedMode, material, geometry, mrlfeParams, options)
+problem = struct('material', material, 'geometry', geometry);
+configuration = struct('branch', string(branchName));
+branch = mrlfeTrackBranchAdaptive(problem, seedMode, configuration, mrlfeParams, options);
 end
 
 function row = makeEmptySummaryRow()

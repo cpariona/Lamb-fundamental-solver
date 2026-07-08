@@ -99,8 +99,8 @@ For `etaS = 0`, fitting uses the zero-viscosity adaptive atlas route:
 
 ```text
 Rayleigh-Lamb seed
-  -> mrlfeMakePhysicalSeedMode
-  -> solveMRLFEBranchAdaptiveAtlas
+  -> mrlfeBuildSeed
+  -> mrlfeTrackBranchAdaptive
   -> optional A0 physical-tail corridor cut
   -> official A0Like/S0Like fit branch
 ```

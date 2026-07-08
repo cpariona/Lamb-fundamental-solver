@@ -206,10 +206,10 @@ Generated output files are intentionally not source files. Do not commit large `
 Rerun the primary diagnostics after changes to:
 
 - `solveMRLFEAtlasUnified.m`
-- `solveMRLFEBranchAdaptiveAtlas.m`
-- `mrlfeApplyPhysicalCorridorCut.m`
+- `mrlfeTrackBranchAdaptive.m`
+- `mrlfeEvaluatePhysicalTail.m`
 - `mrlfeApplyDelayedViscoModalCut.m`
-- `mrlfeMakePhysicalSeedMode.m`
+- `mrlfeBuildSeed.m`
 - default mRLFE atlas options
 
 For documentation-only changes, the lightweight test runner is normally sufficient.
