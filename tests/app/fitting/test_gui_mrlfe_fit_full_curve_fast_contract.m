@@ -13,12 +13,11 @@ params.mu = 75e3;
 params.etaS = etaS;
 
 solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS, ...
-    'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
-solverOptions.mrlfeUseAtlasFitRoute = true;
+    'A0Policy', "physicalTail");
 
 [CpSynthetic, rawSynthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions);
-assert(rawSynthetic.evaluationPath.routeFamily == "atlas", 'Synthetic full-curve setup should use atlas route family.');
-assert(rawSynthetic.evaluationPath.path == "viscous_unified_atlas", 'Synthetic full-curve setup should use viscous unified atlas.');
+assert(rawSynthetic.evaluationPath.routeFamily == "public_solver", 'Synthetic full-curve setup should use public solver route family.');
+assert(rawSynthetic.evaluationPath.path == "viscoelastic_adaptive", 'Synthetic full-curve setup should use viscoelastic adaptive engine.');
 assert(any(isfinite(CpSynthetic)), 'Synthetic full-curve data must contain at least one finite Cp value.');
 
 experimental = struct();
@@ -46,7 +45,7 @@ request = guiBuildFitRequest("mrlfe", ...
     'bounds', fitConfig.bounds, ...
     'controls', struct('robustness', "Fast", 'etaS', fitConfig.initialGuess.etaS, ...
         'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
-        'mrlfeUseUnifiedAtlasRoute', true, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+        'mrlfeA0Policy', "physicalTail"));
 
 normalized = guiNormalizeFitResult(fitResult, request);
 assert(isfield(normalized, 'fullCurve'), 'Normalized fit must include fullCurve.');

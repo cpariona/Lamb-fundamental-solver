@@ -1,5 +1,8 @@
 # mRLFE solver-route audit
 
+Historical characterization performed before the production API migration.
+These routes are not maintained entrypoints.
+
 ## Purpose
 
 This audit characterizes the solver routes that currently coexist for mRLFE before any repository-wide restructuring or deletion.

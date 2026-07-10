@@ -17,7 +17,7 @@ branchSolve.seedMode = seed;
 
 mrlfeResult = buildModelResult(problem, mrlfeParams, branchSolve, "elastic-adaptive-real-k");
 rawResult = mrlfeBuildInternalBranchResult(problem, configuration, mrlfeResult, branchSolve, ...
-    "elastic_adaptive", "zero_viscosity_adaptive_atlas");
+    "elastic_adaptive", "elastic_adaptive");
 end
 
 function policy = branchPolicyName(branchName, terminationPolicy, regime)

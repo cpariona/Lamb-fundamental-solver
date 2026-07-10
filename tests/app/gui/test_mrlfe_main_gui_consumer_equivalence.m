@@ -22,7 +22,7 @@ sweepRequest = guiBuildSweepRequest("mrlfe", ...
     'baseParams', params, ...
     'controls', struct('executionProfile', "Fast", 'etaS', etaS, ...
         'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
-        'mrlfeUseUnifiedAtlasRoute', true, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+        'mrlfeA0Policy', "physicalTail"));
 sweepOut = guiRunMRLFESweep(sweepRequest);
 sweepResult = sweepOut.rawResults.points{1}.modelResult;
 
@@ -30,7 +30,7 @@ sweepResult = sweepOut.rawResults.points{1}.modelResult;
 fitParams = params;
 fitParams.etaS = etaS;
 fitOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS, ...
-    'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
+    'A0Policy', "physicalTail");
 fitOptions.mrlfeParams.fluidDensity = 1000;
 fitOptions.mrlfeParams.fluidSoundSpeed = 1500;
 [fitCp, fitRaw] = mrlfeEvaluateFitModel(fitParams, mainResult.frequency_Hz, branchName, fitOptions);
@@ -75,7 +75,7 @@ options.computeS0 = branchName == "S0Like";
 options.computeMRLFERealK = true;
 options.mrlfeComputeA0Like = branchName == "A0Like";
 options.mrlfeComputeS0Like = branchName == "S0Like";
-options.mrlfeA0Policy = "adaptivePhysicalTail";
+options.mrlfeA0Policy = "physicalTail";
 options.mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams.etaS = etaS;
 options.mrlfeParams.fluidDensity = 1000;

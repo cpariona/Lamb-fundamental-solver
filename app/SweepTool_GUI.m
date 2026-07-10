@@ -96,7 +96,7 @@ setGridPosition(robustnessDrop, row, [1 2]);
 row = row + 1;
 addLabel(cg, row, [1 2], 'mRLFE A0 atlas policy');
 row = row + 1;
-a0PolicyDrop = uidropdown(cg, 'Items', {'adaptivePhysicalTail', 'delayedCut'}, 'Value', 'adaptivePhysicalTail');
+a0PolicyDrop = uidropdown(cg, 'Items', {'physicalTail'}, 'Value', 'physicalTail');
 setGridPosition(a0PolicyDrop, row, [1 2]);
 
 row = row + 1;
@@ -248,8 +248,7 @@ updateFamilySpecificControls();
                 controls.etaS = etaSEdit.Value;
                 controls.fluidDensity = fluidDensityEdit.Value;
                 controls.fluidSoundSpeed = fluidSoundEdit.Value;
-                controls.mrlfeUseUnifiedAtlasRoute = true;
-                controls.mrlfeA0Policy = string(a0PolicyDrop.Value);
+                controls.mrlfeA0Policy = normalizeMrlfeA0Policy(string(a0PolicyDrop.Value));
             otherwise
                 controls.M54_variant = "corrected";
                 controls.normalizeRows = false;
@@ -260,6 +259,13 @@ updateFamilySpecificControls();
                     'DefaultSource', "SweepTool default");
                 controls.atlasNumYPoints = aeProfileOptions.atlasNumYPoints;
                 controls.atlasTopNMinima = aeProfileOptions.atlasTopNMinima;
+        end
+    end
+
+    function policy = normalizeMrlfeA0Policy(policyIn)
+        policy = string(policyIn);
+        if policy ~= "physicalTail"
+            policy = "physicalTail";
         end
     end
 

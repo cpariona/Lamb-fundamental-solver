@@ -16,7 +16,7 @@ branchSolve.seedMode = seed;
 
 mrlfeResult = buildModelResult(problem, mrlfeParams, branchSolve, "viscoelastic-adaptive-real-k");
 rawResult = mrlfeBuildInternalBranchResult(problem, configuration, mrlfeResult, branchSolve, ...
-    "viscoelastic_adaptive", "viscous_unified_atlas");
+    "viscoelastic_adaptive", "viscoelastic_adaptive");
 end
 
 function options = mrlfeBuildViscoelasticOptions(configuration)

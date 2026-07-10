@@ -205,16 +205,20 @@ Generated output files are intentionally not source files. Do not commit large `
 
 Rerun the primary diagnostics after changes to:
 
-- `solveMRLFEAtlasUnified.m`
+- `mrlfeSolve.m`
+- `mrlfeSolveBranch.m`
 - `mrlfeTrackBranchAdaptive.m`
 - `mrlfeEvaluatePhysicalTail.m`
-- `mrlfeApplyDelayedViscoModalCut.m`
 - `mrlfeBuildSeed.m`
-- default mRLFE atlas options
+- default mRLFE numerical presets
 
 For documentation-only changes, the lightweight test runner is normally sufficient.
 
 ## Next cleanup step
+
+Obsolete diagnostics that called removed legacy routes were deleted during the
+production API cleanup. Historical conclusions remain in `docs/validation/` and
+`docs/validation/mrlfe_legacy_route_inventory.md`.
 
 For archived diagnostics, choose one of these outcomes only after a focused validation pass:
 

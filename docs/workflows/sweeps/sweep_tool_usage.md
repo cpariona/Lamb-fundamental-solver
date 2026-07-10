@@ -33,7 +33,7 @@ Model: mRLFE real-k
 Branch: A0Like
 Execution profile: Fast
 etaS: 0.05 Pa*s
-A0 atlas policy: adaptivePhysicalTail
+A0 termination policy: physicalTail
 ```
 
 Expected outcome:
@@ -59,7 +59,7 @@ Values: 0, 0.05
 Model: mRLFE real-k
 Branch: A0Like
 Execution profile: Fast
-A0 atlas policy: adaptivePhysicalTail
+A0 termination policy: physicalTail
 ```
 
 Expected outcome:
@@ -69,7 +69,7 @@ Expected outcome:
 - The normalized model name remains `mRLFERealK` for both cases.
 - The exported `SweepToolOutput.metadata.internalEngines` reports every effective engine present in the sweep, so mixed zero/positive-viscosity sweeps report both `elastic_adaptive` and `viscoelastic_adaptive`.
 
-### mRLFE adaptive A0 policy check
+### mRLFE A0 termination policy check
 
 Use:
 
@@ -80,7 +80,7 @@ Values: 0.05
 Model: mRLFE real-k
 Branch: A0Like
 Execution profile: Fast
-A0 atlas policy: adaptivePhysicalTail
+A0 termination policy: physicalTail
 ```
 
 Expected outcome:
@@ -89,7 +89,7 @@ Expected outcome:
 - The summary table has one row.
 - `SweepToolOutput.atlasPolicy.effectiveA0Policy` is `physicalTail`.
 - `SweepToolOutput.rawResults.points{1}.termination.policy` is `physicalTail`.
-- This check verifies routing only. It does not prove physical validity of the adaptive policy for a given experiment.
+- This check verifies routing only. It does not prove physical validity of the physical-tail policy for a given experiment.
 
 ### Rayleigh-Lamb thickness check
 
@@ -246,7 +246,7 @@ guiNormalizeAcoustoelasticIOPHGOSweep
 
 The GUI should not call scripts under `examples/` directly. Example scripts and GUI callbacks should share maintained backend utilities or model APIs through adapters.
 
-mRLFE atlas policy integration is documented in:
+mRLFE public production integration is documented in:
 
 ```text
 docs/workflows/gui/mrlfe_atlas_policy_integration.md

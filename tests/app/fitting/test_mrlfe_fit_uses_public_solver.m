@@ -28,8 +28,7 @@ params.mu = 75e3;
 params.etaS = 0.05;
 frequency_Hz = linspace(1000, 5000, 8).';
 options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', params.etaS, ...
-    'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
-options.mrlfeUseAtlasFitRoute = true;
+    'A0Policy', "physicalTail");
 
 [Cp_mps, raw] = mrlfeEvaluateFitModel(params, frequency_Hz, "A0Like", options);
 assert(any(isfinite(Cp_mps)), 'Public-solver fitting evaluation must return finite Cp values.');

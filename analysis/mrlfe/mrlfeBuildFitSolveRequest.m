@@ -116,27 +116,18 @@ if ~isstruct(options)
     return;
 end
 
-if isfield(options, 'mrlfeUseFitAtlasPreset') && ~isempty(options.mrlfeUseFitAtlasPreset) && ...
-        ~logical(options.mrlfeUseFitAtlasPreset)
-    preset = "dense";
-    return;
+if isfield(options, 'numerics') && isstruct(options.numerics) && ...
+        isfield(options.numerics, 'preset') && ~isempty(options.numerics.preset)
+    preset = lower(string(options.numerics.preset));
+elseif isfield(options, 'mrlfeNumericalPreset') && ~isempty(options.mrlfeNumericalPreset)
+    preset = lower(string(options.mrlfeNumericalPreset));
+else
+    preset = "fast";
 end
 
-legacyPreset = "fast_fit_atlas";
-if isfield(options, 'mrlfeFitAtlasPreset') && ~isempty(options.mrlfeFitAtlasPreset)
-    legacyPreset = lower(string(options.mrlfeFitAtlasPreset));
-elseif isfield(options, 'mrlfeFitPerformancePreset') && ~isempty(options.mrlfeFitPerformancePreset)
-    legacyPreset = lower(string(options.mrlfeFitPerformancePreset));
-end
-
-switch legacyPreset
-    case {"fast", "fast_fit_atlas", "fast_elastic_a0like", "maintained_default"}
-        preset = "fast";
-    case {"dense", "off", "reference", "maintained_dense"}
-        preset = "dense";
-    otherwise
-        error('mrlfe:InvalidNumericalPreset', ...
-            'Unsupported mRLFE fitting numerical preset "%s".', legacyPreset);
+if ~(preset == "fast" || preset == "dense")
+    error('mrlfe:InvalidNumericalPreset', ...
+        'Unsupported mRLFE fitting numerical preset "%s".', preset);
 end
 end
 

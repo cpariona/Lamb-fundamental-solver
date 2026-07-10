@@ -15,7 +15,7 @@ switch name
         preset.candidateCount = 5;
         preset.refineCandidates = false;
         preset.adaptiveWindows = [0.20 0.40 0.80];
-        preset.internalFitAtlasPreset = "fast_fit_atlas";
+        preset.internalFitAtlasPreset = "fast";
         preset.useFitAtlasPreset = true;
 
     case "dense"
@@ -26,7 +26,7 @@ switch name
         preset.candidateCount = 8;
         preset.refineCandidates = true;
         preset.adaptiveWindows = [0.20 0.35 0.50 0.80 1.20];
-        preset.internalFitAtlasPreset = "off";
+        preset.internalFitAtlasPreset = "dense";
         preset.useFitAtlasPreset = false;
 
     otherwise

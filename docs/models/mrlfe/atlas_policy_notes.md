@@ -1,5 +1,8 @@
 # mRLFE atlas policy notes
 
+> Historical characterization performed before the production API migration.
+> These routes and policy labels are not maintained entrypoints.
+
 This note records the current findings for the real-k mRLFE atlas solver and its branch-selection policies. It is a policy and diagnostic reference, not a claim of external physical validation.
 
 ## Scope

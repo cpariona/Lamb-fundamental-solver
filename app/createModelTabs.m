@@ -80,12 +80,12 @@ h.mrlfe.etaS.Layout.Column = [3 4];
 label = uilabel(gM, 'Text', 'A0 atlas policy');
 label.Layout.Row = 8;
 label.Layout.Column = [1 2];
-h.mrlfe.a0Policy = uidropdown(gM, 'Items', {'adaptivePhysicalTail', 'delayedCut'}, ...
-    'Value', 'adaptivePhysicalTail', 'ValueChangedFcn', callbacks.markDirty);
+h.mrlfe.a0Policy = uidropdown(gM, 'Items', {'physicalTail'}, ...
+    'Value', 'physicalTail', 'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.a0Policy.Layout.Row = 8;
 h.mrlfe.a0Policy.Layout.Column = [3 4];
 
-note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity. The GUI adapter uses the unified real-k atlas route for viscous mRLFE calls. adaptivePhysicalTail is the recommended interactive A0 policy; delayedCut remains available for conservative diagnostics.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity. A0Like uses the public physicalTail termination policy; S0Like uses no additional termination.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Row = 9;
 note.Layout.Column = [1 4];
 

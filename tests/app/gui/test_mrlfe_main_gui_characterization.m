@@ -71,7 +71,7 @@ options.computeS0 = branchName == "S0Like";
 options.computeMRLFERealK = true;
 options.mrlfeComputeA0Like = branchName == "A0Like";
 options.mrlfeComputeS0Like = branchName == "S0Like";
-options.mrlfeA0Policy = "adaptivePhysicalTail";
+options.mrlfeA0Policy = "physicalTail";
 options.mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams.etaS = etaS;
 options.mrlfeParams.fluidDensity = 1000;

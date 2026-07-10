@@ -110,19 +110,13 @@ test_gui_mrlfe_fixed_etaS_fit_contract;
 fprintf('\n[GUI 14/19] GUI mRLFE fit route policy contract test\n');
 test_gui_mrlfe_fit_route_policy_contract;
 
-fprintf('\n[GUI 15/19] GUI mRLFE unified atlas policy contract test\n');
-test_gui_mrlfe_unified_atlas_policy_contract;
-
-fprintf('\n[GUI 16/19] GUI mRLFE guarded elastic atlas contract test\n');
-test_gui_mrlfe_elastic_atlas_guard_contract;
-
-fprintf('\n[GUI 17/19] GUI mRLFE fast full-curve test\n');
+fprintf('\n[GUI 15/17] GUI mRLFE fast full-curve test\n');
 test_gui_mrlfe_fit_full_curve_fast_contract;
 
-fprintf('\n[GUI 18/19] Execution profile current-behavior contract test\n');
+fprintf('\n[GUI 16/17] Execution profile current-behavior contract test\n');
 test_execution_profile_current_contract;
 
-fprintf('\n[GUI 19/19] Execution profile surface integration test\n');
+fprintf('\n[GUI 17/17] Execution profile surface integration test\n');
 test_execution_profile_surface_integration;
 
 fprintf('\nGUI smoke tests passed.\n');

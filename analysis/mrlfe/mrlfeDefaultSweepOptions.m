@@ -7,8 +7,7 @@ function options = mrlfeDefaultSweepOptions(branchName, varargin)
 p = inputParser;
 addRequired(p, 'branchName', @(x)ischar(x) || isstring(x));
 addParameter(p, 'EtaS', 0.05, @(x)isnumeric(x) && isscalar(x) && isfinite(x));
-addParameter(p, 'UseUnifiedAtlasRoute', false, @(x)islogical(x) || isnumeric(x));
-addParameter(p, 'A0Policy', "delayedCut", @(x)ischar(x) || isstring(x));
+addParameter(p, 'A0Policy', "physicalTail", @(x)ischar(x) || isstring(x));
 parse(p, branchName, varargin{:});
 
 branchName = string(p.Results.branchName);
@@ -18,8 +17,7 @@ options.computeMRLFERealK = true;
 options.computeMRLFEElasticRealK = true;
 options.computeMRLFEViscoRealK = true;
 options.computeMRLFEComplexK = false;
-options.mrlfeUseUnifiedAtlasRoute = logical(p.Results.UseUnifiedAtlasRoute);
-options.mrlfeA0Policy = string(p.Results.A0Policy);
+options.mrlfeA0Policy = normalizeA0Policy(p.Results.A0Policy);
 options.mrlfeParams = defaultMRLFEParams();
 options.mrlfeParams.fluidDensity = 1000;
 options.mrlfeParams.fluidSoundSpeed = 1500;
@@ -40,5 +38,12 @@ switch branchName
         options.mrlfeComputeS0Like = true;
     otherwise
         error('Unsupported mRLFE branchName "%s". Use "A0Like" or "S0Like".', branchName);
+end
+
+function policy = normalizeA0Policy(policyIn)
+policy = string(policyIn);
+if policy ~= "physicalTail"
+    policy = "physicalTail";
+end
 end
 end

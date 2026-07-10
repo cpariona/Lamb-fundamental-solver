@@ -99,7 +99,8 @@ candidate refine  false
 adaptive windows  [0.20 0.40 0.80]
 ```
 
-The old internal name `fast_fit_atlas` remains implementation metadata only.
+The old internal name `fast_fit_atlas` has been removed from maintained
+production metadata. The public fitting preset is `fast`.
 
 `dense` maps to the maintained dense atlas settings:
 
@@ -203,16 +204,14 @@ FitTool_GUI
 The fitting request mapper translates the existing SI fitting parameters
 (`mu`, `etaS`, `rho`, `nu`, `thickness`, fluid density, and fluid sound speed)
 to public material, geometry, and fluid fields. The maintained fitting preset is
-public `fast`; the old internal `fast_fit_atlas` name is retained only as
-diagnostic metadata. A0Like fitting uses adaptive selection with
+public `fast`. A0Like fitting uses adaptive selection with
 `physicalTail` termination and no fallback. S0Like fitting uses adaptive
 selection with no additional termination and no fallback.
 
 Objective evaluations, automatic full-curve diagnostics, and explicit requested
 fitted-curve evaluations use the same public solver route with the final fitted
-parameters. `mrlfeEvaluateAtlasFitModel` is retained only as a
-diagnostic/reference oracle for characterization tests; it is not the maintained
-production evaluator.
+parameters. Characterization now compares maintained consumers directly against
+`mrlfeSolve`; `mrlfeEvaluateAtlasFitModel` has been removed.
 
 ## SweepTool Use
 

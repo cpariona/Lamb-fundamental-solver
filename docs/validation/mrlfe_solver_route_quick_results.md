@@ -1,5 +1,8 @@
 # mRLFE solver-route quick audit results
 
+Historical characterization performed before the production API migration.
+These routes are not maintained entrypoints.
+
 ## Scope
 
 This note records the first executable audit of the current mRLFE route matrix.

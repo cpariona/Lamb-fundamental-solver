@@ -52,14 +52,14 @@ function row = benchmarkMRLFE()
 params = mrlfeDefaultSweepParams();
 frequency = linspace(1000, 4000, 5).';
 [options, metadata] = mrlfeResolveExecutionProfile("A0Like", struct('executionProfile', "Robust"), ...
-    'Surface', "fit", 'EtaS', 0, 'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
+    'Surface', "fit", 'EtaS', 0, 'A0Policy', "physicalTail");
 t = tic;
 [cp, raw] = mrlfeEvaluateFitModel(params, frequency, "A0Like", options);
 elapsed = toc(t);
 metadata.internalAtlasPreset = raw.evaluationPath.fitAtlasPreset;
 metadataOK = metadata.requestedExecutionProfile == "Robust" && ...
     metadata.effectiveExecutionProfile == "Fast" && ...
-    raw.evaluationPath.fitAtlasPreset == "fast_fit_atlas";
+    raw.evaluationPath.fitAtlasPreset == "fast";
 row = makeRow("mRLFE", raw.evaluationPath.path, metadata, metadata.internalAtlasPreset, elapsed, cp, metadataOK);
 end
 

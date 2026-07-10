@@ -13,11 +13,11 @@ params = mrlfeDefaultSweepParams();
 params.mu = trueMu;
 params.etaS = fixedEtaS;
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', fixedEtaS, ...
-    'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
+    'A0Policy', "physicalTail");
 
 [CpSynthetic, rawSynthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
-assert(rawSynthetic.evaluationPath.routeFamily == "atlas", 'Synthetic A0Like etaS data should use the atlas fitting route.');
-assert(rawSynthetic.evaluationPath.path == "viscous_unified_atlas", 'Synthetic A0Like etaS data should use the viscous unified atlas path.');
+assert(rawSynthetic.evaluationPath.routeFamily == "public_solver", 'Synthetic A0Like etaS data should use the public solver route.');
+assert(rawSynthetic.evaluationPath.path == "viscoelastic_adaptive", 'Synthetic A0Like etaS data should use the viscoelastic adaptive engine.');
 
 experimental = struct();
 experimental.frequency_Hz = frequency_Hz;
@@ -35,7 +35,7 @@ request = guiBuildFitRequest("mrlfe", ...
     'bounds', struct('mu', [20e3, 160e3]), ...
     'controls', struct('robustness', "Fast", 'etaS', fixedEtaS, ...
         'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
-        'mrlfeUseUnifiedAtlasRoute', true, 'mrlfeA0Policy', "adaptivePhysicalTail"), ...
+        'mrlfeA0Policy', "physicalTail"), ...
     'fitOptions', struct('useStandardErrorWeights', false, ...
         'optimizerOptions', optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-5)));
 
@@ -46,7 +46,7 @@ assert(isfield(fitResult.fixedParams, 'etaS'), 'GUI mRLFE fit must propagate fix
 assert(abs(fitResult.fixedParams.etaS - fixedEtaS) < eps(max(1, fixedEtaS)), 'Fixed etaS value was not preserved.');
 assert(isfield(fitResult.allParams, 'etaS'), 'All fitted mRLFE params must include etaS.');
 assert(abs(fitResult.allParams.etaS - fixedEtaS) < eps(max(1, fixedEtaS)), 'All params did not preserve fixed etaS.');
-assert(fitOutput.routePolicy.actualPath == "viscous_unified_atlas", 'Fixed etaS mRLFE fit should use the viscous unified atlas route.');
+assert(fitOutput.routePolicy.actualPath == "viscoelastic_adaptive", 'Fixed etaS mRLFE fit should use the viscoelastic adaptive engine.');
 assert(abs(fitResult.bestParams.mu - trueMu) / trueMu < 1e-3, 'GUI mRLFE mu fit did not recover the synthetic value with fixed etaS.');
 assert(fitResult.metrics.RMSE < 1e-4, 'GUI mRLFE mu fit RMSE is too high for synthetic fixed-etaS data.');
 

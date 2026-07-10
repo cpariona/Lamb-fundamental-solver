@@ -189,9 +189,9 @@ mrlfeApplyTerminationPolicy
 ```
 
 The old historical helper files have been removed from the maintained
-production surface. Broad legacy diagnostic routes such as `computeMRLFE` and
-`solveMRLFEAtlasUnified` remain available for the next cleanup phase.
-
-`mrlfeEvaluateAtlasFitModel` remains available only as a transitional
-diagnostic/reference oracle for characterization and migration tests. It should
-not be used as the maintained FitTool production evaluator.
+production surface. Broad legacy routes such as `computeMRLFE`,
+`solveMRLFEAtlasUnified`, `solveMRLFEViscoBranchAtlas`,
+`solveMRLFEBranchModalAtlas`, `solveMRLFEBranchDP`, and
+`mrlfeEvaluateAtlasFitModel` have also been removed. Historical route-audit
+documents may still mention those names as pre-migration evidence, but they are
+not callable maintained entrypoints.

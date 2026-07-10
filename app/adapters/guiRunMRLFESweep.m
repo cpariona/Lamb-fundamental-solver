@@ -14,12 +14,10 @@ controls = request.controls;
     'DefaultProfile', "Fast", ...
     'DefaultSource', "SweepTool default", ...
     'EtaS', getControlValue(controls, 'etaS', 0.05), ...
-    'UseUnifiedAtlasRoute', logical(getControlValue(controls, 'mrlfeUseUnifiedAtlasRoute', true)), ...
-    'A0Policy', string(getControlValue(controls, 'mrlfeA0Policy', "adaptivePhysicalTail")));
+    'A0Policy', string(getControlValue(controls, 'mrlfeA0Policy', "physicalTail")));
 controls.executionProfile = profileMetadata.requestedExecutionProfile;
 controls.robustness = profileMetadata.requestedExecutionProfile;
-baseOptions.mrlfeUseUnifiedAtlasRoute = logical(getControlValue(controls, 'mrlfeUseUnifiedAtlasRoute', true));
-baseOptions.mrlfeA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+baseOptions.mrlfeA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "physicalTail"));
 baseOptions.mrlfeParams = defaultMRLFEParams();
 baseOptions.mrlfeParams.fluidDensity = getControlValue(controls, 'fluidDensity', 1000);
 baseOptions.mrlfeParams.fluidSoundSpeed = getControlValue(controls, 'fluidSoundSpeed', 1500);
@@ -56,7 +54,7 @@ profileMetadata.anyFallbackApplied = aggregateMetadata.anyFallbackApplied;
 profileMetadata.pointCount = aggregateMetadata.pointCount;
 profileMetadata.failedPointCount = aggregateMetadata.failedPointCount;
 profileMetadata.validPointCount = aggregateMetadata.validPointCount;
-profileMetadata.requestedA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+profileMetadata.requestedA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "physicalTail"));
 profileMetadata.effectiveA0Policy = "physicalTail";
 normalized.metadata.executionProfile = profileMetadata;
 normalized.metadata.sweep = aggregateMetadata;
@@ -72,7 +70,7 @@ sweepOutput.sweepSpec = sweepSpec;
 sweepOutput.rawResults = rawResults;
 sweepOutput.summaryTable = summaryTable;
 sweepOutput.normalized = normalized;
-sweepOutput.atlasPolicy = struct('mrlfeUseUnifiedAtlasRoute', baseOptions.mrlfeUseUnifiedAtlasRoute, ...
+sweepOutput.atlasPolicy = struct( ...
     'mrlfeA0Policy', baseOptions.mrlfeA0Policy, ...
     'effectiveA0Policy', "physicalTail", ...
     'guiRoutePolicy', "mrlfeSolve");

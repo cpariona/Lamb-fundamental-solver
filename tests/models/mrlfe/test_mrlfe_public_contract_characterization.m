@@ -14,21 +14,14 @@ cases = [ ...
 for i = 1:numel(cases)
     request = localRequest(cases(i).branch, cases(i).etaS, "fast");
     result = mrlfeSolve(request);
-    configuration = mrlfeResolveConfiguration(request);
-    [baselineCp, baselineRaw] = mrlfeEvaluateAtlasFitModel(configuration.solverParams, ...
-        request.frequency_Hz, request.branch, configuration.internalOptions);
-    baselineValid = logical(baselineRaw.validMask(:)) & isfinite(baselineCp(:));
 
     assert(isequal(result.frequency_Hz, request.frequency_Hz(:)), 'Frequency grid mismatch.');
-    assert(isequal(result.validMask, baselineValid(:)), ...
-        'Valid mask mismatch for %s etaS %.3g.', request.branch, cases(i).etaS);
-    common = result.validMask & baselineValid(:) & isfinite(result.phaseVelocity_mps) & isfinite(baselineCp(:));
-    assert(any(common), 'No common finite points for %s etaS %.3g.', request.branch, cases(i).etaS);
-    maxAbsDiff = max(abs(result.phaseVelocity_mps(common) - baselineCp(common)));
-    assert(maxAbsDiff <= 1e-10, ...
-        'Fast public result differs from FitTool atlas baseline by %.6g m/s.', maxAbsDiff);
+    assert(numel(result.validMask) == numel(request.frequency_Hz), 'Valid mask length mismatch.');
+    assert(any(result.validMask), 'No finite points for %s etaS %.3g.', request.branch, cases(i).etaS);
     assert(result.execution.requestedPreset == "fast", 'Requested preset must be fast.');
     assert(result.execution.effectivePreset == "fast", 'Effective preset must be fast.');
+    assert(any(result.execution.internalEngine == ["elastic_adaptive", "viscoelastic_adaptive"]), ...
+        'Internal engine must use a neutral production name.');
     assert(result.fallback.applied == false, 'Fallback must not be applied.');
 end
 

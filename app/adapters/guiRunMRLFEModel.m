@@ -22,7 +22,7 @@ end
 options.mrlfeParams.solveComplexK = false;
 options.mrlfeParams.etaL = 0;
 options.mrlfeParams.useComplexLambda = false;
-options.mrlfeA0Policy = string(guiGetStructField(options, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+options.mrlfeA0Policy = normalizeA0Policy(guiGetStructField(options, 'mrlfeA0Policy', "physicalTail"));
 
 branchNames = selectedBranches(options);
 frequency_Hz = rlBuildFrequencyVector(params);
@@ -166,4 +166,11 @@ if isempty(branches)
 end
 modelNames = string({branches.modelName});
 branches = branches(modelNames == "mRLFERealK");
+end
+
+function policy = normalizeA0Policy(policyIn)
+policy = string(policyIn);
+if policy ~= "physicalTail"
+    policy = "physicalTail";
+end
 end

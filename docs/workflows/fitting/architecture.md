@@ -182,16 +182,14 @@ New code should set `executionProfile`. Builders canonicalize either field to
 legacy alias for older consumers. The selected execution profile is separate
 from:
 
-- route policies such as mRLFE `adaptivePhysicalTail` or `delayedCut`;
+- route policies such as mRLFE `physicalTail`;
 - AE `atlasA0` branch policy;
 - optimizer options such as `MaxIter`, `MaxFunEvals`, and `TolX`.
 
 FitTool defaults to `Fast` for all maintained model families. Rayleigh-Lamb and
 AE IOP/HGO apply all three profiles directly. mRLFE maps maintained FitTool
 fitting to the public mRLFE `fast` preset and reports requested/effective
-profile metadata. The historical internal name `fast_fit_atlas` may still appear
-as diagnostic implementation metadata, but it is not passed as a public mRLFE
-request preset.
+profile metadata. mRLFE fitting metadata reports the public `fast` preset.
 
 ## FitResult contract
 
@@ -299,7 +297,7 @@ mrlfeFitDispersionData
 For A0Like FitTool fitting, the current default policy is:
 
 ```matlab
-options.mrlfeA0Policy = "adaptivePhysicalTail";
+options.mrlfeA0Policy = "physicalTail";
 ```
 
 The public request uses `selection.strategy = "adaptive"`,
@@ -309,10 +307,8 @@ full-curve diagnostics, and explicit requested fitted-curve evaluations all call
 `mrlfeEvaluateFitModel`, so they share the same public solver route and final
 fitted parameters.
 
-`mrlfeEvaluateAtlasFitModel` is no longer the maintained production evaluator.
-It is retained temporarily as a diagnostic/reference oracle for
-characterization and migration tests. Main GUI and SweepTool mRLFE routes are
-not migrated by this fitting change.
+`mrlfeEvaluateAtlasFitModel` has been removed. Characterization compares
+maintained consumers directly against `mrlfeSolve`.
 
 Dense mRLFE solver re-evaluation is diagnostic metadata, not the primary fit curve. Active workflow references:
 

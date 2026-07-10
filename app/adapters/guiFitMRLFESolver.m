@@ -31,14 +31,8 @@ end
 if ~isfield(controls, 'fluidSoundSpeed') || isempty(controls.fluidSoundSpeed)
     controls.fluidSoundSpeed = 1500;
 end
-if ~isfield(controls, 'mrlfeUseUnifiedAtlasRoute') || isempty(controls.mrlfeUseUnifiedAtlasRoute)
-    controls.mrlfeUseUnifiedAtlasRoute = true;
-end
 if ~isfield(controls, 'mrlfeA0Policy') || isempty(controls.mrlfeA0Policy)
-    controls.mrlfeA0Policy = "adaptivePhysicalTail";
-end
-if ~isfield(controls, 'mrlfeUseAtlasFitRoute') || isempty(controls.mrlfeUseAtlasFitRoute)
-    controls.mrlfeUseAtlasFitRoute = true;
+    controls.mrlfeA0Policy = "physicalTail";
 end
 
 [solverOptions, profileMetadata] = mrlfeResolveExecutionProfile(branchName, controls, ...
@@ -46,22 +40,14 @@ end
     'DefaultProfile', "Fast", ...
     'DefaultSource', "FitTool default", ...
     'EtaS', controls.etaS, ...
-    'UseUnifiedAtlasRoute', logical(controls.mrlfeUseUnifiedAtlasRoute), ...
     'A0Policy', string(controls.mrlfeA0Policy));
 controls.executionProfile = profileMetadata.requestedExecutionProfile;
 controls.robustness = profileMetadata.requestedExecutionProfile;
 request.controls = controls;
 solverOptions.mrlfeParams.fluidDensity = controls.fluidDensity;
 solverOptions.mrlfeParams.fluidSoundSpeed = controls.fluidSoundSpeed;
-solverOptions.mrlfeUseAtlasFitRoute = logical(controls.mrlfeUseAtlasFitRoute);
-solverOptions.mrlfeFitAtlasPreset = "fast_fit_atlas";
 
 routePolicy = localRoutePolicy(branchName, request.freeParams, controls);
-if routePolicy.requestDirectViscoAtlas
-    solverOptions.mrlfeUseDirectViscoAtlas = true;
-    solverOptions.mrlfeDisableForwardCache = true;
-    solverOptions.mrlfeUseAtlasFitRoute = false;
-end
 
 fixedParams = request.fixedParams;
 if ~any(string(request.freeParams) == "etaS") && ~isfield(fixedParams, 'etaS')
@@ -105,30 +91,14 @@ end
 
 function policy = localRoutePolicy(branchName, freeParams, controls)
 freeParams = string(freeParams(:));
-useAtlasFitRoute = isstruct(controls) && isfield(controls, 'mrlfeUseAtlasFitRoute') && ...
-    ~isempty(controls.mrlfeUseAtlasFitRoute) && logical(controls.mrlfeUseAtlasFitRoute);
-useUnifiedAtlas = isstruct(controls) && isfield(controls, 'mrlfeUseUnifiedAtlasRoute') && ...
-    ~isempty(controls.mrlfeUseUnifiedAtlasRoute) && logical(controls.mrlfeUseUnifiedAtlasRoute);
 policy = struct();
 policy.branchName = string(branchName);
 policy.freeParams = freeParams;
-policy.routeFamily = "atlas";
-policy.requestAtlasFitRoute = logical(useAtlasFitRoute);
-policy.requestUnifiedAtlas = logical(useUnifiedAtlas);
-policy.requestDirectViscoAtlas = ~useAtlasFitRoute && ~useUnifiedAtlas && ...
-    branchName == "A0Like" && numel(freeParams) == 1 && freeParams(1) == "etaS";
-if policy.requestAtlasFitRoute
-    policy.expectedPath = "mrlfe_atlas";
-    policy.description = "mRLFE fitting uses the official atlas output surface for A0Like and S0Like, analogous to AE atlasA0 fitting.";
-elseif policy.requestDirectViscoAtlas
-    policy.routeFamily = "legacy";
-    policy.expectedPath = "direct_viscous_atlas";
-    policy.description = "Legacy A0Like etaS fitting uses the direct viscous atlas route only when atlas-fit routing is explicitly disabled.";
-else
-    policy.routeFamily = "legacy";
-    policy.expectedPath = "maintained_rl_mrlfe_workflow";
-    policy.description = "Legacy mRLFE fitting uses the maintained reference-based workflow only when atlas-fit routing is explicitly disabled.";
-end
+policy.routeFamily = "public_solver";
+policy.expectedPath = "mrlfe_public_solver";
+policy.description = "mRLFE fitting uses the public mrlfeSolve production API.";
+policy.terminationPolicy = terminationPolicyForBranch(branchName);
+policy.fallbackPolicy = "none";
 end
 
 function path = localActualEvaluationPath(fitResult)
@@ -165,5 +135,13 @@ try
     end
 catch
     preset = "unknown";
+end
+end
+
+function policy = terminationPolicyForBranch(branchName)
+if string(branchName) == "A0Like"
+    policy = "physicalTail";
+else
+    policy = "none";
 end
 end

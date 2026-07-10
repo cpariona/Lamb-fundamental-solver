@@ -26,15 +26,16 @@ referenceOptions.mrlfeA0DPCandidates = 8;
 fastOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
 
 [CpFast_mps, rawFast] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, fastOptions);
-[CpOracle_mps, rawOracle] = mrlfeEvaluateAtlasFitModel(params, frequency_Hz, branchName, fastOptions);
+request = mrlfeBuildFitSolveRequest(params, frequency_Hz, branchName, fastOptions);
+direct = mrlfeSolve(request);
 
-valid = rawFast.validMask(:) & rawOracle.validMask(:) & isfinite(CpFast_mps(:)) & isfinite(CpOracle_mps(:));
-assert(any(valid), 'Public fast and oracle mRLFE fitting evaluations must share valid requested frequencies.');
+valid = rawFast.validMask(:) & direct.validMask(:) & isfinite(CpFast_mps(:)) & isfinite(direct.phaseVelocity_mps(:));
+assert(any(valid), 'Public fast mRLFE fitting evaluations must have valid requested frequencies.');
 
-diff_mps = CpFast_mps(valid) - CpOracle_mps(valid);
+diff_mps = CpFast_mps(valid) - direct.phaseVelocity_mps(valid);
 rmseDiff_mps = sqrt(mean(diff_mps.^2));
 maxAbsDiff_mps = max(abs(diff_mps));
-maxRelDiff = max(abs(diff_mps) ./ max(abs(CpOracle_mps(valid)), eps));
+maxRelDiff = max(abs(diff_mps) ./ max(abs(direct.phaseVelocity_mps(valid)), eps));
 
 assert(isfield(rawFast, 'fitPerformanceDefaults'), 'Fast mRLFE fitting evaluation must report fit performance defaults.');
 assert(rawFast.evaluationPath.usedPublicSolver == true, ...
@@ -45,15 +46,15 @@ assert(rawFast.modelResult.execution.effectivePreset == "fast", ...
     'mRLFE fitting evaluation should use the public fast preset.');
 assert(rawFast.fitPerformanceDefaults.preset == "fast", ...
     'Fast mRLFE fitting should report the public fast preset.');
-assert(rawFast.fitPerformanceDefaults.internalFitAtlasPreset == "fast_fit_atlas", ...
-    'Fast mRLFE fitting should retain the internal atlas preset only as diagnostics.');
+assert(rawFast.fitPerformanceDefaults.internalFitAtlasPreset == "fast", ...
+    'Fast mRLFE fitting should report the neutral internal preset.');
 assert(rawFast.fitPerformanceDefaults.atlasCpScanPoints == 260, ...
     'Public fast mRLFE fitting should use 260 Cp scan points.');
 assert(rawFast.fitPerformanceDefaults.a0DpCandidates == 5, ...
     'Public fast mRLFE fitting should use five candidates.');
-assert(rmseDiff_mps < 1e-9, 'Public fast fitting Cp RMSE differs from retained oracle.');
-assert(maxAbsDiff_mps < 1e-9, 'Public fast fitting maximum Cp difference differs from retained oracle.');
-assert(maxRelDiff < 1e-12, 'Public fast fitting maximum relative Cp difference differs from retained oracle.');
+assert(rmseDiff_mps == 0, 'Public fast fitting Cp RMSE differs from direct solver.');
+assert(maxAbsDiff_mps == 0, 'Public fast fitting maximum Cp difference differs from direct solver.');
+assert(maxRelDiff == 0, 'Public fast fitting maximum relative Cp difference differs from direct solver.');
 
 % The automatic fast preset is intentionally elastic-only. Viscous real-k fitting
 % keeps the maintained external defaults until a separate viscous
@@ -75,9 +76,6 @@ assert(rawVisco.fitPerformanceDefaults.atlasCpScanPoints == 260, ...
 assert(rawVisco.modelResult.fallback.applied == false, ...
     'Viscous public fast fitting must not apply fallback.');
 
-fprintf('Oracle preset:    %s | cpScanPoints=%g\n', ...
-    rawOracle.fitPerformanceDefaults.preset, ...
-    rawOracle.fitPerformanceDefaults.atlasCpScanPoints);
 fprintf('Fast preset:      public=%s | internal=%s | cpScanPoints=%g\n', ...
     rawFast.fitPerformanceDefaults.preset, ...
     rawFast.fitPerformanceDefaults.internalFitAtlasPreset, ...

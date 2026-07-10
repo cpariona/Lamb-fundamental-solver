@@ -1,9 +1,8 @@
 function [options, metadata] = mrlfeResolveExecutionProfile(branchName, profileInput, varargin)
 %MRLFERESOLVEEXECUTIONPROFILE Resolve app-level profile for mRLFE workflows.
 %
-% Surface "gui"/"sweep" preserves the current maintained fast atlas routes
-% and records non-Fast requests as mapped to the validated Fast internal
-% preset. Surface "fit" preserves the fast_fit_atlas route.
+% All mRLFE app surfaces map to the maintained public fast preset and report
+% non-Fast requests as mapped to that validated production configuration.
 
 p = inputParser;
 addRequired(p, 'branchName', @(x)ischar(x) || isstring(x));
@@ -12,8 +11,7 @@ addParameter(p, 'Surface', "gui", @(x)ischar(x) || isstring(x));
 addParameter(p, 'DefaultProfile', "Fast", @(x)ischar(x) || isstring(x));
 addParameter(p, 'DefaultSource', "default", @(x)ischar(x) || isstring(x));
 addParameter(p, 'EtaS', 0.05, @(x)isnumeric(x) && isscalar(x) && isfinite(x));
-addParameter(p, 'UseUnifiedAtlasRoute', false, @(x)islogical(x) || isnumeric(x));
-addParameter(p, 'A0Policy', "adaptivePhysicalTail", @(x)ischar(x) || isstring(x));
+addParameter(p, 'A0Policy', "physicalTail", @(x)ischar(x) || isstring(x));
 parse(p, branchName, profileInput, varargin{:});
 
 branchName = string(p.Results.branchName);
@@ -27,8 +25,7 @@ switch surface
         effectiveProfile = "Fast";
         options = rlDefaultOptions(requestedProfile);
         options.computeMRLFEComplexK = false;
-        options.mrlfeUseUnifiedAtlasRoute = logical(p.Results.UseUnifiedAtlasRoute);
-        options.mrlfeA0Policy = string(p.Results.A0Policy);
+        options.mrlfeA0Policy = normalizeA0Policy(p.Results.A0Policy);
         options.mrlfeParams = defaultMRLFEParams();
         options.mrlfeParams.etaS = p.Results.EtaS;
         options.mrlfeParams.etaL = 0;
@@ -36,25 +33,23 @@ switch surface
         options = localApplyBranchFlags(options, branchName);
         overrideApplied = requestedProfile ~= effectiveProfile;
         if overrideApplied
-            overrideReason = "mRLFE GUI and sweep surfaces preserve validated fast atlas presets.";
+            overrideReason = "mRLFE app surfaces preserve the validated public fast preset.";
         else
             overrideReason = "";
         end
-        internalAtlasPreset = "gui_fast_route_selected_later";
+        internalAtlasPreset = "fast";
     case "fit"
         effectiveProfile = "Fast";
         options = mrlfeDefaultSweepOptions(branchName, ...
             'EtaS', p.Results.EtaS, ...
-            'UseUnifiedAtlasRoute', logical(p.Results.UseUnifiedAtlasRoute), ...
-            'A0Policy', string(p.Results.A0Policy));
-        options.mrlfeFitAtlasPreset = "fast_fit_atlas";
+            'A0Policy', normalizeA0Policy(p.Results.A0Policy));
         overrideApplied = requestedProfile ~= effectiveProfile;
         if overrideApplied
-            overrideReason = "mRLFE FitTool preserves the maintained fast atlas fit route.";
+            overrideReason = "mRLFE FitTool preserves the maintained public fast preset.";
         else
             overrideReason = "";
         end
-        internalAtlasPreset = "fast_fit_atlas";
+        internalAtlasPreset = "fast";
     otherwise
         error('mrlfeResolveExecutionProfile:UnsupportedSurface', ...
             'Unsupported mRLFE profile surface: %s.', surface);
@@ -74,15 +69,21 @@ end
 metadata.internalAtlasPreset = internalAtlasPreset;
 metadata.profileOverrideApplied = logical(overrideApplied);
 metadata.profileOverrideReason = overrideReason;
-metadata.routePolicy = string(p.Results.A0Policy);
+metadata.routePolicy = normalizeA0Policy(p.Results.A0Policy);
 metadata.optimizerProfile = "";
 metadata.surface = surface;
 metadata.branchName = branchName;
 metadata.etaS = p.Results.EtaS;
-metadata.useUnifiedAtlasRoute = logical(p.Results.UseUnifiedAtlasRoute);
 metadata.supportedExecutionProfiles = guiExecutionProfileValues();
 metadata.profileSupportMode = "mapped_to_fast";
 metadata.surfaceDefaultExecutionProfile = string(p.Results.DefaultProfile);
+end
+
+function policy = normalizeA0Policy(policyIn)
+policy = string(policyIn);
+if policy ~= "physicalTail"
+    policy = "physicalTail";
+end
 end
 
 function options = localApplyBranchFlags(options, branchName)

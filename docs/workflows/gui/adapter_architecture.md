@@ -255,47 +255,33 @@ FitToolLastOutput
 
 Model-specific route metadata should remain visible through normalized route/status fields rather than by requiring users to inspect raw solver internals.
 
-## mRLFE atlas policy integration
+## mRLFE public production integration
 
-The mRLFE GUI path now uses the public production API. Historical atlas-route
-documentation is retained for diagnostics and cleanup planning rather than as
-the maintained Main GUI production route.
+The mRLFE GUI, SweepTool, and FitTool paths use the public production API.
 
 The integration contract is documented in:
 
 ```text
-docs/workflows/gui/mrlfe_atlas_policy_integration.md
+docs/models/mrlfe/public_api.md
+docs/models/mrlfe/production_core.md
 ```
 
-The historical GUI-facing mRLFE policy fields are:
+The maintained request policy is:
 
 ```matlab
-mrlfeUseUnifiedAtlasRoute
-mrlfeA0Policy
+A0Like -> termination.policy = "physicalTail"
+S0Like -> termination.policy = "none"
+fallback.policy = "none"
 ```
 
-FitTool also uses:
+The maintained effective engines are:
 
 ```matlab
-mrlfeUseAtlasFitRoute
+elastic_adaptive
+viscoelastic_adaptive
 ```
 
-The supported A0 policies are:
-
-```matlab
-"delayedCut"
-"adaptivePhysicalTail"
-```
-
-For A0Like FitTool fitting, the current default is:
-
-```matlab
-"adaptivePhysicalTail"
-```
-
-For maintained Main GUI, SweepTool, and FitTool production routes, the public
-request policy is `physicalTail` for A0Like and `none` for S0Like, with
-`fallback.policy = "none"`.
+Historical atlas-route flags are not maintained GUI adapter control flow.
 
 ## Validation
 
@@ -306,7 +292,7 @@ clear; clc; close all;
 startup
 run_gui_smoke_tests
 run_fit_validation_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_legacy_cleanup_tests
 ```
 
 For a complete repository check, run:

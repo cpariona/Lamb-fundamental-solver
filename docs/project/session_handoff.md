@@ -73,7 +73,7 @@ and the `adaptivePhysicalTail` and `delayedCut` policies where applicable.
 - `app/adapters/guiRunMRLFESweep.m`
 - `app/adapters/guiFitMRLFESolver.m`
 - `analysis/mrlfe/mrlfeEvaluateFitModel.m`
-- `analysis/mrlfe/mrlfeEvaluateAtlasFitModel.m`
+- `analysis/mrlfe/mrlfeBuildFitSolveRequest.m`
 - `analysis/mrlfe/mrlfeDefaultSweepOptions.m`
 - `analysis/mrlfe/mrlfeRunSweepExample.m`
 - `analysis/runParametricSweep.m`

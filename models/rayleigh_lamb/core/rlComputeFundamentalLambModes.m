@@ -60,16 +60,9 @@ if computeMRLFERealK
 end
 
 if computeComplexK
-    mrlfeParams = buildMRLFEParamsFromOptions(options);
-    mrlfeParams.solveComplexK = false;
-    mrlfeParams.etaL = 0;
-    mrlfeParams.useComplexLambda = false;
-    realKSeed = computeElasticMRLFERealK(frequency, material, results.geometry, results.modes, options);
-    mrlfeParams.solveComplexK = true;
-    results.models.mRLFEComplexK = computeMRLFE(frequency, material, results.geometry, realKSeed.branches, mrlfeParams, options);
-    if ~isfield(results.models, 'mRLFE')
-        results.models.mRLFE = results.models.mRLFEComplexK;
-    end
+    error('rlComputeFundamentalLambModes:mRLFEComplexKRemoved', ...
+        ['The legacy mRLFE complex-k route has been removed. ', ...
+        'Use the public mrlfeSolve real-k production API.']);
 end
 end
 
@@ -87,134 +80,13 @@ mrlfeParams.etaL = 0;
 mrlfeParams.useComplexLambda = false;
 isViscoelastic = getOption(mrlfeParams, 'etaS', 0) > 0;
 
-if ~isViscoelastic
-    elasticReference = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options);
-    realKResult = elasticReference;
-    return;
-end
-
-if shouldUseA0DelayedDirectViscoAtlas(options, mrlfeParams, seedModes)
-    if getOption(options, 'mrlfeDirectViscoAtlasComputeElasticReference', false)
-        elasticReference = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options);
-    else
-        elasticReference = makeSkippedElasticReferenceResult(frequency, mrlfeParams, options);
-    end
-    realKResult = computeA0DelayedDirectViscoAtlasRealK(frequency, material, geometry, seedModes.A0, mrlfeParams, options);
-    return;
-end
-
-elasticReference = getElasticReferenceResult(options, frequency, seedModes);
-if isempty(elasticReference)
-    elasticReference = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options);
-end
-
-viscoOptions = makeViscoRealKOptions(options);
-realKResult = computeMRLFE(frequency, material, geometry, elasticReference.branches, mrlfeParams, viscoOptions);
-end
-
-function tf = shouldUseA0DelayedDirectViscoAtlas(options, mrlfeParams, seedModes)
-policy = string(getOption(options, 'mrlfeDirectViscoAtlasPolicy', "maintained"));
-tf = policy == "A0DelayedCut" && ...
-    getOption(mrlfeParams, 'etaS', 0) > 0 && ...
-    ~getOption(mrlfeParams, 'solveComplexK', false) && ...
-    getOption(options, 'mrlfeComputeA0Like', true) && ...
-    ~getOption(options, 'mrlfeComputeS0Like', true) && ...
-    isfield(seedModes, 'A0');
-end
-
-function realKResult = computeA0DelayedDirectViscoAtlasRealK(frequency, material, geometry, seedA0, mrlfeParams, options)
-timerStart = tic;
-policyOptions = mrlfeMakeDirectViscoAtlasBranchOptions(options, "A0Like", options);
-policyOptions.mrlfeRealKStopAtFirstMissingModalMinimum = false;
-branch = solveMRLFEViscoBranchAtlas("A0Like", seedA0, material, geometry, mrlfeParams, policyOptions);
-[branch, delayedCutSummary] = mrlfeApplyDelayedViscoModalCut(branch, policyOptions);
-branch.experimentalPolicy = "A0DelayedCut";
-branch.delayedViscoModalCut = delayedCutSummary;
-
-realKResult = struct();
-realKResult.modelName = "mRLFE";
-realKResult.variant = "real-k";
-realKResult.description = "Experimental A0Like direct viscous real-k atlas with delayed modal cut.";
-realKResult.parameters = mrlfeParams;
-realKResult.requestedBranches = struct('A0Like', true, 'S0Like', false);
-realKResult.frequency = frequency(:);
-realKResult.tracking = struct();
-realKResult.tracking.usedInternalGrid = false;
-realKResult.tracking.requestedFrequency = frequency(:);
-realKResult.tracking.trackingFrequency = frequency(:);
-realKResult.branches = struct();
-realKResult.branches.A0Like = branch;
-realKResult.experimental = struct();
-realKResult.experimental.directViscoAtlasPolicy = "A0DelayedCut";
-realKResult.experimental.S0LikeExcluded = true;
-realKResult.experimental.elasticReferenceSkipped = ~getOption(options, 'mrlfeDirectViscoAtlasComputeElasticReference', false);
-realKResult.diagnostics = buildDirectAtlasDiagnostics(realKResult, toc(timerStart));
-end
-
-function elasticReference = makeSkippedElasticReferenceResult(frequency, mrlfeParams, options)
 elasticParams = mrlfeParams;
 elasticParams.etaS = 0;
-elasticReference = struct();
-elasticReference.modelName = "mRLFE";
-elasticReference.variant = "real-k-elastic-reference-skipped";
-elasticReference.description = "Elastic mRLFE reference skipped by experimental A0DelayedCut direct-visco atlas policy.";
-elasticReference.parameters = elasticParams;
-elasticReference.requestedBranches = struct('A0Like', false, 'S0Like', false);
-elasticReference.frequency = frequency(:);
-elasticReference.tracking = struct('usedInternalGrid', false, 'requestedFrequency', frequency(:), 'trackingFrequency', frequency(:));
-elasticReference.branches = struct();
-elasticReference.experimental = struct('directViscoAtlasPolicy', string(getOption(options, 'mrlfeDirectViscoAtlasPolicy', "maintained")));
-elasticReference.diagnostics = struct('elapsedSeconds', 0, 'variant', elasticReference.variant, 'branchNames', strings(0, 1), 'summary', struct());
-end
-
-function diagnostics = buildDirectAtlasDiagnostics(mrlfeResults, elapsedSeconds)
-diagnostics = struct();
-diagnostics.elapsedSeconds = elapsedSeconds;
-diagnostics.variant = mrlfeResults.variant;
-diagnostics.branchNames = string(fieldnames(mrlfeResults.branches));
-diagnostics.usedInternalTrackingGrid = false;
-diagnostics.requestedPointCount = numel(mrlfeResults.frequency);
-diagnostics.trackingPointCount = numel(mrlfeResults.frequency);
-diagnostics.summary = struct();
-branchNames = fieldnames(mrlfeResults.branches);
-for i = 1:numel(branchNames)
-    name = branchNames{i};
-    branch = mrlfeResults.branches.(name);
-    validCp = getBranchValidCp(branch);
-    finiteResidual = false(size(branch.Cp(:)));
-    if isfield(branch, 'residual')
-        finiteResidual = isfinite(branch.residual(:));
-    end
-    item = struct();
-    item.validPoints = nnz(validCp);
-    item.validCpPoints = nnz(validCp);
-    item.totalPoints = numel(branch.Cp);
-    item.maxCpJumpRelative = maxRelativeJump(branch.Cp(validCp));
-    if any(finiteResidual)
-        residual = branch.residual(:);
-        item.maxResidual = max(residual(finiteResidual));
-        item.meanResidual = mean(residual(finiteResidual));
-    else
-        item.maxResidual = nan;
-        item.meanResidual = nan;
-    end
-    if any(validCp)
-        item.minCp = min(branch.Cp(validCp));
-        item.maxCp = max(branch.Cp(validCp));
-    else
-        item.minCp = nan;
-        item.maxCp = nan;
-    end
-    diagnostics.summary.(name) = item;
-end
-end
-
-function validCp = getBranchValidCp(branch)
-validCp = isfinite(branch.Cp(:)) & branch.Cp(:) > 0;
-if isfield(branch, 'validCp')
-    validCp = validCp & logical(branch.validCp(:));
-elseif isfield(branch, 'valid')
-    validCp = validCp & logical(branch.valid(:));
+elasticReference = solvePublicMRLFERealK(frequency, material, geometry, seedModes, elasticParams, options);
+if isViscoelastic
+    realKResult = solvePublicMRLFERealK(frequency, material, geometry, seedModes, mrlfeParams, options);
+else
+    realKResult = elasticReference;
 end
 end
 
@@ -225,62 +97,6 @@ if isViscoelastic
 end
 results.models.mRLFERealK = realKResult;
 results.models.mRLFE = realKResult;
-end
-
-function result = computeElasticMRLFERealK(frequency, material, geometry, seedModes, options)
-mrlfeParams = buildMRLFEParamsFromOptions(options);
-mrlfeParams.solveComplexK = false;
-mrlfeParams.etaS = 0;
-mrlfeParams.etaL = 0;
-mrlfeParams.useComplexLambda = false;
-elasticOptions = makeElasticRealKOptions(options);
-result = computeMRLFE(frequency, material, geometry, seedModes, mrlfeParams, elasticOptions);
-end
-
-function elasticReference = getElasticReferenceResult(options, frequency, seedModes)
-elasticReference = [];
-if ~isfield(options, 'mrlfeElasticReferenceResult') || isempty(options.mrlfeElasticReferenceResult)
-    return;
-end
-candidate = options.mrlfeElasticReferenceResult;
-if ~isstruct(candidate) || ~isfield(candidate, 'branches') || ~isstruct(candidate.branches)
-    return;
-end
-if ~referenceHasRequiredBranches(candidate, seedModes)
-    return;
-end
-if ~referenceFrequencyMatches(candidate, frequency)
-    return;
-end
-elasticReference = candidate;
-end
-
-function tf = referenceHasRequiredBranches(referenceResult, seedModes)
-tf = true;
-if isfield(seedModes, 'A0') && ~isfield(referenceResult.branches, 'A0Like')
-    tf = false;
-end
-if isfield(seedModes, 'S0') && ~isfield(referenceResult.branches, 'S0Like')
-    tf = false;
-end
-end
-
-function tf = referenceFrequencyMatches(referenceResult, frequency)
-tf = true;
-branchNames = string(fieldnames(referenceResult.branches));
-if isempty(branchNames)
-    tf = false;
-    return;
-end
-for i = 1:numel(branchNames)
-    branch = referenceResult.branches.(char(branchNames(i)));
-    if isfield(branch, 'frequency') && numel(branch.frequency) == numel(frequency)
-        if max(abs(branch.frequency(:) - frequency(:))) > 10 * eps(max(1, max(abs(frequency(:)))))
-            tf = false;
-            return;
-        end
-    end
-end
 end
 
 function mrlfeParams = buildMRLFEParamsFromOptions(options)
@@ -294,43 +110,90 @@ if isfield(options, 'mrlfeParams')
 end
 end
 
-function elasticOptions = makeElasticRealKOptions(options)
-elasticOptions = options;
-elasticOptions.mrlfeUseInternalTrackingGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', false);
-elasticOptions.mrlfeA0UseDPTracker = true;
-elasticOptions.mrlfeRealKAnchorToSeed = true;
-elasticOptions.mrlfeRealKHardReferenceWindow = true;
-elasticOptions.mrlfeRealKScoreMode = "modal";
-elasticOptions.mrlfeRealKRequireLocalMinimum = true;
-elasticOptions.mrlfeRealKReferenceWeight = 80.0;
-elasticOptions.mrlfeRealKPredictionWeight = 4.0;
-elasticOptions.mrlfeRealKMaxRelativeKDrift = 0.30;
-elasticOptions.mrlfeRealKValidationMaxRelativeKDrift = 0.35;
-elasticOptions.mrlfeRealKValidationMaxRelativeCpDrift = 0.35;
-elasticOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
+function result = solvePublicMRLFERealK(frequency, material, geometry, seedModes, mrlfeParams, options)
+branchNames = requestedMRLFEBranches(seedModes, options);
+result = [];
+modelResults = cell(1, numel(branchNames));
+for i = 1:numel(branchNames)
+    request = buildPublicMRLFERequest(frequency, material, geometry, mrlfeParams, branchNames(i));
+    modelResults{i} = mrlfeSolve(request);
 end
 
-function viscoOptions = makeViscoRealKOptions(options)
-viscoOptions = options;
-useInternalGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', false) || ...
-    getOption(options, 'mrlfeUseInternalTrackingGridForViscousRealK', true);
-viscoOptions.mrlfeUseInternalTrackingGrid = useInternalGrid;
-viscoOptions.mrlfeA0UseDPTracker = false;
-viscoOptions.mrlfeRealKAnchorToSeed = true;
-viscoOptions.mrlfeRealKHardReferenceWindow = false;
-viscoOptions.mrlfeRealKScoreMode = "modal";
-viscoOptions.mrlfeRealKRequireLocalMinimum = true;
-viscoOptions.mrlfeRealKUseModalCpWindow = getOption(options, 'mrlfeViscoUseModalLocalTracker', true);
-viscoOptions.mrlfeRealKStopAtFirstMissingModalMinimum = getOption(options, 'mrlfeRealKStopAtFirstMissingModalMinimum', true);
-viscoOptions.mrlfeRealKReferenceWeight = 120.0;
-viscoOptions.mrlfeRealKPredictionWeight = 6.0;
-viscoOptions.mrlfeRealKPreviousCpWeight = getOption(options, 'mrlfeViscoPreviousCpWeight', 80.0);
-viscoOptions.mrlfeRealKPreviousKWeight = getOption(options, 'mrlfeViscoPreviousKWeight', 0.0);
-viscoOptions.mrlfeRealKPreviousCpMaxRelativeJump = getOption(options, 'mrlfeViscoPreviousCpMaxRelativeJump', inf);
-viscoOptions.mrlfeRealKMaxRelativeKDrift = inf;
-viscoOptions.mrlfeRealKValidationMaxRelativeKDrift = inf;
-viscoOptions.mrlfeRealKValidationMaxRelativeCpDrift = inf;
-viscoOptions.mrlfeResidualTolerance = max(getOption(options, 'mrlfeResidualTolerance', 1e-4), 1e-3);
+if ~isempty(modelResults)
+    result = modelResults{1}.diagnostics.rawInternalResult.rawFullResult.models.mRLFERealK;
+else
+    result = emptyPublicMRLFEResult(frequency, mrlfeParams);
+end
+result.parameters = mrlfeParams;
+result.frequency = frequency(:);
+result.requestedBranches = struct('A0Like', any(branchNames == "A0Like"), ...
+    'S0Like', any(branchNames == "S0Like"));
+result.branches = struct();
+for i = 1:numel(modelResults)
+    branchName = char(modelResults{i}.branch);
+    result.branches.(branchName) = modelResults{i}.diagnostics.rawInternalResult.branch;
+end
+result.publicModelResults = modelResultsByBranch(modelResults);
+result.diagnostics = buildPublicMRLFEDiagnostics(result, modelResults);
+end
+
+function request = buildPublicMRLFERequest(frequency, material, geometry, mrlfeParams, branchName)
+request = struct();
+request.branch = string(branchName);
+request.frequency_Hz = frequency(:);
+request.material = struct('mu_Pa', material.mu, ...
+    'etaS_Pas', getOption(mrlfeParams, 'etaS', 0), ...
+    'rho_kgm3', material.rho, ...
+    'nu', material.nu);
+request.geometry = struct('thickness_m', geometry.thickness);
+request.fluid = struct('density_kgm3', getOption(mrlfeParams, 'fluidDensity', 1000), ...
+    'soundSpeed_mps', getOption(mrlfeParams, 'fluidSoundSpeed', 1500));
+request.numerics = struct('preset', "fast");
+request.selection = struct('strategy', "adaptive");
+if string(branchName) == "A0Like"
+    request.termination = struct('policy', "physicalTail");
+else
+    request.termination = struct('policy', "none");
+end
+request.fallback = struct('policy', "none");
+end
+
+function branchNames = requestedMRLFEBranches(seedModes, options)
+branchNames = strings(1, 0);
+if isfield(seedModes, 'A0') && getOption(options, 'mrlfeComputeA0Like', true)
+    branchNames(end+1) = "A0Like"; %#ok<AGROW>
+end
+if isfield(seedModes, 'S0') && getOption(options, 'mrlfeComputeS0Like', true)
+    branchNames(end+1) = "S0Like"; %#ok<AGROW>
+end
+end
+
+function diagnostics = buildPublicMRLFEDiagnostics(result, modelResults)
+diagnostics = struct();
+diagnostics.variant = "real-k";
+diagnostics.branchNames = string(fieldnames(result.branches));
+diagnostics.usedInternalTrackingGrid = false;
+diagnostics.requestedPointCount = numel(result.frequency);
+diagnostics.trackingPointCount = numel(result.frequency);
+diagnostics.summary = struct();
+diagnostics.execution = modelResultsByBranch(modelResults);
+end
+
+function out = modelResultsByBranch(modelResults)
+out = struct();
+for i = 1:numel(modelResults)
+    out.(char(modelResults{i}.branch)) = modelResults{i};
+end
+end
+
+function result = emptyPublicMRLFEResult(frequency, mrlfeParams)
+result = struct();
+result.modelName = "mRLFE";
+result.variant = "real-k";
+result.description = "Public mRLFE real-k solve with no requested branches.";
+result.parameters = mrlfeParams;
+result.frequency = frequency(:);
+result.branches = struct();
 end
 
 function solverOptions = buildSolverOptions(options, material)

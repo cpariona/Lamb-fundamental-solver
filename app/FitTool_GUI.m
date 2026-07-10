@@ -98,7 +98,7 @@ onFitModelChanged();
         fitParameterState = guiBuildFitParameterState(modelFamily, freeParam);
         fitControls.robustness.Value = char(family.defaultRobustness);
         if modelFamily == "mrlfe"
-            fitControls.a0Policy.Value = 'adaptivePhysicalTail';
+            fitControls.a0Policy.Value = 'physicalTail';
         end
         updateParameterTable();
         fitControls.status.Text = sprintf('Fit status: restored %s defaults.', string(family.label));
@@ -443,9 +443,7 @@ onFitModelChanged();
 
         switch getSelectedModelFamily()
             case "mrlfe"
-                parts.controls.mrlfeUseUnifiedAtlasRoute = true;
-                parts.controls.mrlfeUseAtlasFitRoute = true;
-                parts.controls.mrlfeA0Policy = string(fitControls.a0Policy.Value);
+                parts.controls.mrlfeA0Policy = normalizeMrlfeA0Policy(string(fitControls.a0Policy.Value));
                 parts.fitOptions.optimizerOptions = optimset( ...
                     'Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-5);
             case "acoustoelastic_iop_hgo"
@@ -493,8 +491,7 @@ onFitModelChanged();
                 frequency_Hz = linspace(1000, 8000, 10).';
                 options = mrlfeDefaultSweepOptions(branchName, ...
                     'EtaS', resolvedControls.etaS, ...
-                    'UseUnifiedAtlasRoute', true, ...
-                    'A0Policy', string(fitControls.a0Policy.Value));
+                    'A0Policy', normalizeMrlfeA0Policy(string(fitControls.a0Policy.Value)));
                 options.mrlfeParams.fluidDensity = resolvedControls.fluidDensity;
                 options.mrlfeParams.fluidSoundSpeed = resolvedControls.fluidSoundSpeed;
                 Cp_mps = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
@@ -690,8 +687,7 @@ onFitModelChanged();
                     'DefaultProfile', "Fast", ...
                     'DefaultSource', "FitTool synthetic default", ...
                     'EtaS', etaS, ...
-                    'UseUnifiedAtlasRoute', true, ...
-                    'A0Policy', string(getControlField(parts.controls, 'mrlfeA0Policy', "adaptivePhysicalTail")));
+                    'A0Policy', string(getControlField(parts.controls, 'mrlfeA0Policy', "physicalTail")));
             case "acoustoelastic_iop_hgo"
                 [~, metadata] = aeResolveExecutionProfile(parts.controls, ...
                     'DefaultProfile', "Fast", 'DefaultSource', "FitTool synthetic default");
@@ -705,9 +701,16 @@ onFitModelChanged();
     function extra = syntheticExtraLines(modelFamily, parts)
         extra = strings(0, 1);
         if string(modelFamily) == "mrlfe"
-            extra(end+1) = "A0 policy: " + string(getControlField(parts.controls, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+            extra(end+1) = "A0 policy: " + string(getControlField(parts.controls, 'mrlfeA0Policy', "physicalTail"));
         end
         extra = extra(:);
+    end
+
+    function policy = normalizeMrlfeA0Policy(policyIn)
+        policy = string(policyIn);
+        if policy ~= "physicalTail"
+            policy = "physicalTail";
+        end
     end
 
     function extra = fitExtraLines(fitOutput)

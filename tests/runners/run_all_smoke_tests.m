@@ -8,7 +8,7 @@ startup
 %   run_gui_smoke_tests
 %   run_acoustoelastic_smoke_tests
 %   run_mrlfe_smoke_tests
-%   run_mrlfe_atlas_tests
+%   run_mrlfe_legacy_cleanup_tests
 
 fprintf('\nRunning complete Lamb Fundamental Solver smoke-test suite...\n');
 fprintf('--------------------------------------------------------\n');
@@ -25,7 +25,7 @@ run_acoustoelastic_smoke_tests;
 fprintf('\n[Group 4/5] mRLFE smoke tests\n');
 run_mrlfe_smoke_tests;
 
-fprintf('\n[Group 5/5] mRLFE atlas tests\n');
-run_mrlfe_atlas_tests;
+fprintf('\n[Group 5/5] mRLFE legacy cleanup tests\n');
+run_mrlfe_legacy_cleanup_tests;
 
 fprintf('\nComplete smoke-test suite passed.\n');
