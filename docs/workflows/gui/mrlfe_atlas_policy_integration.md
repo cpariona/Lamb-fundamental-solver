@@ -294,7 +294,7 @@ test_gui_mrlfe_fit_full_curve_fast_contract
 Focused FitTool atlas validation:
 
 ```matlab
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 ```
 
 This includes:
@@ -307,7 +307,7 @@ test_gui_mrlfe_unified_atlas_policy_contract
 test_gui_mrlfe_fit_full_curve_fast_contract
 ```
 
-`test_gui_mrlfe_elastic_atlas_guard_contract` verifies the zero-eta adaptive main-GUI route despite its historical filename. It is covered by `run_gui_smoke_tests`, not by `run_mrlfe_fit_atlas_tests`.
+Historical zero-eta adaptive main-GUI route checks are superseded by the public-solver GUI tests. They are covered by `run_gui_smoke_tests`, not by the removed FitTool atlas runner.
 
 The zero-eta adaptive contract checks that:
 

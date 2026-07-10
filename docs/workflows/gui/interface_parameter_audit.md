@@ -301,7 +301,7 @@ startup
 test_gui_struct_helpers_contract
 run_gui_smoke_tests
 run_fit_validation_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 run_all_smoke_tests
 ```
 

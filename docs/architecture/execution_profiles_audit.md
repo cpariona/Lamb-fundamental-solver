@@ -1,10 +1,21 @@
 # Execution Profiles Audit
 
+> Historical note: This audit records pre-migration execution-profile behavior.
+> Maintained mRLFE production routes now use the public `mrlfeSolve` API on
+> Main GUI, SweepTool, and FitTool. Legacy route names in this document are
+> retained only as historical audit evidence, not as active contracts.
+
 ## Executive summary
 
-The repository currently uses the words `Fast`, `Balanced`, `Robust`, and `robustness` for several different concepts. Rayleigh-Lamb uses them as true solver presets. AE IOP/HGO uses them mostly as atlas density presets. mRLFE uses them as a seed/default layer, but GUI and fitting routes apply additional fast atlas presets and route policies that can dominate the requested value.
+At the time of this audit, the repository used the words `Fast`, `Balanced`,
+`Robust`, and `robustness` for several different concepts. Rayleigh-Lamb used
+them as true solver presets. AE IOP/HGO used them mostly as atlas density
+presets. mRLFE used them as a seed/default layer, while GUI and fitting routes
+applied additional fast atlas presets and route policies that could dominate the
+requested value.
 
-No production defaults were changed in this audit. The important current behavior is:
+No production defaults were changed in this audit. The important behavior at
+that time was:
 
 | Area | Current behavior | Risk |
 | --- | --- | --- |

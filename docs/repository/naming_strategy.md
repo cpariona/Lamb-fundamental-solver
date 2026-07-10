@@ -135,8 +135,8 @@ only when a short entrypoint still needs to execute a retained legacy implementa
 ## mRLFE
 
 * Use `mrlfe*` for internal/model-specific functions when lowercase style is appropriate.
-* Existing public names such as `computeMRLFE`, `solveMRLFEBranch`, and `refineMRLFERealKRoot` may remain.
-* Future public mRLFE functions should prefer `computeMRLFE...`, `solveMRLFE...`, or `refineMRLFE...`.
+* The maintained public mRLFE production entrypoint is `mrlfeSolve`.
+* New mRLFE model-layer functions should use the `mrlfe*` prefix and neutral responsibility names.
 * Avoid “prototype” in maintained example names.
 * For maintained sweeps, expose `mu`, `etaS`, and `2h` rather than `E` when comparing against Rayleigh-Lamb or AE/OCE workflows.
 

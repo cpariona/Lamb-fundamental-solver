@@ -16,9 +16,9 @@ forward solving, FitTool fitting, and SweepTool sweeps now consume this API.
 The maintained FitTool fitting path consumes this API through
 `mrlfeEvaluateFitModel`. The maintained SweepTool mRLFE path consumes the same
 API once per sweep point through `guiRunMRLFESweep`.
-Broad legacy solvers and diagnostic route helpers still exist outside the
-public production core. The maintained seed, adaptive tracker, and physical-tail
-implementations now live behind neutral model-layer names.
+Broad legacy solvers and diagnostic route helpers have been removed from the
+maintained production surface. The maintained seed, adaptive tracker, and
+physical-tail implementations live behind neutral model-layer names.
 
 ## Request
 
@@ -156,10 +156,15 @@ The production implementation path is neutral:
 
 ```text
 mrlfeSolve
+  -> mrlfeResolveConfiguration
   -> mrlfeBuildProblem
+  -> mrlfeSolveBranch
+       -> mrlfeSolveElasticBranch
+       -> mrlfeSolveViscoelasticBranch
   -> mrlfeBuildSeed
   -> mrlfeTrackBranchAdaptive
   -> mrlfeApplyTerminationPolicy
+       -> mrlfeEvaluatePhysicalTail
   -> mrlfeBuildResult
 ```
 
@@ -256,12 +261,12 @@ mrlfeSolve
   -> mrlfeBuildResult
 ```
 
-The production core reproduces the audited FitTool route without calling GUI
-adapters or fitting evaluators:
+The production core reproduces the audited maintained consumer behavior without
+calling GUI adapters or fitting evaluators:
 
 ```text
-etaS = 0  -> zero-viscosity adaptive atlas
-etaS > 0  -> viscous unified atlas
+etaS = 0  -> elastic_adaptive
+etaS > 0  -> viscoelastic_adaptive
 ```
 
 The effective public engine names are neutral:
@@ -271,7 +276,6 @@ elastic_adaptive
 viscoelastic_adaptive
 ```
 
-The production core still uses lower-level maintained mRLFE helpers for seed
-construction, adaptive tracking, and A0 physical-tail cutting. Those remaining
-dependencies are transitional implementation details, not public request or
-result concepts.
+The production core uses neutral maintained helpers for seed construction,
+adaptive tracking, and A0 physical-tail cutting. Historical route names are not
+public request or result concepts.

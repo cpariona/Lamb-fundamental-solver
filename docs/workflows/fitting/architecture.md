@@ -379,7 +379,7 @@ For mRLFE FitTool-specific route behavior, also use:
 
 ```matlab
 run_mrlfe_fit_public_solver_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_legacy_cleanup_tests
 ```
 
 Detailed validation reference:

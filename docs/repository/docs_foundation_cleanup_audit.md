@@ -10,7 +10,7 @@ The goal is to update active documentation indexes and high-level workflow refer
 
 - Reviewed the root `README.md` after the mRLFE hygiene merge.
 - Reviewed `docs/README.md` and confirmed the active documentation index now includes the repository hygiene plan.
-- Reviewed `docs/repository/maintained_entrypoints.md` and identified one minor stale validation-list issue: `run_mrlfe_atlas_tests` should be listed with the other focused runners because `run_all_smoke_tests` now runs it explicitly.
+- Reviewed `docs/repository/maintained_entrypoints.md` and identified one historical validation-list issue: the removed atlas runner has been superseded by `run_mrlfe_legacy_cleanup_tests`.
 - Refreshed `docs/workflows/fitting/architecture.md` so it describes the implemented fitting architecture instead of a Phase 0 plan.
 - Refreshed `docs/workflows/fitting/validation_suite.md` so it lists hidden-parameter validation tests and the current mRLFE FitTool atlas validation runner.
 
@@ -34,7 +34,7 @@ The goal is to update active documentation indexes and high-level workflow refer
 - Added FitTool flow, fitting registry, fitting adapters, normalized fit schema, and `FitToolLastOutput` contract to the GUI adapter architecture document.
 - Clarified that `docs/workflows/gui/integration_audit.md` is the GUI status overview while `docs/workflows/gui/adapter_architecture.md` is the detailed architecture reference.
 - Corrected `docs/workflows/gui/mrlfe_atlas_policy_integration.md` so `test_gui_mrlfe_elastic_atlas_guard_contract` is documented under `run_gui_smoke_tests`, not under the focused FitTool atlas runner.
-- Clarified that `run_mrlfe_fit_atlas_tests` covers FitTool atlas-route contracts only.
+- Clarified that `run_mrlfe_fit_public_solver_tests` covers FitTool public-solver route contracts.
 
 ## Resolved in pass 5
 
@@ -61,7 +61,7 @@ The goal is to update active documentation indexes and high-level workflow refer
 `docs/repository/maintained_entrypoints.md` still has minor wording issues. It should include:
 
 ```matlab
-run_mrlfe_atlas_tests
+run_mrlfe_legacy_cleanup_tests
 ```
 
 near:
@@ -76,7 +76,7 @@ run_mrlfe_smoke_tests
 and it should mention:
 
 ```matlab
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 ```
 
 as the focused mRLFE FitTool fitting-route validation runner.
@@ -98,5 +98,5 @@ clear; clc; close all;
 startup
 run_all_smoke_tests
 run_fit_validation_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 ```

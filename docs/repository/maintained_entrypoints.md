@@ -389,22 +389,14 @@ Maintained mRLFE diagnostics:
 
 ```matlab
 compare_mrlfe_tracker_vs_condition_peaks
-diagnose_etaS_direct_atlas_fit
 diagnose_etaS_forward_cache
 diagnose_fit_timing
 diagnose_fit_option_sensitivity
+diagnose_mrlfe_atlas_primary_policy_matrix
+diagnose_mrlfe_gui_performance_32kHz
 diagnose_mrlfe_visco_validity_breakdown
 diagnose_mrlfe_visco_residual_landscape
 stress_test_mrlfe_real_k_range
-```
-
-Maintained mRLFE atlas diagnostics:
-
-```matlab
-diagnose_mrlfe_unified_atlas_mu_sweep
-diagnose_mrlfe_a0_policy_parametric_sweep
-diagnose_mrlfe_a0_physical_corridor_mu_sweep
-diagnose_mrlfe_atlas_primary_policy_matrix
 ```
 
 Additional mRLFE secondary and historical diagnostics are documented in:

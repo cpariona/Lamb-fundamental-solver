@@ -1,24 +1,23 @@
 # Active project context
 
-Last reviewed: 2026-07-06
+Last reviewed: 2026-07-10
 Repository: cpariona/Lamb-fundamental-solver
 Default branch: main
 Current main commit: b544b70e8df518db8bd7402aa9d3868a9e280a74
 
 ## Current development focus
 
-The cross-model sweep unification work was merged into `main` through PR #107.
-The next technical phase is a reproducible audit of mRLFE route consistency across:
+The mRLFE production architecture migration is complete on the validation branch
+stack. Main GUI, SweepTool, and FitTool now use the public model API:
 
-- `LambFundamental_GUI`;
-- `SweepTool_GUI`;
-- `FitTool_GUI`;
-- maintained mRLFE examples;
-- solver and branch-selection policies.
+```text
+Main GUI  -+
+SweepTool -+-> mrlfeSolve
+FitTool   -+
+```
 
-The audit must establish current behavior before any solver-route change or
-refactor is proposed. No implementation branch for the mRLFE audit has been
-created yet.
+The active task is final validation and integration reporting before the user
+manually merges the branch stack.
 
 ## Recently completed capabilities
 
@@ -51,21 +50,18 @@ created yet.
 
 - Execution-profile presentation is unified, but internal model execution structures are not fully unified.
 - mRLFE maps non-Fast requests to validated Fast behavior on maintained GUI, SweepTool, and FitTool routes.
-- Main GUI and SweepTool share `guiRunMRLFEModel`, while FitTool and maintained examples use separate evaluation paths.
-- Maintained mRLFE examples currently use defaults that differ from the interactive surfaces, including `delayedCut` and a non-unified atlas default.
-- Main GUI and SweepTool can apply a zero-viscosity adaptive fallback; FitTool records route quality but does not apply the same fallback policy.
-- Sweep-level mRLFE metadata can summarize one route even when individual sweep points use different routes.
+- Main GUI, SweepTool, and FitTool all reach `mrlfeSolve`; SweepTool no longer delegates solving through the Main GUI adapter.
+- Maintained mRLFE production routes use `physicalTail` for A0Like, `none` for S0Like, and `fallback.policy = "none"`.
+- Historical route audits describe pre-migration behavior and are not maintained entrypoint contracts.
 - Existing route and synthetic-contract tests do not constitute external physical validation.
 
 ## Planned development phases
 
 This sequence is provisional:
 
-1. Complete and merge the project-state documentation refresh.
-2. Create a new branch from updated `origin/main` for the mRLFE route-consistency audit.
-3. Build a reproducible comparison matrix across Main GUI, SweepTool, FitTool, and maintained examples.
-4. Classify each difference as intentional, defective, or requiring physical validation.
-5. Select one localized technical correction, define its scope, and validate it before opening a PR.
+1. Complete final mRLFE architecture validation on `mrlfe-final-validation`.
+2. User reviews and manually merges the mRLFE migration branch stack.
+3. After merge, update `main` locally and run the maintained smoke/validation suite.
 
 ## Primary references
 

@@ -241,13 +241,13 @@ docs/models/mrlfe/fittool_grid_path_sensitivity.md
 The atlas test runner includes the high-level policy selector contract:
 
 ```matlab
-tests/run_mrlfe_atlas_tests
+tests/run_mrlfe_legacy_cleanup_tests
 ```
 
 The FitTool atlas route contracts are run with:
 
 ```matlab
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 ```
 
 The lightweight tests intentionally do not assert dense physical coverage of A0. Physical coverage must be checked with dense diagnostics, because the A0 branch is sensitive to frequency grid density and material regime.

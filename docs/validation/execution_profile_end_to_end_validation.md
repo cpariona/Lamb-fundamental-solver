@@ -259,7 +259,7 @@ run_execution_profile_surface_tests
 run_execution_profile_cleanup_tests
 run_execution_profile_end_to_end_tests
 run_gui_smoke_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 run_acoustoelastic_smoke_tests
 run_execution_profile_regression_smoke
 ```

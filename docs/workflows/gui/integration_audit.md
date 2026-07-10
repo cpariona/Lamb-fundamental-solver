@@ -171,7 +171,7 @@ rehash toolboxcache
 startup
 run_all_smoke_tests
 run_fit_validation_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 ```
 
 Manual GUI checks:
