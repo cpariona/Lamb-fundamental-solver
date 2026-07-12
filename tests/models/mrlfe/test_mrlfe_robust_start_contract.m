@@ -3,10 +3,10 @@ startup
 
 %TEST_MRLFE_ROBUST_START_CONTRACT Verify forward-only A0Like recovery.
 
-lowGrid_Hz = [10 20 30 40 50 60 75 90 100 125 150 175 200 250 300 350 400 450 500].';
-highGrid_Hz = (650:150:4000).';
-solveFrequency_Hz = unique([lowGrid_Hz; highGrid_Hz; 4000]);
-requestedFrequency_Hz = [10 100 500 1000 2000 4000].';
+% Reproduce the observed failure pattern: a very low first frequency followed
+% by a jump that prevents the original forward tracker from establishing A0Like.
+solveFrequency_Hz = unique([10; (184:150:4000).'; 4000]);
+requestedFrequency_Hz = [10 184 500 1000 2000 4000].';
 
 request = struct();
 request.branch = "A0Like";
