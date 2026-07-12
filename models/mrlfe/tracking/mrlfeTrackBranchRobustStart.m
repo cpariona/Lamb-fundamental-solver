@@ -3,10 +3,12 @@ function branch = mrlfeTrackBranchRobustStart(problem, seedMode, configuration, 
 %
 % The maintained adaptive tracker is attempted first. If A0Like does not
 % establish the required valid run, short forward probes are evaluated from
-% configured candidate frequencies. Each probe uses Rayleigh-Lamb seed modes
-% sliced to the same candidate subproblem. The first successful candidate is
-% then tracked forward to the end of the solve grid. Frequencies before the
-% robust start remain invalid. No backward tracking is performed.
+% configured candidate frequencies. Each probe rebuilds a complete model-layer
+% subproblem on the candidate interval so that Rayleigh-Lamb continuation and
+% seed construction are independent of the failed low-frequency prefix. The
+% first successful candidate is then tracked forward to the end of the solve
+% grid. Frequencies before the robust start remain invalid. No backward tracking
+% is performed.
 
 baseBranch = mrlfeTrackBranchAdaptive(problem, seedMode, configuration, mrlfeParams, options);
 policy = resolvePolicy(configuration, options);
@@ -29,7 +31,7 @@ for i = 1:numel(candidateIndices)
     end
 
     probesAttempted = probesAttempted + 1;
-    probeProblem = sliceProblem(problem, startIndex, stopIndex);
+    probeProblem = rebuildSubproblem(configuration, frequency(startIndex:stopIndex));
     probeSeed = mrlfeBuildSeed(probeProblem, configuration);
     probeBranch = mrlfeTrackBranchAdaptive(probeProblem, probeSeed, configuration, mrlfeParams, options);
     if hasInitialValidRun(probeBranch.validCp, policy.minValidRun)
@@ -43,7 +45,7 @@ if ~isfinite(selectedIndex)
     return;
 end
 
-forwardProblem = sliceProblem(problem, selectedIndex, numel(frequency));
+forwardProblem = rebuildSubproblem(configuration, frequency(selectedIndex:end));
 forwardSeed = mrlfeBuildSeed(forwardProblem, configuration);
 forwardBranch = mrlfeTrackBranchAdaptive(forwardProblem, forwardSeed, configuration, mrlfeParams, options);
 branch = padForwardBranch(forwardBranch, seedMode, selectedIndex);
@@ -100,51 +102,14 @@ validMask = logical(validMask(:));
 tf = numel(validMask) >= requiredRun && all(validMask(1:requiredRun));
 end
 
-function problemOut = sliceProblem(problemIn, firstIndex, lastIndex)
-problemOut = problemIn;
-frequency = problemIn.frequencySolve_Hz(:);
-frequencySlice = frequency(firstIndex:lastIndex);
-problemOut.frequencyRequested_Hz = frequencySlice;
-problemOut.frequencySolve_Hz = frequencySlice;
-problemOut.params.fmin = frequencySlice(1);
-problemOut.params.fmax = frequencySlice(end);
-problemOut.params.numFrequencyPoints = numel(frequencySlice);
-problemOut.params.frequencySpacing = "explicit";
-problemOut.params.frequencyVector_Hz = frequencySlice(:).';
-problemOut.seedModes = sliceSeedModes(problemIn.seedModes, firstIndex, lastIndex, numel(frequency));
+function problemOut = rebuildSubproblem(configurationIn, frequencySlice_Hz)
+frequencySlice_Hz = frequencySlice_Hz(:);
+configurationOut = configurationIn;
+configurationOut.request.frequency_Hz = frequencySlice_Hz;
+configurationOut.request.numerics.frequencySolveOverride_Hz = frequencySlice_Hz;
+problemOut = mrlfeBuildProblem(configurationOut);
 if isfield(problemOut, 'frequencyGrid') && isstruct(problemOut.frequencyGrid)
-    problemOut.frequencyGrid.source = "robustStartSlice";
-    problemOut.frequencyGrid.numPoints = numel(frequencySlice);
-    problemOut.frequencyGrid.fmin_Hz = frequencySlice(1);
-    problemOut.frequencyGrid.fmax_Hz = frequencySlice(end);
-end
-end
-
-function seedModesOut = sliceSeedModes(seedModesIn, firstIndex, lastIndex, numFrequency)
-seedModesOut = seedModesIn;
-if ~isstruct(seedModesIn)
-    return;
-end
-modeNames = fieldnames(seedModesIn);
-for i = 1:numel(modeNames)
-    modeName = modeNames{i};
-    mode = seedModesIn.(modeName);
-    if ~isstruct(mode)
-        continue;
-    end
-    fields = fieldnames(mode);
-    for j = 1:numel(fields)
-        fieldName = fields{j};
-        value = mode.(fieldName);
-        if isvector(value) && numel(value) == numFrequency
-            if isrow(value)
-                mode.(fieldName) = value(firstIndex:lastIndex);
-            else
-                mode.(fieldName) = value(firstIndex:lastIndex,1);
-            end
-        end
-    end
-    seedModesOut.(modeName) = mode;
+    problemOut.frequencyGrid.source = "robustStartRebuild";
 end
 end
 
