@@ -3,11 +3,10 @@ function branch = mrlfeTrackBranchRobustStart(problem, seedMode, configuration, 
 %
 % The maintained adaptive tracker is attempted first. If A0Like does not
 % establish the required valid run, short forward probes are evaluated from
-% configured candidate frequencies. Each probe rebuilds its Rayleigh-Lamb seed
-% on the candidate subproblem so that a failed low-frequency seed is not reused.
-% The first successful candidate is then tracked forward to the end of the solve
-% grid. Frequencies before the robust start remain invalid. No backward tracking
-% is performed.
+% configured candidate frequencies. Each probe uses Rayleigh-Lamb seed modes
+% sliced to the same candidate subproblem. The first successful candidate is
+% then tracked forward to the end of the solve grid. Frequencies before the
+% robust start remain invalid. No backward tracking is performed.
 
 baseBranch = mrlfeTrackBranchAdaptive(problem, seedMode, configuration, mrlfeParams, options);
 policy = resolvePolicy(configuration, options);
@@ -112,11 +111,40 @@ problemOut.params.fmax = frequencySlice(end);
 problemOut.params.numFrequencyPoints = numel(frequencySlice);
 problemOut.params.frequencySpacing = "explicit";
 problemOut.params.frequencyVector_Hz = frequencySlice(:).';
+problemOut.seedModes = sliceSeedModes(problemIn.seedModes, firstIndex, lastIndex, numel(frequency));
 if isfield(problemOut, 'frequencyGrid') && isstruct(problemOut.frequencyGrid)
     problemOut.frequencyGrid.source = "robustStartSlice";
     problemOut.frequencyGrid.numPoints = numel(frequencySlice);
     problemOut.frequencyGrid.fmin_Hz = frequencySlice(1);
     problemOut.frequencyGrid.fmax_Hz = frequencySlice(end);
+end
+end
+
+function seedModesOut = sliceSeedModes(seedModesIn, firstIndex, lastIndex, numFrequency)
+seedModesOut = seedModesIn;
+if ~isstruct(seedModesIn)
+    return;
+end
+modeNames = fieldnames(seedModesIn);
+for i = 1:numel(modeNames)
+    modeName = modeNames{i};
+    mode = seedModesIn.(modeName);
+    if ~isstruct(mode)
+        continue;
+    end
+    fields = fieldnames(mode);
+    for j = 1:numel(fields)
+        fieldName = fields{j};
+        value = mode.(fieldName);
+        if isvector(value) && numel(value) == numFrequency
+            if isrow(value)
+                mode.(fieldName) = value(firstIndex:lastIndex);
+            else
+                mode.(fieldName) = value(firstIndex:lastIndex,1);
+            end
+        end
+    end
+    seedModesOut.(modeName) = mode;
 end
 end
 
