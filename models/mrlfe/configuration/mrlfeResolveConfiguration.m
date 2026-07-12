@@ -145,6 +145,10 @@ options.mrlfeA0DPRefineCandidates = preset.refineCandidates;
 options.mrlfeAdaptiveRefineCandidates = preset.refineCandidates;
 options.mrlfeAdaptiveWindows = preset.adaptiveWindows;
 options.mrlfeUseA0PhysicalTailCut = string(request.termination.policy) == "physicalTail";
+options.mrlfeRobustStartEnabled = branch == "A0Like";
+options.mrlfeRobustStartCandidateFrequencies_Hz = [75 100 150 200 300 500 750 1000];
+options.mrlfeRobustStartMinValidRun = 8;
+options.mrlfeRobustStartMaxCandidates = 8;
 
 switch branch
     case "A0Like"
