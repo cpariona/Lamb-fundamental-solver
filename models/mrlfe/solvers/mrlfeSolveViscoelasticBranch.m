@@ -8,7 +8,7 @@ mrlfeParams.etaL = 0;
 mrlfeParams.useComplexLambda = false;
 
 seed = mrlfeBuildSeed(problem, configuration);
-branchSolve = mrlfeTrackBranchAdaptive(problem, seed, configuration, mrlfeParams, options);
+branchSolve = mrlfeTrackBranchRobustStart(problem, seed, configuration, mrlfeParams, options);
 branchSolve = mrlfeApplyTerminationPolicy(branchSolve, seed, configuration);
 branchSolve.productionPolicy = branchPolicyName(configuration.branch, configuration.terminationPolicy, "viscoelastic");
 branchSolve.solverRoute = "viscoelasticAdaptive";
