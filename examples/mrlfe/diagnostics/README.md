@@ -33,7 +33,18 @@ diagnose_mrlfe_gui_performance_32kHz
 diagnose_mrlfe_visco_residual_landscape
 diagnose_mrlfe_visco_validity_breakdown
 stress_test_mrlfe_real_k_range
+validate_grid_presets
 ```
+
+`validate_grid_presets` compares constant post-start frequency steps against a
+dense reference while preserving a common fixed low-frequency grid. It uses the
+diagnostic `numerics.frequencySolveOverride_Hz` field so the exact nonuniform
+internal grid is evaluated instead of being replaced by `linspace`. The public
+result remains on the requested output grid.
+
+The script reports phase-velocity error, physical-tail cut-frequency error,
+termination agreement, common valid coverage, elapsed time, and candidate
+preset selection. It does not modify `fast` or `dense` production presets.
 
 These scripts should use maintained public or neutral model-layer APIs. Do not
 restore deleted route entrypoints solely for diagnostics.
@@ -44,6 +55,7 @@ Diagnostic scripts may write outputs under:
 
 ```text
 outputs/mrlfe
+Results/mrlfe
 ```
 
 Generated `.mat`, `.csv`, `.fig`, and `.png` diagnostic artifacts are not source
