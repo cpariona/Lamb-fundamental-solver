@@ -3,9 +3,11 @@ function branch = mrlfeTrackBranchRobustStart(problem, seedMode, configuration, 
 %
 % The maintained adaptive tracker is attempted first. If A0Like does not
 % establish the required valid run, short forward probes are evaluated from
-% configured candidate frequencies. The first successful candidate is then
-% tracked forward to the end of the solve grid. Frequencies before the robust
-% start remain invalid. No backward tracking is performed.
+% configured candidate frequencies. Each probe rebuilds its Rayleigh-Lamb seed
+% on the candidate subproblem so that a failed low-frequency seed is not reused.
+% The first successful candidate is then tracked forward to the end of the solve
+% grid. Frequencies before the robust start remain invalid. No backward tracking
+% is performed.
 
 baseBranch = mrlfeTrackBranchAdaptive(problem, seedMode, configuration, mrlfeParams, options);
 policy = resolvePolicy(configuration, options);
@@ -28,8 +30,9 @@ for i = 1:numel(candidateIndices)
     end
 
     probesAttempted = probesAttempted + 1;
-    probeSeed = sliceSeedMode(seedMode, startIndex, stopIndex);
-    probeBranch = mrlfeTrackBranchAdaptive(problem, probeSeed, configuration, mrlfeParams, options);
+    probeProblem = sliceProblem(problem, startIndex, stopIndex);
+    probeSeed = mrlfeBuildSeed(probeProblem, configuration);
+    probeBranch = mrlfeTrackBranchAdaptive(probeProblem, probeSeed, configuration, mrlfeParams, options);
     if hasInitialValidRun(probeBranch.validCp, policy.minValidRun)
         selectedIndex = startIndex;
         break;
@@ -41,8 +44,9 @@ if ~isfinite(selectedIndex)
     return;
 end
 
-forwardSeed = sliceSeedMode(seedMode, selectedIndex, numel(frequency));
-forwardBranch = mrlfeTrackBranchAdaptive(problem, forwardSeed, configuration, mrlfeParams, options);
+forwardProblem = sliceProblem(problem, selectedIndex, numel(frequency));
+forwardSeed = mrlfeBuildSeed(forwardProblem, configuration);
+forwardBranch = mrlfeTrackBranchAdaptive(forwardProblem, forwardSeed, configuration, mrlfeParams, options);
 branch = padForwardBranch(forwardBranch, seedMode, selectedIndex);
 branch = attachMetadata(branch, policy, true, true, selectedIndex, frequency(selectedIndex), probesAttempted, "stable_candidate_found");
 branch.note = "mRLFE branch tracked forward from a robust A0Like start; earlier frequencies remain invalid.";
@@ -97,20 +101,22 @@ validMask = logical(validMask(:));
 tf = numel(validMask) >= requiredRun && all(validMask(1:requiredRun));
 end
 
-function seedOut = sliceSeedMode(seedIn, firstIndex, lastIndex)
-seedOut = seedIn;
-fields = fieldnames(seedIn);
-numFrequency = numel(seedIn.frequency);
-for i = 1:numel(fields)
-    fieldName = fields{i};
-    value = seedIn.(fieldName);
-    if isvector(value) && numel(value) == numFrequency
-        if isrow(value)
-            seedOut.(fieldName) = value(firstIndex:lastIndex);
-        else
-            seedOut.(fieldName) = value(firstIndex:lastIndex,1);
-        end
-    end
+function problemOut = sliceProblem(problemIn, firstIndex, lastIndex)
+problemOut = problemIn;
+frequency = problemIn.frequencySolve_Hz(:);
+frequencySlice = frequency(firstIndex:lastIndex);
+problemOut.frequencyRequested_Hz = frequencySlice;
+problemOut.frequencySolve_Hz = frequencySlice;
+problemOut.params.fmin = frequencySlice(1);
+problemOut.params.fmax = frequencySlice(end);
+problemOut.params.numFrequencyPoints = numel(frequencySlice);
+problemOut.params.frequencySpacing = "explicit";
+problemOut.params.frequencyVector_Hz = frequencySlice(:).';
+if isfield(problemOut, 'frequencyGrid') && isstruct(problemOut.frequencyGrid)
+    problemOut.frequencyGrid.source = "robustStartSlice";
+    problemOut.frequencyGrid.numPoints = numel(frequencySlice);
+    problemOut.frequencyGrid.fmin_Hz = frequencySlice(1);
+    problemOut.frequencyGrid.fmax_Hz = frequencySlice(end);
 end
 end
 
