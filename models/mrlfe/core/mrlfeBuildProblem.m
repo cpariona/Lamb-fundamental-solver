@@ -2,8 +2,9 @@ function problem = mrlfeBuildProblem(configuration)
 %MRLFEBUILDPROBLEM Build the internal model-layer problem for mRLFE solving.
 
 frequencyInput = configuration.request.frequency_Hz(:);
-params = configuration.solverParams;
-[params, frequencySolve_Hz] = prepareFrequencyParams(params, frequencyInput);
+[frequencySolve_Hz, frequencyGrid] = mrlfeResolveSolveFrequencyGrid( ...
+    frequencyInput, configuration.request.numerics);
+params = prepareFrequencyParams(configuration.solverParams, frequencySolve_Hz);
 
 seedOptions = rlDefaultOptions("Fast");
 seedOptions.computeA0 = configuration.branch == "A0Like";
@@ -21,6 +22,7 @@ problem.model = "mrlfe";
 problem.branch = configuration.branch;
 problem.frequencyRequested_Hz = frequencyInput;
 problem.frequencySolve_Hz = frequencySolve_Hz;
+problem.frequencyGrid = frequencyGrid;
 problem.params = params;
 problem.material = rawRL.material;
 problem.geometry = rawRL.geometry;
@@ -29,28 +31,12 @@ problem.rawSeedResult = rawRL;
 problem.fluid = configuration.request.fluid;
 end
 
-function [params, frequencySolve_Hz] = prepareFrequencyParams(params, frequency_Hz)
-frequency_Hz = frequency_Hz(:);
-[frequencySorted, ~] = sort(frequency_Hz);
-if any(abs(frequencySorted - frequency_Hz) > 0)
-    error('mrlfe:InvalidFrequencyOrder', 'frequency_Hz must be strictly ascending.');
-end
+function params = prepareFrequencyParams(params, frequencySolve_Hz)
+frequencySolve_Hz = frequencySolve_Hz(:);
 
-if numel(frequencySorted) == 1
-    f0 = frequencySorted(1);
-    halfWidth = max(0.05 * f0, 1.0);
-    fmin = max(eps(f0), f0 - halfWidth);
-    fmax = f0 + halfWidth;
-else
-    fmin = frequencySorted(1);
-    fmax = frequencySorted(end);
-end
-
-numFrequencyPoints = max(10, numel(frequencySorted));
-frequencySolve_Hz = linspace(fmin, fmax, numFrequencyPoints).';
-
-params.fmin = fmin;
-params.fmax = fmax;
-params.numFrequencyPoints = numFrequencyPoints;
-params.frequencySpacing = "linspace";
+params.fmin = frequencySolve_Hz(1);
+params.fmax = frequencySolve_Hz(end);
+params.numFrequencyPoints = numel(frequencySolve_Hz);
+params.frequencySpacing = "explicit";
+params.frequencyVector_Hz = frequencySolve_Hz;
 end
