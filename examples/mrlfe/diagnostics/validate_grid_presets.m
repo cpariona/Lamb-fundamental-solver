@@ -44,11 +44,11 @@ rho_kgm3 = 1070;
 nu = 0.4999;
 branchName = "A0Like";
 
-% Dense reference. Reduce only after demonstrating convergence.
-referenceStep_Hz = 25;
+% Fine reference used to resolve viscous termination location.
+referenceStep_Hz = 10;
 
 % Candidate constant steps after the fixed low-frequency grid.
-candidateSteps_Hz = [50 75 100 125 150 200 250];
+candidateSteps_Hz = [20 25 30 40 50 75 100];
 
 % Fixed low-frequency grid shared by all candidate presets.
 lowGrid_Hz = [ ...
@@ -56,8 +56,8 @@ lowGrid_Hz = [ ...
     125:25:250, ...
     300:50:500].';
 
-% Output/reference comparison grid. A 25 Hz grid resolves reference cut
-% location consistently without making candidate internal grids identical.
+% Output/reference comparison grid. It must be at least as fine as the
+% reference solve grid so cut and curve comparisons are not output-limited.
 outputStep_Hz = referenceStep_Hz;
 
 % Preset acceptance targets. The final preset is the largest candidate step
@@ -206,7 +206,12 @@ run.validMask = logical(result.validMask(:));
 run.elapsed_s = elapsed_s;
 run.solvePointCount = numel(solveFrequency_Hz);
 run.solveFrequency_Hz = solveFrequency_Hz(:);
-run.cutFrequency_Hz = lastValidFrequency(result.frequency_Hz, result.validMask);
+run.lastValidFrequency_Hz = lastValidFrequency(result.frequency_Hz, result.validMask);
+run.terminationApplied = logical(result.termination.applied);
+run.terminationFrequency_Hz = NaN;
+if run.terminationApplied && isfinite(result.termination.firstRejectedFrequency_Hz)
+    run.terminationFrequency_Hz = result.termination.firstRejectedFrequency_Hz;
+end
 run.terminationReason = string(result.termination.reason);
 run.qualityReason = string(result.quality.reason);
 end
@@ -231,8 +236,10 @@ metrics.commonValidFraction = nnz(common) / max(nnz(reference.validMask), 1);
 metrics.medianRelativeError = NaN;
 metrics.p95RelativeError = NaN;
 metrics.maxRelativeError = NaN;
-metrics.relativeCutError = cutError(reference.cutFrequency_Hz, candidate.cutFrequency_Hz);
-metrics.terminationMatches = reference.terminationReason == candidate.terminationReason;
+metrics.cutComparisonEligible = reference.terminationApplied && candidate.terminationApplied;
+metrics.relativeCutError = terminationError(reference, candidate);
+metrics.terminationStateMatches = reference.terminationApplied == candidate.terminationApplied;
+metrics.terminationReasonMatches = reference.terminationReason == candidate.terminationReason;
 
 if any(common)
     scale = max(abs(reference.Cp_mps(common)), eps);
@@ -243,13 +250,14 @@ if any(common)
 end
 end
 
-function value = cutError(referenceCut_Hz, candidateCut_Hz)
-if isfinite(referenceCut_Hz) && isfinite(candidateCut_Hz)
-    value = abs(candidateCut_Hz - referenceCut_Hz) / max(referenceCut_Hz, eps);
-elseif ~isfinite(referenceCut_Hz) && ~isfinite(candidateCut_Hz)
-    value = 0;
+function value = terminationError(reference, candidate)
+if reference.terminationApplied && candidate.terminationApplied && ...
+        isfinite(reference.terminationFrequency_Hz) && ...
+        isfinite(candidate.terminationFrequency_Hz)
+    value = abs(candidate.terminationFrequency_Hz - reference.terminationFrequency_Hz) / ...
+        max(reference.terminationFrequency_Hz, eps);
 else
-    value = inf;
+    value = NaN;
 end
 end
 
@@ -287,8 +295,13 @@ row.candidatePointCount = candidate.solvePointCount;
 row.referenceElapsed_s = reference.elapsed_s;
 row.candidateElapsed_s = candidate.elapsed_s;
 row.speedup = reference.elapsed_s / max(candidate.elapsed_s, eps);
-row.referenceCut_Hz = reference.cutFrequency_Hz;
-row.candidateCut_Hz = candidate.cutFrequency_Hz;
+row.referenceLastValid_Hz = reference.lastValidFrequency_Hz;
+row.candidateLastValid_Hz = candidate.lastValidFrequency_Hz;
+row.referenceTerminationApplied = reference.terminationApplied;
+row.candidateTerminationApplied = candidate.terminationApplied;
+row.referenceTermination_Hz = reference.terminationFrequency_Hz;
+row.candidateTermination_Hz = candidate.terminationFrequency_Hz;
+row.cutComparisonEligible = metrics.cutComparisonEligible;
 row.relativeCutError = metrics.relativeCutError;
 row.commonValidCount = metrics.commonValidCount;
 row.commonValidFraction = metrics.commonValidFraction;
@@ -297,7 +310,8 @@ row.p95RelativeError = metrics.p95RelativeError;
 row.maxRelativeError = metrics.maxRelativeError;
 row.referenceTermination = reference.terminationReason;
 row.candidateTermination = candidate.terminationReason;
-row.terminationMatches = metrics.terminationMatches;
+row.terminationStateMatches = metrics.terminationStateMatches;
+row.terminationReasonMatches = metrics.terminationReasonMatches;
 row.referenceQuality = reference.qualityReason;
 row.candidateQuality = candidate.qualityReason;
 end
@@ -306,13 +320,15 @@ function summary = summarizeByStep(results)
 [G, steps] = findgroups(results.candidateStep_Hz);
 summary = table(steps, 'VariableNames', {'candidateStep_Hz'});
 summary.caseCount = splitapply(@numel, results.candidateStep_Hz, G);
+summary.cutEligibleCount = splitapply(@(x) nnz(x), results.cutComparisonEligible, G);
 summary.medianElapsed_s = splitapply(@(x) median(x, 'omitnan'), results.candidateElapsed_s, G);
 summary.medianSpeedup = splitapply(@(x) median(x, 'omitnan'), results.speedup, G);
 summary.worstMedianRelativeError = splitapply(@finiteMax, results.medianRelativeError, G);
 summary.worstP95RelativeError = splitapply(@finiteMax, results.p95RelativeError, G);
-summary.worstRelativeCutError = splitapply(@finiteMax, results.relativeCutError, G);
+summary.worstRelativeCutError = splitapply(@finiteMaxOrNaN, results.relativeCutError, G);
 summary.minimumCommonValidFraction = splitapply(@finiteMin, results.commonValidFraction, G);
-summary.terminationMatchFraction = splitapply(@(x) mean(x), results.terminationMatches, G);
+summary.terminationStateMatchFraction = splitapply(@(x) mean(x), results.terminationStateMatches, G);
+summary.terminationReasonMatchFraction = splitapply(@(x) mean(x), results.terminationReasonMatches, G);
 summary = sortrows(summary, 'candidateStep_Hz');
 end
 
@@ -329,11 +345,15 @@ for i = 1:height(selection)
     chosen = NaN;
     for step = steps(:).'
         sub = results(results.candidateStep_Hz == step, :);
+        eligibleCutErrors = sub.relativeCutError(sub.cutComparisonEligible);
+        cutPasses = ~isempty(eligibleCutErrors) && ...
+            all(eligibleCutErrors <= target.maxRelativeCutError);
         passes = all(sub.medianRelativeError <= target.maxMedianRelativeError) && ...
             all(sub.p95RelativeError <= target.maxP95RelativeError) && ...
-            all(sub.relativeCutError <= target.maxRelativeCutError) && ...
+            cutPasses && ...
             all(sub.commonValidFraction >= 0.95) && ...
-            mean(sub.terminationMatches) >= 0.95;
+            mean(sub.terminationStateMatches) >= 0.95 && ...
+            mean(sub.terminationReasonMatches) >= 0.95;
         if passes
             chosen = step;
             break;
@@ -342,9 +362,9 @@ for i = 1:height(selection)
     selection.selectedStep_Hz(i) = chosen;
     selection.passes(i) = isfinite(chosen);
     if isfinite(chosen)
-        selection.reason(i) = "largest candidate satisfying all matrix targets";
+        selection.reason(i) = "largest candidate satisfying curve, termination-state, and observed-cut targets";
     else
-        selection.reason(i) = "no candidate satisfied all matrix targets";
+        selection.reason(i) = "no candidate satisfied all applicable matrix targets";
     end
 end
 end
@@ -358,11 +378,17 @@ consistency = keys;
 consistency.maxMedianErrorSpread = splitapply(@finiteRange, results.medianRelativeError, G);
 consistency.maxCutErrorSpread = splitapply(@finiteRange, results.relativeCutError, G);
 consistency.minCommonValidFraction = splitapply(@finiteMin, results.commonValidFraction, G);
+consistency.terminationStateMatchFraction = splitapply(@(x) mean(x), results.terminationStateMatches, G);
 end
 
 function value = finiteMax(x)
 x = x(isfinite(x));
 if isempty(x), value = inf; else, value = max(x); end
+end
+
+function value = finiteMaxOrNaN(x)
+x = x(isfinite(x));
+if isempty(x), value = NaN; else, value = max(x); end
 end
 
 function value = finiteMin(x)
