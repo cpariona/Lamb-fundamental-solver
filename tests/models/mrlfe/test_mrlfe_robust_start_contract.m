@@ -34,8 +34,54 @@ assert(branch.robustStart.Enabled, ...
     'Robust-start must be enabled for A0Like production solving.');
 assert(branch.robustStart.Attempted, ...
     'The low-frequency regression case must attempt robust-start recovery.');
-assert(branch.robustStart.Applied, ...
-    'The low-frequency regression case must apply a stable robust start.');
+
+if ~branch.robustStart.Applied
+    fprintf('\nRobust-start candidate diagnostics\n');
+    fprintf('----------------------------------\n');
+    fprintf('Base valid points: %d/%d\n', nnz(branch.validCp), numel(branch.validCp));
+    fprintf('Policy reason: %s\n', string(branch.robustStart.Reason));
+    fprintf('Probes attempted: %d\n', branch.robustStart.ProbesAttempted);
+
+    candidateFrequencies_Hz = branch.robustStart.CandidateFrequencies_Hz(:);
+    for i = 1:numel(candidateFrequencies_Hz)
+        idx = find(solveFrequency_Hz >= candidateFrequencies_Hz(i), 1, 'first');
+        if isempty(idx) || numel(solveFrequency_Hz) - idx + 1 < branch.robustStart.MinValidRun
+            continue;
+        end
+
+        probeRequest = request;
+        probeFrequency_Hz = solveFrequency_Hz(idx:end);
+        probeRequest.frequency_Hz = probeFrequency_Hz;
+        probeRequest.numerics.frequencySolveOverride_Hz = probeFrequency_Hz;
+        probeRequest.termination.policy = "none";
+
+        probeResult = mrlfeSolve(probeRequest);
+        probeBranch = probeResult.diagnostics.rawInternalResult.branchSolve;
+        initialRun = countInitialValidRun(probeBranch.validCp);
+        firstValid = find(probeBranch.validCp, 1, 'first');
+        lastValid = find(probeBranch.validCp, 1, 'last');
+
+        if isempty(firstValid)
+            firstValidFrequency_Hz = NaN;
+            lastValidFrequency_Hz = NaN;
+        else
+            firstValidFrequency_Hz = probeBranch.frequency(firstValid);
+            lastValidFrequency_Hz = probeBranch.frequency(lastValid);
+        end
+
+        fprintf(['Candidate %.0f Hz -> grid start %.0f Hz | initial run %d | ' ...
+            'valid %d/%d | first %.0f Hz | last %.0f Hz | robust applied %d\n'], ...
+            candidateFrequencies_Hz(i), probeFrequency_Hz(1), initialRun, ...
+            nnz(probeBranch.validCp), numel(probeBranch.validCp), ...
+            firstValidFrequency_Hz, lastValidFrequency_Hz, ...
+            probeBranch.robustStart.Applied);
+    end
+
+    error('mrlfe:RobustStartNotApplied', ...
+        ['The low-frequency regression case did not apply a stable robust start. ' ...
+        'Use the candidate diagnostics printed above to identify the failing interval.']);
+end
+
 assert(isfinite(branch.robustStart.StartIndex) && branch.robustStart.StartIndex > 1, ...
     'Robust-start must begin after the failing low-frequency prefix.');
 assert(isfinite(branch.robustStart.StartFrequency_Hz), ...
@@ -51,3 +97,14 @@ assert(~result.fallback.applied, ...
 
 fprintf(['test_mrlfe_robust_start_contract passed. A0Like recovers forward from a ' ...
     'stable start while preserving invalid lower frequencies.\n']);
+
+function runLength = countInitialValidRun(validMask)
+validMask = logical(validMask(:));
+runLength = 0;
+for i = 1:numel(validMask)
+    if ~validMask(i)
+        break;
+    end
+    runLength = runLength + 1;
+end
+end
