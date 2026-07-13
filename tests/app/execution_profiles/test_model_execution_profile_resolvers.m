@@ -5,6 +5,7 @@ fprintf('\nRunning model execution profile resolver tests...\n');
 fprintf('------------------------------------------------\n');
 
 profiles = ["Fast", "Balanced", "Robust"];
+presets = ["fast", "balanced", "robust"];
 
 %% Rayleigh-Lamb resolver delegates to rlDefaultOptions without changing values.
 for i = 1:numel(profiles)
@@ -32,27 +33,35 @@ for i = 1:numel(profiles)
     assert(metadata.effectiveExecutionProfile == profiles(i), 'AE effective profile metadata mismatch.');
 end
 
-%% mRLFE GUI/Sweep preserves fast internal atlas support as explicit metadata.
-[guiOptions, guiMetadata] = mrlfeResolveExecutionProfile("A0Like", struct('robustness', "Robust"), ...
-    'Surface', "sweep", 'EtaS', 0.05, 'A0Policy', "physicalTail");
-assert(guiOptions.executionProfile == "Robust", 'mRLFE GUI/Sweep should preserve requested executionProfile.');
-assert(guiOptions.robustness == "Robust", 'mRLFE GUI/Sweep robustness alias should match requested executionProfile.');
-assert(guiOptions.effectiveExecutionProfile == "Fast", 'mRLFE GUI/Sweep effective profile should remain Fast.');
-assert(guiMetadata.requestedExecutionProfile == "Robust", 'mRLFE GUI requested profile mismatch.');
-assert(guiMetadata.effectiveExecutionProfile == "Fast", 'mRLFE GUI effective profile mismatch.');
-assert(guiMetadata.profileOverrideApplied == true, 'mRLFE GUI resolver should report mapped-to-Fast support.');
-assert(strlength(guiMetadata.profileOverrideReason) > 0, 'mRLFE GUI override reason should be stable and nonempty.');
-assert(guiMetadata.routePolicy == "physicalTail", 'mRLFE A0 policy must remain separate metadata.');
+%% mRLFE GUI/Sweep applies each requested public numerical preset directly.
+for i = 1:numel(profiles)
+    [guiOptions, guiMetadata] = mrlfeResolveExecutionProfile("A0Like", ...
+        struct('robustness', profiles(i)), 'Surface', "sweep", ...
+        'EtaS', 0.05, 'A0Policy', "physicalTail");
+    assert(guiOptions.executionProfile == profiles(i), 'mRLFE GUI/Sweep requested profile mismatch.');
+    assert(guiOptions.effectiveExecutionProfile == profiles(i), 'mRLFE GUI/Sweep effective profile mismatch.');
+    assert(guiOptions.mrlfeNumericalPreset == presets(i), 'mRLFE GUI/Sweep numerical preset mismatch.');
+    assert(guiMetadata.requestedExecutionProfile == profiles(i), 'mRLFE GUI requested profile mismatch.');
+    assert(guiMetadata.effectiveExecutionProfile == profiles(i), 'mRLFE GUI effective profile mismatch.');
+    assert(guiMetadata.effectiveNumericalPreset == presets(i), 'mRLFE GUI numerical preset metadata mismatch.');
+    assert(guiMetadata.profileOverrideApplied == false, 'mRLFE GUI resolver should not report overrides.');
+    assert(guiMetadata.profileSupportMode == "direct", 'mRLFE GUI support mode should be direct.');
+    assert(guiMetadata.routePolicy == "physicalTail", 'mRLFE A0 policy must remain separate metadata.');
+end
 
-%% mRLFE Fit preserves maintained Fast effective route and reports override.
-[fitOptions, fitMetadata] = mrlfeResolveExecutionProfile("A0Like", struct('executionProfile', "Robust"), ...
-    'Surface', "fit", 'EtaS', 0.05, 'A0Policy', "physicalTail");
-assert(fitOptions.executionProfile == "Robust", 'mRLFE Fit should preserve requested executionProfile.');
-assert(fitOptions.robustness == "Robust", 'mRLFE Fit robustness alias should match requested executionProfile.');
-assert(fitOptions.effectiveExecutionProfile == "Fast", 'mRLFE Fit effective profile should remain Fast.');
-assert(fitMetadata.requestedExecutionProfile == "Robust", 'mRLFE Fit requested metadata mismatch.');
-assert(fitMetadata.effectiveExecutionProfile == "Fast", 'mRLFE Fit effective metadata mismatch.');
-assert(fitMetadata.profileOverrideApplied == true, 'mRLFE Fit should report profile override.');
-assert(fitMetadata.internalAtlasPreset == "fast", 'mRLFE Fit internal preset metadata mismatch.');
+%% mRLFE Fit applies each requested public numerical preset directly.
+for i = 1:numel(profiles)
+    [fitOptions, fitMetadata] = mrlfeResolveExecutionProfile("A0Like", ...
+        struct('executionProfile', profiles(i)), 'Surface', "fit", ...
+        'EtaS', 0.05, 'A0Policy', "physicalTail");
+    assert(fitOptions.executionProfile == profiles(i), 'mRLFE Fit requested profile mismatch.');
+    assert(fitOptions.effectiveExecutionProfile == profiles(i), 'mRLFE Fit effective profile mismatch.');
+    assert(fitOptions.mrlfeNumericalPreset == presets(i), 'mRLFE Fit numerical preset mismatch.');
+    assert(fitMetadata.requestedExecutionProfile == profiles(i), 'mRLFE Fit requested metadata mismatch.');
+    assert(fitMetadata.effectiveExecutionProfile == profiles(i), 'mRLFE Fit effective metadata mismatch.');
+    assert(fitMetadata.effectiveNumericalPreset == presets(i), 'mRLFE Fit numerical preset metadata mismatch.');
+    assert(fitMetadata.profileOverrideApplied == false, 'mRLFE Fit should not report a profile override.');
+    assert(fitMetadata.internalAtlasPreset == presets(i), 'mRLFE Fit internal preset metadata mismatch.');
+end
 
 fprintf('Model execution profile resolver tests passed.\n');
