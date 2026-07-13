@@ -3,7 +3,7 @@ function problem = mrlfeBuildProblem(configuration)
 
 frequencyInput = configuration.request.frequency_Hz(:);
 [frequencySolve_Hz, frequencyGrid] = mrlfeResolveSolveFrequencyGrid( ...
-    frequencyInput, configuration.request.numerics);
+    frequencyInput, configuration.request.numerics, configuration.numericalPreset);
 params = prepareFrequencyParams(configuration.solverParams, frequencySolve_Hz);
 
 seedOptions = rlDefaultOptions("Fast");
