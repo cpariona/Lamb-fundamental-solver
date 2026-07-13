@@ -46,6 +46,7 @@ controls.robustness = profileMetadata.requestedExecutionProfile;
 request.controls = controls;
 solverOptions.mrlfeParams.fluidDensity = controls.fluidDensity;
 solverOptions.mrlfeParams.fluidSoundSpeed = controls.fluidSoundSpeed;
+solverOptions.forwardModel = localForwardModelPolicy(request.fitOptions);
 
 routePolicy = localRoutePolicy(branchName, request.freeParams, controls);
 
@@ -63,12 +64,13 @@ fitConfig.bounds = request.bounds;
 fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = request.fitOptions;
 
-tFit = tic;
+ tFit = tic;
 fitResult = mrlfeFitDispersionData(request.experimental, fitConfig);
 fitElapsedSeconds = toc(tFit);
 normalized = guiNormalizeFitResult(fitResult, request);
 profileMetadata.internalAtlasPreset = localFitAtlasPreset(fitResult);
 profileMetadata.routePolicy = localActualEvaluationPath(fitResult);
+profileMetadata.forwardGridPolicy = string(solverOptions.forwardModel.gridPolicy);
 normalized.executionProfile = profileMetadata;
 normalized.fullCurve.executionProfile = profileMetadata;
 normalized.fitElapsedSeconds = fitElapsedSeconds;
@@ -85,8 +87,23 @@ fitOutput.routePolicy.actualPath = localActualEvaluationPath(fitResult);
 fitOutput.routePolicy.mrlfeA0Policy = string(controls.mrlfeA0Policy);
 fitOutput.routePolicy.etaS = localActualEtaS(fitResult, controls.etaS);
 fitOutput.routePolicy.fitAtlasPreset = localFitAtlasPreset(fitResult);
+fitOutput.routePolicy.forwardGridPolicy = string(solverOptions.forwardModel.gridPolicy);
 fitOutput.executionProfile = profileMetadata;
 fitOutput.fitElapsedSeconds = fitElapsedSeconds;
+end
+
+function forwardModel = localForwardModelPolicy(fitOptions)
+forwardModel = struct();
+forwardModel.gridPolicy = "fitOptimized";
+forwardModel.minimumPointCount = 12;
+forwardModel.maximumPointCount = 40;
+forwardModel.maximumStep_Hz = 250;
+if isstruct(fitOptions) && isfield(fitOptions, 'forwardModel') && isstruct(fitOptions.forwardModel)
+    names = fieldnames(fitOptions.forwardModel);
+    for i = 1:numel(names)
+        forwardModel.(names{i}) = fitOptions.forwardModel.(names{i});
+    end
+end
 end
 
 function policy = localRoutePolicy(branchName, freeParams, controls)
