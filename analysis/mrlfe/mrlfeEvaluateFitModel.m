@@ -21,9 +21,41 @@ if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInp
 end
 
 request = mrlfeBuildFitSolveRequest(params, frequencyInput, branchName, solverOptions);
+request.numerics.preset = resolveNumericalPreset(solverOptions);
 modelResult = mrlfeSolve(request);
 Cp_mps = modelResult.phaseVelocity_mps(:);
 rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions);
+end
+
+function preset = resolveNumericalPreset(options)
+if isstruct(options) && isfield(options, 'mrlfeNumericalPreset') && ...
+        ~isempty(options.mrlfeNumericalPreset)
+    preset = lower(string(options.mrlfeNumericalPreset));
+    return;
+end
+if isstruct(options) && isfield(options, 'effectiveExecutionProfile') && ...
+        ~isempty(options.effectiveExecutionProfile)
+    profile = string(options.effectiveExecutionProfile);
+elseif isstruct(options) && isfield(options, 'executionProfile') && ...
+        ~isempty(options.executionProfile)
+    profile = string(options.executionProfile);
+elseif isstruct(options) && isfield(options, 'robustness') && ...
+        ~isempty(options.robustness)
+    profile = string(options.robustness);
+else
+    profile = "Fast";
+end
+switch profile
+    case "Fast"
+        preset = "fast";
+    case "Balanced"
+        preset = "balanced";
+    case "Robust"
+        preset = "robust";
+    otherwise
+        error('mrlfe:InvalidExecutionProfile', ...
+            'Unsupported mRLFE fitting execution profile "%s".', profile);
+end
 end
 
 function rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions)
