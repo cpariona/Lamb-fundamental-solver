@@ -24,6 +24,7 @@ baseOptions.mrlfeParams.fluidSoundSpeed = getControlValue(controls, 'fluidSoundS
 baseOptions.mrlfeParams.etaS = getControlValue(controls, 'etaS', 0.05);
 baseOptions.mrlfeParams.etaL = 0;
 baseOptions.mrlfeParams.useComplexLambda = false;
+numericalPreset = string(profileMetadata.effectiveNumericalPreset);
 
 branchName = string(request.branchName);
 
@@ -38,14 +39,14 @@ sweepSpec.label = string(request.sweepLabel);
 sweepSpec.units = units;
 sweepSpec.displayScale = displayScale;
 
-rawResults = runMRLFEGuiAdapterSweep(params, baseOptions, sweepSpec, branchName);
+rawResults = runMRLFEGuiAdapterSweep(params, baseOptions, sweepSpec, branchName, numericalPreset);
 summaryTable = summarizeParametricSweepBranch(rawResults, summaryModelName, branchName, 'Print', false);
 normalized = guiNormalizeMRLFESweep(rawResults, summaryTable, request, modelName, branchName);
 aggregateMetadata = aggregateSweepMetadata(rawResults, profileMetadata);
-profileMetadata.internalAtlasPreset = "fast";
+profileMetadata.internalAtlasPreset = numericalPreset;
 profileMetadata.actualRoute = "mrlfeSolve";
 profileMetadata.fallback = aggregateMetadata.anyFallbackApplied;
-profileMetadata.effectiveNumericalPreset = "fast";
+profileMetadata.effectiveNumericalPreset = numericalPreset;
 profileMetadata.effectiveNumericalPresets = aggregateMetadata.effectiveNumericalPresets;
 profileMetadata.internalEngines = aggregateMetadata.internalEngines;
 profileMetadata.terminationPolicies = aggregateMetadata.terminationPolicies;
@@ -79,7 +80,7 @@ sweepOutput.metadata = aggregateMetadata;
 sweepOutput.elapsedSeconds = normalized.metadata.elapsedSeconds;
 end
 
-function sweepResults = runMRLFEGuiAdapterSweep(baseParams, baseOptions, sweepSpec, branchName)
+function sweepResults = runMRLFEGuiAdapterSweep(baseParams, baseOptions, sweepSpec, branchName, numericalPreset)
 paramName = char(sweepSpec.parameter);
 values = sweepSpec.values(:).';
 n = numel(values);
@@ -108,6 +109,7 @@ for i = 1:n
         pointRequest = mrlfeBuildSweepSolveRequest(params, ...
             struct('parameterName', sweepSpec.parameter, 'parameterValue', values(i)), ...
             frequency_Hz, branchName, options);
+        pointRequest.numerics.preset = numericalPreset;
         modelResult = mrlfeSolve(pointRequest);
         elapsed = toc(t);
         point = completePoint(point, modelResult);
