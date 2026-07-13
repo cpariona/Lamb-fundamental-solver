@@ -125,9 +125,11 @@ else
     preset = "fast";
 end
 
-if ~(preset == "fast" || preset == "dense")
+supportedPresets = ["fast", "balanced", "robust", "dense"];
+if ~any(preset == supportedPresets)
     error('mrlfe:InvalidNumericalPreset', ...
-        'Unsupported mRLFE fitting numerical preset "%s".', preset);
+        ['Unsupported mRLFE fitting numerical preset "%s". ' ...
+         'Use "fast", "balanced", "robust", or "dense".'], preset);
 end
 end
 
