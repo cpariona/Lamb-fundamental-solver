@@ -10,8 +10,11 @@ options = guiMergeStructs(rlDefaultOptions(), guiGetStructField(guiRequest, 'opt
 [profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
     'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
     'DefaultSource', "model default");
+numericalPreset = profileToNumericalPreset(profile);
 options.executionProfile = profile;
+options.effectiveExecutionProfile = profile;
 options.robustness = profile;
+options.mrlfeNumericalPreset = numericalPreset;
 
 if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
     options.mrlfeParams = guiRequest.mrlfeParams;
@@ -32,6 +35,7 @@ modelResults = cell(1, numel(branchNames));
 requests = cell(1, numel(branchNames));
 for i = 1:numel(branchNames)
     requests{i} = mrlfeBuildGuiSolveRequest(params, frequency_Hz, branchNames(i), options);
+    requests{i}.numerics.preset = numericalPreset;
     modelResults{i} = mrlfeSolve(requests{i});
 end
 elapsedSeconds = toc(timerStart);
@@ -49,21 +53,17 @@ if ~qualityAccepted
     status = "partial";
 end
 
-profileMetadata.effectiveExecutionProfile = "Fast";
-profileMetadata.requestedNumericalPreset = "fast";
-profileMetadata.effectiveNumericalPreset = "fast";
+profileMetadata.effectiveExecutionProfile = profile;
+profileMetadata.requestedNumericalPreset = numericalPreset;
+profileMetadata.effectiveNumericalPreset = numericalPreset;
 profileMetadata.internalSolverPreset = profile;
-profileMetadata.internalAtlasPreset = "fast";
-profileMetadata.profileOverrideApplied = profileMetadata.requestedExecutionProfile ~= profileMetadata.effectiveExecutionProfile;
-if profileMetadata.profileOverrideApplied
-    profileMetadata.profileOverrideReason = "mRLFE Main GUI maps maintained execution profiles to the public fast preset.";
-else
-    profileMetadata.profileOverrideReason = "";
-end
+profileMetadata.internalAtlasPreset = numericalPreset;
+profileMetadata.profileOverrideApplied = false;
+profileMetadata.profileOverrideReason = "";
 profileMetadata.routePolicy = "mrlfeSolve";
 profileMetadata.optimizerProfile = "";
 profileMetadata.supportedExecutionProfiles = ["Fast", "Balanced", "Robust"];
-profileMetadata.profileSupportMode = "mapped_to_fast";
+profileMetadata.profileSupportMode = "direct";
 profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
 profileMetadata.etaS = modelResults{1}.configuration.parameters.etaS_Pas;
 profileMetadata.a0Policy = "physicalTail";
@@ -172,5 +172,19 @@ function policy = normalizeA0Policy(policyIn)
 policy = string(policyIn);
 if policy ~= "physicalTail"
     policy = "physicalTail";
+end
+end
+
+function preset = profileToNumericalPreset(profile)
+switch string(profile)
+    case "Fast"
+        preset = "fast";
+    case "Balanced"
+        preset = "balanced";
+    case "Robust"
+        preset = "robust";
+    otherwise
+        error('mrlfe:InvalidExecutionProfile', ...
+            'Unsupported mRLFE execution profile "%s".', string(profile));
 end
 end
