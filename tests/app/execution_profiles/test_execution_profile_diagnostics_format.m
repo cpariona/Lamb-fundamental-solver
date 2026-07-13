@@ -39,7 +39,7 @@ assertContains(aeLines, "atlasNumYPoints = 600");
 assertContains(aeLines, "atlasTopNMinima = 16");
 assertContains(aeLines, "route policy: atlasA0");
 
-%% mRLFE diagnostics show mapped-to-Fast without presenting Balanced effective.
+%% mRLFE diagnostics show direct Balanced support and the balanced preset.
 [~, mrlfeMetadata] = mrlfeResolveExecutionProfile("A0Like", ...
     struct('executionProfile', "Balanced"), ...
     'Surface', "fit", ...
@@ -59,13 +59,11 @@ mrlfeLines = guiFormatExecutionProfileDiagnostics(mrlfeMetadata, ...
     'Fallback', false, ...
     'ExtraLines', ["A0 policy: physicalTail"]);
 assertContains(mrlfeLines, "requested: Balanced");
-assertContains(mrlfeLines, "effective: Fast");
-assertContains(mrlfeLines, "support mode: mapped_to_fast");
-assertContains(mrlfeLines, "atlas preset: fast");
+assertContains(mrlfeLines, "effective: Balanced");
+assertContains(mrlfeLines, "support mode: direct");
+assertContains(mrlfeLines, "atlas preset: balanced");
 assertContains(mrlfeLines, "actual route: elastic_adaptive");
 assertContains(mrlfeLines, "A0 policy: physicalTail");
-assert(~any(contains(mrlfeLines, "effective: Balanced")), ...
-    'mRLFE diagnostics must not present Balanced as effective when mapped to Fast.');
 
 fprintf('Execution profile diagnostics format test passed.\n');
 
