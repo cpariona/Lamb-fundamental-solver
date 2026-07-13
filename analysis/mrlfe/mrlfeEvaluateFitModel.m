@@ -1,11 +1,10 @@
 function [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions)
 %MRLFEEVALUATEFITMODEL Evaluate mRLFE Cp on a fitting frequency grid.
 %
-% [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions)
-%
-% The maintained fitting path builds a public mRLFE request and evaluates it
-% through mrlfeSolve. Compatibility metadata is kept for FitTool diagnostics.
-%
+% Repeated optimizer evaluations use forwardModel.gridPolicy = "fitOptimized"
+% by default. Explicit requested-curve evaluations set the policy to
+% "numericalPreset" and therefore use the selected Fast/Balanced/Robust grid.
+
 if nargin < 3 || isempty(branchName)
     branchName = "A0Like";
 end
@@ -22,9 +21,30 @@ end
 
 request = mrlfeBuildFitSolveRequest(params, frequencyInput, branchName, solverOptions);
 request.numerics.preset = resolveNumericalPreset(solverOptions);
+[request, fitGridMetadata] = applyForwardGridPolicy(request, frequencyInput, solverOptions);
 modelResult = mrlfeSolve(request);
 Cp_mps = modelResult.phaseVelocity_mps(:);
-rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions);
+rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions, fitGridMetadata);
+end
+
+function [request, metadata] = applyForwardGridPolicy(request, frequencyInput, options)
+forwardModel = struct();
+if isstruct(options) && isfield(options, 'forwardModel') && isstruct(options.forwardModel)
+    forwardModel = options.forwardModel;
+end
+policy = string(getStructField(forwardModel, 'gridPolicy', "fitOptimized"));
+metadata = struct('gridPolicy', policy);
+
+switch policy
+    case "fitOptimized"
+        [frequencySolve_Hz, metadata] = mrlfeBuildFitFrequencyGrid(frequencyInput, forwardModel);
+        request.numerics.frequencySolveOverride_Hz = frequencySolve_Hz;
+    case "numericalPreset"
+        % No override: the production solver resolves the selected preset.
+    otherwise
+        error('mrlfe:InvalidFitGridPolicy', ...
+            'Unsupported mRLFE forwardModel.gridPolicy "%s". Use "fitOptimized" or "numericalPreset".', policy);
+end
 end
 
 function preset = resolveNumericalPreset(options)
@@ -58,7 +78,7 @@ switch profile
 end
 end
 
-function rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions)
+function rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions, fitGridMetadata)
 internal = modelResult.diagnostics.rawInternalResult;
 rawResult = struct();
 rawResult.modelFamily = "mrlfe";
@@ -75,8 +95,9 @@ rawResult.rawFullResult = localAddCompatibilityModelAliases(rawResult.rawFullRes
 rawResult.params = params;
 rawResult.options = localMergeReportedOptions(solverOptions, internal.options);
 rawResult.modelResult = modelResult;
-rawResult.fitPerformanceDefaults = localBuildPublicFitPerformanceSummary(modelResult);
-rawResult.evaluationPath = localPublicEvaluationPathSummary(modelResult, internal);
+rawResult.fitGrid = fitGridMetadata;
+rawResult.fitPerformanceDefaults = localBuildPublicFitPerformanceSummary(modelResult, fitGridMetadata);
+rawResult.evaluationPath = localPublicEvaluationPathSummary(modelResult, fitGridMetadata);
 end
 
 function rawFullResult = localAddCompatibilityModelAliases(rawFullResult, modelResult)
@@ -84,7 +105,6 @@ if ~isstruct(rawFullResult) || ~isfield(rawFullResult, 'models') || ...
         ~isfield(rawFullResult.models, 'mRLFERealK')
     return;
 end
-
 switch string(modelResult.execution.internalEngine)
     case "elastic_adaptive"
         rawFullResult.models.mRLFEElasticRealK = rawFullResult.models.mRLFERealK;
@@ -101,13 +121,13 @@ end
 names = fieldnames(inputOptions);
 for i = 1:numel(names)
     name = names{i};
-    if startsWith(name, 'mrlfeElasticReferenceResult')
+    if startsWith(name, 'mrlfeElasticReferenceResult') || strcmp(name, 'forwardModel')
         options.(name) = inputOptions.(name);
     end
 end
 end
 
-function summary = localBuildPublicFitPerformanceSummary(modelResult)
+function summary = localBuildPublicFitPerformanceSummary(modelResult, fitGridMetadata)
 preset = modelResult.configuration.numericalPreset;
 summary = struct();
 summary.routeFamily = "public_solver";
@@ -120,9 +140,10 @@ summary.a0DpCandidates = preset.candidateCount;
 summary.adaptiveWindows = preset.adaptiveWindows;
 summary.requestedPreset = string(modelResult.execution.requestedPreset);
 summary.effectivePreset = string(modelResult.execution.effectivePreset);
+summary.gridPolicy = string(fitGridMetadata.gridPolicy);
 end
 
-function summary = localPublicEvaluationPathSummary(modelResult, internal)
+function summary = localPublicEvaluationPathSummary(modelResult, fitGridMetadata)
 summary = struct();
 summary.routeFamily = "public_solver";
 summary.path = string(modelResult.execution.internalEngine);
@@ -141,6 +162,7 @@ summary.fitAtlasPreset = string(modelResult.execution.effectivePreset);
 summary.internalFitAtlasPreset = string(modelResult.execution.effectivePreset);
 summary.requestedPreset = string(modelResult.execution.requestedPreset);
 summary.effectivePreset = string(modelResult.execution.effectivePreset);
+summary.gridPolicy = string(fitGridMetadata.gridPolicy);
 summary.internalEngine = string(modelResult.execution.internalEngine);
 summary.terminationPolicy = string(modelResult.termination.policy);
 summary.fallbackPolicy = string(modelResult.fallback.policy);
@@ -148,10 +170,9 @@ summary.fallbackApplied = logical(modelResult.fallback.applied);
 summary.quality = modelResult.quality;
 end
 
-function value = getOption(options, fieldName, defaultValue)
-if isstruct(options) && isfield(options, fieldName) && ~isempty(options.(fieldName))
-    value = options.(fieldName);
-else
-    value = defaultValue;
+function value = getStructField(s, fieldName, defaultValue)
+value = defaultValue;
+if isstruct(s) && isfield(s, fieldName) && ~isempty(s.(fieldName))
+    value = s.(fieldName);
 end
 end
