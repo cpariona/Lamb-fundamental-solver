@@ -1,6 +1,6 @@
 # Execution Profile Dependency Map
 
-Last updated: 2026-07-09
+Last updated: 2026-07-12
 
 Execution profile is a user-facing density/performance preference. It is kept
 separate from model route, branch selection, termination policy, fallback
@@ -22,20 +22,34 @@ Rayleigh-Lamb applies the requested profile directly.
 All maintained app surfaces route through the public production API:
 
 ```text
-Main GUI  -> guiRunMRLFEModel  -> mrlfeSolve
-SweepTool -> guiRunMRLFESweep  -> mrlfeSolve per point
+Main GUI  -> guiRunMRLFEModel      -> mrlfeSolve
+SweepTool -> guiRunMRLFESweep      -> mrlfeSolve per point
 FitTool   -> mrlfeEvaluateFitModel -> mrlfeSolve
 ```
 
-mRLFE preserves the requested execution profile in metadata, but maps the
-effective numerical preset to public `fast` for maintained app workflows.
+The selected execution profile is applied directly to the public numerical
+preset:
+
+```text
+Fast     -> fast     -> 50 Hz post-500-Hz solve step
+Balanced -> balanced -> 25 Hz post-500-Hz solve step
+Robust   -> robust   -> 20 Hz post-500-Hz solve step
+```
+
+The maintained app metadata contract is:
 
 ```text
 requestedExecutionProfile = Fast | Balanced | Robust
-effectiveExecutionProfile = Fast
-effectiveNumericalPreset  = fast
-profileSupportMode        = mapped_to_fast
+effectiveExecutionProfile = requestedExecutionProfile
+requestedNumericalPreset  = fast | balanced | robust
+effectiveNumericalPreset  = requestedNumericalPreset
+profileSupportMode        = direct
+profileOverrideApplied    = false
 ```
+
+Each app adapter writes the selected public preset into
+`request.numerics.preset` after constructing the request. This explicit final
+assignment prevents historical builders from silently restoring `fast`.
 
 Branch policy is independent:
 
@@ -52,7 +66,8 @@ etaS > 0 -> viscoelastic_adaptive
 ```
 
 Historical route flags and metadata such as atlas route selectors, GUI fallback
-fields, and legacy fitting presets are not maintained control flow.
+fields, legacy fitting presets, and the former `mapped_to_fast` policy are not
+maintained control flow.
 
 ## AE IOP/HGO
 
