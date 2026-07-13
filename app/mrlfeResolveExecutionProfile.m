@@ -1,8 +1,8 @@
 function [options, metadata] = mrlfeResolveExecutionProfile(branchName, profileInput, varargin)
 %MRLFERESOLVEEXECUTIONPROFILE Resolve app-level profile for mRLFE workflows.
 %
-% All mRLFE app surfaces map to the maintained public fast preset and report
-% non-Fast requests as mapped to that validated production configuration.
+% Maintained app surfaces apply the requested Fast/Balanced/Robust profile
+% directly to the public mRLFE numerical preset with the same normalized name.
 
 p = inputParser;
 addRequired(p, 'branchName', @(x)ischar(x) || isstring(x));
@@ -19,10 +19,11 @@ surface = lower(string(p.Results.Surface));
 [requestedProfile, metadata] = guiNormalizeExecutionProfile(profileInput, ...
     'DefaultProfile', p.Results.DefaultProfile, ...
     'DefaultSource', p.Results.DefaultSource);
+effectiveProfile = requestedProfile;
+numericalPreset = profileToNumericalPreset(requestedProfile);
 
 switch surface
     case {"gui", "main", "sweep", "api"}
-        effectiveProfile = "Fast";
         options = rlDefaultOptions(requestedProfile);
         options.computeMRLFEComplexK = false;
         options.mrlfeA0Policy = normalizeA0Policy(p.Results.A0Policy);
@@ -31,25 +32,10 @@ switch surface
         options.mrlfeParams.etaL = 0;
         options.mrlfeParams.useComplexLambda = false;
         options = localApplyBranchFlags(options, branchName);
-        overrideApplied = requestedProfile ~= effectiveProfile;
-        if overrideApplied
-            overrideReason = "mRLFE app surfaces preserve the validated public fast preset.";
-        else
-            overrideReason = "";
-        end
-        internalAtlasPreset = "fast";
     case "fit"
-        effectiveProfile = "Fast";
         options = mrlfeDefaultSweepOptions(branchName, ...
             'EtaS', p.Results.EtaS, ...
             'A0Policy', normalizeA0Policy(p.Results.A0Policy));
-        overrideApplied = requestedProfile ~= effectiveProfile;
-        if overrideApplied
-            overrideReason = "mRLFE FitTool preserves the maintained public fast preset.";
-        else
-            overrideReason = "";
-        end
-        internalAtlasPreset = "fast";
     otherwise
         error('mrlfeResolveExecutionProfile:UnsupportedSurface', ...
             'Unsupported mRLFE profile surface: %s.', surface);
@@ -58,25 +44,38 @@ end
 options.executionProfile = requestedProfile;
 options.effectiveExecutionProfile = effectiveProfile;
 options.robustness = requestedProfile;
+options.mrlfeNumericalPreset = numericalPreset;
 
 metadata.requestedExecutionProfile = requestedProfile;
 metadata.effectiveExecutionProfile = effectiveProfile;
-if surface == "fit"
-    metadata.internalSolverPreset = effectiveProfile;
-else
-    metadata.internalSolverPreset = requestedProfile;
-end
-metadata.internalAtlasPreset = internalAtlasPreset;
-metadata.profileOverrideApplied = logical(overrideApplied);
-metadata.profileOverrideReason = overrideReason;
+metadata.requestedNumericalPreset = numericalPreset;
+metadata.effectiveNumericalPreset = numericalPreset;
+metadata.internalSolverPreset = effectiveProfile;
+metadata.internalAtlasPreset = numericalPreset;
+metadata.profileOverrideApplied = false;
+metadata.profileOverrideReason = "";
 metadata.routePolicy = normalizeA0Policy(p.Results.A0Policy);
 metadata.optimizerProfile = "";
 metadata.surface = surface;
 metadata.branchName = branchName;
 metadata.etaS = p.Results.EtaS;
 metadata.supportedExecutionProfiles = guiExecutionProfileValues();
-metadata.profileSupportMode = "mapped_to_fast";
+metadata.profileSupportMode = "direct";
 metadata.surfaceDefaultExecutionProfile = string(p.Results.DefaultProfile);
+end
+
+function preset = profileToNumericalPreset(profile)
+switch string(profile)
+    case "Fast"
+        preset = "fast";
+    case "Balanced"
+        preset = "balanced";
+    case "Robust"
+        preset = "robust";
+    otherwise
+        error('mrlfeResolveExecutionProfile:UnsupportedProfile', ...
+            'Unsupported execution profile "%s".', string(profile));
+end
 end
 
 function policy = normalizeA0Policy(policyIn)
