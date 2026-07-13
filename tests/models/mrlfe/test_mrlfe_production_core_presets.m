@@ -4,7 +4,7 @@ startup
 fprintf('\nRunning mRLFE production core preset test...\n');
 fprintf('-------------------------------------------\n');
 
-for preset = ["fast", "dense"]
+for preset = ["fast", "balanced", "robust", "dense"]
     for branch = ["A0Like", "S0Like"]
         result = mrlfeSolve(localRequest(branch, 0.05, preset, "physicalTail"));
         assert(result.execution.requestedPreset == preset, 'Requested preset mismatch.');
