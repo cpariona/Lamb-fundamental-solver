@@ -2,141 +2,71 @@
 
 Updated: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: main
+Current branch: `repo-hygiene-phase1-audit`
 
-## Current state
+## Completed
 
-PR #109 is merged. The mRLFE public production architecture is stable and the
-post-merge documentation refresh is complete.
-
-The active task is now repository hygiene. An initial audit has already been
-created:
+Repository hygiene phase 1 completed a full tracked-tree audit and a
+conservative implementation batch. The detailed evidence and classifications
+are in:
 
 ```text
-docs/repository/repository_cleanup_audit_2026-07-14.md
+docs/repository/repository_cleanup_phase1_report.md
 ```
 
-That document contains candidate files and recommended phases. It is not a bulk
-deletion list. Each candidate must be verified against code references,
-documentation links, runners, fixtures, dynamic MATLAB invocation, and focused
-tests before removal or relocation.
+The branch removes:
 
-## Required branch setup
-
-Do not modify `main` directly for the cleanup implementation.
-
-Start with:
-
-```bash
-git fetch origin
-git switch main
-git pull --ff-only origin main
-git status -sb
-git switch -c repo-hygiene-phase1-audit
+```text
+app/fitting/guiEvaluateFitFullCurve.m
+tests/models/mrlfe/test_mrlfe_a0_delayed_direct_visco_opt_in_contract.m
+tests/models/mrlfe/test_mrlfe_a0_delayed_direct_visco_s0_guard_contract.m
+analysis/execution_profiles/execution_profile_inventory.csv
+analysis/performance/execution_profile_benchmark_results.csv
 ```
 
-If that branch name already exists, use a similarly scoped new branch created
-from the updated `origin/main` state.
+The FitTool helper had no code, callback, registry, dynamic, or test caller and
+was superseded by `guiBuildFitDisplayCurve` plus the explicit-action
+`guiEvaluateRequestedFitCurve`. The removed tests were unregistered, failed on
+the base commit, and asserted deleted route behavior. The CSV files were
+generated outputs with no consumer; the inventory contained 35 missing paths.
 
-## Cleanup objective
+Generated FIG/PNG sweep outputs are local, ignored, and untracked. They were
+left untouched. No solver, GUI, fitting, sweep, startup, runner, or numerical
+behavior was changed.
 
-Perform a complete repository audit and implement a conservative first cleanup
-batch. The work may cover documentation, generated artifacts, examples,
-diagnostics, tests, CSV snapshots, wrappers, and orphaned MATLAB helpers, but it
-must preserve maintained behavior.
+## Validation
 
-The first implementation batch should prioritize low-to-medium-risk candidates:
+Passed:
 
-1. generated or unreferenced sweep figures;
-2. the possibly orphaned `app/fitting/guiEvaluateFitFullCurve.m` helper;
-3. unregistered legacy-named mRLFE tests;
-4. generated or stale CSV snapshots;
-5. clearly superseded documentation that can be consolidated or archived safely.
-
-Do not assume any candidate is removable merely because its name appears legacy
-or because a text search has no result.
-
-## Mandatory reading
-
-Read in this order before changing files:
-
-1. `docs/project/README.md`
-2. `docs/project/active_context.md`
-3. `docs/project/session_handoff.md`
-4. `docs/repository/repository_structure.md`
-5. `docs/repository/naming_strategy.md`
-6. `docs/repository/maintained_entrypoints.md`
-7. `docs/repository/validation_status.md`
-8. `docs/repository/repository_hygiene_plan.md`
-9. `docs/repository/repository_cleanup_audit_2026-07-14.md`
-10. task-specific model/workflow documents for every candidate being changed
-
-## Critical safeguards
-
-- No solver-physics, GUI behavior, fitting behavior, sweep behavior, or execution-profile behavior changes.
-- Do not remove or rename maintained public APIs, model entrypoints, GUI adapters, runners, compatibility wrappers, or tests without complete caller/reference evidence.
-- AE IOP/HGO still uses valid atlas terminology. Do not apply mRLFE legacy-atlas conclusions to AE files.
-- Some tests inspect exact filenames, paths, strings, runner wrappers, inventories, or absence of legacy routes.
-- MATLAB may invoke code dynamically through strings, function handles, callbacks, paths, or registries.
-- Generated files may still serve as test fixtures or documentation assets.
-- Preserve a small curated PNG set only when it is intentionally referenced; binary `.fig` files require stronger justification to remain tracked.
-- Do not rerun the extended two-day mRLFE grid matrix for cleanup-only changes.
-- Do not open a PR or merge unless explicitly requested. Push the branch and report it for user review.
-
-## Required audit evidence for each candidate
-
-Before deleting, moving, consolidating, or renaming a file, record:
-
-1. exact path and classification: retain, archive, consolidate, or remove;
-2. exact symbol and filename search results;
-3. inbound code callers or lack thereof;
-4. documentation and README links;
-5. runner, registry, fixture, CSV, or path references;
-6. potential dynamic invocation risk;
-7. replacement coverage, if any;
-8. validation needed after the change.
-
-Keep this evidence in an updated cleanup audit or a new phase report under
-`docs/repository/`.
-
-## Validation guidance
-
-Always run:
-
-```bash
-git diff --check
+```matlab
+run_mrlfe_fit_public_solver_tests
+run_gui_smoke_tests
+run_mrlfe_smoke_tests
 ```
 
-Also run exact repository searches for every removed or moved name.
+Static diff checks and exact stale-reference searches passed. Intentional
+historical/audit references and generator output-path references remain.
 
-Select MATLAB validation by scope:
+Known baseline or runtime limitations:
 
-- documentation/generated artifacts: focused smoke groups and link/path searches;
-- mRLFE code/tests/diagnostics: public-contract, production-core, FitTool, legacy-cleanup, and mRLFE smoke runners as applicable;
-- AE files: acoustoelastic smoke and fitting validation as applicable;
-- runner/startup/path changes: startup utilities and `run_all_smoke_tests`;
-- broad cleanup before review: `run_all_smoke_tests`.
+- `run_mrlfe_public_contract_tests` stops because its defaults test expects
+  `balanced` to be invalid while the current implementation supports it.
+- The first two legacy-cleanup absence tests pass; the characterization test
+  fails an exact FitTool/direct Cp equality assertion unrelated to this diff.
+- `run_mrlfe_neutral_production_helper_tests` timed out at five minutes.
+- A combined focused plus `run_all_smoke_tests` command timed out at twenty
+  minutes before buffered suite results were available.
+- The two-day extended grid matrix was intentionally not run.
 
-Do not claim a MATLAB runner passed unless it was actually executed. If MATLAB is
-unavailable, report that limitation and stop short of high-risk deletion.
+## Next cleanup phase
 
-## Commit and delivery rules
+Use a documentation-focused branch to classify or consolidate:
 
-- Prefer small coherent commits by category.
-- Avoid one large deletion commit.
-- Record exact commit SHAs.
-- Push the cleanup branch.
-- Do not merge.
-- Final report must include retained candidates as well as removed candidates.
+1. stale generic execution-profile audit and benchmark documents/scripts;
+2. historical mRLFE atlas/grid/route documents and their exact-path tests;
+3. the fitting phase-log archive.
 
-## Expected final report
-
-- branch name and base SHA;
-- audit methodology;
-- files retained, archived, consolidated, removed, or deferred;
-- dependency evidence for each changed candidate;
-- commits and final SHA;
-- exact validation commands and results;
-- known open risks;
-- final `git status -sb`;
-- recommended next cleanup phase.
+After that, use separate model-focused branches for diagnostic runtime review,
+the orphan-looking `aeCopyLegacyResultFolder`, shared Rayleigh-Lamb mRLFE
+compatibility fields, and the old `solveMRLFEBranch` implementation. Do not
+combine those high-risk items with documentation cleanup.

@@ -40,7 +40,6 @@ guiBuildFitQualitySummaryTable
 guiBuildFitParameterDisplayTable
 guiBuildFitQualityDisplayTable
 guiFitDisplayLabel
-guiEvaluateFitFullCurve
 guiEvaluateRequestedFitCurve
 guiPlotFitResult
 guiAppendExperimentalFitRow

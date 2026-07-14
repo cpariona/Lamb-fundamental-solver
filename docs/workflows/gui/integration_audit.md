@@ -32,7 +32,8 @@ app/
 │  ├─ guiBuildFitRequest.m
 │  ├─ guiRunFit.m
 │  ├─ guiNormalizeFitResult.m
-│  ├─ guiEvaluateFitFullCurve.m
+│  ├─ guiBuildFitDisplayCurve.m
+│  ├─ guiEvaluateRequestedFitCurve.m
 │  └─ guiPlotFitResult.m
 └─ adapters/
    ├─ guiRunRayleighLambModel.m
@@ -115,9 +116,12 @@ FitTool_GUI
   -> guiRunFit
   -> model-specific fitting adapter
   -> normalized fit result
-  -> guiEvaluateFitFullCurve
+  -> guiBuildFitDisplayCurve
   -> guiPlotFitResult
 ```
+
+The fit action does not reevaluate the solver for a dense curve. The explicit
+**Evaluate fitted curve** action calls `guiEvaluateRequestedFitCurve`.
 
 Current model-family fitting adapters:
 
