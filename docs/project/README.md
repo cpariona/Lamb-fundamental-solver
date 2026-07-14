@@ -35,6 +35,14 @@ docs/repository/repository_hygiene_plan.md
 docs/repository/repository_cleanup_audit_2026-07-14.md
 ```
 
+For test-suite audit or cleanup tasks, also read:
+
+```text
+docs/repository/test_suite_audit_brief.md
+tests/README.md
+docs/project/templates/codex_task.md
+```
+
 A cleanup audit is a candidate inventory, not permission for bulk deletion.
 Codex or any other agent must create a dedicated feature branch from updated
 `origin/main`, verify dependencies for every candidate, and preserve maintained
@@ -75,6 +83,7 @@ state.
 | Topic | Start with |
 | --- | --- |
 | Repository cleanup | `docs/repository/repository_cleanup_audit_2026-07-14.md`; `docs/repository/repository_hygiene_plan.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
+| Test-suite audit | `docs/repository/test_suite_audit_brief.md`; `tests/README.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
 | GUI | `docs/workflows/gui/adapter_architecture.md`; `docs/workflows/gui/integration_audit.md` |
 | Fitting | `docs/workflows/fitting/architecture.md`; `docs/workflows/fitting/validation_suite.md` |
 | Sweeps | `docs/workflows/sweeps/parametric_sweeps.md`; `docs/workflows/sweeps/sweep_tool_usage.md` |
