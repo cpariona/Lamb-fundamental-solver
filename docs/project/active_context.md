@@ -3,25 +3,20 @@
 Last reviewed: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
 Default branch: main
+Last known good merge: `ca0ccfc3ea636ae2e77f1a672d9d4e8d3304e7ba` (PR #110)
 
 ## Current development focus
 
-The mRLFE public-solver migration is complete and merged. The active development
-phase is now a repository-wide hygiene and cleanup audit covering documentation,
-examples, diagnostics, generated artifacts, compatibility wrappers, tests, and
-potentially orphaned MATLAB files.
+The mRLFE public-solver migration and repository hygiene phase 1 are complete and
+merged into `main`.
 
-The cleanup objective is to reduce obsolete or misleading repository content
-without changing maintained solver, GUI, fitting, sweep, or validation behavior.
-The existing audit is the starting point:
+No next technical objective has been selected. The next session should first
+recover the current repository state, review the remaining work recorded by the
+cleanup audit, and choose one focused objective before creating a branch.
 
-```text
-docs/repository/repository_cleanup_audit_2026-07-14.md
-```
-
-The audit is evidence and a candidate list, not authorization for bulk deletion.
-Every deletion, move, consolidation, or rename requires dependency checks and
-focused validation.
+Repository hygiene remains an active multi-phase concern, but later phases are
+not automatically the next priority. They must be compared against open test,
+documentation, diagnostic, compatibility, and solver-layer issues.
 
 ## Recently completed capabilities
 
@@ -34,8 +29,16 @@ focused validation.
 - Fit-result normalization without automatic solver reevaluation.
 - Explicit user-requested fitted-curve solver evaluation.
 - Fit-versus-requested-curve consistency diagnostics.
-- Post-merge documentation refresh.
-- Initial repository cleanup audit and phased cleanup proposal.
+- Repository-wide hygiene audit and conservative phase 1 cleanup through PR #110.
+- Removal of generated execution-profile CSV snapshots.
+- Removal of the superseded `guiEvaluateFitFullCurve` helper.
+- Removal of two obsolete unregistered direct-visco route tests.
+
+Detailed phase 1 evidence:
+
+```text
+docs/repository/repository_cleanup_phase1_report.md
+```
 
 ## Active architectural contracts
 
@@ -48,56 +51,50 @@ focused validation.
 - FitTool optimization uses `gridPolicy = "fitOptimized"`.
 - A complete fitted curve is evaluated only after the explicit **Evaluate fitted curve** action and uses `gridPolicy = "numericalPreset"`.
 - AE IOP/HGO still uses valid atlas terminology; mRLFE legacy-atlas cleanup must not remove AE atlas code, tests, examples, or documentation.
+- Public test-runner wrappers under `tests/` remain intentional compatibility entrypoints.
 - The user performs merges manually unless explicitly requesting another workflow.
 
-## Cleanup operating rules
-
-1. Do not work directly on `main`; create a dedicated branch from updated `origin/main`.
-2. Begin with an audit and dependency map before deleting or moving files.
-3. Use exact symbol, filename, documentation-link, runner-registration, and fixture searches.
-4. Treat MATLAB dynamic invocation, function handles, path-based discovery, and compatibility wrappers as possible hidden dependencies.
-5. Keep cleanup batches small, coherent, and reversible.
-6. Do not mix repository hygiene with solver behavior changes or feature work.
-7. Do not rename maintained entrypoints, runners, or public files without checking naming/path contract tests.
-8. Do not claim tests passed unless they were executed.
-9. Do not rerun the two-day extended grid matrix unless solver or grid-policy behavior changes.
-10. Preserve useful historical evidence only when it has a clear archive purpose; Git history alone may be sufficient for superseded phase logs.
-
-## Validation status
-
-The mRLFE migration passed its focused public-contract, production-core, GUI,
-SweepTool, FitTool, execution-profile, fit-grid, and targeted grid-validation
-checks before merge.
-
-Cleanup work must select validation according to changed content. Relevant
-commands are documented in:
-
-```text
-docs/repository/validation_status.md
-docs/repository/repository_hygiene_plan.md
-docs/repository/repository_cleanup_audit_2026-07-14.md
-```
-
-At minimum, use `git diff --check` plus exact route/link searches. Code, test,
-runner, startup, or path changes require the corresponding MATLAB runners.
-
-## Known limitations
+## Known limitations and open issues
 
 - Existing synthetic and route-contract tests are not external physical validation.
 - Grid-quality classifications near marginal branch tails can depend on the internal grid.
 - Dense full-matrix validation is expensive and should not be repeated for documentation or repository hygiene alone.
+- `run_mrlfe_public_contract_tests` contains a stale expectation that `balanced` is invalid, while the maintained implementation supports Balanced.
+- `test_mrlfe_legacy_cleanup_characterization` has a pre-existing exact FitTool/direct Cp equality failure.
+- Some long mRLFE suites exceeded the available execution timeout during hygiene phase 1; no pass was claimed for them.
 - Historical documents may mention removed mRLFE routes as evidence; those names are not maintained production contracts.
-- Some tests intentionally inspect names, paths, runner wrappers, generated inventories, or the absence of legacy routes.
+- Some tests intentionally inspect names, paths, runner wrappers, generated inventories, or absence of legacy routes.
 - Repository search alone may miss dynamic MATLAB calls; removal decisions require conservative verification.
+
+## Provisional next-objective candidates
+
+These are options for review, not an approved sequence:
+
+1. **Documentation consolidation**
+   - stale generic execution-profile audit and benchmark material;
+   - historical mRLFE atlas/grid/route documents and exact-path tests;
+   - fitting phase-log archive.
+2. **Test-contract repair**
+   - update stale Balanced preset expectations;
+   - diagnose the exact FitTool/direct Cp equality characterization failure;
+   - separate genuine regressions from obsolete assertions.
+3. **Diagnostic and compatibility audit**
+   - diagnostic runtime/value review;
+   - `aeCopyLegacyResultFolder`;
+   - shared Rayleigh-Lamb mRLFE compatibility fields;
+   - old `solveMRLFEBranch` implementation.
+
+High-risk compatibility or solver-layer work must use separate model-focused
+branches and must not be combined with documentation cleanup.
 
 ## Next development guidance
 
-1. Update local `main` from `origin/main`.
-2. Create a dedicated cleanup branch, recommended name `repo-hygiene-phase1-audit`.
-3. Read the project and repository documents listed below.
-4. Re-audit the full tree and verify each initial candidate independently.
-5. Implement only the safest first cleanup batch unless evidence supports a broader change.
-6. Commit in small logical units, push the branch, and report results. Do not merge.
+1. Update local `main` from `origin/main` and confirm the merge SHA.
+2. Read the persistent project documents before opening task-specific contracts.
+3. Summarize the current state and compare a maximum of three next objectives.
+4. Do not create a branch or modify files until the user selects the objective.
+5. After selection, create one dedicated branch from updated `origin/main`.
+6. Keep changes small, localized, validated, and ready for manual user merge.
 
 ## Primary references
 
@@ -109,6 +106,7 @@ runner, startup, or path changes require the corresponding MATLAB runners.
 - `docs/repository/validation_status.md`
 - `docs/repository/repository_hygiene_plan.md`
 - `docs/repository/repository_cleanup_audit_2026-07-14.md`
+- `docs/repository/repository_cleanup_phase1_report.md`
 - `docs/workflows/gui/adapter_architecture.md`
 - `docs/workflows/fitting/architecture.md`
 - `docs/models/mrlfe/README.md`
