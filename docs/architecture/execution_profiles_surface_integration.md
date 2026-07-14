@@ -2,11 +2,11 @@
 
 ## Summary
 
-This phase integrates the centralized `executionProfile` infrastructure into the
-three user-facing surfaces without changing equations, physical defaults,
-optimizer options, branch policies, or maintained mRLFE routes.
+The centralized `executionProfile` infrastructure is integrated across the three
+user-facing surfaces without changing equations, physical defaults, optimizer
+options, or branch policies.
 
-Visible surface defaults are now:
+Visible surface defaults are:
 
 | Surface | Default execution profile |
 | --- | --- |
@@ -21,9 +21,9 @@ code should prefer `executionProfile` in requests and metadata.
 
 | Model | Main GUI | SweepTool | FitTool |
 | --- | --- | --- | --- |
-| Rayleigh-Lamb | `Fast`, `Balanced`, `Robust` fully supported through `rlDefaultOptions` | `Fast`, `Balanced`, `Robust` fully supported; default `Fast` | `Fast`, `Balanced`, `Robust` fully supported; default `Fast` |
-| AE IOP/HGO | `Fast`, `Balanced`, `Robust` map to AE atlas density; default `Balanced` | `Fast`, `Balanced`, `Robust` exposed and mapped to AE atlas density; default `Fast` | `Fast`, `Balanced`, `Robust` mapped to AE atlas density; default `Fast` |
-| mRLFE | requested profile recorded; maintained fast GUI atlas preset remains effective | requested profile recorded; maintained fast GUI sweep route remains effective; default `Fast` | requested profile recorded; `fast_fit_atlas` remains effective; default `Fast` |
+| Rayleigh-Lamb | `Fast`, `Balanced`, `Robust` supported through `rlDefaultOptions` | all three profiles supported; default `Fast` | all three profiles supported; default `Fast` |
+| AE IOP/HGO | all three profiles map to AE atlas density; default `Balanced` | all three profiles map to AE atlas density; default `Fast` | all three profiles map to AE atlas density; default `Fast` |
+| mRLFE | all three profiles map directly to the matching public numerical preset; default `Balanced` | all three profiles map directly to the matching public numerical preset; default `Fast` | all three profiles map directly to the matching public numerical preset; default `Fast` |
 
 AE profile mapping remains:
 
@@ -33,10 +33,17 @@ AE profile mapping remains:
 | `Balanced` | 600 | 16 |
 | `Robust` | 900 | 20 |
 
+mRLFE profile mapping is:
+
+| Execution profile | Public numerical preset |
+| --- | --- |
+| `Fast` | `fast` |
+| `Balanced` | `balanced` |
+| `Robust` | `robust` |
+
 ## Metadata
 
-Adapters and normalized outputs preserve the existing metadata contract where
-available:
+Adapters and normalized outputs preserve the execution-profile metadata contract:
 
 ```matlab
 requestedExecutionProfile
@@ -53,55 +60,44 @@ profileSupportMode
 surfaceDefaultExecutionProfile
 ```
 
-For fully supported RL and AE cases, `requestedExecutionProfile` and
-`effectiveExecutionProfile` match. For mRLFE non-Fast requests, the requested
-value is preserved and the effective value is reported as `Fast` with
-`profileSupportMode = "mapped_to_fast"`.
+For maintained RL, AE, and mRLFE profiles, `requestedExecutionProfile` and
+`effectiveExecutionProfile` match. mRLFE reports
+`profileSupportMode = "direct"`, the corresponding lowercase public numerical
+preset, and no profile override.
 
-Fields that are not applicable use the string scalar `""` in execution-profile
-metadata. For example, Rayleigh-Lamb has `internalAtlasPreset = ""`, and AE has
+Fields that are not applicable use the string scalar `""`. For example,
+Rayleigh-Lamb has `internalAtlasPreset = ""`, and AE has
 `internalSolverPreset = ""`. When `profileOverrideApplied = false`,
-`profileOverrideReason` is `""`. Model-specific diagnostic metadata can still
-use its established vocabulary outside the execution-profile metadata struct.
+`profileOverrideReason` is `""`.
 
-## Overrides Removed
+## Grid and Route Separation
 
-The normal FitTool AE path no longer forces atlas density to 300/12 after the
-user selects `Balanced` or `Robust`. The selected execution profile now controls
-atlas density in:
+Execution profile remains separate from route policy and fitting grid policy.
+For mRLFE:
 
-- synthetic data generation;
-- fitting evaluation;
-- normalized fit metadata.
+- Main GUI and SweepTool evaluate the selected public numerical preset directly.
+- FitTool optimizer evaluations use `gridPolicy = "fitOptimized"` while retaining
+  the selected public preset in metadata.
+- Explicit requested fitted-curve evaluation uses
+  `gridPolicy = "numericalPreset"`.
+- A0Like uses `physicalTail`; S0Like uses `none`.
+- fallback remains disabled.
+
+Changing an execution profile must not silently change branch policy, optimizer
+options, or fallback behavior.
+
+## Overrides
+
+The normal AE Fit path no longer forces atlas density to 300/12 after the user
+selects `Balanced` or `Robust`. The selected profile controls atlas density in
+synthetic data generation, fitting evaluation, and normalized fit metadata.
 
 `atlasInitializationNumFrequencyPoints = 50` remains a FitTool fitting-control
-choice and is not treated as an execution-profile override.
+choice and is not an execution-profile override.
 
-## Overrides Preserved
-
-The following behaviors are deliberate and remain explicit:
-
-- mRLFE Main GUI keeps `fast_viscous`, `fast_zero_viscosity_adaptive`, or
-  `elastic_reference` internal presets depending on the route.
-- mRLFE SweepTool keeps the maintained GUI fast atlas route.
-- mRLFE FitTool keeps `fast_fit_atlas`.
-- Legacy AE Fit requests that explicitly supply `atlasNumYPoints` and
-  `atlasTopNMinima` can still override profile-derived density. Metadata reports
-  the resulting effective profile and a nonempty override reason.
-
-## Route Policies
-
-Execution profile remains separate from route policy. This phase does not
-change:
-
-- mRLFE `adaptivePhysicalTail`;
-- mRLFE `delayedCut`;
-- zero-viscosity adaptive atlas/fallback;
-- viscous unified atlas;
-- AE `atlasA0`;
-- fallback policies.
-
-Optimizer options also remain separate from solver and atlas profile selection.
+Legacy AE Fit requests that explicitly supply `atlasNumYPoints` and
+`atlasTopNMinima` can still override profile-derived density. Metadata must
+report the resulting override explicitly.
 
 ## Manual GUI Checklist
 
@@ -110,24 +106,24 @@ Main GUI:
 - selector starts at `Balanced`;
 - Rayleigh-Lamb reports requested/effective `Balanced`;
 - AE reports requested/effective `Balanced`;
-- mRLFE reports requested `Balanced`, effective `Fast`, and the fast internal
-  preset when the maintained fast atlas route is used.
+- mRLFE reports requested/effective `Balanced`, numerical preset `balanced`,
+  direct support, and no profile override.
 
 SweepTool:
 
 - selector starts at `Fast` for RL, mRLFE, and AE;
-- AE selector includes `Robust`;
-- AE `Robust` resolves to 900/20;
-- exported output preserves execution profile metadata.
+- all three models expose `Fast`, `Balanced`, and `Robust`;
+- mRLFE resolves each selection to the matching lowercase numerical preset;
+- exported output preserves execution-profile metadata.
 
 FitTool:
 
 - selector starts at `Fast`;
 - changing model restores that model's `Fast` default;
-- Restore model defaults returns the selected model to `Fast`;
-- AE `Balanced` and `Robust` change atlas density to 600/16 and 900/20;
-- mRLFE reports `fast_fit_atlas` when fitting through the maintained atlas fit
-  route.
+- AE `Balanced` and `Robust` use 600/16 and 900/20 atlas density;
+- mRLFE preserves the selected profile while optimizer evaluations use the
+  bounded `fitOptimized` grid;
+- explicit fitted-curve evaluation uses the selected numerical preset grid.
 
 ## Tests
 
@@ -141,43 +137,25 @@ It covers:
 
 - defaults by surface;
 - alias compatibility;
-- RL direct profile equivalence;
-- AE atlas density mapping on Sweep/Fit paths;
-- mRLFE mapped-to-Fast metadata;
+- direct profile metadata for RL, AE, and mRLFE;
+- AE atlas density mapping;
+- mRLFE public numerical preset mapping;
 - legacy AE Fit atlas-density override metadata.
 
-`run_gui_smoke_tests` includes the fast surface integration contract without
-turning the smoke suite into a benchmark.
+`run_gui_smoke_tests` includes lightweight surface contracts without turning the
+smoke suite into a benchmark.
 
-## Regression Benchmark Smoke
-
-The short regression benchmark is:
-
-```matlab
-run_execution_profile_regression_smoke('WriteCsv', false)
-```
-
-Representative run on the PR validation machine:
-
-| Model | Case | Requested | Effective | Internal preset | Elapsed seconds | Valid fraction | Metadata OK |
-| --- | --- | --- | --- | --- | ---: | ---: | --- |
-| RL | A0 short | `Fast` | `Fast` | `Fast` | 0.366 | 1.00 | true |
-| mRLFE | zero-viscosity adaptive atlas | `Robust` | `Fast` | `fast_fit_atlas` | 0.708 | 1.00 | true |
-| AE | atlasA0 short | `Robust` | `Robust` | `ae_atlas_900x20` | 4.79 | 1.00 | true |
-| AE Fit | atlasA0 robust short | `Robust` | `Robust` | `ae_atlas_900x20` | 35.0 | 1.00 | true |
-
-These timings are descriptive only and are not enforced as hardware-dependent
-thresholds.
+Performance benchmarks and full validation matrices remain separate diagnostic
+entrypoints because they execute many numerical cases and are not appropriate as
+routine smoke tests.
 
 ## Remaining Work
 
-- Add richer per-curve execution profile metadata for multi-case sweep exports
-  if downstream consumers need point-level auditability.
-- Add named optimizer profiles in a later phase.
-- Decide whether to hide unsupported mRLFE non-Fast choices on selected
-  surfaces or keep the current requested/effective metadata representation.
+- Review the historical execution-profile proposal and validation records before
+  consolidating or archiving their former mapped-to-Fast evidence.
+- Redesign the mRLFE execution-profile benchmark around distinct public presets
+  instead of equality against Fast; keep it outside routine smoke validation.
+- Add richer per-curve execution-profile metadata for multi-case sweep exports if
+  downstream consumers need point-level auditability.
 - Keep `robustness` as a compatibility alias for at least one migration cycle.
-  Future retirement should start with an external-consumer inventory, then an
-  optional non-repeating deprecation warning, and removal only after downstream
-  calls have migrated to `executionProfile`.
 - Complete manual GUI review using the checklist above.
