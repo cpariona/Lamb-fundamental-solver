@@ -1,80 +1,93 @@
 # Session handoff
 
-Updated: 2026-07-10
+Updated: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: mrlfe-final-validation
-Base branch: origin/mrlfe-remove-legacy-routes
-Base commit: 6f990c625c5416d5b9f363162e2e6855a3d1bd88
+Current branch: main
 
-## Current task
+## Current state
 
-Final mRLFE architecture validation and integration report. This branch should
-only change documentation or tests when validation finds a concrete stale
-maintained reference.
+PR #109 has been merged into `main`. The maintained mRLFE production architecture now routes Main GUI, SweepTool, and FitTool through `mrlfeSolve`.
 
-## Current repository state
+Legacy mRLFE atlas/direct-visco production routes, route flags, fitting oracles, and obsolete route tests were removed. Historical documents may still mention those names only as pre-migration evidence.
 
-- The mRLFE migration branch stack has moved all maintained consumers to `mrlfeSolve`.
-- The obsolete mRLFE route files, route flags, atlas fitting oracle, and old route tests/runners were removed on `mrlfe-remove-legacy-routes`.
-- Historical audits may still mention removed route names as pre-migration evidence.
-- `startup` delegates to deterministic, idempotent project-path configuration.
+## Completed validation
 
-## Active next technical task
+The merged implementation was validated with:
 
-Run final validation suites and produce the integration report for manual
-review before merging the mRLFE branch stack.
+- mRLFE public-contract and production-core suites;
+- Main GUI, SweepTool, and FitTool public-solver tests;
+- execution-profile surface tests;
+- GUI smoke tests;
+- lightweight fit-grid performance characterization;
+- full grid validation;
+- targeted validation of marginal full-matrix cases.
 
-## Confirmed open issues
+The fit-optimized objective grid showed approximately 3.0x to 4.3x speedup against the Fast numerical-preset grid in the tested cases, with a worst relative phase-speed difference of 0.121% and no valid-mask differences.
 
-- Main GUI, SweepTool, and FitTool preserve public Fast mRLFE preset behavior even when Balanced or Robust is requested.
-- Current tests validate routing and synthetic contracts, not external physical correctness.
+The full grid matrix produced aggregate preset failures only where the dense reference was already marginal. Targeted follow-up found no accepted reference solution degraded by the candidate grids.
 
-## Next action
+## Maintained FitTool behavior
 
-1. Run the final static and MATLAB validation commands listed in the task.
-2. Commit only if stale maintained documentation or runner references are corrected.
-3. Push `mrlfe-final-validation`.
-4. User reviews and merges manually.
+```text
+Run fit
+  -> optimizer uses gridPolicy = fitOptimized
+  -> normalized display curve interpolates objective values
+  -> no automatic solver reevaluation
 
-## Do not change in this branch
-
-- Numerical solver behavior.
-- mRLFE branch-selection or fallback policies.
-- Main GUI, SweepTool, or FitTool behavior.
-- Execution-profile mapping.
-- Maintained examples or sweep defaults.
-- Public API names, folder structure, or naming contracts.
-- Do not open a pull request unless explicitly requested.
-- Do not merge this branch; the user performs merges manually.
-
-## Relevant files for the next task
-
-- `app/adapters/guiRunMRLFEModel.m`
-- `app/adapters/guiRunMRLFESweep.m`
-- `app/adapters/guiFitMRLFESolver.m`
-- `analysis/mrlfe/mrlfeEvaluateFitModel.m`
-- `analysis/mrlfe/mrlfeBuildFitSolveRequest.m`
-- `analysis/mrlfe/mrlfeDefaultSweepOptions.m`
-- `analysis/mrlfe/mrlfeRunSweepExample.m`
-- `analysis/runParametricSweep.m`
-- `models/mrlfe/`
-- `examples/mrlfe/`
-- `tests/models/mrlfe/`
-- `tests/app/gui/`
-- `tests/app/fitting/`
-- `tests/app/sweeps/`
-- `docs/models/mrlfe/README.md`
-- `docs/models/mrlfe/fitting_workflow.md`
-- `docs/models/mrlfe/atlas_policy_notes.md`
-- `docs/workflows/gui/mrlfe_atlas_policy_integration.md`
-- `docs/architecture/execution_profiles_surface_integration.md`
-
-## Commands to resume after this branch is merged
-
-```bash
-git fetch origin
-git switch main
-git pull --ff-only origin main
-git status -sb
-git log --oneline --decorate -10
+Evaluate fitted curve
+  -> explicit forward evaluation only
+  -> gridPolicy = numericalPreset
+  -> selected Fast/Balanced/Robust profile
+  -> no optimizer call
 ```
+
+Fit-grid defaults:
+
+```matlab
+minimumPointCount = 12;
+maximumPointCount = 40;
+maximumStep_Hz = 250;
+```
+
+## Current maintenance task
+
+Keep repository documentation aligned with the merged public solver architecture. Documentation-only updates may be committed directly to `main` when explicitly authorized, but should preserve maintained file paths, runner names, and strings that may be inspected by repository contract tests.
+
+## Known limitations
+
+- Synthetic and route tests do not constitute external physical validation.
+- Quality classification can be grid-sensitive near already marginal branch tails.
+- Extended grid validation is expensive and should be repeated only for material solver or grid-policy changes.
+- AE IOP/HGO still uses valid atlas terminology; do not remove it when cleaning mRLFE legacy references.
+
+## Validation guidance
+
+For mRLFE code changes, select the relevant focused runners from:
+
+```matlab
+run_mrlfe_public_contract_tests
+run_mrlfe_production_core_tests
+run_mrlfe_neutral_production_helper_tests
+run_mrlfe_main_gui_public_solver_tests
+run_mrlfe_sweeptool_public_solver_tests
+run_mrlfe_fit_public_solver_tests
+run_mrlfe_legacy_cleanup_tests
+```
+
+For documentation-only changes:
+
+1. preserve file paths and maintained runner names;
+2. search for broken or stale references;
+3. do not rerun the two-day extended grid matrix;
+4. run only documentation/naming contract tests if a referenced path or maintained name changes.
+
+## Primary references
+
+- `docs/project/active_context.md`
+- `docs/repository/validation_status.md`
+- `docs/models/mrlfe/README.md`
+- `docs/models/mrlfe/public_api.md`
+- `docs/models/mrlfe/production_core.md`
+- `docs/models/mrlfe/fitting_workflow.md`
+- `docs/validation/mrlfe_grid_presets.md`
+- `docs/workflows/fitting/architecture.md`
