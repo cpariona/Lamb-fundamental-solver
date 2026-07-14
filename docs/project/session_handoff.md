@@ -2,113 +2,113 @@
 
 Updated: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: `main`
-Last known good merge: `ca0ccfc3ea636ae2e77f1a672d9d4e8d3304e7ba` (PR #110)
-Latest documentation closeout commit: `f4bab4eed87c89640976201a79c859782fa36565`
+Current branch: `test/mrlfe-contract-baseline`
+Base: `origin/main` at `c590d8b6b60654d8581177de85f6134d3361ae91`
 
 ## Completed
 
-PR #110, **Repository hygiene phase 1 cleanup**, was merged into `main`.
+This branch restores the maintained mRLFE test-contract baseline after repository
+hygiene phase 1 exposed several stale expectations.
 
-The phase completed a full tracked-tree audit and a conservative cleanup batch.
-Detailed evidence and classifications are recorded in:
+The branch changes tests and project documentation only. It does not modify:
+
+- solver mathematics;
+- public APIs;
+- numerical presets or internal grid construction;
+- GUI, fitting, or sweep behavior;
+- startup/path configuration;
+- runner names or runner architecture.
+
+Test updates:
 
 ```text
-docs/repository/repository_cleanup_phase1_report.md
+tests/models/mrlfe/test_mrlfe_public_contract_defaults.m
+tests/models/mrlfe/test_mrlfe_public_contract_validation.m
+tests/models/mrlfe/test_mrlfe_legacy_cleanup_characterization.m
+tests/app/gui/test_mrlfe_main_gui_consumer_equivalence.m
+tests/app/gui/test_mrlfe_main_gui_result_contract.m
 ```
 
-Merged removals:
+The updates establish that:
 
-```text
-app/fitting/guiEvaluateFitFullCurve.m
-tests/models/mrlfe/test_mrlfe_a0_delayed_direct_visco_opt_in_contract.m
-tests/models/mrlfe/test_mrlfe_a0_delayed_direct_visco_s0_guard_contract.m
-analysis/execution_profiles/execution_profile_inventory.csv
-analysis/performance/execution_profile_benchmark_results.csv
-```
+- `balanced` is a valid maintained preset in both defaults and request validation;
+- unsupported names still raise `mrlfe:InvalidNumericalPreset`;
+- the legacy-cleanup runner does not duplicate FitTool solver characterization;
+- exact Main GUI/FitTool Cp equivalence is tested only when both use
+  `gridPolicy = "numericalPreset"`;
+- Main GUI applies Balanced directly and reports status consistently with the
+  returned public quality state instead of relying on one fixed case remaining
+  marginal.
 
-The FitTool helper had no maintained static or dynamic caller and was superseded
-by `guiBuildFitDisplayCurve` plus the explicit-action
-`guiEvaluateRequestedFitCurve`. The removed tests were unregistered, failed on
-the base commit, and asserted deleted route behavior. The CSV files were
-generated snapshots with no consumer.
+## Audit performed
 
-No solver mathematics, GUI behavior, fitting behavior, sweep behavior, startup,
-runner architecture, model parameters, or numerical policies were changed.
+Before editing, the session reviewed:
 
-## Validation actually executed
+- the public preset resolver and preset-grid tests;
+- public-contract defaults and validation runners;
+- legacy-cleanup runner ownership;
+- Main GUI and FitTool consumer tests;
+- `mrlfeEvaluateFitModel` grid-policy behavior;
+- maintained entrypoints and test-layout contracts;
+- historical commits that introduced direct Fast/Balanced/Robust support.
+
+The audit found that FitTool same-grid equivalence already has dedicated coverage
+in `test_mrlfe_fit_public_solver_characterization`, while the legacy-cleanup test
+was repeating solver work with a different grid policy.
+
+## Validation executed by the user
 
 Passed:
 
 ```matlab
+test_mrlfe_public_contract_validation
+run_mrlfe_public_contract_tests
+test_mrlfe_main_gui_result_contract
+run_mrlfe_legacy_cleanup_tests
+run_mrlfe_main_gui_public_solver_tests
 run_mrlfe_fit_public_solver_tests
-run_gui_smoke_tests
 run_mrlfe_smoke_tests
+run_gui_smoke_tests
 ```
 
-Static validation also passed:
+The directly modified defaults and consumer-equivalence tests were also exercised
+while progressing through the focused runners.
 
-```text
-git diff --check
-exact removed symbol/filename/path searches
-tracked binary and empty-file checks
-CSV consumer searches
-```
+No extended grid matrix, broad fitting-recovery suite, or `run_all_smoke_tests`
+was required. This branch changes no production numerical behavior, and the
+focused runners provide direct coverage without introducing unnecessarily heavy
+validation.
 
-Known baseline or runtime limitations:
+## Remaining limitations
 
-- `run_mrlfe_public_contract_tests` stops because a stale defaults test expects
-  `balanced` to be invalid while the maintained implementation supports it.
-- The first two legacy-cleanup absence tests pass; the characterization test
-  fails a pre-existing exact FitTool/direct Cp equality assertion.
-- `run_mrlfe_neutral_production_helper_tests` timed out at five minutes.
-- A broader focused plus `run_all_smoke_tests` batch timed out at twenty minutes
-  before buffered results were available.
-- The two-day extended mRLFE grid matrix was intentionally not run.
+- Synthetic and route-contract tests are not external physical validation.
+- Grid-quality classifications near marginal branch tails can depend on the
+  internal grid.
+- Some long mRLFE suites have exceeded available execution time in previous
+  sessions; no pass is claimed for runners not executed here.
+- A complete test-suite audit remains useful but should be performed in a
+  separate branch. It should map tests to runners, identify unregistered or
+  duplicated coverage, classify lightweight versus heavy tests, and record
+  practical runtime budgets.
 
-No additional manual GUI validation was recorded for the cleanup branch because
-the changed helper was already covered by FitTool/public-solver and GUI smoke
-contracts.
+## Next action
 
-## Open issues
+1. Pull the latest branch commits locally.
+2. Run static Git checks over `origin/main...HEAD`.
+3. Confirm a clean working tree.
+4. Open a PR into `main`.
+5. The user reviews and merges manually.
 
-1. Stale Balanced-preset expectation in the mRLFE public-contract defaults test.
-2. Pre-existing exact FitTool/direct Cp equality failure in
-   `test_mrlfe_legacy_cleanup_characterization`.
-3. Historical and duplicated documentation identified for a later consolidation
-   phase.
-4. Diagnostic scripts that need individual purpose/runtime review.
-5. Higher-risk compatibility candidates:
-   - `aeCopyLegacyResultFolder`;
-   - shared Rayleigh-Lamb mRLFE compatibility fields;
-   - old `solveMRLFEBranch` implementation;
-   - possible future runner consolidation.
+## Suggested later objectives
 
-## Provisional next objectives
-
-No next objective has been selected. The next chat should compare no more than
-three focused options, likely among:
+After this PR is merged, compare these focused options:
 
 1. documentation consolidation;
-2. stale test-contract diagnosis and repair;
-3. diagnostic/compatibility audit.
+2. dedicated test-suite audit and runtime classification;
+3. diagnostic and compatibility audit.
 
-Do not create a branch or modify files until the user selects the objective.
-
-## One next action
-
-Start a new chat, update and inspect `main`, read the persistent project context,
-summarize the current state and open issues, then recommend a maximum of three
-next objectives ordered by priority.
-
-## Required reading for the next chat
-
-1. `docs/project/README.md`
-2. `docs/project/active_context.md`
-3. `docs/project/session_handoff.md`
-4. `docs/repository/repository_structure.md`
-5. `docs/repository/naming_strategy.md`
-6. Task-specific contracts only after the initial state summary.
+Do not combine high-risk compatibility or solver-layer changes with documentation
+or test-suite cleanup.
 
 ## Working rules
 
