@@ -52,7 +52,7 @@ bad.fluid.soundSpeed_mps = 0;
 assertInvalid(bad, 'mrlfe:InvalidFluid');
 
 bad = request;
-bad.numerics.preset = "balanced";
+bad.numerics.preset = "unsupported";
 assertInvalid(bad, 'mrlfe:InvalidNumericalPreset');
 
 bad = request;

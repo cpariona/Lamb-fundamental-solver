@@ -26,13 +26,14 @@ sweepRequest = guiBuildSweepRequest("mrlfe", ...
 sweepOut = guiRunMRLFESweep(sweepRequest);
 sweepResult = sweepOut.rawResults.points{1}.modelResult;
 
-%% FitTool forward evaluator, no optimizer.
+%% FitTool requested-curve evaluator on the same numerical preset grid.
 fitParams = params;
 fitParams.etaS = etaS;
 fitOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS, ...
     'A0Policy', "physicalTail");
 fitOptions.mrlfeParams.fluidDensity = 1000;
 fitOptions.mrlfeParams.fluidSoundSpeed = 1500;
+fitOptions.forwardModel = struct('gridPolicy', "numericalPreset");
 [fitCp, fitRaw] = mrlfeEvaluateFitModel(fitParams, mainResult.frequency_Hz, branchName, fitOptions);
 
 assertVectorEqual(mainResult.phaseVelocity_mps, sweepResult.phaseVelocity_mps, ...
@@ -49,10 +50,12 @@ assert(mainResult.fallback.policy == sweepResult.fallback.policy && ...
     mainResult.fallback.applied == sweepResult.fallback.applied, ...
     'Main GUI and SweepTool fallback differs.');
 
+assert(fitRaw.fitGrid.gridPolicy == "numericalPreset", ...
+    'FitTool comparison must use the numericalPreset grid policy.');
 assertVectorEqual(mainResult.phaseVelocity_mps, fitCp, ...
-    'Main GUI and FitTool forward Cp differ.');
+    'Main GUI and FitTool requested-curve Cp differ.');
 assert(isequal(mainResult.validMask(:), fitRaw.validMask(:)), ...
-    'Main GUI and FitTool forward valid masks differ.');
+    'Main GUI and FitTool requested-curve valid masks differ.');
 
 fprintf('Main GUI vs SweepTool max Cp diff: %.12g\n', max(abs(mainResult.phaseVelocity_mps - sweepResult.phaseVelocity_mps), [], 'omitnan'));
 fprintf('Main GUI vs FitTool max Cp diff: %.12g\n', max(abs(mainResult.phaseVelocity_mps - fitCp), [], 'omitnan'));

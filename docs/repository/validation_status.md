@@ -53,7 +53,9 @@ run_mrlfe_fit_public_solver_tests
 run_mrlfe_legacy_cleanup_tests
 ```
 
-`run_mrlfe_legacy_cleanup_tests` verifies that removed route flags, historical production dependencies, and obsolete maintained entrypoints do not return. It is not an atlas solver validation suite.
+`run_mrlfe_legacy_cleanup_tests` verifies that removed route flags, historical production dependencies, and obsolete maintained entrypoints do not return. It is not an atlas solver validation suite and should not duplicate broad FitTool or GUI characterization already owned by their focused runners.
+
+Exact Cp equivalence between consumers is required only when both routes use the same request and internal grid policy. FitTool optimization intentionally uses `fitOptimized`, while explicit requested-curve evaluation uses `numericalPreset`.
 
 Dense and targeted grid diagnostics are documented in:
 
@@ -63,6 +65,34 @@ docs/validation/mrlfe_grid_presets.md
 ```
 
 These diagnostics are not part of lightweight smoke suites because their runtime may be substantial.
+
+## Current mRLFE contract baseline
+
+The `test/mrlfe-contract-baseline` branch realigns stale tests with the maintained implementation without changing production code.
+
+Validated behavior includes:
+
+- `fast`, `balanced`, `robust`, and `dense` are accepted public numerical presets;
+- unsupported preset names still raise `mrlfe:InvalidNumericalPreset`;
+- Main GUI applies Balanced directly as the `balanced` numerical preset;
+- Main GUI status is derived from the returned public quality state rather than a fixed expected marginal case;
+- FitTool/direct exact equality is asserted only on a shared internal solve grid;
+- the legacy-cleanup runner remains focused and does not repeat FitTool solver work.
+
+The user executed and reported passing:
+
+```matlab
+test_mrlfe_public_contract_validation
+run_mrlfe_public_contract_tests
+test_mrlfe_main_gui_result_contract
+run_mrlfe_legacy_cleanup_tests
+run_mrlfe_main_gui_public_solver_tests
+run_mrlfe_fit_public_solver_tests
+run_mrlfe_smoke_tests
+run_gui_smoke_tests
+```
+
+No pass is claimed for runners not executed on this branch. The extended grid matrix and broad fitting validation were not required because no production solver, grid, fitting, or GUI behavior changed.
 
 ## mRLFE grid-validation status
 
@@ -81,7 +111,7 @@ A targeted follow-up validation isolated those cases. No accepted dense-referenc
 
 - accepted reference solutions remain the blocking basis for preset equivalence;
 - marginal reference solutions remain diagnostic and do not independently reject a preset;
-- no repeat of the full two-day matrix is required for documentation-only or FitTool-only changes;
+- no repeat of the full two-day matrix is required for documentation-only, test-contract-only, or FitTool-only changes;
 - solver or grid-policy changes require focused tests first, followed by broader validation only when the affected cases justify it.
 
 ## Acoustoelastic IOP/HGO validation
@@ -122,6 +152,8 @@ run_fit_validation_tests
 ```
 
 For mRLFE production-route changes, additionally run the focused public-contract and consumer runners listed above.
+
+For localized mRLFE test-contract changes, run the directly affected tests and focused runners first, followed by `run_mrlfe_smoke_tests` and `run_gui_smoke_tests`. Do not automatically run expensive grid matrices or unrelated fitting-recovery suites.
 
 For documentation-only changes, do not rerun expensive numerical matrices. Preserve existing paths and maintained runner names, search for broken references, and run only contract tests that explicitly inspect documentation or repository naming when applicable.
 
