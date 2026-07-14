@@ -22,7 +22,7 @@ end
 
 for iCase = 1:numel(cases)
     c = cases(iCase);
-    frequencyOutput_Hz = (fmin_Hz:referenceStep_Hz:c.fmax_Hz).';
+    frequencyOutput_Hz = buildCoveredGrid(fmin_Hz, c.fmax_Hz, referenceStep_Hz);
 
     params = mrlfeDefaultSweepParams();
     params.mu = c.mu_Pa;
@@ -39,7 +39,8 @@ for iCase = 1:numel(cases)
 
     referenceRequest = mrlfeBuildFitSolveRequest(params, frequencyOutput_Hz, "A0Like", options);
     referenceRequest.numerics.preset = "fast";
-    referenceRequest.numerics.frequencySolveOverride_Hz = (fmin_Hz:referenceStep_Hz:c.fmax_Hz).';
+    referenceRequest.numerics.frequencySolveOverride_Hz = ...
+        buildCoveredGrid(fmin_Hz, c.fmax_Hz, referenceStep_Hz);
     t = tic;
     reference = mrlfeSolve(referenceRequest);
     referenceElapsed_s = toc(t);
@@ -53,7 +54,7 @@ for iCase = 1:numel(cases)
         candidateRequest = mrlfeBuildFitSolveRequest(params, frequencyOutput_Hz, "A0Like", options);
         candidateRequest.numerics.preset = "fast";
         candidateRequest.numerics.frequencySolveOverride_Hz = ...
-            (fmin_Hz:candidateStep_Hz:c.fmax_Hz).';
+            buildCoveredGrid(fmin_Hz, c.fmax_Hz, candidateStep_Hz);
         t = tic;
         candidate = mrlfeSolve(candidateRequest);
         candidateElapsed_s = toc(t);
@@ -117,6 +118,19 @@ writetable(results, outCsv);
 
 fprintf('\nSaved: %s\n', outCsv);
 fprintf('Targeted mRLFE grid validation completed.\n');
+
+function grid_Hz = buildCoveredGrid(fmin_Hz, fmax_Hz, step_Hz)
+grid_Hz = (fmin_Hz:step_Hz:fmax_Hz).';
+if isempty(grid_Hz) || grid_Hz(1) ~= fmin_Hz
+    grid_Hz = [fmin_Hz; grid_Hz];
+end
+if grid_Hz(end) < fmax_Hz
+    grid_Hz(end + 1, 1) = fmax_Hz;
+elseif grid_Hz(end) > fmax_Hz
+    grid_Hz(end) = fmax_Hz;
+end
+grid_Hz = unique(grid_Hz, 'sorted');
+end
 
 function value = percentile(x, p)
 x = sort(x(isfinite(x)));
