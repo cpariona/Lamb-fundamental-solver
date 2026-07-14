@@ -3,8 +3,8 @@
 Last reviewed: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
 Default branch: main
-Last known good merge: `09f9a2d81dc974f930965a4da87983816984bd14` (PR #111)
-Active documentation branch: `docs/test-suite-audit-context`
+Last known good merge: `d3fcfd0c6a279df72b3e11caf7684e77f21c3aae` (PR #112, including PR #111)
+Active audit branch: `test/test-suite-audit-2026-07-14`
 
 ## Current development focus
 
@@ -12,16 +12,22 @@ PR #111 restored the maintained mRLFE and execution-profile test-contract
 baseline. Fast, Balanced, and Robust now map directly to the matching public
 mRLFE numerical presets on Main GUI, SweepTool, and FitTool surfaces.
 
-The next selected objective is a repository-wide audit of `tests/`. The first
-phase is analysis only: build a reproducible inventory, map tests to runners,
-identify duplicate and unregistered coverage, classify runtime/scope, and
-recommend a staged cleanup. It must not move, rename, delete, or rewrite broad
-test families.
+The repository-wide static audit of `tests/` is complete on the audit branch.
+It provides a reproducible 137-file inventory, runner graph, wrapper audit,
+runtime-purpose classification, six unregistered-test candidates, overlap
+analysis, and a staged cleanup plan. No test membership or behavior changed.
 
 The task brief is:
 
 ```text
 docs/repository/test_suite_audit_brief.md
+```
+
+Audit evidence is in:
+
+```text
+docs/repository/test_suite_audit.md
+analysis/test_inventory/
 ```
 
 ## Recently completed capabilities
@@ -104,12 +110,11 @@ test.
 
 ## Next development guidance
 
-1. Read the required project and repository documents.
-2. Work from updated `origin/main` on a dedicated audit branch.
-3. Produce the static test inventory and runner graph before proposing changes.
-4. Record uncertainty where dynamic MATLAB dispatch prevents proof.
-5. Deliver an audit report and machine-readable inventory; do not implement the
-   cleanup in the same task unless explicitly instructed.
+1. Review the audit findings and generated CSV evidence.
+2. Merge the audit branch manually if accepted.
+3. Start cleanup with the documentation-only wrapper/counter phase.
+4. Keep each later layout or runner-membership change in a separate small PR.
+5. Do not treat static non-registration as proof that a test is dead.
 
 ## Primary references
 
