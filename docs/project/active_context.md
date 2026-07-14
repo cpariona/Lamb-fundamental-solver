@@ -3,135 +3,123 @@
 Last reviewed: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
 Default branch: main
-Last known good merge: `ca0ccfc3ea636ae2e77f1a672d9d4e8d3304e7ba` (PR #110)
-Active branch: `test/mrlfe-contract-baseline`
+Last known good merge: `09f9a2d81dc974f930965a4da87983816984bd14` (PR #111)
+Active documentation branch: `docs/test-suite-audit-context`
 
 ## Current development focus
 
-The mRLFE public-solver migration and repository hygiene phase 1 are complete and
-merged into `main`.
+PR #111 restored the maintained mRLFE and execution-profile test-contract
+baseline. Fast, Balanced, and Robust now map directly to the matching public
+mRLFE numerical presets on Main GUI, SweepTool, and FitTool surfaces.
 
-The current focused branch restores the maintained mRLFE test-contract baseline.
-It updates stale preset and execution-profile expectations, removes duplicated
-FitTool work from the legacy-cleanup characterization, and requires exact
-consumer equivalence only when the compared routes use the same numerical grid
-policy.
+The next selected objective is a repository-wide audit of `tests/`. The first
+phase is analysis only: build a reproducible inventory, map tests to runners,
+identify duplicate and unregistered coverage, classify runtime/scope, and
+recommend a staged cleanup. It must not move, rename, delete, or rewrite broad
+test families.
 
-No solver mathematics, numerical presets, grid construction, GUI behavior,
-fitting behavior, sweep behavior, startup behavior, or runner names are changed.
+The task brief is:
+
+```text
+docs/repository/test_suite_audit_brief.md
+```
 
 ## Recently completed capabilities
 
 - Public mRLFE API and production-core organization.
-- Removal of legacy mRLFE atlas/direct-visco production routes.
-- End-to-end execution-profile integration across Main GUI, SweepTool, and FitTool.
-- Fast, Balanced, Robust, and dense/reference numerical presets.
-- Direct SweepTool use of `mrlfeSolve` per sweep point.
-- FitTool objective evaluations on a bounded fit-optimized internal grid.
-- Fit-result normalization without automatic solver reevaluation.
-- Explicit user-requested fitted-curve solver evaluation.
-- Fit-versus-requested-curve consistency diagnostics.
-- Repository-wide hygiene audit and conservative phase 1 cleanup through PR #110.
-- Removal of generated execution-profile CSV snapshots.
-- Removal of the superseded `guiEvaluateFitFullCurve` helper.
-- Removal of two obsolete unregistered direct-visco route tests.
-- Restoration of the mRLFE public-contract, legacy-cleanup, Main GUI, FitTool,
-  mRLFE smoke, and GUI smoke validation baseline on
-  `test/mrlfe-contract-baseline`.
-
-Detailed phase 1 evidence:
-
-```text
-docs/repository/repository_cleanup_phase1_report.md
-```
+- Removal of obsolete mRLFE atlas/direct-visco production routes.
+- Direct Fast/Balanced/Robust mRLFE execution-profile support.
+- FitTool optimizer evaluations on a bounded `fitOptimized` grid.
+- Explicit requested fitted-curve evaluation on the selected numerical preset.
+- Repository hygiene phase 1 through PR #110.
+- mRLFE and execution-profile contract repair through PR #111.
 
 ## Active architectural contracts
 
-- GUI surfaces delegate to adapters and backends. See `docs/workflows/gui/adapter_architecture.md`.
-- Model physics remains in model layers. See `docs/repository/repository_structure.md`.
-- Fitting uses request -> dispatcher -> adapter -> maintained model API. See `docs/workflows/fitting/architecture.md`.
+- GUI surfaces delegate to adapters and backends.
+- Model physics remains in model layers.
+- Fitting uses request -> dispatcher -> adapter -> maintained model API.
 - `executionProfile` is distinct from route policy and optimizer options.
-- Main GUI, SweepTool, and FitTool resolve Fast, Balanced, or Robust into the corresponding public mRLFE numerical preset.
+- Main GUI, SweepTool, and FitTool map Fast/Balanced/Robust directly to
+  `fast`/`balanced`/`robust` for mRLFE.
 - A0Like uses `physicalTail`; S0Like uses `none`; fallback remains disabled.
 - FitTool optimization uses `gridPolicy = "fitOptimized"`.
-- A complete fitted curve is evaluated only after the explicit **Evaluate fitted curve** action and uses `gridPolicy = "numericalPreset"`.
-- Exact cross-surface Cp equality is a valid contract only when the compared routes use the same request and internal grid policy.
-- Main GUI quality status is derived from the returned public result; tests must not depend on one fixed case remaining marginal across validated preset changes.
-- AE IOP/HGO still uses valid atlas terminology; mRLFE legacy-atlas cleanup must not remove AE atlas code, tests, examples, or documentation.
-- Public test-runner wrappers under `tests/` remain intentional compatibility entrypoints.
-- The user performs merges manually unless explicitly requesting another workflow.
+- Explicit fitted-curve evaluation uses `gridPolicy = "numericalPreset"`.
+- Exact cross-surface Cp equality is valid only when request and grid policy
+  match.
+- Public test-runner wrappers under `tests/` may be intentional compatibility
+  entrypoints.
+- The user performs merges manually unless explicitly requesting otherwise.
 
-## Validation status for the active branch
+## Validation baseline from PR #111
 
 The user executed and reported passing:
 
 ```matlab
-test_mrlfe_public_contract_validation
 run_mrlfe_public_contract_tests
-test_mrlfe_main_gui_result_contract
 run_mrlfe_legacy_cleanup_tests
 run_mrlfe_main_gui_public_solver_tests
 run_mrlfe_fit_public_solver_tests
 run_mrlfe_smoke_tests
 run_gui_smoke_tests
+test_execution_profile_cleanup_contract
+test_execution_profile_state_transition_contract
+test_execution_profile_fit_curve_metadata
+run_execution_profile_cleanup_tests
+test_execution_profile_validation_matrix
 ```
 
-The first individual defaults and consumer-equivalence tests were also exercised
-while diagnosing the runner failures. No extended grid matrix or broad fitting
-validation was required because this branch changes tests only and preserves all
-production numerical policies.
+The execution-profile validation matrix completed all 36 combinations in about
+178.7 seconds. It is extended integration validation, not a lightweight smoke
+test.
 
-## Known limitations and open issues
+## Known test-suite concerns
 
-- Existing synthetic and route-contract tests are not external physical validation.
-- Grid-quality classifications near marginal branch tails can depend on the internal grid.
-- Dense full-matrix validation is expensive and should not be repeated for documentation or test-contract-only changes.
-- Some long mRLFE suites exceeded the available execution timeout during hygiene phase 1; no pass is claimed for suites not rerun on this branch.
-- Historical documents may mention removed mRLFE routes as evidence; those names are not maintained production contracts.
-- Some tests intentionally inspect names, paths, runner wrappers, generated inventories, or absence of legacy routes.
-- Repository search alone may miss dynamic MATLAB calls; removal decisions require conservative verification.
-- A later dedicated test-suite audit may classify runners by scope and runtime, map unregistered tests, and reduce duplicated heavy coverage. It must remain separate from this localized repair.
+- `run_all_smoke_tests` delegates to several groups and has previously exceeded
+  practical interactive time limits.
+- Some smoke runners include synthetic fitting or numerical regression work.
+- Execution-profile runners overlap and repeat tests.
+- `test_execution_profile_validation_matrix` is too heavy for routine smoke use.
+- `test_mrlfe_execution_profile_benchmark_contract` and
+  `benchmarkMRLFEExecutionProfiles` still characterize the former
+  mapped-to-Fast policy and need a separate diagnostic redesign.
+- `run_mrlfe_production_core_tests` mixes contracts, characterization, and
+  performance.
+- Some root-level runner files are compatibility wrappers; they must not be
+  deleted without consumer and documentation checks.
+- Some test implementations remain outside the target `tests/app`,
+  `tests/models`, `tests/runners`, and `tests/shared` layout.
+- Static search may miss MATLAB dynamic invocation through `eval`, `feval`,
+  function handles, `run`, `which`, or path-based dispatch.
 
-## Provisional next-objective candidates
+## Test-suite audit constraints
 
-These are options for review after the current branch is merged, not an approved sequence:
-
-1. **Documentation consolidation**
-   - stale generic execution-profile audit and benchmark material;
-   - historical mRLFE atlas/grid/route documents and exact-path tests;
-   - fitting phase-log archive.
-2. **Test-suite audit**
-   - map tests to runners and identify unregistered or duplicated coverage;
-   - classify smoke, contract, regression, characterization, and heavy diagnostics;
-   - record practical runtime budgets without moving broad test families in the same task.
-3. **Diagnostic and compatibility audit**
-   - diagnostic runtime/value review;
-   - `aeCopyLegacyResultFolder`;
-   - shared Rayleigh-Lamb mRLFE compatibility fields;
-   - old `solveMRLFEBranch` implementation.
-
-High-risk compatibility or solver-layer work must use separate model-focused
-branches and must not be combined with documentation or test-suite cleanup.
+- Audit before editing.
+- Do not change solver, GUI, fitting, sweep, numerical, or validation behavior.
+- Do not move, rename, delete, or consolidate test files in the audit phase.
+- Do not change maintained runner names or wrapper behavior.
+- Do not claim runtime measurements that were not executed in MATLAB.
+- Distinguish static classification from measured runtime evidence.
+- Prefer a staged cleanup plan over a bulk reorganization.
 
 ## Next development guidance
 
-1. Complete static diff checks and open a PR from `test/mrlfe-contract-baseline`.
-2. The user reviews and merges the PR manually.
-3. After merge, update local `main` from `origin/main` before selecting another objective.
-4. Keep future changes small, localized, validated, and isolated by branch.
+1. Read the required project and repository documents.
+2. Work from updated `origin/main` on a dedicated audit branch.
+3. Produce the static test inventory and runner graph before proposing changes.
+4. Record uncertainty where dynamic MATLAB dispatch prevents proof.
+5. Deliver an audit report and machine-readable inventory; do not implement the
+   cleanup in the same task unless explicitly instructed.
 
 ## Primary references
 
 - `docs/project/README.md`
 - `docs/project/session_handoff.md`
+- `docs/project/templates/codex_task.md`
+- `docs/repository/test_suite_audit_brief.md`
 - `docs/repository/repository_structure.md`
 - `docs/repository/naming_strategy.md`
 - `docs/repository/maintained_entrypoints.md`
 - `docs/repository/validation_status.md`
 - `docs/repository/repository_hygiene_plan.md`
-- `docs/repository/repository_cleanup_audit_2026-07-14.md`
-- `docs/repository/repository_cleanup_phase1_report.md`
-- `docs/workflows/gui/adapter_architecture.md`
-- `docs/workflows/fitting/architecture.md`
-- `docs/models/mrlfe/README.md`
-- `docs/models/acoustoelastic_iop_hgo/documentation_index.md`
+- `tests/README.md`

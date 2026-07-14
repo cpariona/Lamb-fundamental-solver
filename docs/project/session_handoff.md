@@ -2,120 +2,138 @@
 
 Updated: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: `test/mrlfe-contract-baseline`
-Base: `origin/main` at `c590d8b6b60654d8581177de85f6134d3361ae91`
+Current documentation branch: `docs/test-suite-audit-context`
+Baseline: `origin/main` after merge commit `09f9a2d81dc974f930965a4da87983816984bd14` (PR #111)
 
 ## Completed
 
-This branch restores the maintained mRLFE test-contract baseline after repository
-hygiene phase 1 exposed several stale expectations.
+PR #111, **Align mRLFE test contracts with direct execution profiles**, was
+merged into `main`.
 
-The branch changes tests and project documentation only. It does not modify:
+It restored the maintained mRLFE and execution-profile contract baseline without
+changing solver mathematics, numerical grids, GUI behavior, fitting behavior,
+sweep behavior, or public routes.
 
-- solver mathematics;
-- public APIs;
-- numerical presets or internal grid construction;
-- GUI, fitting, or sweep behavior;
-- startup/path configuration;
-- runner names or runner architecture.
+The user executed and reported passing the focused mRLFE, GUI, fitting, cleanup,
+and execution-profile validations recorded in `docs/project/active_context.md`.
+The 36-case execution-profile validation matrix passed in approximately 178.7
+seconds and is classified as extended integration validation rather than a
+lightweight smoke test.
 
-Test updates:
+## Selected next objective
+
+Perform a repository-wide audit of the MATLAB test suite before any cleanup or
+reorganization.
+
+The authoritative task brief is:
 
 ```text
-tests/models/mrlfe/test_mrlfe_public_contract_defaults.m
-tests/models/mrlfe/test_mrlfe_public_contract_validation.m
-tests/models/mrlfe/test_mrlfe_legacy_cleanup_characterization.m
-tests/app/gui/test_mrlfe_main_gui_consumer_equivalence.m
-tests/app/gui/test_mrlfe_main_gui_result_contract.m
+docs/repository/test_suite_audit_brief.md
 ```
 
-The updates establish that:
+The audit phase must:
 
-- `balanced` is a valid maintained preset in both defaults and request validation;
-- unsupported names still raise `mrlfe:InvalidNumericalPreset`;
-- the legacy-cleanup runner does not duplicate FitTool solver characterization;
-- exact Main GUI/FitTool Cp equivalence is tested only when both use
-  `gridPolicy = "numericalPreset"`;
-- Main GUI applies Balanced directly and reports status consistently with the
-  returned public quality state instead of relying on one fixed case remaining
-  marginal.
+- inventory all tracked MATLAB files under `tests/`;
+- distinguish tests, runner implementations, public compatibility wrappers,
+  helpers, and unknown files;
+- build a static runner-to-test graph, including transitive reachability from
+  `run_all_smoke_tests`;
+- identify duplicate runner membership and unregistered-test candidates;
+- classify test purpose and likely cost;
+- identify files outside the target layout;
+- propose a staged cleanup plan;
+- provide MATLAB commands for runtime measurements that Codex cannot execute.
 
-## Audit performed
+The audit phase must not move, rename, delete, consolidate, or broadly rewrite
+tests and runners.
 
-Before editing, the session reviewed:
+## Known audit hypotheses
 
-- the public preset resolver and preset-grid tests;
-- public-contract defaults and validation runners;
-- legacy-cleanup runner ownership;
-- Main GUI and FitTool consumer tests;
-- `mrlfeEvaluateFitModel` grid-policy behavior;
-- maintained entrypoints and test-layout contracts;
-- historical commits that introduced direct Fast/Balanced/Robust support.
+These observations require verification and must not be treated as predetermined
+cleanup decisions:
 
-The audit found that FitTool same-grid equivalence already has dedicated coverage
-in `test_mrlfe_fit_public_solver_characterization`, while the legacy-cleanup test
-was repeating solver work with a different grid policy.
+- root-level runners may be intentional compatibility wrappers;
+- the documented wrapper list may be incomplete;
+- `tests/analysis/` and non-wrapper files under `tests/fitting/` may be outside
+  the target layout;
+- `run_all_smoke_tests` may be too broad for interactive use;
+- `run_core_smoke_tests` includes synthetic fitting;
+- `run_gui_smoke_tests` mixes several concerns and has inconsistent progress
+  counters;
+- execution-profile runners overlap;
+- `test_execution_profile_validation_matrix` is heavy integration validation;
+- `run_mrlfe_production_core_tests` mixes contract, characterization, and
+  performance;
+- the mRLFE execution-profile benchmark still represents the former
+  mapped-to-Fast policy and needs a separate redesign task.
 
-## Validation executed by the user
+## Required reading for Codex
 
-Passed:
+Read in order:
 
-```matlab
-test_mrlfe_public_contract_validation
-run_mrlfe_public_contract_tests
-test_mrlfe_main_gui_result_contract
-run_mrlfe_legacy_cleanup_tests
-run_mrlfe_main_gui_public_solver_tests
-run_mrlfe_fit_public_solver_tests
-run_mrlfe_smoke_tests
-run_gui_smoke_tests
+1. `docs/project/README.md`
+2. `docs/project/active_context.md`
+3. `docs/project/session_handoff.md`
+4. `docs/project/templates/codex_task.md`
+5. `docs/repository/test_suite_audit_brief.md`
+6. `docs/repository/repository_structure.md`
+7. `docs/repository/naming_strategy.md`
+8. `docs/repository/maintained_entrypoints.md`
+9. `docs/repository/validation_status.md`
+10. `docs/repository/repository_hygiene_plan.md`
+11. `tests/README.md`
+
+Then inspect the complete tracked `tests/` tree and every runner before creating
+or modifying audit artifacts.
+
+## Branch and scope rules
+
+- Update local `main` from `origin/main` first.
+- Create a dedicated audit branch, suggested name:
+  `test/test-suite-audit`.
+- Never work directly on `main`.
+- Do not reuse `docs/test-suite-audit-context` for the Codex audit implementation.
+- Keep audit outputs reproducible and text-based.
+- Do not open a PR or merge unless explicitly requested.
+- Do not claim MATLAB validation unless it was actually executed.
+
+## Expected audit deliverables
+
+Recommended outputs:
+
+```text
+docs/repository/test_suite_audit.md
+analysis/test_inventory/buildTestInventory.m
+analysis/test_inventory/README.md
+analysis/test_inventory/test_inventory.csv
+analysis/test_inventory/runner_edges.csv
 ```
 
-The directly modified defaults and consumer-equivalence tests were also exercised
-while progressing through the focused runners.
+Codex may adjust exact artifact names if a clearer structure is justified, but
+must remain within the audit-only scope.
 
-No extended grid matrix, broad fitting-recovery suite, or `run_all_smoke_tests`
-was required. This branch changes no production numerical behavior, and the
-focused runners provide direct coverage without introducing unnecessarily heavy
-validation.
+## Validation expectations
 
-## Remaining limitations
+At minimum:
 
-- Synthetic and route-contract tests are not external physical validation.
-- Grid-quality classifications near marginal branch tails can depend on the
-  internal grid.
-- Some long mRLFE suites have exceeded available execution time in previous
-  sessions; no pass is claimed for runners not executed here.
-- A complete test-suite audit remains useful but should be performed in a
-  separate branch. It should map tests to runners, identify unregistered or
-  duplicated coverage, classify lightweight versus heavy tests, and record
-  practical runtime budgets.
+```bash
+git status -sb
+git diff --check
+git diff --stat
+git diff
+```
 
-## Next action
-
-1. Pull the latest branch commits locally.
-2. Run static Git checks over `origin/main...HEAD`.
-3. Confirm a clean working tree.
-4. Open a PR into `main`.
-5. The user reviews and merges manually.
-
-## Suggested later objectives
-
-After this PR is merged, compare these focused options:
-
-1. documentation consolidation;
-2. dedicated test-suite audit and runtime classification;
-3. diagnostic and compatibility audit.
-
-Do not combine high-risk compatibility or solver-layer changes with documentation
-or test-suite cleanup.
+If a MATLAB inventory or timing helper is added, Codex must provide exact MATLAB
+commands for the user and report them as not executed unless Codex actually has a
+working MATLAB runtime.
 
 ## Working rules
 
-- One new branch per selected task.
-- Branch from updated `origin/main`.
-- Never work directly on `main` for implementation work.
-- Keep changes small and localized.
-- Preserve architecture, naming, paths, and maintained contracts.
-- Validate before opening a PR.
+- Audit before editing.
+- One branch per task.
+- Preserve maintained entrypoints and wrapper compatibility.
+- Treat static reachability as evidence, not proof, when dynamic MATLAB calls are
+  possible.
+- Separate audit findings from implementation recommendations.
+- Prefer multiple small cleanup PRs over one broad reorganization.
 - The user performs merges manually.
