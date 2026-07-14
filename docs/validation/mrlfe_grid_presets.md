@@ -34,7 +34,7 @@ fixedLowAnchorsConstantHighStep
 
 ## Resolution precedence
 
-`mrlfeResolveSolveFrequencyGrid` applies the following precedence:
+`mrlfeResolveSolveFrequencyGrid` applies:
 
 1. `numerics.frequencySolveOverride_Hz`, when explicitly supplied for diagnostics;
 2. the resolved numerical preset grid policy.
@@ -43,65 +43,66 @@ An override must cover the complete requested interval and is reported as `diagn
 
 ## Metadata
 
-`problem.frequencyGrid` retains the established fields:
-
-- `source`
-- `pointCount`
-- `fmin_Hz`
-- `fmax_Hz`
-- `minStep_Hz`
-- `medianStep_Hz`
-- `maxStep_Hz`
-
-and adds:
-
-- `presetName`
-- `configuredStep_Hz`
-- `lowFrequencyPolicy`
-- `transitionFrequency_Hz`
+`problem.frequencyGrid` records source, point count, bounds, step statistics, preset name, configured step, low-frequency policy, and transition frequency.
 
 ## Validation basis
 
-The selected production steps were obtained from the quick validation matrix using:
+The presets were initially selected from a quick matrix against the 10 Hz dense reference. The controlling accepted viscous cases supported:
 
-- a 10 Hz dense reference;
-- candidate steps of 20, 25, 30, 40, 50, 75, and 100 Hz;
-- elastic and viscous cases;
-- requested upper bounds of 16 and 32 kHz;
-- accepted-tail comparison based on formal termination when available, otherwise the accepted last-valid frequency before `fmax`.
+- `fast = 50 Hz` under the quick-matrix 10% tail target;
+- `balanced = 25 Hz` under the 5% target;
+- `robust = 20 Hz` under the 3% target.
 
-The controlling accepted viscous case selected:
+The extended parameter matrix completed on 2026-07-14. Aggregate preset status was reported as failed because some dense-reference cases were already marginal and did not satisfy all matrix targets. Their reference quality included `low_valid_fraction` and `large_relative_jump`.
 
-- `fast = 50 Hz` under a 10% tail-error target;
-- `balanced = 25 Hz` under a 5% tail-error target;
-- `robust = 20 Hz` under a 3% tail-error target.
+A targeted follow-up evaluated the cases responsible for those failures with 10 Hz references and 20/25 Hz candidates. It found:
 
-The extended parameter matrix remains a non-blocking validation task. Therefore these values are production defaults supported by the completed quick matrix, not a claim of global optimality over every possible material and geometry combination.
+- no accepted dense-reference solution that degraded under the candidate grids;
+- small median and P95 differences over the common valid region in the usable cases;
+- large pointwise differences confined to already invalid or marginal branch tails;
+- grid-sensitive quality labels near the termination of marginal solutions.
+
+Therefore the maintained interpretation is:
+
+1. preset equivalence is blocking only when the dense reference is itself accepted;
+2. marginal reference cases remain diagnostic and do not independently reject a preset;
+3. the current 50/25/20 Hz production presets remain approved;
+4. the extended matrix is evidence of the solver's validity envelope, not evidence that every material/geometry combination has a trustworthy branch.
+
+## FitTool objective grid
+
+FitTool optimizer evaluations do not use the full numerical-preset grid. They use the separate `fitOptimized` policy:
+
+```matlab
+minimumPointCount = 12;
+maximumPointCount = 40;
+maximumStep_Hz = 250;
+```
+
+This policy preserves experimental frequencies and adds bounded continuation points. The explicit **Evaluate fitted curve** action switches back to `numericalPreset` and uses the selected Fast, Balanced, or Robust profile.
+
+The lightweight characterization measured approximately 3.0x to 4.3x speedup for objective evaluations, with a worst observed relative phase-speed difference of 0.121% and no valid-mask differences in the tested cases.
 
 ## Contracts
 
-The implementation preserves these contracts:
-
-- Main GUI, SweepTool, and FitTool continue to call the same public solver route.
+- Main GUI, SweepTool, and FitTool call the public solver route.
 - `result.frequency_Hz` remains identical to `request.frequency_Hz`.
-- The exact diagnostic override remains available.
+- Diagnostic frequency overrides remain available.
 - `dense` remains the maintained reference preset.
-- Tracker and robust-start implementations are unchanged by this grid-policy update.
+- FitTool normalization does not automatically run a dense or preset solver evaluation.
+- Full fitted curves are evaluated only on explicit user request.
 
-## Tests
-
-Run:
+## Tests and diagnostics
 
 ```matlab
-clear; clc;
-startup
 run_mrlfe_production_core_tests
+run_mrlfe_fit_public_solver_tests
 ```
 
-The suite includes:
+For bounded diagnostic follow-up:
 
-- `test_mrlfe_production_core_presets`
-- `test_mrlfe_numerical_preset_grids`
-- `test_mrlfe_solve_frequency_override`
+```matlab
+run_mrlfe_targeted_grid_validation
+```
 
-The dedicated grid test verifies the four configured steps, low-frequency anchors, requested bounds, strict ordering, override precedence, unsupported-name rejection, and preservation of the public output grid.
+Do not add the extended full matrix to lightweight smoke runners.
