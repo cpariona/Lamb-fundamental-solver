@@ -1,9 +1,8 @@
 function sweepOutput = guiRunMRLFESweep(request)
 %GUIRUNMRLFESWEEP Run an mRLFE one-parameter sweep from a GUI request.
 %
-% The adapter owns mRLFE-specific options, solver calls, and summary generation.
-% It routes each sweep point through guiRunMRLFEModel so SweepTool follows the
-% same GUI route policy as the main GUI.
+% The adapter owns mRLFE-specific sweep mapping, public solver calls, and
+% summary generation. Each sweep point is evaluated through mrlfeSolve.
 
 params = request.baseParams;
 params.numFrequencyPoints = "auto";
@@ -15,28 +14,19 @@ controls = request.controls;
     'DefaultProfile', "Fast", ...
     'DefaultSource', "SweepTool default", ...
     'EtaS', getControlValue(controls, 'etaS', 0.05), ...
-    'UseUnifiedAtlasRoute', logical(getControlValue(controls, 'mrlfeUseUnifiedAtlasRoute', true)), ...
-    'A0Policy', string(getControlValue(controls, 'mrlfeA0Policy', "adaptivePhysicalTail")));
+    'A0Policy', string(getControlValue(controls, 'mrlfeA0Policy', "physicalTail")));
 controls.executionProfile = profileMetadata.requestedExecutionProfile;
 controls.robustness = profileMetadata.requestedExecutionProfile;
-baseOptions.computeMRLFEComplexK = false;
-baseOptions.mrlfeUseUnifiedAtlasRoute = logical(getControlValue(controls, 'mrlfeUseUnifiedAtlasRoute', true));
-baseOptions.mrlfeA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+baseOptions.mrlfeA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "physicalTail"));
 baseOptions.mrlfeParams = defaultMRLFEParams();
 baseOptions.mrlfeParams.fluidDensity = getControlValue(controls, 'fluidDensity', 1000);
 baseOptions.mrlfeParams.fluidSoundSpeed = getControlValue(controls, 'fluidSoundSpeed', 1500);
 baseOptions.mrlfeParams.etaS = getControlValue(controls, 'etaS', 0.05);
 baseOptions.mrlfeParams.etaL = 0;
 baseOptions.mrlfeParams.useComplexLambda = false;
+numericalPreset = string(profileMetadata.effectiveNumericalPreset);
 
 branchName = string(request.branchName);
-baseOptions.computeA0 = branchName == "A0Like";
-baseOptions.computeS0 = branchName == "S0Like";
-baseOptions.mrlfeComputeA0Like = branchName == "A0Like";
-baseOptions.mrlfeComputeS0Like = branchName == "S0Like";
-baseOptions.computeMRLFERealK = true;
-baseOptions.computeMRLFEElasticRealK = false;
-baseOptions.computeMRLFEViscoRealK = false;
 
 modelName = "mRLFERealK";
 summaryModelName = "mRLFERealK";
@@ -49,13 +39,26 @@ sweepSpec.label = string(request.sweepLabel);
 sweepSpec.units = units;
 sweepSpec.displayScale = displayScale;
 
-rawResults = runMRLFEGuiAdapterSweep(params, baseOptions, sweepSpec);
+rawResults = runMRLFEGuiAdapterSweep(params, baseOptions, sweepSpec, branchName, numericalPreset);
 summaryTable = summarizeParametricSweepBranch(rawResults, summaryModelName, branchName, 'Print', false);
 normalized = guiNormalizeMRLFESweep(rawResults, summaryTable, request, modelName, branchName);
-profileMetadata.internalAtlasPreset = inferSweepAtlasPreset(rawResults, profileMetadata.internalAtlasPreset);
-profileMetadata.actualRoute = inferSweepActualRoute(rawResults, "");
-profileMetadata.fallback = inferSweepFallback(rawResults, false);
+aggregateMetadata = aggregateSweepMetadata(rawResults, profileMetadata);
+profileMetadata.internalAtlasPreset = numericalPreset;
+profileMetadata.actualRoute = "mrlfeSolve";
+profileMetadata.fallback = aggregateMetadata.anyFallbackApplied;
+profileMetadata.effectiveNumericalPreset = numericalPreset;
+profileMetadata.effectiveNumericalPresets = aggregateMetadata.effectiveNumericalPresets;
+profileMetadata.internalEngines = aggregateMetadata.internalEngines;
+profileMetadata.terminationPolicies = aggregateMetadata.terminationPolicies;
+profileMetadata.fallbackPolicies = aggregateMetadata.fallbackPolicies;
+profileMetadata.anyFallbackApplied = aggregateMetadata.anyFallbackApplied;
+profileMetadata.pointCount = aggregateMetadata.pointCount;
+profileMetadata.failedPointCount = aggregateMetadata.failedPointCount;
+profileMetadata.validPointCount = aggregateMetadata.validPointCount;
+profileMetadata.requestedA0Policy = string(getControlValue(controls, 'mrlfeA0Policy', "physicalTail"));
+profileMetadata.effectiveA0Policy = "physicalTail";
 normalized.metadata.executionProfile = profileMetadata;
+normalized.metadata.sweep = aggregateMetadata;
 normalized.metadata.elapsedSeconds = sum(rawResults.elapsedSeconds, 'omitnan');
 
 sweepOutput = struct();
@@ -68,14 +71,16 @@ sweepOutput.sweepSpec = sweepSpec;
 sweepOutput.rawResults = rawResults;
 sweepOutput.summaryTable = summaryTable;
 sweepOutput.normalized = normalized;
-sweepOutput.atlasPolicy = struct('mrlfeUseUnifiedAtlasRoute', baseOptions.mrlfeUseUnifiedAtlasRoute, ...
+sweepOutput.atlasPolicy = struct( ...
     'mrlfeA0Policy', baseOptions.mrlfeA0Policy, ...
-    'guiRoutePolicy', "guiRunMRLFEModel");
+    'effectiveA0Policy', "physicalTail", ...
+    'guiRoutePolicy', "mrlfeSolve");
 sweepOutput.executionProfile = profileMetadata;
+sweepOutput.metadata = aggregateMetadata;
 sweepOutput.elapsedSeconds = normalized.metadata.elapsedSeconds;
 end
 
-function sweepResults = runMRLFEGuiAdapterSweep(baseParams, baseOptions, sweepSpec)
+function sweepResults = runMRLFEGuiAdapterSweep(baseParams, baseOptions, sweepSpec, branchName, numericalPreset)
 paramName = char(sweepSpec.parameter);
 values = sweepSpec.values(:).';
 n = numel(values);
@@ -89,29 +94,40 @@ sweepResults.results = cell(1, n);
 sweepResults.params = cell(1, n);
 sweepResults.options = cell(1, n);
 sweepResults.elapsedSeconds = nan(1, n);
-sweepResults.guiResults = cell(1, n);
+sweepResults.points = cell(1, n);
+sweepResults.requests = cell(1, n);
 
 for i = 1:n
     params = baseParams;
     options = baseOptions;
     [params, options] = setSweepValue(params, options, paramName, values(i));
 
-    guiRequest = struct();
-    guiRequest.params = params;
-    guiRequest.options = options;
-    guiRequest.mrlfeParams = options.mrlfeParams;
-    guiRequest.computeElastic = true;
-    guiRequest.computeVisco = options.mrlfeParams.etaS > 0;
-
     t = tic;
-    guiResult = guiRunMRLFEModel(guiRequest);
-    elapsed = toc(t);
-
-    sweepResults.results{i} = guiResult.metadata.rawResult;
+    point = initializePoint(sweepSpec, i);
+    try
+        frequency_Hz = rlBuildFrequencyVector(params).';
+        pointRequest = mrlfeBuildSweepSolveRequest(params, ...
+            struct('parameterName', sweepSpec.parameter, 'parameterValue', values(i)), ...
+            frequency_Hz, branchName, options);
+        pointRequest.numerics.preset = numericalPreset;
+        modelResult = mrlfeSolve(pointRequest);
+        elapsed = toc(t);
+        point = completePoint(point, modelResult);
+        sweepResults.results{i} = adaptPublicResultForSweepRaw(modelResult);
+        sweepResults.requests{i} = pointRequest;
+    catch ME
+        elapsed = toc(t);
+        point.status = "failed";
+        point.errorIdentifier = string(ME.identifier);
+        point.errorMessage = string(ME.message);
+        sweepResults.results{i} = struct();
+        sweepResults.requests{i} = [];
+    end
     sweepResults.params{i} = params;
     sweepResults.options{i} = options;
     sweepResults.elapsedSeconds(i) = elapsed;
-    sweepResults.guiResults{i} = guiResult;
+    point.elapsedSeconds = elapsed;
+    sweepResults.points{i} = point;
 
     fprintf('Sweep %s = %.6g complete in %.2f s (%d/%d).\n', ...
         paramName, values(i), sweepResults.elapsedSeconds(i), i, n);
@@ -128,10 +144,49 @@ if ~isfield(options, 'mrlfeParams') || isempty(options.mrlfeParams)
 end
 if isfield(options.mrlfeParams, paramName)
     options.mrlfeParams.(paramName) = value;
-    options.mrlfeUseUnifiedAtlasRoute = options.mrlfeParams.etaS > 0;
     return;
 end
 error('Sweep parameter "%s" was not found in params or options.mrlfeParams.', paramName);
+end
+
+function point = initializePoint(sweepSpec, idx)
+point = struct();
+point.parameterName = string(sweepSpec.parameter);
+point.parameterValue = sweepSpec.values(idx);
+point.parameterValueDisplay = sweepSpec.values(idx) ./ sweepSpec.displayScale;
+point.parameterUnits = string(sweepSpec.units);
+point.modelResult = [];
+point.frequency_Hz = [];
+point.phaseVelocity_mps = [];
+point.validMask = [];
+point.quality = struct();
+point.termination = struct();
+point.fallback = struct();
+point.execution = struct();
+point.configuration = struct();
+point.status = "notRun";
+point.errorIdentifier = "";
+point.errorMessage = "";
+point.elapsedSeconds = nan;
+end
+
+function point = completePoint(point, modelResult)
+point.modelResult = modelResult;
+point.frequency_Hz = modelResult.frequency_Hz(:);
+point.phaseVelocity_mps = modelResult.phaseVelocity_mps(:);
+point.validMask = modelResult.validMask(:);
+point.quality = modelResult.quality;
+point.termination = modelResult.termination;
+point.fallback = modelResult.fallback;
+point.execution = modelResult.execution;
+point.configuration = modelResult.configuration;
+point.status = "ok";
+end
+
+function rawResult = adaptPublicResultForSweepRaw(modelResult)
+internal = modelResult.diagnostics.rawInternalResult;
+rawResult = internal.rawFullResult;
+rawResult.publicModelResult = modelResult;
 end
 
 function value = getControlValue(controls, fieldName, defaultValue)
@@ -156,47 +211,40 @@ else
 end
 end
 
-function preset = inferSweepAtlasPreset(rawResults, defaultPreset)
-preset = string(defaultPreset);
-if ~isfield(rawResults, 'guiResults') || isempty(rawResults.guiResults)
-    return;
-end
-for i = 1:numel(rawResults.guiResults)
-    guiResult = rawResults.guiResults{i};
-    if isstruct(guiResult) && isfield(guiResult, 'metadata') && ...
-            isfield(guiResult.metadata, 'mrlfeGuiAtlasPreset')
-        preset = string(guiResult.metadata.mrlfeGuiAtlasPreset);
-        return;
+function metadata = aggregateSweepMetadata(rawResults, profileMetadata)
+points = rawResults.points;
+n = numel(points);
+engines = strings(1, 0);
+presets = strings(1, 0);
+terminationPolicies = strings(1, 0);
+fallbackPolicies = strings(1, 0);
+fallbackApplied = false(1, n);
+validPointCount = 0;
+failedPointCount = 0;
+
+for i = 1:n
+    point = points{i};
+    if ~isstruct(point) || ~isfield(point, 'status') || point.status ~= "ok"
+        failedPointCount = failedPointCount + 1;
+        continue;
     end
-end
+    engines(end+1) = string(point.execution.internalEngine); %#ok<AGROW>
+    presets(end+1) = string(point.execution.effectivePreset); %#ok<AGROW>
+    terminationPolicies(end+1) = string(point.termination.policy); %#ok<AGROW>
+    fallbackPolicies(end+1) = string(point.fallback.policy); %#ok<AGROW>
+    fallbackApplied(i) = logical(point.fallback.applied);
+    validPointCount = validPointCount + double(any(point.validMask(:)));
 end
 
-function route = inferSweepActualRoute(rawResults, defaultRoute)
-route = string(defaultRoute);
-if ~isfield(rawResults, 'guiResults') || isempty(rawResults.guiResults)
-    return;
-end
-for i = 1:numel(rawResults.guiResults)
-    guiResult = rawResults.guiResults{i};
-    if isstruct(guiResult) && isfield(guiResult, 'metadata') && ...
-            isfield(guiResult.metadata, 'mrlfeGuiActualRoute')
-        route = string(guiResult.metadata.mrlfeGuiActualRoute);
-        return;
-    end
-end
-end
-
-function fallback = inferSweepFallback(rawResults, defaultFallback)
-fallback = logical(defaultFallback);
-if ~isfield(rawResults, 'guiResults') || isempty(rawResults.guiResults)
-    return;
-end
-for i = 1:numel(rawResults.guiResults)
-    guiResult = rawResults.guiResults{i};
-    if isstruct(guiResult) && isfield(guiResult, 'metadata') && ...
-            isfield(guiResult.metadata, 'mrlfeZeroViscosityAdaptiveFallback')
-        fallback = logical(guiResult.metadata.mrlfeZeroViscosityAdaptiveFallback);
-        return;
-    end
-end
+metadata = struct();
+metadata.requestedExecutionProfile = profileMetadata.requestedExecutionProfile;
+metadata.effectiveExecutionProfile = profileMetadata.effectiveExecutionProfile;
+metadata.effectiveNumericalPresets = unique(presets, 'stable');
+metadata.internalEngines = unique(engines, 'stable');
+metadata.terminationPolicies = unique(terminationPolicies, 'stable');
+metadata.fallbackPolicies = unique(fallbackPolicies, 'stable');
+metadata.anyFallbackApplied = any(fallbackApplied);
+metadata.pointCount = n;
+metadata.failedPointCount = failedPointCount;
+metadata.validPointCount = validPointCount;
 end

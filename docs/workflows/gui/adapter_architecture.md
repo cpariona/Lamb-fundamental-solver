@@ -38,6 +38,20 @@ lastGuiResult
 
 `lastResults` is kept for compatibility and diagnostics. `lastGuiResult` is the preferred GUI-facing structure for plotting and export.
 
+The maintained Main GUI mRLFE adapter is model-API based:
+
+```text
+guiRunMRLFEModel
+    -> mrlfeBuildGuiSolveRequest
+    -> mrlfeSolve
+    -> GUI result adapter
+```
+
+It does not call legacy mRLFE solver entrypoints, choose low-level trackers,
+apply physical-tail cutting directly, or perform zero-viscosity fallback.
+Partial-quality branches remain visible and are reported through neutral
+quality/status metadata.
+
 ### Main GUI export
 
 `LambFundamental_GUI` exports only the normalized GUI-visible curves and the
@@ -114,6 +128,20 @@ guiRun<ModelFamily>Sweep
 guiNormalize<ModelFamily>Sweep
 ```
 
+The maintained mRLFE SweepTool adapter is model-API based:
+
+```text
+guiRunMRLFESweep
+    -> mrlfeBuildSweepSolveRequest
+    -> mrlfeSolve, once per sweep point
+    -> guiNormalizeMRLFESweep
+```
+
+It does not call `guiRunMRLFEModel`, choose adaptive versus modal trackers,
+inspect atlas candidates, or apply Main GUI fallback. The per-point public
+`modelResult` remains available under `rawResults.points{i}.modelResult`, while
+the normalized curve schema remains the plotting contract.
+
 ### Normalized sweep curve schema
 
 `guiPlotSweepResult` expects:
@@ -124,6 +152,10 @@ normalized.curves(i).frequency_Hz
 normalized.curves(i).Cp_mps
 normalized.curves(i).validMask
 normalized.curves(i).lastValidFrequency_Hz
+normalized.curves(i).modelResult
+normalized.curves(i).status
+normalized.curves(i).errorIdentifier
+normalized.curves(i).errorMessage
 normalized.summaryTable
 ```
 
@@ -223,41 +255,33 @@ FitToolLastOutput
 
 Model-specific route metadata should remain visible through normalized route/status fields rather than by requiring users to inspect raw solver internals.
 
-## mRLFE atlas policy integration
+## mRLFE public production integration
 
-The mRLFE GUI path exposes the unified real-k atlas route and A0 policy selector through adapters rather than by calling solver internals directly.
+The mRLFE GUI, SweepTool, and FitTool paths use the public production API.
 
 The integration contract is documented in:
 
 ```text
-docs/workflows/gui/mrlfe_atlas_policy_integration.md
+docs/models/mrlfe/public_api.md
+docs/models/mrlfe/production_core.md
 ```
 
-The maintained GUI-facing mRLFE policy fields are:
+The maintained request policy is:
 
 ```matlab
-mrlfeUseUnifiedAtlasRoute
-mrlfeA0Policy
+A0Like -> termination.policy = "physicalTail"
+S0Like -> termination.policy = "none"
+fallback.policy = "none"
 ```
 
-FitTool also uses:
+The maintained effective engines are:
 
 ```matlab
-mrlfeUseAtlasFitRoute
+elastic_adaptive
+viscoelastic_adaptive
 ```
 
-The supported A0 policies are:
-
-```matlab
-"delayedCut"
-"adaptivePhysicalTail"
-```
-
-For A0Like FitTool fitting, the current default is:
-
-```matlab
-"adaptivePhysicalTail"
-```
+Historical atlas-route flags are not maintained GUI adapter control flow.
 
 ## Validation
 
@@ -268,7 +292,7 @@ clear; clc; close all;
 startup
 run_gui_smoke_tests
 run_fit_validation_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_legacy_cleanup_tests
 ```
 
 For a complete repository check, run:

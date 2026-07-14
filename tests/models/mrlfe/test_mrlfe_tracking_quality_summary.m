@@ -50,12 +50,12 @@ end
 rowEtaS0 = find(summaryTable.Strategy == "etaS0", 1);
 rowEtaS005 = find(summaryTable.Strategy == "etaS005", 1);
 assert(~isempty(rowEtaS0) && ~isempty(rowEtaS005), 'Expected etaS0 and etaS005 rows.');
-assert(~summaryTable.UsedInternalGrid(rowEtaS0), 'etaS = 0 should not use internal grid by default.');
-assert(summaryTable.UsedInternalGrid(rowEtaS005), 'etaS > 0 should use internal grid by default.');
-assert(summaryTable.TrackingPoints(rowEtaS005) > summaryTable.RequestedPoints(rowEtaS005), ...
-    'etaS > 0 tracking point count must exceed requested point count.');
+assert(~summaryTable.UsedInternalGrid(rowEtaS0), 'etaS = 0 public result should not report legacy internal-grid metadata.');
+assert(~summaryTable.UsedInternalGrid(rowEtaS005), 'etaS > 0 public result should not report legacy internal-grid metadata.');
+assert(summaryTable.TrackingPoints(rowEtaS005) == summaryTable.RequestedPoints(rowEtaS005), ...
+    'etaS > 0 public result should report requested-grid branch metrics.');
 assert(all(summaryTable.ValidFraction >= 0 & summaryTable.ValidFraction <= 1), ...
     'ValidFraction values must be bounded in [0, 1].');
 assert(all(isfinite(summaryTable.QualityScore)), 'QualityScore values must be finite.');
 
-fprintf('test_mrlfe_tracking_quality_summary passed. Quality helper summarizes direct and internal-grid tracking.\n');
+fprintf('test_mrlfe_tracking_quality_summary passed. Quality helper summarizes public tracking metrics.\n');

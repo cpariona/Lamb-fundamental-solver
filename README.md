@@ -159,23 +159,21 @@ mRLFERealK
 
 Viscous real-k sweep and diagnostic outputs use the normalized model name `mRLFEViscoRealK` where model-specific result containers need to distinguish etaS > 0 cases.
 
-The forward solver and sweep workflows still use the Rayleigh-Lamb seed and maintained mRLFE real-k branch machinery. The FitTool fitting route is atlas-first:
+The forward solver, Main GUI, SweepTool, and FitTool workflows now use the public mRLFE production API:
 
 ```text
-mrlfeFitDispersionData
-    -> mrlfeBuildFitProblem
-    -> mrlfeEvaluateFitModel
-    -> mrlfeEvaluateAtlasFitModel
-    -> official mRLFE atlas branch output
+Main GUI  -+
+SweepTool -+-> mrlfeSolve
+FitTool   -+
 ```
 
-For A0Like FitTool fitting, the current default policy is:
+For A0Like production solving, the maintained termination policy is:
 
 ```matlab
-options.mrlfeA0Policy = "adaptivePhysicalTail";
+termination.policy = "physicalTail";
 ```
 
-The conservative `delayedCut` policy remains available for diagnostics and policy comparisons.
+S0Like production solving uses `termination.policy = "none"`. No legacy route fallback is applied.
 
 Main mRLFE folders:
 
@@ -190,7 +188,7 @@ examples/mrlfe/
 The high-level mRLFE function is:
 
 ```matlab
-computeMRLFE
+mrlfeSolve
 ```
 
 Maintained mRLFE analysis helpers:
@@ -223,10 +221,13 @@ Focused mRLFE diagnostics:
 
 ```matlab
 compare_mrlfe_tracker_vs_condition_peaks
-diagnose_etaS_direct_atlas_fit
 diagnose_etaS_forward_cache
 diagnose_fit_timing
 diagnose_fit_option_sensitivity
+diagnose_mrlfe_atlas_primary_policy_matrix
+diagnose_mrlfe_gui_performance_32kHz
+diagnose_mrlfe_visco_validity_breakdown
+diagnose_mrlfe_visco_residual_landscape
 stress_test_mrlfe_real_k_range
 ```
 

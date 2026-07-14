@@ -24,28 +24,21 @@ if params.fmax <= params.fmin
     error('fmax must be larger than fmin.');
 end
 
-if isfield(params, 'numFrequencyPoints')
-    if ischar(params.numFrequencyPoints) || isstring(params.numFrequencyPoints)
-        value = lower(string(params.numFrequencyPoints));
-        if value ~= "auto"
-            numericValue = str2double(value);
-            if ~isfinite(numericValue) || numericValue < 10
-                error('numFrequencyPoints must be numeric >= 10 or "auto".');
-            end
-        end
-    elseif params.numFrequencyPoints < 10
-        error('numFrequencyPoints must be at least 10.');
-    end
-end
-
 if isfield(params, 'frequencySpacing')
     spacing = lower(string(params.frequencySpacing));
 else
     spacing = "hybrid";
 end
 
-if spacing ~= "hybrid" && spacing ~= "logspace" && spacing ~= "linspace"
-    error('frequencySpacing must be hybrid, logspace, or linspace.');
+validSpacings = ["hybrid", "logspace", "linspace", "explicit"];
+if ~any(spacing == validSpacings)
+    error('frequencySpacing must be hybrid, logspace, linspace, or explicit.');
+end
+
+if spacing == "explicit"
+    validateExplicitFrequencyVector(params);
+else
+    validateFrequencyPointCount(params);
 end
 
 modelType = string(params.modelType);
@@ -82,5 +75,44 @@ switch modelType
 
     otherwise
         error('Unknown material model type: %s.', modelType);
+end
+end
+
+function validateFrequencyPointCount(params)
+if ~isfield(params, 'numFrequencyPoints')
+    return;
+end
+
+if ischar(params.numFrequencyPoints) || isstring(params.numFrequencyPoints)
+    value = lower(string(params.numFrequencyPoints));
+    if value ~= "auto"
+        numericValue = str2double(value);
+        if ~isfinite(numericValue) || numericValue < 10
+            error('numFrequencyPoints must be numeric >= 10 or "auto".');
+        end
+    end
+elseif ~isnumeric(params.numFrequencyPoints) || ~isscalar(params.numFrequencyPoints) || ...
+        ~isfinite(params.numFrequencyPoints) || params.numFrequencyPoints < 10
+    error('numFrequencyPoints must be at least 10.');
+end
+end
+
+function validateExplicitFrequencyVector(params)
+if ~isfield(params, 'frequencyVector_Hz') || isempty(params.frequencyVector_Hz)
+    error('frequencyVector_Hz is required when frequencySpacing is explicit.');
+end
+
+frequency = params.frequencyVector_Hz(:);
+if ~isnumeric(frequency) || any(~isfinite(frequency)) || any(frequency <= 0)
+    error('frequencyVector_Hz must contain finite positive numeric values.');
+end
+if numel(frequency) < 2 || any(diff(frequency) <= 0)
+    error('frequencyVector_Hz must contain at least two strictly ascending values.');
+end
+
+endpointTolerance = max(1e-9, 1e-10 * max(abs([params.fmin, params.fmax])));
+if abs(frequency(1) - params.fmin) > endpointTolerance || ...
+        abs(frequency(end) - params.fmax) > endpointTolerance
+    error('frequencyVector_Hz endpoints must match fmin and fmax.');
 end
 end

@@ -30,7 +30,7 @@ family.branchNames = ["A0Like", "S0Like"];
 family.robustnessPresets = guiExecutionProfileValues();
 family.executionProfiles = family.robustnessPresets;
 family.supportedExecutionProfiles = family.executionProfiles;
-family.profileSupportMode = "mapped_to_fast";
+family.profileSupportMode = "direct";
 family.outputTaskName = "mrlfe_sweep";
 family.parameters = [ ...
     makeParameter("etaS", "etaS", [0, 0.01, 0.05, 0.10, 0.20, 0.30, 0.50], "Pa*s", 1, ...

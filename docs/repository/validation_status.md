@@ -46,7 +46,7 @@ The mRLFE atlas contract suite is separate from the broader mRLFE smoke suite be
 Run after changes to mRLFE atlas solvers, branch policies, or atlas diagnostics:
 
 ```matlab
-tests/run_mrlfe_atlas_tests
+tests/run_mrlfe_legacy_cleanup_tests
 ```
 
 For dense numerical evidence, use the primary diagnostics documented in:
@@ -103,7 +103,7 @@ run_fit_validation_tests
 For mRLFE atlas-specific changes, additionally run:
 
 ```matlab
-tests/run_mrlfe_atlas_tests
+tests/run_mrlfe_legacy_cleanup_tests
 ```
 
 For documentation-only changes, it is sufficient to run the affected smoke groups and confirm there are no broken documentation links by grep/search.

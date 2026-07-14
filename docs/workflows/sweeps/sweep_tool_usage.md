@@ -15,7 +15,7 @@ SweepTool_GUI
 
 | Family | Parameters | Branches | Notes |
 | --- | --- | --- | --- |
-| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Routes each sweep point through the same `guiRunMRLFEModel` adapter used by the main GUI. `etaS = 0` uses the zero-eta adaptive GUI route with fallback; `etaS > 0` uses the viscous unified atlas route. The A0 atlas policy selector exposes `adaptivePhysicalTail` and `delayedCut`. |
+| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Routes each sweep point directly through `mrlfeSolve` using the public `fast` preset, adaptive selection, and no fallback. A0Like uses `physicalTail` termination; S0Like uses no additional termination. |
 | `Rayleigh-Lamb` | `thickness`, `mu` | `A0`, `S0` | Uses the Rayleigh-Lamb sweep adapter and the maintained `rl*` API. |
 | `AE IOP/HGO` | `IOP`, `mu` | `atlasA0` | Uses the AE IOP/HGO sweep adapter and the maintained atlas branch policy. |
 
@@ -33,7 +33,7 @@ Model: mRLFE real-k
 Branch: A0Like
 Execution profile: Fast
 etaS: 0.05 Pa*s
-A0 atlas policy: adaptivePhysicalTail
+A0 termination policy: physicalTail
 ```
 
 Expected outcome:
@@ -42,8 +42,10 @@ Expected outcome:
 - The values are interpreted in kPa and converted to solver units by the registry scale.
 - The summary table has two rows.
 - The normalized model name is `mRLFERealK`.
-- `SweepToolOutput.atlasPolicy.guiRoutePolicy` is `guiRunMRLFEModel`.
-- `SweepToolOutput.atlasPolicy.mrlfeA0Policy` matches the selected A0 policy.
+- `SweepToolOutput.atlasPolicy.guiRoutePolicy` is `mrlfeSolve`.
+- `SweepToolOutput.atlasPolicy.effectiveA0Policy` is `physicalTail`.
+- `SweepToolOutput.metadata.effectiveNumericalPresets` contains `fast`.
+- `SweepToolOutput.metadata.fallbackPolicies` contains `none`.
 - `SweepToolOutput`, `SweepToolRequest`, `SweepToolNormalized`, `SweepToolResults`, and `SweepToolSummary` export to the base workspace.
 
 ### mRLFE etaS check
@@ -57,17 +59,17 @@ Values: 0, 0.05
 Model: mRLFE real-k
 Branch: A0Like
 Execution profile: Fast
-A0 atlas policy: adaptivePhysicalTail
+A0 termination policy: physicalTail
 ```
 
 Expected outcome:
 
-- `etaS = 0` uses the same zero-eta adaptive GUI route validated by the main GUI adapter.
-- `etaS > 0` uses the viscous unified atlas route.
+- `etaS = 0` uses the public elastic adaptive engine.
+- `etaS > 0` uses the public viscoelastic adaptive engine.
 - The normalized model name remains `mRLFERealK` for both cases.
-- The exported `SweepToolOutput.atlasPolicy` reports the selected atlas route and A0 policy.
+- The exported `SweepToolOutput.metadata.internalEngines` reports every effective engine present in the sweep, so mixed zero/positive-viscosity sweeps report both `elastic_adaptive` and `viscoelastic_adaptive`.
 
-### mRLFE adaptive A0 policy check
+### mRLFE A0 termination policy check
 
 Use:
 
@@ -78,15 +80,16 @@ Values: 0.05
 Model: mRLFE real-k
 Branch: A0Like
 Execution profile: Fast
-A0 atlas policy: adaptivePhysicalTail
+A0 termination policy: physicalTail
 ```
 
 Expected outcome:
 
 - The sweep completes without adapter errors.
 - The summary table has one row.
-- `SweepToolOutput.atlasPolicy.mrlfeA0Policy` is `adaptivePhysicalTail`.
-- This check verifies routing only. It does not prove physical validity of the adaptive policy for a given experiment.
+- `SweepToolOutput.atlasPolicy.effectiveA0Policy` is `physicalTail`.
+- `SweepToolOutput.rawResults.points{1}.termination.policy` is `physicalTail`.
+- This check verifies routing only. It does not prove physical validity of the physical-tail policy for a given experiment.
 
 ### Rayleigh-Lamb thickness check
 
@@ -186,7 +189,52 @@ guiRunRLSweep
 guiRunAcoustoelasticIOPHGOSweep
 ```
 
-For mRLFE, `guiRunMRLFESweep` delegates each sweep point to `guiRunMRLFEModel` so that main-GUI and SweepTool mRLFE routing remain consistent.
+For mRLFE, `guiRunMRLFESweep` maps each sweep point with
+`mrlfeBuildSweepSolveRequest` and calls `mrlfeSolve` once per point. SweepTool
+does not call `guiRunMRLFEModel`, inherit Main GUI fallback, or choose
+historical GUI route names. Main GUI mRLFE solving remains a separate migration
+target.
+
+The maintained mRLFE SweepTool route uses:
+
+```text
+numerical preset    fast
+selection strategy  adaptive
+fallback policy     none
+A0Like termination  physicalTail
+S0Like termination  none
+```
+
+Each point stores its public model result in `rawResults.points{i}.modelResult`
+and exposes compatibility aliases for plotting and export:
+
+```matlab
+frequency_Hz
+phaseVelocity_mps
+validMask
+status
+errorIdentifier
+errorMessage
+```
+
+Aggregate metadata reports unique effective values across all points rather
+than treating the first point as representative:
+
+```matlab
+metadata.effectiveNumericalPresets
+metadata.internalEngines
+metadata.terminationPolicies
+metadata.fallbackPolicies
+metadata.anyFallbackApplied
+metadata.pointCount
+metadata.failedPointCount
+metadata.validPointCount
+```
+
+Zero-viscosity A0Like SweepTool results may differ from the old Main GUI route
+when the old route would have used zero-viscosity fallback. That is an expected
+architectural correction; the production reference for SweepTool is now
+`mrlfeSolve` with `fallback.policy = "none"`.
 
 Current model normalizers:
 
@@ -198,7 +246,7 @@ guiNormalizeAcoustoelasticIOPHGOSweep
 
 The GUI should not call scripts under `examples/` directly. Example scripts and GUI callbacks should share maintained backend utilities or model APIs through adapters.
 
-mRLFE atlas policy integration is documented in:
+mRLFE public production integration is documented in:
 
 ```text
 docs/workflows/gui/mrlfe_atlas_policy_integration.md

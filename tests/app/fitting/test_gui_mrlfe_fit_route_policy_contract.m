@@ -9,13 +9,13 @@ params = mrlfeDefaultSweepParams();
 params.mu = 75e3;
 params.etaS = 0.12;
 
-%% A0Like etaS fitting: atlas route, viscous unified atlas during evaluation
+%% A0Like etaS fitting: public solver route, viscoelastic adaptive engine
 branchName = "A0Like";
 optionsA0 = mrlfeDefaultSweepOptions(branchName, 'EtaS', params.etaS, ...
-    'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
+    'A0Policy', "physicalTail");
 [CpA0Synthetic, rawA0Synthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, optionsA0);
-assert(rawA0Synthetic.evaluationPath.routeFamily == "atlas", 'A0 synthetic data should use atlas route family.');
-assert(rawA0Synthetic.evaluationPath.path == "viscous_unified_atlas", 'A0 viscous synthetic data should use viscous unified atlas.');
+assert(rawA0Synthetic.evaluationPath.routeFamily == "public_solver", 'A0 synthetic data should use public solver route family.');
+assert(rawA0Synthetic.evaluationPath.path == "viscoelastic_adaptive", 'A0 viscous synthetic data should use viscoelastic adaptive engine.');
 
 experimentalA0 = struct();
 experimentalA0.frequency_Hz = frequency_Hz;
@@ -33,15 +33,15 @@ etaSRequest = guiBuildFitRequest("mrlfe", ...
     'bounds', struct('etaS', [0.0, 0.30]), ...
     'controls', struct('robustness', "Fast", 'etaS', params.etaS, ...
         'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
-        'mrlfeUseUnifiedAtlasRoute', true, 'mrlfeA0Policy', "adaptivePhysicalTail"), ...
+        'mrlfeA0Policy', "physicalTail"), ...
     'fitOptions', struct('useStandardErrorWeights', false, ...
         'optimizerOptions', optimset('Display', 'off', 'MaxIter', 8, 'MaxFunEvals', 18, 'TolX', 1e-5)));
 
 etaSOutput = guiFitMRLFESolver(etaSRequest);
 assert(isfield(etaSOutput, 'routePolicy'), 'mRLFE fit output must expose routePolicy metadata.');
-assert(etaSOutput.routePolicy.requestAtlasFitRoute == true, 'A0Like etaS fitting should request atlas-fit route.');
-assert(etaSOutput.routePolicy.expectedPath == "mrlfe_atlas", 'Unexpected expected path family for A0Like etaS fitting.');
-assert(etaSOutput.routePolicy.actualPath == "viscous_unified_atlas", 'A0Like etaS fitting did not use the viscous unified atlas path.');
+assert(etaSOutput.routePolicy.routeFamily == "public_solver", 'A0Like etaS fitting should use public solver route.');
+assert(etaSOutput.routePolicy.expectedPath == "mrlfe_public_solver", 'Unexpected expected path family for A0Like etaS fitting.');
+assert(etaSOutput.routePolicy.actualPath == "viscoelastic_adaptive", 'A0Like etaS fitting did not use the viscoelastic adaptive engine.');
 
 %% A0Like mu fitting with fixed etaS: same atlas route family
 muRequest = guiBuildFitRequest("mrlfe", ...
@@ -54,22 +54,22 @@ muRequest = guiBuildFitRequest("mrlfe", ...
     'bounds', struct('mu', [20e3, 160e3]), ...
     'controls', struct('robustness', "Fast", 'etaS', params.etaS, ...
         'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
-        'mrlfeUseUnifiedAtlasRoute', true, 'mrlfeA0Policy', "adaptivePhysicalTail"), ...
+        'mrlfeA0Policy', "physicalTail"), ...
     'fitOptions', struct('useStandardErrorWeights', false, ...
         'optimizerOptions', optimset('Display', 'off', 'MaxIter', 8, 'MaxFunEvals', 18, 'TolX', 1e-5)));
 
 muOutput = guiFitMRLFESolver(muRequest);
-assert(muOutput.routePolicy.requestAtlasFitRoute == true, 'A0Like mu fitting should request atlas-fit route.');
-assert(muOutput.routePolicy.expectedPath == "mrlfe_atlas", 'Unexpected expected path family for A0Like mu fitting.');
-assert(muOutput.routePolicy.actualPath == "viscous_unified_atlas", 'A0Like mu fitting did not use the viscous unified atlas path.');
+assert(muOutput.routePolicy.routeFamily == "public_solver", 'A0Like mu fitting should use public solver route.');
+assert(muOutput.routePolicy.expectedPath == "mrlfe_public_solver", 'Unexpected expected path family for A0Like mu fitting.');
+assert(muOutput.routePolicy.actualPath == "viscoelastic_adaptive", 'A0Like mu fitting did not use the viscoelastic adaptive engine.');
 
 %% S0Like etaS fitting: atlas route applies to S0Like as well
 branchName = "S0Like";
 optionsS0 = mrlfeDefaultSweepOptions(branchName, 'EtaS', params.etaS, ...
-    'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
+    'A0Policy', "physicalTail");
 [CpS0Synthetic, rawS0Synthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, optionsS0);
-assert(rawS0Synthetic.evaluationPath.routeFamily == "atlas", 'S0 synthetic data should use atlas route family.');
-assert(rawS0Synthetic.evaluationPath.path == "viscous_unified_atlas", 'S0 viscous synthetic data should use viscous unified atlas.');
+assert(rawS0Synthetic.evaluationPath.routeFamily == "public_solver", 'S0 synthetic data should use public solver route family.');
+assert(rawS0Synthetic.evaluationPath.path == "viscoelastic_adaptive", 'S0 viscous synthetic data should use viscoelastic adaptive engine.');
 
 experimentalS0 = struct();
 experimentalS0.frequency_Hz = frequency_Hz;
@@ -87,14 +87,14 @@ s0Request = guiBuildFitRequest("mrlfe", ...
     'bounds', struct('etaS', [0.0, 0.30]), ...
     'controls', struct('robustness', "Fast", 'etaS', params.etaS, ...
         'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
-        'mrlfeUseUnifiedAtlasRoute', true, 'mrlfeA0Policy', "adaptivePhysicalTail"), ...
+        'mrlfeA0Policy', "physicalTail"), ...
     'fitOptions', struct('useStandardErrorWeights', false, ...
         'optimizerOptions', optimset('Display', 'off', 'MaxIter', 4, 'MaxFunEvals', 8, 'TolX', 1e-5)));
 
 s0Output = guiFitMRLFESolver(s0Request);
-assert(s0Output.routePolicy.requestAtlasFitRoute == true, 'S0Like etaS fitting should request atlas-fit route.');
-assert(s0Output.routePolicy.expectedPath == "mrlfe_atlas", 'Unexpected expected path family for S0Like etaS fitting.');
-assert(s0Output.routePolicy.actualPath == "viscous_unified_atlas", 'S0Like etaS fitting did not use the viscous unified atlas path.');
+assert(s0Output.routePolicy.routeFamily == "public_solver", 'S0Like etaS fitting should use public solver route.');
+assert(s0Output.routePolicy.expectedPath == "mrlfe_public_solver", 'Unexpected expected path family for S0Like etaS fitting.');
+assert(s0Output.routePolicy.actualPath == "viscoelastic_adaptive", 'S0Like etaS fitting did not use the viscoelastic adaptive engine.');
 
 fprintf('A0Like etaS route: expected %s | actual %s\n', etaSOutput.routePolicy.expectedPath, etaSOutput.routePolicy.actualPath);
 fprintf('A0Like mu route:   expected %s | actual %s\n', muOutput.routePolicy.expectedPath, muOutput.routePolicy.actualPath);

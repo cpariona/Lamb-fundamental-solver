@@ -177,8 +177,7 @@ updateAxisFieldState();
         options.computeMRLFEComplexK = false;
         options.mrlfeComputeA0Like = logical(modelControls.mrlfe.computeA0Like.Value);
         options.mrlfeComputeS0Like = logical(modelControls.mrlfe.computeS0Like.Value);
-        options.mrlfeUseUnifiedAtlasRoute = false;
-        options.mrlfeA0Policy = "adaptivePhysicalTail";
+        options.mrlfeA0Policy = "physicalTail";
 
         if options.computeMRLFERealK
             if ~options.mrlfeComputeA0Like && ~options.mrlfeComputeS0Like
@@ -189,9 +188,8 @@ updateAxisFieldState();
             modelControls.rl.computeA0.Value = options.computeA0;
             modelControls.rl.computeS0.Value = options.computeS0;
             options.mrlfeParams = readMRLFEParamsFromGui();
-            options.mrlfeUseUnifiedAtlasRoute = options.mrlfeParams.etaS > 0;
             if isfield(modelControls.mrlfe, 'a0Policy')
-                options.mrlfeA0Policy = string(modelControls.mrlfe.a0Policy.Value);
+                options.mrlfeA0Policy = normalizeMrlfeA0Policy(string(modelControls.mrlfe.a0Policy.Value));
             end
             options = attachCachedElasticReferenceIfUseful(options, params);
         end
@@ -217,6 +215,13 @@ updateAxisFieldState();
         params.CT = material.CT;
         params.nu = material.nu;
         params.lambda = material.lambda;
+    end
+
+    function policy = normalizeMrlfeA0Policy(policyIn)
+        policy = string(policyIn);
+        if policy ~= "physicalTail"
+            policy = "physicalTail";
+        end
     end
 
     function mrlfeParams = readMRLFEParamsFromGui()
@@ -702,14 +707,23 @@ updateAxisFieldState();
             md = lastGuiResult.metadata;
             if isfield(md, 'executionProfile')
                 profileExtra = strings(0, 1);
+                if isfield(md, 'status')
+                    profileExtra(end+1) = "status: " + string(md.status);
+                end
+                if isfield(md, 'execution') && isstruct(md.execution)
+                    profileExtra = appendExecutionSummary(profileExtra, md.execution);
+                end
+                if isfield(md, 'termination') && isstruct(md.termination)
+                    profileExtra = appendPolicySummary(profileExtra, "termination", md.termination, "policy");
+                end
+                if isfield(md, 'fallback') && isstruct(md.fallback)
+                    profileExtra = appendPolicySummary(profileExtra, "fallback", md.fallback, "policy");
+                end
+                if isfield(md, 'quality') && isstruct(md.quality)
+                    profileExtra = appendQualitySummary(profileExtra, md.quality);
+                end
                 if isfield(md, 'mrlfeA0Policy')
                     profileExtra(end+1) = "A0 policy: " + string(md.mrlfeA0Policy);
-                end
-                if isfield(md, 'mrlfeUseUnifiedAtlasRoute')
-                    profileExtra(end+1) = "unified atlas route: " + string(logical(md.mrlfeUseUnifiedAtlasRoute));
-                end
-                if isfield(md, 'mrlfeUseZeroViscosityAdaptiveGuiRoute')
-                    profileExtra(end+1) = "zero-eta adaptive route: " + string(logical(md.mrlfeUseZeroViscosityAdaptiveGuiRoute));
                 end
                 [visibleBranch, validCount, totalCount] = firstVisibleBranchSummary();
                 formatted = guiFormatExecutionProfileDiagnostics(md.executionProfile, ...
@@ -724,23 +738,8 @@ updateAxisFieldState();
                     'ExtraLines', profileExtra);
                 lines = [lines; "  " + formatted(:)]; %#ok<AGROW>
             end
-            if isfield(md, 'mrlfeGuiActualRoute')
-                lines(end+1) = sprintf("  actual route: %s", string(md.mrlfeGuiActualRoute));
-            end
             if isfield(md, 'mrlfeA0Policy')
                 lines(end+1) = sprintf("  A0 policy: %s", string(md.mrlfeA0Policy));
-            end
-            if isfield(md, 'mrlfeGuiAtlasPreset')
-                lines(end+1) = sprintf("  GUI preset: %s", string(md.mrlfeGuiAtlasPreset));
-            end
-            if isfield(md, 'mrlfeUseUnifiedAtlasRoute')
-                lines(end+1) = sprintf("  unified atlas route: %d", logical(md.mrlfeUseUnifiedAtlasRoute));
-            end
-            if isfield(md, 'mrlfeUseZeroViscosityAdaptiveGuiRoute')
-                lines(end+1) = sprintf("  zero-eta adaptive route: %d", logical(md.mrlfeUseZeroViscosityAdaptiveGuiRoute));
-            end
-            if isfield(md, 'mrlfeZeroViscosityAdaptiveFallback')
-                lines(end+1) = sprintf("  zero-eta fallback: %d", logical(md.mrlfeZeroViscosityAdaptiveFallback));
             end
             if isfield(md, 'mrlfeZeroViscosityAdaptiveQuality')
                 q = md.mrlfeZeroViscosityAdaptiveQuality;
@@ -824,8 +823,54 @@ updateAxisFieldState();
 
     function fallback = getMainFallbackText(md)
         fallback = "";
-        if isfield(md, 'mrlfeZeroViscosityAdaptiveFallback')
-            fallback = string(logical(md.mrlfeZeroViscosityAdaptiveFallback));
+        if isfield(md, 'executionProfile') && isfield(md.executionProfile, 'anyFallbackApplied')
+            fallback = string(logical(md.executionProfile.anyFallbackApplied));
+            return;
+        end
+    end
+
+    function linesOut = appendExecutionSummary(linesIn, execution)
+        linesOut = linesIn;
+        names = fieldnames(execution);
+        for iExec = 1:numel(names)
+            name = string(names{iExec});
+            value = execution.(char(name));
+            if isstruct(value) && isfield(value, 'internalEngine')
+                linesOut(end+1) = name + " engine: " + string(value.internalEngine);
+            end
+            if isstruct(value) && isfield(value, 'effectivePreset')
+                linesOut(end+1) = name + " preset: " + string(value.effectivePreset);
+            end
+        end
+    end
+
+    function linesOut = appendPolicySummary(linesIn, label, policies, fieldName)
+        linesOut = linesIn;
+        names = fieldnames(policies);
+        for iPolicy = 1:numel(names)
+            name = string(names{iPolicy});
+            value = policies.(char(name));
+            if isstruct(value) && isfield(value, fieldName)
+                linesOut(end+1) = name + " " + label + ": " + string(value.(fieldName));
+            end
+            if label == "fallback" && isstruct(value) && isfield(value, 'applied')
+                linesOut(end+1) = name + " fallback applied: " + string(logical(value.applied));
+            end
+        end
+    end
+
+    function linesOut = appendQualitySummary(linesIn, quality)
+        linesOut = linesIn;
+        names = fieldnames(quality);
+        for iQuality = 1:numel(names)
+            name = string(names{iQuality});
+            value = quality.(char(name));
+            if isstruct(value) && isfield(value, 'accepted')
+                linesOut(end+1) = name + " quality accepted: " + string(logical(value.accepted));
+            end
+            if isstruct(value) && isfield(value, 'reason')
+                linesOut(end+1) = name + " quality reason: " + string(value.reason);
+            end
         end
     end
 

@@ -29,10 +29,8 @@ switch kind
         end
     case "policy"
         switch value
-            case "adaptivePhysicalTail"
-                label = "Adaptive physical tail";
-            case "delayedCut"
-                label = "Delayed cut";
+            case "physicalTail"
+                label = "Physical tail";
             otherwise
                 label = value;
         end

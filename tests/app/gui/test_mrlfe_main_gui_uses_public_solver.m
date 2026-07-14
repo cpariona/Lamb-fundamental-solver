@@ -1,0 +1,70 @@
+clear; clc;
+startup
+
+fprintf('\nRunning mRLFE Main GUI public-solver route guard test...\n');
+fprintf('-------------------------------------------------------\n');
+
+adapterPath = which('guiRunMRLFEModel');
+adapterText = string(fileread(adapterPath));
+
+assert(contains(adapterText, "mrlfeSolve"), ...
+    'Main GUI mRLFE adapter must call mrlfeSolve.');
+assert(contains(adapterText, "mrlfeBuildGuiSolveRequest"), ...
+    'Main GUI mRLFE adapter must use the GUI public request mapper.');
+forbidden = ["computeMRLFE", "solveMRLFEAtlasUnified", ...
+    "solveMRLFEBranchAdaptiveAtlas", "mrlfeApplyPhysicalCorridorCut", ...
+    "mrlfeTrackBranchAdaptive"];
+for i = 1:numel(forbidden)
+    assert(~contains(adapterText, forbidden(i)), ...
+        'Main GUI mRLFE adapter must not contain %s.', forbidden(i));
+end
+
+cases = [ ...
+    struct('branch', "A0Like", 'etaS', 0); ...
+    struct('branch', "A0Like", 'etaS', 0.05); ...
+    struct('branch', "S0Like", 'etaS', 0); ...
+    struct('branch', "S0Like", 'etaS', 0.05)];
+
+for i = 1:numel(cases)
+    out = runMainCase(cases(i).branch, cases(i).etaS, 75e3, 1000, 6000, 10);
+    modelResult = out.metadata.modelResults.(char(cases(i).branch));
+    assert(modelResult.fallback.policy == "none", 'Fallback policy must be none.');
+    assert(modelResult.fallback.applied == false, 'Fallback must not be applied.');
+    assert(modelResult.execution.effectivePreset == "fast", 'Effective preset must be fast.');
+    if cases(i).etaS == 0
+        assert(modelResult.execution.internalEngine == "elastic_adaptive", ...
+            'Zero-viscosity engine must be elastic_adaptive.');
+    else
+        assert(modelResult.execution.internalEngine == "viscoelastic_adaptive", ...
+            'Positive-viscosity engine must be viscoelastic_adaptive.');
+    end
+end
+
+fprintf('\nmRLFE Main GUI public-solver route guard test passed.\n');
+
+function out = runMainCase(branchName, etaS, mu, fmin, fmax, nPoints)
+params = rlDefaultParams();
+params.fmin = fmin;
+params.fmax = fmax;
+params.numFrequencyPoints = nPoints;
+params.frequencySpacing = "linspace";
+params.mu = mu;
+params.thickness = 0.5e-3;
+params.rho = 1070;
+params.nu = 0.4999;
+
+options = rlDefaultOptions("Fast");
+options.computeA0 = branchName == "A0Like";
+options.computeS0 = branchName == "S0Like";
+options.computeMRLFERealK = true;
+options.mrlfeComputeA0Like = branchName == "A0Like";
+options.mrlfeComputeS0Like = branchName == "S0Like";
+options.mrlfeA0Policy = "physicalTail";
+options.mrlfeParams = defaultMRLFEParams();
+options.mrlfeParams.etaS = etaS;
+options.mrlfeParams.fluidDensity = 1000;
+options.mrlfeParams.fluidSoundSpeed = 1500;
+
+out = guiRunMRLFEModel(struct('params', params, 'options', options, ...
+    'mrlfeParams', options.mrlfeParams, 'computeVisco', etaS > 0));
+end

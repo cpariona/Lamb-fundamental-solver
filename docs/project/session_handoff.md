@@ -1,60 +1,40 @@
 # Session handoff
 
-Updated: 2026-07-06
+Updated: 2026-07-10
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: docs-refresh-project-state-after-pr107
-Base branch: main
-Base commit: b544b70e8df518db8bd7402aa9d3868a9e280a74
+Current branch: mrlfe-final-validation
+Base branch: origin/mrlfe-remove-legacy-routes
+Base commit: 6f990c625c5416d5b9f363162e2e6855a3d1bd88
 
 ## Current task
 
-Refresh the operational project-state documents after the merge of PR #107.
-This branch is documentation-only and must not change solver, GUI, sweep, fitting,
-or branch-selection behavior.
+Final mRLFE architecture validation and integration report. This branch should
+only change documentation or tests when validation finds a concrete stale
+maintained reference.
 
 ## Current repository state
 
-- PR #107, `Add and unify maintained physical-parameter sweeps`, is merged into `main`.
-- The maintained sweep plotting architecture is Alternative B:
-  - AE: `aeRunSweep` -> `aeBuildSweepPlotData` -> `plotSweepCpFigure`.
-  - mRLFE/Rayleigh-Lamb: `runParametricSweep` -> `buildParametricSweepPlotData` -> `plotSweepCpFigure`.
-- Maintained sweep entrypoints use the canonical `<model>_sweep_<parameter>_<branch>` naming convention.
-- Old maintained sweep aliases were removed without compatibility wrappers.
+- The mRLFE migration branch stack has moved all maintained consumers to `mrlfeSolve`.
+- The obsolete mRLFE route files, route flags, atlas fitting oracle, and old route tests/runners were removed on `mrlfe-remove-legacy-routes`.
+- Historical audits may still mention removed route names as pre-migration evidence.
 - `startup` delegates to deterministic, idempotent project-path configuration.
-- The complete maintained smoke suite passed during PR #107 validation.
 
 ## Active next technical task
 
-Perform a reproducible mRLFE route-consistency audit before proposing changes.
-The audit must compare:
-
-- Main GUI;
-- SweepTool;
-- FitTool;
-- maintained examples;
-- execution-profile mapping;
-- solver routes;
-- A0 branch-selection policies;
-- fallback and route metadata.
-
-The first audit should cover at least A0Like and S0Like, zero and nonzero `etaS`,
-and the `adaptivePhysicalTail` and `delayedCut` policies where applicable.
+Run final validation suites and produce the integration report for manual
+review before merging the mRLFE branch stack.
 
 ## Confirmed open issues
 
-- Main GUI and SweepTool route through `guiRunMRLFEModel`; FitTool and maintained examples use separate evaluation paths.
-- Maintained examples default to `delayedCut` and `UseUnifiedAtlasRoute = false`, unlike the interactive surfaces.
-- Main GUI and SweepTool can fall back from a zero-viscosity adaptive atlas result to an elastic reference result; FitTool does not apply the same fallback.
-- Main GUI, SweepTool, and FitTool preserve Fast internal mRLFE presets even when Balanced or Robust is requested.
-- Sweep-level route metadata may not represent every point in a mixed-route sweep.
+- Main GUI, SweepTool, and FitTool preserve public Fast mRLFE preset behavior even when Balanced or Robust is requested.
 - Current tests validate routing and synthetic contracts, not external physical correctness.
 
 ## Next action
 
-1. Review and merge this documentation-only branch manually.
-2. Update local `main` from `origin/main` after the merge.
-3. Create a new branch dedicated to the mRLFE route-consistency audit.
-4. Add comparison evidence and tests before selecting any corrective implementation.
+1. Run the final static and MATLAB validation commands listed in the task.
+2. Commit only if stale maintained documentation or runner references are corrected.
+3. Push `mrlfe-final-validation`.
+4. User reviews and merges manually.
 
 ## Do not change in this branch
 
@@ -73,7 +53,7 @@ and the `adaptivePhysicalTail` and `delayedCut` policies where applicable.
 - `app/adapters/guiRunMRLFESweep.m`
 - `app/adapters/guiFitMRLFESolver.m`
 - `analysis/mrlfe/mrlfeEvaluateFitModel.m`
-- `analysis/mrlfe/mrlfeEvaluateAtlasFitModel.m`
+- `analysis/mrlfe/mrlfeBuildFitSolveRequest.m`
 - `analysis/mrlfe/mrlfeDefaultSweepOptions.m`
 - `analysis/mrlfe/mrlfeRunSweepExample.m`
 - `analysis/runParametricSweep.m`

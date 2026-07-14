@@ -19,8 +19,7 @@ tests/run_acoustoelastic_smoke_tests.m
 tests/run_all_smoke_tests.m
 tests/run_core_smoke_tests.m
 tests/run_gui_smoke_tests.m
-tests/run_mrlfe_atlas_tests.m
-tests/run_mrlfe_fit_atlas_tests.m
+tests/run_mrlfe_legacy_cleanup_tests.m
 tests/run_mrlfe_smoke_tests.m
 tests/fitting/run_fit_validation_tests.m
 ```
@@ -119,13 +118,15 @@ Current app-fitting tests:
 
 ```text
 tests/app/fitting/test_fit_tool_model_registry_contract.m
+tests/app/fitting/test_fit_tool_interaction_helpers.m
+tests/app/fitting/test_fit_tool_requested_curve_models.m
 tests/app/fitting/test_gui_fit_registry_contract.m
-tests/app/fitting/test_gui_mrlfe_elastic_atlas_guard_contract.m
 tests/app/fitting/test_gui_mrlfe_fit_full_curve_fast_contract.m
 tests/app/fitting/test_gui_mrlfe_fit_route_policy_contract.m
-tests/app/fitting/test_gui_mrlfe_fit_zero_eta_atlas_contract.m
 tests/app/fitting/test_gui_mrlfe_fixed_etaS_fit_contract.m
-tests/app/fitting/test_gui_mrlfe_unified_atlas_policy_contract.m
+tests/app/fitting/test_mrlfe_fit_public_solver_characterization.m
+tests/app/fitting/test_mrlfe_fit_public_solver_parameter_regression.m
+tests/app/fitting/test_mrlfe_fit_uses_public_solver.m
 ```
 
 Shared fitting validation, fitting-QC, and fitting-helper tests have started moving under:
@@ -189,8 +190,8 @@ run_core_smoke_tests
 run_gui_smoke_tests
 run_acoustoelastic_smoke_tests
 run_mrlfe_smoke_tests
-run_mrlfe_atlas_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_legacy_cleanup_tests
+run_mrlfe_fit_public_solver_tests
 run_fit_validation_tests
 ```
 
@@ -268,7 +269,8 @@ clear; clc; close all;
 startup
 run_all_smoke_tests
 run_fit_validation_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
+run_mrlfe_legacy_cleanup_tests
 ```
 
 For app/GUI moves, run:
@@ -303,7 +305,7 @@ For app/FitTool mRLFE moves, run:
 ```matlab
 clear; clc; close all;
 startup
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 run_gui_smoke_tests
 run_all_smoke_tests
 ```

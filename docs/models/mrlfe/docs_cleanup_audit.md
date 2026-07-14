@@ -140,8 +140,8 @@ diagnose_mrlfe_a0_modal_atlas_seed_identity.m
 ## Resolved in pass 7
 
 - Consolidated mRLFE test runners without deleting individual tests.
-- Removed atlas-specific test execution from `run_mrlfe_smoke_tests` to avoid duplicating `run_mrlfe_atlas_tests`.
-- Updated `run_all_smoke_tests` so the complete suite now explicitly runs both `run_mrlfe_smoke_tests` and `run_mrlfe_atlas_tests`.
+- Removed atlas-specific test execution from `run_mrlfe_smoke_tests`; legacy route cleanup is now covered by `run_mrlfe_legacy_cleanup_tests`.
+- Updated `run_all_smoke_tests` so the complete suite now explicitly runs both `run_mrlfe_smoke_tests` and `run_mrlfe_legacy_cleanup_tests`.
 - Kept all atlas contract tests in the focused atlas runner.
 
 ## Resolved in pass 8
@@ -176,7 +176,7 @@ diagnose_mrlfe_a0_modal_atlas_seed_identity.m
 ## Resolved in pass 11
 
 - Refined `examples/mrlfe/diagnostics/README.md` without moving or deleting scripts.
-- Replaced the obsolete runner path `tests/run_mrlfe_atlas_tests` with the maintained command `run_mrlfe_atlas_tests`.
+- Replaced the obsolete atlas runner path with the maintained command `run_mrlfe_legacy_cleanup_tests`.
 - Split diagnostics into primary maintained, secondary investigation, archive candidates, and removed historical diagnostics.
 - Marked weakly referenced exploratory diagnostics as archive candidates after exact-name searches found no active references outside the diagnostics README.
 - Added explicit criteria before any future archive/delete action: exact reference search, unresolved-issue check, coverage check, and focused validation.
@@ -228,7 +228,7 @@ Run:
 clear; clc; close all;
 startup
 run_gui_smoke_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 ```
 
 After diagnostic script pruning or archiving, run:
@@ -237,8 +237,8 @@ After diagnostic script pruning or archiving, run:
 clear; clc; close all;
 startup
 run_mrlfe_smoke_tests
-run_mrlfe_atlas_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_legacy_cleanup_tests
+run_mrlfe_fit_public_solver_tests
 run_gui_smoke_tests
 ```
 
@@ -248,5 +248,5 @@ After runner or test-layout changes, run:
 clear; clc; close all;
 startup
 run_all_smoke_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 ```

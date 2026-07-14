@@ -13,7 +13,11 @@ curves = repmat(struct( ...
     'Cp_mps', [], ...
     'validMask', [], ...
     'lastValidFrequency_Hz', nan, ...
-    'rawBranch', []), 1, n);
+    'rawBranch', [], ...
+    'modelResult', [], ...
+    'status', "", ...
+    'errorIdentifier', "", ...
+    'errorMessage', ""), 1, n);
 
 for i = 1:n
     branch = extractMRLFESweepBranch(rawResults.results{i}, modelName, branchName);
@@ -21,6 +25,15 @@ for i = 1:n
     curves(i).sweepValue = rawResults.values(i);
     curves(i).sweepValueDisplay = rawResults.displayValues(i);
     curves(i).rawBranch = branch;
+    if isfield(rawResults, 'points') && numel(rawResults.points) >= i && isstruct(rawResults.points{i})
+        point = rawResults.points{i};
+        curves(i).status = string(point.status);
+        curves(i).errorIdentifier = string(point.errorIdentifier);
+        curves(i).errorMessage = string(point.errorMessage);
+        if isfield(point, 'modelResult')
+            curves(i).modelResult = point.modelResult;
+        end
+    end
 
     if isempty(branch)
         continue;
@@ -53,6 +66,9 @@ normalized.curves = curves;
 normalized.summaryTable = summaryTable;
 normalized.metadata = struct();
 normalized.metadata.request = request;
+if isfield(rawResults, 'points')
+    normalized.metadata.points = rawResults.points;
+end
 end
 
 function branch = extractMRLFESweepBranch(result, modelName, branchName)

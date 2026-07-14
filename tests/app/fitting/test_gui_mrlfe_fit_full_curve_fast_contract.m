@@ -1,8 +1,8 @@
 clear; clc;
 startup
 
-fprintf('\nRunning GUI mRLFE fast full-curve test...\n');
-fprintf('----------------------------------------\n');
+fprintf('\nRunning GUI mRLFE on-demand full-curve test...\n');
+fprintf('---------------------------------------------\n');
 
 branchName = "A0Like";
 etaS = 0.12;
@@ -13,13 +13,12 @@ params.mu = 75e3;
 params.etaS = etaS;
 
 solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS, ...
-    'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
-solverOptions.mrlfeUseAtlasFitRoute = true;
+    'A0Policy', "physicalTail");
 
 [CpSynthetic, rawSynthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions);
-assert(rawSynthetic.evaluationPath.routeFamily == "atlas", 'Synthetic full-curve setup should use atlas route family.');
-assert(rawSynthetic.evaluationPath.path == "viscous_unified_atlas", 'Synthetic full-curve setup should use viscous unified atlas.');
-assert(any(isfinite(CpSynthetic)), 'Synthetic full-curve data must contain at least one finite Cp value.');
+assert(rawSynthetic.evaluationPath.routeFamily == "public_solver", 'Synthetic setup should use public solver route family.');
+assert(rawSynthetic.evaluationPath.path == "viscoelastic_adaptive", 'Synthetic setup should use viscoelastic adaptive engine.');
+assert(any(isfinite(CpSynthetic)), 'Synthetic data must contain at least one finite Cp value.');
 
 experimental = struct();
 experimental.frequency_Hz = frequency_Hz;
@@ -46,16 +45,27 @@ request = guiBuildFitRequest("mrlfe", ...
     'bounds', fitConfig.bounds, ...
     'controls', struct('robustness', "Fast", 'etaS', fitConfig.initialGuess.etaS, ...
         'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
-        'mrlfeUseUnifiedAtlasRoute', true, 'mrlfeA0Policy', "adaptivePhysicalTail"));
+        'mrlfeA0Policy', "physicalTail"));
 
 normalized = guiNormalizeFitResult(fitResult, request);
-assert(isfield(normalized, 'fullCurve'), 'Normalized fit must include fullCurve.');
-assert(numel(normalized.fullCurve.frequency_Hz) >= 20, 'In-band plotting curve should be generated.');
-assert(any(isfinite(normalized.fullCurve.Cp_mps)), 'In-band plotting curve should contain finite Cp values.');
-assert(isempty(normalized.fullCurve.extension.rawResult), 'mRLFE full-curve extension should be skipped by default.');
-assert(contains(string(normalized.fullCurve.extension.errorMessage), "skipped"), 'Skipped extension should record a diagnostic message.');
+assert(isfield(normalized, 'fullCurve'), 'Normalized fit must include the display curve.');
+assert(numel(normalized.fullCurve.frequency_Hz) >= 20, 'In-band display curve should be generated.');
+assert(any(isfinite(normalized.fullCurve.Cp_mps)), 'In-band display curve should contain finite Cp values.');
+assert(normalized.fullCurve.source == "fitObjectiveInterpolation", ...
+    'Normalized display curve must come from fit-objective interpolation.');
+assert(normalized.fullCurve.solverEvaluated == false, ...
+    'Run Fit must not reevaluate the forward solver for the display curve.');
+assert(isempty(normalized.fullCurve.extension.rawResult), ...
+    'Run Fit must not evaluate a full-curve extension automatically.');
+assert(contains(string(normalized.fullCurve.extension.errorMessage), "explicit user request"), ...
+    'Display-curve metadata must state that the full curve requires explicit user request.');
+assert(isempty(normalized.fullCurve.denseSolver.rawResult), ...
+    'Run Fit must not create an automatic dense-solver diagnostic.');
+assert(contains(string(normalized.fullCurve.denseSolver.errorMessage), "skipped until requested"), ...
+    'Dense-solver metadata must record that reevaluation is deferred.');
 
 fprintf('Fit path:       %s\n', fitResult.rawSolverResult.evaluationPath.path);
 fprintf('Fit funcCount:  %d\n', fitResult.optimizer.output.funcCount);
-fprintf('Extension note: %s\n', normalized.fullCurve.extension.errorMessage);
-fprintf('\nGUI mRLFE fast full-curve test passed.\n');
+fprintf('Display source: %s\n', normalized.fullCurve.source);
+fprintf('Full curve:     %s\n', normalized.fullCurve.extension.errorMessage);
+fprintf('\nGUI mRLFE on-demand full-curve test passed.\n');

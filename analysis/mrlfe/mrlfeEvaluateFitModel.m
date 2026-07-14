@@ -1,21 +1,16 @@
 function [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions)
 %MRLFEEVALUATEFITMODEL Evaluate mRLFE Cp on a fitting frequency grid.
 %
-% [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions)
-%
-% The maintained fitting path is atlas-first. By default this helper delegates
-% to mrlfeEvaluateAtlasFitModel, which evaluates the official mRLFE atlas output
-% surface in the same spirit as aeEvaluateFitModel for AE IOP/HGO fitting.
-%
-% The older reference/direct-viscous workflow is retained only for explicit
-% diagnostic calls with solverOptions.mrlfeUseAtlasFitRoute = false.
+% Repeated optimizer evaluations use forwardModel.gridPolicy = "fitOptimized"
+% by default. Explicit requested-curve evaluations set the policy to
+% "numericalPreset" and therefore use the selected Fast/Balanced/Robust grid.
 
 if nargin < 3 || isempty(branchName)
     branchName = "A0Like";
 end
 if nargin < 4 || isempty(solverOptions)
     solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0.05, ...
-        'UseUnifiedAtlasRoute', true, 'A0Policy', "adaptivePhysicalTail");
+        'A0Policy', "physicalTail");
 end
 
 branchName = string(branchName);
@@ -24,328 +19,160 @@ if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInp
     error('frequency_Hz must contain positive finite values.');
 end
 
-if localShouldUseAtlasFitRoute(solverOptions)
-    [Cp_mps, rawResult] = mrlfeEvaluateAtlasFitModel(params, frequencyInput, branchName, solverOptions);
+request = mrlfeBuildFitSolveRequest(params, frequencyInput, branchName, solverOptions);
+request.numerics.preset = resolveNumericalPreset(solverOptions);
+[request, fitGridMetadata] = applyForwardGridPolicy(request, frequencyInput, solverOptions);
+modelResult = mrlfeSolve(request);
+Cp_mps = modelResult.phaseVelocity_mps(:);
+rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions, fitGridMetadata);
+end
+
+function [request, metadata] = applyForwardGridPolicy(request, frequencyInput, options)
+forwardModel = struct();
+if isstruct(options) && isfield(options, 'forwardModel') && isstruct(options.forwardModel)
+    forwardModel = options.forwardModel;
+end
+policy = string(getStructField(forwardModel, 'gridPolicy', "fitOptimized"));
+metadata = struct('gridPolicy', policy);
+
+switch policy
+    case "fitOptimized"
+        [frequencySolve_Hz, metadata] = mrlfeBuildFitFrequencyGrid(frequencyInput, forwardModel);
+        request.numerics.frequencySolveOverride_Hz = frequencySolve_Hz;
+    case "numericalPreset"
+        % No override: the production solver resolves the selected preset.
+    otherwise
+        error('mrlfe:InvalidFitGridPolicy', ...
+            'Unsupported mRLFE forwardModel.gridPolicy "%s". Use "fitOptimized" or "numericalPreset".', policy);
+end
+end
+
+function preset = resolveNumericalPreset(options)
+if isstruct(options) && isfield(options, 'mrlfeNumericalPreset') && ...
+        ~isempty(options.mrlfeNumericalPreset)
+    preset = lower(string(options.mrlfeNumericalPreset));
     return;
 end
-
-[params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequencyInput);
-solverOptions = localPrepareOptions(solverOptions, branchName, params);
-useDirectViscoAtlas = localShouldUseDirectViscoAtlas(solverOptions, branchName);
-
-if useDirectViscoAtlas
-    [rawFullResult, branchSolve] = localEvaluateDirectViscoAtlas(params, frequencySolve_Hz, branchName, solverOptions);
+if isstruct(options) && isfield(options, 'effectiveExecutionProfile') && ...
+        ~isempty(options.effectiveExecutionProfile)
+    profile = string(options.effectiveExecutionProfile);
+elseif isstruct(options) && isfield(options, 'executionProfile') && ...
+        ~isempty(options.executionProfile)
+    profile = string(options.executionProfile);
+elseif isstruct(options) && isfield(options, 'robustness') && ...
+        ~isempty(options.robustness)
+    profile = string(options.robustness);
 else
-    rawFullResult = rlComputeFundamentalLambModes(params, solverOptions);
-    branchSolve = localExtractBranch(rawFullResult, branchName);
+    profile = "Fast";
 end
-[branch, Cp_mps] = localResampleBranchToRequestedGrid(branchSolve, frequencyInput);
+switch profile
+    case "Fast"
+        preset = "fast";
+    case "Balanced"
+        preset = "balanced";
+    case "Robust"
+        preset = "robust";
+    otherwise
+        error('mrlfe:InvalidExecutionProfile', ...
+            'Unsupported mRLFE fitting execution profile "%s".', profile);
+end
+end
 
+function rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions, fitGridMetadata)
+internal = modelResult.diagnostics.rawInternalResult;
 rawResult = struct();
 rawResult.modelFamily = "mrlfe";
 rawResult.modelName = "mRLFERealK";
-rawResult.branchName = branchName;
-rawResult.frequency_Hz = frequencyInput;
-rawResult.frequencySolve_Hz = frequencySolve_Hz;
-rawResult.Cp_mps = Cp_mps;
-rawResult.validMask = localBranchValidMask(branch);
-rawResult.branch = branch;
-rawResult.branchSolve = branchSolve;
-rawResult.rawFullResult = rawFullResult;
+rawResult.branchName = modelResult.branch;
+rawResult.frequency_Hz = modelResult.frequency_Hz(:);
+rawResult.frequencySolve_Hz = internal.frequencySolve_Hz(:);
+rawResult.Cp_mps = modelResult.phaseVelocity_mps(:);
+rawResult.validMask = modelResult.validMask(:);
+rawResult.branch = internal.branch;
+rawResult.branchSolve = internal.branchSolve;
+rawResult.rawFullResult = internal.rawFullResult;
+rawResult.rawFullResult = localAddCompatibilityModelAliases(rawResult.rawFullResult, modelResult);
 rawResult.params = params;
-rawResult.options = solverOptions;
-rawResult.fitPerformanceDefaults = localBuildFitPerformanceSummary(solverOptions);
-rawResult.evaluationPath = localEvaluationPathSummary(solverOptions, useDirectViscoAtlas);
+rawResult.options = localMergeReportedOptions(solverOptions, internal.options);
+rawResult.modelResult = modelResult;
+rawResult.fitGrid = fitGridMetadata;
+rawResult.fitPerformanceDefaults = localBuildPublicFitPerformanceSummary(modelResult, fitGridMetadata);
+rawResult.evaluationPath = localPublicEvaluationPathSummary(modelResult, fitGridMetadata);
 end
 
-function tf = localShouldUseAtlasFitRoute(options)
-tf = logical(getOption(options, 'mrlfeUseAtlasFitRoute', true));
-if logical(getOption(options, 'mrlfeUseLegacyFitRoute', false))
-    tf = false;
-end
-end
-
-function [params, frequencySolve_Hz] = localPrepareFrequencyParams(params, frequency_Hz)
-frequency_Hz = frequency_Hz(:);
-[frequencySorted, ~] = sort(frequency_Hz);
-if any(abs(frequencySorted - frequency_Hz) > 0)
-    error('mRLFE fitting currently requires frequency_Hz to be sorted ascending.');
-end
-
-if numel(frequencySorted) == 1
-    f0 = frequencySorted(1);
-    halfWidth = max(0.05 * f0, 1.0);
-    fmin = max(eps(f0), f0 - halfWidth);
-    fmax = f0 + halfWidth;
-else
-    fmin = frequencySorted(1);
-    fmax = frequencySorted(end);
-end
-
-numFrequencyPoints = max(10, numel(frequencySorted));
-frequencySolve_Hz = linspace(fmin, fmax, numFrequencyPoints).';
-
-params.fmin = fmin;
-params.fmax = fmax;
-params.numFrequencyPoints = numFrequencyPoints;
-params.frequencySpacing = "linspace";
-end
-
-function options = localPrepareOptions(options, branchName, params)
-branchName = string(branchName);
-options.computeMRLFERealK = true;
-options.computeMRLFEElasticRealK = true;
-options.computeMRLFEViscoRealK = true;
-options.computeMRLFEComplexK = false;
-options.mrlfeA0Policy = string(getOption(options, 'mrlfeA0Policy', "delayedCut"));
-
-if ~isfield(options, 'mrlfeParams') || isempty(options.mrlfeParams)
-    options.mrlfeParams = defaultMRLFEParams();
-end
-options.mrlfeParams.solveComplexK = false;
-options.mrlfeParams.etaL = 0;
-options.mrlfeParams.useComplexLambda = false;
-if isfield(params, 'etaS') && ~isempty(params.etaS)
-    options.mrlfeParams.etaS = params.etaS;
-end
-
-switch branchName
-    case "A0Like"
-        options.computeA0 = true;
-        options.computeS0 = false;
-        options.mrlfeComputeA0Like = true;
-        options.mrlfeComputeS0Like = false;
-    case "S0Like"
-        options.computeA0 = false;
-        options.computeS0 = true;
-        options.mrlfeComputeA0Like = false;
-        options.mrlfeComputeS0Like = true;
-    otherwise
-        error('Unsupported mRLFE fitting branch: %s.', branchName);
-end
-
-options = localApplyFitPerformanceDefaults(options, branchName);
-end
-
-function tf = localShouldUseDirectViscoAtlas(options, branchName)
-tf = false;
-if getOption(options, 'mrlfeUseUnifiedAtlasRoute', false)
+function rawFullResult = localAddCompatibilityModelAliases(rawFullResult, modelResult)
+if ~isstruct(rawFullResult) || ~isfield(rawFullResult, 'models') || ...
+        ~isfield(rawFullResult.models, 'mRLFERealK')
     return;
 end
-if ~(isstruct(options) && isfield(options, 'mrlfeUseDirectViscoAtlas') && options.mrlfeUseDirectViscoAtlas)
+switch string(modelResult.execution.internalEngine)
+    case "elastic_adaptive"
+        rawFullResult.models.mRLFEElasticRealK = rawFullResult.models.mRLFERealK;
+    case "viscoelastic_adaptive"
+        rawFullResult.models.mRLFEViscoRealK = rawFullResult.models.mRLFERealK;
+end
+end
+
+function options = localMergeReportedOptions(inputOptions, internalOptions)
+options = internalOptions;
+if ~isstruct(inputOptions)
     return;
 end
-if branchName ~= "A0Like"
-    return;
-end
-etaS = 0;
-if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS') && ~isempty(options.mrlfeParams.etaS)
-    etaS = options.mrlfeParams.etaS;
-end
-tf = isfinite(etaS) && etaS > 0;
-end
-
-function [rawFullResult, branchSolve] = localEvaluateDirectViscoAtlas(params, frequencySolve_Hz, branchName, solverOptions)
-rlParams = params;
-rlParams.fmin = min(frequencySolve_Hz);
-rlParams.fmax = max(frequencySolve_Hz);
-rlParams.numFrequencyPoints = numel(frequencySolve_Hz);
-rlParams.frequencySpacing = "linspace";
-
-rlOptions = rlDefaultOptions("Fast");
-rlOptions.computeA0 = branchName == "A0Like";
-rlOptions.computeS0 = branchName == "S0Like";
-rlOptions.computeMRLFE = false;
-rlOptions.computeMRLFERealK = false;
-rlOptions.computeMRLFEElasticRealK = false;
-rlOptions.computeMRLFEViscoRealK = false;
-rlOptions.computeMRLFEComplexK = false;
-
-rlStart = tic;
-rawRL = rlComputeFundamentalLambModes(rlParams, rlOptions);
-rlElapsed = toc(rlStart);
-
-if branchName == "A0Like"
-    if ~isfield(rawRL, 'modes') || ~isfield(rawRL.modes, 'A0')
-        error('Direct mRLFE viscous atlas requires Rayleigh-Lamb A0 seed mode.');
+names = fieldnames(inputOptions);
+for i = 1:numel(names)
+    name = names{i};
+    if startsWith(name, 'mrlfeElasticReferenceResult') || strcmp(name, 'forwardModel')
+        options.(name) = inputOptions.(name);
     end
-    seedMode = rawRL.modes.A0;
-else
-    if ~isfield(rawRL, 'modes') || ~isfield(rawRL.modes, 'S0')
-        error('Direct mRLFE viscous atlas requires Rayleigh-Lamb S0 seed mode.');
-    end
-    seedMode = rawRL.modes.S0;
+end
 end
 
-atlasStart = tic;
-branchSolve = solveMRLFEViscoBranchAtlas(branchName, seedMode, rawRL.material, rawRL.geometry, solverOptions.mrlfeParams, solverOptions);
-atlasElapsed = toc(atlasStart);
-
-rawFullResult = rawRL;
-rawFullResult.models = struct();
-rawFullResult.models.mRLFERealK = struct();
-rawFullResult.models.mRLFERealK.modelName = "mRLFE";
-rawFullResult.models.mRLFERealK.variant = "direct-viscous-atlas-real-k";
-rawFullResult.models.mRLFERealK.description = "Direct viscous mRLFE Cp atlas prototype without elastic mRLFE reference branch.";
-rawFullResult.models.mRLFERealK.parameters = solverOptions.mrlfeParams;
-rawFullResult.models.mRLFERealK.frequency = frequencySolve_Hz(:);
-rawFullResult.models.mRLFERealK.branches = struct();
-rawFullResult.models.mRLFERealK.branches.(char(branchName)) = branchSolve;
-rawFullResult.models.mRLFERealK.diagnostics = struct();
-rawFullResult.models.mRLFERealK.diagnostics.elapsedSeconds = atlasElapsed;
-rawFullResult.models.mRLFERealK.diagnostics.rayleighLambSeedElapsedSeconds = rlElapsed;
-rawFullResult.models.mRLFERealK.diagnostics.variant = "direct-viscous-atlas-real-k";
-rawFullResult.models.mRLFERealK.diagnostics.branchNames = branchName;
-rawFullResult.models.mRLFERealK.diagnostics.usedInternalTrackingGrid = false;
-rawFullResult.models.mRLFERealK.diagnostics.requestedPointCount = numel(frequencySolve_Hz);
-rawFullResult.models.mRLFERealK.diagnostics.trackingPointCount = numel(frequencySolve_Hz);
-end
-
-function options = localApplyFitPerformanceDefaults(options, branchName)
-useDefaults = getOption(options, 'mrlfeUseFitPerformanceDefaults', true);
-options.mrlfeUseFitPerformanceDefaults = logical(useDefaults);
-if ~useDefaults
-    options.mrlfeFitPerformancePreset = "off";
-    return;
-end
-
-etaS = 0;
-if isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS') && ~isempty(options.mrlfeParams.etaS)
-    etaS = options.mrlfeParams.etaS;
-end
-
-if ~(branchName == "A0Like" && abs(etaS) <= eps(max(1, abs(etaS))))
-    options.mrlfeFitPerformancePreset = "maintained_default";
-    return;
-end
-
-options.mrlfeFitPerformancePreset = getOption(options, 'mrlfeFitPerformancePreset', "fast_elastic_A0Like");
-options.mrlfeUseInternalTrackingGrid = getOption(options, 'mrlfeFitUseInternalTrackingGrid', true);
-options.mrlfeInternalTrackingMinPoints = getOption(options, 'mrlfeFitInternalTrackingMinPoints', 10);
-options.mrlfeInternalTrackingPointFactor = getOption(options, 'mrlfeFitInternalTrackingPointFactor', 1);
-options.mrlfeInternalTrackingMaxPoints = getOption(options, 'mrlfeFitInternalTrackingMaxPoints', 80);
-options.mrlfeA0DPCpScanPoints = getOption(options, 'mrlfeFitA0DPCpScanPoints', 500);
-options.mrlfeA0DPCandidates = getOption(options, 'mrlfeFitA0DPCandidates', getOption(options, 'mrlfeA0DPCandidates', 8));
-end
-
-function summary = localBuildFitPerformanceSummary(options)
+function summary = localBuildPublicFitPerformanceSummary(modelResult, fitGridMetadata)
+preset = modelResult.configuration.numericalPreset;
 summary = struct();
-summary.routeFamily = "legacy";
-summary.useFitPerformanceDefaults = getOption(options, 'mrlfeUseFitPerformanceDefaults', false);
-summary.preset = getOption(options, 'mrlfeFitPerformancePreset', "off");
-summary.useInternalTrackingGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', false);
-summary.internalTrackingMinPoints = getOption(options, 'mrlfeInternalTrackingMinPoints', NaN);
-summary.internalTrackingPointFactor = getOption(options, 'mrlfeInternalTrackingPointFactor', NaN);
-summary.internalTrackingMaxPoints = getOption(options, 'mrlfeInternalTrackingMaxPoints', NaN);
-summary.a0DpCpScanPoints = getOption(options, 'mrlfeA0DPCpScanPoints', NaN);
-summary.a0DpCandidates = getOption(options, 'mrlfeA0DPCandidates', NaN);
+summary.routeFamily = "public_solver";
+summary.useFitAtlasPreset = logical(preset.useFitAtlasPreset);
+summary.preset = string(modelResult.execution.effectivePreset);
+summary.publicPreset = string(modelResult.execution.effectivePreset);
+summary.internalFitAtlasPreset = string(modelResult.execution.effectivePreset);
+summary.atlasCpScanPoints = preset.scanPoints;
+summary.a0DpCandidates = preset.candidateCount;
+summary.adaptiveWindows = preset.adaptiveWindows;
+summary.requestedPreset = string(modelResult.execution.requestedPreset);
+summary.effectivePreset = string(modelResult.execution.effectivePreset);
+summary.gridPolicy = string(fitGridMetadata.gridPolicy);
 end
 
-function summary = localEvaluationPathSummary(options, usedDirectViscoAtlas)
-requestedDirectViscoAtlas = getOption(options, 'mrlfeUseDirectViscoAtlas', false);
-requestedUnifiedAtlas = getOption(options, 'mrlfeUseUnifiedAtlasRoute', false);
+function summary = localPublicEvaluationPathSummary(modelResult, fitGridMetadata)
 summary = struct();
-summary.routeFamily = "legacy";
+summary.routeFamily = "public_solver";
+summary.path = string(modelResult.execution.internalEngine);
+summary.actualPath = summary.path;
+summary.expectedPath = "mrlfe_public_solver";
 summary.requestedAtlasFitRoute = false;
 summary.usedAtlasFitRoute = false;
-summary.requestedDirectViscoAtlas = logical(requestedDirectViscoAtlas);
-summary.requestedUnifiedAtlas = logical(requestedUnifiedAtlas);
-summary.useDirectViscoAtlas = logical(usedDirectViscoAtlas);
-summary.usedDirectViscoAtlas = logical(usedDirectViscoAtlas);
-summary.usedUnifiedAtlas = logical(requestedUnifiedAtlas && ~usedDirectViscoAtlas);
-summary.mrlfeA0Policy = string(getOption(options, 'mrlfeA0Policy', "delayedCut"));
-if usedDirectViscoAtlas
-    summary.path = "direct_viscous_atlas";
-elseif requestedUnifiedAtlas
-    summary.path = "unified_atlas";
-else
-    summary.path = "maintained_rl_mrlfe_workflow";
-end
-summary.actualPath = summary.path;
-end
-
-function branch = localExtractBranch(rawFullResult, branchName)
-if ~isfield(rawFullResult, 'models') || ~isfield(rawFullResult.models, 'mRLFERealK') || ...
-        ~isfield(rawFullResult.models.mRLFERealK, 'branches') || ...
-        ~isfield(rawFullResult.models.mRLFERealK.branches, char(branchName))
-    error('mRLFE result does not contain requested branch: %s.', branchName);
-end
-branch = rawFullResult.models.mRLFERealK.branches.(char(branchName));
+summary.usedPublicSolver = true;
+summary.requestedUnifiedAtlas = false;
+summary.usedUnifiedAtlas = false;
+summary.requestedDirectViscoAtlas = false;
+summary.usedDirectViscoAtlas = false;
+summary.etaS = modelResult.configuration.parameters.etaS_Pas;
+summary.mrlfeA0Policy = modelResult.termination.policy;
+summary.fitAtlasPreset = string(modelResult.execution.effectivePreset);
+summary.internalFitAtlasPreset = string(modelResult.execution.effectivePreset);
+summary.requestedPreset = string(modelResult.execution.requestedPreset);
+summary.effectivePreset = string(modelResult.execution.effectivePreset);
+summary.gridPolicy = string(fitGridMetadata.gridPolicy);
+summary.internalEngine = string(modelResult.execution.internalEngine);
+summary.terminationPolicy = string(modelResult.termination.policy);
+summary.fallbackPolicy = string(modelResult.fallback.policy);
+summary.fallbackApplied = logical(modelResult.fallback.applied);
+summary.quality = modelResult.quality;
 end
 
-function [branchOut, CpRequested_mps] = localResampleBranchToRequestedGrid(branchIn, frequencyRequested_Hz)
-frequencyRequested_Hz = frequencyRequested_Hz(:);
-frequencySolve_Hz = branchIn.frequency(:);
-CpSolve_mps = branchIn.Cp(:);
-
-branchOut = branchIn;
-branchOut.frequency = frequencyRequested_Hz;
-branchOut.omega = 2 * pi * frequencyRequested_Hz;
-branchOut.Cp = interpolateNumeric(CpSolve_mps, frequencySolve_Hz, frequencyRequested_Hz);
-
-numericFields = {'k', 'kReal', 'kImag', 'attenuation', 'kThickness', 'residual', 'score', 'seedK', 'seedCp'};
-for i = 1:numel(numericFields)
-    fieldName = numericFields{i};
-    if isfield(branchIn, fieldName)
-        branchOut.(fieldName) = interpolateNumeric(branchIn.(fieldName), frequencySolve_Hz, frequencyRequested_Hz);
-    end
-end
-
-logicalFields = {'validResidual', 'validReference', 'validSmooth', 'validCp', 'validAttenuation', 'valid'};
-for i = 1:numel(logicalFields)
-    fieldName = logicalFields{i};
-    if isfield(branchIn, fieldName)
-        branchOut.(fieldName) = interpolateLogical(branchIn.(fieldName), frequencySolve_Hz, frequencyRequested_Hz);
-    end
-end
-
-CpRequested_mps = branchOut.Cp(:);
-end
-
-function valuesOut = interpolateNumeric(valuesIn, frequencyIn, frequencyOut)
-valuesIn = valuesIn(:);
-if isempty(valuesIn) || numel(valuesIn) ~= numel(frequencyIn)
-    valuesOut = nan(size(frequencyOut));
-    return;
-end
-valid = isfinite(frequencyIn) & isfinite(real(valuesIn)) & isfinite(imag(valuesIn));
-if nnz(valid) < 2
-    valuesOut = nan(size(frequencyOut));
-    return;
-end
-if ~isreal(valuesIn)
-    realPart = interp1(frequencyIn(valid), real(valuesIn(valid)), frequencyOut, 'linear', nan);
-    imagPart = interp1(frequencyIn(valid), imag(valuesIn(valid)), frequencyOut, 'linear', nan);
-    valuesOut = realPart + 1i * imagPart;
-else
-    valuesOut = interp1(frequencyIn(valid), valuesIn(valid), frequencyOut, 'linear', nan);
-end
-end
-
-function valuesOut = interpolateLogical(valuesIn, frequencyIn, frequencyOut)
-valuesIn = logical(valuesIn(:));
-if isempty(valuesIn) || numel(valuesIn) ~= numel(frequencyIn)
-    valuesOut = false(size(frequencyOut));
-    return;
-end
-nearest = interp1(frequencyIn, double(valuesIn), frequencyOut, 'nearest', 0);
-valuesOut = logical(nearest(:));
-end
-
-function validMask = localBranchValidMask(branch)
-if isfield(branch, 'validCp')
-    validMask = logical(branch.validCp(:)) & isfinite(branch.Cp(:));
-elseif isfield(branch, 'valid')
-    validMask = logical(branch.valid(:)) & isfinite(branch.Cp(:));
-else
-    validMask = isfinite(branch.Cp(:));
-end
-end
-
-function value = getOption(options, fieldName, defaultValue)
-if isstruct(options) && isfield(options, fieldName) && ~isempty(options.(fieldName))
-    value = options.(fieldName);
-else
-    value = defaultValue;
+function value = getStructField(s, fieldName, defaultValue)
+value = defaultValue;
+if isstruct(s) && isfield(s, fieldName) && ~isempty(s.(fieldName))
+    value = s.(fieldName);
 end
 end

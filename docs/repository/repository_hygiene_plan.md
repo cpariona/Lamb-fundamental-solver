@@ -95,7 +95,7 @@ After mRLFE documentation-only cleanup:
 clear; clc; close all;
 startup
 run_gui_smoke_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 ```
 
 After mRLFE test/example cleanup:
@@ -104,8 +104,8 @@ After mRLFE test/example cleanup:
 clear; clc; close all;
 startup
 run_mrlfe_smoke_tests
-run_mrlfe_atlas_tests
-run_mrlfe_fit_atlas_tests
+run_mrlfe_legacy_cleanup_tests
+run_mrlfe_fit_public_solver_tests
 run_gui_smoke_tests
 ```
 

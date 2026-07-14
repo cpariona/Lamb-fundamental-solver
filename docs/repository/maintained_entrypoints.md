@@ -279,11 +279,29 @@ test_ae_fit_synthetic_atlasA0
 
 ## mRLFE model
 
-Main high-level function for the maintained forward workflow:
+Initial maintained public real-k mRLFE contract:
 
 ```matlab
-computeMRLFE
+mrlfeSolve
+mrlfeDefaultParameters
+mrlfeDefaultOptions
+mrlfeValidateRequest
+mrlfeResolveConfiguration
+mrlfeGetNumericalPreset
+mrlfeBuildResult
+mrlfeEvaluateBranchQuality
+mrlfeBuildProblem
+mrlfeSolveBranch
+mrlfeSolveElasticBranch
+mrlfeSolveViscoelasticBranch
+mrlfeBuildSeed
+mrlfeTrackBranchAdaptive
+mrlfeApplyTerminationPolicy
 ```
+
+This public contract is model-oriented and author-neutral. Main GUI, SweepTool,
+and FitTool all reach the maintained production core through `mrlfeSolve`.
+Obsolete parallel solver routes have been removed from the maintained surface.
 
 Maintained analysis helpers:
 
@@ -294,45 +312,60 @@ mrlfeSetYoungModulusForShearPoisson
 mrlfeSelectRealKBranches
 summarizeMRLFETrackingQuality
 compareMRLFETrackingStrategies
-compareMRLFEAtlasPolicy
-mrlfeApplyDelayedViscoModalCut
-mrlfeApplyPhysicalCorridorCut
-mrlfeMakeDirectViscoAtlasBranchOptions
+mrlfeEvaluatePhysicalTail
 ```
 
 Maintained mRLFE fitting helpers:
 
 ```matlab
 mrlfeBuildFitProblem
+mrlfeBuildFitSolveRequest
+mrlfeBuildGuiSolveRequest
+mrlfeBuildSweepSolveRequest
 mrlfeEvaluateFitModel
-mrlfeEvaluateAtlasFitModel
 mrlfeFitDispersionData
 ```
 
-Maintained mRLFE real-k atlas solver helpers:
+`mrlfeEvaluateFitModel` is the maintained production fitting evaluator and calls
+the public `mrlfeSolve` API. `mrlfeEvaluateAtlasFitModel` has been removed.
+
+`guiRunMRLFESweep` is the maintained production SweepTool mRLFE adapter and
+calls the public `mrlfeSolve` API once per sweep point through
+`mrlfeBuildSweepSolveRequest`. SweepTool no longer delegates mRLFE solving to
+the Main GUI adapter, and the maintained sweep route does not apply legacy
+zero-viscosity fallback.
+
+`guiRunMRLFEModel` is the maintained production Main GUI mRLFE adapter and calls
+the public `mrlfeSolve` API through `mrlfeBuildGuiSolveRequest`. Main GUI no
+longer contains low-level mRLFE solver selection or zero-viscosity fallback.
+
+Maintained mRLFE real-k production helpers:
 
 ```matlab
-solveMRLFEViscoBranchAtlas
-solveMRLFEAtlasUnified
-solveMRLFEBranchAdaptiveAtlas
-mrlfeMakePhysicalSeedMode
+mrlfeSolveElasticBranch
+mrlfeSolveViscoelasticBranch
+mrlfeTrackBranchAdaptive
+mrlfeBuildSeed
+mrlfeApplyTerminationPolicy
+mrlfeEvaluatePhysicalTail
 ```
 
-`solveMRLFEViscoBranchAtlas` remains the direct viscous atlas route. `solveMRLFEAtlasUnified` is the unified real-k atlas route. FitTool fitting uses the atlas-first evaluator by default.
+Removed legacy route names are documented in
+`docs/validation/mrlfe_legacy_route_inventory.md`; they are not maintained
+entrypoints.
 
 Maintained sweep plotting and summaries may use the normalized model name `mRLFEViscoRealK` for etaS > 0 real-k cases.
 
 Current A0 policy selector:
 
 ```matlab
-options.mrlfeA0Policy = "delayedCut";
-options.mrlfeA0Policy = "adaptivePhysicalTail";
+options.mrlfeA0Policy = "physicalTail";
 ```
 
 For A0Like FitTool fitting, the current default is:
 
 ```matlab
-options.mrlfeA0Policy = "adaptivePhysicalTail";
+options.mrlfeA0Policy = "physicalTail";
 ```
 
 Maintained public sweep entrypoints:
@@ -356,22 +389,14 @@ Maintained mRLFE diagnostics:
 
 ```matlab
 compare_mrlfe_tracker_vs_condition_peaks
-diagnose_etaS_direct_atlas_fit
 diagnose_etaS_forward_cache
 diagnose_fit_timing
 diagnose_fit_option_sensitivity
+diagnose_mrlfe_atlas_primary_policy_matrix
+diagnose_mrlfe_gui_performance_32kHz
 diagnose_mrlfe_visco_validity_breakdown
 diagnose_mrlfe_visco_residual_landscape
 stress_test_mrlfe_real_k_range
-```
-
-Maintained mRLFE atlas diagnostics:
-
-```matlab
-diagnose_mrlfe_unified_atlas_mu_sweep
-diagnose_mrlfe_a0_policy_parametric_sweep
-diagnose_mrlfe_a0_physical_corridor_mu_sweep
-diagnose_mrlfe_atlas_primary_policy_matrix
 ```
 
 Additional mRLFE secondary and historical diagnostics are documented in:
@@ -383,6 +408,8 @@ examples/mrlfe/diagnostics/README.md
 Maintained mRLFE model-family tests:
 
 ```matlab
+run_mrlfe_public_contract_tests
+run_mrlfe_production_core_tests
 test_mrlfe_smoke
 test_mrlfe_etaS_zero_limit
 test_mrlfe_elastic_reference_buffer
@@ -402,33 +429,46 @@ test_mrlfe_fit_fast_options_quality
 test_mrlfe_etaS_fit_forward_cache
 ```
 
-Maintained mRLFE atlas and route-policy tests:
+Maintained mRLFE FitTool public-solver migration tests:
 
 ```matlab
-run_mrlfe_atlas_tests
-test_mrlfe_modal_atlas_ambiguity_contract
-test_mrlfe_modal_atlas_s0_contract
-test_mrlfe_atlas_policy_matrix_contract
-test_mrlfe_direct_visco_atlas_evaluator
-test_mrlfe_direct_visco_atlas_modal_cut_policy
-test_mrlfe_direct_visco_atlas_option_alias_contract
-test_mrlfe_direct_visco_branch_policy_contract
-test_mrlfe_delayed_visco_modal_cut_contract
-test_mrlfe_a0_delayed_direct_visco_opt_in_contract
-test_mrlfe_a0_delayed_direct_visco_s0_guard_contract
-test_mrlfe_unified_atlas_route_contract
-test_mrlfe_s0_adaptive_atlas_tracker_contract
-test_mrlfe_unified_atlas_mu_sweep_contract
-test_mrlfe_a0_policy_selector_contract
-test_mrlfe_a0_adaptive_physical_tail_contract
+run_mrlfe_fit_public_solver_tests
+test_mrlfe_fit_uses_public_solver
+test_mrlfe_fit_public_solver_characterization
+test_mrlfe_fit_public_solver_parameter_regression
 ```
 
-Maintained GUI mRLFE atlas integration tests:
+Maintained mRLFE SweepTool public-solver migration tests:
 
 ```matlab
-test_gui_mrlfe_elastic_atlas_guard_contract
-test_gui_mrlfe_unified_atlas_policy_contract
-test_gui_mrlfe_fit_zero_eta_atlas_contract
+run_mrlfe_sweeptool_public_solver_tests
+test_mrlfe_sweep_uses_public_solver
+test_mrlfe_sweep_point_characterization
+test_mrlfe_sweep_metadata_and_mapping
+```
+
+Maintained mRLFE Main GUI public-solver migration tests:
+
+```matlab
+run_mrlfe_main_gui_public_solver_tests
+test_mrlfe_main_gui_uses_public_solver
+test_mrlfe_main_gui_characterization
+test_mrlfe_main_gui_consumer_equivalence
+test_mrlfe_main_gui_result_contract
+```
+
+Maintained mRLFE legacy-cleanup tests:
+
+```matlab
+run_mrlfe_legacy_cleanup_tests
+test_mrlfe_no_legacy_routes
+test_mrlfe_no_legacy_route_flags
+test_mrlfe_legacy_cleanup_characterization
+```
+
+Maintained GUI mRLFE public-solver integration tests:
+
+```matlab
 test_gui_mrlfe_fit_route_policy_contract
 test_gui_mrlfe_fixed_etaS_fit_contract
 test_gui_mrlfe_fit_full_curve_fast_contract
@@ -449,7 +489,7 @@ run_core_smoke_tests
 run_gui_smoke_tests
 run_acoustoelastic_smoke_tests
 run_mrlfe_smoke_tests
-run_mrlfe_atlas_tests
+run_mrlfe_legacy_cleanup_tests
 ```
 
 Run focused fitting validation separately:
@@ -458,10 +498,10 @@ Run focused fitting validation separately:
 run_fit_validation_tests
 ```
 
-Run focused mRLFE FitTool atlas validation after mRLFE fitting-route or fitted-curve changes:
+Run focused mRLFE FitTool public-solver validation after mRLFE fitting-route or fitted-curve changes:
 
 ```matlab
-run_mrlfe_fit_atlas_tests
+run_mrlfe_fit_public_solver_tests
 ```
 
 ## Active documentation links

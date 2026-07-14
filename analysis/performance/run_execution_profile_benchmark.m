@@ -86,7 +86,7 @@ rows = {};
 for iCase = 1:numel(cases)
     for iRun = 1:repeats
         options = mrlfeDefaultSweepOptions(cases(iCase).Branch, 'EtaS', cases(iCase).EtaS, ...
-            'UseUnifiedAtlasRoute', cases(iCase).EtaS > 0, 'A0Policy', "adaptivePhysicalTail");
+            'A0Policy', "physicalTail");
         t = tic;
         [cp, raw] = mrlfeEvaluateFitModel(params, linspace(1000, 8000, 10).', cases(iCase).Branch, options);
         elapsed = toc(t);

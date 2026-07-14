@@ -2,12 +2,18 @@ function frequency = rlBuildFrequencyVector(params)
 % Build frequency vector according to selected spacing.
 %
 % The GUI uses automatic hybrid spacing internally. linspace and logspace
-% remain available for scripts and development comparisons.
+% remain available for scripts and development comparisons. The explicit
+% mode is reserved for callers that provide a validated frequencyVector_Hz.
 
 if isfield(params, 'frequencySpacing')
     spacing = lower(string(params.frequencySpacing));
 else
     spacing = "hybrid";
+end
+
+if spacing == "explicit"
+    frequency = resolveExplicitFrequencyVector(params);
+    return;
 end
 
 nPoints = resolveFrequencyPointCount(params);
@@ -23,7 +29,20 @@ switch spacing
         frequency = buildHybridFrequencyVector(params.fmin, params.fmax, nPoints);
 
     otherwise
-        error('Unknown frequency spacing. Use hybrid, logspace, or linspace.');
+        error('Unknown frequency spacing. Use hybrid, logspace, linspace, or explicit.');
+end
+end
+
+function frequency = resolveExplicitFrequencyVector(params)
+if ~isfield(params, 'frequencyVector_Hz') || isempty(params.frequencyVector_Hz)
+    error('frequencyVector_Hz is required when frequencySpacing is explicit.');
+end
+frequency = params.frequencyVector_Hz(:).';
+if ~isnumeric(frequency) || any(~isfinite(frequency)) || any(frequency <= 0)
+    error('frequencyVector_Hz must contain finite positive numeric values.');
+end
+if numel(frequency) < 2 || any(diff(frequency) <= 0)
+    error('frequencyVector_Hz must contain at least two strictly ascending values.');
 end
 end
 
