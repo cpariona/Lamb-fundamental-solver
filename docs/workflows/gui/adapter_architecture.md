@@ -184,9 +184,13 @@ FitTool_GUI
     -> guiRunFit
     -> model-specific fitting adapter
     -> guiNormalizeFitResult
-    -> guiEvaluateFitFullCurve
+    -> guiBuildFitDisplayCurve
     -> guiPlotFitResult
 ```
+
+The fit action uses only the objective-consistent display interpolation. The
+separate **Evaluate fitted curve** action calls
+`guiEvaluateRequestedFitCurve` and performs the requested solver evaluation.
 
 ### Fitting registry
 
