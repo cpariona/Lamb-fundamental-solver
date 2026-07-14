@@ -1,7 +1,8 @@
 clear; clc;
 startup
 
-% Run GUI adapter, sweep, and fitting smoke tests.
+% Run GUI, sweep, fitting, and execution-profile contracts and smoke checks.
+% Membership includes surface integration and is not a contracts-only runner.
 
 fprintf('\nRunning GUI smoke tests...\n');
 fprintf('--------------------------\n');
@@ -68,46 +69,46 @@ assertFunctionsOnPath({ ...
     'guiPlotFitResult'}, ...
     'GUI adapter/helper');
 
-fprintf('\n[GUI 1/19] GUI struct helper contract test\n');
+fprintf('\n[GUI 1/17] GUI struct helper contract test\n');
 test_gui_struct_helpers_contract;
 
-fprintf('\n[GUI 2/19] Fit parameter state contract test\n');
+fprintf('\n[GUI 2/17] Fit parameter state contract test\n');
 test_fit_parameter_state_contract;
 
-fprintf('\n[GUI 3/19] Fit parameter execution contract test\n');
+fprintf('\n[GUI 3/17] Fit parameter execution contract test\n');
 test_fit_parameter_execution_contract;
 
-fprintf('\n[GUI 4/19] GUI normalized adapters smoke test\n');
+fprintf('\n[GUI 4/17] GUI normalized adapters smoke test\n');
 test_gui_normalized_adapters_smoke;
 
-fprintf('\n[GUI 5/19] Main GUI export contract test\n');
+fprintf('\n[GUI 5/17] Main GUI export contract test\n');
 test_main_gui_export_contract;
 
-fprintf('\n[GUI 6/19] GUI sweep adapters smoke test\n');
+fprintf('\n[GUI 6/17] GUI sweep adapters smoke test\n');
 test_gui_sweep_adapters_smoke;
 
-fprintf('\n[GUI 7/19] GUI sweep registry smoke test\n');
+fprintf('\n[GUI 7/17] GUI sweep registry smoke test\n');
 test_gui_sweep_registry_smoke;
 
-fprintf('\n[GUI 8/19] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
+fprintf('\n[GUI 8/17] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke;
 
-fprintf('\n[GUI 9/19] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
+fprintf('\n[GUI 9/17] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
 test_gui_acoustoelastic_iop_hgo_main_adapter_smoke;
 
-fprintf('\n[GUI 10/19] GUI fitting backend contract test\n');
+fprintf('\n[GUI 10/17] GUI fitting backend contract test\n');
 test_gui_fit_registry_contract;
 
-fprintf('\n[GUI 11/19] FitTool model registry contract test\n');
+fprintf('\n[GUI 11/17] FitTool model registry contract test\n');
 test_fit_tool_model_registry_contract;
 
-fprintf('\n[GUI 12/19] FitTool interaction helper test\n');
+fprintf('\n[GUI 12/17] FitTool interaction helper test\n');
 test_fit_tool_interaction_helpers;
 
-fprintf('\n[GUI 13/19] GUI mRLFE fixed etaS fit contract test\n');
+fprintf('\n[GUI 13/17] GUI mRLFE fixed etaS fit contract test\n');
 test_gui_mrlfe_fixed_etaS_fit_contract;
 
-fprintf('\n[GUI 14/19] GUI mRLFE fit route policy contract test\n');
+fprintf('\n[GUI 14/17] GUI mRLFE fit route policy contract test\n');
 test_gui_mrlfe_fit_route_policy_contract;
 
 fprintf('\n[GUI 15/17] GUI mRLFE fast full-curve test\n');

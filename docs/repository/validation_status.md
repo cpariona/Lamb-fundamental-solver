@@ -2,6 +2,28 @@
 
 This document records the maintained validation entrypoints and the validation status expected before merging changes.
 
+## Public runner topology
+
+Nine maintained public commands are compatibility wrappers: eight wrappers at
+the root of `tests/` and the legacy-folder `run_fit_validation_tests` wrapper.
+Each delegates through `runRepositoryTestRunner` to a same-named implementation
+under `tests/runners/`. `run_main_gui_export_tests` is a maintained standalone
+root runner, not a wrapper.
+
+The wrapper commands are:
+
+```matlab
+run_acoustoelastic_smoke_tests
+run_all_smoke_tests
+run_core_smoke_tests
+run_gui_smoke_tests
+run_mrlfe_legacy_cleanup_tests
+run_mrlfe_production_core_tests
+run_mrlfe_public_contract_tests
+run_mrlfe_smoke_tests
+run_fit_validation_tests
+```
+
 ## General smoke tests
 
 Run from the repository root:
@@ -13,6 +35,11 @@ startup
 
 run_all_smoke_tests
 ```
+
+Despite the historical command name, this aggregate currently reaches
+contract, numerical-regression, synthetic-fitting, and characterization work.
+Treat it as broad validation until measured runtime evidence supports a future
+quick-versus-extended split.
 
 Focused groups:
 
@@ -65,6 +92,14 @@ docs/validation/mrlfe_grid_presets.md
 ```
 
 These diagnostics are not part of lightweight smoke suites because their runtime may be substantial.
+
+`run_mrlfe_production_core_tests` is also mixed extended validation today: it
+includes contracts and grid checks together with characterization and
+performance evidence. Preserve that membership until the planned runner split.
+The execution-profile validation matrix and benchmark/diagnostic runners are
+maintained commands but are intentionally excluded from normal smoke
+validation. `run_main_gui_export_tests` remains a focused standalone export
+contract runner.
 
 ## Current mRLFE contract baseline
 

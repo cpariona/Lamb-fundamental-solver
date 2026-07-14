@@ -1,7 +1,8 @@
 clear; clc;
 startup
 
-% Run maintained acoustoelastic IOP/HGO smoke and contract tests.
+% Run maintained acoustoelastic IOP/HGO contracts plus representative atlas,
+% sweep-renderer, and synthetic-fitting execution checks.
 
 fprintf('\nRunning acoustoelastic IOP/HGO smoke tests...\n');
 fprintf('----------------------------------------------\n');
