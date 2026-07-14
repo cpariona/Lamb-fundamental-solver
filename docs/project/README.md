@@ -26,6 +26,20 @@ Read these in order:
 Then confirm the current branch, last known good commit, active constraints,
 and next action before modifying files.
 
+For repository-cleanup tasks, also read before changing anything:
+
+```text
+docs/repository/maintained_entrypoints.md
+docs/repository/validation_status.md
+docs/repository/repository_hygiene_plan.md
+docs/repository/repository_cleanup_audit_2026-07-14.md
+```
+
+A cleanup audit is a candidate inventory, not permission for bulk deletion.
+Codex or any other agent must create a dedicated feature branch from updated
+`origin/main`, verify dependencies for every candidate, and preserve maintained
+behavior.
+
 ## End of a session
 
 Update `docs/project/session_handoff.md` at the end of every relevant
@@ -35,6 +49,10 @@ Update `docs/project/active_context.md` only when the global state, current
 phase, or cross-cutting limitations change.
 
 Create or modify ADRs only when a durable architectural decision is made.
+
+For cleanup sessions, update the repository cleanup audit or add a phase report
+that records retain/archive/consolidate/remove decisions, dependency evidence,
+validation, commits, and deferred risks.
 
 ## Document authority
 
@@ -56,10 +74,11 @@ state.
 
 | Topic | Start with |
 | --- | --- |
+| Repository cleanup | `docs/repository/repository_cleanup_audit_2026-07-14.md`; `docs/repository/repository_hygiene_plan.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
 | GUI | `docs/workflows/gui/adapter_architecture.md`; `docs/workflows/gui/integration_audit.md` |
 | Fitting | `docs/workflows/fitting/architecture.md`; `docs/workflows/fitting/validation_suite.md` |
 | Sweeps | `docs/workflows/sweeps/parametric_sweeps.md`; `docs/workflows/sweeps/sweep_tool_usage.md` |
 | Execution profiles | `docs/architecture/execution_profiles_surface_integration.md`; `docs/validation/execution_profile_end_to_end_validation.md` |
 | Rayleigh-Lamb | `docs/models/rayleigh_lamb/overview.md`; `docs/models/rayleigh_lamb/public_api.md`; `docs/models/rayleigh_lamb/fitting_workflow.md` |
-| mRLFE | `docs/models/mrlfe/README.md`; `docs/models/mrlfe/fitting_workflow.md`; `docs/models/mrlfe/atlas_policy_notes.md` |
+| mRLFE | `docs/models/mrlfe/README.md`; `docs/models/mrlfe/public_api.md`; `docs/models/mrlfe/production_core.md`; `docs/models/mrlfe/fitting_workflow.md` |
 | AE IOP/HGO | `docs/models/acoustoelastic_iop_hgo/README.md`; `docs/models/acoustoelastic_iop_hgo/documentation_index.md`; `docs/models/acoustoelastic_iop_hgo/active/public_api.md` |
