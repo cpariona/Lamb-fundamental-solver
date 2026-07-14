@@ -1,25 +1,16 @@
 # Dispersion fitting architecture
 
-This document defines the active architecture for fitting experimental dispersion data against the maintained Lamb-wave model families in this repository.
-
-The fitting layer has been implemented and is used by scripts, tests, and `FitTool_GUI`. This document is no longer a phase-planning note.
+This document defines the maintained architecture for fitting experimental dispersion data against the supported Lamb-wave model families.
 
 ## Scope
 
 The fitting layer estimates model parameters from experimental phase-speed data:
 
 ```text
-frequency -> measured phase speed -> model parameters
+frequency -> measured phase speed -> fitted model parameters
 ```
 
-The supported experimental observable is the phase-speed curve:
-
-```matlab
-frequency_Hz
-Cp_mps
-```
-
-Current model families with maintained fitting support:
+Maintained model families:
 
 ```text
 Rayleigh-Lamb
@@ -27,51 +18,32 @@ mRLFE
 Acoustoelastic IOP/HGO
 ```
 
-The fitting layer is reusable from scripts, tests, and the GUI. It must not be embedded directly inside GUI callbacks or long example scripts.
+The fitting layer is reusable from scripts, tests, and `FitTool_GUI`. GUI callbacks do not own optimization or model physics.
 
 ## Design principles
 
-1. The GUI must not implement fitting algorithms.
-2. Example scripts must not be backend dependencies.
-3. Fitting must call maintained model APIs or model-specific fitting adapters.
-4. Shared fitting utilities should remain model-independent.
-5. Model-specific fitting logic should live with the corresponding model helper layer.
-6. Solver improvements should benefit fitting automatically when the solver input/output contract is preserved.
-7. Diagnostic branches must not be promoted to production fitting outputs without explicit validation.
-8. GUI plotted fitted curves must distinguish fit-consistent objective values from optional dense diagnostic re-evaluations.
-
-The GUI-facing architecture follows the same separation used by the sweep tool:
-
-```text
-GUI panel
-    -> request struct
-    -> app/fitting dispatcher
-    -> model-specific adapter
-    -> maintained model API
-    -> normalized fit result
-    -> plotting/export
-```
+1. GUI code builds requests and renders normalized results.
+2. Optimizers and residual definitions remain in fitting backends.
+3. Model-specific adapters call maintained model APIs.
+4. Example and diagnostic scripts are not production dependencies.
+5. Objective values and optional full-curve evaluations remain distinguishable.
+6. A complete fitted curve is evaluated only after an explicit user action.
+7. Execution profile, route policy, and optimizer options remain separate concepts.
 
 ## Active GUI workflow
 
-The active GUI fitting surface is:
-
-```matlab
-FitTool_GUI
-```
-
-The GUI-side fitting layer is:
-
 ```text
-app/fitting/guiGetFitRegistry.m
-app/fitting/guiBuildFitRequest.m
-app/fitting/guiRunFit.m
-app/fitting/guiNormalizeFitResult.m
-app/fitting/guiEvaluateFitFullCurve.m
-app/fitting/guiPlotFitResult.m
+FitTool_GUI
+  -> guiBuildFitRequest
+  -> guiRunFit
+  -> model-specific fitting adapter
+  -> model fitting backend
+  -> maintained model API
+  -> guiNormalizeFitResult
+  -> guiPlotFitResult
 ```
 
-Model-specific GUI adapters are:
+Model-specific adapters:
 
 ```text
 app/adapters/guiFitRLSolver.m
@@ -79,23 +51,16 @@ app/adapters/guiFitMRLFESolver.m
 app/adapters/guiFitAcoustoelasticIOPHGOSolver.m
 ```
 
-The GUI workflow is:
+Fitted-curve helpers:
 
 ```text
-1. Load, paste, or generate experimental data.
-2. Select model family.
-3. Select branch.
-4. Select the free parameter.
-5. Set fixed parameters, initial guesses, and bounds.
-6. Run fitting.
-7. Plot experimental data, fit-consistent fitted values, optional fitted curve, and residuals.
-8. Inspect route/policy/status metadata.
-9. Export or inspect `FitToolLastOutput` for diagnostics.
+app/fitting/guiBuildFitDisplayCurve.m
+app/fitting/guiEvaluateRequestedFitCurve.m
 ```
 
-## Experimental data contract
+`guiBuildFitDisplayCurve` uses values already evaluated by the objective and never calls a forward solver. `guiEvaluateRequestedFitCurve` performs a new forward evaluation only after the user presses **Evaluate fitted curve**.
 
-The normalized experimental data structure uses explicit SI units:
+## Experimental data contract
 
 ```matlab
 experimental.frequency_Hz
@@ -111,89 +76,33 @@ experimental.frequency_Hz
 experimental.Cp_mps
 ```
 
-Optional fields:
+The internal contract uses Hz and m/s. Standard-error weighting is disabled by default unless explicitly requested.
+
+## Fit request contract
 
 ```matlab
-experimental.standardError_Cp_mps
-experimental.validMask
+fitRequest.modelFamily
+fitRequest.branchName
+fitRequest.experimental
+fitRequest.fixedParams
+fitRequest.freeParams
+fitRequest.initialGuess
+fitRequest.bounds
+fitRequest.controls
+fitRequest.options
 ```
 
-The internal fitting contract is:
-
-```text
-frequency in Hz
-phase speed in m/s
-standard error in m/s
-```
-
-`validMask` is an optional logical vector indicating which experimental points participate in fitting. If missing, the backend builds a default valid mask from finite `frequency_Hz` and finite `Cp_mps` values.
-
-Experimental standard error may be supplied as:
-
-```matlab
-experimental.standardError_Cp_mps
-```
-
-The default fitting path uses unweighted residuals unless fitting options explicitly enable standard-error weighting.
-
-## FitRequest contract
-
-A fitting request is represented as a structure with this conceptual schema:
-
-```matlab
-fitRequest = struct();
-
-fitRequest.modelFamily = "rayleigh_lamb";
-fitRequest.branchName = "A0";
-
-fitRequest.experimental.frequency_Hz = frequency_Hz;
-fitRequest.experimental.Cp_mps = Cp_mps;
-fitRequest.experimental.standardError_Cp_mps = [];
-fitRequest.experimental.validMask = [];
-
-fitRequest.fixedParams = struct();
-fitRequest.freeParams = ["mu"];
-
-fitRequest.initialGuess = struct();
-fitRequest.bounds = struct();
-
-fitRequest.options = struct();
-fitRequest.options.useStandardErrorWeights = false;
-```
-
-The exact fields may evolve, but the separation between experimental data, fixed parameters, free parameters, bounds, and options should remain stable.
-
-## Execution profile controls
-
-The canonical numerical profile field for GUI and adapter requests is:
+The canonical GUI numerical profile field is:
 
 ```matlab
 controls.executionProfile
 ```
 
-The historical field remains accepted as a compatibility alias:
+`controls.robustness` remains a compatibility alias. Builders canonicalize Fast, Balanced, or Robust and reject contradictory values.
 
-```matlab
-controls.robustness
-```
+## Fit result contract
 
-New code should set `executionProfile`. Builders canonicalize either field to
-`Fast`, `Balanced`, or `Robust`, reject contradictory values, and preserve the
-legacy alias for older consumers. The selected execution profile is separate
-from:
-
-- route policies such as mRLFE `physicalTail`;
-- AE `atlasA0` branch policy;
-- optimizer options such as `MaxIter`, `MaxFunEvals`, and `TolX`.
-
-FitTool defaults to `Fast` for all maintained model families. Rayleigh-Lamb and
-AE IOP/HGO apply all three profiles directly. mRLFE maps maintained FitTool
-fitting to the public mRLFE `fast` preset and reports requested/effective
-profile metadata. mRLFE fitting metadata reports the public `fast` preset.
-
-## FitResult contract
-
-A fitting result exposes the fitted values used by the objective and preserves raw solver metadata for diagnostics:
+The backend result exposes objective-consistent values and raw solver metadata:
 
 ```matlab
 fitResult.modelFamily
@@ -211,179 +120,95 @@ fitResult.optimizer
 fitResult.rawSolverResult
 ```
 
-The normalized GUI result may add plotting and route metadata, including:
+The normalized GUI result may add:
 
 ```matlab
 normalized.fullCurve
 normalized.requestedCurve
 normalized.routePolicy
 normalized.fitQuality
-```
-
-FitTool presents fit results as two separate summaries:
-
-```matlab
 normalized.parameterSummaryTable
 normalized.fitQualitySummaryTable
 ```
 
-`parameterSummaryTable` contains per-parameter fields such as role, value, unit,
-initial guess, and bounds. `fitQualitySummaryTable` contains global fit quality
-metrics such as RMSE, MAE, R2, baseline comparison, physical-quality warning,
-and identifiability. `normalized.summaryTable` is retained as a compatibility
-alias for the parameter summary.
+`normalized.fullCurve` is the fit-consistent display interpolation. It is not a solver-generated dense curve. `normalized.requestedCurve` is absent until explicitly requested.
 
-The GUI derives compact display tables from those normalized outputs:
+The visible parameter summary shows only the fitted parameter. Fixed parameters remain available in normalized metadata.
 
-```matlab
-guiBuildFitParameterDisplayTable
-guiBuildFitQualityDisplayTable
-```
-
-The visible parameter summary shows only the fitted parameter. Fixed parameters
-remain available in the normalized table and request metadata but are not
-repeated below the plot. The visible fit-quality summary is displayed vertically
-as `Metric | Value`; unavailable metrics such as AIC/BIC are hidden when their
-values are not finite.
-
-The optional `normalized.requestedCurve` is created only when the user explicitly
-presses **Evaluate fitted curve**. It is a fresh forward solver evaluation using
-the fitted parameter, fixed parameters, branch, execution profile, and route
-policy from the completed fit. It does not call the optimizer and is distinct
-from `normalized.fullCurve`, whose primary in-band curve remains fit-consistent
-with the objective values.
-
-## Model-specific fitting routes
+## Model-specific routes
 
 ### Rayleigh-Lamb
 
-Rayleigh-Lamb fitting uses:
-
-```matlab
-rlBuildFitProblem
-rlEvaluateFitModel
-rlFitDispersionData
-```
-
-Active workflow reference:
-
 ```text
-docs/models/rayleigh_lamb/fitting_workflow.md
+rlFitDispersionData
+  -> rlEvaluateFitModel
+  -> maintained Rayleigh-Lamb solver
 ```
 
 ### mRLFE
 
-mRLFE fitting uses:
-
-```matlab
-mrlfeBuildFitProblem
-mrlfeBuildFitSolveRequest
-mrlfeEvaluateFitModel
-mrlfeSolve
-mrlfeFitDispersionData
-```
-
-The maintained FitTool route is public-API-first:
-
 ```text
 mrlfeFitDispersionData
-  -> mrlfeBuildFitProblem
   -> mrlfeEvaluateFitModel
   -> mrlfeBuildFitSolveRequest
   -> mrlfeSolve
-  -> mrlfeBuildResult
 ```
 
-For A0Like FitTool fitting, the current default policy is:
+mRLFE objective evaluations use:
 
 ```matlab
-options.mrlfeA0Policy = "physicalTail";
+forwardModel.gridPolicy = "fitOptimized";
+minimumPointCount = 12;
+maximumPointCount = 40;
+maximumStep_Hz = 250;
 ```
 
-The public request uses `selection.strategy = "adaptive"`,
-`fallback.policy = "none"`, and branch-specific termination: A0Like uses
-`physicalTail`, while S0Like uses `none`. Objective evaluations, automatic
-full-curve diagnostics, and explicit requested fitted-curve evaluations all call
-`mrlfeEvaluateFitModel`, so they share the same public solver route and final
-fitted parameters.
+This grid preserves experimental frequencies and adds bounded continuation points.
 
-`mrlfeEvaluateAtlasFitModel` has been removed. Characterization compares
-maintained consumers directly against `mrlfeSolve`.
+The explicit requested full curve uses:
 
-Dense mRLFE solver re-evaluation is diagnostic metadata, not the primary fit curve. Active workflow references:
-
-```text
-docs/models/mrlfe/fitting_workflow.md
-docs/models/mrlfe/fittool_grid_path_sensitivity.md
+```matlab
+forwardModel.gridPolicy = "numericalPreset";
 ```
+
+and resolves Fast, Balanced, or Robust into the corresponding public numerical preset. A0Like uses `physicalTail`; S0Like uses `none`; fallback is disabled.
 
 ### Acoustoelastic IOP/HGO
 
-AE IOP/HGO fitting uses:
-
-```matlab
-aeBuildFitProblem
-aeEvaluateFitModel
-aeFitDispersionData
-```
-
-It uses the official atlas output for fitting and does not accept diagnostic branch families as fitted outputs.
-
-Active workflow reference:
-
 ```text
-docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
+aeFitDispersionData
+  -> aeEvaluateFitModel
+  -> maintained AE IOP/HGO API
 ```
+
+AE may legitimately use atlas terminology. This is separate from the removed legacy mRLFE atlas production routes.
 
 ## Physical quality and identifiability
 
-Shared fitting helpers include:
-
-```matlab
-computeDispersionFitResiduals
-computeDispersionFitMetrics
-computeConstantSpeedBaseline
-assessFitPhysicalQuality
-estimateLocalSensitivity
-assessFitIdentifiability
-```
-
-These helpers provide basic numerical and physical sanity checks. They are not a replacement for experimental validation.
-
-## FitTool visual state
-
-FitTool keeps axis limits in GUI-local state:
-
-```matlab
-axisViewState
-```
-
-This state controls only plotting and is intentionally excluded from fitting
-requests and solver options. In automatic mode, FitTool leaves the visible axis
-limit fields blank rather than using `0` as a sentinel value.
+Shared fitting helpers include residual calculation, fit metrics, constant-speed baseline comparison, physical-quality assessment, local sensitivity, and identifiability assessment. These checks are numerical diagnostics, not external experimental validation.
 
 ## Validation
 
-Smoke tests check that maintained APIs and GUI adapters run. Focused fitting validation checks synthetic parameter recovery.
-
-Use:
+Broad fitting validation:
 
 ```matlab
-clear; clc; close all;
-startup
-run_all_smoke_tests
 run_fit_validation_tests
 ```
 
-For mRLFE FitTool-specific route behavior, also use:
+mRLFE-focused validation:
 
 ```matlab
 run_mrlfe_fit_public_solver_tests
-run_mrlfe_legacy_cleanup_tests
+run_execution_profile_surface_tests
+run_gui_smoke_tests
 ```
 
-Detailed validation reference:
+The focused mRLFE suite checks public-solver routing, parameter regression, fit-grid behavior, absence of automatic solver reevaluation, and explicit full-curve evaluation.
+
+Detailed references:
 
 ```text
+docs/models/mrlfe/fitting_workflow.md
+docs/validation/mrlfe_grid_presets.md
 docs/workflows/fitting/validation_suite.md
 ```
