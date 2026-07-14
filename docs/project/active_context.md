@@ -4,19 +4,21 @@ Last reviewed: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
 Default branch: main
 Last known good merge: `ca0ccfc3ea636ae2e77f1a672d9d4e8d3304e7ba` (PR #110)
+Active branch: `test/mrlfe-contract-baseline`
 
 ## Current development focus
 
 The mRLFE public-solver migration and repository hygiene phase 1 are complete and
 merged into `main`.
 
-No next technical objective has been selected. The next session should first
-recover the current repository state, review the remaining work recorded by the
-cleanup audit, and choose one focused objective before creating a branch.
+The current focused branch restores the maintained mRLFE test-contract baseline.
+It updates stale preset and execution-profile expectations, removes duplicated
+FitTool work from the legacy-cleanup characterization, and requires exact
+consumer equivalence only when the compared routes use the same numerical grid
+policy.
 
-Repository hygiene remains an active multi-phase concern, but later phases are
-not automatically the next priority. They must be compared against open test,
-documentation, diagnostic, compatibility, and solver-layer issues.
+No solver mathematics, numerical presets, grid construction, GUI behavior,
+fitting behavior, sweep behavior, startup behavior, or runner names are changed.
 
 ## Recently completed capabilities
 
@@ -33,6 +35,9 @@ documentation, diagnostic, compatibility, and solver-layer issues.
 - Removal of generated execution-profile CSV snapshots.
 - Removal of the superseded `guiEvaluateFitFullCurve` helper.
 - Removal of two obsolete unregistered direct-visco route tests.
+- Restoration of the mRLFE public-contract, legacy-cleanup, Main GUI, FitTool,
+  mRLFE smoke, and GUI smoke validation baseline on
+  `test/mrlfe-contract-baseline`.
 
 Detailed phase 1 evidence:
 
@@ -50,34 +55,55 @@ docs/repository/repository_cleanup_phase1_report.md
 - A0Like uses `physicalTail`; S0Like uses `none`; fallback remains disabled.
 - FitTool optimization uses `gridPolicy = "fitOptimized"`.
 - A complete fitted curve is evaluated only after the explicit **Evaluate fitted curve** action and uses `gridPolicy = "numericalPreset"`.
+- Exact cross-surface Cp equality is a valid contract only when the compared routes use the same request and internal grid policy.
+- Main GUI quality status is derived from the returned public result; tests must not depend on one fixed case remaining marginal across validated preset changes.
 - AE IOP/HGO still uses valid atlas terminology; mRLFE legacy-atlas cleanup must not remove AE atlas code, tests, examples, or documentation.
 - Public test-runner wrappers under `tests/` remain intentional compatibility entrypoints.
 - The user performs merges manually unless explicitly requesting another workflow.
+
+## Validation status for the active branch
+
+The user executed and reported passing:
+
+```matlab
+test_mrlfe_public_contract_validation
+run_mrlfe_public_contract_tests
+test_mrlfe_main_gui_result_contract
+run_mrlfe_legacy_cleanup_tests
+run_mrlfe_main_gui_public_solver_tests
+run_mrlfe_fit_public_solver_tests
+run_mrlfe_smoke_tests
+run_gui_smoke_tests
+```
+
+The first individual defaults and consumer-equivalence tests were also exercised
+while diagnosing the runner failures. No extended grid matrix or broad fitting
+validation was required because this branch changes tests only and preserves all
+production numerical policies.
 
 ## Known limitations and open issues
 
 - Existing synthetic and route-contract tests are not external physical validation.
 - Grid-quality classifications near marginal branch tails can depend on the internal grid.
-- Dense full-matrix validation is expensive and should not be repeated for documentation or repository hygiene alone.
-- `run_mrlfe_public_contract_tests` contains a stale expectation that `balanced` is invalid, while the maintained implementation supports Balanced.
-- `test_mrlfe_legacy_cleanup_characterization` has a pre-existing exact FitTool/direct Cp equality failure.
-- Some long mRLFE suites exceeded the available execution timeout during hygiene phase 1; no pass was claimed for them.
+- Dense full-matrix validation is expensive and should not be repeated for documentation or test-contract-only changes.
+- Some long mRLFE suites exceeded the available execution timeout during hygiene phase 1; no pass is claimed for suites not rerun on this branch.
 - Historical documents may mention removed mRLFE routes as evidence; those names are not maintained production contracts.
 - Some tests intentionally inspect names, paths, runner wrappers, generated inventories, or absence of legacy routes.
 - Repository search alone may miss dynamic MATLAB calls; removal decisions require conservative verification.
+- A later dedicated test-suite audit may classify runners by scope and runtime, map unregistered tests, and reduce duplicated heavy coverage. It must remain separate from this localized repair.
 
 ## Provisional next-objective candidates
 
-These are options for review, not an approved sequence:
+These are options for review after the current branch is merged, not an approved sequence:
 
 1. **Documentation consolidation**
    - stale generic execution-profile audit and benchmark material;
    - historical mRLFE atlas/grid/route documents and exact-path tests;
    - fitting phase-log archive.
-2. **Test-contract repair**
-   - update stale Balanced preset expectations;
-   - diagnose the exact FitTool/direct Cp equality characterization failure;
-   - separate genuine regressions from obsolete assertions.
+2. **Test-suite audit**
+   - map tests to runners and identify unregistered or duplicated coverage;
+   - classify smoke, contract, regression, characterization, and heavy diagnostics;
+   - record practical runtime budgets without moving broad test families in the same task.
 3. **Diagnostic and compatibility audit**
    - diagnostic runtime/value review;
    - `aeCopyLegacyResultFolder`;
@@ -85,16 +111,14 @@ These are options for review, not an approved sequence:
    - old `solveMRLFEBranch` implementation.
 
 High-risk compatibility or solver-layer work must use separate model-focused
-branches and must not be combined with documentation cleanup.
+branches and must not be combined with documentation or test-suite cleanup.
 
 ## Next development guidance
 
-1. Update local `main` from `origin/main` and confirm the merge SHA.
-2. Read the persistent project documents before opening task-specific contracts.
-3. Summarize the current state and compare a maximum of three next objectives.
-4. Do not create a branch or modify files until the user selects the objective.
-5. After selection, create one dedicated branch from updated `origin/main`.
-6. Keep changes small, localized, validated, and ready for manual user merge.
+1. Complete static diff checks and open a PR from `test/mrlfe-contract-baseline`.
+2. The user reviews and merges the PR manually.
+3. After merge, update local `main` from `origin/main` before selecting another objective.
+4. Keep future changes small, localized, validated, and isolated by branch.
 
 ## Primary references
 
