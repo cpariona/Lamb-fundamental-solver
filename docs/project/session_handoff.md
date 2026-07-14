@@ -6,88 +6,137 @@ Current branch: main
 
 ## Current state
 
-PR #109 has been merged into `main`. The maintained mRLFE production architecture now routes Main GUI, SweepTool, and FitTool through `mrlfeSolve`.
+PR #109 is merged. The mRLFE public production architecture is stable and the
+post-merge documentation refresh is complete.
 
-Legacy mRLFE atlas/direct-visco production routes, route flags, fitting oracles, and obsolete route tests were removed. Historical documents may still mention those names only as pre-migration evidence.
-
-## Completed validation
-
-The merged implementation was validated with:
-
-- mRLFE public-contract and production-core suites;
-- Main GUI, SweepTool, and FitTool public-solver tests;
-- execution-profile surface tests;
-- GUI smoke tests;
-- lightweight fit-grid performance characterization;
-- full grid validation;
-- targeted validation of marginal full-matrix cases.
-
-The fit-optimized objective grid showed approximately 3.0x to 4.3x speedup against the Fast numerical-preset grid in the tested cases, with a worst relative phase-speed difference of 0.121% and no valid-mask differences.
-
-The full grid matrix produced aggregate preset failures only where the dense reference was already marginal. Targeted follow-up found no accepted reference solution degraded by the candidate grids.
-
-## Maintained FitTool behavior
+The active task is now repository hygiene. An initial audit has already been
+created:
 
 ```text
-Run fit
-  -> optimizer uses gridPolicy = fitOptimized
-  -> normalized display curve interpolates objective values
-  -> no automatic solver reevaluation
-
-Evaluate fitted curve
-  -> explicit forward evaluation only
-  -> gridPolicy = numericalPreset
-  -> selected Fast/Balanced/Robust profile
-  -> no optimizer call
+docs/repository/repository_cleanup_audit_2026-07-14.md
 ```
 
-Fit-grid defaults:
+That document contains candidate files and recommended phases. It is not a bulk
+deletion list. Each candidate must be verified against code references,
+documentation links, runners, fixtures, dynamic MATLAB invocation, and focused
+tests before removal or relocation.
 
-```matlab
-minimumPointCount = 12;
-maximumPointCount = 40;
-maximumStep_Hz = 250;
+## Required branch setup
+
+Do not modify `main` directly for the cleanup implementation.
+
+Start with:
+
+```bash
+git fetch origin
+git switch main
+git pull --ff-only origin main
+git status -sb
+git switch -c repo-hygiene-phase1-audit
 ```
 
-## Current maintenance task
+If that branch name already exists, use a similarly scoped new branch created
+from the updated `origin/main` state.
 
-Keep repository documentation aligned with the merged public solver architecture. Documentation-only updates may be committed directly to `main` when explicitly authorized, but should preserve maintained file paths, runner names, and strings that may be inspected by repository contract tests.
+## Cleanup objective
 
-## Known limitations
+Perform a complete repository audit and implement a conservative first cleanup
+batch. The work may cover documentation, generated artifacts, examples,
+diagnostics, tests, CSV snapshots, wrappers, and orphaned MATLAB helpers, but it
+must preserve maintained behavior.
 
-- Synthetic and route tests do not constitute external physical validation.
-- Quality classification can be grid-sensitive near already marginal branch tails.
-- Extended grid validation is expensive and should be repeated only for material solver or grid-policy changes.
-- AE IOP/HGO still uses valid atlas terminology; do not remove it when cleaning mRLFE legacy references.
+The first implementation batch should prioritize low-to-medium-risk candidates:
+
+1. generated or unreferenced sweep figures;
+2. the possibly orphaned `app/fitting/guiEvaluateFitFullCurve.m` helper;
+3. unregistered legacy-named mRLFE tests;
+4. generated or stale CSV snapshots;
+5. clearly superseded documentation that can be consolidated or archived safely.
+
+Do not assume any candidate is removable merely because its name appears legacy
+or because a text search has no result.
+
+## Mandatory reading
+
+Read in this order before changing files:
+
+1. `docs/project/README.md`
+2. `docs/project/active_context.md`
+3. `docs/project/session_handoff.md`
+4. `docs/repository/repository_structure.md`
+5. `docs/repository/naming_strategy.md`
+6. `docs/repository/maintained_entrypoints.md`
+7. `docs/repository/validation_status.md`
+8. `docs/repository/repository_hygiene_plan.md`
+9. `docs/repository/repository_cleanup_audit_2026-07-14.md`
+10. task-specific model/workflow documents for every candidate being changed
+
+## Critical safeguards
+
+- No solver-physics, GUI behavior, fitting behavior, sweep behavior, or execution-profile behavior changes.
+- Do not remove or rename maintained public APIs, model entrypoints, GUI adapters, runners, compatibility wrappers, or tests without complete caller/reference evidence.
+- AE IOP/HGO still uses valid atlas terminology. Do not apply mRLFE legacy-atlas conclusions to AE files.
+- Some tests inspect exact filenames, paths, strings, runner wrappers, inventories, or absence of legacy routes.
+- MATLAB may invoke code dynamically through strings, function handles, callbacks, paths, or registries.
+- Generated files may still serve as test fixtures or documentation assets.
+- Preserve a small curated PNG set only when it is intentionally referenced; binary `.fig` files require stronger justification to remain tracked.
+- Do not rerun the extended two-day mRLFE grid matrix for cleanup-only changes.
+- Do not open a PR or merge unless explicitly requested. Push the branch and report it for user review.
+
+## Required audit evidence for each candidate
+
+Before deleting, moving, consolidating, or renaming a file, record:
+
+1. exact path and classification: retain, archive, consolidate, or remove;
+2. exact symbol and filename search results;
+3. inbound code callers or lack thereof;
+4. documentation and README links;
+5. runner, registry, fixture, CSV, or path references;
+6. potential dynamic invocation risk;
+7. replacement coverage, if any;
+8. validation needed after the change.
+
+Keep this evidence in an updated cleanup audit or a new phase report under
+`docs/repository/`.
 
 ## Validation guidance
 
-For mRLFE code changes, select the relevant focused runners from:
+Always run:
 
-```matlab
-run_mrlfe_public_contract_tests
-run_mrlfe_production_core_tests
-run_mrlfe_neutral_production_helper_tests
-run_mrlfe_main_gui_public_solver_tests
-run_mrlfe_sweeptool_public_solver_tests
-run_mrlfe_fit_public_solver_tests
-run_mrlfe_legacy_cleanup_tests
+```bash
+git diff --check
 ```
 
-For documentation-only changes:
+Also run exact repository searches for every removed or moved name.
 
-1. preserve file paths and maintained runner names;
-2. search for broken or stale references;
-3. do not rerun the two-day extended grid matrix;
-4. run only documentation/naming contract tests if a referenced path or maintained name changes.
+Select MATLAB validation by scope:
 
-## Primary references
+- documentation/generated artifacts: focused smoke groups and link/path searches;
+- mRLFE code/tests/diagnostics: public-contract, production-core, FitTool, legacy-cleanup, and mRLFE smoke runners as applicable;
+- AE files: acoustoelastic smoke and fitting validation as applicable;
+- runner/startup/path changes: startup utilities and `run_all_smoke_tests`;
+- broad cleanup before review: `run_all_smoke_tests`.
 
-- `docs/project/active_context.md`
-- `docs/repository/validation_status.md`
-- `docs/models/mrlfe/README.md`
-- `docs/models/mrlfe/public_api.md`
-- `docs/models/mrlfe/production_core.md`
-- `docs/models/mrlfe/fitting_workflow.md`
-- `docs/validation/mrlfe_grid_presets.md`
-- `docs/workflows/fitting/architecture.md`
+Do not claim a MATLAB runner passed unless it was actually executed. If MATLAB is
+unavailable, report that limitation and stop short of high-risk deletion.
+
+## Commit and delivery rules
+
+- Prefer small coherent commits by category.
+- Avoid one large deletion commit.
+- Record exact commit SHAs.
+- Push the cleanup branch.
+- Do not merge.
+- Final report must include retained candidates as well as removed candidates.
+
+## Expected final report
+
+- branch name and base SHA;
+- audit methodology;
+- files retained, archived, consolidated, removed, or deferred;
+- dependency evidence for each changed candidate;
+- commits and final SHA;
+- exact validation commands and results;
+- known open risks;
+- final `git status -sb`;
+- recommended next cleanup phase.
