@@ -25,12 +25,11 @@ for i = 1:numel(cases)
         'computeVisco', cases(i).etaS > 0));
     guiResult = gui.metadata.modelResults.(char(cases(i).branch));
     assertSameResult(guiResult, direct, 'Main GUI');
-
-    [fitCp, fitRaw] = mrlfeEvaluateFitModel(localParams(), request.frequency_Hz, ...
-        cases(i).branch, mrlfeDefaultSweepOptions(cases(i).branch, 'EtaS', cases(i).etaS, 'A0Policy', "physicalTail"));
-    assertSameVector(fitCp, direct.phaseVelocity_mps, 'FitTool forward Cp mismatch.');
-    assert(isequal(fitRaw.validMask(:), direct.validMask(:)), 'FitTool forward valid mask mismatch.');
 end
+
+% FitTool route and optimized-grid equivalence are covered by the dedicated
+% run_mrlfe_fit_public_solver_tests runner. Keeping that work out of this
+% cleanup runner avoids duplicate solver evaluations and grid-policy coupling.
 
 fprintf('mRLFE legacy cleanup characterization test passed.\n');
 
