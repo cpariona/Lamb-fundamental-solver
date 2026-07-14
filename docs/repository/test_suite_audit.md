@@ -137,9 +137,11 @@ tests/
 ```
 
 `tests/README.md` says the migration has reached steady state and that all
-non-wrapper tests are inside the four owned folders. The tracked tree disproves
-that statement: the renderer contract and both FitTool data-import tests are
-non-wrapper implementations outside the target layout.
+non-wrapper tests are inside the four owned folders. At the audit baseline the
+tracked tree disproved that statement: the renderer contract and both FitTool
+data-import tests were non-wrapper implementations outside the target layout.
+Cleanup phase 1 moved only those three implementations into the maintained
+layout without changing their entrypoint names or runner membership.
 
 ## Compatibility-wrapper audit
 
@@ -155,13 +157,14 @@ dynamic delegation and high-confidence wrapper evidence.
 | `tests/run_core_smoke_tests.m` | `tests/runners/run_core_smoke_tests.m` | yes | nested by all-smoke and documented directly | retain; document |
 | `tests/run_gui_smoke_tests.m` | `tests/runners/run_gui_smoke_tests.m` | yes | nested by all-smoke and documented directly | retain; document |
 | `tests/run_mrlfe_legacy_cleanup_tests.m` | `tests/runners/run_mrlfe_legacy_cleanup_tests.m` | yes | nested by all-smoke and documented directly | retain; document |
-| `tests/run_mrlfe_production_core_tests.m` | `tests/runners/run_mrlfe_production_core_tests.m` | **no** | maintained-entrypoint and validation docs | retain; add to README |
-| `tests/run_mrlfe_public_contract_tests.m` | `tests/runners/run_mrlfe_public_contract_tests.m` | **no** | maintained-entrypoint and validation docs | retain; add to README |
+| `tests/run_mrlfe_production_core_tests.m` | `tests/runners/run_mrlfe_production_core_tests.m` | yes (phase 1) | maintained-entrypoint and validation docs | retain; documented |
+| `tests/run_mrlfe_public_contract_tests.m` | `tests/runners/run_mrlfe_public_contract_tests.m` | yes (phase 1) | maintained-entrypoint and validation docs | retain; documented |
 | `tests/run_mrlfe_smoke_tests.m` | `tests/runners/run_mrlfe_smoke_tests.m` | yes | nested by all-smoke and documented directly | retain; document |
 | `tests/fitting/run_fit_validation_tests.m` | `tests/runners/run_fit_validation_tests.m` | yes | maintained fitting-validation command | retain during legacy-folder migration |
 
-The discovered wrapper list is therefore two entries longer than the README
-list. `tests/run_main_gui_export_tests.m` is not a compatibility wrapper: it is
+At the audit baseline the discovered wrapper list was two entries longer than
+the README list; cleanup phase 1 aligned the documentation with all nine.
+`tests/run_main_gui_export_tests.m` is not a compatibility wrapper: it is
 a standalone root runner that starts the project, checks two export helpers,
 and calls `test_main_gui_export_contract` directly. Its public status should be
 documented before any relocation decision.
@@ -365,15 +368,16 @@ maintained contract is direct Fast/Balanced/Robust preset mapping.
 | eight root `run_*` delegators listed in wrapper audit | intentional compatibility wrappers | retain at root until an explicit deprecation plan |
 | `tests/run_main_gui_export_tests.m` | standalone public runner, not wrapper | document; optionally add maintained implementation plus wrapper in a later PR |
 | `tests/fitting/run_fit_validation_tests.m` | intentional legacy-folder wrapper | retain while public path is needed |
-| `tests/analysis/test_sweep_plot_renderer_contract.m` | misplaced shared sweep renderer contract | `tests/shared/sweeps/` |
-| `tests/fitting/test_gui_prepare_experimental_fit_data.m` | misplaced app FitTool data-import unit test | `tests/app/fitting/` |
-| `tests/fitting/test_gui_read_experimental_fit_file.m` | misplaced app FitTool data-import unit test | `tests/app/fitting/` |
+| `tests/shared/sweeps/test_sweep_plot_renderer_contract.m` | shared sweep renderer contract moved in cleanup phase 1 | retained in maintained shared layout |
+| `tests/app/fitting/test_gui_prepare_experimental_fit_data.m` | FitTool data-import unit test moved in cleanup phase 1 | retained in maintained app layout |
+| `tests/app/fitting/test_gui_read_experimental_fit_file.m` | FitTool data-import unit test moved in cleanup phase 1 | retained in maintained app layout |
 
 The two data-import tests are referenced by paths assembled in
-`run_fit_data_import_tests` and passed to `runtests`. Any relocation must update
-that file list in the same commit. The renderer test is called by the AE smoke
-runner but tests shared rendering across RL, mRLFE and AE; shared/sweeps is a
-material ownership improvement, not just aesthetic flattening.
+`run_fit_data_import_tests` and passed to `runtests`; cleanup phase 1 updated
+that file list atomically with the moves. The renderer test remains called by
+the AE smoke runner but tests shared rendering across RL, mRLFE and AE;
+shared/sweeps is a material ownership improvement, not just aesthetic
+flattening.
 
 ## mRLFE test-family analysis
 
