@@ -1,6 +1,6 @@
 # Validation status
 
-This document records the current validation entrypoints and the validation status expected before merging changes.
+This document records the maintained validation entrypoints and the validation status expected before merging changes.
 
 ## General smoke tests
 
@@ -14,7 +14,7 @@ startup
 run_all_smoke_tests
 ```
 
-For focused groups:
+Focused groups:
 
 ```matlab
 run_core_smoke_tests
@@ -27,8 +27,6 @@ run_mrlfe_smoke_tests
 
 Fitting validation is intentionally separate from smoke tests because it may be slower and checks synthetic parameter recovery rather than only API execution.
 
-Run:
-
 ```matlab
 run_fit_validation_tests
 ```
@@ -39,28 +37,56 @@ The fitting validation suite is documented in:
 docs/workflows/fitting/validation_suite.md
 ```
 
-## Focused mRLFE atlas validation
+## Maintained mRLFE validation
 
-The mRLFE atlas contract suite is separate from the broader mRLFE smoke suite because it checks branch-policy routing, direct-visco atlas compatibility, adaptive continuation, delayed modal cuts, and the high-level A0 policy selector.
+The maintained mRLFE architecture uses the public `mrlfeSolve` route. Atlas-specific production tests and runners were removed with the legacy routes.
 
-Run after changes to mRLFE atlas solvers, branch policies, or atlas diagnostics:
+Use these focused runners after changes to the public API, production core, GUI consumers, sweeps, fitting, tracking, termination, or cleanup contracts:
 
 ```matlab
-tests/run_mrlfe_legacy_cleanup_tests
+run_mrlfe_public_contract_tests
+run_mrlfe_production_core_tests
+run_mrlfe_neutral_production_helper_tests
+run_mrlfe_main_gui_public_solver_tests
+run_mrlfe_sweeptool_public_solver_tests
+run_mrlfe_fit_public_solver_tests
+run_mrlfe_legacy_cleanup_tests
 ```
 
-For dense numerical evidence, use the primary diagnostics documented in:
+`run_mrlfe_legacy_cleanup_tests` verifies that removed route flags, historical production dependencies, and obsolete maintained entrypoints do not return. It is not an atlas solver validation suite.
+
+Dense and targeted grid diagnostics are documented in:
 
 ```text
 examples/mrlfe/diagnostics/README.md
-docs/models/mrlfe/atlas_policy_notes.md
+docs/validation/mrlfe_grid_presets.md
 ```
 
-Dense diagnostics are not a replacement for contract tests and should not be added to lightweight smoke suites unless they are explicitly bounded in runtime.
+These diagnostics are not part of lightweight smoke suites because their runtime may be substantial.
+
+## mRLFE grid-validation status
+
+The production presets remain:
+
+```text
+fast     50 Hz
+balanced 25 Hz
+robust   20 Hz
+dense    10 Hz reference
+```
+
+The full extended matrix completed on 2026-07-14. Its aggregate preset acceptance failed because several dense-reference cases were already marginal, with quality labels such as `low_valid_fraction` or `large_relative_jump`.
+
+A targeted follow-up validation isolated those cases. No accepted dense-reference solution degraded under the candidate grids. Large pointwise differences were confined to already invalid or marginal branch tails. Therefore:
+
+- accepted reference solutions remain the blocking basis for preset equivalence;
+- marginal reference solutions remain diagnostic and do not independently reject a preset;
+- no repeat of the full two-day matrix is required for documentation-only or FitTool-only changes;
+- solver or grid-policy changes require focused tests first, followed by broader validation only when the affected cases justify it.
 
 ## Acoustoelastic IOP/HGO validation
 
-The maintained acoustoelastic IOP/HGO smoke suite includes tests for the official `atlasA0` policy, fallback invalidation, and identity-A0 diagnostic policy.
+The maintained acoustoelastic IOP/HGO smoke suite includes tests for the official `atlasA0` policy, fallback invalidation, and identity-A0 diagnostic policy. This atlas terminology belongs to the AE model and is separate from the removed mRLFE legacy atlas routes.
 
 Representative tests include:
 
@@ -70,8 +96,6 @@ test_acoustoelastic_iop_hgo_fallback_invalidation
 test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 ```
 
-`test_acoustoelastic_iop_hgo_fallback_invalidation` verifies that a fallback-selected atlas branch is preserved as diagnostic data but invalidated as official `Cp/validCp` output.
-
 For API, branch-policy, and module documentation, see:
 
 ```text
@@ -79,12 +103,11 @@ docs/models/acoustoelastic_iop_hgo/active/public_api.md
 docs/models/acoustoelastic_iop_hgo/active/branch_policy.md
 docs/models/acoustoelastic_iop_hgo/README.md
 docs/models/acoustoelastic_iop_hgo/documentation_index.md
-docs/models/acoustoelastic_iop_hgo/archive/main_gui_integration_closure.md
 ```
 
 ## Recommended validation command
 
-From the repository root:
+For broad code changes:
 
 ```matlab
 clear functions
@@ -98,28 +121,15 @@ run_mrlfe_smoke_tests
 run_fit_validation_tests
 ```
 
-`run_core_smoke_tests` includes `test_lightweight_numerical_regression`, a lightweight Rayleigh-Lamb, mRLFE, and AE IOP/HGO snapshot suite that does not write generated outputs.
+For mRLFE production-route changes, additionally run the focused public-contract and consumer runners listed above.
 
-For mRLFE atlas-specific changes, additionally run:
+For documentation-only changes, do not rerun expensive numerical matrices. Preserve existing paths and maintained runner names, search for broken references, and run only contract tests that explicitly inspect documentation or repository naming when applicable.
 
-```matlab
-tests/run_mrlfe_legacy_cleanup_tests
-```
-
-For documentation-only changes, it is sufficient to run the affected smoke groups and confirm there are no broken documentation links by grep/search.
-
-For startup/path policy changes, run:
+For startup/path policy changes:
 
 ```matlab
 test_startup_path_policy
 test_repository_root_utilities
 run_core_smoke_tests
 run_all_smoke_tests
-```
-
-For shared output-folder helper changes, run:
-
-```matlab
-test_model_output_folder_helpers
-run_core_smoke_tests
 ```
