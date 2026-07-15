@@ -243,9 +243,10 @@ Other aggregate runners remain unmeasured by the harness. In particular,
 
 ## Ownership-tier runner measurements
 
-The ownership reorganization measured the new tiers from the final working
-tree on MATLAB R2024b/PCWIN64. `measureTestRuntime` ran each runner once in the
-current MATLAB process; hard timeout enforcement remains unavailable.
+The ownership reorganization measured the new tiers from the working tree now
+committed as `ed1035f960b6a145cc6cd64a1c59972b1b7efa31` on MATLAB
+R2024b/PCWIN64. `measureTestRuntime` ran each runner once in the current MATLAB
+process; hard timeout enforcement remains unavailable.
 
 | Runner | Static test reach | Status | Elapsed seconds |
 | --- | ---: | --- | ---: |

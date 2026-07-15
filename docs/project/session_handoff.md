@@ -32,6 +32,9 @@ owner and the stale mapped-to-Fast benchmark is explicit manual/deferred work.
 
 All executed commands passed on MATLAB R2024b/PCWIN64:
 
+The measured runner implementation is commit
+`ed1035f960b6a145cc6cd64a1c59972b1b7efa31`.
+
 ```text
 run_quick_contract_tests                 134.42 s, 14 tests
 run_quick_smoke_tests                    352.14 s, 47 tests

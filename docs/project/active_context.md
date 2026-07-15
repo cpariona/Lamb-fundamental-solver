@@ -47,6 +47,9 @@ regressions, 40 extended-integration tests, and 54 tests from historical
 
 MATLAB R2024b on PCWIN64, one in-process run with no hard timeout:
 
+Measured runner implementation commit:
+`ed1035f960b6a145cc6cd64a1c59972b1b7efa31`.
+
 ```text
 run_quick_contract_tests                 passed   134.42 s
 run_quick_smoke_tests                    passed   352.14 s
