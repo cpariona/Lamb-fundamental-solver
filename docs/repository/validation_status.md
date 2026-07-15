@@ -129,6 +129,26 @@ run_gui_smoke_tests
 
 No pass is claimed for runners not executed on this branch. The extended grid matrix and broad fitting validation were not required because no production solver, grid, fitting, or GUI behavior changed.
 
+## Test-baseline repair status
+
+The three failures captured by the cleanup runtime audit have focused,
+evidence-backed repairs documented in
+`docs/repository/test_baseline_failure_diagnosis.md`:
+
+- AE `identityA0` diagnostics are projected to the requested result grid while
+  retaining the internal tracking grid for branch selection;
+- the lightweight mRLFE fixture now names the maintained fast preset grid,
+  branch policies, fallback state, quality state, and current public-solver
+  values explicitly;
+- the fast fitting regression asserts exact equivalence only for the same grid
+  policy and reports fit-optimized versus numerical-preset differences as a
+  diagnostic.
+
+The three individual tests pass on MATLAB R2024b/PCWIN64. The focused
+`run_acoustoelastic_smoke_tests`, `run_core_smoke_tests`, and
+`run_mrlfe_fit_public_solver_tests` runners also pass. No runner membership or
+public command changed.
+
 ## mRLFE grid-validation status
 
 The production presets remain:
@@ -151,7 +171,12 @@ A targeted follow-up validation isolated those cases. No accepted dense-referenc
 
 ## Acoustoelastic IOP/HGO validation
 
-The maintained acoustoelastic IOP/HGO smoke suite includes tests for the official `atlasA0` policy, fallback invalidation, and identity-A0 diagnostic policy. This atlas terminology belongs to the AE model and is separate from the removed mRLFE legacy atlas routes.
+The maintained acoustoelastic IOP/HGO smoke suite executes tests for the
+official `atlasA0` policy and fallback invalidation. It verifies that the
+standalone identity-A0 diagnostic contract is present but does not execute it;
+that test remains without executable maintained-runner registration. This
+atlas terminology belongs to the AE model and is separate from the removed
+mRLFE legacy atlas routes.
 
 Representative tests include:
 

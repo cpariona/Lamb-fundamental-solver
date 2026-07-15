@@ -2,102 +2,73 @@
 
 Updated: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: `test/test-suite-cleanup-phase1`
-Base: `origin/main` at `0c3375ed58524e4e85088cb2775d8a0323042617`
+Current branch: `test/test-baseline-failure-diagnosis`
+Base: `origin/main` at `ba7c1f2c88c34abc38ef781d5ec9c2bc184105f5`
 
-## Completed in cleanup phase 1
+## Completed baseline repairs
 
-The branch implements the audit's low-risk first phase without changing runner
-membership or production/test behavior:
+Three pre-existing runtime-audit failures were repaired one at a time.
 
-- active documentation now lists all nine deliberate compatibility wrappers;
-- `run_main_gui_export_tests` is documented as a standalone public runner;
-- mixed numerical/fitting/characterization runner descriptions are accurate;
-- `run_gui_smoke_tests` consistently displays 17 direct tests;
-- the three approved test implementations are in the maintained layout;
-- exact Fit import `runtests` paths point to `tests/app/fitting/`;
-- generated inventory and runner-edge CSVs were regenerated;
-- an individual-entry runtime harness, plan, CSV, and evidence report were added.
+1. AE identityA0 diagnostics were built on an 89-point internal tracking grid
+   while the public result had been projected to 40 requested points. The
+   wrapper now rebuilds the diagnostic through the maintained helper on exact
+   requested objective-map columns. After repair, result and candidate both
+   have 40 points; official validity is 23/40 and diagnostic validity 31/40.
+2. The lightweight mRLFE values came from the solver state before the public
+   production-core migration. Current Fast output is deterministic on an
+   explicit 71-point `500:50:4000` internal grid, with accepted quality and no
+   fallback. Both A0Like and S0Like selected fixtures were refreshed with a
+   `1e-9 m/s` absolute tolerance.
+3. The fast fitting test compared a 37-point `fitOptimized` solve to a
+   141-point `numericalPreset` solve. Cross-grid RMSE is
+   `0.00263863949118 m/s`; same-grid comparisons are exactly zero. The test now
+   separates same-grid equivalence from cross-grid characterization.
 
-No tests or wrappers were deleted. No runner calls were added or removed.
+See `docs/repository/test_baseline_failure_diagnosis.md` for Git history,
+requested/internal grids, masks, quality states, full numerical differences,
+and rationale for changing or preserving production code.
 
-## Structural evidence
+## Focused validation
 
-Before and after phase 1:
+All commands below passed on MATLAB R2024b/PCWIN64:
 
-```text
-tracked MATLAB files:       137
-tests:                      104
-runner implementations:     21
-compatibility wrappers:       9
-helpers:                       3
-runner edges:                149
-run_all reachable tests:      51
-unregistered tests:            6
-```
-
-After normalizing the three old/new path pairs, the runner-edge diff count is
-zero and the test membership diff count is zero.
-
-## Runtime evidence
-
-`analysis/test_inventory/measureTestRuntime.m` supports scalar or vector names,
-test/runner selection, repeats, failure continuation, portable CSV output, and
-min/median/max durations. It restores path/folder state and closes figures.
-Hard timeout interruption is unavailable in-process and is reported as false.
-
-Twenty individual priority tests were measured with MATLAB R2024b on PCWIN64 at
-commit `efe9026b6fabc556f4b439e64b9440c7e2630a41`: 17 passed and 3 failed. See
-`docs/repository/test_suite_runtime_evidence.md` for every duration, assertion
-message, unmeasured test, and provisional planning classification.
-
-The longest measured entries were:
-
-```text
-test_mrlfe_production_core_characterization   271.182 s
-test_mrlfe_sweep_point_characterization       264.119 s
-test_mrlfe_main_gui_characterization          109.959 s
-test_mrlfe_public_contract_characterization   107.654 s
-```
-
-The three assertion failures were recorded without modification or retry:
-
-```text
+```matlab
 test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 test_lightweight_numerical_regression
 test_mrlfe_fit_fast_options_quality
+run_acoustoelastic_smoke_tests
+run_core_smoke_tests
+run_mrlfe_fit_public_solver_tests
 ```
 
-## MATLAB validation completed
+The three repaired harness rows pass at commit `14501278` with one repeat and
+medians of 4.2971776 s, 2.6547612 s, and 11.3965243 s. Original failure
+messages remain preserved in the diagnosis and runtime-evidence documents.
 
-- inventory regeneration: 137 rows, 149 edges;
-- `checkcode` for `measureTestRuntime`: no issues;
-- two-repeat harness self-test: passed;
-- moved renderer contract: passed;
-- both moved Fit import unit-test files: passed;
-- `run_fit_data_import_tests`: passed;
-- `run_acoustoelastic_smoke_tests`: passed;
-- `test_startup_path_policy`: passed;
-- `test_repository_root_utilities`: passed;
-- all nine wrapper and target paths: verified independently of path ordering.
+## Scope preserved
 
-The prohibited all-smoke, 36-case matrix, obsolete benchmark contract, and
-execution-profile diagnostics runner were not executed.
+- No runner membership, public wrapper, test entrypoint, folder, or file name
+  changed.
+- No file was removed.
+- No mRLFE production code, numerical preset, profile mapping, fallback,
+  quality threshold, GUI behavior, fitting workflow, or sweep behavior changed.
+- No benchmark was redesigned.
+- No PR was opened and nothing was merged from this branch.
 
-## Next phase boundaries
+## Validation not executed
 
-- Diagnose the three recorded assertion failures separately.
-- Do not infer registration or runner ownership from runtime alone.
-- Keep quick/extended membership changes in a future dedicated branch.
-- Preserve historical public commands through wrappers where required.
-- Redesign the mapped-to-Fast benchmark separately; do not patch its assertions
-  as part of runner separation.
-- Keep any removal proposal isolated and evidence-backed.
+The task did not run `run_all_smoke_tests`,
+`test_execution_profile_validation_matrix`,
+`test_mrlfe_execution_profile_benchmark_contract`,
+`run_execution_profile_diagnostics_tests`, `run_fit_validation_tests`, or the
+full historical AE diagnostic grid. These are broader or explicitly deferred
+than the repaired contracts.
 
-## Working rules
+## Next-step boundaries
 
-- Refresh `origin/main` and create a new branch for each later phase.
-- Preserve solver physics, GUI/fitting/sweep behavior, and public APIs.
-- Use the inventory CSVs for static registration evidence and the runtime CSV
-  only for measured-duration evidence.
-- Do not open a PR or merge unless explicitly requested.
+- Review the diagnosis before proposing registration or runner separation.
+- Treat the fitting cross-grid difference as intentional route
+  non-equivalence, not a tolerance target.
+- Keep any benchmark redesign, runner split, or registration decision in a
+  separate branch.
+- Preserve the exact public commands and current no-fallback policies.
