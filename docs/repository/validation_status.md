@@ -110,9 +110,9 @@ These diagnostics are not part of lightweight smoke suites because their runtime
 as an aggregate of contract, characterization, and performance owners. Use
 `run_mrlfe_production_core_contract_tests` for the focused six-test numerical
 contract set.
-The execution-profile validation matrix remains extended. The obsolete
-mapped-to-Fast benchmark is explicitly manual/deferred and is excluded from
-quick, smoke, numerical-regression, and normal extended validation.
+The execution-profile validation matrix remains extended. The bounded direct-
+profile benchmark contract is owned by diagnostics; full descriptive benchmark
+mode remains manual and is excluded from quick, smoke, and numerical tiers.
 `run_main_gui_export_tests` remains a focused standalone export-contract
 runner.
 

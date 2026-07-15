@@ -153,8 +153,8 @@ routine smoke tests.
 
 - Review the historical execution-profile proposal and validation records before
   consolidating or archiving their former mapped-to-Fast evidence.
-- Redesign the mRLFE execution-profile benchmark around distinct public presets
-  instead of equality against Fast; keep it outside routine smoke validation.
+- Keep the full mRLFE descriptive benchmark outside routine smoke validation;
+  the bounded structural contract is owned by execution-profile diagnostics.
 - Add richer per-curve execution-profile metadata for multi-case sweep exports if
   downstream consumers need point-level auditability.
 - Keep `robustness` as a compatibility alias for at least one migration cycle.

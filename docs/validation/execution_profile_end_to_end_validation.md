@@ -49,7 +49,7 @@ The matrix includes these columns:
 | `Scenario` | Branch and mRLFE viscosity scenario. |
 | `RequestedProfile` | Canonical requested execution profile. |
 | `EffectiveProfile` | Profile that was actually applied. |
-| `SupportMode` | `fully_supported` or `mapped_to_fast`. |
+| `SupportMode` | `fully_supported` or `direct`. |
 | `InternalSolverPreset` | Solver preset, or `""` when not applicable. |
 | `InternalAtlasPreset` | Atlas preset, or `""` when not applicable. |
 | `RoutePolicy` | Physical route or branch policy, separate from profile. |
@@ -102,25 +102,19 @@ provided by the caller.
 
 ### mRLFE
 
-mRLFE intentionally remains mapped to the maintained public `fast` production
-preset on Main GUI, SweepTool, and FitTool. Historical atlas preset names remain
-diagnostic implementation metadata for legacy references and fitting oracles.
+mRLFE supports direct public Fast, Balanced, and Robust presets on Main GUI,
+SweepTool, and FitTool.
 
 | Surface | Scenario | Requested | Effective | Public preset | Route / engine |
 | --- | --- | --- | --- | --- | --- |
-| Main | `etaS = 0` | non-Fast | `Fast` | `fast` | `elastic_adaptive`, fallback none |
-| Main | `etaS > 0` | non-Fast | `Fast` | `fast` | `viscoelastic_adaptive`, fallback none |
-| SweepTool | `etaS = 0` | non-Fast | `Fast` | `fast` | `elastic_adaptive`, fallback none |
-| SweepTool | `etaS > 0` | non-Fast | `Fast` | `fast` | `viscoelastic_adaptive`, fallback none |
-| FitTool | any mRLFE fit scenario | non-Fast | `Fast` | `fast` | public solver; legacy path metadata may remain diagnostic |
+| Main | `etaS = 0` | any | requested | matching public preset | `elastic_adaptive`, fallback none |
+| Main | `etaS > 0` | any | requested | matching public preset | `viscoelastic_adaptive`, fallback none |
+| SweepTool | any | any | requested | matching public preset | public solver, fallback none |
+| FitTool | any | any | requested | matching public preset | public solver; fit-optimized objective grid |
 
-Non-Fast mRLFE requests are not errors. They are explicit mapped cases with:
-
-- `profileSupportMode = "mapped_to_fast"`;
-- `profileOverrideApplied = true`;
-- a stable nonempty `profileOverrideReason`.
-
-No new dense mRLFE profiles, routes, or fallbacks were introduced.
+All rows use `profileSupportMode = "direct"`, no profile override, and the
+matching lowercase public preset. No route or fallback is introduced by a
+profile selection.
 
 ## Bugs Found and Corrected
 
@@ -242,7 +236,7 @@ cases. It has no hardware-dependent pass/fail timing threshold.
 
 - The validation is headless; it does not prove visual widget layout or manual
   click behavior.
-- mRLFE Balanced and Robust remain mapped to Fast by design.
+- mRLFE Fast, Balanced, and Robust are direct public presets.
 - FitTool tests use short optimizer budgets to keep validation practical.
 - Full physical validation and experimental parameter recovery remain covered
   by the fitting validation suite, not by this execution-profile matrix.
