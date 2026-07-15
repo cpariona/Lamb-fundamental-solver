@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_MAINTAINED_ENTRYPOINTS_NAMING Guard maintained mRLFE naming surface.
 %

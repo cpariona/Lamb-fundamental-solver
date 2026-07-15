@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Test conservative official-output policy for fallback-selected atlasA0 branches.
 % This test disables the internal tracking grid deliberately, so the fixture

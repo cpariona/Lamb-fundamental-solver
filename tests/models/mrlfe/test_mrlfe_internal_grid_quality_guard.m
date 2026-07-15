@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_INTERNAL_GRID_QUALITY_GUARD Quality guard for the viscous internal-grid policy.
 %

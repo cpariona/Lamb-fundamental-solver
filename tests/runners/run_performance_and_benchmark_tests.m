@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Maintained descriptive timing evidence. The obsolete execution-profile
 % benchmark is deliberately excluded pending redesign.

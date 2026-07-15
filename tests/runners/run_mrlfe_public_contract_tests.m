@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning mRLFE public contract tests...\n');
 fprintf('------------------------------------\n');
@@ -22,7 +24,7 @@ fprintf('\n[mRLFE public group 2/3] result schema\n');
 run_mrlfe_public_result_contract_tests;
 
 fprintf('\n[mRLFE public group 3/3] route characterization\n');
-run_mrlfe_public_characterization_tests;
+test_mrlfe_public_contract_characterization;
 
 fprintf('\nmRLFE public contract tests passed.\n');
 

@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning mRLFE Main GUI public-solver migration tests...\n');
 fprintf('------------------------------------------------------\n');

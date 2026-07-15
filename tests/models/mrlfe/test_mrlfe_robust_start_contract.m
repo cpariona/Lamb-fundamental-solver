@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_ROBUST_START_CONTRACT Verify forward-only A0Like recovery.
 

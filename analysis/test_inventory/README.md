@@ -26,7 +26,7 @@ ownership = buildTestOwnership('WriteCsv', true, 'ValidateActual', true);
 ```
 
 The generated `test_runner_ownership.csv` contains one row for each of the 104
-tests, its canonical owner or explicit manual classification, runtime tier,
+tests, its canonical owner, runtime tier,
 aggregate reachability, and imported measured child runtime where available.
 `ValidateActual=true` requires exactly one executable direct runner edge for
 every non-manual test and no direct runner edge for a manual-only test.
@@ -91,6 +91,6 @@ closed between entries. It does **not** implement a hard timeout and records
 per isolated `matlab -batch` process and apply the timeout to that process. A
 terminated process cannot emit a trustworthy completed measurement row.
 
-`runtime_measurement_plan` returns the explicit phase-1 groups. Automatic
-measurement excludes the externally measured 36-case validation matrix, the
-obsolete mapped-to-Fast benchmark contract, and aggregate runners.
+`runtime_measurement_plan` preserves the phase-1 historical plan. Current quick
+contribution evidence is in `quick_runtime_contributions.csv`; the redesigned
+benchmark contract is executable through the diagnostics owner.

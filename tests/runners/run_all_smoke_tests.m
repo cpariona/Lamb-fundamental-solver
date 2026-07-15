@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Run the historical aggregate suite by delegating to focused group runners.
 % The current membership mixes contracts and smoke checks with representative

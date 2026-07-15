@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning execution profile surface tests...\n');
 fprintf('----------------------------------------\n');

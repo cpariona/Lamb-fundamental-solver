@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning fitting helper smoke test...\n');
 fprintf('------------------------------------\n');

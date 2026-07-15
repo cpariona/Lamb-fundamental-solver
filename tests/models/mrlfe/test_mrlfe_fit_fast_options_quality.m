@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning mRLFE fast fitting option quality test...\n');
 fprintf('------------------------------------------------\n');

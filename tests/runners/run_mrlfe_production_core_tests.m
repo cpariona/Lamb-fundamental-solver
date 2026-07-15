@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Preserve the historical broad command by aggregating canonical contract,
 % characterization, and performance owners.

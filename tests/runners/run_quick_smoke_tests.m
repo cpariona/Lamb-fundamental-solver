@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Recommended routine validation: contracts plus small model/surface executions.
 fprintf('\nRunning quick smoke validation...\n');

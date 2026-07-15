@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_ETAS_ZERO_LIMIT Contract test for the unified mRLFE real-k model.
 %

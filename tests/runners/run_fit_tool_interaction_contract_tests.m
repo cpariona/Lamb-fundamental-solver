@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % FitTool editing and axis helper behavior without requested-curve solves.
 fprintf('\nRunning FitTool interaction helper contract...\n');

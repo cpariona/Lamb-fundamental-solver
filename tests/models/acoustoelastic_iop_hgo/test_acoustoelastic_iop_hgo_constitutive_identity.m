@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Consistency test for the Acoustoelastic IOP/HGO constitutive block.
 % The acoustoelastic parameters should satisfy alpha - gamma = sigma for the

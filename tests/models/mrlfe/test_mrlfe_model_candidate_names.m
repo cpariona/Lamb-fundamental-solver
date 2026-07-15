@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_MODEL_CANDIDATE_NAMES Contract test for canonical mRLFE model candidates.
 %

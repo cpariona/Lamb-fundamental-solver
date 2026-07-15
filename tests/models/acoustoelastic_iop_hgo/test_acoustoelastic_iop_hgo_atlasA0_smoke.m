@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Smoke test for the maintained Acoustoelastic IOP/HGO atlas-A0 branch solver.
 % The maintained production policy is atlasA0.

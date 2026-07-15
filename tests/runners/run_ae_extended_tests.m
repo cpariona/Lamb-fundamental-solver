@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Solver-grid and synthetic fitting regressions are not quick smoke.
 fprintf('\nRunning extended acoustoelastic IOP/HGO tests...\n');

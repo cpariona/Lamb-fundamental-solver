@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Numerical mRLFE FitTool contracts kept outside routine quick validation.
 fprintf('\nRunning extended GUI fitting tests...\n');

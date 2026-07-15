@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning execution profile state transition contract test...\n');
 fprintf('---------------------------------------------------------\n');

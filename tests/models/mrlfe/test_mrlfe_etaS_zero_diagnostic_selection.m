@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_ETAS_ZERO_DIAGNOSTIC_SELECTION
 % Protect the diagnostic selection rule: etaS = 0 is the elastic real-k limit

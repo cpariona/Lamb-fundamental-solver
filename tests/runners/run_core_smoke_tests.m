@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Run core path/API contracts, cross-model numerical regression, shared fitting
 % helpers, and representative Rayleigh-Lamb and mRLFE synthetic fitting checks.

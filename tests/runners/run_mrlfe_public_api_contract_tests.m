@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Public defaults and validation contracts without a numerical solve.
 fprintf('\nRunning mRLFE public API contract tests...\n');

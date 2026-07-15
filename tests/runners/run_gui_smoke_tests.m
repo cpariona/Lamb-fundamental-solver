@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Run GUI, sweep, fitting, and execution-profile contracts and smoke checks.
 % Membership includes surface integration and is not a contracts-only runner.

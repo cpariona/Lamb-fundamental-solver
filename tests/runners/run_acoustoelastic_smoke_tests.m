@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Run maintained acoustoelastic IOP/HGO contracts plus representative atlas,
 % sweep-renderer, and synthetic-fitting execution checks.

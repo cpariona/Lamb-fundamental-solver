@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Extended fitted-curve metadata and the 36-case validation matrix.
 fprintf('\nRunning execution-profile integration tests...\n');

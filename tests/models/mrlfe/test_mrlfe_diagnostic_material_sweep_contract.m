@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_DIAGNOSTIC_MATERIAL_SWEEP_CONTRACT
 % Protect diagnostic E-equivalent sweeps under the maintained ShearPoisson
