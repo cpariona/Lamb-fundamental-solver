@@ -43,7 +43,7 @@ rawBranchTable = branchTable(branchTable.Condition == "corrected_raw_matrix", :)
 rawMinimaTable = minimaTable(minimaTable.Condition == "corrected_raw_matrix", :);
 
 if isempty(rawBranchTable) || isempty(rawMinimaTable)
-    error('No corrected_raw_matrix modal-atlas rows were found. Run diagnose_modal_atlas first.');
+    error('No corrected_raw_matrix modal-atlas rows were found. Run diagnose_acoustoelastic_iop_hgo_modal_atlas first.');
 end
 
 IOP_mmHg = unique(rawBranchTable.IOP_mmHg, 'stable');
@@ -180,7 +180,7 @@ elseif ~exist(branchFile, 'file') && exist(legacyLowBranchFile, 'file')
 end
 
 if ~exist(minimaFile, 'file') || ~exist(branchFile, 'file')
-    error('Modal-atlas CSV files were not found. Run diagnose_modal_atlas first.');
+    error('Modal-atlas CSV files were not found. Run diagnose_acoustoelastic_iop_hgo_modal_atlas first.');
 end
 end
 

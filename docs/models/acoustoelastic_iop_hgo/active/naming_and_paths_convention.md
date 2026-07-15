@@ -65,24 +65,21 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility
+diagnose_idA0_plausibility_impl
 ```
 
-Historical diagnostics retained for traceability:
+Repeatable diagnostics retained for scientific reproducibility:
 
 ```matlab
-validate_idA0_score_grid
-validate_idA0_grid
+validate_acoustoelastic_iop_hgo_branch_identity_score_grid
+validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 diagnose_idA0_score
-diagnose_modal_atlas
+diagnose_acoustoelastic_iop_hgo_modal_atlas
 track_raw_branch1
 ```
 
-instead of repeating the full model name in every script filename.
-
-`diagnose_modal_atlas` now starts at low frequency by design. The separate `diagnose_modal_atlas_lowfreq` entrypoint was removed and should not be listed as a retained command.
-
-Long descriptive files can remain as implementation files for retained diagnostics, but user-facing execution should use the maintained entrypoints. Do not retain compatibility aliases for renamed sweep entrypoints.
+Phase 1 removed simple forwarding aliases and retained the implementation names
+without renaming them. New files should still use short task-oriented names.
 
 ### Result folder convention
 
@@ -146,14 +143,6 @@ aeResolveResultFile(launchFolder, shortTaskName, shortFileName, legacyFolderName
 
 when reading files during migration. It checks the short path first, then falls back to the legacy path.
 
-Use:
-
-```matlab
-aeRunLegacyScript(scriptPath)
-```
-
-only for retained diagnostic wrappers that need to execute legacy descriptive implementation scripts. Do not use it to preserve old sweep names after a maintained sweep entrypoint is renamed.
-
 ### Migration rule
 
 Do not mass-delete existing scripts or result folders unless necessary. For maintained sweep entrypoint renames, rename the entrypoint directly, update active callers and documentation, and do not leave a wrapper or alias under the old name. Generated result folders do not need gratuitous renames.
@@ -177,15 +166,13 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility
-validate_idA0_score_grid
-validate_idA0_grid
+diagnose_idA0_plausibility_impl
+validate_acoustoelastic_iop_hgo_branch_identity_score_grid
+validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 diagnose_idA0_score
-diagnose_modal_atlas
+diagnose_acoustoelastic_iop_hgo_modal_atlas
 track_raw_branch1
 ```
-
-instead of the longer descriptive script names.
 
 ### Practical limit
 

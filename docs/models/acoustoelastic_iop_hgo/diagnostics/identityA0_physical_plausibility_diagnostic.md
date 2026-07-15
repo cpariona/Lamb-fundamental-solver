@@ -5,7 +5,7 @@ This diagnostic inspects `identityA0Diagnostic` candidate curves for visual and 
 It consumes the workspace produced by:
 
 ```matlab
-validate_idA0_grid
+validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 ```
 
 or the legacy descriptive entrypoint:
@@ -23,7 +23,7 @@ Use the maintained short entrypoint:
 ```matlab
 cd('E:\')
 startup
-diagnose_idA0_plausibility
+diagnose_idA0_plausibility_impl
 AcoustoelasticIOPHGOIdentityA0PhysicalPlausibilityAggregate
 ```
 

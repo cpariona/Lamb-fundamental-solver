@@ -25,7 +25,7 @@ Use the short entrypoint:
 ```matlab
 cd('E:\')
 startup
-validate_idA0_grid
+validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 AcoustoelasticIOPHGOIdentityA0DiagnosticGridAggregate
 ```
 

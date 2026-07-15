@@ -267,7 +267,10 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility
+diagnose_idA0_plausibility_impl
+diagnose_acoustoelastic_iop_hgo_modal_atlas
+validate_acoustoelastic_iop_hgo_branch_identity_score_grid
+validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 ```
 
 Maintained AE IOP/HGO fitting test:
@@ -384,17 +387,22 @@ Maintained mRLFE fitting example:
 fit_mrlfe_A0Like
 ```
 
+Maintained mRLFE compatibility example:
+
+```matlab
+run_mrlfe_prototype
+```
+
 Maintained mRLFE diagnostics:
 
 ```matlab
-diagnose_mrlfe_atlas_primary_policy_matrix
 diagnose_mrlfe_fit_performance
 run_mrlfe_targeted_grid_validation
 validate_grid_presets
 validate_grid_presets_full
 ```
 
-Additional mRLFE secondary and historical diagnostics are documented in:
+The active diagnostic runtime and output contracts are documented in:
 
 ```text
 examples/mrlfe/diagnostics/README.md
@@ -550,7 +558,6 @@ docs/repository/repository_structure.md
 docs/repository/naming_strategy.md
 docs/repository/validation_status.md
 docs/repository/maintained_entrypoints.md
-docs/repository/repository_hygiene_plan.md
 docs/workflows/fitting/README.md
 docs/workflows/fitting/architecture.md
 docs/workflows/fitting/validation_suite.md
@@ -558,10 +565,8 @@ docs/models/mrlfe/README.md
 docs/models/mrlfe/fitting_workflow.md
 docs/models/mrlfe/current_sweeps.md
 docs/models/mrlfe/diagnostics/README.md
-docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md
 examples/mrlfe/diagnostics/README.md
 docs/workflows/gui/adapter_architecture.md
-docs/workflows/gui/mrlfe_atlas_policy_integration.md
 docs/workflows/sweeps/parametric_sweeps.md
 docs/workflows/sweeps/sweep_tool_usage.md
 docs/models/acoustoelastic_iop_hgo/README.md

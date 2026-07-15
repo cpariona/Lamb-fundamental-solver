@@ -19,7 +19,7 @@ Use the short entrypoint:
 ```matlab
 cd('E:\')
 startup
-validate_idA0_score_grid
+validate_acoustoelastic_iop_hgo_branch_identity_score_grid
 AcoustoelasticIOPHGOBranchIdentityScoreGridAggregate
 ```
 

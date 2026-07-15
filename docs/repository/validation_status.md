@@ -2,6 +2,24 @@
 
 This document records the maintained validation entrypoints and the validation status expected before merging changes.
 
+## Repository cleanup Phase 1 status
+
+The 2026-07-15 deletion phase passed startup/path checks, all three routine
+gates, focused mRLFE public/production/smoke gates, focused AE quick/full smoke,
+and `run_all_smoke_tests`. The mRLFE production characterization reported zero
+Cp difference.
+
+Test ownership regenerated at 105 tests and 206 edges with zero unowned tests,
+multiple canonical owners, sibling direct overlaps, manual-only tests, or
+cycles. Relative Markdown links were 0 broken before and after. Code Analyzer
+reported one stale suppression before cleanup and 0 findings after the fix
+across 10 modified MATLAB files.
+
+Extended integration was not run because the deleted files had no extended-
+owned coverage. Full fitting validation was not run separately because no
+fitting helper or fitting behavior changed; GUI and AE fitting contracts passed
+through focused and aggregate smoke coverage.
+
 ## Public runner topology
 
 Nine maintained public commands are compatibility wrappers: eight wrappers at

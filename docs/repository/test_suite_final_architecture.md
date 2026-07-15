@@ -8,8 +8,8 @@ Every maintained test has exactly one direct canonical owner. Aggregates call
 owners, not sibling tests. Runtime is descriptive evidence and never a failure
 threshold. Public wrappers and historical commands remain compatible.
 
-Final static state: 159 tracked MATLAB files, 104 tests, 43 runner
-implementations, 9 wrappers, 3 helpers, 205 graph edges, 104 canonical owners,
+Final static state: 160 tracked MATLAB files, 105 tests, 43 runner
+implementations, 9 wrappers, 3 helpers, 206 graph edges, 105 canonical owners,
 0 manual-only tests, 0 unowned tests, 0 multiple owners, 0 sibling direct
 overlaps, and 0 runner cycles.
 
@@ -20,7 +20,7 @@ overlaps, and 0 runner cycles.
 | Quick contract | `run_quick_contract_tests` | 14 | paths, schemas, metadata, invalid inputs, imports, pure helpers |
 | Quick smoke | `run_quick_smoke_tests` | 47 | quick contracts plus bounded GUI/AE/mRLFE representative execution |
 | Numerical regression | `run_numerical_regression_tests` | 14 | deterministic numerical evidence without multi-profile preset characterization or mRLFE fitting-grid studies |
-| Extended integration | `run_extended_integration_tests` | 43 | matrices, fitting validation, consumer characterization, and moved mRLFE fitting/preset coverage |
+| Extended integration | `run_extended_integration_tests` | 44 | matrices, fitting validation, consumer characterization, and moved mRLFE fitting/preset coverage |
 | Performance | `run_performance_and_benchmark_tests` | 2 | descriptive timing only |
 | Diagnostics | `run_execution_profile_diagnostics_tests` | 2 | formatting plus bounded mRLFE benchmark contract |
 
@@ -36,20 +36,13 @@ remain public. `run_all_smoke_tests` remains the historical broad aggregate; it
 is not the quick gate. Its 54-test transitive coverage is unchanged. Focused
 historical execution-profile aggregate names also remain resolvable.
 
-## Runtime evidence
+## Runtime policy
 
-On MATLAB R2024b/PCWIN64, committed before-runtimes were 134.42 s, 352.14 s,
-and 256.08 s. After setup isolation and tier correction, measured runtimes were
-32.101 s, 76.053 s, and 36.158 s respectively. The after-runs occurred while a
-separate long-lived MATLAB session was active, so they are conservative and not
-cross-machine thresholds. Child evidence is in
-`analysis/test_inventory/quick_runtime_contributions.csv`.
-
-The dominant prior costs were repeated `startup`, the 14-test mRLFE smoke
-owner, and `test_mrlfe_production_core_presets`. The preset execution and the
-mRLFE fitting regression owner moved to extended. Lightweight preset-grid,
-result-schema, public validation, and representative model solves remain in
-quick/regression.
+Runtime is descriptive evidence, never a pass/fail threshold. Use
+`measureTestRuntime` when current machine-specific evidence is needed; completed
+timing snapshots are preserved in Git history rather than the active contract
+surface. Quick tiers exclude known characterization matrices and performance
+owners by ownership policy.
 
 ## Benchmark policy
 
@@ -78,18 +71,18 @@ and owner boundaries remain stable and a navigation problem is demonstrated.
 
 ## Command by scenario
 
-| Scenario | Command | Expected scope | Observed runtime | When to use |
-| --- | --- | --- | ---: | --- |
-| Documentation only | `git diff --check` plus link searches | no MATLAB behavior | n/a | prose-only changes |
-| Path/helper | `run_quick_contract_tests` | 14 contracts | 32.101 s | path or helper edits |
-| GUI adapter | `run_quick_smoke_tests` plus focused GUI owner | routine surfaces | 76.053 s quick | adapter changes |
-| Model numerical | `run_numerical_regression_tests` plus model owner | deterministic models | 36.158 s | solver-facing changes |
-| Fitting | `run_fit_validation_tests` | full recovery/QC | recorded per run | fitting changes |
-| Execution profile | `run_execution_profile_end_to_end_tests` and diagnostics | matrix plus benchmark contract | extended | profile changes |
-| Pre-PR focused | quick contract + quick smoke + numerical | routine gates | about 144 s combined here | normal branch closeout |
-| Full extended | focused children of `run_extended_integration_tests` | matrices and characterization | multi-minute | scope-driven validation |
-| Manual diagnostics | `run_execution_profile_diagnostics_tests` | formatting/structural benchmark | bounded | diagnostics changes |
-| Benchmark characterization | `benchmarkMRLFEExecutionProfiles('Mode',"full")` | 36 descriptive rows | machine-specific | explicit benchmark work |
+| Scenario | Command | Expected scope | When to use |
+| --- | --- | --- | --- |
+| Documentation only | `git diff --check` plus link searches | no MATLAB behavior | prose-only changes |
+| Path/helper | `run_quick_contract_tests` | 14 contracts | path or helper edits |
+| GUI adapter | `run_quick_smoke_tests` plus focused GUI owner | routine surfaces | adapter changes |
+| Model numerical | `run_numerical_regression_tests` plus model owner | deterministic models | solver-facing changes |
+| Fitting | `run_fit_validation_tests` | full recovery/QC | fitting changes |
+| Execution profile | `run_execution_profile_end_to_end_tests` and diagnostics | matrix plus benchmark contract | profile changes |
+| Pre-integration focused | quick contract + quick smoke + numerical | routine gates | normal branch closeout |
+| Full extended | focused children of `run_extended_integration_tests` | matrices and characterization | scope-driven validation |
+| Manual diagnostics | `run_execution_profile_diagnostics_tests` | formatting/structural benchmark | diagnostics changes |
+| Benchmark characterization | `benchmarkMRLFEExecutionProfiles('Mode',"full")` | descriptive public-profile rows | explicit benchmark work |
 
 Validation cadence: run quick gates for every maintained code change, focused
 owners for the changed surface, extended blocks before integration when their

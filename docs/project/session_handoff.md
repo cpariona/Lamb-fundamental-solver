@@ -1,42 +1,47 @@
 # Session handoff
 
 Updated: 2026-07-15
-Branch: `refactor/mrlfe-line-and-repository-cleanup`
-Base audit head: `2cfe264625ab3f7485a06389d315190fe9a7b67e`
+Branch: `cleanup/remove-obsolete-repository-content`
+Base: `bf79cb468de66b76dbfe0e52ef8389e9ca0d025e`
 
 ## Completed work
 
-The mRLFE architecture cleanup, diagnostic consolidation, and documentation
-reduction are complete. See:
+Phase 1 removed 37 tracked files: completed reports and audit artifacts,
+historical timing evidence, all five mRLFE archive scripts, one broken mRLFE
+atlas-policy diagnostic, four AE forwarding aliases, two compatibility helpers,
+six superseded AE truncation helpers, two old mRLFE root refiners, and two
+completed execution-profile utilities.
 
-```text
-docs/repository/mrlfe_line_and_repository_cleanup_report.md
-analysis/repository_audit/
-analysis/test_inventory/
-```
+Current tracked measurements are 491 files, 422 MATLAB files, 63 Markdown
+files, 4 CSV files, 46,994 physical lines, and 38,534 nonblank/noncomment lines.
+There are 17 diagnostic scripts and no tracked archive files.
 
-The implementation preserves physics and numerical contracts while
-centralizing request construction, surface metadata, and compatibility-result
-adaptation. The orphan legacy solver is absent, and archived diagnostics are
-excluded by `startup`.
+## Validation
 
-## Validation ownership
-
-Use the routine gates for later maintained changes:
+Passed on MATLAB R2024b/PCWIN64:
 
 ```matlab
+test_startup_path_policy
+test_repository_root_utilities
 run_quick_contract_tests
 run_quick_smoke_tests
 run_numerical_regression_tests
+run_mrlfe_public_contract_tests
+run_mrlfe_production_core_tests
+run_mrlfe_smoke_tests
+run_ae_quick_tests
+run_acoustoelastic_smoke_tests
+run_all_smoke_tests
 ```
 
-Use `run_all_smoke_tests` as the strongest repository-wide completion gate
-when maintained MATLAB behavior changes. Rebuild deterministic evidence with:
+Test ownership regenerated deterministically at 105 tests and 206 edges with
+zero unowned tests, multiple owners, sibling overlaps, manual-only tests, or
+cycles. Relative Markdown links remain 0 broken. Code Analyzer finished at 0
+findings across the 10 modified MATLAB files.
 
-```matlab
-buildTestInventory('WriteCsv', true)
-buildTestOwnership('WriteCsv', true, 'ValidateActual', true)
-buildRepositoryDensityAudit('WriteCsv', true, 'ValidatePaths', true)
-```
+`run_extended_integration_tests` was not executed because no deleted file had
+extended-owned coverage. `run_fit_validation_tests` was not run separately
+because no fitting helper or fitting behavior changed; AE synthetic fitting and
+GUI fitting contracts passed through focused and aggregate smoke coverage.
 
-No PR or merge was created for this branch.
+No pull request or merge was created.

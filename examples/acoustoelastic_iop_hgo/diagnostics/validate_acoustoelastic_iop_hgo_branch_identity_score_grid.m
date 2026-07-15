@@ -5,7 +5,7 @@ startup
 %VALIDATE_ACOUSTOELASTIC_IOP_HGO_BRANCH_IDENTITY_SCORE_GRID
 % Legacy descriptive implementation for branch-identity score grid validation.
 % Prefer the short entrypoint:
-%   validate_idA0_score_grid
+%   validate_acoustoelastic_iop_hgo_branch_identity_score_grid
 %
 % New outputs are written to:
 %   Results/ae_iop_hgo/idA0_score_grid

@@ -1,6 +1,6 @@
 # Documentation index
 
-This folder is organized by active documentation, model-family documentation, and archived implementation history.
+This folder is organized by active repository, workflow, validation, and model-family documentation.
 
 ## Active repository-level references
 
@@ -9,7 +9,6 @@ docs/repository/repository_structure.md
 docs/repository/naming_strategy.md
 docs/repository/validation_status.md
 docs/repository/maintained_entrypoints.md
-docs/repository/repository_hygiene_plan.md
 ```
 
 ## Active topic folders
@@ -53,7 +52,6 @@ docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
 
 ```text
 docs/workflows/gui/adapter_architecture.md
-docs/workflows/gui/mrlfe_atlas_policy_integration.md
 docs/architecture/execution_profiles_surface_integration.md
 docs/validation/execution_profile_end_to_end_validation.md
 docs/validation/execution_profile_diagnostics_validation.md
@@ -79,19 +77,9 @@ docs/models/mrlfe/README.md
 docs/models/mrlfe/fitting_workflow.md
 docs/models/mrlfe/current_sweeps.md
 docs/models/mrlfe/diagnostics/README.md
-docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md
 docs/models/acoustoelastic_iop_hgo/README.md
 docs/models/acoustoelastic_iop_hgo/documentation_index.md
 ```
-
-## Cleanup planning
-
-```text
-docs/repository/repository_hygiene_plan.md
-docs/repository/mrlfe_line_and_repository_density_audit.md
-```
-
-Use the current contracts and maintained-entrypoint index before deleting, archiving, or consolidating documentation, examples, diagnostics, or tests.
 
 ## Historical documentation
 
@@ -100,4 +88,4 @@ in Git history rather than on the active documentation surface.
 
 ## Cleanup policy
 
-Root-level `docs/*.md` should be limited to repository-wide references and this index. Topic-specific documents should live under their topic folder. Historical implementation logs should live under `docs/archive/` or the model-specific `archive/` folder.
+Root-level `docs/*.md` should be limited to repository-wide references and this index. Topic-specific documents should live under their topic folder. Git history preserves completed implementation logs and retired investigations.

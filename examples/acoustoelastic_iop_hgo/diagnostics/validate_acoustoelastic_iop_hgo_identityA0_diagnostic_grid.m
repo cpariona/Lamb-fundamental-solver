@@ -5,7 +5,7 @@ startup
 %VALIDATE_ACOUSTOELASTIC_IOP_HGO_IDENTITYA0_DIAGNOSTIC_GRID
 % Legacy descriptive implementation for identityA0Diagnostic grid validation.
 % Prefer the short entrypoint:
-%   validate_idA0_grid
+%   validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 %
 % New outputs are written to:
 %   Results/ae_iop_hgo/idA0_grid

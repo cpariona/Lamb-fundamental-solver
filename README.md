@@ -51,12 +51,6 @@ The maintained GUI adapter architecture is documented in:
 docs/workflows/gui/adapter_architecture.md
 ```
 
-Repository cleanup policy is tracked in:
-
-```text
-docs/repository/repository_hygiene_plan.md
-```
-
 ## Launching the GUI
 
 From the repository root, run:
@@ -220,14 +214,13 @@ compare_mrlfe_elastic_vs_visco_cp
 Focused mRLFE diagnostics:
 
 ```matlab
-diagnose_mrlfe_atlas_primary_policy_matrix
 diagnose_mrlfe_fit_performance
 run_mrlfe_targeted_grid_validation
 validate_grid_presets
 validate_grid_presets_full
 ```
 
-The complete mRLFE diagnostic inventory and historical cleanup candidates are documented in:
+The complete active mRLFE diagnostic inventory is documented in:
 
 ```text
 examples/mrlfe/diagnostics/README.md

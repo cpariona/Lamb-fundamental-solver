@@ -5,7 +5,7 @@ startup
 %DIAGNOSE_IDA0_PLAUSIBILITY_IMPL Implementation for identityA0 plausibility diagnostic.
 % Diagnostic implementation for identityA0Diagnostic plausibility.
 % Prefer the short entrypoint:
-%   diagnose_idA0_plausibility
+%   diagnose_idA0_plausibility_impl
 %
 % New outputs are written to:
 %   Results/ae_iop_hgo/idA0_plausibility

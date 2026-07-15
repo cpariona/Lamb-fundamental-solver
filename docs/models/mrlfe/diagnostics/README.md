@@ -3,9 +3,10 @@
 Executable maintained diagnostics and their runtime/output contracts are
 indexed in [`examples/mrlfe/diagnostics/README.md`](../../../../examples/mrlfe/diagnostics/README.md).
 
-`tracker_diagnostic_summary.md` preserves current quantitative interpretation.
-Historical scripts under `examples/mrlfe/diagnostics/archive/` are not active
-contracts and are excluded from `startup`.
+The active diagnostics are `diagnose_mrlfe_fit_performance`,
+`run_mrlfe_targeted_grid_validation`, `validate_grid_presets`, and
+`validate_grid_presets_full`. Retired investigations are available in Git
+history.
 
 Current API, fitting, and solver truth is owned by:
 

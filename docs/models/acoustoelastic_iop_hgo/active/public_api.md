@@ -48,7 +48,6 @@ aeSummarizeSweep
 summarizeAcoustoelasticIOPHGOTrackingQuality
 aeOutputFolder
 aeResolveResultFile
-aeRunLegacyScript
 aeScoreBranchIdentityCandidates
 aeBuildIdentityA0DiagnosticBranch
 aeDiagnoseAtlasA0TruncationCause
@@ -66,9 +65,9 @@ aeDefaultIdentityA0ValidationGrid
 
 `aeExtractRawBranch1Candidate` is diagnostic infrastructure. It supports `track_raw_branch1` and `compare_atlasA0_vs_raw_branch1`; it does not promote `raw_branch1` to production output.
 
-`aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic. The maintained `diagnose_modal_atlas` entrypoint starts at low frequency by design, so no separate low-frequency modal-atlas entrypoint is maintained.
+`aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic. The retained `diagnose_acoustoelastic_iop_hgo_modal_atlas` implementation starts at low frequency by design.
 
-`aeDefaultIdentityA0ValidationParams`, `aeDefaultIdentityA0ValidationOptions`, and `aeDefaultIdentityA0ValidationGrid` centralize the shared heavy-validation setup used by `validate_idA0_grid` and `validate_idA0_score_grid`.
+`aeDefaultIdentityA0ValidationParams`, `aeDefaultIdentityA0ValidationOptions`, and `aeDefaultIdentityA0ValidationGrid` centralize the shared heavy-validation setup used by the two retained long validation implementations.
 
 ## Fitting helpers
 
@@ -102,28 +101,25 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility
+diagnose_idA0_plausibility_impl
 ```
 
-## Historical diagnostics retained for traceability
+## Repeatable diagnostics retained for scientific reproducibility
 
 ```matlab
 diagnose_idA0_score
-validate_idA0_grid
-validate_idA0_score_grid
-diagnose_modal_atlas
+validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
+validate_acoustoelastic_iop_hgo_branch_identity_score_grid
+diagnose_acoustoelastic_iop_hgo_modal_atlas
 diagnose_grid_start_sensitivity
 track_raw_branch1
 ```
 
 ## Removed redundant entrypoints
 
-```matlab
-diagnose_modal_atlas_lowfreq
-diagnose_acoustoelastic_iop_hgo_low_frequency_modal_atlas
-```
-
-The separate low-frequency modal-atlas entrypoints were removed because low-frequency initialization is now implicit in `diagnose_modal_atlas`.
+Redundant forwarding aliases with no unique logic are not part of the public
+API. Their retained implementation targets are called directly until a later
+dedicated naming phase.
 
 ## Maintained tests
 

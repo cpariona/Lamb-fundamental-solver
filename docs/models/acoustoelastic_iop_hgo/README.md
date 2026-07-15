@@ -7,8 +7,6 @@ This folder contains documentation for the acoustoelastic IOP/HGO branch of the 
 ```text
 active/       current operational references
 diagnostics/  diagnostic evidence and validation notes
-audits/       cleanup, retention, and maintenance records
-archive/      historical exploratory notes
 ```
 
 For the curated documentation map, start with:
@@ -85,7 +83,10 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility
+diagnose_idA0_plausibility_impl
+diagnose_acoustoelastic_iop_hgo_modal_atlas
+validate_acoustoelastic_iop_hgo_branch_identity_score_grid
+validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
 ```
 
 Focused smoke runner:
@@ -104,12 +105,9 @@ Do not execute long legacy scripts directly unless reproducing historical behavi
 | `active/branch_policy.md` | Branch policy summary and official atlas-A0 selection rule. |
 | `active/sweep_workflow.md` | Sweep workflow documentation. |
 | `active/fitting_workflow.md` | Fitting workflow documentation. |
-| `active/examples_inventory.md` | Current executable inventory under `examples/acoustoelastic_iop_hgo/`. |
 | `active/solver_optimization_status.md` | Current solver policy, validation status, and ambiguity boundary. |
 | `active/naming_and_paths_convention.md` | Short-name and result-path convention. |
 | `active/solver_pending_work.md` | Pending solver-side numerical work. |
-| `archive/main_gui_integration_closure.md` | Main-GUI integration closure note. |
-| `audits/framework_hygiene_status.md` | Framework hygiene and retained implementation status. |
 
 ## Structure convention
 
@@ -125,16 +123,11 @@ tests/models/acoustoelastic_iop_hgo/          model tests
 tests/app/                                    app-layer integration tests
 docs/models/acoustoelastic_iop_hgo/active/           current module documentation
 docs/models/acoustoelastic_iop_hgo/diagnostics/      diagnostic evidence
-docs/models/acoustoelastic_iop_hgo/audits/           maintenance records
-docs/models/acoustoelastic_iop_hgo/archive/          historical notes
 Results/ae_iop_hgo/<task>                     generated outputs
 ```
 
 ## Cleanup status
 
-The framework currently has two layers:
-
-1. Maintained short entrypoints.
-2. Retained long descriptive implementations or diagnostics.
-
-Simple compatibility aliases and exploratory example scripts have been archived. New user-facing work should extend the maintained short-entrypoint layer, not the legacy long-name layer.
+Simple forwarding aliases and exploratory scripts are absent. Retained long
+diagnostic implementations remain unchanged in Phase 1; Git history preserves
+the removed aliases and completed investigations.

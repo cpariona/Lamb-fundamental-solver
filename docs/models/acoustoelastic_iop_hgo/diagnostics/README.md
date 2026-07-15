@@ -9,7 +9,6 @@ branch_policy_numerical_review.md
 atlas_vs_raw_branch1_diagnostic.md
 branch_families_diagnostic.md
 atlasA0_truncation_cause_diagnostic.md
-atlasA0_truncation_validation.md
 ```
 
 The numerical review protocol is:
@@ -28,16 +27,6 @@ identityA0_diagnostic_grid_validation.md
 identityA0_physical_plausibility_diagnostic.md
 branch_identity_score_diagnostic.md
 branch_identity_score_grid_validation.md
-```
-
-## Wrapper and output diagnostics
-
-```text
-modal_atlas_wrapper_review.md
-validation_grid_wrapper_review.md
-official_cp_mutation_review.md
-output_path_audit.md
-retained_diagnostic_dependency_review.md
 ```
 
 ## Policy

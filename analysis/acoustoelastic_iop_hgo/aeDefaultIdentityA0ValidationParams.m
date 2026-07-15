@@ -2,8 +2,8 @@ function params = aeDefaultIdentityA0ValidationParams()
 %AEDEFAULTIDENTITYA0VALIDATIONPARAMS Default parameters for identity-A0 validation diagnostics.
 %
 % These defaults are shared by the maintained heavy validation diagnostics:
-%   validate_idA0_grid
-%   validate_idA0_score_grid
+%   validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
+%   validate_acoustoelastic_iop_hgo_branch_identity_score_grid
 
 params = struct();
 params.R = 7.8e-3;

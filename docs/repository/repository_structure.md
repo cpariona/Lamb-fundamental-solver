@@ -83,7 +83,7 @@ Migration policy:
 5. Run focused tests plus the full smoke suite before merge.
 ```
 
-The current `startup.m` adds `tests/` recursively to the MATLAB path, so internal test folder moves are path-safe as long as test names remain unique and runner names remain available. Root-level runner wrappers delegate through shared test utilities to implementations under `tests/runners/`. Example trees are added with path filters so `archive/` and generated `figures/` folders do not resolve as active entrypoints.
+The current `startup.m` adds `tests/` recursively to the MATLAB path, so internal test folder moves are path-safe as long as test names remain unique and runner names remain available. Root-level runner wrappers delegate through shared test utilities to implementations under `tests/runners/`. Example trees are added with path filters so generated `figures/` folders do not resolve as active entrypoints.
 
 ## mRLFE layout
 
@@ -187,9 +187,7 @@ Documentation lives in:
 ```text
 docs/models/acoustoelastic_iop_hgo/
 ├─ active/
-├─ diagnostics/
-├─ audits/
-└─ archive/
+└─ diagnostics/
 ```
 
 ## Rayleigh-Lamb layout

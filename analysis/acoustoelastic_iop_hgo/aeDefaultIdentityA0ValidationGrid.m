@@ -1,7 +1,7 @@
 function grid = aeDefaultIdentityA0ValidationGrid()
 %AEDEFAULTIDENTITYA0VALIDATIONGRID Default grid for identity-A0 validation diagnostics.
 %
-% The grid is shared by validate_idA0_grid and validate_idA0_score_grid so the
+% The grid is shared by the retained identity-A0 and score-grid validations so the
 % two heavy diagnostics remain comparable.
 
 IOP_mmHg = [5, 15, 25, 35];

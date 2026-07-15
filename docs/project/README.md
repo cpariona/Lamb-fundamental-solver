@@ -31,7 +31,6 @@ For repository-cleanup tasks, also read before changing anything:
 ```text
 docs/repository/maintained_entrypoints.md
 docs/repository/validation_status.md
-docs/repository/repository_hygiene_plan.md
 ```
 
 For test-suite audit or cleanup tasks, also read:
@@ -57,9 +56,9 @@ phase, or cross-cutting limitations change.
 
 Create or modify ADRs only when a durable architectural decision is made.
 
-For cleanup sessions, update the repository cleanup audit or add a phase report
-that records retain/archive/consolidate/remove decisions, dependency evidence,
-validation, commits, and deferred risks.
+For cleanup sessions, update existing durable contracts and the handoff. Use Git
+history for task-specific deletion evidence instead of adding a permanent phase
+report.
 
 ## Document authority
 
@@ -81,7 +80,7 @@ state.
 
 | Topic | Start with |
 | --- | --- |
-| Repository cleanup | `docs/repository/repository_hygiene_plan.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
+| Repository cleanup | `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md`; `docs/repository/repository_structure.md` |
 | Test-suite ownership | `docs/repository/test_runner_ownership.md`; `tests/README.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
 | GUI | `docs/workflows/gui/adapter_architecture.md`; `docs/architecture/execution_profiles_surface_integration.md` |
 | Fitting | `docs/workflows/fitting/architecture.md`; `docs/workflows/fitting/validation_suite.md` |

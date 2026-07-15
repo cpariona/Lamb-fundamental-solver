@@ -62,7 +62,7 @@ assertObsoleteModalAtlasLowFrequencyEntrypointsAreAbsent(repoRoot);
 assertObsoleteSweepEntrypointsAreAbsent();
 assertMaintainedDocsContain(maintainedHelpers, maintainedWorkflows, maintainedDiagnostics);
 
-fprintf('Maintained acoustoelastic IOP/HGO entrypoint path test passed. Optional wrapper targets verified when present.\n');
+fprintf('Maintained acoustoelastic IOP/HGO entrypoint path test passed. Retained diagnostic implementations verified.\n');
 end
 
 function assertObsoleteSweepEntrypointsAreAbsent()
