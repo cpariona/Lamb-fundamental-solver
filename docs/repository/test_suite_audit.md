@@ -1,5 +1,9 @@
 # MATLAB test-suite audit
 
+Cleanup phase 1 runtime measurements and their limitations are recorded in
+`docs/repository/test_suite_runtime_evidence.md`. The original static audit
+counts and graph conclusions remain the baseline; no runner membership changed.
+
 Audit date: 2026-07-14
 Branch: `test/test-suite-audit-2026-07-14`
 Base: `d3fcfd0c6a279df72b3e11caf7684e77f21c3aae` (`origin/main`)

@@ -2,145 +2,102 @@
 
 Updated: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
-Current audit branch: `test/test-suite-audit-2026-07-14`
-Baseline: `origin/main` at `d3fcfd0c6a279df72b3e11caf7684e77f21c3aae` (PR #112, including PR #111)
+Current branch: `test/test-suite-cleanup-phase1`
+Base: `origin/main` at `0c3375ed58524e4e85088cb2775d8a0323042617`
 
-## Completed in this audit
+## Completed in cleanup phase 1
 
-The complete tracked MATLAB test surface was audited without changing tests,
-runners, wrappers, solvers, GUI code, fitting code, sweep code, or numerical
-behavior.
+The branch implements the audit's low-risk first phase without changing runner
+membership or production/test behavior:
 
-Artifacts:
+- active documentation now lists all nine deliberate compatibility wrappers;
+- `run_main_gui_export_tests` is documented as a standalone public runner;
+- mixed numerical/fitting/characterization runner descriptions are accurate;
+- `run_gui_smoke_tests` consistently displays 17 direct tests;
+- the three approved test implementations are in the maintained layout;
+- exact Fit import `runtests` paths point to `tests/app/fitting/`;
+- generated inventory and runner-edge CSVs were regenerated;
+- an individual-entry runtime harness, plan, CSV, and evidence report were added.
 
-```text
-docs/repository/test_suite_audit.md
-analysis/test_inventory/README.md
-analysis/test_inventory/buildTestInventory.m
-analysis/test_inventory/test_inventory.csv
-analysis/test_inventory/runner_edges.csv
-```
+No tests or wrappers were deleted. No runner calls were added or removed.
 
-The inventory contains 137 MATLAB files: 104 tests, 21 runner implementations,
-9 compatibility wrappers, and 3 helpers. It identifies 13 files outside the
-target layout, six tests without executable maintained-runner registration, 51
-tests reachable from `run_all_smoke_tests`, and concentrated overlap among the
-execution-profile runners.
+## Structural evidence
 
-MATLAB executed only the static inventory generator and `checkcode`; no test,
-heavy matrix, diagnostic runner, benchmark, or full smoke suite was executed.
-
-## Prior completed baseline
-
-PR #111, **Align mRLFE test contracts with direct execution profiles**, was
-merged into `main`.
-
-It restored the maintained mRLFE and execution-profile contract baseline without
-changing solver mathematics, numerical grids, GUI behavior, fitting behavior,
-sweep behavior, or public routes.
-
-The user executed and reported passing the focused mRLFE, GUI, fitting, cleanup,
-and execution-profile validations recorded in `docs/project/active_context.md`.
-The 36-case execution-profile validation matrix passed in approximately 178.7
-seconds and is classified as extended integration validation rather than a
-lightweight smoke test.
-
-## Selected next objective
-
-Review and, if accepted, manually merge the audit. The first implementation
-phase should be documentation-only: align the wrapper list, maintained runner
-documentation, and stale GUI smoke counters without changing runner membership.
-
-The authoritative task brief is:
+Before and after phase 1:
 
 ```text
-docs/repository/test_suite_audit_brief.md
+tracked MATLAB files:       137
+tests:                      104
+runner implementations:     21
+compatibility wrappers:       9
+helpers:                       3
+runner edges:                149
+run_all reachable tests:      51
+unregistered tests:            6
 ```
 
-Later implementation must follow the staged plan in the audit report. In
-particular, layout changes, quick/extended membership changes, benchmark
-redesign, optional mRLFE subdivision, and any deletion must remain separate.
+After normalizing the three old/new path pairs, the runner-edge diff count is
+zero and the test membership diff count is zero.
 
-## Verified audit findings
+## Runtime evidence
 
-- Nine files are deliberate compatibility wrappers; the README list omits the
-  production-core and public-contract mRLFE wrappers.
-- The renderer contract and two FitTool import tests are outside the target
-  layout and are not wrappers.
-- `run_all_smoke_tests` reaches 51 tests, including synthetic fitting and broad
-  numerical coverage.
-- `run_gui_smoke_tests` mixes GUI, fitting, sweeps and execution profiles, and
-  its displayed counters change from `/19` to `/17`.
-- Execution-profile runners materially overlap.
-- Six tests have no executable static maintained-runner registration; five are
-  nevertheless documented as maintained.
-- The mRLFE production-core runner mixes contract, characterization and timing.
-- The mRLFE execution-profile benchmark still asserts the removed
-  mapped-to-Fast policy.
+`analysis/test_inventory/measureTestRuntime.m` supports scalar or vector names,
+test/runner selection, repeats, failure continuation, portable CSV output, and
+min/median/max durations. It restores path/folder state and closes figures.
+Hard timeout interruption is unavailable in-process and is reported as false.
 
-## Required reading for Codex
+Twenty individual priority tests were measured with MATLAB R2024b on PCWIN64 at
+commit `efe9026b6fabc556f4b439e64b9440c7e2630a41`: 17 passed and 3 failed. See
+`docs/repository/test_suite_runtime_evidence.md` for every duration, assertion
+message, unmeasured test, and provisional planning classification.
 
-Read in order:
-
-1. `docs/project/README.md`
-2. `docs/project/active_context.md`
-3. `docs/project/session_handoff.md`
-4. `docs/project/templates/codex_task.md`
-5. `docs/repository/test_suite_audit_brief.md`
-6. `docs/repository/repository_structure.md`
-7. `docs/repository/naming_strategy.md`
-8. `docs/repository/maintained_entrypoints.md`
-9. `docs/repository/validation_status.md`
-10. `docs/repository/repository_hygiene_plan.md`
-11. `tests/README.md`
-
-Then inspect the complete tracked `tests/` tree and every runner before creating
-or modifying audit artifacts.
-
-## Branch and scope rules for follow-up
-
-- Update local `main` from `origin/main` first.
-- Create a new dedicated branch for each implementation phase.
-- Never work directly on `main`.
-- Do not reuse this audit branch for cleanup implementation.
-- Keep audit outputs reproducible and text-based.
-- Do not open a PR or merge unless explicitly requested.
-- Do not claim MATLAB validation unless it was actually executed.
-
-## Delivered audit artifacts
-
-Outputs:
+The longest measured entries were:
 
 ```text
-docs/repository/test_suite_audit.md
-analysis/test_inventory/buildTestInventory.m
-analysis/test_inventory/README.md
-analysis/test_inventory/test_inventory.csv
-analysis/test_inventory/runner_edges.csv
+test_mrlfe_production_core_characterization   271.182 s
+test_mrlfe_sweep_point_characterization       264.119 s
+test_mrlfe_main_gui_characterization          109.959 s
+test_mrlfe_public_contract_characterization   107.654 s
 ```
 
-## Validation expectations for follow-up
+The three assertion failures were recorded without modification or retry:
 
-At minimum:
-
-```bash
-git status -sb
-git diff --check
-git diff --stat
-git diff
+```text
+test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
+test_lightweight_numerical_regression
+test_mrlfe_fit_fast_options_quality
 ```
 
-If a MATLAB inventory or timing helper is added, Codex must provide exact MATLAB
-commands for the user and report them as not executed unless Codex actually has a
-working MATLAB runtime.
+## MATLAB validation completed
+
+- inventory regeneration: 137 rows, 149 edges;
+- `checkcode` for `measureTestRuntime`: no issues;
+- two-repeat harness self-test: passed;
+- moved renderer contract: passed;
+- both moved Fit import unit-test files: passed;
+- `run_fit_data_import_tests`: passed;
+- `run_acoustoelastic_smoke_tests`: passed;
+- `test_startup_path_policy`: passed;
+- `test_repository_root_utilities`: passed;
+- all nine wrapper and target paths: verified independently of path ordering.
+
+The prohibited all-smoke, 36-case matrix, obsolete benchmark contract, and
+execution-profile diagnostics runner were not executed.
+
+## Next phase boundaries
+
+- Diagnose the three recorded assertion failures separately.
+- Do not infer registration or runner ownership from runtime alone.
+- Keep quick/extended membership changes in a future dedicated branch.
+- Preserve historical public commands through wrappers where required.
+- Redesign the mapped-to-Fast benchmark separately; do not patch its assertions
+  as part of runner separation.
+- Keep any removal proposal isolated and evidence-backed.
 
 ## Working rules
 
-- Audit before editing.
-- One branch per task.
-- Preserve maintained entrypoints and wrapper compatibility.
-- Treat static reachability as evidence, not proof, when dynamic MATLAB calls are
-  possible.
-- Separate audit findings from implementation recommendations.
-- Prefer multiple small cleanup PRs over one broad reorganization.
-- The user performs merges manually.
+- Refresh `origin/main` and create a new branch for each later phase.
+- Preserve solver physics, GUI/fitting/sweep behavior, and public APIs.
+- Use the inventory CSVs for static registration evidence and the runtime CSV
+  only for measured-duration evidence.
+- Do not open a PR or merge unless explicitly requested.
