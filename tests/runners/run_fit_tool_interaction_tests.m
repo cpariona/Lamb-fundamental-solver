@@ -4,7 +4,8 @@ startup
 fprintf('\nRunning FitTool interaction tests...\n');
 fprintf('-----------------------------------\n');
 
-test_fit_tool_interaction_helpers;
-test_fit_tool_requested_curve_models;
+% Compatibility aggregate over the quick helper and extended curve owners.
+run_fit_tool_interaction_contract_tests;
+run_fit_tool_requested_curve_tests;
 
 fprintf('\nFitTool interaction tests passed.\n');

@@ -23,12 +23,8 @@ assert(elastic.lambda > 0 && elastic.K > 0 && elastic.CL > elastic.CT, ...
     'elasticFromMuNu should return positive lambda/K and CL > CT.');
 
 %% Startup/path policy
-fprintf('\nChecking startup path policy...\n');
-test_startup_path_policy
-
-fprintf('\nChecking shared path and output-folder utilities...\n');
-test_repository_root_utilities
-test_model_output_folder_helpers
+fprintf('\nRunning canonical core contract owner...\n');
+run_core_contract_tests;
 
 %% Shared fitting helpers
 fprintf('\nChecking shared fitting helper functions...\n');
@@ -156,21 +152,9 @@ assertNumericClose(regressionA0.Cp, regressionRepeat.modes.A0.Cp, regressionTol,
 assertNumericClose(regressionS0.Cp, regressionRepeat.modes.S0.Cp, regressionTol, ...
     'Rayleigh-Lamb S0 regression Cp values are not repeatable.');
 
-%% Lightweight cross-model numerical regression
-fprintf('\nChecking lightweight cross-model numerical regression snapshots...\n');
-test_lightweight_numerical_regression
-
-%% Shared fitting helper smoke test
-fprintf('\nRunning shared fitting helper smoke test from core suite...\n');
-test_fitting_helpers_smoke
-
-%% Rayleigh-Lamb fitting smoke test
-fprintf('\nRunning Rayleigh-Lamb fitting smoke test from core suite...\n');
-test_rl_fit_synthetic_A0
-
-%% mRLFE fitting smoke test
-fprintf('\nRunning mRLFE fitting smoke test from core suite...\n');
-test_mrlfe_fit_synthetic_A0Like
+%% Historical numerical and synthetic-fitting coverage
+fprintf('\nRunning canonical core numerical regression owner...\n');
+run_core_numerical_regression_tests;
 
 fprintf('\nCore smoke tests passed.\n');
 

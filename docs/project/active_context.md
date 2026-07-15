@@ -3,74 +3,80 @@
 Last reviewed: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
 Default branch: main
-Baseline-repair base: `ba7c1f2c88c34abc38ef781d5ec9c2bc184105f5`
-Active branch: `test/test-baseline-failure-diagnosis`
+Ownership-tier base: `02971360f755b16c1896cc0715636385cd05d17f`
+Active branch: `test/test-runner-ownership-and-tiers`
 
 ## Current development focus
 
-The three failures discovered by the test-suite runtime audit have been
-reproduced, diagnosed, and repaired independently:
+The MATLAB suite now has one canonical direct owner for every maintained test
+or an explicit manual classification. Routine, numerical, extended, and
+performance validation are separate commands:
 
-- AE identityA0 diagnostic arrays now use the requested public result grid;
-- the lightweight mRLFE snapshot now records the maintained deterministic
-  public-fast result and makes its numerical assumptions explicit;
-- fast fitting equivalence is checked only between requests with the same
-  grid policy.
-
-Detailed provenance, numerical evidence, classifications, tolerances, and
-validation are in:
-
-```text
-docs/repository/test_baseline_failure_diagnosis.md
-docs/repository/test_suite_runtime_evidence.md
-analysis/test_inventory/test_runtime_measurements.csv
+```matlab
+run_quick_contract_tests
+run_quick_smoke_tests
+run_numerical_regression_tests
+run_extended_integration_tests
+run_performance_and_benchmark_tests
 ```
 
-## Preserved architecture
+The machine-readable contract is
+`analysis/test_inventory/test_runner_ownership.csv`; the maintained rationale
+and compatibility mapping are in
+`docs/repository/test_runner_ownership.md`.
 
-- Runner membership, wrapper commands, test paths, and public APIs are
-  unchanged.
-- The AE production change is limited to projecting a documented diagnostic
-  field onto the requested grid; official Cp, masks, branch selection, and
-  solver mathematics are unchanged.
-- No mRLFE production code or numerical preset changed.
-- FitTool optimization remains `fitOptimized`; requested curves remain
-  `numericalPreset`.
-- No fallback was enabled and no quality policy was weakened.
-
-## Validation status
-
-MATLAB R2024b on PCWIN64:
+## Current static baseline
 
 ```text
-test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy  passed
-test_lightweight_numerical_regression                     passed
-test_mrlfe_fit_fast_options_quality                       passed
-run_acoustoelastic_smoke_tests                            passed
-run_core_smoke_tests                                      passed
-run_mrlfe_fit_public_solver_tests                         passed
+160 tracked MATLAB files under tests/
+104 tests
+44 runner implementations
+9 compatibility wrappers
+3 helpers
+203 runner graph edges
+103 tests with one canonical direct owner
+1 explicit manual/deferred test
+0 tests with multiple executable direct runner memberships
 ```
 
-The refreshed one-repeat harness medians at repair commit `14501278` are
-4.2971776 s, 2.6547612 s, and 11.3965243 s respectively. The harness remains
-in-process and provides no hard timeout.
+Reachability is 14 quick-contract tests, 47 quick-smoke tests, 17 numerical
+regressions, 40 extended-integration tests, and 54 tests from historical
+`run_all_smoke_tests`.
 
-## Deferred work
+## Measured validation
 
-- Do not change runner registration or perform the quick/extended split in
-  this branch.
-- Do not redesign the mapped-to-Fast benchmark here.
-- The full AE diagnostic grid, `run_all_smoke_tests`, the 36-case execution
-  profile matrix, broad fitting validation, and diagnostic runners were not
-  required for these focused repairs.
-- Runtime evidence is descriptive for one machine and must not become a
-  duration pass/fail threshold.
+MATLAB R2024b on PCWIN64, one in-process run with no hard timeout:
+
+```text
+run_quick_contract_tests                 passed   134.42 s
+run_quick_smoke_tests                    passed   352.14 s
+run_numerical_regression_tests           passed   256.08 s
+run_fit_tool_requested_curve_tests       passed    27.961 s
+run_gui_execution_profile_tests          passed    23.583 s
+run_gui_extended_tests                   passed    50.810 s
+run_performance_and_benchmark_tests      passed    46.794 s
+wrapper/target resolution check          passed
+```
+
+The measurements are descriptive. No runner enforces duration thresholds.
+
+## Compatibility and deferred work
+
+- All nine wrappers and all historical public commands remain.
+- Historical public commands lose no tests. `run_all_smoke_tests` and
+  `run_gui_smoke_tests` add requested-curve coverage; the AE and all-smoke
+  commands add the two formerly standalone AE contracts.
+- The obsolete mapped-to-Fast benchmark is the sole manual-only test and
+  remains deferred for redesign.
+- The 36-case profile matrix and multi-minute mRLFE characterization were not
+  rerun for this ownership-only change.
+- No test assertion, production implementation, numerical option, public API,
+  file location, or entrypoint name changed.
 
 ## Primary references
 
-- `docs/project/README.md`
 - `docs/project/session_handoff.md`
-- `docs/repository/test_baseline_failure_diagnosis.md`
+- `docs/repository/test_runner_ownership.md`
 - `docs/repository/test_suite_runtime_evidence.md`
 - `docs/repository/validation_status.md`
-- `docs/repository/maintained_entrypoints.md`
+- `analysis/test_inventory/README.md`

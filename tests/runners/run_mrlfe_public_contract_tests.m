@@ -15,17 +15,14 @@ assertFunctionsOnPath({ ...
     'mrlfeEvaluateBranchQuality'}, ...
     'mRLFE public contract API/test');
 
-fprintf('\n[mRLFE public 1/4] defaults contract\n');
-test_mrlfe_public_contract_defaults;
+fprintf('\n[mRLFE public group 1/3] API contracts\n');
+run_mrlfe_public_api_contract_tests;
 
-fprintf('\n[mRLFE public 2/4] validation contract\n');
-test_mrlfe_public_contract_validation;
+fprintf('\n[mRLFE public group 2/3] result schema\n');
+run_mrlfe_public_result_contract_tests;
 
-fprintf('\n[mRLFE public 3/4] result schema contract\n');
-test_mrlfe_public_contract_result_schema;
-
-fprintf('\n[mRLFE public 4/4] route characterization\n');
-test_mrlfe_public_contract_characterization;
+fprintf('\n[mRLFE public group 3/3] route characterization\n');
+run_mrlfe_public_characterization_tests;
 
 fprintf('\nmRLFE public contract tests passed.\n');
 

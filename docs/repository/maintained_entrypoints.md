@@ -500,13 +500,23 @@ command, but it is a standalone root runner rather than a wrapper.
 Runner maintenance should target the implementation under `tests/runners/`.
 The wrapper files preserve command compatibility and should remain thin.
 
-Run the historical aggregate smoke command. It currently includes contracts,
-representative numerical regression, synthetic fitting, and characterization
-coverage, so its name does not imply a strict quick-runtime guarantee:
+Use the maintained validation tiers for new work:
 
 ```matlab
-run_all_smoke_tests
+run_quick_contract_tests
+run_quick_smoke_tests
+run_numerical_regression_tests
+run_extended_integration_tests
+run_performance_and_benchmark_tests
 ```
+
+`run_quick_smoke_tests` is the routine command. The numerical, extended, and
+performance commands are explicit opt-in surfaces. The canonical mapping is in
+`docs/repository/test_runner_ownership.md`.
+
+The historical `run_all_smoke_tests` command remains a broad compatibility
+aggregate. It reaches contracts, numerical regression, and historical model
+coverage, so its name does not imply a quick-runtime guarantee.
 
 Run focused groups after localized changes:
 
@@ -525,10 +535,12 @@ run_fit_validation_tests
 ```
 
 The execution-profile matrix, diagnostic runners, mRLFE production-core
-characterization/performance coverage, and benchmark contracts are maintained
-extended or manual validation surfaces. They are intentionally not normal
-quick-smoke prerequisites. `run_main_gui_export_tests` is a focused standalone
-public runner for the Main GUI export contract.
+characterization/performance coverage, and consumer characterization are
+maintained extended or manual validation surfaces. They are intentionally not
+normal quick-smoke prerequisites. `run_main_gui_export_tests` remains the
+focused standalone public runner for the Main GUI export contract. The stale
+mapped-to-Fast benchmark is manual and deferred; it is not executed by any
+normal runner.
 
 Run focused mRLFE FitTool public-solver validation after mRLFE fitting-route or fitted-curve changes:
 

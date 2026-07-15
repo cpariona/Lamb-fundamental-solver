@@ -24,7 +24,7 @@ run_mrlfe_smoke_tests
 run_fit_validation_tests
 ```
 
-## General smoke tests
+## Tiered validation
 
 Run from the repository root:
 
@@ -33,13 +33,26 @@ clear functions
 rehash toolboxcache
 startup
 
-run_all_smoke_tests
+run_quick_contract_tests
+run_quick_smoke_tests
 ```
 
-Despite the historical command name, this aggregate currently reaches
-contract, numerical-regression, synthetic-fitting, and characterization work.
-Treat it as broad validation until measured runtime evidence supports a future
-quick-versus-extended split.
+`run_quick_smoke_tests` is the recommended routine developer command. Static
+ownership shows 14 tests reachable from quick contracts and 47 tests reachable
+from quick smoke. Known multi-minute characterization, performance evidence,
+the 36-case matrix, and the stale benchmark are excluded.
+
+Use the explicit non-quick tiers when scope requires them:
+
+```matlab
+run_numerical_regression_tests
+run_extended_integration_tests
+run_performance_and_benchmark_tests
+```
+
+The historical `run_all_smoke_tests` command remains broad for compatibility;
+it now reaches 54 tests through focused owners and is not the routine quick
+gate.
 
 Focused groups:
 
@@ -93,13 +106,15 @@ docs/validation/mrlfe_grid_presets.md
 
 These diagnostics are not part of lightweight smoke suites because their runtime may be substantial.
 
-`run_mrlfe_production_core_tests` is also mixed extended validation today: it
-includes contracts and grid checks together with characterization and
-performance evidence. Preserve that membership until the planned runner split.
-The execution-profile validation matrix and benchmark/diagnostic runners are
-maintained commands but are intentionally excluded from normal smoke
-validation. `run_main_gui_export_tests` remains a focused standalone export
-contract runner.
+`run_mrlfe_production_core_tests` preserves its historical eight-test coverage
+as an aggregate of contract, characterization, and performance owners. Use
+`run_mrlfe_production_core_contract_tests` for the focused six-test numerical
+contract set.
+The execution-profile validation matrix remains extended. The obsolete
+mapped-to-Fast benchmark is explicitly manual/deferred and is excluded from
+quick, smoke, numerical-regression, and normal extended validation.
+`run_main_gui_export_tests` remains a focused standalone export-contract
+runner.
 
 ## Current mRLFE contract baseline
 
@@ -171,12 +186,13 @@ A targeted follow-up validation isolated those cases. No accepted dense-referenc
 
 ## Acoustoelastic IOP/HGO validation
 
-The maintained acoustoelastic IOP/HGO smoke suite executes tests for the
-official `atlasA0` policy and fallback invalidation. It verifies that the
-standalone identity-A0 diagnostic contract is present but does not execute it;
-that test remains without executable maintained-runner registration. This
-atlas terminology belongs to the AE model and is separate from the removed
-mRLFE legacy atlas routes.
+`run_ae_quick_tests` owns lightweight AE contracts, including the short
+entrypoint and identity-A0 diagnostic-policy tests. Solver-grid, fallback,
+atlas smoke, and synthetic fitting regressions are owned by
+`run_ae_extended_tests`. The historical `run_acoustoelastic_smoke_tests`
+command aggregates both owners and reaches 12 tests. This atlas terminology
+belongs to the AE model and is separate from the removed mRLFE legacy atlas
+routes.
 
 Representative tests include:
 
@@ -197,19 +213,21 @@ docs/models/acoustoelastic_iop_hgo/documentation_index.md
 
 ## Recommended validation command
 
-For broad code changes:
+For routine code changes:
 
 ```matlab
 clear functions
 rehash toolboxcache
 startup
 
-run_core_smoke_tests
-run_gui_smoke_tests
-run_acoustoelastic_smoke_tests
-run_mrlfe_smoke_tests
-run_fit_validation_tests
+run_quick_contract_tests
+run_quick_smoke_tests
+run_numerical_regression_tests
 ```
+
+Add focused extended owners when the changed surface requires them. Do not run
+the complete extended aggregate solely for closure when its multi-minute
+matrix and characterization cases are unrelated.
 
 For mRLFE production-route changes, additionally run the focused public-contract and consumer runners listed above.
 

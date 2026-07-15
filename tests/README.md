@@ -57,6 +57,34 @@ test implementations at the root of `tests/` or under legacy folders such as
 
 Runner implementations live under `tests/runners/`, with public runner commands preserved through wrappers or direct runner files.
 
+## Validation tiers and canonical ownership
+
+Every maintained test has one direct canonical owner. Higher-level runners
+aggregate those focused owners, so a test may be reachable from several public
+commands without being called directly by sibling runners.
+
+Use these maintained tier commands:
+
+```matlab
+run_quick_contract_tests       % 14 structural contract tests
+run_quick_smoke_tests          % 47 routine contract/smoke tests
+run_numerical_regression_tests % 17 focused numerical regressions
+run_extended_integration_tests % 40 extended/integration tests
+run_performance_and_benchmark_tests % 2 descriptive performance tests
+```
+
+`run_quick_smoke_tests` is the routine developer command. It excludes known
+multi-minute characterization, the 36-case execution-profile matrix,
+performance evidence, and the obsolete mapped-to-Fast benchmark.
+
+The canonical mapping and regeneration rules are maintained in:
+
+```text
+docs/repository/test_runner_ownership.md
+analysis/test_inventory/test_runner_ownership.csv
+analysis/test_inventory/buildTestOwnership.m
+```
+
 Model-family Rayleigh-Lamb tests have been moved under:
 
 ```text
@@ -209,6 +237,10 @@ run_mrlfe_smoke_tests
 run_mrlfe_legacy_cleanup_tests
 run_mrlfe_fit_public_solver_tests
 run_fit_validation_tests
+run_quick_contract_tests
+run_quick_smoke_tests
+run_numerical_regression_tests
+run_extended_integration_tests
 ```
 
 During migration, root-level wrappers may remain under `tests/` so existing commands keep working. Wrappers should be thin and should delegate to the implementation under `tests/runners/`.
@@ -276,17 +308,34 @@ App tests may call model adapters, but they should focus on app-layer contracts 
 6. Avoid mixing test moves with solver behavior changes.
 7. Run the relevant focused runner after each move, then run the full smoke suite before merging.
 
-## Validation after test-layout changes
+## Validation after test-layout or runner changes
+
+Start with the routine tiers:
+
+```matlab
+clear functions
+rehash toolboxcache
+startup
+
+run_quick_contract_tests
+run_quick_smoke_tests
+run_numerical_regression_tests
+```
+
+Run `run_extended_integration_tests` only when the changed scope requires its
+matrix, fitting-recovery, or characterization coverage. It is intentionally
+long. Run `run_performance_and_benchmark_tests` only for performance work.
+
+Historical commands below remain compatibility aggregates. They are useful for
+focused parity checks but are not the definition of the quick tier.
 
 For runner or path changes, run:
 
 ```matlab
 clear; clc; close all;
 startup
-run_all_smoke_tests
-run_fit_validation_tests
-run_mrlfe_fit_public_solver_tests
-run_mrlfe_legacy_cleanup_tests
+run_quick_smoke_tests
+run_numerical_regression_tests
 ```
 
 For app/GUI moves, run:
