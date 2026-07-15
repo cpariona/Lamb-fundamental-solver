@@ -1,10 +1,20 @@
 # mRLFE diagnostics
 
-This folder contains optional diagnostic scripts for inspecting the maintained
-public mRLFE real-k route. These scripts are not production entrypoints and are
-not lightweight unit tests.
+These optional scripts inspect the maintained public `mrlfeSolve` route. They
+are not production entrypoints or lightweight unit tests.
 
-For automated validation of maintained behavior, use the focused runners:
+| Command | Purpose | Runtime | Output | Validation |
+| --- | --- | --- | --- | --- |
+| `diagnose_mrlfe_fit_performance` | Compare fit profiles and etaS cache parity/cost | extended | base workspace only | `diagnose_mrlfe_fit_performance` |
+| `diagnose_mrlfe_atlas_primary_policy_matrix` | Preserved public diagnostic command pending product-level replacement | extended | base workspace only | manual command |
+| `run_mrlfe_targeted_grid_validation` | Repeatable targeted public-grid validation | extended | documented script outputs | manual command |
+| `validate_grid_presets` | Compare public preset grids with a dense reference | extended | base workspace only | manual command |
+| `validate_grid_presets_full` | Wider preset-grid characterization | long | base workspace only | manual command |
+
+Historical numerical investigations are under `archive/`. That folder is
+excluded from `startup`, and its scripts are not active contracts.
+
+Automated maintained behavior is owned by:
 
 ```matlab
 run_mrlfe_public_contract_tests
@@ -15,49 +25,5 @@ run_mrlfe_main_gui_public_solver_tests
 run_mrlfe_legacy_cleanup_tests
 ```
 
-The obsolete atlas/direct-visco diagnostics that called removed route files were
-deleted during the legacy-route cleanup. Historical conclusions remain in
-`docs/validation/` and `docs/validation/mrlfe_legacy_route_inventory.md`.
-
-## Current Diagnostics
-
-Retained diagnostics:
-
-```matlab
-compare_mrlfe_tracker_vs_condition_peaks
-diagnose_etaS_forward_cache
-diagnose_fit_timing
-diagnose_fit_option_sensitivity
-diagnose_mrlfe_atlas_primary_policy_matrix
-diagnose_mrlfe_gui_performance_32kHz
-diagnose_mrlfe_visco_residual_landscape
-diagnose_mrlfe_visco_validity_breakdown
-stress_test_mrlfe_real_k_range
-validate_grid_presets
-```
-
-`validate_grid_presets` compares constant post-start frequency steps against a
-dense reference while preserving a common fixed low-frequency grid. It uses the
-diagnostic `numerics.frequencySolveOverride_Hz` field so the exact nonuniform
-internal grid is evaluated instead of being replaced by `linspace`. The public
-result remains on the requested output grid.
-
-The script reports phase-velocity error, physical-tail cut-frequency error,
-termination agreement, common valid coverage, elapsed time, and candidate
-preset selection. It does not modify `fast` or `dense` production presets.
-
-These scripts should use maintained public or neutral model-layer APIs. Do not
-restore deleted route entrypoints solely for diagnostics.
-
-## Generated Outputs
-
-Diagnostic scripts may write outputs under:
-
-```text
-outputs/mrlfe
-Results/mrlfe
-```
-
-Generated `.mat`, `.csv`, `.fig`, and `.png` diagnostic artifacts are not source
-files and should not be committed unless a task explicitly asks for an audited
-report artifact.
+Generated `.mat`, `.csv`, `.fig`, and `.png` outputs are not source artifacts
+and must not be committed without an explicit audited-output requirement.

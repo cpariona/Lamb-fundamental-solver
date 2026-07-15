@@ -104,7 +104,6 @@ Execute each changed sweep manually to validate generated tables and figures. Be
 The earlier executable branch-policy comparison has been archived. Current branch-policy status and retained evidence are documented in:
 
 ```text
-docs/models/acoustoelastic_iop_hgo/archive/phase_closure_atlasA0.md
 docs/models/acoustoelastic_iop_hgo/active/solver_optimization_status.md
 docs/models/acoustoelastic_iop_hgo/active/branch_policy.md
 ```

@@ -12,7 +12,7 @@ This folder contains the maintained mRLFE model, fitting, sweep, diagnostic, and
 | Numerical grid presets and validation | `docs/validation/mrlfe_grid_presets.md` |
 | Maintained sweeps | `docs/models/mrlfe/current_sweeps.md` |
 | Diagnostic summaries | `docs/models/mrlfe/diagnostics/README.md` |
-| Legacy route cleanup inventory | `docs/validation/mrlfe_legacy_route_inventory.md` |
+| Historical route-cleanup evidence | Git history |
 
 ## Maintained route summary
 
@@ -38,7 +38,7 @@ The extended grid matrix completed on 2026-07-14. Cases responsible for aggregat
 
 ## Historical notes
 
-`atlas_policy_notes.md` and older route-audit documents preserve pre-migration evidence. They may mention deleted mRLFE routes and historical policy labels, but those names are not maintained entrypoints or production configuration.
+Older route-audit documents remain available in Git history as pre-migration evidence. They may mention deleted mRLFE routes and historical policy labels, but those names are not maintained entrypoints or production configuration.
 
 Atlas terminology still used by the Acoustoelastic IOP/HGO model is unrelated to the removed mRLFE legacy routes.
 

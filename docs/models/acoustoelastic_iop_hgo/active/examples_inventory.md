@@ -168,14 +168,8 @@ redundant low-frequency modal-atlas wrapper and implementation
 
 Relevant archive and review documents:
 
-```text
-docs/models/acoustoelastic_iop_hgo/audits/legacy_entrypoint_map.md
-docs/models/acoustoelastic_iop_hgo/audits/code_retention_review_plan.md
-docs/models/acoustoelastic_iop_hgo/archive/direct_matrix_landscape_archive.md
-docs/models/acoustoelastic_iop_hgo/archive/a0_backward_tracking_archive.md
-docs/models/acoustoelastic_iop_hgo/archive/complex_c_continuation_archive.md
-docs/models/acoustoelastic_iop_hgo/audits/retained_diagnostic_dependency_review.md
-```
+Superseded entrypoint, retention, landscape, continuation, and dependency
+investigations remain available in Git history.
 
 ### Deletion recommendation
 

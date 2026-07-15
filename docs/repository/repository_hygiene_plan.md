@@ -16,7 +16,7 @@ legacy-named, duplicated, or unreferenced by one search method.
 The current candidate inventory is:
 
 ```text
-docs/repository/repository_cleanup_audit_2026-07-14.md
+docs/repository/mrlfe_line_and_repository_density_audit.md
 ```
 
 That audit is a starting point, not an approved deletion manifest.

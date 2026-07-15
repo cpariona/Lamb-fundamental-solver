@@ -47,11 +47,5 @@ docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
 
 ## Historical phase logs
 
-Older fitting phase status files are retained as implementation history. They should not be treated as active workflow documentation.
-
-See:
-
-```text
-docs/archive/fitting_phase_logs.md
-docs/archive/fitting_phases/
-```
+Older fitting phase status files remain available in Git history. They are not
+active workflow documentation.

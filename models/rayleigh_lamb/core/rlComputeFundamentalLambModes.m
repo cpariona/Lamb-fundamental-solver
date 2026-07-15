@@ -112,7 +112,6 @@ end
 
 function result = solvePublicMRLFERealK(frequency, material, geometry, seedModes, mrlfeParams, options)
 branchNames = requestedMRLFEBranches(seedModes, options);
-result = [];
 modelResults = cell(1, numel(branchNames));
 for i = 1:numel(branchNames)
     request = buildPublicMRLFERequest(frequency, material, geometry, mrlfeParams, branchNames(i));
@@ -120,7 +119,7 @@ for i = 1:numel(branchNames)
 end
 
 if ~isempty(modelResults)
-    result = modelResults{1}.diagnostics.rawInternalResult.rawFullResult.models.mRLFERealK;
+    result = modelResults{1}.debug.rawInternalResult.rawFullResult.models.mRLFERealK;
 else
     result = emptyPublicMRLFEResult(frequency, mrlfeParams);
 end
@@ -131,7 +130,7 @@ result.requestedBranches = struct('A0Like', any(branchNames == "A0Like"), ...
 result.branches = struct();
 for i = 1:numel(modelResults)
     branchName = char(modelResults{i}.branch);
-    result.branches.(branchName) = modelResults{i}.diagnostics.rawInternalResult.branch;
+    result.branches.(branchName) = modelResults{i}.debug.rawInternalResult.branch;
 end
 result.publicModelResults = modelResultsByBranch(modelResults);
 result.diagnostics = buildPublicMRLFEDiagnostics(result, modelResults);
@@ -161,10 +160,10 @@ end
 function branchNames = requestedMRLFEBranches(seedModes, options)
 branchNames = strings(1, 0);
 if isfield(seedModes, 'A0') && getOption(options, 'mrlfeComputeA0Like', true)
-    branchNames(end+1) = "A0Like"; %#ok<AGROW>
+    branchNames(end+1) = "A0Like";
 end
 if isfield(seedModes, 'S0') && getOption(options, 'mrlfeComputeS0Like', true)
-    branchNames(end+1) = "S0Like"; %#ok<AGROW>
+    branchNames(end+1) = "S0Like";
 end
 end
 
@@ -233,14 +232,6 @@ mode = struct( ...
     'kThickness', k * thickness, ...
     'residual', residual, ...
     'valid', isfinite(Cp));
-end
-
-function value = maxRelativeJump(x)
-if numel(x) < 2
-    value = 0;
-else
-    value = max(abs(diff(x)) ./ max(abs(x(1:end-1)), eps));
-end
 end
 
 function value = getOption(options, fieldName, defaultValue)

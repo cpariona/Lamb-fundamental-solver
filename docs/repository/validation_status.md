@@ -146,9 +146,8 @@ No pass is claimed for runners not executed on this branch. The extended grid ma
 
 ## Test-baseline repair status
 
-The three failures captured by the cleanup runtime audit have focused,
-evidence-backed repairs documented in
-`docs/repository/test_baseline_failure_diagnosis.md`:
+The three failures captured by the cleanup runtime audit received focused,
+evidence-backed repairs; the detailed diagnosis remains in Git history:
 
 - AE `identityA0` diagnostics are projected to the requested result grid while
   retaining the internal tracking grid for branch selection;

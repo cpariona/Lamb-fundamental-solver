@@ -72,8 +72,7 @@ evidence remains part of the diagnosis history:
 These assertion failures had empty MATLAB identifiers. Their old durations
 describe time to failure and are not passing-runtime samples. The current CSV
 rows replace only those three entries with passing measurements at `14501278`.
-Root causes and before/after numerical evidence are in
-`docs/repository/test_baseline_failure_diagnosis.md`.
+Root causes and before/after numerical evidence remain available in Git history.
 
 ## Pre-ownership unregistered-test evidence
 

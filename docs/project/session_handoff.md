@@ -1,42 +1,42 @@
 # Session handoff
 
 Updated: 2026-07-15
-Branch: `test/test-suite-finalization`
-Base: `1b31814b8c5e7ff1b8cb68829b919585eb893ac1`
+Branch: `refactor/mrlfe-line-and-repository-cleanup`
+Base audit head: `2cfe264625ab3f7485a06389d315190fe9a7b67e`
 
-## Finalization state
+## Completed work
 
-- Quick tiers reuse an already active repository path and avoid nested
-  `startup`; cold direct execution remains supported.
-- Final measured passing runtimes are 32.101 s quick-contract, 76.053 s
-  quick-smoke, and 36.158 s numerical regression on MATLAB R2024b/PCWIN64.
-- The multi-profile production preset contract and mRLFE fitting regression
-  owner moved to extended; smaller grid/preset/schema coverage remains in the
-  numerical tier.
-- The mRLFE benchmark now has bounded structural `contract` mode and descriptive
-  `full` mode. Its contract asserts direct Fast/Balanced/Robust mappings and
-  allows numerical/validity differences.
-- One redundant single-test runner was consolidated. Physical subdivision of
-  `tests/models/mrlfe/` is deferred.
-
-## Current graph
+The mRLFE architecture cleanup, diagnostic consolidation, and documentation
+reduction are complete. See:
 
 ```text
-159 tracked MATLAB files
-104 tests
-43 runner implementations
-9 compatibility wrappers
-3 helpers
-205 graph edges
-104 canonical owners
-0 manual, unowned, multiple-owner, sibling-overlap, or cycle cases
+docs/repository/mrlfe_line_and_repository_cleanup_report.md
+analysis/repository_audit/
+analysis/test_inventory/
 ```
 
-Authoritative design and runtime evidence:
+The implementation preserves physics and numerical contracts while
+centralizing request construction, surface metadata, and compatibility-result
+adaptation. The orphan legacy solver is absent, and archived diagnostics are
+excluded by `startup`.
 
-- `docs/repository/test_suite_final_architecture.md`
-- `analysis/test_inventory/quick_runtime_contributions.csv`
-- `docs/validation/mrlfe_execution_profile_benchmark.md`
+## Validation ownership
 
-No production solver, GUI, fitting, or sweep implementation changed. No public
-command, wrapper, or maintained test was removed.
+Use the routine gates for later maintained changes:
+
+```matlab
+run_quick_contract_tests
+run_quick_smoke_tests
+run_numerical_regression_tests
+```
+
+Use `run_all_smoke_tests` as the strongest repository-wide completion gate
+when maintained MATLAB behavior changes. Rebuild deterministic evidence with:
+
+```matlab
+buildTestInventory('WriteCsv', true)
+buildTestOwnership('WriteCsv', true, 'ValidateActual', true)
+buildRepositoryDensityAudit('WriteCsv', true, 'ValidatePaths', true)
+```
+
+No PR or merge was created for this branch.

@@ -32,13 +32,12 @@ For repository-cleanup tasks, also read before changing anything:
 docs/repository/maintained_entrypoints.md
 docs/repository/validation_status.md
 docs/repository/repository_hygiene_plan.md
-docs/repository/repository_cleanup_audit_2026-07-14.md
 ```
 
 For test-suite audit or cleanup tasks, also read:
 
 ```text
-docs/repository/test_suite_audit_brief.md
+docs/repository/test_runner_ownership.md
 tests/README.md
 docs/project/templates/codex_task.md
 ```
@@ -82,9 +81,9 @@ state.
 
 | Topic | Start with |
 | --- | --- |
-| Repository cleanup | `docs/repository/repository_cleanup_audit_2026-07-14.md`; `docs/repository/repository_hygiene_plan.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
-| Test-suite audit | `docs/repository/test_suite_audit_brief.md`; `tests/README.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
-| GUI | `docs/workflows/gui/adapter_architecture.md`; `docs/workflows/gui/integration_audit.md` |
+| Repository cleanup | `docs/repository/repository_hygiene_plan.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
+| Test-suite ownership | `docs/repository/test_runner_ownership.md`; `tests/README.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
+| GUI | `docs/workflows/gui/adapter_architecture.md`; `docs/architecture/execution_profiles_surface_integration.md` |
 | Fitting | `docs/workflows/fitting/architecture.md`; `docs/workflows/fitting/validation_suite.md` |
 | Sweeps | `docs/workflows/sweeps/parametric_sweeps.md`; `docs/workflows/sweeps/sweep_tool_usage.md` |
 | Execution profiles | `docs/architecture/execution_profiles_surface_integration.md`; `docs/validation/execution_profile_end_to_end_validation.md` |

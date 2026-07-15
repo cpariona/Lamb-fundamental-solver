@@ -192,8 +192,8 @@ guiRunAcoustoelasticIOPHGOSweep
 For mRLFE, `guiRunMRLFESweep` maps each sweep point with
 `mrlfeBuildSweepSolveRequest` and calls `mrlfeSolve` once per point. SweepTool
 does not call `guiRunMRLFEModel`, inherit Main GUI fallback, or choose
-historical GUI route names. Main GUI mRLFE solving remains a separate migration
-target.
+historical GUI route names. Main GUI remains a separate surface over the same
+shared request-construction and public-solver contracts.
 
 The maintained mRLFE SweepTool route uses:
 
