@@ -14,32 +14,68 @@ params.nu = 0.4999;
 params.etaS = etaS;
 frequency_Hz = linspace(1000, 8000, 10).';
 
-referenceOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
-referenceOptions.mrlfeUseFitPerformanceDefaults = false;
-referenceOptions.mrlfeUseInternalTrackingGrid = true;
-referenceOptions.mrlfeInternalTrackingMinPoints = 30;
-referenceOptions.mrlfeInternalTrackingPointFactor = 2;
-referenceOptions.mrlfeInternalTrackingMaxPoints = 80;
-referenceOptions.mrlfeA0DPCpScanPoints = 2200;
-referenceOptions.mrlfeA0DPCandidates = 8;
-
 fastOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
+fastOptions.mrlfeNumericalPreset = "fast";
+fastOptions.forwardModel = struct( ...
+    'gridPolicy', "fitOptimized", ...
+    'minimumPointCount', 12, ...
+    'maximumPointCount', 40, ...
+    'maximumStep_Hz', 250);
 
 [CpFast_mps, rawFast] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, fastOptions);
 request = mrlfeBuildFitSolveRequest(params, frequency_Hz, branchName, fastOptions);
-direct = mrlfeSolve(request);
+request.numerics.frequencySolveOverride_Hz = rawFast.frequencySolve_Hz;
+directSameFitGrid = mrlfeSolve(request);
 
-valid = rawFast.validMask(:) & direct.validMask(:) & isfinite(CpFast_mps(:)) & isfinite(direct.phaseVelocity_mps(:));
-assert(any(valid), 'Public fast mRLFE fitting evaluations must have valid requested frequencies.');
+validSameFitGrid = rawFast.validMask(:) & directSameFitGrid.validMask(:) & ...
+    isfinite(CpFast_mps(:)) & isfinite(directSameFitGrid.phaseVelocity_mps(:));
+assert(any(validSameFitGrid), ...
+    'Public and direct fit-optimized routes must share valid requested frequencies.');
 
-diff_mps = CpFast_mps(valid) - direct.phaseVelocity_mps(valid);
-rmseDiff_mps = sqrt(mean(diff_mps.^2));
-maxAbsDiff_mps = max(abs(diff_mps));
-maxRelDiff = max(abs(diff_mps) ./ max(abs(direct.phaseVelocity_mps(valid)), eps));
+sameFitGridDiff_mps = CpFast_mps(validSameFitGrid) - ...
+    directSameFitGrid.phaseVelocity_mps(validSameFitGrid);
+sameFitGridRmse_mps = sqrt(mean(sameFitGridDiff_mps.^2));
+sameFitGridMaxAbs_mps = max(abs(sameFitGridDiff_mps));
+sameFitGridMaxRel = max(abs(sameFitGridDiff_mps) ./ ...
+    max(abs(directSameFitGrid.phaseVelocity_mps(validSameFitGrid)), eps));
+
+numericalPresetOptions = fastOptions;
+numericalPresetOptions.forwardModel = struct('gridPolicy', "numericalPreset");
+[CpNumericalPreset_mps, rawNumericalPreset] = mrlfeEvaluateFitModel( ...
+    params, frequency_Hz, branchName, numericalPresetOptions);
+directNumericalPresetRequest = mrlfeBuildFitSolveRequest( ...
+    params, frequency_Hz, branchName, numericalPresetOptions);
+directNumericalPreset = mrlfeSolve(directNumericalPresetRequest);
+validNumericalPreset = rawNumericalPreset.validMask(:) & ...
+    directNumericalPreset.validMask(:) & isfinite(CpNumericalPreset_mps(:)) & ...
+    isfinite(directNumericalPreset.phaseVelocity_mps(:));
+assert(any(validNumericalPreset), ...
+    'Public and direct numerical-preset routes must share valid requested frequencies.');
+numericalPresetDiff_mps = CpNumericalPreset_mps(validNumericalPreset) - ...
+    directNumericalPreset.phaseVelocity_mps(validNumericalPreset);
+
+crossPolicyValid = rawFast.validMask(:) & rawNumericalPreset.validMask(:) & ...
+    isfinite(CpFast_mps(:)) & isfinite(CpNumericalPreset_mps(:));
+assert(any(crossPolicyValid), ...
+    'Fit-optimized and numerical-preset routes must share valid requested frequencies.');
+crossPolicyDiff_mps = CpFast_mps(crossPolicyValid) - ...
+    CpNumericalPreset_mps(crossPolicyValid);
+crossPolicyRmse_mps = sqrt(mean(crossPolicyDiff_mps.^2));
+crossPolicyMaxAbs_mps = max(abs(crossPolicyDiff_mps));
+crossPolicyMaxRel = max(abs(crossPolicyDiff_mps) ./ ...
+    max(abs(CpNumericalPreset_mps(crossPolicyValid)), eps));
 
 assert(isfield(rawFast, 'fitPerformanceDefaults'), 'Fast mRLFE fitting evaluation must report fit performance defaults.');
 assert(rawFast.evaluationPath.usedPublicSolver == true, ...
     'mRLFE fitting evaluation should use the public solver route.');
+assert(rawFast.fitGrid.gridPolicy == "fitOptimized", ...
+    'Repeated mRLFE fitting evaluations must disclose fitOptimized grid policy.');
+assert(rawNumericalPreset.fitGrid.gridPolicy == "numericalPreset", ...
+    'Requested-curve evaluations must disclose numericalPreset grid policy.');
+assert(all(ismember(frequency_Hz, rawFast.frequencySolve_Hz)), ...
+    'The fit-optimized solve grid must preserve every requested frequency.');
+assert(numel(rawFast.frequencySolve_Hz) <= fastOptions.forwardModel.maximumPointCount, ...
+    'The fit-optimized solve grid must respect its configured point bound.');
 assert(rawFast.modelResult.execution.requestedPreset == "fast", ...
     'mRLFE fitting evaluation should request the public fast preset.');
 assert(rawFast.modelResult.execution.effectivePreset == "fast", ...
@@ -52,19 +88,38 @@ assert(rawFast.fitPerformanceDefaults.atlasCpScanPoints == 260, ...
     'Public fast mRLFE fitting should use 260 Cp scan points.');
 assert(rawFast.fitPerformanceDefaults.a0DpCandidates == 5, ...
     'Public fast mRLFE fitting should use five candidates.');
-assert(rmseDiff_mps == 0, 'Public fast fitting Cp RMSE differs from direct solver.');
-assert(maxAbsDiff_mps == 0, 'Public fast fitting maximum Cp difference differs from direct solver.');
-assert(maxRelDiff == 0, 'Public fast fitting maximum relative Cp difference differs from direct solver.');
+assert(rawFast.modelResult.fallback.policy == "none" && ...
+    ~rawFast.modelResult.fallback.applied, ...
+    'Public fast fitting must not apply fallback.');
+assert(rawFast.modelResult.quality.validCount == nnz(rawFast.validMask) && ...
+    rawFast.modelResult.quality.pointCount == numel(rawFast.validMask), ...
+    'Public fast fitting quality counts must describe the returned requested-grid mask.');
+assert(rawFast.evaluationPath.quality.accepted == rawFast.modelResult.quality.accepted && ...
+    rawFast.evaluationPath.quality.reason == rawFast.modelResult.quality.reason, ...
+    'Fitting metadata must report the public result quality without reinterpretation.');
 
-% The automatic fast preset is intentionally elastic-only. Viscous real-k fitting
-% keeps the maintained external defaults until a separate viscous
-% option-sensitivity diagnostic validates a faster configuration. The actual
-% viscous internal grid is enabled deeper in rlComputeFundamentalLambModes;
-% rawVisco.fitPerformanceDefaults intentionally reports the external fitting
-% options, not the internal viscoOptions object.
+% These are adapter-equivalence checks: both sides use the same request and
+% internal grid. The 1e-12 m/s tolerance allows only floating-point noise;
+% the observed same-grid error on MATLAB R2024b is exactly zero.
+sameGridTolerance_mps = 1e-12;
+sameGridRelativeTolerance = 1e-12;
+assert(sameFitGridRmse_mps <= sameGridTolerance_mps, ...
+    'Public fit-optimized Cp RMSE differs from an equivalent direct solve.');
+assert(sameFitGridMaxAbs_mps <= sameGridTolerance_mps, ...
+    'Public fit-optimized maximum Cp difference differs from an equivalent direct solve.');
+assert(sameFitGridMaxRel <= sameGridRelativeTolerance, ...
+    'Public fit-optimized relative Cp difference differs from an equivalent direct solve.');
+assert(max(abs(numericalPresetDiff_mps)) <= sameGridTolerance_mps, ...
+    'Public numerical-preset Cp differs from an equivalent direct solve.');
+
+% Viscous fitting uses the same public solver and explicit fit-optimized grid
+% policy. It remains a quality/metadata check, not an equality comparison
+% against an intentionally different numerical-preset grid.
 viscoParams = params;
 viscoParams.etaS = 0.12;
 viscoOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', viscoParams.etaS);
+viscoOptions.mrlfeNumericalPreset = "fast";
+viscoOptions.forwardModel = fastOptions.forwardModel;
 [CpVisco_mps, rawVisco] = mrlfeEvaluateFitModel(viscoParams, frequency_Hz, branchName, viscoOptions);
 assert(any(isfinite(CpVisco_mps)), 'Viscous mRLFE fitting evaluation produced no finite Cp points.');
 assert(rawVisco.evaluationPath.usedPublicSolver == true, ...
@@ -84,7 +139,8 @@ fprintf('Viscous preset:   public=%s | engine=%s | cpScanPoints=%g\n', ...
     rawVisco.fitPerformanceDefaults.preset, ...
     rawVisco.modelResult.execution.internalEngine, ...
     rawVisco.fitPerformanceDefaults.atlasCpScanPoints);
-fprintf('RMSE difference: %.6g m/s\n', rmseDiff_mps);
-fprintf('Max abs diff:    %.6g m/s\n', maxAbsDiff_mps);
-fprintf('Max rel diff:    %.6g\n', maxRelDiff);
+fprintf('Same fit grid:    RMSE=%.6g m/s | max abs=%.6g m/s | max rel=%.6g\n', ...
+    sameFitGridRmse_mps, sameFitGridMaxAbs_mps, sameFitGridMaxRel);
+fprintf('Cross-grid diagnostic (no equality contract): RMSE=%.6g m/s | max abs=%.6g m/s | max rel=%.6g\n', ...
+    crossPolicyRmse_mps, crossPolicyMaxAbs_mps, crossPolicyMaxRel);
 fprintf('\nmRLFE fast fitting option quality test passed.\n');

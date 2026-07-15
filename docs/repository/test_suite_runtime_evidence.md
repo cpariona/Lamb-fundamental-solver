@@ -7,6 +7,9 @@ runner membership or establish hardware-dependent pass/fail thresholds.
 
 - Test content was measured at commit
   `efe9026b6fabc556f4b439e64b9440c7e2630a41`.
+- The three repaired baseline entries were remeasured at commit
+  `14501278d15b5185f37074651eb4a048c32e2504`; all unrelated rows retain the
+  original measurement commit.
 - Measurements used MATLAB R2024b on `PCWIN64`.
 - `measureTestRuntime` resolved tracked paths through `buildTestInventory`, ran
   each entry independently inside the MATLAB process, restored the path/current
@@ -30,17 +33,17 @@ All durations below are measured seconds, not static estimates.
 
 | Entrypoint | Status | Median | Minimum | Maximum | Repeats completed |
 | --- | --- | ---: | ---: | ---: | ---: |
-| `test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy` | failed | 3.815 | 3.815 | 3.815 | 1 |
+| `test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy` | passed | 4.297 | 4.297 | 4.297 | 1 |
 | `test_acoustoelastic_iop_hgo_short_entrypoints` | passed | 0.066 | 0.066 | 0.066 | 1 |
 | `test_ae_fit_synthetic_atlasA0` | passed | 20.612 | 20.612 | 20.612 | 1 |
 | `test_execution_profile_current_contract` | passed | 7.920 | 7.692 | 8.149 | 2 |
 | `test_execution_profile_fit_curve_metadata` | passed | 18.839 | 18.839 | 18.839 | 1 |
 | `test_execution_profile_surface_integration` | passed | 9.134 | 9.134 | 9.134 | 1 |
 | `test_gui_execution_profile_normalization` | passed | 7.509 | 7.457 | 7.560 | 2 |
-| `test_lightweight_numerical_regression` | failed | 1.495 | 1.495 | 1.495 | 1 |
+| `test_lightweight_numerical_regression` | passed | 2.655 | 2.655 | 2.655 | 1 |
 | `test_model_execution_profile_resolvers` | passed | 7.478 | 7.469 | 7.487 | 2 |
 | `test_mrlfe_etaS_fit_forward_cache` | passed | 14.780 | 14.780 | 14.780 | 1 |
-| `test_mrlfe_fit_fast_options_quality` | failed | 8.931 | 8.931 | 8.931 | 1 |
+| `test_mrlfe_fit_fast_options_quality` | passed | 11.397 | 11.397 | 11.397 | 1 |
 | `test_mrlfe_fit_grid_policy_performance` | passed | 10.306 | 10.306 | 10.306 | 1 |
 | `test_mrlfe_fit_synthetic_A0Like` | passed | 11.974 | 11.974 | 11.974 | 1 |
 | `test_mrlfe_main_gui_characterization` | passed | 109.959 | 109.959 | 109.959 | 1 |
@@ -51,14 +54,14 @@ All durations below are measured seconds, not static estimates.
 | `test_rl_fit_evaluator_branch_consistency` | passed | 19.742 | 19.742 | 19.742 | 1 |
 | `test_rl_fit_synthetic_A0` | passed | 23.506 | 23.506 | 23.506 | 1 |
 
-Seventeen entries passed and three failed. No timeout occurred. The median
-distribution was: 2 below 2 seconds, 6 from 2 to below 10 seconds, 8 from 10 to
-below 30 seconds, and 4 at or above 30 seconds.
+All 20 current rows pass. No timeout occurred. The current median distribution
+is: 1 below 2 seconds, 6 from 2 to below 10 seconds, 9 from 10 to below 30
+seconds, and 4 at or above 30 seconds.
 
-## Failures
+## Historical failures and repaired evidence
 
-Failures are evidence, not cleanup targets in this branch. The harness did not
-suppress or retry them:
+The phase-1 harness did not suppress or retry these failures. Their original
+evidence remains part of the diagnosis history:
 
 | Entrypoint | Recorded assertion message |
 | --- | --- |
@@ -66,8 +69,11 @@ suppress or retry them:
 | `test_lightweight_numerical_regression` | `mRLFE A0Like Cp snapshot changed.` |
 | `test_mrlfe_fit_fast_options_quality` | `Public fast fitting Cp RMSE differs from direct solver.` |
 
-These assertion failures had empty MATLAB identifiers. Their durations describe
-time to failure and must not be treated as passing-runtime samples.
+These assertion failures had empty MATLAB identifiers. Their old durations
+describe time to failure and are not passing-runtime samples. The current CSV
+rows replace only those three entries with passing measurements at `14501278`.
+Root causes and before/after numerical evidence are in
+`docs/repository/test_baseline_failure_diagnosis.md`.
 
 ## Unregistered-test evidence
 
@@ -76,14 +82,13 @@ Static registration status remains unchanged for all six audit candidates:
 | Entrypoint | Static registration | Measured status | Median seconds |
 | --- | --- | --- | ---: |
 | `test_mrlfe_fit_grid_policy_performance` | no maintained runner | passed | 10.306 |
-| `test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy` | no maintained runner | failed | 3.815 |
+| `test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy` | no maintained runner | passed | 4.297 |
 | `test_acoustoelastic_iop_hgo_short_entrypoints` | no maintained runner | passed | 0.066 |
 | `test_mrlfe_etaS_fit_forward_cache` | no maintained runner | passed | 14.780 |
-| `test_mrlfe_fit_fast_options_quality` | no maintained runner | failed | 8.931 |
+| `test_mrlfe_fit_fast_options_quality` | no maintained runner | passed | 11.397 |
 | `test_rl_fit_evaluator_branch_consistency` | no maintained runner | passed | 19.742 |
 
-No registration decision follows from duration alone. The two failures also
-require contract diagnosis before any future membership proposal.
+No registration decision follows from duration or repaired status alone.
 
 ## Provisional planning classification
 
@@ -104,8 +109,11 @@ require contract diagnosis before any future membership proposal.
 - The four mRLFE characterizations measured 107.654 to 271.182 seconds. They are
   clear extended-validation candidates and explain much of the mixed-runner
   runtime risk.
-- A fast failure is not a quick passing contract. The three failing entries are
-  not eligible for a quick-runner recommendation from this evidence alone.
+- The repaired identityA0 contract measured below 10 seconds, but remains
+  standalone pending an explicit registration decision. The repaired fitting
+  regression measured above 10 seconds and remains focused/extended evidence.
+- The repaired lightweight regression measured 2.655 seconds, but its direct
+  core-runner ownership remains unchanged.
 
 ## Explicitly unmeasured tests
 
@@ -211,15 +219,21 @@ this task. The D entry remains manual/deferred because its mapped-to-Fast
 assertions describe the former policy and would not provide useful current
 contract evidence.
 
-## Unmeasured runners
+## Focused runner validation
 
-No aggregate runner was timed. The sampling plan explicitly defers
-`run_core_smoke_tests`, `run_gui_smoke_tests`,
-`run_acoustoelastic_smoke_tests`, `run_mrlfe_production_core_tests`, and
-`run_fit_validation_tests` until individual membership costs are understood.
-Other maintained runners were outside this phase's sampling plan. Focused
-runner execution for layout validation is reported separately and is not a
-runtime measurement.
+The repair task executed three focused runners after their individual tests
+passed. These are process wall times from the validation commands, not harness
+rows and not duration thresholds:
+
+| Runner | Result | Process wall time |
+| --- | --- | ---: |
+| `run_acoustoelastic_smoke_tests` | passed | 105.5 s |
+| `run_core_smoke_tests` | passed | 71.9 s |
+| `run_mrlfe_fit_public_solver_tests` | passed | 108.0 s |
+
+Other aggregate runners remain unmeasured by the harness. In particular,
+`run_gui_smoke_tests`, `run_mrlfe_production_core_tests`, and
+`run_fit_validation_tests` were not executed in the repair task.
 
 ## Decisions deferred
 

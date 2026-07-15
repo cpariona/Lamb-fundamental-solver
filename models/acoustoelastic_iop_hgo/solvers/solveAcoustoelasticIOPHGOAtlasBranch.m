@@ -117,6 +117,18 @@ if any(isTracked)
     result.pointStatus(isTracked) = trackingResult.pointStatus(idx);
 end
 
+% The diagnostic branch is part of the returned requested-grid schema. Build
+% it again from the projected official fields while retaining the objective
+% columns that correspond exactly to those requested frequencies.
+if isfield(trackingResult, 'identityA0')
+    diagnosticResult = result;
+    diagnosticResult.objectiveMap = nan(size(trackingResult.objectiveMap, 1), numel(requestedFrequency));
+    if any(isTracked)
+        diagnosticResult.objectiveMap(:, isTracked) = trackingResult.objectiveMap(:, loc(isTracked));
+    end
+    result.identityA0 = aeBuildIdentityA0DiagnosticBranch(diagnosticResult);
+end
+
 result.reliability = summarizeRequestedFrequencyReliability(result, trackingResult);
 result.diagnostics = summarizeRequestedFrequencyDiagnostics(result, trackingResult);
 end
