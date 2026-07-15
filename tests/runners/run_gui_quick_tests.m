@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % GUI helper/state contracts and representative adapter smoke checks only.
 fprintf('\nRunning quick GUI tests...\n');

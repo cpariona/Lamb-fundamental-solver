@@ -20,8 +20,8 @@ graph.
 - The nine compatibility wrappers and the standalone
   `run_main_gui_export_tests` command remain public.
 
-The implemented graph represents 104 tests: 103 have one direct canonical
-runner and one is explicitly manual. There are 27 canonical runner names, zero
+The implemented graph represents 104 tests: all 104 have one direct canonical
+runner. There are zero manual-only tests and zero
 unowned maintained tests, zero multiple canonical owners, and zero tests with
 multiple executable direct runner memberships.
 
@@ -31,8 +31,8 @@ multiple executable direct runner memberships.
 | --- | --- | ---: | --- |
 | quick contract | `run_quick_contract_tests` | 14 tests | paths, metadata, validation, imports, interaction helpers, public defaults/validation |
 | quick smoke | `run_quick_smoke_tests` | 47 tests | quick contracts plus GUI adapters and representative AE/mRLFE executions |
-| numerical regression | `run_numerical_regression_tests` | 17 tests | snapshots, result schema, branch consistency, selected fitting regressions, AE and production-core solver regression |
-| extended integration | `run_extended_integration_tests` | 40 tests | profile matrix, requested-curve solving, broad fitting validation, public-solver consumer characterization |
+| numerical regression | `run_numerical_regression_tests` | 14 tests | snapshots, result schema, branch consistency, AE and bounded production-core solver regression |
+| extended integration | `run_extended_integration_tests` | 43 tests | profile matrix, requested-curve solving, broad fitting validation, mRLFE fitting and preset characterization |
 | performance | `run_performance_and_benchmark_tests` | 2 tests | descriptive fit-grid and production-core timing evidence |
 
 The quick commands contain no known multi-minute characterization, performance
@@ -145,10 +145,9 @@ Known multi-minute characterization remains outside quick validation:
 - `test_execution_profile_validation_matrix` (36 combinations,
   approximately 178.7 s externally supplied evidence).
 
-`test_mrlfe_execution_profile_benchmark_contract` is the sole manual-only
-test. It still encodes the obsolete mapped-to-Fast policy, has no normal runner
-edge, and remains classified as `deferred benchmark redesign`. Neither it nor
-`analysis/execution_profiles/benchmarkMRLFEExecutionProfiles.m` was changed.
+`test_mrlfe_execution_profile_benchmark_contract` is owned by
+`run_execution_profile_diagnostics_tests` and validates the bounded direct-
+profile benchmark. Full descriptive mode remains a manual diagnostic command.
 
 ## Before/after overlap
 

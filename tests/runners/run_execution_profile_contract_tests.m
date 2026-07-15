@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Canonical owner for structural execution-profile contracts.
 fprintf('\nRunning execution-profile contract tests...\n');

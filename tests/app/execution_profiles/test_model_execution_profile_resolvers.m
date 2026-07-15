@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning model execution profile resolver tests...\n');
 fprintf('------------------------------------------------\n');

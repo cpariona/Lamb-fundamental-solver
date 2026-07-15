@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Test that the IOP/HGO wrapper decouples atlas branch identification from
 % the requested output-frequency grid. This test does not assume that the

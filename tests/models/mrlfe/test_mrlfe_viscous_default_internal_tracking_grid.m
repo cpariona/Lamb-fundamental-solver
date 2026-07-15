@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_VISCOUS_DEFAULT_INTERNAL_TRACKING_GRID Contract test for viscous default tracking.
 %

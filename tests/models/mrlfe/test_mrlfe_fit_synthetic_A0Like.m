@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning mRLFE synthetic A0-like fitting test...\n');
 fprintf('---------------------------------------------\n');

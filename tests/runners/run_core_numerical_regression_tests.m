@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Historical core numerical coverage, separated from structural contracts.
 fprintf('\nRunning core numerical regression tests...\n');

@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Canonical AE contracts and representative small solver executions.
 fprintf('\nRunning quick acoustoelastic IOP/HGO tests...\n');

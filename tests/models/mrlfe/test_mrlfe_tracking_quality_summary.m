@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_TRACKING_QUALITY_SUMMARY Contract test for mRLFE quality summary helper.
 %

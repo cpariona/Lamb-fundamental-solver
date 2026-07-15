@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_SOLVE_FREQUENCY_OVERRIDE Contract test for diagnostic solve grids.
 

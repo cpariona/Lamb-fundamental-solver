@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Fast repository, path, output-folder, and fitting-helper contracts.
 fprintf('\nRunning core contract tests...\n');

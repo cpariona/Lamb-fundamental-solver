@@ -288,3 +288,23 @@ owned directly by `run_numerical_regression_tests`.
 The obsolete mapped-to-Fast benchmark is the only manual-only test. It remains
 deferred and was not executed. The 36-case validation matrix retains the
 externally supplied approximately 178.7-second evidence and was not rerun.
+
+## Finalization measurements
+
+Finalization removed repeated `startup` from nested execution while preserving
+cold-start behavior through a path guard. On the same R2024b/PCWIN64 machine:
+
+| Runner | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| `run_quick_contract_tests` | 134.42 s | 32.101 s | -76.1% |
+| `run_quick_smoke_tests` | 352.14 s | 76.053 s | -78.4% |
+| `run_numerical_regression_tests` | 256.08 s | 36.158 s | -85.9% |
+
+The after-runs passed. A separate long-lived MATLAB process was active, so
+these remain descriptive rather than hardware thresholds. The preset
+multi-profile test and mRLFE fitting regression owner moved to extended.
+Detailed parent/child/test rows are in
+`analysis/test_inventory/quick_runtime_contributions.csv`.
+
+The benchmark contract was redesigned around direct profiles and is no longer
+manual-only. Historical paragraphs above preserve the pre-redesign state.

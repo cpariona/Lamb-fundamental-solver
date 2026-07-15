@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_ACOUSTOELASTIC_IOP_HGO_BRANCH_POLICY_VALIDATION Verify maintained branch-policy names.
 %

@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Solver-backed public result-schema validation is numerical, not structural.
 fprintf('\nRunning mRLFE public result contract...\n');

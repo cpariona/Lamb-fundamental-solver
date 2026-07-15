@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_RESIDUAL_OBJECTIVE_CONTRACT Contract test for mRLFE residual objective.
 %

@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Smoke test for the maintained mRLFE real-k elastic path.
 % This verifies that the refactored mRLFE folders are on the path and that a

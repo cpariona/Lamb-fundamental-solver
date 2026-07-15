@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_INTERNAL_TRACKING_GRID_WITH_BUFFER Contract test for the optimized mRLFE path.
 %

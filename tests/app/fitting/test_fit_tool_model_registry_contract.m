@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning FitTool model registry contract test...\n');
 fprintf('--------------------------------------------\n');

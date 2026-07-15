@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_ELASTIC_REFERENCE_BUFFER Contract test for mRLFE viscous buffering.
 %

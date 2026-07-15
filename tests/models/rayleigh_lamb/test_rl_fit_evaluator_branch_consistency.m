@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning Rayleigh-Lamb fitting evaluator branch-consistency test...\n');
 fprintf('---------------------------------------------------------------\n');

@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Routine structural contracts. No characterization, benchmarks, or matrices.
 fprintf('\nRunning quick contract validation...\n');

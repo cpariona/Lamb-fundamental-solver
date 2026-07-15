@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning mRLFE public result schema contract test...\n');
 fprintf('--------------------------------------------------\n');

@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning mRLFE legacy route cleanup tests...\n');
 fprintf('-----------------------------------------\n');

@@ -68,14 +68,15 @@ Use these maintained tier commands:
 ```matlab
 run_quick_contract_tests       % 14 structural contract tests
 run_quick_smoke_tests          % 47 routine contract/smoke tests
-run_numerical_regression_tests % 17 focused numerical regressions
-run_extended_integration_tests % 40 extended/integration tests
+run_numerical_regression_tests % 14 focused numerical regressions
+run_extended_integration_tests % 43 extended/integration tests
 run_performance_and_benchmark_tests % 2 descriptive performance tests
 ```
 
-`run_quick_smoke_tests` is the routine developer command. It excludes known
+`run_quick_smoke_tests` is the routine developer command. Nested runners and
+tests reuse an already active startup path, avoiding repeated path setup. It excludes known
 multi-minute characterization, the 36-case execution-profile matrix,
-performance evidence, and the obsolete mapped-to-Fast benchmark.
+performance evidence, and the full descriptive execution-profile benchmark.
 
 The canonical mapping and regeneration rules are maintained in:
 

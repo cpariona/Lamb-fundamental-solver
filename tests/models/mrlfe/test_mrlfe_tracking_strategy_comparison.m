@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %TEST_MRLFE_TRACKING_STRATEGY_COMPARISON Contract test for maintained comparison helper.
 %

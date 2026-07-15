@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Explicitly extended aggregate. Includes matrices and multi-minute
 % characterization; do not use for routine local validation.
@@ -13,6 +15,7 @@ run_fit_tool_requested_curve_tests;
 run_fit_validation_tests;
 run_ae_extended_tests;
 run_mrlfe_fit_public_solver_tests;
+run_mrlfe_fitting_regression_tests;
 run_mrlfe_main_gui_public_solver_tests;
 run_mrlfe_sweeptool_public_solver_tests;
 run_mrlfe_neutral_production_helper_tests;

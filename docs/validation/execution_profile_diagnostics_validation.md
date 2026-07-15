@@ -107,25 +107,19 @@ k2 = 200
 
 ## mRLFE
 
-mRLFE diagnostics explicitly show requested/effective divergence:
+mRLFE diagnostics show direct requested/effective behavior:
 
 ```text
 requested: Balanced
-effective: Fast
-support mode: mapped_to_fast
-override applied: true
-override reason: ...
+effective: Balanced
+support mode: direct
+solver preset: balanced
+override applied: false
 ```
 
-Maintained presets remain:
-
-| Surface | Internal preset |
-| --- | --- |
-| Main, `etaS = 0` | `fast_zero_viscosity_adaptive` |
-| Main, `etaS > 0` | `fast_viscous` |
-| Sweep, `etaS = 0` | `fast_zero_viscosity_adaptive` |
-| Sweep, `etaS > 0` | `fast_viscous` |
-| Fit | `fast_fit_atlas` |
+Fast, Balanced, and Robust map to the public `fast`, `balanced`, and `robust`
+presets on Main, Sweep, and Fit surfaces. Fit objective evaluations retain the
+selected preset metadata while using the bounded `fitOptimized` grid.
 
 The diagnostic contract also reports:
 
@@ -136,8 +130,7 @@ The diagnostic contract also reports:
 - elapsed time;
 - valid points.
 
-Balanced and Robust must not be displayed as effective mRLFE profiles while
-the maintained fast atlas presets are used.
+The profile must not change route policy, fallback, or branch termination.
 
 ## Surface Differences
 
@@ -206,5 +199,5 @@ This covers:
 - unambiguous requested/effective/control wording;
 - RL effective settings;
 - AE atlas settings;
-- mRLFE mapped-to-Fast presentation;
-- controlled mRLFE benchmark contracts.
+- mRLFE direct-profile presentation;
+- the bounded structural mRLFE benchmark contract.

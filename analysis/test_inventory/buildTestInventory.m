@@ -426,10 +426,6 @@ elseif path == "tests/run_main_gui_export_tests.m"
 elseif likelyHeavy && fileType == "runner"
     action = "split_later";
     notes = "Keep behavior unchanged here; separate quick and extended membership in a future PR.";
-elseif category == "benchmark_performance" && contains(lower(entrypoint), "execution_profile")
-    action = "redesign_later";
-    confidence = "high";
-    notes = "Current benchmark encodes the obsolete mapped-to-Fast policy.";
 elseif fileType == "unknown"
     action = "investigate";
     confidence = "low";

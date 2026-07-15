@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Focused fitting-route and cache regressions measured at roughly 11-15 s.
 fprintf('\nRunning mRLFE fitting regression tests...\n');

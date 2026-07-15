@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 %RUN_FIT_VALIDATION_TESTS Run focused synthetic fitting validation tests.
 %

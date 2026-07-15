@@ -534,13 +534,11 @@ Run focused fitting validation separately:
 run_fit_validation_tests
 ```
 
-The execution-profile matrix, diagnostic runners, mRLFE production-core
+The execution-profile matrix, full descriptive benchmark, mRLFE production-core
 characterization/performance coverage, and consumer characterization are
-maintained extended or manual validation surfaces. They are intentionally not
-normal quick-smoke prerequisites. `run_main_gui_export_tests` remains the
-focused standalone public runner for the Main GUI export contract. The stale
-mapped-to-Fast benchmark is manual and deferred; it is not executed by any
-normal runner.
+extended or manual validation surfaces. The bounded direct-profile benchmark
+contract is owned by `run_execution_profile_diagnostics_tests`.
+`run_main_gui_export_tests` remains the focused standalone public export runner.
 
 Run focused mRLFE FitTool public-solver validation after mRLFE fitting-route or fitted-curve changes:
 

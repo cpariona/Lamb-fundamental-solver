@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 fprintf('\nRunning execution profile end-to-end tests...\n');
 fprintf('-------------------------------------------\n');

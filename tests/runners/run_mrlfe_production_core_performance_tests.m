@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Descriptive performance evidence; no hardware-dependent pass threshold.
 fprintf('\nRunning mRLFE production-core performance tests...\n');

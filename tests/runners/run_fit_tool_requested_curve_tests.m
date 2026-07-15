@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % Requested-curve model execution is extended surface integration.
 fprintf('\nRunning FitTool requested-curve tests...\n');

@@ -1,5 +1,7 @@
 clear; clc;
-startup
+if isempty(which('mrlfeSolve'))
+    startup
+end
 
 % GUI-owned execution-profile behavior and cross-surface integration.
 fprintf('\nRunning GUI execution-profile tests...\n');
