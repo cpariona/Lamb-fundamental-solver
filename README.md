@@ -45,10 +45,10 @@ The repository naming strategy is documented in:
 docs/repository/naming_strategy.md
 ```
 
-The current GUI integration audit and adapter plan are documented in:
+The maintained GUI adapter architecture is documented in:
 
 ```text
-docs/workflows/gui/integration_audit.md
+docs/workflows/gui/adapter_architecture.md
 ```
 
 Repository cleanup policy is tracked in:
@@ -220,15 +220,11 @@ compare_mrlfe_elastic_vs_visco_cp
 Focused mRLFE diagnostics:
 
 ```matlab
-compare_mrlfe_tracker_vs_condition_peaks
-diagnose_etaS_forward_cache
-diagnose_fit_timing
-diagnose_fit_option_sensitivity
 diagnose_mrlfe_atlas_primary_policy_matrix
-diagnose_mrlfe_gui_performance_32kHz
-diagnose_mrlfe_visco_validity_breakdown
-diagnose_mrlfe_visco_residual_landscape
-stress_test_mrlfe_real_k_range
+diagnose_mrlfe_fit_performance
+run_mrlfe_targeted_grid_validation
+validate_grid_presets
+validate_grid_presets_full
 ```
 
 The complete mRLFE diagnostic inventory and historical cleanup candidates are documented in:

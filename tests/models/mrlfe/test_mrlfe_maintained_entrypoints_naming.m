@@ -31,8 +31,10 @@ assert(contains(mrlfeSection, 'summarizeMRLFETrackingQuality'), ...
     'Maintained mRLFE section should list summarizeMRLFETrackingQuality.');
 assert(contains(mrlfeSection, 'compareMRLFETrackingStrategies'), ...
     'Maintained mRLFE section should list compareMRLFETrackingStrategies.');
-assert(contains(mrlfeSection, 'stress_test_mrlfe_real_k_range'), ...
-    'Maintained mRLFE section should list the unified real-k range diagnostic.');
+assert(contains(mrlfeSection, 'diagnose_mrlfe_fit_performance'), ...
+    'Maintained mRLFE section should list the consolidated fit-performance diagnostic.');
+assert(~contains(mrlfeSection, 'stress_test_mrlfe_real_k_range'), ...
+    'Maintained mRLFE section should not list archived range diagnostics.');
 assert(~contains(mrlfeSection, 'solveMRLFEAtlasUnified'), ...
     'Maintained mRLFE section should not list removed legacy solvers.');
 assert(contains(mrlfeSection, 'mrlfeTrackBranchAdaptive'), ...
@@ -93,14 +95,8 @@ assert(contains(readmeSection, 'compare_mrlfe_elastic_vs_visco_cp'), ...
 renamedExample = fullfile(repoRoot, 'examples', 'mrlfe', 'basic', 'compare_mrlfe_elastic_vs_visco_cp.m');
 assert(isfile(renamedExample), 'Renamed mRLFE elastic-vs-visco example is missing.');
 
-validityDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'diagnose_mrlfe_visco_validity_breakdown.m');
-assert(isfile(validityDiagnostic), 'mRLFE visco validity diagnostic is missing.');
-
-landscapeDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'diagnose_mrlfe_visco_residual_landscape.m');
-assert(isfile(landscapeDiagnostic), 'mRLFE visco residual landscape diagnostic is missing.');
-
-rangeStressTest = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_test_mrlfe_real_k_range.m');
-assert(isfile(rangeStressTest), 'Unified mRLFE real-k range stress test is missing.');
+fitDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'diagnose_mrlfe_fit_performance.m');
+assert(isfile(fitDiagnostic), 'Consolidated mRLFE fit-performance diagnostic is missing.');
 assert(~isfile(fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_test_mrlfe_elastic_range.m')), ...
     'Obsolete separate mRLFE elastic range stress test should not exist.');
 assert(~isfile(fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_test_mrlfe_visco_range.m')), ...
@@ -109,11 +105,10 @@ assert(~isfile(fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'stress_te
 atlasDiagnosticReadme = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'README.md');
 assert(isfile(atlasDiagnosticReadme), 'mRLFE diagnostics README is missing.');
 
-atlasPolicyNotes = fullfile(repoRoot, 'docs', 'models', 'mrlfe', 'atlas_policy_notes.md');
-assert(isfile(atlasPolicyNotes), 'mRLFE atlas policy notes are missing.');
-
-trackerDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'compare_mrlfe_tracker_vs_condition_peaks.m');
-assert(isfile(trackerDiagnostic), 'mRLFE tracker-vs-condition diagnostic is missing.');
+trackerDiagnostic = fullfile(repoRoot, 'examples', 'mrlfe', 'diagnostics', 'archive', 'compare_mrlfe_tracker_vs_condition_peaks.m');
+assert(isfile(trackerDiagnostic), 'Historical tracker-vs-condition diagnostic archive is missing.');
+assert(isempty(which('compare_mrlfe_tracker_vs_condition_peaks')), ...
+    'Archived tracker-vs-condition diagnostic must not resolve on the startup path.');
 
 maintainedFiles = { ...
     fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeModelCandidateNames.m'), ...

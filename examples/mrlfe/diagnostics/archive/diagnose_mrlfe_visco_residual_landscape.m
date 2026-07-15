@@ -320,3 +320,5 @@ else
     T = struct2table(rows);
 end
 end
+% HISTORICAL. Not an active contract or maintained diagnostic.
+% Superseded by the public mrlfeSolve production-core tests.

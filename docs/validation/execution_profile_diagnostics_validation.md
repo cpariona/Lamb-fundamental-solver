@@ -175,7 +175,7 @@ After fitting, FitTool reports:
 - route;
 - valid points;
 - AE atlas settings;
-- mRLFE `fast_fit_atlas` and override reason when applicable.
+- mRLFE requested/effective public preset and engine, with no hidden profile override.
 
 The fitted curve also preserves:
 

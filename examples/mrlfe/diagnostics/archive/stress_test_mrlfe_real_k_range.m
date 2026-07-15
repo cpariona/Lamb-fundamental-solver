@@ -304,3 +304,5 @@ else
     T = struct2table(rows);
 end
 end
+% HISTORICAL. Not an active contract or maintained diagnostic.
+% Superseded by maintained numerical regression and production characterization.

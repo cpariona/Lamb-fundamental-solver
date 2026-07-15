@@ -273,3 +273,5 @@ continuity.Table = table(numel(idx), segments, maxJump, medianJump, f(idx(localP
 continuity.JumpTable = table(f(idx(localPos)), f(idx(localPos+1)), cp(idx(localPos)), cp(idx(localPos+1)), maxJump, ...
     'VariableNames', {'FrequencyBefore_Hz','FrequencyAfter_Hz','CpBefore','CpAfter','RelativeJump'});
 end
+% HISTORICAL. Not an active contract or maintained diagnostic.
+% Superseded by the public mrlfeSolve production and characterization tests.

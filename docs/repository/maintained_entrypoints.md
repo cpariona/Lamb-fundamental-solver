@@ -318,6 +318,7 @@ Maintained mRLFE fitting helpers:
 
 ```matlab
 mrlfeBuildFitProblem
+mrlfeBuildPublicSolveRequest
 mrlfeBuildFitSolveRequest
 mrlfeBuildGuiSolveRequest
 mrlfeBuildSweepSolveRequest
@@ -349,9 +350,8 @@ mrlfeApplyTerminationPolicy
 mrlfeEvaluatePhysicalTail
 ```
 
-Removed legacy route names are documented in
-`docs/validation/mrlfe_legacy_route_inventory.md`; they are not maintained
-entrypoints.
+Removed legacy route names remain available in Git history and are not
+maintained entrypoints.
 
 Maintained sweep plotting and summaries may use the normalized model name `mRLFEViscoRealK` for etaS > 0 real-k cases.
 
@@ -387,15 +387,11 @@ fit_mrlfe_A0Like
 Maintained mRLFE diagnostics:
 
 ```matlab
-compare_mrlfe_tracker_vs_condition_peaks
-diagnose_etaS_forward_cache
-diagnose_fit_timing
-diagnose_fit_option_sensitivity
 diagnose_mrlfe_atlas_primary_policy_matrix
-diagnose_mrlfe_gui_performance_32kHz
-diagnose_mrlfe_visco_validity_breakdown
-diagnose_mrlfe_visco_residual_landscape
-stress_test_mrlfe_real_k_range
+diagnose_mrlfe_fit_performance
+run_mrlfe_targeted_grid_validation
+validate_grid_presets
+validate_grid_presets_full
 ```
 
 Additional mRLFE secondary and historical diagnostics are documented in:
@@ -554,25 +550,18 @@ docs/repository/repository_structure.md
 docs/repository/naming_strategy.md
 docs/repository/validation_status.md
 docs/repository/maintained_entrypoints.md
-docs/repository/matlab_dependency_audit.md
 docs/repository/repository_hygiene_plan.md
-docs/repository/docs_foundation_cleanup_audit.md
 docs/workflows/fitting/README.md
 docs/workflows/fitting/architecture.md
 docs/workflows/fitting/validation_suite.md
 docs/models/mrlfe/README.md
 docs/models/mrlfe/fitting_workflow.md
-docs/models/mrlfe/fittool_grid_path_sensitivity.md
 docs/models/mrlfe/current_sweeps.md
-docs/models/mrlfe/docs_cleanup_audit.md
 docs/models/mrlfe/diagnostics/README.md
 docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md
-docs/models/mrlfe/atlas_policy_notes.md
 examples/mrlfe/diagnostics/README.md
 docs/workflows/gui/adapter_architecture.md
 docs/workflows/gui/mrlfe_atlas_policy_integration.md
-docs/workflows/gui/integration_audit.md
-docs/workflows/gui/main_pending_cleanup.md
 docs/workflows/sweeps/parametric_sweeps.md
 docs/workflows/sweeps/sweep_tool_usage.md
 docs/models/acoustoelastic_iop_hgo/README.md
@@ -581,8 +570,5 @@ docs/models/acoustoelastic_iop_hgo/documentation_index.md
 
 ## Archived or historical documentation
 
-```text
-docs/archive/fitting_phase_logs.md
-docs/archive/fitting_phases/fitting_phase*_status.md
-docs/models/mrlfe/archive/pending_cleanup.md
-```
+Superseded audits, phase logs, and model cleanup notes remain available in Git
+history and are not maintained documentation entrypoints.

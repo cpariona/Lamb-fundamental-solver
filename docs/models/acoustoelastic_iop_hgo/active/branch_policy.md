@@ -184,19 +184,15 @@ Important supporting documents:
 
 ```text
 docs/models/acoustoelastic_iop_hgo/active/solver_optimization_status.md
-docs/models/acoustoelastic_iop_hgo/archive/phase_closure_atlasA0.md
 docs/models/acoustoelastic_iop_hgo/diagnostics/atlas_vs_raw_branch1_diagnostic.md
 docs/models/acoustoelastic_iop_hgo/diagnostics/branch_families_diagnostic.md
 docs/models/acoustoelastic_iop_hgo/diagnostics/identityA0_diagnostic_policy.md
-docs/models/acoustoelastic_iop_hgo/archive/a0_backward_tracking_archive.md
 ```
 
 Archived branch-policy and A0-backward exploratory scripts should not be restored as workflows. Their retained conclusions are preserved in:
 
-```text
-docs/models/acoustoelastic_iop_hgo/audits/code_retention_review_plan.md
-docs/models/acoustoelastic_iop_hgo/archive/a0_backward_tracking_archive.md
-```
+Superseded retention and backward-tracking investigations remain available in
+Git history.
 
 ## Diagnostic alternatives
 

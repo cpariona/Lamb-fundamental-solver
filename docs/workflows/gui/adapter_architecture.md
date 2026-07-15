@@ -1,6 +1,6 @@
 # GUI adapter architecture
 
-This document records the maintained GUI adapter structure. It is the detailed architecture reference for GUI/backend boundaries; `docs/workflows/gui/integration_audit.md` is the status overview.
+This document records the maintained GUI adapter structure and is the active reference for GUI/backend boundaries.
 
 ## Dependency direction
 

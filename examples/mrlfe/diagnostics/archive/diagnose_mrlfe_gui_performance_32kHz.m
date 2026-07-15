@@ -185,3 +185,5 @@ else
     value = "";
 end
 end
+% HISTORICAL. Not an active contract or maintained diagnostic.
+% Superseded by the public execution-profile benchmark contract.

@@ -176,6 +176,7 @@ The maintained Main GUI mRLFE chain is:
 LambFundamental_GUI
   -> guiRunMRLFEModel
   -> mrlfeBuildGuiSolveRequest
+  -> mrlfeBuildPublicSolveRequest
   -> mrlfeSolve
   -> GUI result adapter
 ```
@@ -183,7 +184,9 @@ LambFundamental_GUI
 The GUI request mapper translates the current Main GUI SI parameters (`mu`,
 `etaS`, `rho`, `nu`, `thickness`, fluid density, fluid sound speed, frequency
 grid, and branch toggles) to the public material, geometry, and fluid fields.
-The maintained Main GUI preset is public `fast`. A0Like uses adaptive
+The Main GUI defaults to `Balanced`, which maps directly to public preset
+`balanced`; explicit Fast and Robust selections map to `fast` and `robust`.
+A0Like uses adaptive
 selection with `physicalTail` termination and no fallback. S0Like uses adaptive
 selection with no additional termination and no fallback.
 
@@ -203,13 +206,14 @@ FitTool_GUI
   -> mrlfeFitDispersionData
   -> mrlfeEvaluateFitModel
   -> mrlfeBuildFitSolveRequest
+  -> mrlfeBuildPublicSolveRequest
   -> mrlfeSolve
 ```
 
 The fitting request mapper translates the existing SI fitting parameters
 (`mu`, `etaS`, `rho`, `nu`, `thickness`, fluid density, and fluid sound speed)
-to public material, geometry, and fluid fields. The maintained fitting preset is
-public `fast`. A0Like fitting uses adaptive selection with
+to public material, geometry, and fluid fields. FitTool defaults to Fast while
+preserving direct Fast/Balanced/Robust preset mapping. A0Like fitting uses adaptive selection with
 `physicalTail` termination and no fallback. S0Like fitting uses adaptive
 selection with no additional termination and no fallback.
 
@@ -228,6 +232,7 @@ SweepTool_GUI
   -> guiRunSweep
   -> guiRunMRLFESweep
   -> mrlfeBuildSweepSolveRequest
+  -> mrlfeBuildPublicSolveRequest
   -> mrlfeSolve, once per sweep point
 ```
 
@@ -243,6 +248,14 @@ inherits Main GUI zero-viscosity fallback. Each point stores the full public
 model result under `rawResults.points{i}.modelResult`; aggregate sweep metadata
 reports all unique effective engines, presets, termination policies, and
 fallback policies represented by the points.
+
+## Diagnostics and debug boundary
+
+Stable diagnostics live under `result.diagnostics.summary`. Complete internal
+solver state is explicitly unstable and available under
+`result.debug.rawInternalResult` for maintained diagnostics and compatibility
+adapters. The former `result.diagnostics.rawInternalResult` field remains as a
+temporary compatibility alias; new production consumers must not depend on it.
 
 ## Production Core
 

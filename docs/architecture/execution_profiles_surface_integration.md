@@ -41,6 +41,19 @@ mRLFE profile mapping is:
 | `Balanced` | `balanced` |
 | `Robust` | `robust` |
 
+The maintained dependency path is:
+
+```text
+surface profile resolver
+  -> thin surface request wrapper
+  -> mrlfeBuildPublicSolveRequest
+  -> mrlfeSolve
+```
+
+The shared request builder owns physical aliases, scalar/frequency validation,
+the selected numerical preset, adaptive selection, branch termination, and
+disabled fallback. Adapters do not overwrite the preset after construction.
+
 ## Metadata
 
 Adapters and normalized outputs preserve the execution-profile metadata contract:
@@ -151,11 +164,11 @@ routine smoke tests.
 
 ## Remaining Work
 
-- Review the historical execution-profile proposal and validation records before
-  consolidating or archiving their former mapped-to-Fast evidence.
 - Keep the full mRLFE descriptive benchmark outside routine smoke validation;
   the bounded structural contract is owned by execution-profile diagnostics.
 - Add richer per-curve execution-profile metadata for multi-case sweep exports if
   downstream consumers need point-level auditability.
 - Keep `robustness` as a compatibility alias for at least one migration cycle.
-- Complete manual GUI review using the checklist above.
+- Complete manual GUI review using the checklist above when a release requires
+  interactive evidence; automated surface and benchmark contracts remain the
+  routine gates.
