@@ -5,6 +5,14 @@ function test_ae_physical_sweep_examples_contract()
 % requested fields, ranges, units, and output task names without running the
 % computationally expensive Robust sweeps.
 
+repoRoot = testRepositoryRoot();
+analysisPath = fullfile(repoRoot, 'analysis', 'acoustoelastic_iop_hgo', 'aeRunSweep.m');
+oldModelPath = fullfile(repoRoot, 'models', 'acoustoelastic_iop_hgo', 'solvers', 'aeRunSweep.m');
+assert(isfile(analysisPath), 'aeRunSweep must be owned by the AE analysis layer.');
+assert(~isfile(oldModelPath), 'The former model-layer aeRunSweep path must be absent.');
+assert(strcmp(which('aeRunSweep'), analysisPath), ...
+    'aeRunSweep must resolve uniquely from the AE analysis layer.');
+
 cases = [ ...
     makeCase("ae_sweep_iop_A0Like", "IOP", ...
         "IOP_mmHg = [5, 10, 15, 20, 25]", "iop_sweep"); ...

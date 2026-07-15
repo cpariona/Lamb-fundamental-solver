@@ -117,7 +117,7 @@ end
 
 function s = setNestedFieldRecursive(s, parts, value)
 fieldName = parts{1};
-if numel(parts) == 1
+if isscalar(parts)
     s.(fieldName) = value;
     return;
 end
