@@ -24,7 +24,7 @@ analysis/test_inventory/test_runner_ownership.csv
   public commands.
 
 Current generated state: 105 tests, 43 runner implementations, 9 compatibility
-wrappers, 3 helpers, 206 graph edges, 105 canonical owners, 0 manual-only tests,
+wrappers, 3 helpers, 209 graph edges, 105 canonical owners, 0 manual-only tests,
 0 unowned tests, 0 multiple canonical owners, 0 sibling direct overlaps, and 0
 runner cycles.
 

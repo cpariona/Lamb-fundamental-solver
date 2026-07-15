@@ -9,7 +9,7 @@ owners, not sibling tests. Runtime is descriptive evidence and never a failure
 threshold. Public wrappers and historical commands remain compatible.
 
 Final static state: 160 tracked MATLAB files, 105 tests, 43 runner
-implementations, 9 wrappers, 3 helpers, 206 graph edges, 105 canonical owners,
+implementations, 9 wrappers, 3 helpers, 209 graph edges, 105 canonical owners,
 0 manual-only tests, 0 unowned tests, 0 multiple owners, 0 sibling direct
 overlaps, and 0 runner cycles.
 

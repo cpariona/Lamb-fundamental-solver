@@ -2,6 +2,29 @@
 
 This document records the maintained validation entrypoints and the validation status expected before merging changes.
 
+## Repository structure Phase 2 status
+
+The 2026-07-15 layer-ownership correction moved `aeRunSweep` from the AE model
+solver folder to `analysis/acoustoelastic_iop_hgo/`, grouped six cross-model
+sweep helpers under `analysis/sweeps/`, moved four model-specific profile and
+surface-metadata adapters under `app/adapters/`, moved `createFittingTab` under
+`app/fitting/`, and moved the interactive AE grid-sweep UI under `app/sweep/`.
+No command name or public interface changed, and no compatibility wrapper was
+added.
+
+The moved `aeRunSweep` produced bit-for-bit identical requested grids, Cp,
+valid masks, reliability structures, and summary tables on the bounded parity
+case. Startup/path tests, focused AE and GUI suites, quick contract, quick
+smoke, numerical regression, and `run_all_smoke_tests` passed. Code Analyzer
+finished at 0 findings across 18 changed or moved MATLAB files.
+
+Test ownership regenerated at 105 tests and 209 edges with zero unowned tests,
+multiple canonical owners, sibling direct overlaps, manual-only tests, or
+cycles. The three additional edges are direct calls from new path-location
+contracts to `testRepositoryRoot`; runner membership and canonical owners did
+not change. Extended integration was not executed because no dispatch,
+fitting-orchestration, solver, grid, or numerical-policy boundary changed.
+
 ## Repository cleanup Phase 1 status
 
 The 2026-07-15 deletion phase passed startup/path checks, all three routine

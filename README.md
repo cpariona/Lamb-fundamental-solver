@@ -14,8 +14,8 @@ MATLAB project for computing and plotting fundamental Lamb-wave phase velocity c
 ## Repository structure
 
 ```text
-app/                                  Main MATLAB GUI and UI helper files.
-analysis/                             Analysis utilities and model-specific summaries.
+app/                                  GUI surfaces, adapters, fitting/sweep UI, and export.
+analysis/                             Reusable analysis, fitting, sweep, and summary helpers.
 docs/                                 Active repository, API, validation, and workflow documentation.
 examples/rayleigh_lamb/               Maintained Rayleigh-Lamb examples and validation scripts.
 examples/mrlfe/                       Maintained mRLFE examples, sweeps, diagnostics, and stress tests.
@@ -24,8 +24,13 @@ models/rayleigh_lamb/                 Clean Rayleigh-Lamb implementation using `
 models/mrlfe/                         Modified Rayleigh-Lamb fluid-loaded model.
 models/acoustoelastic_iop_hgo/        Acoustoelastic model using IOP prestress and HGO constitutive response.
 tests/                                Lightweight smoke and consistency tests.
-references/                           Reference material for development and validation context.
 ```
+
+Cross-model sweep infrastructure is grouped under `analysis/sweeps/`.
+Model-specific request/result translation lives under `app/adapters/`, while
+FitTool and SweepTool UI workflows live under `app/fitting/` and `app/sweep/`.
+There is no root-level `shared/` source layer; `analysis/` owns reusable
+workflow infrastructure.
 
 A more detailed structure map is available in:
 

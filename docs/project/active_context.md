@@ -3,20 +3,21 @@
 Last reviewed: 2026-07-15
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Implementation branch: `cleanup/remove-obsolete-repository-content`
-Base: `bf79cb468de66b76dbfe0e52ef8389e9ca0d025e`
+Implementation branch: `refactor/correct-repository-layer-structure`
+Phase 1 source: `a126cd41f0040b922b40e851957af0ada71d3023`
+Origin main: `bf79cb468de66b76dbfe0e52ef8389e9ca0d025e`
 
 ## Current state
 
-Repository cleanup Phase 1 is complete. The branch removes 37 tracked files and
-6,241 physical lines while keeping the top-level `analysis/`, `app/`, `docs/`,
-`examples/`, `models/`, and `tests/` organization unchanged.
+Repository structure Phase 2 is complete on top of the Phase 1 deletion head.
+The maintained layers remain `analysis/`, `app/`, `docs/`, `examples/`,
+`models/`, and `tests/`; no root-level `shared/` source layer was created.
 
-Completed audits, timing snapshots, archive scripts, one obsolete mRLFE policy
-diagnostic, four AE forwarding aliases, superseded diagnostic helpers, and
-verified orphan utilities are absent. Retained AE diagnostic implementations
-keep their existing names. No maintained solver, GUI, fitting, sweep, or test
-runner entrypoint was renamed.
+`aeRunSweep` is now owned by AE analysis. Cross-model sweep infrastructure is
+grouped under `analysis/sweeps/`. Model-specific profile/surface translation is
+owned by `app/adapters/`; FitTool visual construction is under `app/fitting/`;
+interactive sweep UI is under `app/sweep/`. MATLAB command names remain stable
+through recursive startup paths, and no path-only wrappers were added.
 
 ## Maintained references
 
@@ -33,6 +34,6 @@ docs/repository/test_runner_ownership.md
 
 - Preserve solver mathematics, numerical presets, tolerances, and public APIs.
 - Use Git history for completed audits and investigations.
-- Phase 2 structural moves and Phase 3 naming normalization have not started.
+- Phase 3 naming normalization has not started.
 - Keep retained long AE diagnostic implementation names unchanged until a
   dedicated naming task authorizes renames.

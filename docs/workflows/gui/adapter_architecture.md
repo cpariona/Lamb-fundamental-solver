@@ -17,6 +17,23 @@ GUI surface
 
 GUI files should not call scripts under `examples/` directly, and they should not treat diagnostic-only branch families as production outputs.
 
+## App folder ownership
+
+```text
+app/
+|-- adapters/  model-specific request/result translation and profile resolution
+|-- export/    normalized Main GUI export
+|-- fitting/   FitTool state, visual controls, and display workflow
+|-- sweep/     SweepTool workflow and interactive sweep UI
+`-- root       GUI entrypoints and genuinely cross-surface UI infrastructure
+```
+
+Model-specific execution-profile resolvers and mRLFE surface metadata helpers
+live in `app/adapters/`. Cross-surface profile normalization and diagnostics
+formatting remain at the app root. `createFittingTab` belongs to `app/fitting/`.
+The interactive AE grid-sweep plot belongs to `app/sweep/`; its numerical data
+construction remains in `analysis/acoustoelastic_iop_hgo/`.
+
 ## Main GUI flow
 
 ```text
