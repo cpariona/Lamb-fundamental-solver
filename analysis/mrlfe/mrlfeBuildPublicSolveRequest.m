@@ -119,7 +119,7 @@ if isfield(options, 'numerics') && isstruct(options.numerics) && ...
 elseif isfield(options, 'mrlfeNumericalPreset') && ~isempty(options.mrlfeNumericalPreset)
     preset = lower(string(options.mrlfeNumericalPreset));
 else
-    preset = "fast";
+    preset = presetFromProfile(options);
 end
 
 if ~isscalar(preset) || ~any(preset == ["fast", "balanced", "robust", "dense"])
@@ -127,6 +127,26 @@ if ~isscalar(preset) || ~any(preset == ["fast", "balanced", "robust", "dense"])
         ['Unsupported mRLFE numerical preset "%s". ' ...
          'Use "fast", "balanced", "robust", or "dense".'], join(preset, ", "));
 end
+end
+
+function preset = presetFromProfile(options)
+if isfield(options, 'effectiveExecutionProfile') && ~isempty(options.effectiveExecutionProfile)
+    profile = string(options.effectiveExecutionProfile);
+elseif isfield(options, 'executionProfile') && ~isempty(options.executionProfile)
+    profile = string(options.executionProfile);
+elseif isfield(options, 'robustness') && ~isempty(options.robustness)
+    profile = string(options.robustness);
+else
+    profile = "Fast";
+end
+profiles = ["Fast", "Balanced", "Robust"];
+presets = ["fast", "balanced", "robust"];
+idx = find(profile == profiles, 1);
+if isempty(idx)
+    error('mrlfe:InvalidExecutionProfile', ...
+        'Unsupported mRLFE execution profile "%s".', profile);
+end
+preset = presets(idx);
 end
 
 function policy = terminationPolicy(branchName)

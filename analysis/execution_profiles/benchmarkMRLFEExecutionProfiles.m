@@ -186,8 +186,7 @@ out.cp = modelResult.phaseVelocity_mps(:);
 out.validMask = logical(modelResult.validMask(:));
 out.gridPolicy = gridPolicy;
 out.elapsedSeconds = elapsed;
-internal = modelResult.diagnostics.rawInternalResult;
-out.internalFrequencyCount = numel(internal.frequencySolve_Hz);
+out.internalFrequencyCount = modelResult.diagnostics.summary.solvePointCount;
 end
 
 function value = viscosityLabel(etaS)

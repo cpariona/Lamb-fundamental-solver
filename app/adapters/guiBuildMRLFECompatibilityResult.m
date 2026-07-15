@@ -9,20 +9,20 @@ function rawResult = guiBuildMRLFECompatibilityResult(modelResults)
 if iscell(modelResults)
     rawResult = adaptBranchCollection(modelResults);
 else
-    rawResult = modelResults.diagnostics.rawInternalResult.rawFullResult;
+    rawResult = modelResults.debug.rawInternalResult.rawFullResult;
     rawResult.publicModelResult = modelResults;
 end
 end
 
 function rawResult = adaptBranchCollection(modelResults)
-rawResult = modelResults{1}.diagnostics.rawInternalResult.rawFullResult;
+rawResult = modelResults{1}.debug.rawInternalResult.rawFullResult;
 rawResult.models.mRLFERealK.branches = struct();
 rawResult.models.mRLFE.branches = struct();
 publicResults = struct();
 for i = 1:numel(modelResults)
     result = modelResults{i};
     branchName = char(result.branch);
-    branch = result.diagnostics.rawInternalResult.branch;
+    branch = result.debug.rawInternalResult.branch;
     rawResult.models.mRLFERealK.branches.(branchName) = branch;
     rawResult.models.mRLFE.branches.(branchName) = branch;
     publicResults.(branchName) = result;

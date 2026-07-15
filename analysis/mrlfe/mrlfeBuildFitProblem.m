@@ -125,7 +125,7 @@ if isfield(solverOptions, 'mrlfeDisableForwardCache') && solverOptions.mrlfeDisa
     return;
 end
 
-if ~(numel(freeParams) == 1 && freeParams(1) == "etaS")
+if ~(isscalar(freeParams) && freeParams(1) == "etaS")
     forwardCache.reason = "free_parameter_not_etaS_only";
     return;
 end
@@ -156,9 +156,8 @@ referenceParams.etaS = 0;
 
 try
     [~, rawReference] = mrlfeEvaluateFitModel(referenceParams, experimental.frequency_Hz, branchName, referenceOptions);
-    if isfield(rawReference, 'rawFullResult') && isfield(rawReference.rawFullResult, 'models') && ...
-            isfield(rawReference.rawFullResult.models, 'mRLFEElasticRealK')
-        solverOptions.mrlfeElasticReferenceResult = rawReference.rawFullResult.models.mRLFEElasticRealK;
+    if isfield(rawReference, 'elasticReferenceResult') && isstruct(rawReference.elasticReferenceResult)
+        solverOptions.mrlfeElasticReferenceResult = rawReference.elasticReferenceResult;
         forwardCache.enabled = true;
         forwardCache.kind = "etaS_elastic_reference";
         forwardCache.reason = "precomputed_elastic_reference";
