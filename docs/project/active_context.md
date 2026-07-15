@@ -1,85 +1,57 @@
 # Active project context
 
-Last reviewed: 2026-07-14
-Repository: cpariona/Lamb-fundamental-solver
-Default branch: main
-Finalization base: `1b31814b8c5e7ff1b8cb68829b919585eb893ac1`
-Active branch: `test/test-suite-finalization`
+Last reviewed: 2026-07-15
+Repository: `cpariona/Lamb-fundamental-solver`
+Default branch: `main`
+Audit base: `d35eb6c4449cb4f5dae7eaec88be74e153ce6aba`
+Active branch: `audit/mrlfe-line-and-repository-density`
 
 ## Current development focus
 
-The MATLAB suite now has one canonical direct owner for every maintained test
-or an explicit manual classification. Routine, numerical, extended, and
-performance validation are separate commands:
+The current phase is a diagnostic-only audit of the maintained mRLFE solver,
+Main GUI, SweepTool, FitTool, repository composition, historical documents, and
+diagnostics. It does not change production, tests, examples, numerical policy,
+or existing active contracts.
 
-```matlab
-run_quick_contract_tests
-run_quick_smoke_tests
-run_numerical_regression_tests
-run_extended_integration_tests
-run_performance_and_benchmark_tests
-```
-
-The machine-readable contract is
-`analysis/test_inventory/test_runner_ownership.csv`; the maintained rationale
-and compatibility mapping are in
-`docs/repository/test_runner_ownership.md`.
-
-## Current static baseline
+The authoritative audit is:
 
 ```text
-159 tracked MATLAB files under tests/
-104 tests
-43 runner implementations
-9 compatibility wrappers
-3 helpers
-205 runner graph edges
-104 tests with one canonical direct owner
-0 manual/deferred tests
-0 tests with multiple executable direct runner memberships
+docs/repository/mrlfe_line_and_repository_density_audit.md
 ```
 
-Reachability is 14 quick-contract tests, 47 quick-smoke tests, 14 numerical
-regressions, 43 extended-integration tests, and 54 tests from historical
-`run_all_smoke_tests`.
-
-## Measured validation
-
-MATLAB R2024b on PCWIN64, one in-process run with no hard timeout:
-
-Measured runner implementation commit:
-`ed1035f960b6a145cc6cd64a1c59972b1b7efa31`.
+Machine-readable evidence is under:
 
 ```text
-run_quick_contract_tests                 passed    32.101 s
-run_quick_smoke_tests                    passed    76.053 s
-run_numerical_regression_tests           passed    36.158 s
-run_fit_tool_requested_curve_tests       passed    27.961 s
-run_gui_execution_profile_tests          passed    23.583 s
-run_gui_extended_tests                   passed    50.810 s
-run_performance_and_benchmark_tests      passed    46.794 s
-wrapper/target resolution check          passed
+analysis/repository_audit/
 ```
 
-The measurements are descriptive. No runner enforces duration thresholds.
+## Decisive findings
 
-## Compatibility and deferred work
+- `mrlfeSolve` remains the only maintained public physical solver.
+- `models/mrlfe/solvers/solveMRLFEBranch.m` has no executable caller, test
+  reference, or explicit dynamic reference and is marked `delete` for phase 2.
+- GUI, Sweep, and Fit request builders duplicate validation, aliases, physical
+  mapping, policies, and error handling; one shared public-request core is the
+  target.
+- Main GUI, SweepTool, Fit compatibility logic, the RL compatibility host, and
+  diagnostics depend on private raw solver structures; stable public/debug
+  ownership is required before removing those shapes.
+- Execution-profile metadata should merge surface-owned selection/default/grid
+  facts with solver-owned preset/engine/quality/termination/fallback facts.
+- Historical documentation and diagnostics have explicit retain/consolidate/
+  archive/delete decisions; no item is deferred.
 
-- All nine wrappers and all historical public commands remain.
-- Historical public commands lose no tests. `run_all_smoke_tests` and
-  `run_gui_smoke_tests` add requested-curve coverage; the AE and all-smoke
-  commands add the two formerly standalone AE contracts.
-- The bounded direct-profile benchmark contract is owned by diagnostics; full
-  mode remains descriptive/manual.
-- The 36-case profile matrix and multi-minute mRLFE characterization were not
-  rerun for this ownership-only change.
-- No test assertion, production implementation, numerical option, public API,
-  file location, or entrypoint name changed.
+## Next implementation phase
 
-## Primary references
+Use the ordered reversible workstreams in the main audit report. Begin with the
+verified dead solver deletion, then centralize request construction before
+changing adapters or raw-result contracts. Correct and delete documentation
+only after code boundaries and path-presence tests are updated.
 
-- `docs/project/session_handoff.md`
-- `docs/repository/test_runner_ownership.md`
-- `docs/repository/test_suite_runtime_evidence.md`
-- `docs/repository/validation_status.md`
-- `analysis/test_inventory/README.md`
+## Constraints
+
+- Preserve solver mathematics and numerical outputs.
+- Preserve public request/result behavior and stable error identifiers.
+- Keep existing GUI/Sweep/Fit wrapper entrypoints.
+- Validate numerical and metadata parity across all three surfaces.
+- Do not treat historical audits as current contracts.

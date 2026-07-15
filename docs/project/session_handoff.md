@@ -1,42 +1,40 @@
 # Session handoff
 
 Updated: 2026-07-15
-Branch: `test/test-suite-finalization`
-Base: `1b31814b8c5e7ff1b8cb68829b919585eb893ac1`
+Branch: `audit/mrlfe-line-and-repository-density`
+Base: `d35eb6c4449cb4f5dae7eaec88be74e153ce6aba`
 
-## Finalization state
+## Audit outcome
 
-- Quick tiers reuse an already active repository path and avoid nested
-  `startup`; cold direct execution remains supported.
-- Final measured passing runtimes are 32.101 s quick-contract, 76.053 s
-  quick-smoke, and 36.158 s numerical regression on MATLAB R2024b/PCWIN64.
-- The multi-profile production preset contract and mRLFE fitting regression
-  owner moved to extended; smaller grid/preset/schema coverage remains in the
-  numerical tier.
-- The mRLFE benchmark now has bounded structural `contract` mode and descriptive
-  `full` mode. Its contract asserts direct Fast/Balanced/Robust mappings and
-  allows numerical/validity differences.
-- One redundant single-test runner was consolidated. Physical subdivision of
-  `tests/models/mrlfe/` is deferred.
-
-## Current graph
+The complete mRLFE line/repository-density audit is recorded in:
 
 ```text
-159 tracked MATLAB files
-104 tests
-43 runner implementations
-9 compatibility wrappers
-3 helpers
-205 graph edges
-104 canonical owners
-0 manual, unowned, multiple-owner, sibling-overlap, or cycle cases
+docs/repository/mrlfe_line_and_repository_density_audit.md
+analysis/repository_audit/mrlfe_file_decisions.csv
+analysis/repository_audit/repository_composition.csv
+analysis/repository_audit/mrlfe_duplication_matrix.csv
+analysis/repository_audit/documentation_decisions.csv
 ```
 
-Authoritative design and runtime evidence:
+The generator is:
 
-- `docs/repository/test_suite_final_architecture.md`
-- `analysis/test_inventory/quick_runtime_contributions.csv`
-- `docs/validation/mrlfe_execution_profile_benchmark.md`
+```matlab
+buildRepositoryDensityAudit('WriteCsv', true, 'ValidatePaths', true)
+```
 
-No production solver, GUI, fitting, or sweep implementation changed. No public
-command, wrapper, or maintained test was removed.
+## Correction starting point
+
+1. Delete verified orphan `solveMRLFEBranch` with absence and public-route tests.
+2. Centralize the three public request builders while retaining thin wrappers.
+3. Isolate Main GUI and SweepTool compatibility-result adaptation.
+4. Replace FitTool defensive metadata extraction with a stable contract.
+5. Reduce raw-internal exposure and centralize surface execution metadata.
+6. Correct active docs, then apply the exact documentation/diagnostic decisions.
+7. Regenerate inventories and run full three-surface parity validation.
+
+## Important boundaries
+
+This audit changed no production, test, runner, example, solver option, result
+schema, preset, grid, fallback, or termination implementation. It deleted and
+moved no files. The next task is an implementation task and should use small,
+reversible commits rather than reopening the broad audit.
