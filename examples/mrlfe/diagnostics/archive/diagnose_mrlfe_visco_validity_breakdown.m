@@ -147,7 +147,7 @@ row.FirstInvalidReason = "solver error";
 row.ErrorMessage = string(message);
 end
 
-function row = makeEmptyRow(branchName, params, material, etaS)
+function row = makeEmptyRow(branchName, ~, material, etaS)
 row = struct();
 row.Branch = string(branchName);
 row.E_kPa = material.E/1e3;

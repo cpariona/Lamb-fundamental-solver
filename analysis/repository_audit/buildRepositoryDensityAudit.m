@@ -244,6 +244,9 @@ switch path
     case "docs/repository/mrlfe_line_and_repository_density_audit.md"
         type = "active architecture/diagnostic plan"; active = true; historical = false;
         uniqueCurrent = true; decision = "retain"; target = ""; risk = "low";
+    case "docs/repository/mrlfe_line_and_repository_cleanup_report.md"
+        type = "active cleanup closeout"; active = true; historical = false;
+        uniqueCurrent = true; decision = "retain"; target = ""; risk = "low";
     case "docs/models/mrlfe/atlas_policy_notes.md"
         type = "historical migration evidence"; active = false; historical = true;
         uniqueCurrent = false; decision = "delete"; target = "Git history"; risk = "medium";
@@ -479,6 +482,12 @@ switch path
         target = "analysis/mrlfe/mrlfeBuildPublicSolveRequest.m plus thin wrappers";
         risk = "high";
         validation = "builder contracts and all three surface parity tests";
+    case "analysis/mrlfe/mrlfeBuildPublicSolveRequest.m"
+        category = "shared reusable support";
+        role = "canonical generic public request-construction owner";
+        mainLine = true; decision = "retain"; target = "";
+        risk = "high";
+        validation = "builder contracts and all three surface parity tests";
     case "models/mrlfe/configuration/mrlfeResolveConfiguration.m"
         decision = "refactor";
         target = "retain orchestrator; extract RL seed/internal option translation only";
@@ -499,28 +508,34 @@ switch path
         category = "diagnostic-only helper"; role = "obsolete route-audit launcher";
         mainLine = false; decision = "delete"; target = "Git history";
     case "examples/mrlfe/diagnostics/diagnose_mrlfe_atlas_primary_policy_matrix.m"
-        category = "one-off investigation"; role = "removed atlas-policy diagnostic";
-        decision = "delete"; target = "Git history";
+        category = "repeatable diagnostic"; role = "maintained atlas-policy contract diagnostic";
+        decision = "retain"; target = "";
     case {"examples/mrlfe/diagnostics/diagnose_etaS_forward_cache.m", ...
           "examples/mrlfe/diagnostics/diagnose_fit_option_sensitivity.m", ...
           "examples/mrlfe/diagnostics/diagnose_fit_timing.m"}
         category = "performance characterization"; role = "fitting diagnostic using compatibility raw shapes";
         decision = "consolidate"; target = "one maintained mRLFE fitting diagnostic";
-    case {"examples/mrlfe/diagnostics/diagnose_mrlfe_gui_performance_32kHz.m", ...
-          "examples/mrlfe/diagnostics/diagnose_mrlfe_visco_residual_landscape.m", ...
-          "examples/mrlfe/diagnostics/diagnose_mrlfe_visco_validity_breakdown.m", ...
-          "examples/mrlfe/diagnostics/stress_test_mrlfe_real_k_range.m", ...
-          "examples/mrlfe/diagnostics/compare_mrlfe_tracker_vs_condition_peaks.m"}
+    case {"examples/mrlfe/diagnostics/archive/diagnose_mrlfe_gui_performance_32kHz.m", ...
+          "examples/mrlfe/diagnostics/archive/diagnose_mrlfe_visco_residual_landscape.m", ...
+          "examples/mrlfe/diagnostics/archive/diagnose_mrlfe_visco_validity_breakdown.m", ...
+          "examples/mrlfe/diagnostics/archive/stress_test_mrlfe_real_k_range.m", ...
+          "examples/mrlfe/diagnostics/archive/compare_mrlfe_tracker_vs_condition_peaks.m"}
         category = "one-off investigation"; role = "pre-public-route numerical investigation";
-        decision = "archive"; target = "Git history or one curated diagnostic summary";
+        mainLine = false; decision = "archive";
+        target = "docs/models/mrlfe/diagnostics/tracker_diagnostic_summary.md";
+    case "examples/mrlfe/diagnostics/diagnose_mrlfe_fit_performance.m"
+        category = "performance characterization";
+        role = "consolidated public-route fit and cache diagnostic";
+        decision = "retain"; target = "";
     case {"examples/mrlfe/diagnostics/run_mrlfe_targeted_grid_validation.m", ...
           "examples/mrlfe/diagnostics/validate_grid_presets.m", ...
           "examples/mrlfe/diagnostics/validate_grid_presets_full.m"}
         category = "repeatable diagnostic"; role = "current public preset validation";
         decision = "retain"; target = "";
     case "analysis/mrlfe/compareMRLFETrackingStrategies.m"
-        category = "diagnostic-only helper"; role = "legacy comparison whose strategies now coincide";
-        decision = "delete"; target = "current public solver tests";
+        category = "diagnostic-only helper";
+        role = "maintained tracking-strategy comparison contract";
+        decision = "retain"; target = "";
     case "analysis/mrlfe/summarizeMRLFETrackingQuality.m"
         category = "diagnostic-only helper"; role = "current tracking quality summarizer";
         decision = "retain";
@@ -620,14 +635,14 @@ Responsibility = ["branch validation";"frequency validation";"material aliases";
 GuiPath = repmat("analysis/mrlfe/mrlfeBuildGuiSolveRequest.m", numel(Responsibility), 1);
 SweepPath = repmat("analysis/mrlfe/mrlfeBuildSweepSolveRequest.m", numel(Responsibility), 1);
 FitPath = repmat("analysis/mrlfe/mrlfeBuildFitSolveRequest.m", numel(Responsibility), 1);
-EquivalentImplementation = [true(11,1);false;false;false];
-DuplicationSeverity = [repmat("high",7,1);repmat("medium",4,1);"low";"none";"none"];
+EquivalentImplementation = false(numel(Responsibility),1);
+DuplicationSeverity = repmat("none",numel(Responsibility),1);
 SurfaceSpecific = [false(11,1);true;true;true];
 ProposedOwner = repmat("shared public request-construction core", numel(Responsibility), 1);
 ProposedOwner(12:14) = ["fit evaluator";"sweep wrapper";"fit wrapper"];
-RecommendedAction = repmat("centralize", numel(Responsibility), 1);
+RecommendedAction = repmat("centralized", numel(Responsibility), 1);
 RecommendedAction(12:14) = "retain surface-specific";
-Evidence = [repmat("near-identical local helper and error-ID implementation in all three builders",11,1); ...
+Evidence = [repmat("owned once by mrlfeBuildPublicSolveRequest; wrappers only translate surface inputs",11,1); ...
     "fitOptimized/numericalPreset is a Fit workflow concern"; ...
     "applySweepPoint exists only in Sweep builder"; ...
     "fit parameter/options precedence exists only in Fit builder"];

@@ -92,7 +92,7 @@ for iRobust = 1:numel(robustnessList)
 
             [elapsed, raw] = timedRun(params, options);
             caseIndex = caseIndex + 1;
-            caseResults(caseIndex).label = label; %#ok<SAGROW>
+            caseResults(caseIndex).label = label;
             caseResults(caseIndex).options = options;
             caseResults(caseIndex).raw = raw;
             caseResults(caseIndex).elapsed = elapsed;

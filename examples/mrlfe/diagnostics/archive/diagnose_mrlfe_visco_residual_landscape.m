@@ -86,7 +86,7 @@ for iCase = 1:numel(cases)
         interpretation = interpretLandscape(landscape, branchStatus);
 
         summaryRows = [summaryRows; makeSummaryRow(caseInfo, material, frequency, viscoCp, elasticCp, branchStatus, landscape, interpretation)]; %#ok<AGROW>
-        sampleRows = appendSampleRows(sampleRows, caseInfo, material, frequency, CpScan, residual, landscape); %#ok<AGROW>
+        sampleRows = appendSampleRows(sampleRows, caseInfo, material, frequency, CpScan, residual, landscape);
 
         fprintf('  f = %.6g Hz: global Cp %.6g%s, ref Cp %.6g, modal Cp %.6g, modal minima %d, branch %s, %s\n', ...
             frequency, landscape.GlobalMinCp, boundaryLabel(landscape.GlobalMinimumAtLowerBound), ...
@@ -208,22 +208,22 @@ end
 function interpretation = interpretLandscape(landscape, branchStatus)
 messages = strings(0, 1);
 if landscape.GlobalMinimumAtLowerBound
-    messages(end+1) = "global minimum at Cp lower scan bound"; %#ok<AGROW>
+    messages(end+1) = "global minimum at Cp lower scan bound";
 elseif landscape.GlobalMinimumAtUpperBound
-    messages(end+1) = "global minimum at Cp upper scan bound"; %#ok<AGROW>
+    messages(end+1) = "global minimum at Cp upper scan bound";
 end
 if landscape.GlobalMinimumBelowPhysicalFloor
-    messages(end+1) = "global minimum below physical Cp floor"; %#ok<AGROW>
+    messages(end+1) = "global minimum below physical Cp floor";
 end
 if landscape.ModalLocalMinimumAvailable
-    messages(end+1) = "modal local minimum available"; %#ok<AGROW>
+    messages(end+1) = "modal local minimum available";
 else
-    messages(end+1) = "no modal local minimum in reference window"; %#ok<AGROW>
+    messages(end+1) = "no modal local minimum in reference window";
 end
 if branchStatus.Status == "past_branch_cut"
-    messages(end+1) = "frequency is past tracked branch cut"; %#ok<AGROW>
+    messages(end+1) = "frequency is past tracked branch cut";
 elseif branchStatus.Status == "cut_or_unavailable"
-    messages(end+1) = "tracked visco Cp unavailable"; %#ok<AGROW>
+    messages(end+1) = "tracked visco Cp unavailable";
 end
 interpretation = strjoin(messages, '; ');
 end

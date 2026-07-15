@@ -1,40 +1,42 @@
 # Session handoff
 
 Updated: 2026-07-15
-Branch: `audit/mrlfe-line-and-repository-density`
-Base: `d35eb6c4449cb4f5dae7eaec88be74e153ce6aba`
+Branch: `refactor/mrlfe-line-and-repository-cleanup`
+Base audit head: `2cfe264625ab3f7485a06389d315190fe9a7b67e`
 
-## Audit outcome
+## Completed work
 
-The complete mRLFE line/repository-density audit is recorded in:
+The mRLFE architecture cleanup, diagnostic consolidation, and documentation
+reduction are complete. See:
 
 ```text
-docs/repository/mrlfe_line_and_repository_density_audit.md
-analysis/repository_audit/mrlfe_file_decisions.csv
-analysis/repository_audit/repository_composition.csv
-analysis/repository_audit/mrlfe_duplication_matrix.csv
-analysis/repository_audit/documentation_decisions.csv
+docs/repository/mrlfe_line_and_repository_cleanup_report.md
+analysis/repository_audit/
+analysis/test_inventory/
 ```
 
-The generator is:
+The implementation preserves physics and numerical contracts while
+centralizing request construction, surface metadata, and compatibility-result
+adaptation. The orphan legacy solver is absent, and archived diagnostics are
+excluded by `startup`.
+
+## Validation ownership
+
+Use the routine gates for later maintained changes:
 
 ```matlab
+run_quick_contract_tests
+run_quick_smoke_tests
+run_numerical_regression_tests
+```
+
+Use `run_all_smoke_tests` as the strongest repository-wide completion gate
+when maintained MATLAB behavior changes. Rebuild deterministic evidence with:
+
+```matlab
+buildTestInventory('WriteCsv', true)
+buildTestOwnership('WriteCsv', true, 'ValidateActual', true)
 buildRepositoryDensityAudit('WriteCsv', true, 'ValidatePaths', true)
 ```
 
-## Correction starting point
-
-1. Delete verified orphan `solveMRLFEBranch` with absence and public-route tests.
-2. Centralize the three public request builders while retaining thin wrappers.
-3. Isolate Main GUI and SweepTool compatibility-result adaptation.
-4. Replace FitTool defensive metadata extraction with a stable contract.
-5. Reduce raw-internal exposure and centralize surface execution metadata.
-6. Correct active docs, then apply the exact documentation/diagnostic decisions.
-7. Regenerate inventories and run full three-surface parity validation.
-
-## Important boundaries
-
-This audit changed no production, test, runner, example, solver option, result
-schema, preset, grid, fallback, or termination implementation. It deleted and
-moved no files. The next task is an implementation task and should use small,
-reversible commits rather than reopening the broad audit.
+No PR or merge was created for this branch.

@@ -151,19 +151,19 @@ end
 
 warnings = strings(0,1);
 if row.ValidFraction < 0.98
-    warnings(end+1) = "valid fraction < 0.98"; %#ok<AGROW>
+    warnings(end+1) = "valid fraction < 0.98";
 end
 if isfinite(row.ValidFmax_Hz) && row.ValidFmax_Hz < params.fmax
-    warnings(end+1) = "does not reach fmax"; %#ok<AGROW>
+    warnings(end+1) = "does not reach fmax";
 end
 if isfinite(row.MaxRelativeCpJump) && row.MaxRelativeCpJump > 0.20
-    warnings(end+1) = "max Cp jump > 20%"; %#ok<AGROW>
+    warnings(end+1) = "max Cp jump > 20%";
 end
 if isfinite(row.FirstLargeJumpRelative)
-    warnings(end+1) = "contains jump above safe threshold"; %#ok<AGROW>
+    warnings(end+1) = "contains jump above safe threshold";
 end
 if isfinite(row.MaxResidual) && row.MaxResidual > 1e-3
-    warnings(end+1) = "max residual > 1e-3"; %#ok<AGROW>
+    warnings(end+1) = "max residual > 1e-3";
 end
 if ~isempty(warnings)
     row.HasWarning = true;
