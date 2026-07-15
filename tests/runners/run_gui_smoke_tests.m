@@ -69,56 +69,17 @@ assertFunctionsOnPath({ ...
     'guiPlotFitResult'}, ...
     'GUI adapter/helper');
 
-fprintf('\n[GUI 1/17] GUI struct helper contract test\n');
-test_gui_struct_helpers_contract;
+fprintf('\n[GUI group 1/4] Quick GUI owner\n');
+run_gui_quick_tests;
 
-fprintf('\n[GUI 2/17] Fit parameter state contract test\n');
-test_fit_parameter_state_contract;
+fprintf('\n[GUI group 2/4] FitTool interaction owner\n');
+run_fit_tool_interaction_tests;
 
-fprintf('\n[GUI 3/17] Fit parameter execution contract test\n');
-test_fit_parameter_execution_contract;
+fprintf('\n[GUI group 3/4] Extended GUI fitting owner\n');
+run_gui_extended_tests;
 
-fprintf('\n[GUI 4/17] GUI normalized adapters smoke test\n');
-test_gui_normalized_adapters_smoke;
-
-fprintf('\n[GUI 5/17] Main GUI export contract test\n');
-test_main_gui_export_contract;
-
-fprintf('\n[GUI 6/17] GUI sweep adapters smoke test\n');
-test_gui_sweep_adapters_smoke;
-
-fprintf('\n[GUI 7/17] GUI sweep registry smoke test\n');
-test_gui_sweep_registry_smoke;
-
-fprintf('\n[GUI 8/17] Acoustoelastic IOP/HGO GUI sweep adapter smoke test\n');
-test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke;
-
-fprintf('\n[GUI 9/17] Acoustoelastic IOP/HGO main GUI adapter smoke test\n');
-test_gui_acoustoelastic_iop_hgo_main_adapter_smoke;
-
-fprintf('\n[GUI 10/17] GUI fitting backend contract test\n');
-test_gui_fit_registry_contract;
-
-fprintf('\n[GUI 11/17] FitTool model registry contract test\n');
-test_fit_tool_model_registry_contract;
-
-fprintf('\n[GUI 12/17] FitTool interaction helper test\n');
-test_fit_tool_interaction_helpers;
-
-fprintf('\n[GUI 13/17] GUI mRLFE fixed etaS fit contract test\n');
-test_gui_mrlfe_fixed_etaS_fit_contract;
-
-fprintf('\n[GUI 14/17] GUI mRLFE fit route policy contract test\n');
-test_gui_mrlfe_fit_route_policy_contract;
-
-fprintf('\n[GUI 15/17] GUI mRLFE fast full-curve test\n');
-test_gui_mrlfe_fit_full_curve_fast_contract;
-
-fprintf('\n[GUI 16/17] Execution profile current-behavior contract test\n');
-test_execution_profile_current_contract;
-
-fprintf('\n[GUI 17/17] Execution profile surface integration test\n');
-test_execution_profile_surface_integration;
+fprintf('\n[GUI group 4/4] GUI execution-profile owner\n');
+run_gui_execution_profile_tests;
 
 fprintf('\nGUI smoke tests passed.\n');
 

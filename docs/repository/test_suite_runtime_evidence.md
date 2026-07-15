@@ -75,9 +75,11 @@ rows replace only those three entries with passing measurements at `14501278`.
 Root causes and before/after numerical evidence are in
 `docs/repository/test_baseline_failure_diagnosis.md`.
 
-## Unregistered-test evidence
+## Pre-ownership unregistered-test evidence
 
-Static registration status remains unchanged for all six audit candidates:
+At the time of the initial measurement, all six audit candidates lacked an
+executable maintained-runner edge. This table preserves that historical state;
+their current owners are recorded later in this document.
 
 | Entrypoint | Static registration | Measured status | Median seconds |
 | --- | --- | --- | ---: |
@@ -88,9 +90,13 @@ Static registration status remains unchanged for all six audit candidates:
 | `test_mrlfe_fit_fast_options_quality` | no maintained runner | passed | 11.397 |
 | `test_rl_fit_evaluator_branch_consistency` | no maintained runner | passed | 19.742 |
 
-No registration decision follows from duration or repaired status alone.
+No registration decision followed from duration or repaired status alone; the
+later ownership phase also reviewed purpose and compatibility.
 
-## Provisional planning classification
+## Provisional planning classification from phase 1
+
+The bullets below preserve the pre-ownership planning record and are
+superseded by the final decisions at the end of this document.
 
 - `test_gui_execution_profile_normalization`,
   `test_model_execution_profile_resolvers`, and
@@ -235,9 +241,50 @@ Other aggregate runners remain unmeasured by the harness. In particular,
 `run_gui_smoke_tests`, `run_mrlfe_production_core_tests`, and
 `run_fit_validation_tests` were not executed in the repair task.
 
-## Decisions deferred
+## Ownership-tier runner measurements
 
-This phase does not move tests between runners, register standalone tests,
-split quick and extended commands, redesign the stale benchmark, or add
-duration thresholds. Those decisions require review of purpose, failure state,
-overlap, public command compatibility, and this descriptive runtime evidence.
+The ownership reorganization measured the new tiers from the working tree now
+committed as `ed1035f960b6a145cc6cd64a1c59972b1b7efa31` on MATLAB
+R2024b/PCWIN64. `measureTestRuntime` ran each runner once in the current MATLAB
+process; hard timeout enforcement remains unavailable.
+
+| Runner | Static test reach | Status | Elapsed seconds |
+| --- | ---: | --- | ---: |
+| `run_quick_contract_tests` | 14 | passed | 134.42 |
+| `run_quick_smoke_tests` | 47 | passed | 352.14 |
+| `run_numerical_regression_tests` | 17 | passed | 256.08 |
+| `run_fit_tool_requested_curve_tests` | 1 | passed | 27.961 |
+| `run_gui_execution_profile_tests` | 2 | passed | 23.583 |
+| `run_gui_extended_tests` | 3 | passed | 50.810 |
+| `run_performance_and_benchmark_tests` | 2 | passed | 46.794 |
+
+Additional focused timing used while refining the tier boundary:
+
+| Runner | Status | Elapsed seconds | Decision supported |
+| --- | --- | ---: | --- |
+| `run_core_contract_tests` | passed | 22.185 | retain in quick contracts |
+| `run_execution_profile_contract_tests` | passed | 61.275 | retain measured sub-10-second child contracts as one owner |
+| `run_fit_data_import_tests` | passed | 4.539 | retain in quick contracts |
+| former mixed `run_fit_tool_interaction_tests` | passed | 37.535 | split helper from requested-curve solving |
+| former three-test `run_mrlfe_public_api_contract_tests` | passed | 31.464 | split solver-backed result schema from defaults/validation |
+
+The two “former” rows were measured before the final focused split and are
+historical design evidence, not current-runner timing claims. One earlier
+`run_quick_contract_tests` run also passed all contained tests in 164.38 s
+before those splits. Its outer shell command failed only when the runner's
+script-side `clear` removed an ad hoc caller timer; this was not a test failure.
+
+One machine's elapsed time is descriptive. No duration is asserted in test
+code, and no pass/fail result depends on speed.
+
+## Final ownership decisions
+
+The six formerly unregistered tests now have explicit owners. The fit-grid
+timing characterization belongs to `run_performance_and_benchmark_tests`; the
+two AE contracts belong to `run_ae_quick_tests`; the two mRLFE fitting tests
+belong to `run_mrlfe_fitting_regression_tests`; and RL branch consistency is
+owned directly by `run_numerical_regression_tests`.
+
+The obsolete mapped-to-Fast benchmark is the only manual-only test. It remains
+deferred and was not executed. The 36-case validation matrix retains the
+externally supplied approximately 178.7-second evidence and was not rerun.

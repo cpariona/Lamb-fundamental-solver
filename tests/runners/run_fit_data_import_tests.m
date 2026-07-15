@@ -5,7 +5,6 @@ root = fileparts(fileparts(mfilename('fullpath')));
 testFiles = [
     string(fullfile(root, 'app', 'fitting', 'test_gui_read_experimental_fit_file.m'))
     string(fullfile(root, 'app', 'fitting', 'test_gui_prepare_experimental_fit_data.m'))
-    string(fullfile(root, 'app', 'fitting', 'test_fit_tool_interaction_helpers.m'))
 ];
 
 results = runtests(cellstr(testFiles));

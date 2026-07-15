@@ -2,73 +2,79 @@
 
 Updated: 2026-07-14
 Repository: cpariona/Lamb-fundamental-solver
-Current branch: `test/test-baseline-failure-diagnosis`
-Base: `origin/main` at `ba7c1f2c88c34abc38ef781d5ec9c2bc184105f5`
+Current branch: `test/test-runner-ownership-and-tiers`
+Base: `origin/main` at `02971360f755b16c1896cc0715636385cd05d17f`
 
-## Completed baseline repairs
+## Completed ownership and tier work
 
-Three pre-existing runtime-audit failures were repaired one at a time.
+- Added deterministic ownership generation and validation through
+  `buildTestOwnership` and `test_runner_ownership.csv`.
+- Consolidated execution-profile normalization, resolver, metadata, current
+  behavior, surface integration, fitted-curve metadata, and matrix ownership.
+- Registered all six formerly unregistered tests with AE, numerical fitting,
+  or performance owners.
+- Split core, GUI, AE, mRLFE public API, and production-core validation into
+  quick, numerical, extended, characterization, and performance owners.
+- Preserved historical public commands as aggregates over focused owners.
+- Reduced executable direct overlap from eight tests to zero.
 
-1. AE identityA0 diagnostics were built on an 89-point internal tracking grid
-   while the public result had been projected to 40 requested points. The
-   wrapper now rebuilds the diagnostic through the maintained helper on exact
-   requested objective-map columns. After repair, result and candidate both
-   have 40 points; official validity is 23/40 and diagnostic validity 31/40.
-2. The lightweight mRLFE values came from the solver state before the public
-   production-core migration. Current Fast output is deterministic on an
-   explicit 71-point `500:50:4000` internal grid, with accepted quality and no
-   fallback. Both A0Like and S0Like selected fixtures were refreshed with a
-   `1e-9 m/s` absolute tolerance.
-3. The fast fitting test compared a 37-point `fitOptimized` solve to a
-   141-point `numericalPreset` solve. Cross-grid RMSE is
-   `0.00263863949118 m/s`; same-grid comparisons are exactly zero. The test now
-   separates same-grid equivalence from cross-grid characterization.
+## Current graph
 
-See `docs/repository/test_baseline_failure_diagnosis.md` for Git history,
-requested/internal grids, masks, quality states, full numerical differences,
-and rationale for changing or preserving production code.
+The tracked MATLAB-file count increased from 137 to 160 only because 23
+focused/aggregate runner implementations were added. Test count remains 104,
+wrapper count remains nine, helper count remains three, and no file was moved
+or deleted. The runner graph increased from 149 to 203 edges.
 
-## Focused validation
+Canonical ownership is complete: 103 tests have exactly one executable direct
+owner and the stale mapped-to-Fast benchmark is explicit manual/deferred work.
 
-All commands below passed on MATLAB R2024b/PCWIN64:
+## MATLAB validation
 
-```matlab
-test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
-test_lightweight_numerical_regression
-test_mrlfe_fit_fast_options_quality
-run_acoustoelastic_smoke_tests
-run_core_smoke_tests
-run_mrlfe_fit_public_solver_tests
+All executed commands passed on MATLAB R2024b/PCWIN64:
+
+The measured runner implementation is commit
+`ed1035f960b6a145cc6cd64a1c59972b1b7efa31`.
+
+```text
+run_quick_contract_tests                 134.42 s, 14 tests
+run_quick_smoke_tests                    352.14 s, 47 tests
+run_numerical_regression_tests           256.08 s, 17 tests
+run_fit_tool_requested_curve_tests        27.961 s
+run_gui_execution_profile_tests           23.583 s
+run_gui_extended_tests                    50.810 s
+run_performance_and_benchmark_tests       46.794 s
+all nine wrapper/target resolution checks passed
 ```
 
-The three repaired harness rows pass at commit `14501278` with one repeat and
-medians of 4.2971776 s, 2.6547612 s, and 11.3965243 s. Original failure
-messages remain preserved in the diagnosis and runtime-evidence documents.
+The first attempted external timing of `run_quick_contract_tests` cleared the
+caller timer because repository runners are scripts; all contained tests
+passed. Subsequent measurements used `measureTestRuntime`, whose helper
+isolates script-side `clear` effects. No functional failure occurred.
 
-## Scope preserved
+## Historical coverage parity
 
-- No runner membership, public wrapper, test entrypoint, folder, or file name
-  changed.
-- No file was removed.
-- No mRLFE production code, numerical preset, profile mapping, fallback,
-  quality threshold, GUI behavior, fitting workflow, or sweep behavior changed.
-- No benchmark was redesigned.
-- No PR was opened and nothing was merged from this branch.
+No public command lost tests. Exact before/after static counts are documented
+in `docs/repository/test_runner_ownership.md`. The intentional additions are
+the two maintained AE contracts and the requested-curve contract reached
+through the complete FitTool interaction owner.
 
 ## Validation not executed
 
-The task did not run `run_all_smoke_tests`,
-`test_execution_profile_validation_matrix`,
-`test_mrlfe_execution_profile_benchmark_contract`,
-`run_execution_profile_diagnostics_tests`, `run_fit_validation_tests`, or the
-full historical AE diagnostic grid. These are broader or explicitly deferred
-than the repaired contracts.
+The complete `run_extended_integration_tests` aggregate was not executed
+because it contains the externally measured 178.7-second matrix plus several
+known 100-271 second characterization tests. Its practical focused children
+were executed; prior individual characterization evidence was retained.
 
-## Next-step boundaries
+Also not executed: `run_all_smoke_tests`, the stale benchmark,
+`run_execution_profile_diagnostics_tests`, the full fitting validation suite,
+and the multi-minute mRLFE characterization owners. These omissions are
+deliberate and are not pass claims.
 
-- Review the diagnosis before proposing registration or runner separation.
-- Treat the fitting cross-grid difference as intentional route
-  non-equivalence, not a tolerance target.
-- Keep any benchmark redesign, runner split, or registration decision in a
-  separate branch.
-- Preserve the exact public commands and current no-fallback policies.
+## Preserved scope
+
+- No solver, GUI, fitting, sweep, grid, profile, branch, fallback, termination,
+  or numerical behavior changed.
+- No test assertion or numerical snapshot changed.
+- No test, wrapper, or public command was removed or renamed.
+- No file was moved.
+- The obsolete benchmark was not redesigned or executed.

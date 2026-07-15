@@ -18,6 +18,19 @@ CSV writing is opt-in:
 [inventory, edges] = buildTestInventory('WriteCsv', true);
 ```
 
+Canonical ownership is generated and validated separately:
+
+```matlab
+ownership = buildTestOwnership();
+ownership = buildTestOwnership('WriteCsv', true, 'ValidateActual', true);
+```
+
+The generated `test_runner_ownership.csv` contains one row for each of the 104
+tests, its canonical owner or explicit manual classification, runtime tier,
+aggregate reachability, and imported measured child runtime where available.
+`ValidateActual=true` requires exactly one executable direct runner edge for
+every non-manual test and no direct runner edge for a manual-only test.
+
 The committed CSV files use deterministic path and column ordering, repository-
 relative forward-slash paths, and no timestamps or absolute machine paths.
 

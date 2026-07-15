@@ -122,35 +122,11 @@ assertFunctionsOnPath({ ...
     'test_sweep_plot_renderer_contract'}, ...
     'Acoustoelastic maintained test');
 
-fprintf('\n[AE 1/10] Acoustoelastic atlas branch policy validation test\n');
-test_acoustoelastic_iop_hgo_branch_policy_validation;
+fprintf('\n[AE group 1/2] Quick contracts and representative solves\n');
+run_ae_quick_tests;
 
-fprintf('\n[AE 2/10] Acoustoelastic fallback invalidation policy test\n');
-test_acoustoelastic_iop_hgo_fallback_invalidation;
-
-fprintf('\n[AE 3/10] Acoustoelastic internal tracking grid test\n');
-test_acoustoelastic_iop_hgo_internal_tracking_grid;
-
-fprintf('\n[AE 4/10] Acoustoelastic truncation recovery helper unit test\n');
-test_ae_analyze_truncation_recovery;
-
-fprintf('\n[AE 5/10] Acoustoelastic branch-persistence refinement unit test\n');
-test_acoustoelastic_iop_hgo_branch_persistence_refinement;
-
-fprintf('\n[AE 6/10] Acoustoelastic IOP/HGO constitutive identity test\n');
-test_acoustoelastic_iop_hgo_constitutive_identity;
-
-fprintf('\n[AE 7/10] Acoustoelastic IOP/HGO atlasA0 smoke test\n');
-test_acoustoelastic_iop_hgo_atlasA0_smoke;
-
-fprintf('\n[AE 8/10] Acoustoelastic physical sweep example contract test\n');
-test_ae_physical_sweep_examples_contract;
-
-fprintf('\n[AE 9/10] Shared sweep plot renderer contract test\n');
-test_sweep_plot_renderer_contract;
-
-fprintf('\n[AE 10/10] Acoustoelastic IOP/HGO atlasA0 fitting test\n');
-test_ae_fit_synthetic_atlasA0;
+fprintf('\n[AE group 2/2] Extended synthetic fitting regression\n');
+run_ae_extended_tests;
 
 fprintf('\nAcoustoelastic IOP/HGO smoke tests passed.\n');
 
