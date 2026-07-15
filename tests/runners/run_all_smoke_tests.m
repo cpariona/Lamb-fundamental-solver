@@ -1,7 +1,9 @@
 clear; clc;
 startup
 
-% Run the complete smoke-test suite by delegating to focused group runners.
+% Run the historical aggregate suite by delegating to focused group runners.
+% The current membership mixes contracts and smoke checks with representative
+% numerical regression, synthetic fitting, and characterization coverage.
 %
 % For faster validation after localized changes, run one group directly:
 %   run_core_smoke_tests

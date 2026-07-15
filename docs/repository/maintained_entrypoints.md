@@ -475,7 +475,34 @@ test_gui_mrlfe_fit_full_curve_fast_contract
 
 ## Smoke-test scope
 
-Run the full maintained suite:
+### Public commands and implementations
+
+The maintained public runner commands below intentionally resolve through thin
+compatibility wrappers to same-named implementations under `tests/runners/`:
+
+```matlab
+run_acoustoelastic_smoke_tests
+run_all_smoke_tests
+run_core_smoke_tests
+run_gui_smoke_tests
+run_mrlfe_legacy_cleanup_tests
+run_mrlfe_production_core_tests
+run_mrlfe_public_contract_tests
+run_mrlfe_smoke_tests
+run_fit_validation_tests
+```
+
+The first eight wrappers are at the root of `tests/`. The fitting wrapper is
+deliberately retained at `tests/fitting/run_fit_validation_tests.m` for legacy
+path compatibility. `run_main_gui_export_tests` is also a maintained public
+command, but it is a standalone root runner rather than a wrapper.
+
+Runner maintenance should target the implementation under `tests/runners/`.
+The wrapper files preserve command compatibility and should remain thin.
+
+Run the historical aggregate smoke command. It currently includes contracts,
+representative numerical regression, synthetic fitting, and characterization
+coverage, so its name does not imply a strict quick-runtime guarantee:
 
 ```matlab
 run_all_smoke_tests
@@ -496,6 +523,12 @@ Run focused fitting validation separately:
 ```matlab
 run_fit_validation_tests
 ```
+
+The execution-profile matrix, diagnostic runners, mRLFE production-core
+characterization/performance coverage, and benchmark contracts are maintained
+extended or manual validation surfaces. They are intentionally not normal
+quick-smoke prerequisites. `run_main_gui_export_tests` is a focused standalone
+public runner for the Main GUI export contract.
 
 Run focused mRLFE FitTool public-solver validation after mRLFE fitting-route or fitted-curve changes:
 

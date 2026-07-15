@@ -1,6 +1,10 @@
 clear; clc;
 startup
 
+% Run the mixed mRLFE production-core validation set. Membership deliberately
+% includes contracts and grid checks together with characterization and
+% performance evidence; it is not a lightweight smoke runner.
+
 fprintf('\nRunning mRLFE production core tests...\n');
 fprintf('------------------------------------\n');
 

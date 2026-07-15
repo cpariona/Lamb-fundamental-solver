@@ -20,13 +20,26 @@ tests/run_all_smoke_tests.m
 tests/run_core_smoke_tests.m
 tests/run_gui_smoke_tests.m
 tests/run_mrlfe_legacy_cleanup_tests.m
+tests/run_mrlfe_production_core_tests.m
+tests/run_mrlfe_public_contract_tests.m
 tests/run_mrlfe_smoke_tests.m
 tests/fitting/run_fit_validation_tests.m
 ```
 
+The eight root-level wrappers deliberately preserve public MATLAB commands.
+The fitting wrapper remains in the legacy `tests/fitting/` folder for the same
+compatibility reason. Every wrapper delegates to the same-named implementation
+under `tests/runners/` through `runRepositoryTestRunner`.
+
+`tests/run_main_gui_export_tests.m` is different: it is a standalone public
+runner that directly executes the export contract. It is not a compatibility
+wrapper and currently has no same-named implementation under `tests/runners/`.
+
 ## Final layout audit
 
-The test-layout migration has reached its intended steady state. All non-wrapper test files now live under one of the layout-owned folders:
+The test-layout migration has reached its intended steady state. All
+non-wrapper implementations live under one of the layout-owned folders, except
+for the deliberate standalone public runner described above:
 
 ```text
 tests/app/
@@ -35,7 +48,10 @@ tests/runners/
 tests/shared/
 ```
 
-The only MATLAB files intentionally left outside those folders are the compatibility wrappers listed above. Do not add new test implementations at the root of `tests/` or under legacy folders such as `tests/fitting/`; add new tests to the appropriate layout-owned folder instead.
+The only MATLAB files intentionally left outside those folders are the nine
+compatibility wrappers and `tests/run_main_gui_export_tests.m`. Do not add new
+test implementations at the root of `tests/` or under legacy folders such as
+`tests/fitting/`; add new tests to the appropriate layout-owned folder instead.
 
 ## Migration status
 

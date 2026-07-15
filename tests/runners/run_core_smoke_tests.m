@@ -1,7 +1,8 @@
 clear; clc;
 startup
 
-% Run core path, fitting helper, and Rayleigh-Lamb baseline smoke checks.
+% Run core path/API contracts, cross-model numerical regression, shared fitting
+% helpers, and representative Rayleigh-Lamb and mRLFE synthetic fitting checks.
 
 fprintf('\nRunning core smoke tests...\n');
 fprintf('---------------------------\n');

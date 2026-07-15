@@ -374,9 +374,6 @@ elseif contains(lower(source), "tic") && contains(lower(source), "toc")
 else
     category = "contract";
 end
-if path == "tests/analysis/test_sweep_plot_renderer_contract.m"
-    category = "contract";
-end
 end
 
 function tf = hasNumericalIndicators(source)
@@ -422,13 +419,6 @@ notes = "";
 if fileType == "compatibility_wrapper"
     action = "document";
     notes = "Preserve public command compatibility; compare wrapper inventory with tests/README.md.";
-elseif path == "tests/analysis/test_sweep_plot_renderer_contract.m"
-    action = "move_later";
-    notes = "Shared sweep/plot contract; future target tests/shared/sweeps after runner ownership is stable.";
-elseif any(path == ["tests/fitting/test_gui_prepare_experimental_fit_data.m", ...
-        "tests/fitting/test_gui_read_experimental_fit_file.m"])
-    action = "move_later";
-    notes = "App-level FitTool data-import test in a legacy folder; preserve runtests registration during relocation.";
 elseif path == "tests/run_main_gui_export_tests.m"
     action = "document";
     confidence = "medium";
