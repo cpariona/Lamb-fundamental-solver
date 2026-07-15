@@ -29,7 +29,6 @@ n = numel(sweepResults.results);
 caseIndex = (1:n).';
 
 parameterValue = nan(n, 1);
-displayValue = nan(n, 1);
 validCpPoints = zeros(n, 1);
 totalPoints = zeros(n, 1);
 firstValidFrequency_Hz = nan(n, 1);

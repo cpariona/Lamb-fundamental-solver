@@ -1,8 +1,26 @@
 function test_sweep_plot_renderer_contract()
 %TEST_SWEEP_PLOT_RENDERER_CONTRACT Validate shared sweep plot adaptation/rendering.
 
+repoRoot = testRepositoryRoot();
+sharedSweepFunctions = [ ...
+    "runParametricSweep"; ...
+    "buildParametricSweepPlotData"; ...
+    "plotParametricSweepCp"; ...
+    "plotSweepCpFigure"; ...
+    "setSweepPlotLimits"; ...
+    "summarizeParametricSweepBranch"];
+for i = 1:numel(sharedSweepFunctions)
+    fileName = sharedSweepFunctions(i) + ".m";
+    expectedPath = fullfile(repoRoot, 'analysis', 'sweeps', fileName);
+    oldPath = fullfile(repoRoot, 'analysis', fileName);
+    assert(isfile(expectedPath), '%s must live in analysis/sweeps.', sharedSweepFunctions(i));
+    assert(~isfile(oldPath), 'The former analysis-root path must be absent for %s.', sharedSweepFunctions(i));
+    assert(strcmp(which(sharedSweepFunctions(i)), expectedPath), ...
+        '%s must resolve uniquely from analysis/sweeps.', sharedSweepFunctions(i));
+end
+
 oldVisibility = get(groot, 'DefaultFigureVisible');
-cleanup = onCleanup(@()set(groot, 'DefaultFigureVisible', oldVisibility)); %#ok<NASGU>
+cleanup = onCleanup(@()set(groot, 'DefaultFigureVisible', oldVisibility));
 set(groot, 'DefaultFigureVisible', 'off');
 
 frequency = [1000; 2000; 3000];
@@ -119,7 +137,7 @@ close(fig);
 aeSweep.sweepField = "k1";
 aeData = aeBuildSweepPlotData(aeSweep);
 k2Line = aeData.fixedParameterLines(contains(aeData.fixedParameterLines, "k2 ="));
-assert(numel(k2Line) == 1 && string(k2Line) == "k2 = 200", ...
+assert(isscalar(k2Line) && string(k2Line) == "k2 = 200", ...
     'Unitless k2 should be formatted without a fake unit.');
 
 fprintf('Shared sweep plot renderer contract test passed.\n');
@@ -148,10 +166,10 @@ end
 
 function ax = findSingleDataAxes(fig)
 ax = findobj(fig, 'Type', 'axes');
-assert(numel(ax) == 1, 'Expected exactly one data axes.');
+assert(isscalar(ax), 'Expected exactly one data axes.');
 end
 
 function lgd = findSingleLegend(fig)
 lgd = findobj(fig, 'Type', 'legend');
-assert(numel(lgd) == 1, 'Expected exactly one native legend.');
+assert(isscalar(lgd), 'Expected exactly one native legend.');
 end

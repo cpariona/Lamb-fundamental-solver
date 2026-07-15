@@ -122,7 +122,7 @@ if modelName == "mRLFERealK" || modelName == "mRLFEViscoRealK"
     if isfield(sweepResults, 'options') && ~isempty(sweepResults.options)
         options = sweepResults.options{1};
         if sweptParameter ~= "etaS" && isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS')
-            lines(end+1, 1) = "etaS = " + sprintf('%.3g Pa*s', options.mrlfeParams.etaS); %#ok<AGROW>
+            lines(end+1, 1) = "etaS = " + sprintf('%.3g Pa*s', options.mrlfeParams.etaS);
         end
     end
 end
@@ -130,7 +130,7 @@ end
 
 function lines = addIfFixed(lines, sweptParameter, fieldName, textValue)
 if sweptParameter ~= string(fieldName) && ~contains(textValue, "missing")
-    lines(end+1, 1) = textValue; %#ok<AGROW>
+    lines(end+1, 1) = textValue;
 end
 end
 
