@@ -48,7 +48,7 @@ updatePlot(1, false);
         xlim(ax, frequencyLimits);
         ylim(ax, yLimits);
         zlim(ax, cpLimits);
-        caxis(ax, cpLimits);
+        clim(ax, cpLimits);
         grid(ax, 'on');
         colorbar(ax);
         restoreCamera(ax, cameraState);

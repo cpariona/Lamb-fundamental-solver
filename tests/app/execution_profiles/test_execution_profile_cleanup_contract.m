@@ -6,6 +6,22 @@ end
 fprintf('\nRunning execution profile cleanup contract test...\n');
 fprintf('------------------------------------------------\n');
 
+repoRoot = testRepositoryRoot();
+adapterFunctions = [ ...
+    "aeResolveExecutionProfile"; ...
+    "mrlfeResolveExecutionProfile"; ...
+    "rlResolveExecutionProfile"; ...
+    "mrlfeBuildSurfaceExecutionMetadata"];
+for i = 1:numel(adapterFunctions)
+    fileName = adapterFunctions(i) + ".m";
+    expectedPath = fullfile(repoRoot, 'app', 'adapters', fileName);
+    oldPath = fullfile(repoRoot, 'app', fileName);
+    assert(isfile(expectedPath), '%s must live in app/adapters.', adapterFunctions(i));
+    assert(~isfile(oldPath), 'The former app-root path must be absent for %s.', adapterFunctions(i));
+    assert(strcmp(which(adapterFunctions(i)), expectedPath), ...
+        '%s must resolve uniquely from app/adapters.', adapterFunctions(i));
+end
+
 profiles = guiExecutionProfileValues();
 assert(isequal(profiles, ["Fast", "Balanced", "Robust"]), ...
     'Canonical execution profile list changed.');
