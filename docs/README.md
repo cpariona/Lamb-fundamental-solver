@@ -53,9 +53,7 @@ docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md
 ```text
 docs/workflows/gui/adapter_architecture.md
 docs/architecture/execution_profiles_surface_integration.md
-docs/validation/execution_profile_end_to_end_validation.md
 docs/validation/execution_profile_diagnostics_validation.md
-docs/validation/mrlfe_execution_profile_benchmark.md
 ```
 
 ## Active sweep documentation

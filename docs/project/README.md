@@ -69,8 +69,7 @@ When documents disagree, use this order:
 3. accepted ADRs;
 4. `docs/project/active_context.md`;
 5. `docs/project/session_handoff.md`;
-6. audits and diagnostic evidence;
-7. `archive/`.
+6. repeatable diagnostic evidence.
 
 If the handoff contradicts an active contract, the contract prevails. If an old
 audit contradicts current code or tests, do not treat the audit as current
@@ -85,7 +84,7 @@ state.
 | GUI | `docs/workflows/gui/adapter_architecture.md`; `docs/architecture/execution_profiles_surface_integration.md` |
 | Fitting | `docs/workflows/fitting/architecture.md`; `docs/workflows/fitting/validation_suite.md` |
 | Sweeps | `docs/workflows/sweeps/parametric_sweeps.md`; `docs/workflows/sweeps/sweep_tool_usage.md` |
-| Execution profiles | `docs/architecture/execution_profiles_surface_integration.md`; `docs/validation/execution_profile_end_to_end_validation.md` |
+| Execution profiles | `docs/architecture/execution_profiles_surface_integration.md`; `docs/validation/execution_profile_diagnostics_validation.md` |
 | Rayleigh-Lamb | `docs/models/rayleigh_lamb/overview.md`; `docs/models/rayleigh_lamb/public_api.md`; `docs/models/rayleigh_lamb/fitting_workflow.md` |
 | mRLFE | `docs/models/mrlfe/README.md`; `docs/models/mrlfe/public_api.md`; `docs/models/mrlfe/production_core.md`; `docs/models/mrlfe/fitting_workflow.md` |
 | AE IOP/HGO | `docs/models/acoustoelastic_iop_hgo/README.md`; `docs/models/acoustoelastic_iop_hgo/active/public_api.md`; `docs/models/acoustoelastic_iop_hgo/active/branch_policy.md` |

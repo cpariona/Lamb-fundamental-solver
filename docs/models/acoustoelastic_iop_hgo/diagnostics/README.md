@@ -2,33 +2,21 @@
 
 This folder contains diagnostic evidence that supports, but does not itself define, the maintained AE IOP/HGO solver policy.
 
-## Branch-policy diagnostics
+## Maintained evidence
 
-```text
-branch_policy_numerical_review.md
-atlas_vs_raw_branch1_diagnostic.md
-branch_families_diagnostic.md
-atlasA0_truncation_cause_diagnostic.md
-```
-
-The numerical review protocol is:
-
-```text
-branch_policy_numerical_review.md
-```
-
-Use it to interpret `atlasA0`, `identityA0Diagnostic`, `raw_branch1`, and `branch_families` evidence without prematurely changing the production solver policy.
-
-## Identity-A0 diagnostics
-
-```text
-identityA0_diagnostic_policy.md
-identityA0_diagnostic_grid_validation.md
-identityA0_physical_plausibility_diagnostic.md
-branch_identity_score_diagnostic.md
-branch_identity_score_grid_validation.md
-```
+| Document | Executable evidence | Unique current value |
+| --- | --- | --- |
+| `atlas_vs_raw_branch1_diagnostic.md` | `compare_atlasA0_vs_raw_branch1`, `validate_atlas_raw_grid`, `diagnose_raw_branch_corner` | Defines the raw-branch comparison and difficult-corner interpretation. |
+| `branch_families_diagnostic.md` | `diagnose_branch_families` | Records why coverage alone does not resolve modal-family ambiguity. |
+| `atlasA0_truncation_cause_diagnostic.md` | `diagnose_atlas_truncation` | Distinguishes terminal truncation from internal gaps and defines causal outputs. |
+| `identityA0_diagnostic_policy.md` | solver option plus focused test | Defines the diagnostic-only output schema and safety rule. |
+| `branch_identity_score_diagnostic.md` | `diagnose_idA0_score` | Defines the score components and candidate classes. |
+| `branch_identity_score_grid_validation.md` | `validate_idA0_score_grid` | Preserves the 110-case score-validation interpretation. |
+| `identityA0_diagnostic_grid_validation.md` | `validate_idA0_grid` | Preserves official-field parity and candidate-extension evidence. |
+| `identityA0_physical_plausibility_diagnostic.md` | `diagnose_idA0_plausibility` | Defines plausibility classes and the low-mu/high-IOP caution boundary. |
 
 ## Policy
 
-Diagnostics may be detailed and historical. They should not be presented as the first entrypoint for normal users. If a diagnostic conclusion becomes part of maintained behavior, summarize that conclusion in `../active/branch_policy.md` or `../active/solver_optimization_status.md`.
+These documents are retained only because each has a surviving repeatable owner
+and a distinct interpretation. The production policy is defined only in
+`../active/branch_policy.md`.

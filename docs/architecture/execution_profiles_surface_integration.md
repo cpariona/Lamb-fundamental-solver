@@ -166,13 +166,31 @@ Performance benchmarks and full validation matrices remain separate diagnostic
 entrypoints because they execute many numerical cases and are not appropriate as
 routine smoke tests.
 
+The reproducible cross-surface matrix is:
+
+```matlab
+matrix = validateExecutionProfileMatrix('WriteCsv', false);
+run_execution_profile_integration_tests
+```
+
+The bounded mRLFE profile contract is:
+
+```matlab
+[rows, summary] = benchmarkMRLFEExecutionProfiles( ...
+    'Mode', "contract", 'RepeatCount', 1, 'WriteCsv', false);
+```
+
+Full benchmark mode is descriptive and manual. It has no hardware timing
+threshold and writes CSV only when explicitly requested.
+
 ## Remaining Work
 
 - Keep the full mRLFE descriptive benchmark outside routine smoke validation;
   the bounded structural contract is owned by execution-profile diagnostics.
 - Add richer per-curve execution-profile metadata for multi-case sweep exports if
   downstream consumers need point-level auditability.
-- Keep `robustness` as a compatibility alias for at least one migration cycle.
+- Keep `robustness` as a compatibility alias until all external request
+  producers use `executionProfile`.
 - Complete manual GUI review using the checklist above when a release requires
   interactive evidence; automated surface and benchmark contracts remain the
   routine gates.

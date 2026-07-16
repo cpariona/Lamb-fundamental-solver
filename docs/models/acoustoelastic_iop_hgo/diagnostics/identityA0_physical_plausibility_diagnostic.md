@@ -8,12 +8,6 @@ It consumes the workspace produced by:
 validate_idA0_grid
 ```
 
-or the legacy descriptive entrypoint:
-
-```matlab
-validate_idA0_grid
-```
-
 and does not rerun the solver.
 
 ### Runnable script
@@ -26,8 +20,6 @@ startup
 diagnose_idA0_plausibility
 AcoustoelasticIOPHGOIdentityA0PhysicalPlausibilityAggregate
 ```
-
-The older compatibility command `diagnose_identityA0_plausibility` has been archived. The longer descriptive implementation filename exceeds MATLAB's 63-character name limit and should not be called directly.
 
 Preferred input:
 

@@ -55,5 +55,5 @@ audit across models and surfaces.
 
 - `docs/architecture/execution_profiles_surface_integration.md`
 - `docs/workflows/fitting/architecture.md`
-- `docs/validation/execution_profile_end_to_end_validation.md`
-- `docs/validation/mrlfe_execution_profile_benchmark.md`
+- `docs/architecture/execution_profiles_surface_integration.md`
+- `docs/validation/execution_profile_diagnostics_validation.md`
