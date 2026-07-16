@@ -6,16 +6,20 @@ Updated: 2026-07-16
 
 - Repository: `cpariona/Lamb-fundamental-solver`
 - Default branch: `main`
-- Latest merged repository-wide change: PR #119
-- Merge commit: `749feb159795f7fe0e0a4eecaecf8696b4369dad`
-- Active implementation branch: none
-- Selected next technical objective: none
-- Active provisional phase: none
+- Current closeout branch: `refactor/mrlfe-raw-internal-result-consumers`
+- Current closeout task: migrate maintained consumers from
+  `result.diagnostics.rawInternalResult` to
+  `result.debug.rawInternalResult` while preserving the compatibility alias
+- Validation status: confirmed by the repository owner
+- Merge status: pending pull request and manual merge
+- Selected next objective: AE IOP/HGO architecture audit and alignment plan
+- Active AE implementation phase: none
 
-A new chat must verify that local `main` matches `origin/main` before drawing
-conclusions from this handoff.
+Do not start the next task from the closeout branch. After the pull request is
+merged, update local `main` from `origin/main` and create a new branch for the AE
+audit.
 
-## Required reading order
+## Required reading order for the next task
 
 Read:
 
@@ -25,77 +29,112 @@ docs/project/active_context.md
 docs/project/session_handoff.md
 docs/repository/repository_structure.md
 docs/repository/naming_strategy.md
-```
-
-Then read only the model, workflow, architecture, or validation contracts needed
-to evaluate the selected technical topic. Maintained code and tests take
-precedence over operational context.
-
-## Recently completed work
-
-PR #119 completed the repository cleanup sequence:
-
-- obsolete code, archived diagnostics, generated audit artifacts, and historical
-  task reports were removed;
-- source-layer ownership was corrected;
-- maintained MATLAB naming was normalized;
-- active documentation was consolidated;
-- repository structure, naming, documentation, artifact, dependency, and test
-  ownership guardrails were added;
-- Main GUI, SweepTool, and FitTool were manually reviewed without observed route
-  breakage.
-
-This cleanup is complete. Do not reopen it as another broad phase unless a
-specific guardrail or concrete file demonstrates a new violation.
-
-## Open technical areas
-
-### 1. AE solver refinement
-
-The bounded numerical issue is documented in:
-
-```text
-docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md
-```
-
-The current concern is residual high-frequency waviness in AE `Cp(f)`. It must
-be investigated through solver diagnostics and regression evidence, not through
-GUI-side smoothing.
-
-### 2. mRLFE runtime characterization
-
-A manual review suggested possible slower perceived runtime after cleanup.
-Static comparison against the pre-cleanup base found no changes to:
-
-```text
-frequency-step presets
-low-frequency anchors
-internal frequency-grid construction
-scan-point counts
-candidate counts
-adaptive windows
-profile-to-preset mapping
-public request construction
-maintained tracking and solver algorithms
-```
-
-No runtime regression is established. The next step, if selected, is a controlled
-same-machine, same-session benchmark with cold/warm runs and identical requests.
-
-### 3. Compatibility-debt migration
-
-The bounded retained compatibility surfaces are documented in:
-
-```text
+docs/repository/maintained_entrypoints.md
 docs/repository/validation_status.md
+docs/models/mrlfe/README.md
+docs/models/mrlfe/public_api.md
+docs/models/mrlfe/production_core.md
+docs/models/acoustoelastic_iop_hgo/README.md
+docs/models/acoustoelastic_iop_hgo/active/public_api.md
+docs/models/acoustoelastic_iop_hgo/active/branch_policy.md
+docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md
+docs/workflows/gui/adapter_architecture.md
+docs/workflows/fitting/architecture.md
+docs/workflows/sweeps/parametric_sweeps.md
 ```
 
-They include public test wrappers, the `robustness` alias,
-`result.diagnostics.rawInternalResult`, and the AE legacy-result fallback.
-Each requires a separate, versioned, consumer-aware task rather than general
-cleanup.
+Then inspect only the maintained AE and mRLFE files needed to reconstruct the
+relevant call paths and ownership. Maintained code and tests take precedence
+over operational context.
+
+## Selected next objective
+
+Audit the complete maintained AE IOP/HGO executable structure and determine how
+it can be aligned with the responsibility-based mRLFE architecture without
+forcing artificial API symmetry.
+
+The audit must cover:
+
+```text
+models/acoustoelastic_iop_hgo/
+analysis/acoustoelastic_iop_hgo/
+app/adapters/ AE routes
+app/fitting/ and app/sweep/ AE integration points
+examples/acoustoelastic_iop_hgo/
+tests/models/acoustoelastic_iop_hgo/
+tests/app/ AE integration tests
+docs/models/acoustoelastic_iop_hgo/
+```
+
+Required outputs:
+
+1. complete maintained-file inventory by layer and responsibility;
+2. current call graphs for Main GUI, SweepTool, FitTool, basic execution,
+   maintained sweeps, and diagnostics;
+3. public API, advanced supported API, maintained internal, diagnostic-only, and
+   compatibility-surface classification;
+4. comparison with mRLFE ownership for API, configuration, problem construction,
+   solvers, tracking, policies, quality, results, analysis workflows, app
+   adapters, examples, and tests;
+5. identification of misplaced or mixed responsibilities, especially numerical
+   preset resolution currently owned by app adapters;
+6. target responsibility map for AE that preserves constitutive and scientific
+   differences;
+7. phased migration options ordered by risk and dependency;
+8. focused validation required for each proposed phase.
+
+## Audit constraints
+
+During this task:
+
+- do not move, rename, delete, or create production MATLAB files;
+- do not introduce aliases or wrappers;
+- do not change solver physics, constitutive behavior, residuals, branch
+  selection, tracking, interpolation, fallback invalidation, or reliability;
+- do not change defaults, presets, grids, scan counts, candidate counts,
+  policies, tolerances, fitting, sweep, GUI, or output behavior;
+- do not promote diagnostic branches to production;
+- keep the residual high-frequency AE `Cp(f)` waviness as a separate numerical
+  issue;
+- use Git history for completed cleanup evidence rather than recreating broad
+  repository audits.
+
+The task may update or add bounded architecture documentation needed to record
+the audit and migration plan, but any implementation requires a separately
+approved branch and scope.
+
+## Current architecture baseline
+
+mRLFE provides the reference responsibility pattern:
+
+```text
+api/
+configuration/
+core/
+options/
+policies/
+quality/
+results/
+solvers/
+tracking/
+```
+
+AE currently has:
+
+```text
+constitutive/
+core/
+options/
+solvers/
+```
+
+The goal is not to copy the folder tree mechanically. The audit must determine
+which missing responsibility boundaries are justified by actual maintained AE
+code. Existing explicit scientific APIs may remain long and model-specific.
 
 ## Standard validation
+
+For documentation-only audit changes:
 
 ```matlab
 clear functions
@@ -104,19 +143,18 @@ startup
 
 run_repository_hygiene_tests
 run_quick_contract_tests
-run_quick_smoke_tests
-run_numerical_regression_tests
 ```
 
-Use the focused and extended commands listed in
-`docs/repository/validation_status.md` when the changed surface requires them.
+If the audit branch changes executable inventories or test contracts, add the
+focused commands owned by `docs/repository/validation_status.md`. No numerical
+behavior change is authorized.
 
-## Working rules for the next task
+## Working rules
 
-- Create one new branch per selected objective.
-- Start from updated `origin/main`; never work directly on `main`.
-- Keep changes small and localized.
-- Preserve repository structure, naming, public contracts, and ownership.
-- Define validation before implementation.
-- Do not open a PR until automated and relevant manual validation pass.
+- Start from updated `origin/main` after the current PR is merged.
+- Use one new branch for the audit.
+- Suggested branch: `audit/ae-architecture-alignment`.
+- Keep findings evidence-backed by maintained code, tests, and contracts.
+- Do not open the audit PR until the documented inventory and call graphs are
+  internally consistent and repository hygiene passes.
 - The repository owner performs the merge manually.
