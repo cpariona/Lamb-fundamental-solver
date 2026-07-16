@@ -447,7 +447,6 @@ onFitModelChanged();
                 parts.fitOptions.optimizerOptions = optimset( ...
                     'Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-5);
             case "acoustoelastic_iop_hgo"
-                parts.controls.atlasInitializationNumFrequencyPoints = 50;
                 parts.fitOptions.optimizerOptions = optimset( ...
                     'Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3);
                 if parts.freeParams == "thickness"
@@ -559,12 +558,8 @@ onFitModelChanged();
     function options = defaultAEOptions(executionProfile)
         [options, ~] = aeResolveExecutionProfile(executionProfile, ...
             'DefaultProfile', "Fast", ...
-            'DefaultSource', "FitTool synthetic default");
-        options.M54_variant = "corrected";
-        options.normalizeRows = false;
-        options.usePhysicalCpWindow = false;
-        options.atlasBranchPolicy = "atlasA0";
-        options.atlasInitializationNumFrequencyPoints = 50;
+            'DefaultSource', "FitTool synthetic default", ...
+            'Surface', "FitTool");
     end
 
     function updateStatusFromFitOutput(fitOutput)
@@ -690,9 +685,9 @@ onFitModelChanged();
                     'A0Policy', string(getControlField(parts.controls, 'mrlfeA0Policy', "physicalTail")));
             case "acoustoelastic_iop_hgo"
                 [~, metadata] = aeResolveExecutionProfile(parts.controls, ...
-                    'DefaultProfile', "Fast", 'DefaultSource', "FitTool synthetic default");
-                metadata.atlasInitializationNumFrequencyPoints = getControlField(parts.controls, ...
-                    'atlasInitializationNumFrequencyPoints', 50);
+                    'DefaultProfile', "Fast", ...
+                    'DefaultSource', "FitTool synthetic default", ...
+                    'Surface', "FitTool");
             otherwise
                 metadata = struct();
         end

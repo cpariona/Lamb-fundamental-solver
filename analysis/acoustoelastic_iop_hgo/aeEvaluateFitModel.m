@@ -13,7 +13,11 @@ if nargin < 3 || isempty(branchName)
     branchName = "atlasA0";
 end
 if nargin < 4 || isempty(options)
-    options = aeDefaultSweepOptions("Fast");
+    options = aeResolveConfiguration(struct(), ...
+        'NumericalPreset', "Fast", 'Surface', "FitTool");
+else
+    options.atlasBranchPolicy = "atlasA0";
+    options = aeResolveConfiguration(options, 'Surface', "FitTool");
 end
 
 branchName = aeNormalizeBranchPolicy(branchName);
@@ -22,12 +26,8 @@ if branchName ~= "atlasA0"
 end
 
 frequencyInput = frequency_Hz(:).';
-if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInput <= 0)
-    error('frequency_Hz must contain positive finite values.');
-end
-
-params = localPrepareParams(params, frequencyInput);
-options = localPrepareOptions(options);
+aeValidateRequest(params, 'Context', "fitting", 'Frequency', frequencyInput);
+params.frequency = frequencyInput;
 
 solverResult = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
 Cp_mps = solverResult.Cp(:);
@@ -43,28 +43,4 @@ rawResult.validMask = validMask;
 rawResult.solverResult = solverResult;
 rawResult.params = params;
 rawResult.options = options;
-end
-
-function params = localPrepareParams(params, frequency_Hz)
-requiredFields = {'IOP', 'R', 'thickness', 'mu', 'k1', 'k2', 'rho', 'rhoF', 'fluidBulkModulus'};
-for i = 1:numel(requiredFields)
-    if ~isfield(params, requiredFields{i})
-        error('Missing AE IOP/HGO fitting parameter: %s.', requiredFields{i});
-    end
-end
-params.frequency = frequency_Hz(:).';
-end
-
-function options = localPrepareOptions(options)
-options.atlasBranchPolicy = "atlasA0";
-options = localSetIfMissing(options, 'M54_variant', "corrected");
-options = localSetIfMissing(options, 'normalizeRows', false);
-options = localSetIfMissing(options, 'usePhysicalCpWindow', false);
-options = localSetIfMissing(options, 'invalidateAtlasFallbackOutput', true);
-end
-
-function options = localSetIfMissing(options, fieldName, value)
-if ~isfield(options, fieldName) || isempty(options.(fieldName))
-    options.(fieldName) = value;
-end
 end
