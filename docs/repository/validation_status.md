@@ -84,8 +84,8 @@ canonical owners. Validation reports 0 manual-only tests, 0 unowned tests, 0
 multiple canonical owners, 0 sibling direct overlaps, and 0 runner cycles.
 
 Current static reach is 19 tests from quick contracts, 52 from quick smoke, 14
-from numerical regression, 44 from extended integration, and 59 from the
-historical all-smoke aggregate.
+from numerical regression, 44 from extended integration, and 59 from the broad
+all-smoke aggregate.
 
 ## Compatibility debt
 
