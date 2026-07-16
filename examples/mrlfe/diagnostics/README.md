@@ -6,7 +6,7 @@ are not production entrypoints or lightweight unit tests.
 | Command | Purpose | Runtime | Output | Validation |
 | --- | --- | --- | --- | --- |
 | `diagnose_mrlfe_fit_performance` | Compare fit profiles and etaS cache parity/cost | extended | base workspace only | `diagnose_mrlfe_fit_performance` |
-| `run_mrlfe_targeted_grid_validation` | Repeatable targeted public-grid validation | extended | documented script outputs | manual command |
+| `validate_mrlfe_targeted_grid` | Repeatable targeted public-grid validation | extended | documented script outputs | manual command |
 | `validate_grid_presets` | Compare public preset grids with a dense reference | extended | base workspace only | manual command |
 | `validate_grid_presets_full` | Wider preset-grid characterization | long | base workspace only | manual command |
 

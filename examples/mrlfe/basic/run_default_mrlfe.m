@@ -1,4 +1,4 @@
-% Run the real-k elastic mRLFE plotting prototype.
+% Run the default real-k elastic mRLFE example.
 % This model is seeded from the Rayleigh-Lamb A0/S0 branches and computes
 % only A0-like and S0-like fundamental branches.
 
@@ -35,12 +35,12 @@ end
 grid on;
 xlabel('frequency [Hz]');
 ylabel('Phase velocity Cp [m/s]');
-title('mRLFE real-k elastic prototype');
+title('Default mRLFE real-k elastic example');
 legend('Location', 'best');
 hold off;
 
-fprintf('\nmRLFE prototype summary\n');
-fprintf('-----------------------\n');
+fprintf('\nDefault mRLFE summary\n');
+fprintf('---------------------\n');
 if isfield(results.models, 'mRLFE')
     branchNames = fieldnames(results.models.mRLFE.branches);
     for i = 1:numel(branchNames)

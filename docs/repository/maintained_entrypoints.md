@@ -354,11 +354,10 @@ mrlfe_sweep_etaS_S0Like
 mrlfe_sweep_thickness_A0Like
 mrlfe_sweep_thickness_S0Like
 fit_mrlfe_A0Like
-run_mrlfe_prototype
+run_default_mrlfe
 ```
 
-`run_mrlfe_prototype` remains the documented compatibility example; its name is
-not normalized in this phase.
+`run_default_mrlfe` demonstrates the default elastic A0Like/S0Like mRLFE route.
 
 ## Diagnostics
 
@@ -381,7 +380,7 @@ mRLFE diagnostics:
 
 ```matlab
 diagnose_mrlfe_fit_performance
-run_mrlfe_targeted_grid_validation
+validate_mrlfe_targeted_grid
 validate_grid_presets
 validate_grid_presets_full
 ```

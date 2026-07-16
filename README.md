@@ -220,7 +220,7 @@ Focused mRLFE diagnostics:
 
 ```matlab
 diagnose_mrlfe_fit_performance
-run_mrlfe_targeted_grid_validation
+validate_mrlfe_targeted_grid
 validate_grid_presets
 validate_grid_presets_full
 ```
