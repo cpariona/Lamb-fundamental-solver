@@ -42,20 +42,46 @@ run_repository_hygiene_tests
 - Start each implementation task from an updated `origin/main` on a new branch.
 - Do not open a PR until focused validation and manual review are complete.
 
+## Selected next objective
+
+After the current mRLFE compatibility-consumer migration is merged, the next
+selected task is an **AE IOP/HGO architecture audit and alignment plan**.
+
+The task is analytical and documentation-first. It must:
+
+- inventory the maintained AE executable surface across model, analysis, app,
+  examples, tests, and documentation;
+- reconstruct the Main GUI, SweepTool, FitTool, basic-example, sweep, and
+  diagnostic call paths;
+- classify each maintained AE file by responsibility and public/internal status;
+- compare those responsibilities with the established mRLFE organization;
+- identify safe structural alignment opportunities without forcing identical
+  physics-specific APIs;
+- produce a phased migration plan with risks, dependencies, and validation
+  requirements.
+
+The audit must not move or rename files, create aliases, change result schemas,
+or alter physics, presets, grids, policies, tolerances, fitting, sweeps, or GUI
+behavior. No AE implementation phase is authorized by this objective.
+
 ## Open technical areas
 
-1. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
+1. **AE architecture alignment audit** — selected next planning task. The audit
+   should determine whether configuration, presets, tracking, policies, quality,
+   and result construction can be assigned clearer model-layer ownership similar
+   to mRLFE while preserving AE-specific scientific APIs and diagnostics.
+2. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
    documented in
    `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`.
-   Any change must be solver-side, diagnostic-backed, and must not rely on
-   display-only smoothing.
-2. **mRLFE runtime characterization** — a manual post-cleanup review suggested
+   This numerical issue is separate from the architecture audit and must not be
+   modified during it.
+3. **mRLFE runtime characterization** — a manual post-cleanup review suggested
    that mRLFE may feel slower, but static comparison found no change to presets,
    frequency-grid construction, scan-point counts, candidates, adaptive windows,
    profile mapping, or maintained solver/tracking code. A controlled benchmark
    is required before treating this as a regression.
-3. **Bounded compatibility debt** — retained aliases and wrappers, their owners,
+4. **Bounded compatibility debt** — retained aliases and wrappers, their owners,
    consumers, and removal conditions are listed in
    `docs/repository/validation_status.md`.
 
-No implementation objective or provisional phase is currently active.
+No AE implementation phase is currently active.
