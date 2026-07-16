@@ -83,10 +83,10 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility_impl
-diagnose_acoustoelastic_iop_hgo_modal_atlas
-validate_acoustoelastic_iop_hgo_branch_identity_score_grid
-validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
+diagnose_idA0_plausibility
+diagnose_modal_atlas
+validate_idA0_score_grid
+validate_idA0_grid
 ```
 
 Focused smoke runner:

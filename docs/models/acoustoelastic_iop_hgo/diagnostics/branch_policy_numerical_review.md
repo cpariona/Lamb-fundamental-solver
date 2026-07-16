@@ -44,7 +44,7 @@ startup
 Then run the evidence chain:
 
 ```matlab
-diagnose_acoustoelastic_iop_hgo_modal_atlas
+diagnose_modal_atlas
 track_raw_branch1
 compare_atlasA0_vs_raw_branch1
 diagnose_branch_families
@@ -56,7 +56,7 @@ Optional broader checks:
 validate_atlas_raw_grid
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility_impl
+diagnose_idA0_plausibility
 ```
 
 ## Primary output files

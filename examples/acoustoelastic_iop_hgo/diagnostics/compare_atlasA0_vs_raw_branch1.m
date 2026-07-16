@@ -106,7 +106,7 @@ catch ME
         'WriteOutputs', true);
     rawCurveFile = rawBranch.curveFile;
     if ~exist(rawCurveFile, 'file')
-        error('Failed to regenerate raw_branch1_curve.csv. Run diagnose_acoustoelastic_iop_hgo_modal_atlas first.');
+        error('Failed to regenerate raw_branch1_curve.csv. Run diagnose_modal_atlas first.');
     end
 end
 end

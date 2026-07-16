@@ -25,14 +25,14 @@ Use the short entrypoint:
 ```matlab
 cd('E:\')
 startup
-validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
+validate_idA0_grid
 AcoustoelasticIOPHGOIdentityA0DiagnosticGridAggregate
 ```
 
 The legacy descriptive implementation remains available but should not be called directly for new work:
 
 ```matlab
-validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
+validate_idA0_grid
 ```
 
 Outputs are written under:

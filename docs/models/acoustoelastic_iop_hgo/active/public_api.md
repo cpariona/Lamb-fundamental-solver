@@ -65,7 +65,7 @@ aeDefaultIdentityA0ValidationGrid
 
 `aeExtractRawBranch1Candidate` is diagnostic infrastructure. It supports `track_raw_branch1` and `compare_atlasA0_vs_raw_branch1`; it does not promote `raw_branch1` to production output.
 
-`aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic. The retained `diagnose_acoustoelastic_iop_hgo_modal_atlas` implementation starts at low frequency by design.
+`aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic. `diagnose_modal_atlas` starts at low frequency by design.
 
 `aeDefaultIdentityA0ValidationParams`, `aeDefaultIdentityA0ValidationOptions`, and `aeDefaultIdentityA0ValidationGrid` centralize the shared heavy-validation setup used by the two retained long validation implementations.
 
@@ -101,16 +101,16 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility_impl
+diagnose_idA0_plausibility
 ```
 
 ## Repeatable diagnostics retained for scientific reproducibility
 
 ```matlab
 diagnose_idA0_score
-validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
-validate_acoustoelastic_iop_hgo_branch_identity_score_grid
-diagnose_acoustoelastic_iop_hgo_modal_atlas
+validate_idA0_grid
+validate_idA0_score_grid
+diagnose_modal_atlas
 diagnose_grid_start_sensitivity
 track_raw_branch1
 ```
@@ -118,8 +118,7 @@ track_raw_branch1
 ## Removed redundant entrypoints
 
 Redundant forwarding aliases with no unique logic are not part of the public
-API. Their retained implementation targets are called directly until a later
-dedicated naming phase.
+API. The canonical short diagnostic implementations are called directly.
 
 ## Maintained tests
 

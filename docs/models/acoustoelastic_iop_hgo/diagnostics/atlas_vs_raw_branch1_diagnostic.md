@@ -46,7 +46,7 @@ aeExtractRawBranch1Candidate
 Therefore, the required prerequisite is now:
 
 ```matlab
-diagnose_acoustoelastic_iop_hgo_modal_atlas
+diagnose_modal_atlas
 ```
 
 The retained modal-atlas implementation starts at low frequency by design.

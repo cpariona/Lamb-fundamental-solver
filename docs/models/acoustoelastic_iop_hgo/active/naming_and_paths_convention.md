@@ -65,21 +65,21 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility_impl
+diagnose_idA0_plausibility
 ```
 
 Repeatable diagnostics retained for scientific reproducibility:
 
 ```matlab
-validate_acoustoelastic_iop_hgo_branch_identity_score_grid
-validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
+validate_idA0_score_grid
+validate_idA0_grid
 diagnose_idA0_score
-diagnose_acoustoelastic_iop_hgo_modal_atlas
+diagnose_modal_atlas
 track_raw_branch1
 ```
 
-Phase 1 removed simple forwarding aliases and retained the implementation names
-without renaming them. New files should still use short task-oriented names.
+The canonical commands are the substantive implementations; no forwarding
+aliases are retained.
 
 ### Result folder convention
 
@@ -166,11 +166,11 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
-diagnose_idA0_plausibility_impl
-validate_acoustoelastic_iop_hgo_branch_identity_score_grid
-validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
+diagnose_idA0_plausibility
+validate_idA0_score_grid
+validate_idA0_grid
 diagnose_idA0_score
-diagnose_acoustoelastic_iop_hgo_modal_atlas
+diagnose_modal_atlas
 track_raw_branch1
 ```
 
