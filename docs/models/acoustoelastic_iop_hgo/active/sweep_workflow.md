@@ -97,5 +97,5 @@ run_acoustoelastic_smoke_tests
 
 Execute each changed sweep manually to validate generated tables and figures. Before merging broader changes, also run `run_all_smoke_tests`.
 
-Branch-policy behavior is owned by `active/branch_policy.md`; sweep workflows
+Branch-policy behavior is owned by `branch_policy.md`; sweep workflows
 must not reinterpret diagnostic branches as production output.

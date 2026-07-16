@@ -44,6 +44,13 @@ Maintained solver, example, diagnostic, and test entrypoints are listed in:
 docs/repository/maintained_entrypoints.md
 ```
 
+Repository structure, documentation, naming, tracked-artifact, dependency,
+path, and test-ownership hygiene is validated by:
+
+```matlab
+run_repository_hygiene_tests
+```
+
 The repository naming strategy is documented in:
 
 ```text

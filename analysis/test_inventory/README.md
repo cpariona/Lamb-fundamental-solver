@@ -25,8 +25,8 @@ ownership = buildTestOwnership();
 ownership = buildTestOwnership('WriteCsv', true, 'ValidateActual', true);
 ```
 
-The generated `test_runner_ownership.csv` contains one row for each of the 106
-tests, its canonical owner, runtime tier,
+The generated `test_runner_ownership.csv` contains one row for each maintained
+test, its canonical owner, runtime tier,
 aggregate reachability, and imported measured child runtime where available.
 `ValidateActual=true` requires exactly one executable direct runner edge for
 every non-manual test and no direct runner edge for a manual-only test.

@@ -3,42 +3,36 @@
 Last reviewed: 2026-07-15
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Implementation branch: `refactor/normalize-maintained-naming`
-Phase 1 source: `a126cd41f0040b922b40e851957af0ada71d3023`
-Phase 2 source: `6a59d9952af3d8bf848eba231e75ddf2bde0e70d`
-Origin main: `bf79cb468de66b76dbfe0e52ef8389e9ca0d025e`
 
-## Current state
+## Current architecture
 
-Repository naming Phase 3 is complete on top of the Phase 2 layer-ownership
-head. Maintained examples and diagnostics use verb-based canonical names,
-mRLFE model internals use the `mrlfe*` prefix, and task-oriented route cleanup
-test names now express continuing route-integrity invariants.
+The maintained source layers are `models/`, `analysis/`, `app/`, and
+`examples/`, with dependency direction defined by
+`docs/repository/repository_structure.md`. Public and maintained MATLAB
+surfaces are inventoried in `docs/repository/maintained_entrypoints.md`.
 
-The AE diagnostic short names are the substantive implementations; no
-forwarding aliases remain. The established long AE scientific/programmatic
-helpers remain explicit naming exceptions. Execution-profile helper names
-remain unchanged because they already expose model or GUI ownership.
+Repository naming is owned by `docs/repository/naming_strategy.md`. Test layout
+and ownership are owned by the two test contracts under `docs/repository/`.
+Repository-wide static hygiene is checked by:
 
-`docs/repository/naming_strategy.md` is the authoritative naming contract, and
-`test_repository_naming_contract` enforces filename/function agreement,
-forbidden example terms, prefix rules, documented definitions, and removed-name
-absence.
-
-## Maintained references
-
-```text
-docs/repository/repository_structure.md
-docs/repository/naming_strategy.md
-docs/repository/maintained_entrypoints.md
-docs/repository/validation_status.md
-docs/repository/test_suite_final_architecture.md
-docs/repository/test_runner_ownership.md
+```matlab
+run_repository_hygiene_tests
 ```
+
+## Product state
+
+- Rayleigh-Lamb, mRLFE, and AE IOP/HGO use their maintained public model APIs.
+- Main GUI, SweepTool, and FitTool route through app adapters.
+- mRLFE production consumers route through `mrlfeSolve`.
+- AE production output remains the conservative `atlasA0` branch.
+- Current fitting and sweep behavior is documented under `docs/workflows/`.
 
 ## Constraints
 
-- Preserve solver mathematics, numerical presets, tolerances, and public data schemas.
-- Use Git history for old command names and completed investigations.
-- Do not add compatibility aliases without the documented external-use exception.
-- Keep the Phase 2 architectural layers unchanged.
+- Preserve solver physics, numerical presets, grids, policies, and tolerances.
+- Preserve fitting, sweep, and GUI behavior unless a focused task authorizes change.
+- Use Git history for completed migrations, audits, and task reports.
+- Do not add compatibility aliases without an explicit public-use contract and removal condition.
+
+Known compatibility debt is bounded in
+`docs/repository/validation_status.md`.

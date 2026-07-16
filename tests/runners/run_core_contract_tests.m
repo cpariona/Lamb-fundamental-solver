@@ -7,9 +7,7 @@ end
 fprintf('\nRunning core contract tests...\n');
 fprintf('------------------------------\n');
 
-test_startup_path_policy;
-test_repository_root_utilities;
-test_repository_naming_contract;
+run_repository_hygiene_tests;
 test_model_output_folder_helpers;
 test_fitting_helpers_smoke;
 

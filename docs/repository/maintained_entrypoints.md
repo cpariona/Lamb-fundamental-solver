@@ -391,6 +391,7 @@ validate_grid_presets_full
 Use the maintained validation tiers:
 
 ```matlab
+run_repository_hygiene_tests
 run_quick_contract_tests
 run_quick_smoke_tests
 run_numerical_regression_tests
@@ -419,8 +420,14 @@ Nine public compatibility wrappers delegate to canonical implementations under
 ownership contract is maintained in `tests/README.md` and
 `docs/repository/test_runner_ownership.md`.
 
-Static repository naming is guarded by:
+Repository hygiene tests are:
 
 ```matlab
+test_repository_structure_contract
+test_repository_documentation_contract
 test_repository_naming_contract
+test_repository_tracked_artifacts_contract
+test_repository_dependency_boundaries_contract
+test_startup_path_policy
+test_repository_root_utilities
 ```

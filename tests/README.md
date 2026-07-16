@@ -1,18 +1,21 @@
-# Tests layout
+# Tests
 
-This document defines the target organization for the repository test suite. It is a migration contract: new tests should follow this structure, and existing tests should be moved gradually in small PRs.
+The maintained test implementation layout is:
 
-## Current policy
+```text
+tests/app/       application and GUI surfaces
+tests/models/    model-family contracts and numerical tests
+tests/runners/   canonical runner implementations
+tests/shared/    shared fitting, sweep, regression, and repository contracts
+```
 
-The `startup` function adds `tests/` recursively to the MATLAB path. Therefore, internal test folders can be reorganized as long as maintained runner names remain available and test function/script names remain unique.
+`startup` adds `tests/` recursively, so canonical runner implementations are
+public MATLAB commands without requiring root-level wrappers.
 
-Do not move large groups of tests without updating the relevant runners and documentation in the same PR.
+## Intentional public compatibility wrappers
 
-## Current compatibility wrappers
-
-Some root-level and legacy-folder runner wrappers are intentionally preserved while the layout is migrated. These wrappers keep older public commands working and delegate through shared utilities to maintained runner implementations under `tests/runners/`.
-
-Current compatibility wrappers include:
+Nine established public commands retain thin wrappers that delegate through
+`runRepositoryTestRunner` to same-named implementations under `tests/runners/`:
 
 ```text
 tests/run_acoustoelastic_smoke_tests.m
@@ -26,384 +29,29 @@ tests/run_mrlfe_smoke_tests.m
 tests/fitting/run_fit_validation_tests.m
 ```
 
-The eight root-level wrappers deliberately preserve public MATLAB commands.
-The fitting wrapper remains in the legacy `tests/fitting/` folder for the same
-compatibility reason. Every wrapper delegates to the same-named implementation
-under `tests/runners/` through `runRepositoryTestRunner`.
+`tests/run_main_gui_export_tests.m` is a standalone public runner, not a
+wrapper. No additional test implementation or wrapper may be placed at the
+root or in a legacy test folder without updating the repository structure
+contract.
 
-`tests/run_main_gui_export_tests.m` is different: it is a standalone public
-runner that directly executes the export contract. It is not a compatibility
-wrapper and currently has no same-named implementation under `tests/runners/`.
-
-## Final layout audit
-
-The test-layout migration has reached its intended steady state. All
-non-wrapper implementations live under one of the layout-owned folders, except
-for the deliberate standalone public runner described above:
-
-```text
-tests/app/
-tests/models/
-tests/runners/
-tests/shared/
-```
-
-The only MATLAB files intentionally left outside those folders are the nine
-compatibility wrappers and `tests/run_main_gui_export_tests.m`. Do not add new
-test implementations at the root of `tests/` or under legacy folders such as
-`tests/fitting/`; add new tests to the appropriate layout-owned folder instead.
-
-## Migration status
-
-Runner implementations live under `tests/runners/`, with public runner commands preserved through wrappers or direct runner files.
-
-## Validation tiers and canonical ownership
-
-Every maintained test has one direct canonical owner. Higher-level runners
-aggregate those focused owners, so a test may be reachable from several public
-commands without being called directly by sibling runners.
-
-Use these maintained tier commands:
+## Maintained commands
 
 ```matlab
-run_quick_contract_tests       % 15 structural contract tests
-run_quick_smoke_tests          % 48 routine contract/smoke tests
-run_numerical_regression_tests % 14 focused numerical regressions
-run_extended_integration_tests % 44 extended/integration tests
-run_performance_and_benchmark_tests % 2 descriptive performance tests
-```
-
-`run_quick_smoke_tests` is the routine developer command. Nested runners and
-tests reuse an already active startup path, avoiding repeated path setup. It excludes known
-multi-minute characterization, the 36-case execution-profile matrix,
-performance evidence, and the full descriptive execution-profile benchmark.
-
-The canonical mapping and regeneration rules are maintained in:
-
-```text
-docs/repository/test_runner_ownership.md
-analysis/test_inventory/test_runner_ownership.csv
-analysis/test_inventory/buildTestOwnership.m
-```
-
-Model-family Rayleigh-Lamb tests have been moved under:
-
-```text
-tests/models/rayleigh_lamb/
-```
-
-Current Rayleigh-Lamb model tests:
-
-```text
-tests/models/rayleigh_lamb/test_rl_fit_evaluator_branch_consistency.m
-tests/models/rayleigh_lamb/test_rl_fit_synthetic_A0.m
-```
-
-Model-family mRLFE tests have been moved under:
-
-```text
-tests/models/mrlfe/
-```
-
-Model-family AE IOP/HGO tests have been moved under:
-
-```text
-tests/models/acoustoelastic_iop_hgo/
-```
-
-Current AE IOP/HGO model tests:
-
-```text
-tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_atlasA0_smoke.m
-tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_branch_persistence_refinement.m
-tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_branch_policy_validation.m
-tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_constitutive_identity.m
-tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_fallback_invalidation.m
-tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy.m
-tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_internal_tracking_grid.m
-tests/models/acoustoelastic_iop_hgo/test_acoustoelastic_iop_hgo_short_entrypoints.m
-tests/models/acoustoelastic_iop_hgo/test_ae_analyze_truncation_recovery.m
-tests/models/acoustoelastic_iop_hgo/test_ae_fit_synthetic_atlasA0.m
-```
-
-GUI/app-layer smoke tests have started moving under:
-
-```text
-tests/app/gui/
-```
-
-Current app-gui tests:
-
-```text
-tests/app/gui/test_gui_acoustoelastic_iop_hgo_main_adapter_smoke.m
-tests/app/gui/test_gui_normalized_adapters_smoke.m
-```
-
-SweepTool/app-layer contracts have started moving under:
-
-```text
-tests/app/sweeps/
-```
-
-Current app-sweeps tests:
-
-```text
-tests/app/sweeps/test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke.m
-tests/app/sweeps/test_gui_sweep_adapters_smoke.m
-tests/app/sweeps/test_gui_sweep_registry_smoke.m
-```
-
-FitTool/app-layer contracts have started moving under:
-
-```text
-tests/app/fitting/
-```
-
-Current app-fitting tests:
-
-```text
-tests/app/fitting/test_fit_tool_model_registry_contract.m
-tests/app/fitting/test_fit_tool_interaction_helpers.m
-tests/app/fitting/test_fit_tool_requested_curve_models.m
-tests/app/fitting/test_gui_fit_registry_contract.m
-tests/app/fitting/test_gui_mrlfe_fit_full_curve_fast_contract.m
-tests/app/fitting/test_gui_mrlfe_fit_route_policy_contract.m
-tests/app/fitting/test_gui_mrlfe_fixed_etaS_fit_contract.m
-tests/app/fitting/test_mrlfe_fit_public_solver_characterization.m
-tests/app/fitting/test_mrlfe_fit_public_solver_parameter_regression.m
-tests/app/fitting/test_mrlfe_fit_uses_public_solver.m
-```
-
-Shared fitting validation, fitting-QC, and fitting-helper tests have started moving under:
-
-```text
-tests/shared/fitting/
-```
-
-Current shared-fitting tests and helpers:
-
-```text
-tests/shared/fitting/assertFitRecovery.m
-tests/shared/fitting/test_fit_physical_qc_flat_rl.m
-tests/shared/fitting/test_fit_physical_qc_synthetic_pass.m
-tests/shared/fitting/test_fit_validation_ae_iop_hgo.m
-tests/shared/fitting/test_fit_validation_ae_iop_hgo_hidden_params.m
-tests/shared/fitting/test_fit_validation_mrlfe.m
-tests/shared/fitting/test_fit_validation_mrlfe_hidden_params.m
-tests/shared/fitting/test_fit_validation_rayleigh_lamb.m
-tests/shared/fitting/test_fitting_helpers_smoke.m
-tests/shared/regression/test_lightweight_numerical_regression.m
-tests/shared/utilities/runRepositoryTestRunner.m
-tests/shared/utilities/test_model_output_folder_helpers.m
-tests/shared/utilities/test_repository_root_utilities.m
-tests/shared/utilities/testRepositoryRoot.m
-tests/shared/utilities/test_startup_path_policy.m
-tests/shared/fitting/test_rl_fit_rejects_prediction_fallback.m
-```
-
-## Target structure
-
-```text
-tests/
-├─ README.md
-├─ runners/
-├─ shared/
-│  ├─ fitting/
-│  ├─ sweeps/
-│  └─ utilities/
-├─ models/
-│  ├─ rayleigh_lamb/
-│  ├─ mrlfe/
-│  └─ acoustoelastic_iop_hgo/
-└─ app/
-   ├─ gui/
-   ├─ fitting/
-   └─ sweeps/
-```
-
-## Folder responsibilities
-
-### `tests/runners/`
-
-Contains maintained runner entrypoints that orchestrate groups of tests.
-
-Examples:
-
-```matlab
-run_all_smoke_tests
-run_core_smoke_tests
-run_gui_smoke_tests
-run_acoustoelastic_smoke_tests
-run_mrlfe_smoke_tests
-run_mrlfe_route_integrity_tests
-run_mrlfe_fit_public_solver_tests
-run_fit_validation_tests
+run_repository_hygiene_tests
 run_quick_contract_tests
 run_quick_smoke_tests
 run_numerical_regression_tests
 run_extended_integration_tests
+run_performance_and_benchmark_tests
 ```
 
-During migration, root-level wrappers may remain under `tests/` so existing commands keep working. Wrappers should be thin and should delegate to the implementation under `tests/runners/`.
+`run_quick_smoke_tests` is the routine developer command.
+`run_all_smoke_tests` is the maintained historical broad aggregate.
+Performance commands have no hardware-dependent pass/fail threshold.
 
-### `tests/shared/`
+## Ownership
 
-Contains tests for reusable infrastructure that is not owned by one model family or one app surface.
-
-Use this folder for tests of:
-
-```text
-shared fitting helpers
-shared sweep helpers
-shared plotting or utility contracts
-path-independent helper behavior
-public runner wrapper dispatch
-shared output-folder helper behavior
-lightweight numerical regression snapshots
-```
-
-Subfolders:
-
-```text
-tests/shared/fitting/     shared fitting contracts and quality-control tests
-tests/shared/regression/  lightweight deterministic numerical regression tests
-tests/shared/sweeps/      shared parametric sweep tests
-tests/shared/utilities/   path, naming, and general utility tests
-```
-
-### `tests/models/`
-
-Contains model-family tests. A test belongs here when it validates a physical model, numerical solver, model-specific residual, model-specific fitting adapter, or model-specific diagnostic policy.
-
-Subfolders:
-
-```text
-tests/models/rayleigh_lamb/           Rayleigh-Lamb solver, residual, branch, and fitting tests
-tests/models/mrlfe/                   mRLFE real-k, atlas, policy, and model-family tests
-tests/models/acoustoelastic_iop_hgo/  AE IOP/HGO solver, atlasA0, sweep, fitting, and diagnostic-policy tests
-```
-
-Model-family tests should not depend on GUI state. If a test requires GUI request/normalization code, place it under `tests/app/` instead.
-
-### `tests/app/`
-
-Contains tests for GUI and app-layer behavior. A test belongs here when it validates request building, registries, adapters, normalization, plotting contracts, FitTool, SweepTool, or main GUI integration.
-
-Subfolders:
-
-```text
-tests/app/gui/      main GUI and GUI-surface contracts
-tests/app/fitting/  FitTool and app-level fitting dispatch contracts
-tests/app/sweeps/   SweepTool and app-level sweep dispatch contracts
-```
-
-App tests may call model adapters, but they should focus on app-layer contracts rather than solver physics.
-
-## Migration rules
-
-1. Keep public runner commands stable unless there is a deliberate deprecation plan.
-2. Prefer moving one coherent test family at a time.
-3. Update runner files in the same commit as each move.
-4. Update `docs/repository/maintained_entrypoints.md` when runner names or maintained test groups change.
-5. Use wrappers temporarily when preserving old runner commands reduces disruption.
-6. Avoid mixing test moves with solver behavior changes.
-7. Run the relevant focused runner after each move, then run the full smoke suite before merging.
-
-## Validation after test-layout or runner changes
-
-Start with the routine tiers:
-
-```matlab
-clear functions
-rehash toolboxcache
-startup
-
-run_quick_contract_tests
-run_quick_smoke_tests
-run_numerical_regression_tests
-```
-
-Run `run_extended_integration_tests` only when the changed scope requires its
-matrix, fitting-recovery, or characterization coverage. It is intentionally
-long. Run `run_performance_and_benchmark_tests` only for performance work.
-
-Historical commands below remain compatibility aggregates. They are useful for
-focused parity checks but are not the definition of the quick tier.
-
-For runner or path changes, run:
-
-```matlab
-clear; clc; close all;
-startup
-run_quick_smoke_tests
-run_numerical_regression_tests
-```
-
-For app/GUI moves, run:
-
-```matlab
-clear; clc; close all;
-startup
-run_gui_smoke_tests
-run_all_smoke_tests
-```
-
-For app/SweepTool moves, run:
-
-```matlab
-clear; clc; close all;
-startup
-run_gui_smoke_tests
-run_all_smoke_tests
-```
-
-For app/FitTool moves, run:
-
-```matlab
-clear; clc; close all;
-startup
-run_gui_smoke_tests
-run_all_smoke_tests
-```
-
-For app/FitTool mRLFE moves, run:
-
-```matlab
-clear; clc; close all;
-startup
-run_mrlfe_fit_public_solver_tests
-run_gui_smoke_tests
-run_all_smoke_tests
-```
-
-For shared fitting moves, run:
-
-```matlab
-clear; clc; close all;
-startup
-test_fitting_helpers_smoke
-run_fit_validation_tests
-run_all_smoke_tests
-```
-
-For Rayleigh-Lamb model-family moves, run:
-
-```matlab
-clear; clc; close all;
-startup
-test_rl_fit_synthetic_A0
-test_rl_fit_evaluator_branch_consistency
-run_fit_validation_tests
-run_all_smoke_tests
-```
-
-For AE IOP/HGO model-family moves, run:
-
-```matlab
-clear; clc; close all;
-startup
-run_acoustoelastic_smoke_tests
-run_all_smoke_tests
-```
-
-For a focused model-family move, also run the corresponding focused runner when available.
+Every maintained test has one direct canonical owner. The generated evidence
+and regeneration command are documented in
+`docs/repository/test_runner_ownership.md`. New tests must be added to the
+stable layout and exactly one focused owner.

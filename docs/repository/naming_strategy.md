@@ -118,7 +118,7 @@ compare_*   comparative diagnostic
 track_*     branch-tracking diagnostic
 ```
 
-Canonical Phase 3 examples and diagnostics include:
+Canonical examples and diagnostics include:
 
 ```matlab
 run_default_mrlfe
@@ -209,3 +209,7 @@ requires a documented external public command, concrete external-use evidence,
 a significant user-facing break, and a removal plan. Repository-internal use is
 not evidence. Intentional public test wrappers follow the separate maintained
 runner architecture and must be listed in `tests/README.md`.
+
+The general executable owner is `test_repository_naming_contract`, reached
+through `run_repository_hygiene_tests`. Model-specific naming tests retain only
+their model API, removed-name, and scientific-exception assertions.

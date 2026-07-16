@@ -1,8 +1,7 @@
 # Repository structure
 
-This document describes the maintained tree as it exists after the Phase 2
-layer-ownership correction. It is a current contract, not a future migration
-target.
+This document defines the maintained repository layers and dependency
+direction.
 
 ## Top-level contract
 
@@ -31,6 +30,16 @@ app/ or examples/
 App adapters may call model APIs directly when no reusable analysis workflow is
 needed. Models must not depend on `analysis/`, `app/`, or `examples/`.
 Production and analysis code must not call files under `examples/`.
+
+The executable boundary matrix is:
+
+| Caller | Allowed maintained dependencies | Forbidden dependencies |
+| --- | --- | --- |
+| `models/` | model-local and shared material model code | `analysis/`, `app/`, `examples/`, `tests/` |
+| `analysis/` | `models/`, analysis-local helpers | `app/`, `examples/`, `tests/` |
+| `app/` | `analysis/`, `models/`, app-local helpers | `examples/`, `tests/` |
+| `examples/` | `app/`, `analysis/`, `models/` | production ownership of example code |
+| `tests/` | all maintained layers | none within the repository test contract |
 
 ## `models/`: physical and numerical ownership
 
@@ -212,3 +221,10 @@ launch folder. Existing documented AE legacy folders remain readable only where
 and tests recursively. Moving a function inside one of these trees preserves its
 MATLAB command name. A move must leave exactly one tracked definition and must
 not add a path-only compatibility wrapper.
+
+## Executable guardrail
+
+Run `run_repository_hygiene_tests` to validate the top-level allowlist,
+required directories, test locations, archive absence, model UI/campaign
+absence, dependency matrix, generated-artifact policy, documentation paths,
+naming, startup path, and test ownership.
