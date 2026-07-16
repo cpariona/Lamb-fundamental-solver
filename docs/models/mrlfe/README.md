@@ -31,7 +31,7 @@ FitTool objective evaluations use the bounded `fitOptimized` internal grid. Fit-
 
 ## Validation status
 
-The public-solver migration and FitTool grid policy were validated before merge through focused public-contract, GUI, sweep, fitting, execution-profile, and smoke suites.
+The maintained public-solver route and FitTool grid policy are covered by the focused public-contract, GUI, sweep, fitting, execution-profile, and smoke suites listed below.
 
 The extended grid matrix completed on 2026-07-14. Cases responsible for aggregate preset failures had marginal dense references (`low_valid_fraction` or `large_relative_jump`). Targeted follow-up found no accepted reference solution that degraded under the candidate grids. See `docs/validation/mrlfe_grid_presets.md` for the maintained interpretation.
 
