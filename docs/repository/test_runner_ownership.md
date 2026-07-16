@@ -23,8 +23,8 @@ analysis/test_inventory/test_runner_ownership.csv
 - Nine compatibility wrappers and standalone `run_main_gui_export_tests` remain
   public commands.
 
-Current generated state: 105 tests, 43 runner implementations, 9 compatibility
-wrappers, 3 helpers, 209 graph edges, 105 canonical owners, 0 manual-only tests,
+Current generated state: 106 tests, 42 runner implementations, 9 compatibility
+wrappers, 3 helpers, 222 graph edges, 106 canonical owners, 0 manual-only tests,
 0 unowned tests, 0 multiple canonical owners, 0 sibling direct overlaps, and 0
 runner cycles.
 
@@ -32,8 +32,8 @@ runner cycles.
 
 | Tier | Command | Static reach | Purpose |
 | --- | --- | ---: | --- |
-| quick contract | `run_quick_contract_tests` | 14 | paths, metadata, validation, imports, and pure helpers |
-| quick smoke | `run_quick_smoke_tests` | 47 | quick contracts plus representative GUI, AE, and mRLFE execution |
+| quick contract | `run_quick_contract_tests` | 15 | paths, metadata, validation, imports, and pure helpers |
+| quick smoke | `run_quick_smoke_tests` | 48 | quick contracts plus representative GUI, AE, and mRLFE execution |
 | numerical regression | `run_numerical_regression_tests` | 14 | deterministic model and result-schema evidence |
 | extended integration | `run_extended_integration_tests` | 44 | matrices, fitting recovery, consumers, and characterization |
 | performance | `run_performance_and_benchmark_tests` | 2 | descriptive performance evidence |
@@ -94,7 +94,7 @@ startup
 [inventory, edges] = buildTestInventory('WriteCsv', true);
 ownership = buildTestOwnership('WriteCsv', true, 'ValidateActual', true);
 
-assert(height(ownership) == 105)
+assert(height(ownership) == 106)
 assert(nnz(ownership.ManualOnly) == 0)
 assert(all(strlength(ownership.CanonicalRunner) > 0))
 ```

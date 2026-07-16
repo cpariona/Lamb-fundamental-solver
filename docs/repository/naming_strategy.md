@@ -1,225 +1,211 @@
 # Naming strategy
 
-This document records the maintained naming strategy for solver APIs, examples, diagnostics, future GUI-facing integrations, and dedicated rename work.
+This document is the authoritative naming contract for maintained MATLAB code,
+examples, diagnostics, tests, runners, parameters, and result folders.
 
-## Core rule
+## Scope
 
-Use folders to carry model context. Use short executable filenames for MATLAB entrypoints.
+The contract applies to tracked MATLAB files under `models/`, `analysis/`,
+`app/`, `examples/`, and `tests/`, plus active documentation that names those
+entrypoints. A maintained responsibility has one canonical command name. Git
+history, not a forwarding alias, preserves an old name.
 
-MATLAB only recognizes function/script names up to `namelengthmax`, usually 63 characters. Long descriptive filenames can be truncated and fail at runtime. Windows paths can also become fragile if every folder and file repeats the full model name.
+## Global MATLAB path implications
 
-Therefore:
+Folders provide useful model context, but MATLAB command resolution is global
+across the configured recursive path. Use the shortest name that remains
+globally unambiguous. A short diagnostic may omit the model prefix when no
+other maintained command has the same responsibility; a generic name that is
+likely to collide should retain its model prefix.
 
-```text
-Good for new files: `examples/acoustoelastic_iop_hgo/diagnostics/<short-task-name>.m`
-Canonical implementation: `diagnose_idA0_plausibility.m`
-```
+`diagnose_mrlfe_fit_performance` keeps the model prefix because fit-performance
+diagnostics can exist for every model family. `validate_grid_presets` and
+`validate_grid_presets_full` remain unprefixed because they are the only
+maintained preset-grid validators. The former is the bounded routine matrix;
+the latter runs the full descriptive matrix through the same maintained logic.
 
-The folder already states the model. The filename should state the task.
+## Model prefixes
 
-## Practical limits
-
-For new executable `.m` scripts:
-
-- keep names below about 45 characters;
-- never exceed MATLAB `namelengthmax`;
-- avoid repeating the model name if the folder already contains it;
-- prefer short task tags such as `idA0`, `A0`, `iop`, `mu`, `grid`, `plausibility`, `landscape`.
-
-Long descriptive scripts may remain as retained implementation files or diagnostic implementations, but user-facing commands should use short entrypoints.
-
-Simple compatibility aliases that only redirect to short entrypoints should not be reintroduced.
-
-## Result-folder convention
-
-For new acoustoelastic IOP/HGO outputs, prefer:
+Model-layer functions use these families:
 
 ```text
-Results/ae_iop_hgo/<task>
+Rayleigh-Lamb internal and supported helpers: rl*
+mRLFE model functions:                        mrlfe*
+AE IOP/HGO new internal helpers:              ae*
 ```
 
-relative to the MATLAB launch folder.
+Existing explicit AE scientific/programmatic APIs may retain their established
+`Acoustoelastic` names when shortening would hide the physical responsibility.
+The retained set is documented under **Internal helper naming**.
 
-Examples:
+## Public API naming
 
-```text
-Results/ae_iop_hgo/iop_sweep
-Results/ae_iop_hgo/mu_sweep
-Results/ae_iop_hgo/idA0_score_grid
-Results/ae_iop_hgo/idA0_grid
-Results/ae_iop_hgo/idA0_plausibility
-```
-
-Avoid repeating the full model name in every output folder:
-
-```text
-Results/acoustoelastic_iop_hgo_identityA0_physical_plausibility
-```
-
-Legacy long folders may remain valid for fallback reads, but new scripts should write to the short result root.
-
-## Mechanical parameter convention
-
-For soft-material and OCE-facing examples, use `mu`, `nu`, and `rho` as the canonical user-facing isotropic elastic inputs.
-
-Rationale:
-
-- mRLFE and AE/OCE workflows are naturally expressed in terms of shear stiffness for nearly incompressible materials.
-- Sweeps and plots should expose comparable parameters across Rayleigh-Lamb, mRLFE, and acoustoelastic models.
-- Rayleigh-Lamb and mRLFE may solve internally through wave speeds or Lamé parameters, but those should be derived from the canonical user-facing inputs.
-
-Recommended external sweep and GUI parameters:
-
-```text
-mu          shear modulus, user-facing elastic stiffness
-nu          Poisson ratio, user-facing compressibility control for RL/mRLFE
-rho         density
-2h          full thickness
-etaS        shear viscosity, when the model is viscoelastic
-IOP         pressure/loading parameter, when the model is acoustoelastic
-```
-
-Recommended derived quantities for linear isotropic elastic models:
+Public solver APIs make the model and responsibility visible:
 
 ```matlab
-E           = 2*mu*(1 + nu)
-lambda_Lame = 2*mu*nu/(1 - 2*nu)
-K           = lambda_Lame + 2*mu/3
-CT          = sqrt(mu/rho)
-CL          = sqrt((lambda_Lame + 2*mu)/rho)
+rlComputeFundamentalLambModes
+mrlfeSolve
+solveAcoustoelasticIOPHGOBranch
+solveAcoustoelasticIOPHGOAtlasBranch
+solveAcoustoelasticIOPHGODispersion
+defaultAcoustoelasticIOPHGOOptions
 ```
 
-For nearly incompressible reference cases, `nu` may be fixed close to 0.5 but should not equal 0.5 because `lambda_Lame` diverges. Avoid exposing `E` as the primary sweep variable for soft-material comparisons unless the goal is specifically an engineering-stress/Young-modulus study.
+Long AE public solver names are intentional because they distinguish the
+IOP/HGO contract from generic acoustoelastic calculations. Public APIs are not
+renamed solely to shorten them.
 
-Lamé parameters are acceptable inside solver kernels and derivations, but they should not be the primary user-facing sweep parameters unless the script is specifically validating the Lamé formulation. Use the name `lambda_Lame` in user-facing documentation to avoid confusion with stretch variables in acoustoelastic/HGO workflows.
+## Internal helper naming
 
-## Helper functions for paths and legacy execution
+mRLFE model internals use the lowercase `mrlfe*` prefix. The internal defaults
+and objective are `mrlfeDefaultInternalParameters` and
+`mrlfeObjectiveResidual`; the public defaults remain
+`mrlfeDefaultParameters` and `mrlfeDefaultOptions`.
 
-Use:
+New AE model internals use `ae*`. These established explicit scientific
+functions remain canonical programmatic APIs because their names identify the
+matrix, characteristic roots, residual form, constitutive quantities, stress,
+or stretch without relying on folder context:
 
 ```matlab
-aeOutputFolder(launchFolder, taskName)
+buildAcoustoelasticMatrix
+computeAcoustoelasticSRoots
+objectiveAcoustoelasticResidual
+objectiveAcoustoelasticComplexDeterminant
+computeAcoustoelasticABGFromIOPHGO
+computeAcoustoelasticAlphaBetaGamma
+computeAcoustoelasticPrestressSigma
+solveAcoustoelasticHGOStretch
 ```
 
-for new output folders. It returns:
+They are explicit retained exceptions to the prefix rule, not aliases.
+
+## App naming
+
+Cross-surface UI, normalization, and adapter helpers use `gui*`. Existing
+component constructors use `create*`. Model-specific translators under
+`app/adapters/` may use `ae*`, `mrlfe*`, or `rl*` so model ownership remains
+visible.
+
+The following names already distinguish their responsibilities and remain
+canonical:
+
+```matlab
+aeResolveExecutionProfile
+mrlfeResolveExecutionProfile
+rlResolveExecutionProfile
+mrlfeBuildSurfaceExecutionMetadata
+guiExecutionProfileValues
+guiNormalizeExecutionProfile
+guiNormalizeControlExecutionProfile
+guiFormatExecutionProfileDiagnostics
+```
+
+Generic names such as `resolveProfile` or `buildMetadata` are not acceptable on
+the global MATLAB path.
+
+## Example and diagnostic verbs
+
+Maintained examples and diagnostics use a responsibility verb:
 
 ```text
-<launchFolder>/Results/ae_iop_hgo/<taskName>
+run_*       basic executable example
+fit_*       fitting example
+<model>_sweep_*  maintained sweep
+diagnose_*  diagnostic
+validate_*  validation or bounded regression-style diagnostic
+compare_*   comparative diagnostic
+track_*     branch-tracking diagnostic
 ```
 
-`launchFolder` should be the user's MATLAB working directory at the time the maintained entrypoint is called. It should not be assumed to be the repository root or the folder containing the script.
-
-Use:
+Canonical Phase 3 examples and diagnostics include:
 
 ```matlab
-aeResolveResultFile(launchFolder, shortTaskName, shortFileName, legacyFolderName, legacyFileName)
-```
-
-when a script must support both new short outputs and older long outputs. It checks the short path first, then falls back to the legacy path.
-
-## Rayleigh-Lamb
-
-* Use `rl*` for model functions.
-* Existing `rl*` API remains the reference style.
-* Rayleigh-Lamb examples should keep basic runs under `examples/rayleigh_lamb/basic/`, sweeps under `examples/rayleigh_lamb/sweeps/`, and validation scripts under `examples/rayleigh_lamb/validation/`.
-* For soft-material comparisons, expose `mu` and `nu` and derive the solver-required elastic representation internally.
-
-## mRLFE
-
-* Use `mrlfe*` for internal/model-specific functions when lowercase style is appropriate.
-* The maintained public mRLFE production entrypoint is `mrlfeSolve`.
-* New mRLFE model-layer functions should use the `mrlfe*` prefix and neutral responsibility names.
-* Avoid “prototype” in maintained example names.
-* For maintained sweeps, expose `mu`, `etaS`, and `2h` rather than `E` when comparing against Rayleigh-Lamb or AE/OCE workflows.
-
-## Acoustoelastic IOP/HGO
-
-* Existing long author-neutral public solver names such as `solveAcoustoelasticIOPHGOBranch` may remain.
-* New model-specific helper functions should prefer the short `ae*` prefix.
-* New diagnostic and validation entrypoints under `examples/acoustoelastic_iop_hgo/` should use short task names.
-* Use `ae*` for functions clearly inside `models/acoustoelastic_iop_hgo/` or `analysis/acoustoelastic_iop_hgo/`.
-* Use `aeIOPHGO*` only for high-level public functions where IOP/HGO specificity must be explicit.
-* Do not reintroduce `Li2024`.
-
-Recommended acoustoelastic helper naming examples:
-
-```matlab
-aeDefaultOptions
-aeSolveBranch
-aeSolveAtlasBranch
-aeSolveDispersion
-aeSolveComplexC
-aeBuildMatrix
-aeResidual
-aeComplexDeterminant
-aeComputeABG
-aeComputeSRoots
-aeComputePrestress
-aeSolveStretch
-aeOutputFolder
-aeResolveResultFile
-```
-
-Recommended user-facing entrypoints:
-
-```matlab
-run_atlas_branch
-ae_sweep_iop_A0Like
-ae_sweep_mu_A0Like
-compare_atlasA0_vs_raw_branch1
-validate_atlas_raw_grid
-diagnose_raw_branch_corner
-diagnose_branch_families
-diagnose_sweep_reliability
-diagnose_atlas_truncation
-diagnose_idA0_plausibility
+run_default_mrlfe
+validate_mrlfe_targeted_grid
+diagnose_mrlfe_fit_performance
+validate_grid_presets
+validate_grid_presets_full
+diagnose_modal_atlas
 validate_idA0_score_grid
 validate_idA0_grid
-diagnose_idA0_score
-diagnose_modal_atlas
-track_raw_branch1
+diagnose_idA0_plausibility
 ```
 
 `diagnose_idA0_plausibility` requires the workspace generated by
-`validate_idA0_grid`; it is not a
-standalone smoke-test command.
+`validate_idA0_grid`. `diagnose_modal_atlas` starts at low frequency by design.
 
-`diagnose_modal_atlas` starts at low frequency by design. The canonical short
-diagnostic names resolve directly to their substantive implementations.
+## Test and runner naming
 
-Alternative high-level explicit names, only when needed:
+Individual tests use `test_*`; runners use `run_*`. Names express a continuing
+invariant rather than a completed migration task. Current route guardrails use:
 
 ```matlab
-aeIOPHGODefaultOptions
-aeIOPHGOSolveBranch
-aeIOPHGOSolveAtlasBranch
-aeIOPHGOSolveDispersion
+test_mrlfe_maintained_route_characterization
+test_mrlfe_removed_routes_absent
+test_mrlfe_removed_route_flags_absent
+run_mrlfe_route_integrity_tests
 ```
 
-## Examples
+The nine public runner wrappers documented in `tests/README.md` intentionally
+share names with implementations under `tests/runners/`. They are the only
+allowed filename-level duplicates for maintained documented commands.
 
-* Use `run_*` for basic executable examples.
-* Use `<model>_sweep_<parameter>_<branch>` for maintained public sweep entrypoints.
-* Use `validate_*` for validation grids and regression-style checks.
-* Use `diagnose_*` for diagnostic scripts.
-* Use `compare_*` for comparative scripts.
-* Use `track_*` only for branch-tracking diagnostics.
-* Prefer short task-oriented names when the folder already contains model context.
+## Filename/function matching
 
-## GUI
+Every function file must have a filename that exactly matches its top-level
+function name, including case. Scripts follow the same canonical command name
+through their filename. Local functions inside scripts do not define separate
+global entrypoints.
 
-* GUI code should call model APIs, not scripts in `examples/`.
-* GUI code should expose `mu`, `nu`, `rho`, and `2h` as primary soft-material inputs, and display `E`, `lambda_Lame`, `K`, `CT`, and `CL` as derived quantities.
-* Do not add aliases for renamed sweep entrypoints.
+## Length limits
 
-## Renaming policy
+Prefer executable names below approximately 45 characters and never exceed
+`namelengthmax`. Do not repeat a complete model-family name when an established
+short prefix or globally unambiguous task name is sufficient.
 
-Existing function names should not be renamed casually. Renames should happen only in dedicated pull requests with:
+## Parameter naming
 
-1. path checks,
-2. smoke tests,
-3. updated examples,
-4. updated docs,
-5. a clear migration note.
+Thickness terminology is deliberately separated by surface:
 
-For current migration work, prefer short entrypoints plus short result paths. Rename maintained sweep entrypoints directly, update active references, and do not keep compatibility wrappers for the old names. Retain long descriptive files only when they contain implementation, heavy validation, diagnostic, or reproducibility logic that has not been migrated into a short implementation file.
+```text
+Mathematical notation: 2h
+MATLAB request field: thickness_m
+User-facing shorthand: thickness
+Display label: 2h
+```
+
+For soft-material workflows, use `mu`, `nu`, and `rho` as the user-facing
+elastic inputs. Use `lambda_Lame` in prose or display code when needed to avoid
+confusion with stretch. Valid implemented MATLAB fields are not renamed solely
+to mirror mathematical notation.
+
+## Result-folder identifiers
+
+Generated results use these canonical roots relative to the launch folder:
+
+```text
+Results/rayleigh_lamb/<task>
+Results/mrlfe/<task>
+Results/ae_iop_hgo/<task>
+```
+
+Use the exact code identifiers `rayleigh_lamb`, `mrlfe`, and `ae_iop_hgo` for
+paths. In prose use Rayleigh-Lamb, mRLFE, and AE IOP/HGO consistently.
+
+## Rename policy
+
+A direct rename must update executable callers, dynamic references,
+registries, callbacks, tests, runners, documentation, and inventories in the
+same branch. After the rename, the old command must not resolve and the new
+command must resolve at its canonical definition. Numerical behavior, public
+schemas, defaults, policies, and tolerances remain unchanged unless a separate
+task explicitly authorizes such changes.
+
+## Forbidden compatibility aliases
+
+Do not add a forwarding file solely to preserve an old name. An exception
+requires a documented external public command, concrete external-use evidence,
+a significant user-facing break, and a removal plan. Repository-internal use is
+not evidence. Intentional public test wrappers follow the separate maintained
+runner architecture and must be listed in `tests/README.md`.

@@ -9,6 +9,7 @@ fprintf('------------------------------\n');
 
 test_startup_path_policy;
 test_repository_root_utilities;
+test_repository_naming_contract;
 test_model_output_folder_helpers;
 test_fitting_helpers_smoke;
 

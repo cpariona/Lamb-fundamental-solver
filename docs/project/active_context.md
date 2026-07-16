@@ -3,21 +3,27 @@
 Last reviewed: 2026-07-15
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Implementation branch: `refactor/correct-repository-layer-structure`
+Implementation branch: `refactor/normalize-maintained-naming`
 Phase 1 source: `a126cd41f0040b922b40e851957af0ada71d3023`
+Phase 2 source: `6a59d9952af3d8bf848eba231e75ddf2bde0e70d`
 Origin main: `bf79cb468de66b76dbfe0e52ef8389e9ca0d025e`
 
 ## Current state
 
-Repository structure Phase 2 is complete on top of the Phase 1 deletion head.
-The maintained layers remain `analysis/`, `app/`, `docs/`, `examples/`,
-`models/`, and `tests/`; no root-level `shared/` source layer was created.
+Repository naming Phase 3 is complete on top of the Phase 2 layer-ownership
+head. Maintained examples and diagnostics use verb-based canonical names,
+mRLFE model internals use the `mrlfe*` prefix, and task-oriented route cleanup
+test names now express continuing route-integrity invariants.
 
-`aeRunSweep` is now owned by AE analysis. Cross-model sweep infrastructure is
-grouped under `analysis/sweeps/`. Model-specific profile/surface translation is
-owned by `app/adapters/`; FitTool visual construction is under `app/fitting/`;
-interactive sweep UI is under `app/sweep/`. MATLAB command names remain stable
-through recursive startup paths, and no path-only wrappers were added.
+The AE diagnostic short names are the substantive implementations; no
+forwarding aliases remain. The established long AE scientific/programmatic
+helpers remain explicit naming exceptions. Execution-profile helper names
+remain unchanged because they already expose model or GUI ownership.
+
+`docs/repository/naming_strategy.md` is the authoritative naming contract, and
+`test_repository_naming_contract` enforces filename/function agreement,
+forbidden example terms, prefix rules, documented definitions, and removed-name
+absence.
 
 ## Maintained references
 
@@ -32,8 +38,7 @@ docs/repository/test_runner_ownership.md
 
 ## Constraints
 
-- Preserve solver mathematics, numerical presets, tolerances, and public APIs.
-- Use Git history for completed audits and investigations.
-- Phase 3 naming normalization has not started.
-- Keep retained long AE diagnostic implementation names unchanged until a
-  dedicated naming task authorizes renames.
+- Preserve solver mathematics, numerical presets, tolerances, and public data schemas.
+- Use Git history for old command names and completed investigations.
+- Do not add compatibility aliases without the documented external-use exception.
+- Keep the Phase 2 architectural layers unchanged.

@@ -418,3 +418,9 @@ Nine public compatibility wrappers delegate to canonical implementations under
 `tests/runners/` through `runRepositoryTestRunner`. The exact wrapper and
 ownership contract is maintained in `tests/README.md` and
 `docs/repository/test_runner_ownership.md`.
+
+Static repository naming is guarded by:
+
+```matlab
+test_repository_naming_contract
+```

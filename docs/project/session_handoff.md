@@ -1,50 +1,53 @@
 # Session handoff
 
 Updated: 2026-07-15
-Branch: `refactor/correct-repository-layer-structure`
+Branch: `refactor/normalize-maintained-naming`
 Phase 1 source: `a126cd41f0040b922b40e851957af0ada71d3023`
+Phase 2 source: `6a59d9952af3d8bf848eba231e75ddf2bde0e70d`
 Origin main: `bf79cb468de66b76dbfe0e52ef8389e9ca0d025e`
 
 ## Completed work
 
-Phase 2 moved 13 maintained MATLAB files without renaming their functions:
-`aeRunSweep`; six shared sweep helpers; four model-specific app adapters;
-`createFittingTab`; and the interactive AE grid-sweep visualization. No files
-were added or deleted, and no compatibility wrapper was introduced.
+Phase 3 established canonical names for the maintained mRLFE default example,
+targeted grid validation, four AE diagnostics, two mRLFE internals, three mRLFE
+route-integrity tests and their runner, and the execution-profile normalization
+contract. Old names were removed directly; no compatibility alias was added.
+The redundant execution-profile cleanup aggregate was deleted.
 
-Tracked files remain 491. Physical lines changed from 47,010 to 46,935, a net
-reduction of 75 lines; MATLAB, Markdown, and CSV counts remain 422, 63, and 4.
-
-The final ownership contract keeps model equations and numerical policies under
-`models/`, reusable campaigns and aggregation under `analysis/`, and UI state,
-callbacks, adapters, plotting, and export under `app/`. Production, app, and
-analysis code have zero callers into `examples/`.
+The naming strategy now defines global-path ambiguity, prefixes, public versus
+internal APIs, app ownership, example/diagnostic verbs, tests/runners,
+filename/function matching, length limits, thickness terminology, result-root
+identifiers, direct rename policy, and forbidden aliases. One focused static
+test enforces the contract.
 
 ## Validation
 
 Passed on MATLAB R2024b/PCWIN64:
 
 ```matlab
-test_startup_path_policy
-test_repository_root_utilities
 run_quick_contract_tests
 run_quick_smoke_tests
 run_numerical_regression_tests
+run_mrlfe_public_contract_tests
+run_mrlfe_production_core_tests
+run_mrlfe_smoke_tests
+run_mrlfe_fitting_regression_tests
+run_ae_quick_tests
+run_acoustoelastic_smoke_tests
+test_acoustoelastic_iop_hgo_short_entrypoints
+run_gui_quick_tests
+run_gui_smoke_tests
+run_execution_profile_contract_tests
+run_execution_profile_integration_tests
+run_fit_validation_tests
 run_all_smoke_tests
 ```
 
-Focused AE validation, the AE SweepTool adapter, shared sweep renderer,
-execution-profile surface tests, FitTool interaction tests, GUI quick, and GUI
-smoke also passed. The bounded `aeRunSweep` before/after comparison was exact
-for grids, Cp, validity, reliability, and summary tables.
-
-Test ownership regenerated deterministically at 105 tests and 209 edges with
-zero unowned tests, multiple owners, sibling overlaps, manual-only tests, or
-cycles. Code Analyzer finished at 0 findings across 18 changed or moved MATLAB
-files.
-
-`run_extended_integration_tests` was not executed because file placement did
-not materially change app dispatch, fitting orchestration, numerical model
-boundaries, grids, policies, or solver behavior.
+mRLFE production characterization reported zero Cp difference. Internal
+default parameters and both residual methods matched the pre-rename baseline
+exactly. Code Analyzer ended at 0 findings across 57 changed/renamed MATLAB
+files. Ownership regenerated at 106 tests and 222 edges with no ownership or
+cycle defects. Extended integration was not run because no solver, fitting,
+dispatch, policy, or ownership boundary changed materially.
 
 No pull request or merge was created.

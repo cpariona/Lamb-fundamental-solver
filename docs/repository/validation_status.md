@@ -2,6 +2,34 @@
 
 This document records the maintained validation entrypoints and the validation status expected before merging changes.
 
+## Repository naming Phase 3 status
+
+The 2026-07-15 naming phase directly renamed the maintained mRLFE default
+example and targeted-grid validation, four substantive AE diagnostics, two
+mRLFE model internals, three mRLFE route-integrity tests, their public/canonical
+runner pair, and one execution-profile contract test. No old-name wrapper was
+added. The redundant task-oriented execution-profile aggregate was removed
+because it owned no tests and only repeated canonical runners.
+
+The naming guardrail verifies tracked filename/function agreement, maintained
+example terms, model/app prefixes, documented entrypoint definitions, the nine
+intentional public runner-wrapper duplicates, and absence of every Phase 3 old
+name. The deterministic inventory now records 106 tests, 42 runner
+implementations, 9 public wrappers, 3 helpers, 222 edges, and 106 canonical
+owners, with zero unowned, multiply owned, manual-only, overlapping, or cyclic
+tests/runners.
+
+Routine quick contract, quick smoke, numerical regression, focused mRLFE, AE,
+GUI, execution-profile integration, fitting validation, and
+`run_all_smoke_tests` passed on MATLAB R2024b/PCWIN64. mRLFE production
+characterization reported zero maximum absolute and relative Cp difference;
+the renamed internal defaults and both residual methods matched the saved
+pre-rename baseline exactly. Code Analyzer finished with 0 findings across 57
+changed or renamed MATLAB files after 17 behavior-neutral initial findings were
+resolved. Extended integration was not executed because names and references
+changed without changing model dispatch, fitting evaluators, numerical policy,
+or canonical test ownership.
+
 ## Repository structure Phase 2 status
 
 The 2026-07-15 layer-ownership correction moved `aeRunSweep` from the AE model
@@ -92,7 +120,7 @@ run_performance_and_benchmark_tests
 ```
 
 The historical `run_all_smoke_tests` command remains broad for compatibility;
-it now reaches 54 tests through focused owners and is not the routine quick
+it now reaches 55 tests through focused owners and is not the routine quick
 gate.
 
 Focused groups:
