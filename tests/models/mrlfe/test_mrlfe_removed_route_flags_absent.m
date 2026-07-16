@@ -1,7 +1,7 @@
 clear; clc;
 startup
 
-fprintf('\nRunning mRLFE no-legacy-route-flags test...\n');
+fprintf('\nRunning mRLFE removed-route-flags-absent test...\n');
 fprintf('------------------------------------------\n');
 
 root = testRepositoryRoot(mfilename('fullpath'));
@@ -36,4 +36,4 @@ for i = 1:numel(maintainedFiles)
     end
 end
 
-fprintf('mRLFE no-legacy-route-flags test passed.\n');
+fprintf('mRLFE removed-route-flags-absent test passed.\n');

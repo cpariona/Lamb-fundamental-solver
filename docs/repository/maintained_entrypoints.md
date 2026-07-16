@@ -411,7 +411,7 @@ run_mrlfe_production_core_tests
 run_mrlfe_fit_public_solver_tests
 run_mrlfe_sweeptool_public_solver_tests
 run_mrlfe_main_gui_public_solver_tests
-run_mrlfe_legacy_cleanup_tests
+run_mrlfe_route_integrity_tests
 ```
 
 Nine public compatibility wrappers delegate to canonical implementations under

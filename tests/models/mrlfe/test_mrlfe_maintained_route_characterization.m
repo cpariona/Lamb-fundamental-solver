@@ -1,7 +1,7 @@
 clear; clc;
 startup
 
-fprintf('\nRunning mRLFE legacy cleanup characterization test...\n');
+fprintf('\nRunning mRLFE maintained-route characterization test...\n');
 fprintf('----------------------------------------------------\n');
 
 cases = [ ...
@@ -29,9 +29,9 @@ end
 
 % FitTool route and optimized-grid equivalence are covered by the dedicated
 % run_mrlfe_fit_public_solver_tests runner. Keeping that work out of this
-% cleanup runner avoids duplicate solver evaluations and grid-policy coupling.
+% route-integrity runner avoids duplicate solver evaluations and grid-policy coupling.
 
-fprintf('mRLFE legacy cleanup characterization test passed.\n');
+fprintf('mRLFE maintained-route characterization test passed.\n');
 
 function params = localParams()
 params = rlDefaultParams();

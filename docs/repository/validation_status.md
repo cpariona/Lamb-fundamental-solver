@@ -58,7 +58,7 @@ run_acoustoelastic_smoke_tests
 run_all_smoke_tests
 run_core_smoke_tests
 run_gui_smoke_tests
-run_mrlfe_legacy_cleanup_tests
+run_mrlfe_route_integrity_tests
 run_mrlfe_production_core_tests
 run_mrlfe_public_contract_tests
 run_mrlfe_smoke_tests
@@ -122,7 +122,7 @@ docs/workflows/fitting/validation_suite.md
 
 The maintained mRLFE architecture uses the public `mrlfeSolve` route. Atlas-specific production tests and runners were removed with the legacy routes.
 
-Use these focused runners after changes to the public API, production core, GUI consumers, sweeps, fitting, tracking, termination, or cleanup contracts:
+Use these focused runners after changes to the public API, production core, GUI consumers, sweeps, fitting, tracking, termination, or route-integrity contracts:
 
 ```matlab
 run_mrlfe_public_contract_tests
@@ -131,10 +131,10 @@ run_mrlfe_neutral_production_helper_tests
 run_mrlfe_main_gui_public_solver_tests
 run_mrlfe_sweeptool_public_solver_tests
 run_mrlfe_fit_public_solver_tests
-run_mrlfe_legacy_cleanup_tests
+run_mrlfe_route_integrity_tests
 ```
 
-`run_mrlfe_legacy_cleanup_tests` verifies that removed route flags, historical production dependencies, and obsolete maintained entrypoints do not return. It is not an atlas solver validation suite and should not duplicate broad FitTool or GUI characterization already owned by their focused runners.
+`run_mrlfe_route_integrity_tests` verifies that removed route flags, historical production dependencies, and obsolete maintained entrypoints do not return. It is not an atlas solver validation suite and should not duplicate broad FitTool or GUI characterization already owned by their focused runners.
 
 Exact Cp equivalence between consumers is required only when both routes use the same request and internal grid policy. FitTool optimization intentionally uses `fitOptimized`, while explicit requested-curve evaluation uses `numericalPreset`.
 
@@ -168,7 +168,7 @@ Validated behavior includes:
 - Main GUI applies Balanced directly as the `balanced` numerical preset;
 - Main GUI status is derived from the returned public quality state rather than a fixed expected marginal case;
 - FitTool/direct exact equality is asserted only on a shared internal solve grid;
-- the legacy-cleanup runner remains focused and does not repeat FitTool solver work.
+- the route-integrity runner remains focused and does not repeat FitTool solver work.
 
 The user executed and reported passing:
 
@@ -176,7 +176,7 @@ The user executed and reported passing:
 test_mrlfe_public_contract_validation
 run_mrlfe_public_contract_tests
 test_mrlfe_main_gui_result_contract
-run_mrlfe_legacy_cleanup_tests
+run_mrlfe_route_integrity_tests
 run_mrlfe_main_gui_public_solver_tests
 run_mrlfe_fit_public_solver_tests
 run_mrlfe_smoke_tests

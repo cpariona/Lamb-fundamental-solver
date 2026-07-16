@@ -19,7 +19,7 @@ tests/run_acoustoelastic_smoke_tests.m
 tests/run_all_smoke_tests.m
 tests/run_core_smoke_tests.m
 tests/run_gui_smoke_tests.m
-tests/run_mrlfe_legacy_cleanup_tests.m
+tests/run_mrlfe_route_integrity_tests.m
 tests/run_mrlfe_production_core_tests.m
 tests/run_mrlfe_public_contract_tests.m
 tests/run_mrlfe_smoke_tests.m
@@ -235,7 +235,7 @@ run_core_smoke_tests
 run_gui_smoke_tests
 run_acoustoelastic_smoke_tests
 run_mrlfe_smoke_tests
-run_mrlfe_legacy_cleanup_tests
+run_mrlfe_route_integrity_tests
 run_mrlfe_fit_public_solver_tests
 run_fit_validation_tests
 run_quick_contract_tests

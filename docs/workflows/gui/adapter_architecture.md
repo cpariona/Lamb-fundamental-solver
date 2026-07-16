@@ -313,7 +313,7 @@ clear; clc; close all;
 startup
 run_gui_smoke_tests
 run_fit_validation_tests
-run_mrlfe_legacy_cleanup_tests
+run_mrlfe_route_integrity_tests
 ```
 
 For a complete repository check, run:

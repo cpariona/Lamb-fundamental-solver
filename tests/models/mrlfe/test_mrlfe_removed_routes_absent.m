@@ -1,7 +1,7 @@
 clear; clc;
 startup
 
-fprintf('\nRunning mRLFE no-legacy-routes test...\n');
+fprintf('\nRunning mRLFE removed-routes-absent test...\n');
 fprintf('-------------------------------------\n');
 
 root = testRepositoryRoot(mfilename('fullpath'));
@@ -54,4 +54,4 @@ for i = 1:numel(consumerFiles)
     end
 end
 
-fprintf('mRLFE no-legacy-routes test passed.\n');
+fprintf('mRLFE removed-routes-absent test passed.\n');

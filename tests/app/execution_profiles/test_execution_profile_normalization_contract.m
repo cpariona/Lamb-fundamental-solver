@@ -3,7 +3,7 @@ if isempty(which('mrlfeSolve'))
     startup
 end
 
-fprintf('\nRunning execution profile cleanup contract test...\n');
+fprintf('\nRunning execution profile normalization contract test...\n');
 fprintf('------------------------------------------------\n');
 
 repoRoot = testRepositoryRoot();
@@ -119,7 +119,7 @@ assertDocContains(fullfile('docs', 'architecture', 'execution_profiles_surface_i
 assertDocContains(fullfile('docs', 'workflows', 'sweeps', 'sweep_tool_usage.md'), ...
     'Execution profile: Fast');
 
-fprintf('Execution profile cleanup contract test passed.\n');
+fprintf('Execution profile normalization contract test passed.\n');
 
 function assertRegistryProfiles(registry, label)
 profiles = guiExecutionProfileValues();
