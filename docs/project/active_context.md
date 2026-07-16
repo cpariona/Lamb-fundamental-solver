@@ -3,8 +3,8 @@
 Last reviewed: 2026-07-16
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Last merged repository-wide change: PR #119, merge commit
-`749feb159795f7fe0e0a4eecaecf8696b4369dad`
+Last merged AE architecture change: PR #122, commit
+`9c862bd7e217defc9a580bb0a41ea9fd5cd0e8bb`
 
 ## Current architecture
 
@@ -27,6 +27,8 @@ run_repository_hygiene_tests
 - Main GUI, SweepTool, and FitTool route through app adapters.
 - mRLFE production consumers route through `mrlfeSolve`.
 - AE production output remains the conservative `atlasA0` branch.
+- AE request validation, effective configuration, numerical presets, and
+  internal tracking-grid construction now have canonical model-layer owners.
 - Current fitting and sweep behavior is documented under `docs/workflows/`.
 - Repository structure, naming, documentation ownership, and test ownership
   were consolidated and guarded by PR #119.
@@ -42,34 +44,24 @@ run_repository_hygiene_tests
 - Start each implementation task from an updated `origin/main` on a new branch.
 - Do not open a PR until focused validation and manual review are complete.
 
-## Selected next objective
+## Current objective
 
-After the current mRLFE compatibility-consumer migration is merged, the next
-selected task is an **AE IOP/HGO architecture audit and alignment plan**.
+Phase 2 centralizes AE configuration ownership on
+`refactor/ae-configuration-ownership`. It preserves flat public signatures and
+numerical behavior while migrating model wrappers, physical workflows, Main
+GUI, SweepTool, and FitTool to `aeResolveConfiguration`,
+`aeGetNumericalPreset`, `aeValidateRequest`, and
+`aeBuildInternalTrackingGrid`.
 
-The task is analytical and documentation-first. It must:
-
-- inventory the maintained AE executable surface across model, analysis, app,
-  examples, tests, and documentation;
-- reconstruct the Main GUI, SweepTool, FitTool, basic-example, sweep, and
-  diagnostic call paths;
-- classify each maintained AE file by responsibility and public/internal status;
-- compare those responsibilities with the established mRLFE organization;
-- identify safe structural alignment opportunities without forcing identical
-  physics-specific APIs;
-- produce a phased migration plan with risks, dependencies, and validation
-  requirements.
-
-The audit must not move or rename files, create aliases, change result schemas,
-or alter physics, presets, grids, policies, tolerances, fitting, sweeps, or GUI
-behavior. No AE implementation phase is authorized by this objective.
+Phase 3 is not authorized. After Phase 2 review and manual merge, the next
+candidate is the bounded result/quality/diagnostic boundary described by the
+AE architecture audit.
 
 ## Open technical areas
 
-1. **AE architecture alignment audit** — selected next planning task. The audit
-   should determine whether configuration, presets, tracking, policies, quality,
-   and result construction can be assigned clearer model-layer ownership similar
-   to mRLFE while preserving AE-specific scientific APIs and diagnostics.
+1. **AE architecture alignment** - Phase 2 configuration ownership is complete
+   on its review branch; later result/quality and tracking/policy phases require
+   separate approval and branches.
 2. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
    documented in
    `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`.
@@ -84,4 +76,4 @@ behavior. No AE implementation phase is authorized by this objective.
    consumers, and removal conditions are listed in
    `docs/repository/validation_status.md`.
 
-No AE implementation phase is currently active.
+No work beyond Phase 2 is currently authorized.

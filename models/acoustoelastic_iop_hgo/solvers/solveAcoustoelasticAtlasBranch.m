@@ -6,17 +6,11 @@ function result = solveAcoustoelasticAtlasBranch(params, options)
 %   branch logic. The optional identityA0Diagnostic policy only adds separate
 %   candidate fields under result.identityA0.
 
-if nargin < 2 || isempty(options)
-    options = defaultAcoustoelasticIOPHGOOptions();
+if nargin < 2
+    options = [];
 end
-options = setAtlasDefaults(options);
-
-required = {'alpha','beta','gamma','thickness','rho','rhoF','fluidBulkModulus','frequency'};
-for i = 1:numel(required)
-    if ~isfield(params, required{i})
-        error('Missing required Acoustoelastic IOP/HGO atlas-branch parameter: %s', required{i});
-    end
-end
+options = aeResolveConfiguration(options);
+aeValidateRequest(params, 'Context', "directAtlas");
 
 frequency = params.frequency(:).';
 cShear = sqrt(params.alpha / params.rho);
@@ -119,46 +113,6 @@ if strcmpi(string(options.atlasBranchPolicy), "identityA0Diagnostic")
     result.identityA0 = aeBuildIdentityA0DiagnosticBranch(result);
     result.diagnostics.identityA0CandidateValidPoints = result.identityA0.summary.CandidateValidPoints;
     result.diagnostics.identityA0AddedCandidatePoints = result.identityA0.summary.AddedCandidatePoints;
-end
-end
-
-function options = setAtlasDefaults(options)
-def = struct();
-def.atlasBranchPolicy = "atlasA0";
-def.atlasYMin = 0.003;
-def.atlasYMax = 2.0;
-def.atlasNumYPoints = 1000;
-def.atlasTopNMinima = 18;
-def.atlasMaxLogYJump = 0.075;
-def.atlasMinBranchPoints = 12;
-def.atlasCoverageWeight = 1.40;
-def.atlasRoughnessWeight = 1.20;
-def.atlasRankWeight = 0.70;
-def.atlasLowYWeight = 0.35;
-def.atlasIncreaseWeight = 0.50;
-def.atlasDropWeight = 1.25;
-def.atlasStartYWeight = 1.10;
-def.atlasStartRankWeight = 0.55;
-def.atlasStartCpWeight = 0.65;
-def.atlasPreferPositiveSlope = true;
-def.atlasSplitOnLargeCpJump = true;
-def.atlasMaxRelativeCpJump = 0.05;
-def.atlasRequireLowStartY = true;
-def.atlasMaxStartY = 0.50;
-def.atlasRequireStartRank = true;
-def.atlasMaxStartRank = 3;
-def.atlasFallbackToUnfilteredSelection = true;
-def.atlasAllowInterpolationAcrossGaps = false;
-def.atlasMaxInterpolationFrequencyRatio = 1.12;
-names = fieldnames(def);
-for i = 1:numel(names)
-    if ~isfield(options, names{i}) || isempty(options.(names{i}))
-        options.(names{i}) = def.(names{i});
-    end
-end
-
-if isfield(options, 'atlasBranchPolicy')
-    options.atlasBranchPolicy = aeNormalizeBranchPolicy(options.atlasBranchPolicy);
 end
 end
 

@@ -7,16 +7,12 @@ function result = solveAcoustoelasticIOPHGOAtlasBranch(params, options)
 % This wrapper computes alpha, beta, gamma from the IOP/HGO constitutive block
 % and then calls solveAcoustoelasticAtlasBranch.
 
-if nargin < 2 || isempty(options)
-    options = defaultAcoustoelasticIOPHGOOptions();
+if nargin < 2
+    options = [];
 end
 
-requiredFields = {'IOP', 'R', 'thickness', 'mu', 'k1', 'k2', 'rho', 'rhoF', 'fluidBulkModulus', 'frequency'};
-for i = 1:numel(requiredFields)
-    if ~isfield(params, requiredFields{i})
-        error('Missing required acoustoelastic IOP/HGO atlas parameter: %s', requiredFields{i});
-    end
-end
+aeValidateRequest(params, 'Context', "iopSolver");
+options = aeResolveConfiguration(options);
 
 [alpha, beta, gamma, state] = computeAcoustoelasticABGFromIOPHGO( ...
     params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
@@ -46,36 +42,12 @@ if ~isfield(options, 'useInternalAtlasTrackingGrid') || ~logical(options.useInte
     return;
 end
 
-trackingFrequency = buildInternalTrackingFrequency(requestedFrequency, options);
+trackingFrequency = aeBuildInternalTrackingGrid(requestedFrequency, options);
 trackingParams = directParams;
 trackingParams.frequency = trackingFrequency;
 
 trackingResult = solveAcoustoelasticAtlasBranch(trackingParams, options);
 result = restrictResultToRequestedFrequency(trackingResult, requestedFrequency, trackingFrequency, options);
-end
-
-function trackingFrequency = buildInternalTrackingFrequency(requestedFrequency, options)
-requestedFrequency = unique(requestedFrequency(isfinite(requestedFrequency) & requestedFrequency > 0), 'stable');
-requestedFrequency = sort(requestedFrequency(:).');
-if isempty(requestedFrequency)
-    trackingFrequency = requestedFrequency;
-    return;
-end
-
-fMax = max(requestedFrequency);
-initMin = getOptionValue(options, 'atlasInitializationMinFrequency_Hz', 300);
-initMin = max(initMin, eps);
-initMin = min(initMin, fMax);
-
-nInit = round(getOptionValue(options, 'atlasInitializationNumFrequencyPoints', 50));
-nInit = max(nInit, 2);
-
-% The internal initialization grid anchors branch identity. The requested
-% output grid is also included explicitly, so reported Cp values are computed
-% by the residual atlas at the GUI frequencies rather than filled by display
-% interpolation or previous-point holds.
-initFrequency = logspace(log10(initMin), log10(fMax), nInit);
-trackingFrequency = unique([initFrequency(:); requestedFrequency(:)], 'sorted').';
 end
 
 function result = restrictResultToRequestedFrequency(trackingResult, requestedFrequency, trackingFrequency, options)
@@ -89,8 +61,8 @@ result.internalAtlasTracking = struct();
 result.internalAtlasTracking.Used = true;
 result.internalAtlasTracking.TrackingFrequency_Hz = trackingFrequency(:).';
 result.internalAtlasTracking.RequestedFrequency_Hz = requestedFrequency(:).';
-result.internalAtlasTracking.InitializationMinFrequency_Hz = getOptionValue(options, 'atlasInitializationMinFrequency_Hz', 300);
-result.internalAtlasTracking.InitializationNumFrequencyPoints = getOptionValue(options, 'atlasInitializationNumFrequencyPoints', 50);
+result.internalAtlasTracking.InitializationMinFrequency_Hz = options.atlasInitializationMinFrequency_Hz;
+result.internalAtlasTracking.InitializationNumFrequencyPoints = options.atlasInitializationNumFrequencyPoints;
 
 result.trackingObjectiveMap = trackingResult.objectiveMap;
 result.objectiveMap = [];
@@ -241,13 +213,5 @@ if isfield(result, 'diagnostics')
     result.diagnostics.maxCp = nan;
     result.diagnostics.medianCp = nan;
     result.diagnostics.fallbackOutputInvalidated = true;
-end
-end
-
-function value = getOptionValue(options, fieldName, defaultValue)
-if isstruct(options) && isfield(options, fieldName) && ~isempty(options.(fieldName))
-    value = options.(fieldName);
-else
-    value = defaultValue;
 end
 end

@@ -71,40 +71,38 @@ end
 
 function options = buildAcoustoelasticOptions(request)
 controls = getRequestField(request, 'controls', struct());
+overrides = struct();
+if isfield(request, 'baseOptions') && isstruct(request.baseOptions) && isfield(request.baseOptions, 'atlasBranchPolicy')
+    overrides = request.baseOptions;
+    overrides = removeFields(overrides, ...
+        {'M54_variant', 'normalizeRows', 'usePhysicalCpWindow', 'atlasBranchPolicy'});
+end
+overrides = copyControlOverrides(overrides, controls, ...
+    {'M54_variant', 'normalizeRows', 'usePhysicalCpWindow', ...
+    'atlasBranchPolicy', 'atlasNumYPoints', 'atlasTopNMinima'});
 [options, profileMetadata] = aeResolveExecutionProfile(controls, ...
     'DefaultProfile', "Fast", ...
-    'DefaultSource', "SweepTool default");
-
-if isfield(request, 'baseOptions') && isstruct(request.baseOptions) && isfield(request.baseOptions, 'atlasBranchPolicy')
-    options = guiMergeStructs(options, request.baseOptions);
+    'DefaultSource', "SweepTool default", ...
+    'Surface', "SweepTool", ...
+    'Overrides', overrides, ...
+    'OverrideReason', "SweepTool AE controls override atlas density while preserving visible defaults.");
+options.executionProfileMetadata = profileMetadata;
 end
 
-options.M54_variant = getControlValue(controls, 'M54_variant', "corrected");
-options.normalizeRows = getControlValue(controls, 'normalizeRows', false);
-options.usePhysicalCpWindow = getControlValue(controls, 'usePhysicalCpWindow', false);
-options.atlasBranchPolicy = getControlValue(controls, 'atlasBranchPolicy', "atlasA0");
-options.atlasNumYPoints = getControlValue(controls, 'atlasNumYPoints', options.atlasNumYPoints);
-options.atlasTopNMinima = getControlValue(controls, 'atlasTopNMinima', options.atlasTopNMinima);
-profileMetadata.atlasNumYPoints = options.atlasNumYPoints;
-profileMetadata.atlasTopNMinima = options.atlasTopNMinima;
-profileMetadata.internalAtlasPreset = "ae_atlas_" + string(options.atlasNumYPoints) + "x" + string(options.atlasTopNMinima);
-profileMetadata.routePolicy = string(options.atlasBranchPolicy);
-profileMetadata.profileOverrideApplied = profileMetadata.requestedExecutionProfile ~= profileMetadata.effectiveExecutionProfile;
-profileMetadata.profileOverrideReason = "";
-requestedOptions = aeDefaultSweepOptions(profileMetadata.requestedExecutionProfile);
-if options.atlasNumYPoints ~= requestedOptions.atlasNumYPoints || ...
-        options.atlasTopNMinima ~= requestedOptions.atlasTopNMinima
-    profileMetadata.profileOverrideApplied = true;
-    profileMetadata.profileOverrideReason = "SweepTool AE controls override atlas density while preserving visible defaults.";
-    if options.atlasNumYPoints == 300 && options.atlasTopNMinima == 12
-        profileMetadata.effectiveExecutionProfile = "Fast";
-    elseif options.atlasNumYPoints == 600 && options.atlasTopNMinima == 16
-        profileMetadata.effectiveExecutionProfile = "Balanced";
-    elseif options.atlasNumYPoints == 900 && options.atlasTopNMinima == 20
-        profileMetadata.effectiveExecutionProfile = "Robust";
+function s = removeFields(s, names)
+present = names(isfield(s, names));
+if ~isempty(present)
+    s = rmfield(s, present);
+end
+end
+
+function target = copyControlOverrides(target, controls, names)
+for i = 1:numel(names)
+    name = names{i};
+    if isfield(controls, name) && ~isempty(controls.(name))
+        target.(name) = controls.(name);
     end
 end
-options.executionProfileMetadata = profileMetadata;
 end
 
 function params = fillParamDefault(params, fieldName, defaultValue)
@@ -117,10 +115,6 @@ function [valuesSolver, displayScale, units] = convertRequestDisplayValues(reque
 displayScale = guiGetStructField(request, 'displayScale', 1);
 units = string(guiGetStructField(request, 'displayUnit', ""));
 valuesSolver = request.sweepValuesDisplay .* displayScale;
-end
-
-function value = getControlValue(controls, fieldName, defaultValue)
-value = guiGetStructField(controls, fieldName, defaultValue);
 end
 
 function value = getRequestField(request, fieldName, defaultValue)

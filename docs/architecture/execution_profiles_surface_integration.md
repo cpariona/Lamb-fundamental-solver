@@ -33,6 +33,10 @@ AE profile mapping remains:
 | `Balanced` | 600 | 16 |
 | `Robust` | 900 | 20 |
 
+`models/acoustoelastic_iop_hgo/configuration/aeGetNumericalPreset.m` is the
+single owner of these values. AE app resolvers normalize the visible profile
+and delegate effective configuration to `aeResolveConfiguration`.
+
 mRLFE profile mapping is:
 
 | Execution profile | Public numerical preset |
@@ -109,8 +113,8 @@ The normal AE Fit path no longer forces atlas density to 300/12 after the user
 selects `Balanced` or `Robust`. The selected profile controls atlas density in
 synthetic data generation, fitting evaluation, and normalized fit metadata.
 
-`atlasInitializationNumFrequencyPoints = 50` remains a FitTool fitting-control
-choice and is not an execution-profile override.
+`atlasInitializationNumFrequencyPoints = 50` remains the model default used by
+FitTool and is not an execution-profile override.
 
 Legacy AE Fit requests that explicitly supply `atlasNumYPoints` and
 `atlasTopNMinima` can still override profile-derived density. Metadata must

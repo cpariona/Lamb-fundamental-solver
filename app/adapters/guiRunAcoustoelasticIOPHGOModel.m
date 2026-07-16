@@ -30,7 +30,7 @@ options = guiMergeStructs(defaultAcoustoelasticIOPHGOOptions(), guiGetStructFiel
     'DefaultSource', "model default");
 options.executionProfile = profile;
 options.robustness = profile;
-options = applyGuiFastAEPreset(options);
+[options, configurationMetadata] = aeResolveConfiguration(options, 'Surface', "MainGUI");
 
 elapsedTimer = tic;
 rawResult = solveAcoustoelasticIOPHGOBranch(params, options);
@@ -52,15 +52,14 @@ result.metadata.adapter = mfilename;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.aeGuiAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
 profileMetadata.internalSolverPreset = "";
-profileMetadata.internalAtlasPreset = "ae_atlas_" + string(guiGetStructField(options, 'atlasNumYPoints', NaN)) + ...
-    "x" + string(guiGetStructField(options, 'atlasTopNMinima', NaN));
-profileMetadata.aeGuiInteractivePreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
-profileMetadata.profileOverrideApplied = false;
+profileMetadata.internalAtlasPreset = configurationMetadata.internalAtlasPreset;
+profileMetadata.aeGuiInteractivePreset = configurationMetadata.aeGuiInteractivePreset;
+profileMetadata.profileOverrideApplied = configurationMetadata.profileOverrideApplied;
 profileMetadata.profileOverrideReason = "";
-profileMetadata.routePolicy = string(guiGetStructField(options, 'atlasBranchPolicy', "atlasA0"));
+profileMetadata.routePolicy = configurationMetadata.routePolicy;
 profileMetadata.optimizerProfile = "";
-profileMetadata.atlasNumYPoints = guiGetStructField(options, 'atlasNumYPoints', NaN);
-profileMetadata.atlasTopNMinima = guiGetStructField(options, 'atlasTopNMinima', NaN);
+profileMetadata.atlasNumYPoints = configurationMetadata.atlasNumYPoints;
+profileMetadata.atlasTopNMinima = configurationMetadata.atlasTopNMinima;
 profileMetadata.supportedExecutionProfiles = ["Fast", "Balanced", "Robust"];
 profileMetadata.profileSupportMode = "fully_supported";
 profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
@@ -72,24 +71,6 @@ result.diagnostics.executionProfile = profileMetadata;
 if isfield(rawResult, 'reliability')
     result.diagnostics.reliability = rawResult.reliability;
 end
-end
-
-function options = applyGuiFastAEPreset(options)
-usePreset = logical(guiGetStructField(options, 'aeUseGuiFastAtlasPreset', true));
-if ~usePreset
-    options.aeGuiAtlasPreset = "off";
-    return;
-end
-options.aeGuiAtlasPreset = "fast";
-options.numCpScanPoints = guiGetStructField(options, 'numCpScanPoints', 420);
-options.maxLocalCandidates = guiGetStructField(options, 'maxLocalCandidates', 8);
-options.refineLocalMinima = guiGetStructField(options, 'refineLocalMinima', false);
-options.atlasInitializationNumFrequencyPoints = guiGetStructField(options, 'atlasInitializationNumFrequencyPoints', 25);
-options.trackingMethod = guiGetStructField(options, 'trackingMethod', "predictiveContinuation");
-options.localContinuationFallback = guiGetStructField(options, 'localContinuationFallback', "globalScan");
-options.predictiveWindow = guiGetStructField(options, 'predictiveWindow', 0.22);
-options.predictionWeight = guiGetStructField(options, 'predictionWeight', 8.0);
-options.curvatureWeight = guiGetStructField(options, 'curvatureWeight', 4.0);
 end
 
 function branch = normalizeAcoustoelasticBranch(result, rawResult, params, options)

@@ -30,6 +30,11 @@ The authoritative API and branch-policy contracts are
 [`active/public_api.md`](active/public_api.md) and
 [`active/branch_policy.md`](active/branch_policy.md).
 
+Effective numerical configuration is model-owned by
+`aeResolveConfiguration`. Fast/Balanced/Robust and the separate Main GUI
+bundle are owned by `aeGetNumericalPreset`; app and analysis layers only
+select the applicable profile or surface and supply explicit overrides.
+
 ## Recommended user-facing commands
 
 From the repository root:
@@ -88,7 +93,7 @@ run_acoustoelastic_smoke_tests
 | `active/sweep_workflow.md` | Sweep workflow documentation. |
 | `active/fitting_workflow.md` | Fitting workflow documentation. |
 | `active/solver_pending_work.md` | Pending solver-side numerical work. |
-| `active/architecture_audit.md` | Phase 1 current-state inventory, target responsibility map, stable naming plan, and phased alignment proposal. |
+| `active/architecture_audit.md` | Architecture inventory, target responsibility map, stable naming plan, Phase 2 implementation disposition, and later-phase proposal. |
 | `diagnostics/README.md` | Inventory and purpose of repeatable diagnostics. |
 
 ## Structure convention

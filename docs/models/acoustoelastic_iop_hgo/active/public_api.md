@@ -22,6 +22,20 @@ defaultAcoustoelasticIOPHGOOptions
 aeNormalizeBranchPolicy
 ```
 
+## Configuration ownership
+
+```matlab
+aeGetNumericalPreset
+aeResolveConfiguration
+aeValidateRequest
+aeBuildInternalTrackingGrid
+```
+
+`aeGetNumericalPreset` is an advanced supported configuration surface. The
+resolver, validator, and grid builder are maintained model internals used by
+the public flat `params, options` entrypoints; they do not introduce a public
+request struct or a second solver route.
+
 ## Constitutive helpers
 
 ```matlab
@@ -119,6 +133,8 @@ track_raw_branch1
 
 ```matlab
 test_acoustoelastic_iop_hgo_branch_policy_validation
+test_ae_configuration_characterization
+test_ae_configuration_ownership
 test_acoustoelastic_iop_hgo_atlasA0_smoke
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_fallback_invalidation

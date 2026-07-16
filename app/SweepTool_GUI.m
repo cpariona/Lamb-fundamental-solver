@@ -249,16 +249,6 @@ updateFamilySpecificControls();
                 controls.fluidDensity = fluidDensityEdit.Value;
                 controls.fluidSoundSpeed = fluidSoundEdit.Value;
                 controls.mrlfeA0Policy = normalizeMrlfeA0Policy(string(a0PolicyDrop.Value));
-            otherwise
-                controls.M54_variant = "corrected";
-                controls.normalizeRows = false;
-                controls.usePhysicalCpWindow = false;
-                controls.atlasBranchPolicy = "atlasA0";
-                aeProfileOptions = aeResolveExecutionProfile(controls.executionProfile, ...
-                    'DefaultProfile', "Fast", ...
-                    'DefaultSource', "SweepTool default");
-                controls.atlasNumYPoints = aeProfileOptions.atlasNumYPoints;
-                controls.atlasTopNMinima = aeProfileOptions.atlasTopNMinima;
         end
     end
 
