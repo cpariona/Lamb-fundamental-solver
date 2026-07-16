@@ -129,6 +129,13 @@ tracking. The maintained candidate generation, prediction, residual scoring,
 candidate selection, validity decisions, and adaptive continuation diagnostics
 now live behind this neutral model-layer name.
 
+For A0Like, `mrlfeTrackBranchRobustStart` first attempts ordinary forward
+tracking and then probes the configured candidate start frequencies only when
+the required valid run is not established. It tracks forward from the first
+stable candidate; earlier frequencies remain invalid and no backward tracking
+or solver fallback is introduced. S0Like does not use this policy. The focused
+contract is `test_mrlfe_robust_start_contract`.
+
 ## Termination
 
 `mrlfeApplyTerminationPolicy` centralizes initial production policies:

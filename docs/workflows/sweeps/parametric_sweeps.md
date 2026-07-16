@@ -169,7 +169,7 @@ Figures are saved as `.fig` and `.png`.
 
 ## Generic sweep utilities
 
-Generic helpers live under `analysis/`:
+Generic helpers live under `analysis/sweeps/`:
 
 ```matlab
 runParametricSweep

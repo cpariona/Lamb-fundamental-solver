@@ -20,7 +20,7 @@ geometry = rmfield(geometry, 'halfThickness');
 frequency = rlBuildFrequencyVector(params);
 omega = 2*pi*frequency(1);
 
-mrlfeParams = defaultMRLFEParams();
+mrlfeParams = mrlfeDefaultInternalParameters();
 mrlfeParams.etaS = 0.05;
 mrlfeParams.etaL = 0;
 mrlfeParams.useComplexLambda = false;
@@ -28,19 +28,19 @@ mrlfeParams.solveComplexK = false;
 
 k = omega / 4.0;
 
-legacyResidual = mrlfeResidual(k, omega, material, geometry, mrlfeParams);
-explicitDefault = objectiveMRLFEResidual(k, omega, material, geometry, mrlfeParams, ...
+defaultResidual = mrlfeResidual(k, omega, material, geometry, mrlfeParams);
+explicitDefault = mrlfeObjectiveResidual(k, omega, material, geometry, mrlfeParams, ...
     'Method', "minSingularValueRatio");
-determinantResidual = objectiveMRLFEResidual(k, omega, material, geometry, mrlfeParams, ...
+determinantResidual = mrlfeObjectiveResidual(k, omega, material, geometry, mrlfeParams, ...
     'Method', "determinant");
 
-assert(isfinite(legacyResidual) && legacyResidual >= 0, ...
+assert(isfinite(defaultResidual) && defaultResidual >= 0, ...
     'Default mRLFE residual must be finite and non-negative for this test point.');
 assert(isfinite(explicitDefault) && explicitDefault >= 0, ...
     'Explicit default mRLFE residual must be finite and non-negative for this test point.');
 assert(isfinite(determinantResidual) && determinantResidual >= 0, ...
     'Determinant mRLFE residual must be finite and non-negative for this test point.');
-assert(abs(legacyResidual - explicitDefault) <= 10*eps(max(1, abs(explicitDefault))), ...
+assert(abs(defaultResidual - explicitDefault) <= 10*eps(max(1, abs(explicitDefault))), ...
     'mrlfeResidual wrapper must preserve the minSingularValueRatio default.');
 
 fprintf('test_mrlfe_residual_objective_contract passed. Default objective is singular-value ratio.\n');

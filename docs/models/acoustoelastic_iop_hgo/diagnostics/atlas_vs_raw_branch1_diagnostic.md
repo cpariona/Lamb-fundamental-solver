@@ -49,7 +49,7 @@ Therefore, the required prerequisite is now:
 diagnose_modal_atlas
 ```
 
-`diagnose_modal_atlas` starts at low frequency by design. A separate `diagnose_modal_atlas_lowfreq` entrypoint is no longer maintained.
+The retained modal-atlas implementation starts at low frequency by design.
 
 `track_raw_branch1` remains the explicit short entrypoint for generating and inspecting `raw_branch1` outputs manually.
 

@@ -63,7 +63,7 @@ for i = 1:numel(IOP_mmHg)
     pointRows = [pointRows; comparison.points]; %#ok<AGROW>
     summaryRows = [summaryRows; comparison.summary]; %#ok<AGROW>
 
-    caseResults(i).IOP_mmHg = iop; %#ok<SAGROW>
+    caseResults(i).IOP_mmHg = iop;
     caseResults(i).rawCase = rawCase;
     caseResults(i).atlasResult = atlasResult;
     caseResults(i).identityResult = identityResult;

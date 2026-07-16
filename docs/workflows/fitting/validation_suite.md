@@ -178,7 +178,7 @@ For mRLFE FitTool route or plotting behavior, also run:
 
 ```matlab
 run_mrlfe_fit_public_solver_tests
-run_mrlfe_legacy_cleanup_tests
+run_mrlfe_route_integrity_tests
 ```
 
 For FitTool interaction changes that do not alter solvers, run:

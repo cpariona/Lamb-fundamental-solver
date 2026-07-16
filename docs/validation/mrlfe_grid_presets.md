@@ -102,7 +102,7 @@ run_mrlfe_fit_public_solver_tests
 For bounded diagnostic follow-up:
 
 ```matlab
-run_mrlfe_targeted_grid_validation
+validate_mrlfe_targeted_grid
 ```
 
 Do not add the extended full matrix to lightweight smoke runners.

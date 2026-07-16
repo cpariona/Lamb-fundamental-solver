@@ -6,6 +6,14 @@ end
 fprintf('\nRunning FitTool interaction helper test...\n');
 fprintf('-----------------------------------------\n');
 
+repoRoot = testRepositoryRoot();
+fittingTabPath = fullfile(repoRoot, 'app', 'fitting', 'createFittingTab.m');
+oldFittingTabPath = fullfile(repoRoot, 'app', 'createFittingTab.m');
+assert(isfile(fittingTabPath), 'createFittingTab must be owned by app/fitting.');
+assert(~isfile(oldFittingTabPath), 'The former app-root createFittingTab path must be absent.');
+assert(strcmp(which('createFittingTab'), fittingTabPath), ...
+    'createFittingTab must resolve uniquely from app/fitting.');
+
 %% Manual data table helpers.
 data = [1000, 2.5, 1; 2000, 3.0, 1];
 data = guiAppendExperimentalFitRow(data);

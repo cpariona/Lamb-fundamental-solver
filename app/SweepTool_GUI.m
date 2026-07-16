@@ -16,7 +16,7 @@ if nargin < 2 || isempty(baseOptions)
     baseOptions = rlDefaultOptions("Fast");
 end
 if ~isfield(baseOptions, 'mrlfeParams') || isempty(baseOptions.mrlfeParams)
-    baseOptions.mrlfeParams = defaultMRLFEParams();
+    baseOptions.mrlfeParams = mrlfeDefaultInternalParameters();
 end
 
 registry = guiGetSweepRegistry();

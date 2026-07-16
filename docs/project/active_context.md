@@ -3,35 +3,36 @@
 Last reviewed: 2026-07-15
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Implementation branch: `refactor/mrlfe-line-and-repository-cleanup`
-Audit head: `2cfe264625ab3f7485a06389d315190fe9a7b67e`
 
-## Current state
+## Current architecture
 
-The audited mRLFE architecture and repository-density cleanup is implemented.
-`mrlfeSolve` remains the sole maintained public solver. Generic request
-construction is centralized in `mrlfeBuildPublicSolveRequest`; GUI, SweepTool,
-and FitTool retain thin translators and unchanged public behavior.
+The maintained source layers are `models/`, `analysis/`, `app/`, and
+`examples/`, with dependency direction defined by
+`docs/repository/repository_structure.md`. Public and maintained MATLAB
+surfaces are inventoried in `docs/repository/maintained_entrypoints.md`.
 
-Public result fields own maintained facts. Raw internals are confined to the
-explicit `debug.rawInternalResult` compatibility boundary, with the previous
-diagnostics field retained as an alias. mRLFE owns its internal configuration;
-Rayleigh-Lamb remains the intentional physical seed provider.
+Repository naming is owned by `docs/repository/naming_strategy.md`. Test layout
+and ownership are owned by the two test contracts under `docs/repository/`.
+Repository-wide static hygiene is checked by:
 
-## Maintained references
-
-```text
-docs/models/mrlfe/public_api.md
-docs/models/mrlfe/production_core.md
-docs/models/mrlfe/fitting_workflow.md
-docs/architecture/execution_profiles_surface_integration.md
-docs/repository/mrlfe_line_and_repository_cleanup_report.md
+```matlab
+run_repository_hygiene_tests
 ```
+
+## Product state
+
+- Rayleigh-Lamb, mRLFE, and AE IOP/HGO use their maintained public model APIs.
+- Main GUI, SweepTool, and FitTool route through app adapters.
+- mRLFE production consumers route through `mrlfeSolve`.
+- AE production output remains the conservative `atlasA0` branch.
+- Current fitting and sweep behavior is documented under `docs/workflows/`.
 
 ## Constraints
 
-- Preserve solver mathematics, presets, policies, numerical outputs, and
-  surface defaults.
-- Treat code/tests and the maintained contracts above as authoritative.
-- Historical audits and retired diagnostics are available in Git history or
-  the startup-excluded diagnostic archive, not on the active contract surface.
+- Preserve solver physics, numerical presets, grids, policies, and tolerances.
+- Preserve fitting, sweep, and GUI behavior unless a focused task authorizes change.
+- Use Git history for completed migrations, audits, and task reports.
+- Do not add compatibility aliases without an explicit public-use contract and removal condition.
+
+Known compatibility debt is bounded in
+`docs/repository/validation_status.md`.

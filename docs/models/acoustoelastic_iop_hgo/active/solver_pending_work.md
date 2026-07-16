@@ -1,8 +1,9 @@
-### Acoustoelastic IOP/HGO solver pending work
+# Acoustoelastic IOP/HGO solver pending work
 
-This document records solver-side work that should not be hidden inside GUI cleanup tasks.
+This document records bounded solver-side work that must remain separate from
+GUI and repository-hygiene tasks.
 
-### Current status
+## Current status
 
 The maintained production branch policy remains:
 
@@ -10,21 +11,24 @@ The maintained production branch policy remains:
 atlasA0 = conservative official output
 ```
 
-The main GUI now uses a dense requested output grid, and the IOP/HGO wrapper separates:
+The main GUI uses a dense requested output grid, and the IOP/HGO wrapper
+separates:
 
 ```text
 internal atlas tracking grid
 requested output frequency grid
 ```
 
-The current plotted AE curve is usable for the GUI, but a small residual waviness remains in the phase-velocity curve.
+The current plotted AE curve is usable for the GUI, but a small residual
+waviness remains in the phase-velocity curve.
 
-### Pending numerical issue: residual waviness in Cp(f)
+## Pending numerical issue: residual waviness in Cp(f)
 
 Observed symptom:
 
 ```text
-Cp(f) is mostly smooth and monotonic, but shows small high-frequency waviness after dense output-grid evaluation and local-minimum refinement.
+Cp(f) is mostly smooth and monotonic, but shows small high-frequency waviness
+after dense output-grid evaluation and local-minimum refinement.
 ```
 
 Current interpretation:
@@ -43,7 +47,7 @@ Likely contributors:
 5. The dense GUI output grid makes small tracking/refinement noise visually apparent.
 ```
 
-### Do not solve this by visual smoothing alone
+## Do not solve this by visual smoothing alone
 
 Avoid using plotting-only smoothing as the production fix:
 
@@ -54,9 +58,10 @@ Savitzky-Golay
 spline smoothing applied only to the plotted curve
 ```
 
-Those tools may hide branch-selection or residual-landscape problems. If smoothing is ever used, it should be diagnostic-only and explicitly labeled.
+Those tools may hide branch-selection or residual-landscape problems. If
+smoothing is ever used, it should be diagnostic-only and explicitly labeled.
 
-### Recommended future strategy
+## Recommended future strategy
 
 The preferred solver-side strategy is a two-stage workflow:
 
@@ -75,9 +80,10 @@ Candidate implementation:
 - preserve result.validCp and reliability diagnostics as the official quality gate.
 ```
 
-This should be more efficient than simply increasing `atlasNumYPoints`, because it avoids a very dense global velocity scan at every frequency.
+This should be more efficient than simply increasing `atlasNumYPoints`, because
+it avoids a very dense global velocity scan at every frequency.
 
-### Diagnostic checks before implementation
+## Diagnostic checks before implementation
 
 Before replacing the current refinement, add or extend diagnostics to inspect:
 
@@ -100,6 +106,8 @@ Interpretation guide:
 - objective spikes suggest residual conditioning or matrix-scaling issues.
 ```
 
-### Status
+## Maintenance status
 
-This is a solver-refinement task, not a GUI task. It should be addressed after the current GUI cleanup pass unless the waviness becomes large enough to affect conclusions from parametric studies.
+This remains a bounded solver-refinement task. Address it only through a focused
+numerical PR with diagnostic and regression evidence, not through GUI-side
+smoothing or repository-cleanup work.

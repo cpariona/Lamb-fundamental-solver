@@ -1,42 +1,42 @@
 # Session handoff
 
 Updated: 2026-07-15
-Branch: `refactor/mrlfe-line-and-repository-cleanup`
-Base audit head: `2cfe264625ab3f7485a06389d315190fe9a7b67e`
 
-## Completed work
+## Current operating contract
 
-The mRLFE architecture cleanup, diagnostic consolidation, and documentation
-reduction are complete. See:
+Start with:
 
 ```text
-docs/repository/mrlfe_line_and_repository_cleanup_report.md
-analysis/repository_audit/
-analysis/test_inventory/
+docs/repository/repository_structure.md
+docs/repository/naming_strategy.md
+docs/repository/maintained_entrypoints.md
+docs/repository/validation_status.md
 ```
 
-The implementation preserves physics and numerical contracts while
-centralizing request construction, surface metadata, and compatibility-result
-adaptation. The orphan legacy solver is absent, and archived diagnostics are
-excluded by `startup`.
+Then read the relevant model or workflow contract. Maintained code and tests
+take precedence over operational context.
 
-## Validation ownership
-
-Use the routine gates for later maintained changes:
+## Standard validation
 
 ```matlab
+clear functions
+rehash toolboxcache
+startup
+
+run_repository_hygiene_tests
 run_quick_contract_tests
 run_quick_smoke_tests
 run_numerical_regression_tests
 ```
 
-Use `run_all_smoke_tests` as the strongest repository-wide completion gate
-when maintained MATLAB behavior changes. Rebuild deterministic evidence with:
+Use the focused and extended commands listed in
+`docs/repository/validation_status.md` when the changed surface requires them.
 
-```matlab
-buildTestInventory('WriteCsv', true)
-buildTestOwnership('WriteCsv', true, 'ValidateActual', true)
-buildRepositoryDensityAudit('WriteCsv', true, 'ValidatePaths', true)
-```
+## Open product work
 
-No PR or merge was created for this branch.
+The bounded solver-side AE refinement question is documented in
+`docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`. It is not a
+repository-hygiene task and must not be addressed through display smoothing.
+
+No completed cleanup narrative or branch-specific instruction is maintained
+in this handoff.

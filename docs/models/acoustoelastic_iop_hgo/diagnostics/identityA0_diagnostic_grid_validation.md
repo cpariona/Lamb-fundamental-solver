@@ -29,12 +29,6 @@ validate_idA0_grid
 AcoustoelasticIOPHGOIdentityA0DiagnosticGridAggregate
 ```
 
-The legacy descriptive implementation remains available but should not be called directly for new work:
-
-```matlab
-validate_acoustoelastic_iop_hgo_identityA0_diagnostic_grid
-```
-
 Outputs are written under:
 
 ```text

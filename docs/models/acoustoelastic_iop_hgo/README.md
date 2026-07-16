@@ -1,21 +1,7 @@
-# Acoustoelastic IOP/HGO module documentation
+# Acoustoelastic IOP/HGO model
 
-This folder contains documentation for the acoustoelastic IOP/HGO branch of the Lamb fundamental solver.
-
-## Folder map
-
-```text
-active/       current operational references
-diagnostics/  diagnostic evidence and validation notes
-audits/       cleanup, retention, and maintenance records
-archive/      historical exploratory notes
-```
-
-For the curated documentation map, start with:
-
-```text
-documentation_index.md
-```
+This is the entrypoint for the maintained AE IOP/HGO API, workflows, branch
+policy, and repeatable diagnostic evidence.
 
 ## Current status
 
@@ -40,13 +26,9 @@ raw_branch1
 branch_families
 ```
 
-Core policy references:
-
-```text
-active/branch_policy.md
-active/solver_optimization_status.md
-active/public_api.md
-```
+The authoritative API and branch-policy contracts are
+[`active/public_api.md`](active/public_api.md) and
+[`active/branch_policy.md`](active/branch_policy.md).
 
 ## Recommended user-facing commands
 
@@ -86,6 +68,9 @@ diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
 diagnose_idA0_plausibility
+diagnose_modal_atlas
+validate_idA0_score_grid
+validate_idA0_grid
 ```
 
 Focused smoke runner:
@@ -94,9 +79,7 @@ Focused smoke runner:
 run_acoustoelastic_smoke_tests
 ```
 
-Do not execute long legacy scripts directly unless reproducing historical behavior.
-
-## Most relevant active documents
+## Current documentation
 
 | Document | Purpose |
 |---|---|
@@ -104,12 +87,8 @@ Do not execute long legacy scripts directly unless reproducing historical behavi
 | `active/branch_policy.md` | Branch policy summary and official atlas-A0 selection rule. |
 | `active/sweep_workflow.md` | Sweep workflow documentation. |
 | `active/fitting_workflow.md` | Fitting workflow documentation. |
-| `active/examples_inventory.md` | Current executable inventory under `examples/acoustoelastic_iop_hgo/`. |
-| `active/solver_optimization_status.md` | Current solver policy, validation status, and ambiguity boundary. |
-| `active/naming_and_paths_convention.md` | Short-name and result-path convention. |
 | `active/solver_pending_work.md` | Pending solver-side numerical work. |
-| `archive/main_gui_integration_closure.md` | Main-GUI integration closure note. |
-| `audits/framework_hygiene_status.md` | Framework hygiene and retained implementation status. |
+| `diagnostics/README.md` | Inventory and purpose of repeatable diagnostics. |
 
 ## Structure convention
 
@@ -123,18 +102,12 @@ examples/acoustoelastic_iop_hgo/sweeps/       sweep entrypoints
 examples/acoustoelastic_iop_hgo/diagnostics/  diagnostics and validations
 tests/models/acoustoelastic_iop_hgo/          model tests
 tests/app/                                    app-layer integration tests
-docs/models/acoustoelastic_iop_hgo/active/           current module documentation
-docs/models/acoustoelastic_iop_hgo/diagnostics/      diagnostic evidence
-docs/models/acoustoelastic_iop_hgo/audits/           maintenance records
-docs/models/acoustoelastic_iop_hgo/archive/          historical notes
+docs/models/acoustoelastic_iop_hgo/active/      API, policy, and workflows
+docs/models/acoustoelastic_iop_hgo/diagnostics/ repeatable scientific evidence
 Results/ae_iop_hgo/<task>                     generated outputs
 ```
 
-## Cleanup status
-
-The framework currently has two layers:
-
-1. Maintained short entrypoints.
-2. Retained long descriptive implementations or diagnostics.
-
-Simple compatibility aliases and exploratory example scripts have been archived. New user-facing work should extend the maintained short-entrypoint layer, not the legacy long-name layer.
+New generated outputs use `Results/ae_iop_hgo/<task>`. `aeOutputFolder` owns
+that convention. `aeResolveResultFile` may read the explicitly documented
+legacy result locations required by maintained diagnostics; it does not define
+a second output convention.

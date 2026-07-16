@@ -23,12 +23,6 @@ validate_idA0_score_grid
 AcoustoelasticIOPHGOBranchIdentityScoreGridAggregate
 ```
 
-The legacy descriptive implementation remains available:
-
-```matlab
-validate_acoustoelastic_iop_hgo_branch_identity_score_grid
-```
-
 The script writes outputs under:
 
 ```text

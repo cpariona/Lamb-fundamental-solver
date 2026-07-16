@@ -35,13 +35,9 @@ This is important because the production atlas may retain only `atlasTopNMinima 
 
 ### Runnable script
 
-Use the short entrypoint:
+Use the maintained entrypoint:
 
 `diagnose_idA0_score`
-
-Legacy descriptive implementation:
-
-`diagnose_acoustoelastic_iop_hgo_branch_identity_score`
 
 The script analyzes:
 

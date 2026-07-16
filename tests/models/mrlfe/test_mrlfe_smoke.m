@@ -19,7 +19,7 @@ options.computeS0 = true;
 options.computeMRLFE = true;
 options.computeMRLFERealK = false;
 
-mrlfeParams = defaultMRLFEParams();
+mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams = mrlfeParams;
 
 results = rlComputeFundamentalLambModes(params, options);

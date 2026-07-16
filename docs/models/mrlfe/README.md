@@ -1,6 +1,6 @@
 # mRLFE documentation index
 
-This folder contains the maintained mRLFE model, fitting, sweep, diagnostic, and historical cleanup documentation.
+This folder contains the maintained mRLFE model, fitting, sweep, and diagnostic documentation.
 
 ## Active references
 
@@ -11,8 +11,7 @@ This folder contains the maintained mRLFE model, fitting, sweep, diagnostic, and
 | FitTool fitting route | `docs/models/mrlfe/fitting_workflow.md` |
 | Numerical grid presets and validation | `docs/validation/mrlfe_grid_presets.md` |
 | Maintained sweeps | `docs/models/mrlfe/current_sweeps.md` |
-| Diagnostic summaries | `docs/models/mrlfe/diagnostics/README.md` |
-| Historical route-cleanup evidence | Git history |
+| Diagnostic commands | `examples/mrlfe/diagnostics/README.md` |
 
 ## Maintained route summary
 
@@ -32,15 +31,9 @@ FitTool objective evaluations use the bounded `fitOptimized` internal grid. Fit-
 
 ## Validation status
 
-The public-solver migration and FitTool grid policy were validated before merge through focused public-contract, GUI, sweep, fitting, execution-profile, and smoke suites.
+The maintained public-solver route and FitTool grid policy are covered by the focused public-contract, GUI, sweep, fitting, execution-profile, and smoke suites listed below.
 
 The extended grid matrix completed on 2026-07-14. Cases responsible for aggregate preset failures had marginal dense references (`low_valid_fraction` or `large_relative_jump`). Targeted follow-up found no accepted reference solution that degraded under the candidate grids. See `docs/validation/mrlfe_grid_presets.md` for the maintained interpretation.
-
-## Historical notes
-
-Older route-audit documents remain available in Git history as pre-migration evidence. They may mention deleted mRLFE routes and historical policy labels, but those names are not maintained entrypoints or production configuration.
-
-Atlas terminology still used by the Acoustoelastic IOP/HGO model is unrelated to the removed mRLFE legacy routes.
 
 ## Related tests and runners
 
@@ -51,5 +44,5 @@ run_mrlfe_neutral_production_helper_tests
 run_mrlfe_fit_public_solver_tests
 run_mrlfe_sweeptool_public_solver_tests
 run_mrlfe_main_gui_public_solver_tests
-run_mrlfe_legacy_cleanup_tests
+run_mrlfe_route_integrity_tests
 ```

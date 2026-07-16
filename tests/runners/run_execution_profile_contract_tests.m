@@ -9,7 +9,7 @@ fprintf('-------------------------------------------\n');
 
 test_gui_execution_profile_normalization;
 test_model_execution_profile_resolvers;
-test_execution_profile_cleanup_contract;
+test_execution_profile_normalization_contract;
 test_execution_profile_surface_metadata;
 test_execution_profile_state_transition_contract;
 

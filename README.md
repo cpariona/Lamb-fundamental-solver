@@ -14,8 +14,8 @@ MATLAB project for computing and plotting fundamental Lamb-wave phase velocity c
 ## Repository structure
 
 ```text
-app/                                  Main MATLAB GUI and UI helper files.
-analysis/                             Analysis utilities and model-specific summaries.
+app/                                  GUI surfaces, adapters, fitting/sweep UI, and export.
+analysis/                             Reusable analysis, fitting, sweep, and summary helpers.
 docs/                                 Active repository, API, validation, and workflow documentation.
 examples/rayleigh_lamb/               Maintained Rayleigh-Lamb examples and validation scripts.
 examples/mrlfe/                       Maintained mRLFE examples, sweeps, diagnostics, and stress tests.
@@ -24,8 +24,13 @@ models/rayleigh_lamb/                 Clean Rayleigh-Lamb implementation using `
 models/mrlfe/                         Modified Rayleigh-Lamb fluid-loaded model.
 models/acoustoelastic_iop_hgo/        Acoustoelastic model using IOP prestress and HGO constitutive response.
 tests/                                Lightweight smoke and consistency tests.
-references/                           Reference material for development and validation context.
 ```
+
+Cross-model sweep infrastructure is grouped under `analysis/sweeps/`.
+Model-specific request/result translation lives under `app/adapters/`, while
+FitTool and SweepTool UI workflows live under `app/fitting/` and `app/sweep/`.
+There is no root-level `shared/` source layer; `analysis/` owns reusable
+workflow infrastructure.
 
 A more detailed structure map is available in:
 
@@ -39,6 +44,13 @@ Maintained solver, example, diagnostic, and test entrypoints are listed in:
 docs/repository/maintained_entrypoints.md
 ```
 
+Repository structure, documentation, naming, tracked-artifact, dependency,
+path, and test-ownership hygiene is validated by:
+
+```matlab
+run_repository_hygiene_tests
+```
+
 The repository naming strategy is documented in:
 
 ```text
@@ -49,12 +61,6 @@ The maintained GUI adapter architecture is documented in:
 
 ```text
 docs/workflows/gui/adapter_architecture.md
-```
-
-Repository cleanup policy is tracked in:
-
-```text
-docs/repository/repository_hygiene_plan.md
 ```
 
 ## Launching the GUI
@@ -194,10 +200,12 @@ mrlfeSolve
 Maintained mRLFE analysis helpers:
 
 ```matlab
-objectiveMRLFEResidual
 summarizeMRLFETrackingQuality
 compareMRLFETrackingStrategies
 ```
+
+Internal mRLFE model defaults and residual evaluation use
+`mrlfeDefaultInternalParameters` and `mrlfeObjectiveResidual`.
 
 Maintained mRLFE sweeps:
 
@@ -213,6 +221,7 @@ mrlfe_sweep_thickness_S0Like
 Maintained mRLFE fitting and comparison examples:
 
 ```matlab
+run_default_mrlfe
 fit_mrlfe_A0Like
 compare_mrlfe_elastic_vs_visco_cp
 ```
@@ -220,14 +229,13 @@ compare_mrlfe_elastic_vs_visco_cp
 Focused mRLFE diagnostics:
 
 ```matlab
-diagnose_mrlfe_atlas_primary_policy_matrix
 diagnose_mrlfe_fit_performance
-run_mrlfe_targeted_grid_validation
+validate_mrlfe_targeted_grid
 validate_grid_presets
 validate_grid_presets_full
 ```
 
-The complete mRLFE diagnostic inventory and historical cleanup candidates are documented in:
+The complete active mRLFE diagnostic inventory is documented in:
 
 ```text
 examples/mrlfe/diagnostics/README.md

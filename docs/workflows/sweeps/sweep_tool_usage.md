@@ -249,7 +249,7 @@ The GUI should not call scripts under `examples/` directly. Example scripts and 
 mRLFE public production integration is documented in:
 
 ```text
-docs/workflows/gui/mrlfe_atlas_policy_integration.md
+docs/workflows/gui/adapter_architecture.md
 ```
 
 ## Export contract

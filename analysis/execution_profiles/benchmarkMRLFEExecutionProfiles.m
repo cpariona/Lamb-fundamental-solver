@@ -120,7 +120,7 @@ options.computeMRLFERealK = true;
 options.mrlfeComputeA0Like = branch == "A0Like";
 options.mrlfeComputeS0Like = branch == "S0Like";
 options.mrlfeA0Policy = "physicalTail";
-options.mrlfeParams = defaultMRLFEParams();
+options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = etaS;
 options.mrlfeParams.etaL = 0;
 options.mrlfeParams.useComplexLambda = false;

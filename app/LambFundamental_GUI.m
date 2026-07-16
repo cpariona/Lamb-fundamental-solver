@@ -225,7 +225,7 @@ updateAxisFieldState();
     end
 
     function mrlfeParams = readMRLFEParamsFromGui()
-        mrlfeParams = defaultMRLFEParams();
+        mrlfeParams = mrlfeDefaultInternalParameters();
         mrlfeParams.fluidDensity = modelControls.mrlfe.fluidDensity.Value;
         mrlfeParams.fluidSoundSpeed = modelControls.mrlfe.fluidSoundSpeed.Value;
         mrlfeParams.etaS = modelControls.mrlfe.etaS.Value;
@@ -674,7 +674,7 @@ updateAxisFieldState();
                 branch = lastGuiResult.branches(i);
                 n = numel(branch.phaseVelocity);
                 valid = getBranchValidCount(branch);
-                lines(end+1) = sprintf("  %s %s | valid %d/%d", string(branch.modelName), string(branch.branchName), valid, n);
+                lines(end+1) = sprintf("  %s %s | valid %d/%d", string(branch.modelName), string(branch.branchName), valid, n); %#ok<AGROW>
             end
         end
         elapsed = getGuiElapsedSeconds();
@@ -736,7 +736,7 @@ updateAxisFieldState();
                     'ElapsedSeconds', getGuiElapsedSeconds(), ...
                     'Fallback', getMainFallbackText(md), ...
                     'ExtraLines', profileExtra);
-                lines = [lines; "  " + formatted(:)]; %#ok<AGROW>
+                lines = [lines; "  " + formatted(:)];
             end
             if isfield(md, 'mrlfeA0Policy')
                 lines(end+1) = sprintf("  A0 policy: %s", string(md.mrlfeA0Policy));
@@ -774,7 +774,7 @@ updateAxisFieldState();
             for i = 1:numel(optionNames)
                 name = optionNames(i);
                 if isfield(lastOptions, char(name))
-                    lines(end+1) = sprintf("  %s = %d", optionLabels(i), logical(lastOptions.(char(name))));
+                    lines(end+1) = sprintf("  %s = %d", optionLabels(i), logical(lastOptions.(char(name)))); %#ok<AGROW>
                 end
             end
             if isfield(lastOptions, 'mrlfeParams') && isfield(lastOptions.mrlfeParams, 'etaS')
@@ -836,10 +836,10 @@ updateAxisFieldState();
             name = string(names{iExec});
             value = execution.(char(name));
             if isstruct(value) && isfield(value, 'internalEngine')
-                linesOut(end+1) = name + " engine: " + string(value.internalEngine);
+                linesOut(end+1) = name + " engine: " + string(value.internalEngine); %#ok<AGROW>
             end
             if isstruct(value) && isfield(value, 'effectivePreset')
-                linesOut(end+1) = name + " preset: " + string(value.effectivePreset);
+                linesOut(end+1) = name + " preset: " + string(value.effectivePreset); %#ok<AGROW>
             end
         end
     end
@@ -851,10 +851,10 @@ updateAxisFieldState();
             name = string(names{iPolicy});
             value = policies.(char(name));
             if isstruct(value) && isfield(value, fieldName)
-                linesOut(end+1) = name + " " + label + ": " + string(value.(fieldName));
+                linesOut(end+1) = name + " " + label + ": " + string(value.(fieldName)); %#ok<AGROW>
             end
             if label == "fallback" && isstruct(value) && isfield(value, 'applied')
-                linesOut(end+1) = name + " fallback applied: " + string(logical(value.applied));
+                linesOut(end+1) = name + " fallback applied: " + string(logical(value.applied)); %#ok<AGROW>
             end
         end
     end
@@ -866,10 +866,10 @@ updateAxisFieldState();
             name = string(names{iQuality});
             value = quality.(char(name));
             if isstruct(value) && isfield(value, 'accepted')
-                linesOut(end+1) = name + " quality accepted: " + string(logical(value.accepted));
+                linesOut(end+1) = name + " quality accepted: " + string(logical(value.accepted)); %#ok<AGROW>
             end
             if isstruct(value) && isfield(value, 'reason')
-                linesOut(end+1) = name + " quality reason: " + string(value.reason);
+                linesOut(end+1) = name + " quality reason: " + string(value.reason); %#ok<AGROW>
             end
         end
     end
@@ -933,7 +933,7 @@ updateAxisFieldState();
             end
         end
 
-        defaultName = ['LambExport_', datestr(now, 'yyyymmdd_HHMMSS'), '.mat'];
+        defaultName = ['LambExport_', datestr(now, 'yyyymmdd_HHMMSS'), '.mat']; %#ok<DATST,TNOW1>
         [file, path] = uiputfile('*.mat', 'Save results', defaultName);
         if isequal(file, 0)
             return;

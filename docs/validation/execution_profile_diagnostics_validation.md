@@ -3,8 +3,10 @@
 This document defines the active diagnostic contract for execution profiles in
 the GUI surfaces after the end-to-end hardening pass.
 
-Historical migration documents remain under `docs/architecture/`. This file is
-the current user-facing interpretation guide for diagnostics.
+The architecture contract is maintained in
+`docs/architecture/execution_profiles_surface_integration.md`. Historical
+migration evidence remains in Git history. This file is the current
+user-facing interpretation guide for diagnostics.
 
 ## Common Contract
 

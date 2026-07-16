@@ -1,92 +1,54 @@
-# Project handoff index
+# Project context
 
-## Purpose
+`docs/project/` contains small operational context and reusable task templates.
+It does not own technical contracts.
 
-`docs/project/` contains the operational project state used to start and close
-development sessions. It does not replace technical contracts in
-`docs/repository/`, `docs/workflows/`, `docs/models/`, or accepted ADRs.
+## Session start
 
-Use this folder to answer:
+Read:
 
-- what is active now;
-- what was last completed;
-- what remains open;
-- what to read next.
+1. `active_context.md`
+2. `session_handoff.md`
+3. `../repository/repository_structure.md`
+4. `../repository/naming_strategy.md`
+5. the relevant model or workflow document
 
-## Start of a session
+Confirm the branch, base commit, objective, constraints, and validation scope
+before modifying files.
 
-Read these in order:
+## Session closeout
 
-1. `docs/project/active_context.md`
-2. `docs/project/session_handoff.md`
-3. `docs/repository/repository_structure.md`
-4. `docs/repository/naming_strategy.md`
-5. task-specific documentation
+Update `session_handoff.md` only with current operating information. Update
+`active_context.md` only when global architecture, public commands, or bounded
+product work changes. Use an ADR only for a durable cross-cutting decision.
 
-Then confirm the current branch, last known good commit, active constraints,
-and next action before modifying files.
+Completed migrations, cleanup evidence, timing snapshots, and branch-specific
+instructions belong in Git or pull-request history.
 
-For repository-cleanup tasks, also read before changing anything:
+## Authority
 
-```text
-docs/repository/maintained_entrypoints.md
-docs/repository/validation_status.md
-docs/repository/repository_hygiene_plan.md
-```
-
-For test-suite audit or cleanup tasks, also read:
-
-```text
-docs/repository/test_runner_ownership.md
-tests/README.md
-docs/project/templates/codex_task.md
-```
-
-A cleanup audit is a candidate inventory, not permission for bulk deletion.
-Codex or any other agent must create a dedicated feature branch from updated
-`origin/main`, verify dependencies for every candidate, and preserve maintained
-behavior.
-
-## End of a session
-
-Update `docs/project/session_handoff.md` at the end of every relevant
-development session.
-
-Update `docs/project/active_context.md` only when the global state, current
-phase, or cross-cutting limitations change.
-
-Create or modify ADRs only when a durable architectural decision is made.
-
-For cleanup sessions, update the repository cleanup audit or add a phase report
-that records retain/archive/consolidate/remove decisions, dependency evidence,
-validation, commits, and deferred risks.
-
-## Document authority
-
-When documents disagree, use this order:
+When sources disagree, use this order:
 
 1. maintained code and tests;
-2. active `repository/`, `workflows/`, and `models/` contracts;
+2. repository, workflow, and model contracts;
 3. accepted ADRs;
-4. `docs/project/active_context.md`;
-5. `docs/project/session_handoff.md`;
-6. audits and diagnostic evidence;
-7. `archive/`.
+4. `active_context.md`;
+5. `session_handoff.md`;
+6. repeatable diagnostic evidence.
 
-If the handoff contradicts an active contract, the contract prevails. If an old
-audit contradicts current code or tests, do not treat the audit as current
-state.
+## Topic routing
 
-## Topic-specific reading
-
-| Topic | Start with |
+| Topic | Authoritative start |
 | --- | --- |
-| Repository cleanup | `docs/repository/repository_hygiene_plan.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
-| Test-suite ownership | `docs/repository/test_runner_ownership.md`; `tests/README.md`; `docs/repository/maintained_entrypoints.md`; `docs/repository/validation_status.md` |
-| GUI | `docs/workflows/gui/adapter_architecture.md`; `docs/architecture/execution_profiles_surface_integration.md` |
-| Fitting | `docs/workflows/fitting/architecture.md`; `docs/workflows/fitting/validation_suite.md` |
-| Sweeps | `docs/workflows/sweeps/parametric_sweeps.md`; `docs/workflows/sweeps/sweep_tool_usage.md` |
-| Execution profiles | `docs/architecture/execution_profiles_surface_integration.md`; `docs/validation/execution_profile_end_to_end_validation.md` |
-| Rayleigh-Lamb | `docs/models/rayleigh_lamb/overview.md`; `docs/models/rayleigh_lamb/public_api.md`; `docs/models/rayleigh_lamb/fitting_workflow.md` |
-| mRLFE | `docs/models/mrlfe/README.md`; `docs/models/mrlfe/public_api.md`; `docs/models/mrlfe/production_core.md`; `docs/models/mrlfe/fitting_workflow.md` |
-| AE IOP/HGO | `docs/models/acoustoelastic_iop_hgo/README.md`; `docs/models/acoustoelastic_iop_hgo/documentation_index.md`; `docs/models/acoustoelastic_iop_hgo/active/public_api.md` |
+| Structure and dependencies | `../repository/repository_structure.md` |
+| Naming | `../repository/naming_strategy.md` |
+| Maintained entrypoints | `../repository/maintained_entrypoints.md` |
+| Validation | `../repository/validation_status.md` |
+| Tests | `../repository/test_suite_final_architecture.md` and `../repository/test_runner_ownership.md` |
+| GUI | `../workflows/gui/adapter_architecture.md` |
+| Fitting | `../workflows/fitting/architecture.md` |
+| Sweeps | `../workflows/sweeps/parametric_sweeps.md` |
+| Execution profiles | `../architecture/execution_profiles_surface_integration.md` |
+| Rayleigh-Lamb | `../models/rayleigh_lamb/overview.md` |
+| mRLFE | `../models/mrlfe/README.md` |
+| AE IOP/HGO | `../models/acoustoelastic_iop_hgo/README.md` |

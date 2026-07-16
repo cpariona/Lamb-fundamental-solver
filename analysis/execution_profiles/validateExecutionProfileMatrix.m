@@ -46,7 +46,6 @@ end
 
 function row = validateCase(surface, scenario, profile)
 timer = tic;
-notes = "";
 try
     switch surface
         case "Main GUI"
@@ -69,7 +68,6 @@ try
     numericalAvailable = any(isfinite(cp(:)) & cp(:) > 0);
 catch ME
     metadata = emptyMetadata(profile);
-    cp = nan;
     notes = "error: " + string(ME.identifier) + " " + string(ME.message);
     exportMetadataAvailable = false;
     syntheticFit = "not_completed";
@@ -181,7 +179,6 @@ end
 end
 
 function [metadata, cp, notes] = validateFit(scenario, profile)
-notes = "";
 switch string(scenario.Model)
     case "Rayleigh-Lamb"
         [request, cpReference] = makeRLFitRequest(profile);
@@ -221,7 +218,7 @@ options.computeMRLFERealK = true;
 options.mrlfeComputeA0Like = true;
 options.mrlfeComputeS0Like = false;
 options.mrlfeA0Policy = "physicalTail";
-options.mrlfeParams = defaultMRLFEParams();
+options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = etaS;
 options.mrlfeParams.etaL = 0;
 options.mrlfeParams.useComplexLambda = false;
@@ -355,7 +352,6 @@ end
 end
 
 function tf = profileOverrideContractOK(metadata)
-tf = true;
 if ~isstruct(metadata) || ~isfield(metadata, 'profileOverrideApplied')
     tf = false;
     return;

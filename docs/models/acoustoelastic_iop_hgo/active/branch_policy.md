@@ -6,7 +6,8 @@ This document defines the current maintained atlas-based policy used by the acou
 
 The policy is intentionally conservative. Its goal is to avoid fabricating high-frequency continuity when the selected branch is no longer explicitly traceable in the numerical objective landscape.
 
-IOP and shear-modulus sweeps showed that this atlas-based A0 policy is the most robust working strategy currently available in the repository. It gives smoother and more physically plausible A0-like curves than earlier exploratory corrected + A0 + backward global-scan workflows, which have now been archived.
+IOP and shear-modulus sweeps show that this atlas-based A0 policy is the most
+robust maintained strategy currently available in the repository.
 
 ## Nomenclature
 
@@ -167,8 +168,6 @@ For high-IOP cases, the recommended interpretation is to use `LastValidFrequency
 
 ## Diagnostic evidence
 
-The earlier executable branch-policy comparison scripts have been archived. Current evidence is maintained through short diagnostics and documentation.
-
 Maintained diagnostics:
 
 ```matlab
@@ -178,21 +177,28 @@ diagnose_raw_branch_corner
 diagnose_branch_families
 diagnose_sweep_reliability
 diagnose_atlas_truncation
+diagnose_idA0_score
+validate_idA0_score_grid
+validate_idA0_grid
+diagnose_idA0_plausibility
+diagnose_modal_atlas
+track_raw_branch1
 ```
 
 Important supporting documents:
 
 ```text
-docs/models/acoustoelastic_iop_hgo/active/solver_optimization_status.md
 docs/models/acoustoelastic_iop_hgo/diagnostics/atlas_vs_raw_branch1_diagnostic.md
 docs/models/acoustoelastic_iop_hgo/diagnostics/branch_families_diagnostic.md
 docs/models/acoustoelastic_iop_hgo/diagnostics/identityA0_diagnostic_policy.md
 ```
 
-Archived branch-policy and A0-backward exploratory scripts should not be restored as workflows. Their retained conclusions are preserved in:
-
-Superseded retention and backward-tracking investigations remain available in
-Git history.
+The validated ambiguity boundary is the low-stiffness/high-IOP corner,
+especially `IOP = 35 mmHg` and `mu = 25 kPa` for the documented baseline
+geometry and HGO parameters. The branch-family diagnostic found no candidate
+that combined at least 0.80 frequency coverage with median minima rank at most
+4. This is evidence for conservative truncation, not for promoting a
+diagnostic branch.
 
 ## Diagnostic alternatives
 
