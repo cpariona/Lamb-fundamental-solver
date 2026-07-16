@@ -1,20 +1,20 @@
 # AE IOP/HGO architecture audit and alignment plan
 
-Status: Phase 1 audit; no executable refactor is described as complete
+Status: Phase 1 audit with Phase 2 configuration ownership implemented
 
 Audit branch: `audit/ae-architecture-alignment`
 
 Base: `42206beaf0e719226f03cd1fdb99b1049d81a1f4`
 
-Reviewed: 2026-07-16
+Reviewed and updated after Phase 2: 2026-07-16
 
 ## Decision summary
 
 The maintained AE IOP/HGO implementation has a coherent physical core and a
-single official production policy, `atlasA0`, but it does not yet have one
-coherent production ownership path. Equivalent responsibilities that mRLFE
-owns explicitly in the model layer are currently distributed across AE model
-solver local functions, analysis helpers, and app adapters.
+single official production policy, `atlasA0`. Phase 2 established one
+model-layer owner for effective configuration, request validation, numerical
+presets, and internal tracking-grid construction. Tracking, policy, quality,
+and results remain later alignment phases.
 
 The target is to retain the AE-specific scientific entrypoints and the exact
 current numerical behavior while introducing explicit model ownership for:
@@ -24,27 +24,23 @@ configuration -> problem construction -> solver dispatch -> tracking
               -> policies -> quality -> results
 ```
 
-The first implementation phase should centralize AE request validation,
-configuration resolution, and numerical preset ownership in the model layer.
-That recommendation is based on three current facts:
+Implemented Phase 2 ownership is:
 
-1. `aeDefaultSweepOptions` owns the Fast/Balanced/Robust `300/12`, `600/16`,
-   and `900/20` atlas-density mapping in the analysis layer.
-2. `aeResolveExecutionProfile`, `guiRunAcoustoelasticIOPHGOSweep`, and
-   `guiFitAcoustoelasticIOPHGOSolver` repeat preset and override metadata logic
-   in app adapters.
-3. `guiRunAcoustoelasticIOPHGOModel.applyGuiFastAEPreset` owns additional Main
-   GUI numerical choices (`420/8`, refinement off, 25 initialization points,
-   predictive continuation settings) in the app layer.
+1. `aeGetNumericalPreset` owns Fast/Balanced/Robust atlas density and the
+   separate Main GUI numerical bundle.
+2. `aeResolveConfiguration` owns complete effective options, surface bundles,
+   explicit-override precedence, and policy normalization.
+3. `aeValidateRequest` owns maintained wrapper/fitting field checks, while
+   `aeBuildInternalTrackingGrid` owns the unchanged hidden-grid algorithm.
 
-Phase 2 must preserve those values exactly. It must not change AE physics,
-`atlasA0`, grids, policies, thresholds, or results.
+The public flat `params, options` signatures and all AE physics, `atlasA0`,
+grids, policies, thresholds, and results remain unchanged.
 
 ## Authority, scope, and vocabulary
 
 Maintained code and tests were treated as authoritative over documentation.
 The inventory below covers every tracked file under the five primary AE paths
-(101 files), plus the AE-specific app and validation integration owners needed
+(108 files), plus the AE-specific app and validation integration owners needed
 to reconstruct actual calls. Ignored generated figures are not maintained
 source artifacts.
 
@@ -67,10 +63,14 @@ owner` is proposed and must not be read as a completed move.
 
 ## Complete maintained-file inventory
 
-### Model layer: 16 files
+### Model layer: 20 files
 
 | Current folder | MATLAB identifier | Responsibility | Direct callers | Direct repository dependencies | Classification | Production/diagnostic | Future owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| `configuration/` | `aeValidateRequest` | Preserve maintained flat IOP/direct-atlas/fitting request checks | IOP atlas wrapper; direct atlas solver; fit evaluator | none | maintained internal | production | `configuration/` |
+| `configuration/` | `aeResolveConfiguration` | Build complete effective options, apply surface/preset/overrides, normalize policy, report metadata | AE solvers, analysis defaults/evaluator, app adapters | public defaults; preset owner; policy normalizer | maintained internal | production | `configuration/` |
+| `configuration/` | `aeGetNumericalPreset` | Own Fast/Balanced/Robust and separate Main GUI numerical bundles | configuration resolver; focused tests | public defaults for unchanged shared values | advanced supported API | production | `configuration/` |
+| `configuration/` | `aeBuildInternalTrackingGrid` | Build the exact sorted/unique internal atlas frequency grid | IOP atlas wrapper; focused tests | configuration resolver | maintained internal | production | `configuration/` |
 | `constitutive/` | `computeAcoustoelasticABGFromIOPHGO` | IOP/HGO to alpha, beta, gamma and state | IOP/HGO solver wrappers; atlas diagnostics; constitutive test | prestress, HGO stretch, alpha/beta/gamma helpers | advanced supported API | production and diagnostic | `constitutive/` |
 | `constitutive/` | `computeAcoustoelasticAlphaBetaGamma` | Constitutive moduli from stretch and HGO parameters | `computeAcoustoelasticABGFromIOPHGO` | none | advanced supported API | production | `constitutive/` |
 | `constitutive/` | `computeAcoustoelasticPrestressSigma` | Thin-wall prestress | `computeAcoustoelasticABGFromIOPHGO` | none | advanced supported API | production | `constitutive/` |
@@ -79,11 +79,11 @@ owner` is proposed and must not be read as a completed move.
 | `core/` | `computeAcoustoelasticSRoots` | Characteristic roots | matrix builder | none | advanced supported API | production | `core/` |
 | `core/` | `objectiveAcoustoelasticResidual` | Real-Cp singular-value residual | atlas/direct solvers; modal diagnostics | matrix builder; default options | advanced supported API | production and diagnostic | `core/` |
 | `core/` | `objectiveAcoustoelasticComplexDeterminant` | Complex-C determinant objective | complex-C solver | matrix builder; default options | advanced supported API | diagnostic-capable | `core/` |
-| `options/` | `defaultAcoustoelasticIOPHGOOptions` | Full defaults for direct, atlas, tracking, policy, and diagnostics | all AE workflows and solver families | branch-policy normalizer | public production API | production | `options/`; preset resolution moves to `configuration/` |
+| `options/` | `defaultAcoustoelasticIOPHGOOptions` | Public base defaults for direct, tracking, policy, and diagnostics | configuration resolver; AE workflows and solvers | branch-policy normalizer | public production API | production | `options/` |
 | `options/` | `aeNormalizeBranchPolicy` | Accept only `atlasA0` and `identityA0Diagnostic` | defaults, atlas solver, fitting, policy tests | none | advanced supported API | production and diagnostic | `policies/` |
 | `solvers/` | `solveAcoustoelasticIOPHGOBranch` | Recommended IOP/HGO convenience entrypoint | Main GUI, sweeps, diagnostics, validation | IOP/HGO atlas wrapper | public production API | production | `api/` |
-| `solvers/` | `solveAcoustoelasticIOPHGOAtlasBranch` | Validate flat parameters, build constitutive state/internal grid, project output, invalidate fallback | primary branch API, basic example, fitting, tests | constitutive builder; direct atlas solver; defaults; analysis-layer identity diagnostic | public production API | production with diagnostic coupling | `solvers/` behind primary API; configuration/policy/quality/results extracted |
-| `solvers/` | `solveAcoustoelasticAtlasBranch` | Build objective atlas; find/link/split/select branches; construct result, reliability, diagnostics | IOP/HGO atlas wrapper | residual; defaults; policy normalizer; analysis-layer identity diagnostic | advanced supported API | production with diagnostic coupling | `solvers/`, with tracking/policy/quality/results extracted |
+| `solvers/` | `solveAcoustoelasticIOPHGOAtlasBranch` | Delegate validation/config/grid, build constitutive state, project output, invalidate fallback | primary branch API, basic example, fitting, tests | canonical configuration owners; constitutive builder; direct atlas solver; analysis-layer identity diagnostic | public production API | production with diagnostic coupling | `solvers/` behind primary API; policy/quality/results extracted later |
+| `solvers/` | `solveAcoustoelasticAtlasBranch` | Delegate config/validation; build objective atlas; find/link/split/select branches; construct result, reliability, diagnostics | IOP/HGO atlas wrapper | canonical configuration owners; residual; analysis-layer identity diagnostic | advanced supported API | production with diagnostic coupling | `solvers/`, with tracking/policy/quality/results extracted later |
 | `solvers/` | `solveAcoustoelasticIOPHGODispersion` | IOP/HGO-to-direct real-Cp solve | raw-branch/modal diagnostics | constitutive builder; direct dispersion solver; defaults | advanced supported API | diagnostic/advanced | `solvers/` |
 | `solvers/` | `solveAcoustoelasticDispersion` | Direct real-Cp continuation, candidate scoring, validity, result assembly | IOP/HGO direct wrapper | real residual; defaults | advanced supported API | diagnostic/advanced | `solvers/`, then shared tracking/result owners where justified |
 | `solvers/` | `solveAcoustoelasticComplexCDispersion` | Complex-C continuation and diagnostic summary | no maintained direct caller | complex objective; defaults | advanced supported API | diagnostic/advanced | `solvers/` |
@@ -93,7 +93,7 @@ owner` is proposed and must not be read as a completed move.
 | Current folder | MATLAB identifier | Responsibility | Direct callers | Direct repository dependencies | Classification | Production/diagnostic | Future owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `analysis/acoustoelastic_iop_hgo/` | `aeDefaultSweepParams` | Shared physical campaign defaults | physical sweeps, fit problem, contracts | none | workflow helper | production workflow | analysis configuration |
-| same | `aeDefaultSweepOptions` | Sweep/fit options plus execution-profile-to-atlas-density mapping | sweeps, fitting, AE profile resolver, tests | public AE defaults | workflow helper | production workflow | campaign defaults remain analysis; numerical preset mapping moves to model `configuration/` |
+| same | `aeDefaultSweepOptions` | Select maintained physical-sweep surface and execution profile | sweeps, fitting, tests | canonical model configuration resolver | workflow helper | production workflow | analysis workflow selector |
 | same | `aeRunSweep` | One-parameter campaign loop | six physical sweeps; SweepTool adapter; contract test | primary AE branch API | workflow helper | production workflow | analysis sweeps |
 | same | `aeRunGridSweep` | Multi-axis campaign loop | mu-IOP sweep | primary AE branch API; sweep options | workflow helper | production workflow | analysis sweeps |
 | same | `aeSummarizeSweep` | Condition, dispersion, selected-branch tables | physical sweeps; SweepTool; reliability analysis | none | workflow helper | production workflow | analysis sweeps |
@@ -161,11 +161,13 @@ repeatable value; Phase 1 does not delete them.
 | same | `validate_idA0_score_grid` | Heavy identity-score grid | user | shared identity defaults; branch API; score helper | diagnostic-only | diagnostic | same |
 | same | `validate_idA0_grid` | Heavy official/identity parity grid | user | shared identity defaults; branch API | diagnostic-only | diagnostic | same |
 
-### Model tests: 11 files
+### Model tests: 13 files
 
 | Current folder | MATLAB identifier | Responsibility | Canonical owner | Direct dependencies | Classification | Future owner |
 | --- | --- | --- | --- | --- | --- | --- |
 | `tests/models/acoustoelastic_iop_hgo/` | `test_acoustoelastic_iop_hgo_branch_policy_validation` | Canonical and rejected policy names | `run_ae_quick_tests` | defaults; policy normalizer | test or validation owner | model policy tests |
+| same | `test_ae_configuration_characterization` | Pre-extraction defaults, profiles, surfaces, overrides, validation, and metadata baseline | `run_ae_quick_tests` | maintained public/workflow/app surfaces | test or validation owner | configuration regression tests |
+| same | `test_ae_configuration_ownership` | Canonical presets, effective config, validation, and exact grid cases | `run_ae_quick_tests` | four model configuration owners | test or validation owner | configuration tests |
 | same | `test_acoustoelastic_iop_hgo_constitutive_identity` | IOP/HGO constitutive identity | `run_ae_quick_tests` | constitutive builder | test or validation owner | constitutive tests |
 | same | `test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy` | Official-field parity and diagnostic separation | `run_ae_quick_tests` | primary branch API | test or validation owner | diagnostic-boundary tests |
 | same | `test_acoustoelastic_iop_hgo_branch_persistence_refinement` | Persistence diagnostic contract | `run_ae_quick_tests` | persistence refinement helper | test or validation owner | diagnostic tests |
@@ -177,26 +179,26 @@ repeatable value; Phase 1 does not delete them.
 | same | `test_acoustoelastic_iop_hgo_atlasA0_smoke` | Representative atlas solve | `run_ae_extended_tests` | atlas wrapper | test or validation owner | solver regression tests |
 | same | `test_ae_fit_synthetic_atlasA0` | Synthetic fit and evaluator parity | `run_ae_extended_tests` | fit/evaluator/defaults | test or validation owner | fitting tests |
 
-### Documentation: 15 files
+### Documentation: 16 files
 
 | Current folder | Document | Responsibility/evidence | Direct document consumers | Direct dependencies | Classification | Future owner |
 | --- | --- | --- | --- | --- | --- | --- |
-| `docs/models/acoustoelastic_iop_hgo/` | `README.md` | Model routing index and official status | users; project routing | active contracts and diagnostic index | documentation owner | model index |
-| `active/` | `public_api.md` | Supported APIs, workflows, diagnostics, tests | users; path contract test | maintained entrypoint/naming contracts | documentation owner | API contract |
-| same | `branch_policy.md` | Official `atlasA0`, grids, filters, splitting, fallback, reliability | production/workflow docs | public API and diagnostic evidence | documentation owner | policy contract |
-| same | `sweep_workflow.md` | Physical campaigns, shared flow, outputs | users; sweep contract | branch policy; repository sweep/naming contracts | documentation owner | workflow contract |
-| same | `fitting_workflow.md` | Official fitting route and limits | users; fitting contract | branch policy; shared fitting architecture | documentation owner | workflow contract |
-| same | `solver_pending_work.md` | Separate high-frequency waviness issue | future numerical work | branch policy | documentation owner | bounded pending numerical work |
-| same | `architecture_audit.md` | Current audit, target map, naming, phases | future AE phases | all contracts cited in this document | documentation owner | architecture contract until finalization |
-| `diagnostics/` | `README.md` | Diagnostic evidence index | users | eight evidence documents; branch policy | documentation owner | diagnostic index |
-| same | `atlas_vs_raw_branch1_diagnostic.md` | Raw comparison interpretation | diagnostic users | comparison/grid/corner commands | documentation owner | diagnostic evidence |
-| same | `branch_families_diagnostic.md` | Ambiguity interpretation | diagnostic users | branch-family command | documentation owner | diagnostic evidence |
-| same | `atlasA0_truncation_cause_diagnostic.md` | Truncation causal schema | diagnostic users | truncation command | documentation owner | diagnostic evidence |
-| same | `identityA0_diagnostic_policy.md` | Identity diagnostic safety/schema | diagnostic users and test | identity option/test | documentation owner | diagnostic evidence |
-| same | `branch_identity_score_diagnostic.md` | Score components/classes | diagnostic users | score command | documentation owner | diagnostic evidence |
-| same | `branch_identity_score_grid_validation.md` | 110-case score interpretation | diagnostic users | score-grid command | documentation owner | diagnostic evidence |
-| same | `identityA0_diagnostic_grid_validation.md` | Official parity/extension evidence | diagnostic users | identity-grid command | documentation owner | diagnostic evidence |
-| same | `identityA0_physical_plausibility_diagnostic.md` | Plausibility and caution boundary | diagnostic users | plausibility command | documentation owner | diagnostic evidence |
+| `docs/models/acoustoelastic_iop_hgo/` | `docs/models/acoustoelastic_iop_hgo/README.md` | Model routing index and official status | users; project routing | active contracts and diagnostic index | documentation owner | model index |
+| `active/` | `docs/models/acoustoelastic_iop_hgo/active/public_api.md` | Supported APIs, workflows, diagnostics, tests | users; path contract test | maintained entrypoint/naming contracts | documentation owner | API contract |
+| same | `docs/models/acoustoelastic_iop_hgo/active/branch_policy.md` | Official `atlasA0`, grids, filters, splitting, fallback, reliability | production/workflow docs | public API and diagnostic evidence | documentation owner | policy contract |
+| same | `docs/models/acoustoelastic_iop_hgo/active/sweep_workflow.md` | Physical campaigns, shared flow, outputs | users; sweep contract | branch policy; repository sweep/naming contracts | documentation owner | workflow contract |
+| same | `docs/models/acoustoelastic_iop_hgo/active/fitting_workflow.md` | Official fitting route and limits | users; fitting contract | branch policy; shared fitting architecture | documentation owner | workflow contract |
+| same | `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md` | Separate high-frequency waviness issue | future numerical work | branch policy | documentation owner | bounded pending numerical work |
+| same | `docs/models/acoustoelastic_iop_hgo/active/architecture_audit.md` | Current audit, target map, naming, phases | future AE phases | all contracts cited in this document | documentation owner | architecture contract until finalization |
+| `diagnostics/` | `docs/models/acoustoelastic_iop_hgo/diagnostics/README.md` | Diagnostic evidence index | users | eight evidence documents; branch policy | documentation owner | diagnostic index |
+| same | `docs/models/acoustoelastic_iop_hgo/diagnostics/atlas_vs_raw_branch1_diagnostic.md` | Raw comparison interpretation | diagnostic users | comparison/grid/corner commands | documentation owner | diagnostic evidence |
+| same | `docs/models/acoustoelastic_iop_hgo/diagnostics/branch_families_diagnostic.md` | Ambiguity interpretation | diagnostic users | branch-family command | documentation owner | diagnostic evidence |
+| same | `docs/models/acoustoelastic_iop_hgo/diagnostics/atlasA0_truncation_cause_diagnostic.md` | Truncation causal schema | diagnostic users | truncation command | documentation owner | diagnostic evidence |
+| same | `docs/models/acoustoelastic_iop_hgo/diagnostics/identityA0_diagnostic_policy.md` | Identity diagnostic safety/schema | diagnostic users and test | identity option/test | documentation owner | diagnostic evidence |
+| same | `docs/models/acoustoelastic_iop_hgo/diagnostics/branch_identity_score_diagnostic.md` | Score components/classes | diagnostic users | score command | documentation owner | diagnostic evidence |
+| same | `docs/models/acoustoelastic_iop_hgo/diagnostics/branch_identity_score_grid_validation.md` | 110-case score interpretation | diagnostic users | score-grid command | documentation owner | diagnostic evidence |
+| same | `docs/models/acoustoelastic_iop_hgo/diagnostics/identityA0_diagnostic_grid_validation.md` | Official parity/extension evidence | diagnostic users | identity-grid command | documentation owner | diagnostic evidence |
+| same | `docs/models/acoustoelastic_iop_hgo/diagnostics/identityA0_physical_plausibility_diagnostic.md` | Plausibility and caution boundary | diagnostic users | plausibility command | documentation owner | diagnostic evidence |
 
 The count of 15 existing documents becomes 16 after this audit document is
 added; the 101-file baseline above is the pre-audit tracked inventory.
@@ -210,8 +212,8 @@ integration surface required to understand maintained calls.
 | --- | --- | --- | --- | --- | --- |
 | `app/adapters/guiBuildAcoustoelasticIOPHGORequest.m` | Main GUI unit/request translation | `LambFundamental_GUI` | frequency builder; AE GUI options builder | app adapter | retain; translate UI only |
 | `app/adapters/guiBuildAcoustoelasticIOPHGOOptions.m` | Main GUI profile wrapper | request builder | AE profile resolver | app adapter | retain thin metadata wrapper |
-| `app/adapters/aeResolveExecutionProfile.m` | App profile normalization and AE numerical preset mapping | all AE app adapters; tests | `aeDefaultSweepOptions`; generic profile helpers | app adapter | retain app metadata; delegate numerical mapping to model configuration |
-| `app/adapters/guiRunAcoustoelasticIOPHGOModel.m` | Main GUI solve and raw-to-GUI normalization | `LambFundamental_GUI`; GUI/profile tests | defaults; primary AE API; struct helpers | app adapter | retain; remove numerical ownership only after parity proof |
+| `app/adapters/aeResolveExecutionProfile.m` | App profile normalization and model-configuration metadata translation | all AE app adapters; tests | canonical model configuration; generic profile helpers | app adapter | retained thin metadata adapter |
+| `app/adapters/guiRunAcoustoelasticIOPHGOModel.m` | Select Main GUI surface, solve, and normalize raw result | `LambFundamental_GUI`; GUI/profile tests | canonical model configuration; primary AE API; struct helpers | app adapter | retained without numerical values |
 | `app/adapters/guiRunAcoustoelasticIOPHGOSweep.m` | SweepTool request defaults, run, normalization, metadata | `guiRunSweep`; sweep/profile tests | AE sweep stack; profile resolver | app adapter | retain orchestration; delegate physical/numerical configuration |
 | `app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m` | Normalize official curves and summary | AE SweepTool adapter | none beyond result schema | app adapter | retain |
 | `app/adapters/guiFitAcoustoelasticIOPHGOSolver.m` | FitTool request, profile/options, backend call, normalization | `guiRunFit`; fitting/profile tests | profile resolver; AE fit backend; generic fit helpers | app adapter | retain orchestration; delegate numerical configuration |
@@ -243,12 +245,13 @@ responsibility performed as a local function in the named file.
 run_atlas_branch
   -> [flat SI params + explicit 300/12 atlas options]
   -> solveAcoustoelasticIOPHGOAtlasBranch
-       -> [required-field validation]
+       -> aeValidateRequest
+       -> aeResolveConfiguration
        -> computeAcoustoelasticABGFromIOPHGO
             -> computeAcoustoelasticPrestressSigma
             -> solveAcoustoelasticHGOStretch
             -> computeAcoustoelasticAlphaBetaGamma
-       -> [buildInternalTrackingFrequency]
+       -> aeBuildInternalTrackingGrid
        -> solveAcoustoelasticAtlasBranch
             -> objectiveAcoustoelasticResidual
                  -> buildAcoustoelasticMatrix
@@ -277,19 +280,19 @@ LambFundamental_GUI
        -> guiBuildAcoustoelasticIOPHGOOptions
             -> aeResolveExecutionProfile
                  -> guiNormalizeExecutionProfile
-                 -> aeDefaultSweepOptions
+                 -> aeResolveConfiguration
   -> guiRunAcoustoelasticIOPHGOModel
        -> defaultAcoustoelasticIOPHGOOptions + guiMergeStructs
        -> guiNormalizeExecutionProfile
-       -> [applyGuiFastAEPreset: current GUI-specific numerical overrides]
+       -> aeResolveConfiguration(surface = MainGUI)
        -> solveAcoustoelasticIOPHGOBranch
        -> [wavenumber, k-thickness, branch/result/diagnostic normalization]
   -> lastGuiResult for plotting
   -> guiBuildMainResultExport/guiSaveMainResultExport when requested
 ```
 
-The app translates units legitimately. It also currently owns numerical
-choices that should be model configuration after Phase 2.
+The app translates units and selects a surface/profile. Numerical values are
+resolved by the model configuration owner.
 
 ### SweepTool AE execution
 
@@ -448,7 +451,7 @@ constrain the proposed architecture.
 | Responsibility | mRLFE ownership | Current AE ownership | State | Physical justification | Alignment | Risk |
 | --- | --- | --- | --- | --- | --- | --- |
 | API | One `mrlfeSolve` request API | Several supported long scientific solvers; one recommended convenience route | mixed | Direct alpha/beta/gamma and complex-C scientific APIs are legitimate | Keep scientific APIs; make `solveAcoustoelasticIOPHGOBranch` the one production consumer route | moderate |
-| Configuration | Model resolver | Defaults in model; preset mapping in analysis/app; validation repeated in wrappers/evaluator | mixed | none | centralize model configuration without forcing a request-struct rewrite | low-moderate |
+| Configuration | Model resolver | `aeResolveConfiguration`, `aeGetNumericalPreset`, and `aeValidateRequest` own effective options, values, and maintained checks | equivalent after Phase 2 | none | retain flat public API; no request-struct rewrite | low |
 | Options/presets | Separate public options and preset lookup | One large default struct plus analysis-local profile switch and GUI overrides | mixed | AE has atlas-specific values, not app-specific ownership | add explicit model preset owner; preserve values | low-moderate |
 | Problem construction | Explicit model builder | constitutive conversion and internal-grid construction inside IOP/HGO wrapper | mixed | AE constitutive conversion is unique | extract only if it reduces duplication; keep AE physics explicit | moderate |
 | Physical core | Model core | model `constitutive/` and `core/` | equivalent | yes | retain | low |
@@ -473,29 +476,20 @@ Different AE function names and its constitutive/atlas concepts are not
 themselves problems. The problems are duplicated authority, reversed layer
 dependencies, and result/policy mutation spread across owners.
 
-## Concrete mixed or misplaced responsibilities
+## Phase 1 findings and Phase 2 disposition
 
-1. **Configuration and numerical presets are cross-layer.**
-   `defaultAcoustoelasticIOPHGOOptions` owns raw defaults;
-   `aeDefaultSweepOptions.localAtlasPreset` owns 300/12, 600/16, 900/20;
-   `aeResolveExecutionProfile` turns them into app metadata; SweepTool and
-   FitTool repeat override/effective-profile inference. The same numerical
-   concept has model, analysis, and app owners.
-2. **Main GUI owns solver numerics.**
-   `guiRunAcoustoelasticIOPHGOModel.applyGuiFastAEPreset` assigns scan count,
-   candidate count, refinement, initialization points, tracking method,
-   fallback, predictive window, and weights. These values are maintained and
-   must be preserved, but their authority belongs in model configuration.
-3. **Request validation is duplicated and weakly identified.**
-   `solveAcoustoelasticIOPHGOAtlasBranch`,
-   `solveAcoustoelasticIOPHGODispersion`, and
-   `aeEvaluateFitModel.localPrepareParams` each validate overlapping flat
-   fields with generic errors; direct solvers add their own validation.
-4. **Requested/internal frequency ownership is mixed.**
-   `solveAcoustoelasticIOPHGOAtlasBranch.buildInternalTrackingFrequency` owns
-   the essential internal grid; `restrictResultToRequestedFrequency` owns
-   projection; FitTool and app surfaces separately create/validate requested
-   grids. These should meet at one model configuration/problem boundary.
+1. **Configuration and numerical presets were cross-layer.** Resolved in
+   Phase 2 by `aeResolveConfiguration` and `aeGetNumericalPreset`; analysis and
+   app layers now select a profile/surface without defining numerical values.
+2. **Main GUI owned solver numerics.** Resolved in Phase 2: the exact bundle is
+   model-owned and explicit complete GUI options retain their established
+   override precedence.
+3. **Request validation was duplicated.** The maintained IOP wrapper, direct
+   atlas wrapper, and fitting evaluator now delegate their existing checks to
+   `aeValidateRequest`. Other solver-family validation is outside Phase 2.
+4. **Requested/internal frequency ownership was mixed.** Grid construction is
+   now owned by `aeBuildInternalTrackingGrid`; requested-grid projection stays
+   in the wrapper because result ownership is Phase 3.
 5. **Atlas, tracking, selection, quality, and result construction are one
    file.** `solveAcoustoelasticAtlasBranch` owns objective-map allocation,
    `localMinima`, `linkBranches`, `splitBranchesOnLargeCpJump`, `selectBranch`,
@@ -618,9 +612,9 @@ Rules for every later phase:
 | Public options | `options/defaultAcoustoelasticIOPHGOOptions` | retain | public | Existing scientific API is suitable | 2 | Exact fields/values unchanged |
 | Request/config validation | repeated local checks | `configuration/aeValidateRequest` | internal | One stable model owner | 2 | Preserve accepted/rejected inputs first; stable identifiers may be added with tests |
 | Configuration resolution | model/analysis/app mix | `configuration/aeResolveConfiguration` | internal | Mirrors responsibility, not mRLFE syntax | 2 | Characterization parity on every surface |
-| Numerical preset | `aeDefaultSweepOptions.localAtlasPreset` plus app logic | `configuration/aeGetNumericalPreset` | advanced supported | Makes numerical values model-owned | 2 | Exact Fast/Balanced/Robust and GUI-specific values |
+| Numerical preset | Phase 1 analysis/app mapping (removed in Phase 2) | `configuration/aeGetNumericalPreset` | advanced supported | Makes numerical values model-owned | 2 | Exact Fast/Balanced/Robust and GUI-specific values |
 | Problem construction | IOP/HGO wrapper local code | `core/aeBuildProblem` | internal | Isolate constitutive state and grids | 2 or 4 | Exact direct params and grids |
-| Internal tracking grid | `buildInternalTrackingFrequency` local | `configuration/aeBuildInternalTrackingGrid` | internal | Essential model configuration | 2 | Exact sorted/unique grid parity |
+| Internal tracking grid | Phase 1 solver-local builder (removed in Phase 2) | `configuration/aeBuildInternalTrackingGrid` | internal | Essential model configuration | 2 | Exact sorted/unique grid parity |
 | Constitutive functions | four explicit `compute/solveAcoustoelastic*` names | retain | advanced supported | Physical names add value | none | No rename |
 | Matrix/roots/objectives | four explicit `Acoustoelastic` names | retain | advanced supported | Documented scientific exceptions | none | No rename |
 | Primary atlas solver | `solveAcoustoelasticIOPHGOAtlasBranch` | retain supported name, subordinate to primary route | advanced supported | Useful explicit scientific boundary | 3/4 | Schema and numerics unchanged |
@@ -670,7 +664,12 @@ suggestions only and must be created from the then-current `origin/main`.
   internal/requested grids, and current surface-specific numerical bundles.
 - Allowed scope: AE `api/options/configuration/core` responsibility files;
   `aeDefaultSweepOptions`; AE profile/request app adapters; focused tests/docs.
-- Likely responsibilities: `aeValidateRequest`, `aeResolveConfiguration`,
+- Phase 2 implementation note: `app/SweepTool_GUI.m` and `app/FitTool_GUI.m`
+  also construct maintained AE requests with duplicated numerical literals.
+  Their AE-only request construction is therefore in scope solely to select
+  canonical model-owned profile/surface configuration. GUI state, optimizer
+  settings, physical defaults, and presentation remain unchanged.
+- Implemented responsibilities: `aeValidateRequest`, `aeResolveConfiguration`,
   `aeGetNumericalPreset`, `aeBuildInternalTrackingGrid`; thin adapter changes.
 - Dependencies: Phase 1 approved; exhaustive current configuration
   characterization recorded before extraction.
@@ -750,10 +749,11 @@ suggestions only and must be created from the then-current `origin/main`.
 - Rollback boundary: direct deletion/rename plus all reference updates in a
   coherent commit; Git history is the compatibility record.
 
-## Recommended next implementation phase
+## Implemented phase and next approval boundary
 
-Proceed with **Phase 2 - configuration, request validation, and numerical
-preset ownership** after repository-owner approval.
+Phase 2 implemented configuration, request validation, numerical preset, and
+internal-grid ownership. Do not begin **Phase 3 - public result, quality,
+diagnostics, and debug boundaries** without repository-owner approval.
 
 Bounded parity requirements:
 

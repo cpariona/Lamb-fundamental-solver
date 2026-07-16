@@ -66,6 +66,7 @@ models/
 |   |-- solvers/
 |   `-- tracking/
 `-- acoustoelastic_iop_hgo/
+    |-- configuration/
     |-- constitutive/
     |-- core/
     |-- options/

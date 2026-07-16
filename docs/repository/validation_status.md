@@ -78,14 +78,17 @@ analysis/test_inventory/runner_edges.csv
 analysis/test_inventory/test_runner_ownership.csv
 ```
 
-Current generated state: 110 tests, 43 canonical runner implementations, 9
-public compatibility wrappers, 3 test helpers, 231 graph edges, and 110
+Current generated state: 112 tests, 43 canonical runner implementations, 9
+public compatibility wrappers, 3 test helpers, 233 graph edges, and 112
 canonical owners. Validation reports 0 manual-only tests, 0 unowned tests, 0
 multiple canonical owners, 0 sibling direct overlaps, and 0 runner cycles.
 
-Current static reach is 19 tests from quick contracts, 52 from quick smoke, 14
-from numerical regression, 44 from extended integration, and 59 from the broad
+Current static reach is 19 tests from quick contracts, 54 from quick smoke, 14
+from numerical regression, 44 from extended integration, and 61 from the broad
 all-smoke aggregate.
+
+The two Phase 2 AE configuration tests are registered to `run_ae_quick_tests`;
+the deterministic inventory CSVs include their canonical ownership edges.
 
 ## Compatibility debt
 
