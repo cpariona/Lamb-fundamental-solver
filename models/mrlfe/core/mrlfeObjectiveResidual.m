@@ -1,7 +1,7 @@
-function residual = objectiveMRLFEResidual(k, omega, material, geometry, mrlfeParams, varargin)
-%OBJECTIVEMRLFEREsidual Evaluate the scalar objective used by mRLFE tracking.
+function residual = mrlfeObjectiveResidual(k, omega, material, geometry, mrlfeParams, varargin)
+%MRLFEOBJECTIVERESIDUAL Evaluate the scalar objective used by mRLFE tracking.
 %
-% residual = objectiveMRLFEResidual(k, omega, material, geometry, mrlfeParams)
+% residual = mrlfeObjectiveResidual(k, omega, material, geometry, mrlfeParams)
 % evaluates the maintained robust objective:
 %
 %   residual = sigma_min(M) / sigma_max(M)
@@ -9,7 +9,7 @@ function residual = objectiveMRLFEResidual(k, omega, material, geometry, mrlfePa
 % where M is the 5-by-5 mRLFE matrix. This objective is scale-normalized and
 % more stable than using det(M) directly.
 %
-% residual = objectiveMRLFEResidual(..., 'Method', method) supports:
+% residual = mrlfeObjectiveResidual(..., 'Method', method) supports:
 %
 %   "minSingularValueRatio"  maintained default, sigma_min/sigma_max
 %   "determinant"            normalized determinant, for diagnostics/comparison
@@ -33,7 +33,7 @@ switch method
     case "determinant"
         residual = normalizedDeterminantObjective(M);
     otherwise
-        error('objectiveMRLFEResidual:UnknownMethod', ...
+        error('mrlfeObjectiveResidual:UnknownMethod', ...
             'Unknown mRLFE residual method "%s". Use "minSingularValueRatio" or "determinant".', method);
 end
 end

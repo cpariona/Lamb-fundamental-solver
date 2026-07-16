@@ -27,7 +27,7 @@ switch surface
         options = rlDefaultOptions(requestedProfile);
         options.computeMRLFEComplexK = false;
         options.mrlfeA0Policy = normalizeA0Policy(p.Results.A0Policy);
-        options.mrlfeParams = defaultMRLFEParams();
+        options.mrlfeParams = mrlfeDefaultInternalParameters();
         options.mrlfeParams.etaS = p.Results.EtaS;
         options.mrlfeParams.etaL = 0;
         options.mrlfeParams.useComplexLambda = false;

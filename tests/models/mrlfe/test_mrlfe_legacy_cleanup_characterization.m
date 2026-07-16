@@ -62,7 +62,7 @@ options.mrlfeParams = localMrlfeParams(etaS);
 end
 
 function params = localMrlfeParams(etaS)
-params = defaultMRLFEParams();
+params = mrlfeDefaultInternalParameters();
 params.etaS = etaS;
 params.fluidDensity = 1000;
 params.fluidSoundSpeed = 1500;

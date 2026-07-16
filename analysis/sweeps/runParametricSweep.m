@@ -65,7 +65,7 @@ if isfield(params, paramName)
 end
 
 if ~isfield(options, 'mrlfeParams') || isempty(options.mrlfeParams)
-    options.mrlfeParams = defaultMRLFEParams();
+    options.mrlfeParams = mrlfeDefaultInternalParameters();
 end
 
 if isfield(options.mrlfeParams, paramName)

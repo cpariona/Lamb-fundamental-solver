@@ -193,10 +193,12 @@ mrlfeSolve
 Maintained mRLFE analysis helpers:
 
 ```matlab
-objectiveMRLFEResidual
 summarizeMRLFETrackingQuality
 compareMRLFETrackingStrategies
 ```
+
+Internal mRLFE model defaults and residual evaluation use
+`mrlfeDefaultInternalParameters` and `mrlfeObjectiveResidual`.
 
 Maintained mRLFE sweeps:
 

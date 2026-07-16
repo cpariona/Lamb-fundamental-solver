@@ -1,5 +1,5 @@
 function residual = mrlfeResidual(k, omega, material, geometry, mrlfeParams, options)
-%MRLFERESIDUAL Compatibility wrapper for the maintained mRLFE objective.
+%MRLFERESIDUAL Adapt tracker options to the maintained mRLFE objective.
 %
 % residual = mrlfeResidual(k, omega, material, geometry, mrlfeParams)
 % returns the maintained scale-normalized singular-value objective:
@@ -14,7 +14,7 @@ if nargin < 6 || isempty(options)
     options = struct();
 end
 method = getFieldOrDefault(options, 'mrlfeResidualMethod', "minSingularValueRatio");
-residual = objectiveMRLFEResidual(k, omega, material, geometry, mrlfeParams, 'Method', method);
+residual = mrlfeObjectiveResidual(k, omega, material, geometry, mrlfeParams, 'Method', method);
 end
 
 function value = getFieldOrDefault(s, name, defaultValue)

@@ -100,7 +100,7 @@ results.models.mRLFE = realKResult;
 end
 
 function mrlfeParams = buildMRLFEParamsFromOptions(options)
-mrlfeParams = defaultMRLFEParams();
+mrlfeParams = mrlfeDefaultInternalParameters();
 if isfield(options, 'mrlfeParams')
     userParams = options.mrlfeParams;
     names = fieldnames(userParams);

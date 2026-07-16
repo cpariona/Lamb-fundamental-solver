@@ -225,7 +225,7 @@ updateAxisFieldState();
     end
 
     function mrlfeParams = readMRLFEParamsFromGui()
-        mrlfeParams = defaultMRLFEParams();
+        mrlfeParams = mrlfeDefaultInternalParameters();
         mrlfeParams.fluidDensity = modelControls.mrlfe.fluidDensity.Value;
         mrlfeParams.fluidSoundSpeed = modelControls.mrlfe.fluidSoundSpeed.Value;
         mrlfeParams.etaS = modelControls.mrlfe.etaS.Value;

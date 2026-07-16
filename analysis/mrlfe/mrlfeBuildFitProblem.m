@@ -139,7 +139,7 @@ end
 
 referenceOptions = solverOptions;
 if ~isfield(referenceOptions, 'mrlfeParams') || isempty(referenceOptions.mrlfeParams)
-    referenceOptions.mrlfeParams = defaultMRLFEParams();
+    referenceOptions.mrlfeParams = mrlfeDefaultInternalParameters();
 end
 referenceOptions.mrlfeParams.etaS = 0;
 referenceOptions.mrlfeParams.etaL = 0;

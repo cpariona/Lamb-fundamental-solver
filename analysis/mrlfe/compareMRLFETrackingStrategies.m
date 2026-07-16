@@ -95,7 +95,7 @@ if ~(options.mrlfeComputeA0Like || options.mrlfeComputeS0Like)
 end
 
 if ~isfield(options, 'mrlfeParams') || isempty(options.mrlfeParams)
-    options.mrlfeParams = defaultMRLFEParams();
+    options.mrlfeParams = mrlfeDefaultInternalParameters();
 end
 if ~isempty(etaS)
     options.mrlfeParams.etaS = etaS;

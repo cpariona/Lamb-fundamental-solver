@@ -1,5 +1,5 @@
-function mrlfeParams = defaultMRLFEParams()
-% Return default parameters for mRLFE model variants.
+function mrlfeParams = mrlfeDefaultInternalParameters()
+%MRLFEDEFAULTINTERNALPARAMETERS Return internal mRLFE model parameters.
 
 mrlfeParams = struct();
 mrlfeParams.fluidDensity = 1000;       % [kg/m^3]

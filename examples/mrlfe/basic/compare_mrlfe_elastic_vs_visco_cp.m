@@ -36,7 +36,7 @@ fprintf('Plot shift cutoff: |relative shift| <= %.3g\n', maxAbsShiftForPlot);
 
 for i = 1:numel(etaSValues)
     options = optionsBase;
-    mrlfeParams = defaultMRLFEParams();
+    mrlfeParams = mrlfeDefaultInternalParameters();
     mrlfeParams.fluidDensity = 1000;
     mrlfeParams.fluidSoundSpeed = 1500;
     mrlfeParams.etaS = etaSValues(i);

@@ -62,7 +62,7 @@ result.metadata = struct( ...
 end
 
 function mrlfeParams = resolveMRLFEParams(guiRequest, options)
-mrlfeParams = guiGetStructField(options, 'mrlfeParams', defaultMRLFEParams());
+mrlfeParams = guiGetStructField(options, 'mrlfeParams', mrlfeDefaultInternalParameters());
 if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
     mrlfeParams = guiRequest.mrlfeParams;
 end

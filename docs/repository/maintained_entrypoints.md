@@ -301,7 +301,8 @@ solveAcoustoelasticHGOStretch
 ```matlab
 mrlfeResolveConfiguration
 mrlfeBuildProblem
-objectiveMRLFEResidual
+mrlfeDefaultInternalParameters
+mrlfeObjectiveResidual
 mrlfeSolveBranch
 mrlfeSolveElasticBranch
 mrlfeSolveViscoelasticBranch
