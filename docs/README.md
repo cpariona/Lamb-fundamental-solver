@@ -76,9 +76,7 @@ docs/models/rayleigh_lamb/fitting_workflow.md
 docs/models/mrlfe/README.md
 docs/models/mrlfe/fitting_workflow.md
 docs/models/mrlfe/current_sweeps.md
-docs/models/mrlfe/diagnostics/README.md
 docs/models/acoustoelastic_iop_hgo/README.md
-docs/models/acoustoelastic_iop_hgo/documentation_index.md
 ```
 
 ## Historical documentation

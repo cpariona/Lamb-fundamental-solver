@@ -115,11 +115,6 @@ diagnose_grid_start_sensitivity
 track_raw_branch1
 ```
 
-## Removed redundant entrypoints
-
-Redundant forwarding aliases with no unique logic are not part of the public
-API. The canonical short diagnostic implementations are called directly.
-
 ## Maintained tests
 
 ```matlab

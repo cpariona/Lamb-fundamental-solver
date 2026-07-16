@@ -88,4 +88,4 @@ state.
 | Execution profiles | `docs/architecture/execution_profiles_surface_integration.md`; `docs/validation/execution_profile_end_to_end_validation.md` |
 | Rayleigh-Lamb | `docs/models/rayleigh_lamb/overview.md`; `docs/models/rayleigh_lamb/public_api.md`; `docs/models/rayleigh_lamb/fitting_workflow.md` |
 | mRLFE | `docs/models/mrlfe/README.md`; `docs/models/mrlfe/public_api.md`; `docs/models/mrlfe/production_core.md`; `docs/models/mrlfe/fitting_workflow.md` |
-| AE IOP/HGO | `docs/models/acoustoelastic_iop_hgo/README.md`; `docs/models/acoustoelastic_iop_hgo/documentation_index.md`; `docs/models/acoustoelastic_iop_hgo/active/public_api.md` |
+| AE IOP/HGO | `docs/models/acoustoelastic_iop_hgo/README.md`; `docs/models/acoustoelastic_iop_hgo/active/public_api.md`; `docs/models/acoustoelastic_iop_hgo/active/branch_policy.md` |

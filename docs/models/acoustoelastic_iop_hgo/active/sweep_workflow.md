@@ -78,11 +78,9 @@ Each one-parameter workflow writes condition-summary, dispersion, selected-branc
 
 The combined `ae_sweep_mu_iop_A0Like` workflow additionally displays an interactive frequency surface that is not saved automatically.
 
-The naming convention is documented in:
-
-```text
-docs/models/acoustoelastic_iop_hgo/active/naming_and_paths_convention.md
-```
+The repository-wide naming and result-root conventions are documented in
+`docs/repository/naming_strategy.md` and
+`docs/repository/repository_structure.md`.
 
 ## Validation
 
@@ -99,11 +97,5 @@ run_acoustoelastic_smoke_tests
 
 Execute each changed sweep manually to validate generated tables and figures. Before merging broader changes, also run `run_all_smoke_tests`.
 
-## Branch-policy diagnostic comparison
-
-The earlier executable branch-policy comparison has been archived. Current branch-policy status and retained evidence are documented in:
-
-```text
-docs/models/acoustoelastic_iop_hgo/active/solver_optimization_status.md
-docs/models/acoustoelastic_iop_hgo/active/branch_policy.md
-```
+Branch-policy behavior is owned by `active/branch_policy.md`; sweep workflows
+must not reinterpret diagnostic branches as production output.
