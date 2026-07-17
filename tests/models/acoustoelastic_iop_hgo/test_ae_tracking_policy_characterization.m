@@ -1,0 +1,146 @@
+function test_ae_tracking_policy_characterization()
+%TEST_AE_TRACKING_POLICY_CHARACTERIZATION Freeze the production decision path.
+%
+% This characterization intentionally observes only the maintained solver
+% result. It predates the Phase-4 extraction and therefore does not depend on
+% the future tracking or policy helper names.
+
+params = representativeParams(logspace(log10(300), log10(12e3), 16));
+profiles = ["Fast", "Balanced", "Robust"];
+expectedYPoints = [300, 600, 900];
+expectedTopN = [12, 16, 20];
+
+for i = 1:numel(profiles)
+    options = representativeOptions(profiles(i));
+    options.useInternalAtlasTrackingGrid = false;
+    options.refineLocalMinima = false;
+    result = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
+
+    assert(size(result.objectiveMap, 1) == expectedYPoints(i));
+    assert(size(result.objectiveMap, 2) == numel(params.frequency));
+    assert(numel(result.yGrid) == expectedYPoints(i));
+    assert(numel(result.cGrid) == expectedYPoints(i));
+    assert(result.options.atlasTopNMinima == expectedTopN(i));
+    assertIntermediateSchema(result);
+    assertDiscreteMinima(result);
+    assertTrackingConsistency(result);
+end
+
+mainGuiOptions = aeResolveConfiguration(struct(), 'Surface', "MainGUI");
+mainGuiOptions.useInternalAtlasTrackingGrid = false;
+mainGuiResult = solveAcoustoelasticIOPHGOAtlasBranch(params, mainGuiOptions);
+assert(mainGuiResult.options.atlasNumYPoints == 1000);
+assert(mainGuiResult.options.atlasTopNMinima == 18);
+assert(mainGuiResult.options.numCpScanPoints == 420);
+assert(mainGuiResult.options.maxLocalCandidates == 8);
+assertIntermediateSchema(mainGuiResult);
+assertTrackingConsistency(mainGuiResult);
+
+overrideOptions = representativeOptions("Fast");
+overrideOptions.atlasNumYPoints = 137;
+overrideOptions.atlasTopNMinima = 7;
+overrideOptions.atlasMaxLogYJump = 0.031;
+overrideOptions.atlasMaxRelativeCpJump = 0.021;
+overrideOptions.useInternalAtlasTrackingGrid = false;
+overrideResult = solveAcoustoelasticIOPHGOAtlasBranch(params, overrideOptions);
+assert(size(overrideResult.objectiveMap, 1) == 137);
+assert(overrideResult.options.atlasTopNMinima == 7);
+assert(overrideResult.options.atlasMaxLogYJump == 0.031);
+assert(overrideResult.options.atlasMaxRelativeCpJump == 0.021);
+assertIntermediateSchema(overrideResult);
+assertTrackingConsistency(overrideResult);
+
+fallbackParams = representativeParams(logspace(log10(1000), log10(15e3), 35));
+fallbackOptions = representativeOptions("Fast");
+fallbackOptions.atlasNumYPoints = 300;
+fallbackOptions.atlasTopNMinima = 12;
+fallbackOptions.useInternalAtlasTrackingGrid = false;
+fallbackOptions.invalidateAtlasFallbackOutput = true;
+fallbackResult = solveAcoustoelasticIOPHGOAtlasBranch(fallbackParams, fallbackOptions);
+assert(fallbackResult.reliability.SelectionFallbackUsed == true);
+assert(fallbackResult.reliability.A0StartFilterPassed == false);
+assert(any(isfinite(fallbackResult.fallbackCandidateCp)));
+assert(all(isnan(fallbackResult.Cp)));
+assert(all(~fallbackResult.validCp));
+assert(all(fallbackResult.pointStatus == "fallbackRejectedA0StartFilter"));
+
+fprintf('AE tracking and policy characterization passed.\n');
+end
+
+function assertIntermediateSchema(result)
+minimaNames = {'Frequency_Hz', 'Frequency_kHz', 'MinRank', 'Cp_mps', ...
+    'y', 'log10y', 'Objective', 'DepthRelativeToMedian', ...
+    'DepthRelativeToDeepest', 'SpacingToNearestLogY', 'BranchID'};
+branchNames = {'BranchID', 'NumPoints', 'FrequencyStart_Hz', ...
+    'FrequencyEnd_Hz', 'FrequencyStart_kHz', 'FrequencyEnd_kHz', ...
+    'FrequencyCoverage_kHz', 'CpStart_mps', 'CpEnd_mps', 'YStart', ...
+    'YEnd', 'StartRank', 'EndRank', 'MinCp_mps', 'MaxCp_mps', ...
+    'MedianCp_mps', 'MedianY', 'MedianRank', 'MedianObjective', ...
+    'MedianSpacingToNearestLogY', 'NetCpIncrease_mps', 'NumCpDrops', ...
+    'MaxCpDrop_mps', 'MaxRelativeCpDrop', 'Roughness', ...
+    'A0StartFilterPassed', 'SelectionScore', 'SelectionFallbackUsed'};
+
+assert(isequal(result.minimaTable.Properties.VariableNames, minimaNames));
+if ~isempty(result.branchTable)
+    assert(isequal(result.branchTable.Properties.VariableNames, branchNames));
+end
+assert(size(result.objectiveMap, 2) == numel(result.frequency));
+assert(isequal(size(result.Cp), size(result.frequency)));
+assert(isequal(size(result.validCp), size(result.frequency)));
+end
+
+function assertDiscreteMinima(result)
+if isempty(result.minimaTable)
+    return;
+end
+[isGridPoint, gridIndex] = ismember(result.minimaTable.Cp_mps, result.cGrid);
+assert(all(isGridPoint), 'Unrefined minima must remain on the atlas cGrid.');
+for row = 1:height(result.minimaTable)
+    column = find(result.frequency == result.minimaTable.Frequency_Hz(row), 1);
+    assert(~isempty(column));
+    assert(result.objectiveMap(gridIndex(row), column) == result.minimaTable.Objective(row));
+end
+frequencies = unique(result.minimaTable.Frequency_Hz, 'stable');
+for i = 1:numel(frequencies)
+    rows = result.minimaTable.Frequency_Hz == frequencies(i);
+    assert(isequal(result.minimaTable.MinRank(rows), (1:nnz(rows)).'));
+end
+end
+
+function assertTrackingConsistency(result)
+if isempty(result.branchTable)
+    assert(isnan(result.selectedBranchID));
+    assert(isempty(result.selectedBranch));
+    assert(isempty(result.selectedBranchPoints));
+    return;
+end
+
+assert(height(result.selectedBranch) == 1);
+assert(result.selectedBranch.BranchID == result.selectedBranchID);
+assert(all(result.selectedBranchPoints.BranchID == result.selectedBranchID));
+assert(isequal(result.selectedBranchPoints.Frequency_Hz, ...
+    sort(result.selectedBranchPoints.Frequency_Hz)));
+selectedRow = result.branchTable.BranchID == result.selectedBranchID;
+assert(nnz(selectedRow) == 1);
+assert(result.branchTable.SelectionScore(selectedRow) == ...
+    min(result.branchTable.SelectionScore));
+assert(all(isfinite(result.minimaTable.BranchID) | isnan(result.minimaTable.BranchID)));
+assert(all(result.validCp == (isfinite(result.Cp) & ...
+    (result.branchExistsAtFrequency | result.interpolatedCp))));
+end
+
+function params = representativeParams(frequency)
+params = struct('R', 7.8e-3, 'thickness', 550e-6, 'mu', 50e3, ...
+    'k1', 25e3, 'k2', 100, 'rho', 1060, 'rhoF', 1000, ...
+    'fluidBulkModulus', 2.2e9, 'frequency', frequency, 'IOP', 15 * 133.322);
+end
+
+function options = representativeOptions(profile)
+options = defaultAcoustoelasticIOPHGOOptions();
+options = aeResolveConfiguration(options, 'NumericalPreset', profile);
+options.M54_variant = "corrected";
+options.normalizeRows = false;
+options.usePhysicalCpWindow = false;
+options.atlasBranchPolicy = "atlasA0";
+options.invalidateAtlasFallbackOutput = false;
+end

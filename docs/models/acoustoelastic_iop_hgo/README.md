@@ -42,6 +42,13 @@ characterized top-level fields as a compatibility surface. No new
 `result.debug` nesting was introduced because that would change the public
 schema.
 
+Production atlas construction, minima detection, branch linking/splitting,
+official selection, and fallback rejection are model-owned respectively by
+`aeBuildAtlas`, `aeFindAtlasLocalMinima`, `aeLinkAtlasBranches`,
+`aeSplitAtlasBranches`, `aeSelectAtlasA0Branch`, and
+`aeApplyAtlasA0FallbackPolicy`. These are internal ownership boundaries; the
+public solver entrypoints and exact `atlasA0` behavior are unchanged.
+
 ## Recommended user-facing commands
 
 From the repository root:

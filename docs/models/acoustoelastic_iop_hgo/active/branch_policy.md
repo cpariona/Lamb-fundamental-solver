@@ -55,6 +55,22 @@ Under this policy, the solver:
 6. Does not interpolate or reconnect missing high-frequency portions by default.
 7. Reports missing or untraceable portions as `NaN` in `result.Cp` and `false` in `result.validCp`.
 
+The maintained production ownership path is:
+
+```text
+aeBuildAtlas
+  -> aeFindAtlasLocalMinima
+  -> aeLinkAtlasBranches
+       -> aeSplitAtlasBranches
+  -> aeSelectAtlasA0Branch
+  -> aeApplyAtlasA0FallbackPolicy when the selected fallback is rejected
+  -> aeBuildResult / aeEvaluateAtlasA0Quality
+```
+
+These internal boundaries preserve the existing algorithm and numerical
+values. They do not create a second policy or make diagnostic trackers part of
+production.
+
 ## Internal tracking grid versus output grid
 
 The IOP/HGO wrapper separates branch identity selection from the requested output grid:

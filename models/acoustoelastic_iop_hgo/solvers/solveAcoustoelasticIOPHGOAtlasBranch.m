@@ -31,7 +31,7 @@ result = solveWithInternalTrackingGrid(directParams, options);
 spec = rebuildSpec(result);
 spec.postSummaryFields = struct('constitutiveState', state, 'directParams', directParams);
 result = aeBuildResult(spec);
-result = invalidateFallbackOutputIfNeeded(result);
+result = applyFallbackPolicyAndRebuild(result);
 end
 
 function result = solveWithInternalTrackingGrid(directParams, options)
@@ -122,35 +122,11 @@ if isfield(trackingResult, 'identityA0')
 end
 end
 
-function result = invalidateFallbackOutputIfNeeded(result)
-if ~isfield(result, 'options') || ~isfield(result.options, 'invalidateAtlasFallbackOutput') || ...
-        ~logical(result.options.invalidateAtlasFallbackOutput)
+function result = applyFallbackPolicyAndRebuild(result)
+[result, fallbackInvalidated] = aeApplyAtlasA0FallbackPolicy(result);
+if ~fallbackInvalidated
     return;
 end
-
-if ~isfield(result, 'reliability') || ~isfield(result.reliability, 'SelectionFallbackUsed') || ...
-        ~logical(result.reliability.SelectionFallbackUsed)
-    return;
-end
-
-% Fallback-selected branches remain useful diagnostic evidence, but they are
-% not accepted as official atlasA0 output because they failed the A0-like
-% start filters. Preserve selectedBranch, branchTable, minimaTable, and the
-% original branch points; invalidate only the official Cp/validCp surface.
-result.fallbackCandidateCp = result.Cp;
-result.fallbackCandidateValidCp = result.validCp;
-result.fallbackCandidateBranchExistsAtFrequency = result.branchExistsAtFrequency;
-result.fallbackCandidateInterpolatedCp = result.interpolatedCp;
-result.fallbackCandidatePointStatus = result.pointStatus;
-
-result.Cp(:) = nan;
-result.validCp(:) = false;
-result.branchExistsAtFrequency(:) = false;
-result.interpolatedCp(:) = false;
-result.objective(:) = nan;
-result.nearestRank(:) = nan;
-result.nearestBranchID(:) = nan;
-result.pointStatus(:) = "fallbackRejectedA0StartFilter";
 
 spec = rebuildSpec(result);
 spec.qualityNote = "Official atlasA0 output invalidated because branch selection used unfiltered fallback after A0-like start filters failed. Fallback candidate data are diagnostic-only.";
