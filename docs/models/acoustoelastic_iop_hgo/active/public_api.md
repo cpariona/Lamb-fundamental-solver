@@ -48,6 +48,28 @@ for the maintained atlas result schema, and `aeEvaluateAtlasA0Quality` is the
 sole owner of requested-grid reliability. Neither function performs branch
 selection, tracking, interpolation, fallback decisions, or numerical solving.
 
+## Production atlas, tracking, and policy ownership
+
+```matlab
+aeBuildAtlas
+aeFindAtlasLocalMinima
+aeLinkAtlasBranches
+aeSplitAtlasBranches
+aeSelectAtlasA0Branch
+aeApplyAtlasA0FallbackPolicy
+```
+
+These are maintained model internals, not additional user-facing solver
+routes. `aeBuildAtlas` owns only the configured grid and objective landscape.
+The three tracking helpers own production minima, linking, and splitting.
+`aeSelectAtlasA0Branch` owns the official low-start filters, score, tie-break,
+and selection-fallback metadata. `aeApplyAtlasA0FallbackPolicy` owns only the
+existing fallback rejection and diagnostic candidate retention; canonical
+result and quality owners rebuild the public surfaces afterward.
+
+Production tracking does not call the separate identity-A0, raw-branch,
+modal-atlas, branch-family, or truncation diagnostic algorithms.
+
 The maintained field classification is:
 
 | Classification | Fields |
@@ -173,6 +195,8 @@ test_ae_configuration_characterization
 test_ae_configuration_ownership
 test_ae_result_schema_characterization
 test_ae_result_ownership
+test_ae_tracking_policy_characterization
+test_ae_tracking_policy_ownership
 test_acoustoelastic_iop_hgo_atlasA0_smoke
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_fallback_invalidation

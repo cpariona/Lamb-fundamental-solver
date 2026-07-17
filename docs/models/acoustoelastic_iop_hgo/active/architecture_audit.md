@@ -97,7 +97,7 @@ owner` is proposed and must not be read as a completed move.
 
 ## Complete maintained-file inventory
 
-### Model layer: 20 files
+### Model layer: 30 files
 
 | Current folder | MATLAB identifier | Responsibility | Direct callers | Direct repository dependencies | Classification | Production/diagnostic | Future owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -116,8 +116,14 @@ owner` is proposed and must not be read as a completed move.
 | `options/` | `defaultAcoustoelasticIOPHGOOptions` | Public base defaults for direct, tracking, policy, and diagnostics | configuration resolver; AE workflows and solvers | branch-policy normalizer | public production API | production | `options/` |
 | `options/` | `aeNormalizeBranchPolicy` | Accept only `atlasA0` and `identityA0Diagnostic` | defaults, atlas solver, fitting, policy tests | none | advanced supported API | production and diagnostic | `policies/` |
 | `solvers/` | `solveAcoustoelasticIOPHGOBranch` | Recommended IOP/HGO convenience entrypoint | Main GUI, sweeps, diagnostics, validation | IOP/HGO atlas wrapper | public production API | production | `api/` |
-| `solvers/` | `solveAcoustoelasticIOPHGOAtlasBranch` | Delegate validation/config/grid, build constitutive state, project decided output, apply fallback invalidation | primary branch API, basic example, fitting, tests | canonical configuration, result, and quality owners; constitutive builder; direct atlas solver | public production API | production | `solvers/` behind primary API; policy extraction remains later |
-| `solvers/` | `solveAcoustoelasticAtlasBranch` | Build objective atlas; find/link/split/select branches; pass decided artifacts to canonical result owner | IOP/HGO atlas wrapper | canonical configuration/result/quality owners; residual; diagnostic identity extension | advanced supported API | production with explicit diagnostic option | `solvers/`, with tracking/policy extracted later |
+| `solvers/` | `solveAcoustoelasticIOPHGOAtlasBranch` | Validate/configure, build constitutive state, select internal grid, project requested output, apply fallback policy, rebuild result/quality | primary branch API, basic example, fitting, tests | canonical configuration, atlas solver, fallback policy, result, quality, and diagnostic identity owners | public production API | production | `solvers/` behind primary API |
+| `solvers/` | `solveAcoustoelasticAtlasBranch` | Orchestrate atlas construction, minima, linking/splitting, selection, assignment, and canonical result construction | IOP/HGO atlas wrapper | canonical atlas, tracking, policy, result, quality, and diagnostic identity owners | advanced supported API | production with explicit diagnostic option | `solvers/` |
+| `solvers/` | `aeBuildAtlas` | Construct the configured y/Cp grid and exact production objective map | direct atlas solver | real residual; resolved options | maintained internal | production | `solvers/` |
+| `tracking/` | `aeFindAtlasLocalMinima` | Detect, optionally refine, rank, and retain production minima for one atlas column | direct atlas solver; focused ownership tests | objective column; configured top-N/refinement | maintained internal | production | `tracking/` |
+| `tracking/` | `aeLinkAtlasBranches` | Link ranked minima, invoke configured splitting, and assemble the branch table | direct atlas solver; focused ownership tests | split owner; tracking options | maintained internal | production | `tracking/` |
+| `tracking/` | `aeSplitAtlasBranches` | Split linked branches at large relative Cp jumps and retain qualifying segments | branch-link owner; focused ownership tests | configured jump and minimum-point values | maintained internal | production | `tracking/` |
+| `policies/` | `aeSelectAtlasA0Branch` | Apply low-start filters, exact scoring/tie-break, and unfiltered-selection fallback metadata | direct atlas solver; focused ownership tests | branch table; resolved policy options | maintained internal | production | `policies/` |
+| `policies/` | `aeApplyAtlasA0FallbackPolicy` | Preserve fallback candidate evidence and invalidate only the decided official surface | IOP/HGO atlas wrapper; focused ownership tests | selected result and fallback decision metadata | maintained internal | production | `policies/` |
 | `quality/` | `aeEvaluateAtlasA0Quality` | Summarize already-decided official output on the current requested grid | canonical result builder | decided result artifacts and optional prior tracking metadata | maintained internal | production | `quality/` |
 | `results/` | `aeBuildResult` | Construct and rebuild the characterized atlas result schema and stable diagnostics summary | atlas solver and IOP/HGO wrapper | quality owner; already-decided artifacts | maintained internal | production | `results/` |
 | `results/` | `aeBuildIdentityA0DiagnosticBranch` | Build separate identity-scored diagnostic extension | explicit identity policy in atlas paths; diagnostics | identity scorer; decided solver evidence | diagnostic-only | diagnostic | `results/` diagnostic extension |
@@ -197,7 +203,7 @@ repeatable value; Phase 1 does not delete them.
 | same | `validate_idA0_score_grid` | Heavy identity-score grid | user | shared identity defaults; branch API; score helper | diagnostic-only | diagnostic | same |
 | same | `validate_idA0_grid` | Heavy official/identity parity grid | user | shared identity defaults; branch API | diagnostic-only | diagnostic | same |
 
-### Model tests: 13 files
+### Model tests: 17 files
 
 | Current folder | MATLAB identifier | Responsibility | Canonical owner | Direct dependencies | Classification | Future owner |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -214,6 +220,10 @@ repeatable value; Phase 1 does not delete them.
 | same | `test_acoustoelastic_iop_hgo_internal_tracking_grid` | Internal/requested-grid contract | `run_ae_extended_tests` | atlas wrapper | test or validation owner | configuration/tracking tests |
 | same | `test_acoustoelastic_iop_hgo_atlasA0_smoke` | Representative atlas solve | `run_ae_extended_tests` | atlas wrapper | test or validation owner | solver regression tests |
 | same | `test_ae_fit_synthetic_atlasA0` | Synthetic fit and evaluator parity | `run_ae_extended_tests` | fit/evaluator/defaults | test or validation owner | fitting tests |
+| same | `test_ae_result_schema_characterization` | Exact atlas/wrapper/result/quality/diagnostic schema and workflow surfaces | `run_ae_extended_tests` | canonical result/quality owners and maintained workflows | test or validation owner | result regression tests |
+| same | `test_ae_result_ownership` | Canonical result/quality ownership and model-to-analysis boundary | `run_ae_extended_tests` | model source/path inspection | test or validation owner | result ownership tests |
+| same | `test_ae_tracking_policy_characterization` | Pre-extraction profiles, objective/grid/minima/link/selection/fallback path | `run_ae_extended_tests` | maintained public solver result only | test or validation owner | tracking/policy regression tests |
+| same | `test_ae_tracking_policy_ownership` | Canonical owner paths, removed local implementations, and focused helper contracts | `run_ae_extended_tests` | six Phase-4 owners; source/path inspection | test or validation owner | tracking/policy ownership tests |
 
 ### Documentation: 16 files
 
@@ -512,7 +522,7 @@ Different AE function names and its constitutive/atlas concepts are not
 themselves problems. The problems are duplicated authority, reversed layer
 dependencies, and result/policy mutation spread across owners.
 
-## Phase 1 findings and Phase 2 disposition
+## Phase 1 findings and implemented dispositions
 
 1. **Configuration and numerical presets were cross-layer.** Resolved in
    Phase 2 by `aeResolveConfiguration` and `aeGetNumericalPreset`; analysis and
@@ -526,32 +536,29 @@ dependencies, and result/policy mutation spread across owners.
 4. **Requested/internal frequency ownership was mixed.** Grid construction is
    now owned by `aeBuildInternalTrackingGrid`; requested-grid projection stays
    in the wrapper because result ownership is Phase 3.
-5. **Atlas, tracking, selection, quality, and result construction are one
-   file.** `solveAcoustoelasticAtlasBranch` owns objective-map allocation,
-   `localMinima`, `linkBranches`, `splitBranchesOnLargeCpJump`, `selectBranch`,
-   assignment, reliability, diagnostics, and the returned schema.
-6. **Diagnostic code is a production dependency.** Both
-   `solveAcoustoelasticAtlasBranch` and the requested-grid wrapper call
-   `aeBuildIdentityA0DiagnosticBranch` under `analysis/`, reversing the
-   documented `models -> no analysis` dependency. The diagnostic helper then
-   calls `aeScoreBranchIdentityCandidates`. The Phase 1
-   `run_repository_hygiene_tests` execution passed, so the current dependency
-   guard does not expose this concrete call; Phase 3 needs a focused assertion
-   for the corrected boundary.
+5. **Atlas, tracking, selection, quality, and result construction were one
+   file.** Resolved in Phases 3 and 4. Atlas construction, production minima,
+   linking, splitting, selection, result, and requested-grid quality now have
+   one canonical model owner each. `solveAcoustoelasticAtlasBranch` retains
+   orchestration and selected-branch assignment only.
+6. **Diagnostic code was a production-layer dependency on `analysis/`.**
+   Resolved in Phase 3 by moving the explicitly requested diagnostic identity
+   builder/scorer behind model-owned diagnostic result helpers. Production
+   tracking remains distinct and has no `analysis/` dependency.
 7. **Diagnostic atlas logic is duplicated.**
    `aeComputeModalAtlasForCase` centralizes one route, but
    `validate_atlas_raw_grid`, `diagnose_raw_branch_corner`, and
    `diagnose_branch_families` retain script-local minima/link algorithms.
    This is acceptable only while they remain explicitly diagnostic variants;
    it is not a second production tracker.
-8. **Fallback invalidation mutates several schemas.**
-   `invalidateFallbackOutputIfNeeded` stores fallback candidates, clears
-   official fields, rewrites reliability, and rewrites diagnostics. Policy,
-   quality, and result responsibilities are inseparable there today.
-9. **Reliability is constructed twice.** The direct atlas solver builds
-   tracking-grid reliability; the IOP/HGO wrapper rewrites it for the
-   requested grid, then fallback invalidation rewrites it again.
-10. **Result normalization is layered but not bounded.** The model returns
+8. **Fallback invalidation mixed policy, quality, and schema ownership.**
+   Resolved in Phases 3 and 4. `aeApplyAtlasA0FallbackPolicy` changes only the
+   already-decided official fields and preserves diagnostic candidate evidence;
+   `aeBuildResult` and `aeEvaluateAtlasA0Quality` then rebuild their own data.
+9. **Reliability was constructed in multiple local paths.** Resolved in Phase
+   3 by the single `aeEvaluateAtlasA0Quality` owner invoked through
+   `aeBuildResult` for tracking-grid, requested-grid, and fallback decisions.
+10. **Result normalization remains layered but is now bounded.** The model returns
     public fields and large diagnostic internals at the same top level; Main
     GUI builds another raw-compatible branch; SweepTool and FitTool build
     different normalized shapes. App normalization is legitimate, but the
@@ -656,12 +663,12 @@ Rules for every later phase:
 | Primary atlas solver | `solveAcoustoelasticIOPHGOAtlasBranch` | retain supported name, subordinate to primary route | advanced supported | Useful explicit scientific boundary | 3/4 | Schema and numerics unchanged |
 | Direct real-Cp solver | `solveAcoustoelasticIOPHGODispersion` / `solveAcoustoelasticDispersion` | retain | advanced supported | Legitimate diagnostic/scientific route | 6 | Do not promote to primary production |
 | Complex-C solver | `solveAcoustoelasticComplexCDispersion` | retain | advanced supported | Legitimate distinct algorithm | 6 | Diagnostic/advanced status explicit |
-| Atlas construction | local in `solveAcoustoelasticAtlasBranch` | `solvers/aeBuildAtlas` | internal | Separate solve artifact from tracking/result | 4 | Objective map exact parity |
-| Production minima | `localMinima` local | `tracking/aeFindAtlasLocalMinima` | internal | One production owner | 4 | Exact candidates/ranks/objectives |
-| Branch linking | `linkBranches` local | `tracking/aeLinkAtlasBranches` | internal | One production owner | 4 | Exact IDs and tables |
-| Branch splitting | `splitBranchesOnLargeCpJump` local | `tracking/aeSplitAtlasBranches` | internal | Named numerical responsibility | 4 | Exact jump behavior |
-| Official selection | `selectBranch` local | `policies/aeSelectAtlasA0Branch` | internal | Explicit policy owner | 4 | Exact filter, score, fallback choice |
-| Fallback invalidation | wrapper local | `policies/aeApplyAtlasA0FallbackPolicy` | internal | Decision separated from schema mutation | 3/4 | Exact `atlasA0` invalidation and diagnostic candidates |
+| Atlas construction | `solvers/aeBuildAtlas` | retain | internal | Separate solve artifact from tracking/result | implemented 4 | Objective map exact parity |
+| Production minima | `tracking/aeFindAtlasLocalMinima` | retain | internal | One production owner | implemented 4 | Exact candidates/ranks/objectives |
+| Branch linking | `tracking/aeLinkAtlasBranches` | retain | internal | One production owner | implemented 4 | Exact IDs and tables |
+| Branch splitting | `tracking/aeSplitAtlasBranches` | retain | internal | Named numerical responsibility | implemented 4 | Exact jump behavior |
+| Official selection | `policies/aeSelectAtlasA0Branch` | retain | internal | Explicit policy owner | implemented 4 | Exact filter, score, fallback choice |
+| Fallback invalidation | `policies/aeApplyAtlasA0FallbackPolicy` | retain | internal | Decision separated from schema rebuilding | implemented 4 | Exact `atlasA0` invalidation and diagnostic candidates |
 | Reliability | two local summarizers | `quality/aeEvaluateAtlasA0Quality` | internal | One requested-grid quality owner | 3 | Exact field/value parity |
 | Public result | built in two solvers | `results/aeBuildResult` | internal | Stable schema boundary | 3 | Field, shape, value, NaN, mask parity |
 | Debug payload | top-level internals and `diagnostics` | `results/aeBuildDebugResult` | internal | Explicit unstable boundary | 3 | Preserve maintained diagnostic access during migration |
@@ -788,10 +795,10 @@ suggestions only and must be created from the then-current `origin/main`.
 
 ## Implemented phases and next approval boundary
 
-Phases 2 and 3 implemented configuration, request validation, numerical
-preset, internal-grid, result, and requested-grid quality ownership. Do not
-begin **Phase 4 - production tracking and policy ownership** without
-repository-owner approval.
+Phases 2, 3, and 4 implemented configuration, request validation, numerical
+preset, internal-grid, result, requested-grid quality, production atlas,
+tracking, selection, and fallback-policy ownership. Do not begin **Phase 5 -
+workflow and app-adapter alignment** without repository-owner approval.
 
 Bounded parity requirements:
 
