@@ -26,3 +26,8 @@ The diagnostic identity builder and scorer are located under
 production-model dependency on `analysis/` while retaining their diagnostic
 classification. They are executed only for an explicit
 `identityA0Diagnostic` request and cannot replace official `atlasA0` output.
+
+Reusable diagnostic helpers retained without production callers are classified
+in [`../active/architecture.md`](../active/architecture.md). They remain
+scientific evidence infrastructure or intentionally dormant supported helpers;
+they do not define an alternate solver route.

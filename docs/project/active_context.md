@@ -1,10 +1,10 @@
 # Active project context
 
-Last reviewed: 2026-07-16
+Last reviewed: 2026-07-17
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Last merged AE architecture change: PR #125, commit
-`9eabe110d586fe78cbf9692806b8f26233249bcf`
+Last merged AE architecture change: PR #126, commit
+`816e74e2190a159063838517c39e2c98c60674a3`
 
 ## Current architecture
 
@@ -26,56 +26,40 @@ run_repository_hygiene_tests
 - Rayleigh-Lamb, mRLFE, and AE IOP/HGO use their maintained public model APIs.
 - Main GUI, SweepTool, and FitTool route through app adapters.
 - mRLFE production consumers route through `mrlfeSolve`.
+- AE production consumers route through `solveAcoustoelasticIOPHGOBranch`.
 - AE production output remains the conservative `atlasA0` branch.
-- AE request validation, effective configuration, numerical presets, and
-  internal tracking-grid construction now have canonical model-layer owners.
-- AE atlas results and requested-grid reliability now have canonical
-  model-layer owners; stable diagnostics remain separate from retained
-  top-level internal/debug evidence.
-- AE production tracking, splitting, selection, and fallback invalidation have
-  canonical model-layer owners.
-- Phase 5 aligns Main GUI, SweepTool, FitTool, maintained fitting/grid-sweep
-  evaluation, and the basic example on `solveAcoustoelasticIOPHGOBranch`
-  without changing their characterized output schemas.
+- AE configuration, atlas construction, production tracking, policies, quality,
+  result construction, workflows, and app adapters have canonical owners.
+- The AE architecture alignment is complete. Its final contract is
+  `docs/models/acoustoelastic_iop_hgo/active/architecture.md`.
 - Current fitting and sweep behavior is documented under `docs/workflows/`.
-- Repository structure, naming, documentation ownership, and test ownership
-  were consolidated and guarded by PR #119.
-- Main GUI, SweepTool, and FitTool were manually reviewed after that cleanup;
-  no broken route was observed.
 
 ## Current technical constraints
 
 - Preserve solver physics, numerical presets, grids, policies, and tolerances.
-- Preserve fitting, sweep, and GUI behavior unless a focused task authorizes change.
+- Preserve fitting, sweep, GUI, output, and result-schema behavior unless a
+  focused task authorizes change.
 - Use Git history for completed migrations, audits, and task reports.
-- Do not add compatibility aliases without an explicit public-use contract and removal condition.
-- Start each implementation task from an updated `origin/main` on a new branch.
+- Do not add compatibility aliases without an explicit public-use contract and
+  removal condition.
+- Start each implementation task from updated `origin/main` on a new branch.
 - Do not open a PR until focused validation and manual review are complete.
 
 ## Current objective
 
-Phase 5 aligns AE workflow and app consumers on
-`refactor/ae-workflow-adapter-alignment`. Exact characterization covers Main
-GUI requests/configuration/normalized output, SweepTool points and aggregate
-metadata, FitTool evaluation and summaries, and the basic example.
+The AE architecture migration is closed. New work must be selected as an
+independent technical task and preserve the final ownership contract.
 
 ## Open technical areas
 
-1. **AE architecture alignment** - Phases 2-4 are merged. Phase 5 workflow and
-   app-adapter alignment is complete on its review branch. Phase 6 remains a
-   separate approval boundary.
-2. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
+1. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
    documented in
    `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`.
-   This numerical issue is separate from the architecture audit and must not be
-   modified during it.
-3. **mRLFE runtime characterization** — a manual post-cleanup review suggested
-   that mRLFE may feel slower, but static comparison found no change to presets,
-   frequency-grid construction, scan-point counts, candidates, adaptive windows,
-   profile mapping, or maintained solver/tracking code. A controlled benchmark
-   is required before treating this as a regression.
-4. **Bounded compatibility debt** — retained aliases and wrappers, their owners,
-   consumers, and removal conditions are listed in
+   This is numerical work, not architecture cleanup.
+2. **mRLFE runtime characterization** — a controlled benchmark is required
+   before treating perceived runtime changes as a regression.
+3. **Bounded compatibility debt** — retained aliases, wrappers, and
+   canonical-first legacy reads are listed in
    `docs/repository/validation_status.md`.
 
-No Phase 6 work is currently authorized.
+Architecture finalization does not authorize numerical AE refinement.

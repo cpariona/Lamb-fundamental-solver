@@ -1,5 +1,5 @@
 function test_ae_tracking_policy_ownership()
-%TEST_AE_TRACKING_POLICY_OWNERSHIP Verify Phase-4 model-layer ownership.
+%TEST_AE_TRACKING_POLICY_OWNERSHIP Verify canonical model-layer ownership.
 
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 modelRoot = fullfile(repoRoot, 'models', 'acoustoelastic_iop_hgo');

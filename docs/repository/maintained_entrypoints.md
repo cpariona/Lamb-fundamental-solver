@@ -55,15 +55,22 @@ rlSolveFundamentalBranch
 
 ### Acoustoelastic IOP/HGO
 
+Primary production API:
+
 ```matlab
 solveAcoustoelasticIOPHGOBranch
+defaultAcoustoelasticIOPHGOOptions
+aeNormalizeBranchPolicy
+```
+
+Advanced supported scientific APIs:
+
+```matlab
 solveAcoustoelasticIOPHGOAtlasBranch
 solveAcoustoelasticAtlasBranch
 solveAcoustoelasticIOPHGODispersion
 solveAcoustoelasticDispersion
 solveAcoustoelasticComplexCDispersion
-defaultAcoustoelasticIOPHGOOptions
-aeNormalizeBranchPolicy
 ```
 
 The supported production policy is `atlasA0`. Diagnostic branches are not
@@ -237,10 +244,13 @@ Maintained diagnostic-analysis helpers include:
 
 ```matlab
 summarizeAcoustoelasticIOPHGOTrackingQuality
+aePlotGridSweepCp
 aeScoreBranchIdentityCandidates
 aeBuildIdentityA0DiagnosticBranch
 aeDiagnoseAtlasA0TruncationCause
 aeAnalyzeBranchPersistenceCandidates
+aeAnalyzeFirstUnrecoveredBreak
+aeClassifyTruncationRecovery
 aeRefineAtlasA0BranchPersistence
 aeClassifyAmbiguityRegime
 aeExtractRawBranch1Candidate
@@ -289,6 +299,12 @@ elasticFromLame
 aeResolveConfiguration
 aeValidateRequest
 aeBuildInternalTrackingGrid
+aeBuildAtlas
+aeFindAtlasLocalMinima
+aeLinkAtlasBranches
+aeSplitAtlasBranches
+aeSelectAtlasA0Branch
+aeApplyAtlasA0FallbackPolicy
 aeEvaluateAtlasA0Quality
 aeBuildResult
 objectiveAcoustoelasticResidual

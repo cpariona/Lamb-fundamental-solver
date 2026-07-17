@@ -107,7 +107,7 @@ run_acoustoelastic_smoke_tests
 | `active/sweep_workflow.md` | Sweep workflow documentation. |
 | `active/fitting_workflow.md` | Fitting workflow documentation. |
 | `active/solver_pending_work.md` | Pending solver-side numerical work. |
-| `active/architecture_audit.md` | Architecture inventory, target responsibility map, stable naming plan, Phase 2 implementation disposition, and later-phase proposal. |
+| `active/architecture.md` | Final production routes, responsibility ownership, advanced APIs, diagnostic separation, and bounded compatibility debt. |
 | `diagnostics/README.md` | Inventory and purpose of repeatable diagnostics. |
 
 ## Structure convention
