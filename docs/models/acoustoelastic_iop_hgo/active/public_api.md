@@ -4,10 +4,15 @@ The supported acoustoelastic IOP/HGO API is author-neutral. Maintained code, exa
 
 The former author-specific compatibility layer and legacy branch-policy aliases have been removed. Do not add new compatibility wrappers or call removed names from active MATLAB code.
 
-## Primary solver entrypoints
+## Primary production solver entrypoint
 
 ```matlab
 solveAcoustoelasticIOPHGOBranch
+```
+
+## Advanced supported scientific solver APIs
+
+```matlab
 solveAcoustoelasticIOPHGOAtlasBranch
 solveAcoustoelasticAtlasBranch
 solveAcoustoelasticIOPHGODispersion
@@ -82,11 +87,10 @@ The maintained field classification is:
 | Diagnostic-only extension | `identityA0`; external `raw_branch1` and `branch_families` diagnostic products |
 | Compatibility surface | `fallbackCandidateCp`, `fallbackCandidateValidCp`, `fallbackCandidateBranchExistsAtFrequency`, `fallbackCandidateInterpolatedCp`, `fallbackCandidatePointStatus` |
 
-The unstable evidence remains top-level in Phase 3 because moving it under a
-new `result.debug` field would break the exact schema contract. It may move
-only after all maintained and external consumers are characterized in a later
-approved phase. Fallback candidate fields remain until diagnostic/result-file
-consumers no longer require the rejected candidate evidence.
+The unstable evidence remains top-level because moving it under a new
+`result.debug` field would break the exact schema contract. Fallback candidate
+fields remain until diagnostic and saved-result consumers no longer require
+the rejected candidate evidence.
 
 ## Constitutive helpers
 
@@ -112,12 +116,15 @@ objectiveAcoustoelasticComplexDeterminant
 aeRunSweep
 aeSummarizeSweep
 summarizeAcoustoelasticIOPHGOTrackingQuality
+aePlotGridSweepCp
 aeOutputFolder
 aeResolveResultFile
 aeScoreBranchIdentityCandidates
 aeBuildIdentityA0DiagnosticBranch
 aeDiagnoseAtlasA0TruncationCause
 aeAnalyzeBranchPersistenceCandidates
+aeAnalyzeFirstUnrecoveredBreak
+aeClassifyTruncationRecovery
 aeRefineAtlasA0BranchPersistence
 aeClassifyAmbiguityRegime
 aeExtractRawBranch1Candidate
@@ -199,6 +206,8 @@ track_raw_branch1
 test_acoustoelastic_iop_hgo_branch_policy_validation
 test_ae_configuration_characterization
 test_ae_configuration_ownership
+test_ae_final_architecture_contract
+test_ae_result_file_compatibility
 test_ae_result_schema_characterization
 test_ae_result_ownership
 test_ae_tracking_policy_characterization

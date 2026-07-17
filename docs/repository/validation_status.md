@@ -78,17 +78,19 @@ analysis/test_inventory/runner_edges.csv
 analysis/test_inventory/test_runner_ownership.csv
 ```
 
-Current generated state: 112 tests, 43 canonical runner implementations, 9
-public compatibility wrappers, 3 test helpers, 233 graph edges, and 112
+Current generated state: 119 tests, 43 canonical runner implementations, 9
+public compatibility wrappers, 3 test helpers, 242 graph edges, and 119
 canonical owners. Validation reports 0 manual-only tests, 0 unowned tests, 0
 multiple canonical owners, 0 sibling direct overlaps, and 0 runner cycles.
 
-Current static reach is 19 tests from quick contracts, 54 from quick smoke, 14
-from numerical regression, 44 from extended integration, and 61 from the broad
+Current static reach is 19 tests from quick contracts, 58 from quick smoke, 17
+from numerical regression, 47 from extended integration, and 68 from the broad
 all-smoke aggregate.
 
-The two Phase 2 AE configuration tests are registered to `run_ae_quick_tests`;
-the deterministic inventory CSVs include their canonical ownership edges.
+AE configuration, result, tracking/policy, workflow-route, final-architecture,
+and result-file compatibility contracts are assigned to the maintained focused
+runners; the deterministic inventory CSVs include their canonical ownership
+edges.
 
 ## Compatibility debt
 
@@ -97,6 +99,6 @@ the deterministic inventory CSVs include their canonical ownership edges.
 | Nine public test wrappers | `tests/README.md`; `runRepositoryTestRunner` | Users and automation invoking the established public runner commands | Keeps public validation commands stable while canonical implementations live under `tests/runners/` | Remove only through an explicit public deprecation after external callers migrate. |
 | `robustness` request/control alias | `guiNormalizeExecutionProfile`; `guiNormalizeControlExecutionProfile` | Existing GUI controls, adapters, request builders, tests, and external request structs | Preserves the established profile field while `executionProfile` is canonical | Remove after all maintained and external producers emit only `executionProfile` and a release deprecation is complete. |
 | `result.diagnostics.rawInternalResult` | `mrlfeBuildResult` | No maintained production or numerical-test consumer; the public result-schema contract test verifies temporary alias availability and parity | Keeps the pre-debug-path diagnostic schema while `result.debug.rawInternalResult` is canonical | Remove only through an explicit schema-versioned compatibility change after external callers are considered. |
-| `aeResolveResultFile` legacy-result fallback | AE analysis layer | Seven maintained AE diagnostics reading previously generated workspaces | Reproduces current scientific diagnostics from both canonical and documented legacy output roots | Remove after required diagnostic fixtures are regenerated in canonical result roots and legacy inputs are no longer part of repeatable workflows. |
+| `aeResolveResultFile` legacy-result fallback | AE analysis layer | Five maintained diagnostic scripts at eight call sites reading previously generated workspaces | Resolves the canonical task/file first while preserving repeatability from explicitly supplied legacy result roots | Remove after required diagnostic fixtures are regenerated in canonical result roots, external legacy inputs have migrated, and focused plus manual loading checks pass. |
 
 No new compatibility alias is authorized by this table.

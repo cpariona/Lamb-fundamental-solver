@@ -10,6 +10,8 @@ fprintf('---------------------------------------------\n');
 test_acoustoelastic_iop_hgo_branch_policy_validation;
 test_ae_configuration_characterization;
 test_ae_configuration_ownership;
+test_ae_final_architecture_contract;
+test_ae_result_file_compatibility;
 test_ae_result_ownership;
 test_ae_analyze_truncation_recovery;
 test_acoustoelastic_iop_hgo_branch_persistence_refinement;
