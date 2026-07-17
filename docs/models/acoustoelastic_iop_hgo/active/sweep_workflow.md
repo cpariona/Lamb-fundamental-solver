@@ -34,6 +34,13 @@ aeDefaultSweepParams
 
 Public sweep scripts define only the physical campaign, display units, and task metadata. Reusable setup, solver, output, and plotting behavior remains in the maintained helpers.
 
+SweepTool translates display values and GUI controls in
+`guiRunAcoustoelasticIOPHGOSweep`, then delegates the campaign loop to
+`aeRunSweep`. Each condition makes one call to
+`solveAcoustoelasticIOPHGOBranch`; normalization consumes the returned
+`Cp`, `validCp`, `reliability`, and `diagnostics` without a second solve or
+quality reconstruction.
+
 The maintained one-parameter Cp figures use Alternative B plotting: `aeBuildSweepPlotData` adapts AE sweep results to neutral plot data, then `plotSweepCpFigure` renders the main Cp(f) axes and a separate right-side information panel for fixed parameters and sweep values. The swept parameter is omitted from the fixed-parameter block.
 
 ## Maintained campaigns

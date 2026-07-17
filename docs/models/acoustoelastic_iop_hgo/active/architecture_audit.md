@@ -153,7 +153,7 @@ owner` is proposed and must not be read as a completed move.
 | same | `aeOutputFolder` | Create canonical `Results/ae_iop_hgo/<task>` | examples, diagnostics, output writer | cross-model output resolver | workflow helper | production and diagnostic | analysis output |
 | same | `aeResolveResultFile` | Read canonical then documented legacy result file | seven diagnostics | filesystem only | compatibility surface | diagnostic | analysis output compatibility |
 | same | `aeBuildFitProblem` | Validate data, merge parameters, bounds, residual/objective closures | fit backend | shared fitting helpers; AE defaults/evaluator/policy | workflow helper | production workflow | analysis fitting |
-| same | `aeEvaluateFitModel` | Prepare flat inputs and evaluate official `atlasA0` | fit problem, example, explicit curve, tests | AE atlas wrapper; sweep options; policy | workflow helper | production workflow | analysis fitting; configuration delegated to model |
+| same | `aeEvaluateFitModel` | Prepare flat inputs and evaluate official `atlasA0` | fit problem, example, explicit curve, tests | primary AE branch API; configuration resolver; policy | workflow helper | production workflow | analysis fitting; configuration delegated to model |
 | same | `aeFitDispersionData` | Optimizer dispatch, metrics, sensitivity, fit result | FitTool adapter, fitting example/tests | fit problem; shared fit quality helpers | workflow helper | production workflow | analysis fitting |
 | same | `summarizeAcoustoelasticIOPHGOTrackingQuality` | Cross-result tracking summary | no maintained direct caller | none | diagnostic-only | diagnostic | analysis diagnostics |
 | same | `aeAnalyzeSweepReliability` | Truncation, consistency, monotonicity analysis | reliability diagnostic | sweep summary | diagnostic-only | diagnostic | analysis diagnostics |
@@ -180,7 +180,7 @@ repeatable value; Phase 1 does not delete them.
 
 | Current folder | MATLAB identifier | Responsibility | Direct callers | Direct repository dependencies | Classification | Production/diagnostic | Future owner |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `basic/` | `run_atlas_branch` | Minimal official branch run, MAT/PNG output | user | defaults; atlas wrapper; output folder | public production API | production example | `examples/.../basic/` |
+| `basic/` | `run_atlas_branch` | Minimal official branch run, MAT/PNG output | user | defaults; primary AE branch API; output folder | public production API | production example | `examples/.../basic/` |
 | `fitting/` | `fit_ae_atlasA0` | Synthetic official-branch fitting example | user | defaults; evaluator; fit backend | public production API | production example | `examples/.../fitting/` |
 | `sweeps/` | `ae_sweep_iop_A0Like` | Robust IOP campaign and outputs | user | shared AE sweep stack | public production API | production example | `examples/.../sweeps/` |
 | same | `ae_sweep_mu_A0Like` | Robust mu campaign and outputs | user | shared AE sweep stack | public production API | production example | same |
@@ -224,6 +224,12 @@ repeatable value; Phase 1 does not delete them.
 | same | `test_ae_result_ownership` | Canonical result/quality ownership and model-to-analysis boundary | `run_ae_extended_tests` | model source/path inspection | test or validation owner | result ownership tests |
 | same | `test_ae_tracking_policy_characterization` | Pre-extraction profiles, objective/grid/minima/link/selection/fallback path | `run_ae_extended_tests` | maintained public solver result only | test or validation owner | tracking/policy regression tests |
 | same | `test_ae_tracking_policy_ownership` | Canonical owner paths, removed local implementations, and focused helper contracts | `run_ae_extended_tests` | six Phase-4 owners; source/path inspection | test or validation owner | tracking/policy ownership tests |
+
+### Related app integration test
+
+| Current folder | MATLAB identifier | Responsibility | Canonical owner | Direct dependencies | Classification | Future owner |
+| --- | --- | --- | --- | --- | --- | --- |
+| `tests/app/gui/` | `test_ae_workflow_route_ownership` | Guard the public solver route for Main GUI, SweepTool, grid sweeps, fitting, and the basic example; reject low-level production calls | `run_gui_quick_tests` | source/path inspection of maintained AE consumers | test or validation owner | AE workflow integration tests |
 
 ### Documentation: 16 files
 
@@ -329,8 +335,10 @@ LambFundamental_GUI
                  -> aeResolveConfiguration
   -> guiRunAcoustoelasticIOPHGOModel
        -> defaultAcoustoelasticIOPHGOOptions + guiMergeStructs
-       -> guiNormalizeExecutionProfile
-       -> aeResolveConfiguration(surface = MainGUI)
+       -> aeResolveExecutionProfile(surface = MainGUI,
+                                    apply numerical preset = false)
+            -> guiNormalizeExecutionProfile
+            -> aeResolveConfiguration
        -> solveAcoustoelasticIOPHGOBranch
        -> [wavenumber, k-thickness, branch/result/diagnostic normalization]
   -> lastGuiResult for plotting
@@ -350,8 +358,8 @@ SweepTool_GUI
   -> guiRunAcoustoelasticIOPHGOSweep
        -> [buildAcoustoelasticBaseParams: defaults and 35-point grid]
        -> [buildAcoustoelasticOptions]
-            -> aeResolveExecutionProfile -> aeDefaultSweepOptions
-            -> [control overrides and repeated preset metadata inference]
+            -> aeResolveExecutionProfile(surface = SweepTool)
+            -> [GUI control overrides]
        -> aeRunSweep
             -> solveAcoustoelasticIOPHGOBranch per point
        -> aeSummarizeSweep
@@ -372,8 +380,8 @@ FitTool_GUI
   -> guiFitAcoustoelasticIOPHGOSolver
        -> guiBuildFitRequest (canonicalize)
        -> aeNormalizeBranchPolicy; require atlasA0
-       -> aeResolveExecutionProfile -> aeDefaultSweepOptions
-       -> [legacy explicit atlas-density/init overrides + repeated metadata]
+       -> aeResolveExecutionProfile(surface = FitTool)
+       -> [legacy explicit atlas-density/init overrides]
        -> aeFitDispersionData
             -> aeBuildFitProblem
                  -> validateExperimentalDispersionData
@@ -381,7 +389,7 @@ FitTool_GUI
                  -> shared parameter/residual helpers
                  -> aeEvaluateFitModel
                       -> [required flat-parameter and frequency validation]
-                      -> solveAcoustoelasticIOPHGOAtlasBranch
+                      -> solveAcoustoelasticIOPHGOBranch
             -> optimizer -> metrics -> sensitivity/identifiability
        -> guiNormalizeFitResult
        -> guiBuildFitDisplayCurve (no solver call)
@@ -393,7 +401,7 @@ The explicit **Evaluate fitted curve** route is:
 ```text
 guiEvaluateRequestedFitCurve
   -> aeEvaluateFitModel(final parameters, requested frequency)
-  -> solveAcoustoelasticIOPHGOAtlasBranch
+  -> solveAcoustoelasticIOPHGOBranch
 ```
 
 ### Maintained physical sweeps
@@ -558,20 +566,20 @@ dependencies, and result/policy mutation spread across owners.
 9. **Reliability was constructed in multiple local paths.** Resolved in Phase
    3 by the single `aeEvaluateAtlasA0Quality` owner invoked through
    `aeBuildResult` for tracking-grid, requested-grid, and fallback decisions.
-10. **Result normalization remains layered but is now bounded.** The model returns
-    public fields and large diagnostic internals at the same top level; Main
-    GUI builds another raw-compatible branch; SweepTool and FitTool build
-    different normalized shapes. App normalization is legitimate, but the
-    model needs a clear stable public/debug split first.
-11. **Fitting request construction crosses app and analysis.** The app
-    canonicalizes the generic request and resolves numerical options;
-    `aeBuildFitProblem` merges physical defaults and creates objectives;
-    `aeEvaluateFitModel` revalidates and forces policy/defaults. Optimizer and
-    shared fitting ownership are correct; model configuration is not.
-12. **Sweep request construction differs by surface.** Physical examples use
-    `aeDefaultSweepParams`/`aeDefaultSweepOptions`; SweepTool locally duplicates
-    physical defaults and its 35-point grid. Unit conversion is an app duty;
-    default physical/numerical ownership should be reusable and explicit.
+10. **Result normalization remains layered but is bounded.** Phase 5 retained
+    the characterized app schemas: Main GUI adapts plotting/export fields,
+    SweepTool builds aggregate curves/tables, and FitTool builds fit summaries.
+    All three consume canonical model `Cp`, `validCp`, reliability, and
+    diagnostics without rebuilding model quality or invoking a second solve.
+11. **Fitting request construction is now bounded by layer.** The app
+    canonicalizes generic FitTool input and selects the FitTool profile;
+    `aeBuildFitProblem` owns physical defaults, bounds, objectives, and
+    optimizer closures; `aeEvaluateFitModel` validates the fitting grid and
+    calls only the primary public AE solver.
+12. **Sweep request construction differs only where the surfaces differ.**
+    Physical examples own explicit scientific campaigns. SweepTool owns its
+    GUI defaults, 35-point interactive grid, unit conversion, and controls,
+    then delegates each condition to `aeRunSweep` and the public solver.
 13. **Output writing is correctly analysis-owned, with bounded debt.**
     `aeWriteSweepOutputs` and `aeOutputFolder` are correctly outside models.
     `aeResolveResultFile` and raw-extractor legacy names are compatibility
@@ -795,10 +803,15 @@ suggestions only and must be created from the then-current `origin/main`.
 
 ## Implemented phases and next approval boundary
 
-Phases 2, 3, and 4 implemented configuration, request validation, numerical
+Phases 2, 3, 4, and 5 implemented configuration, request validation, numerical
 preset, internal-grid, result, requested-grid quality, production atlas,
-tracking, selection, and fallback-policy ownership. Do not begin **Phase 5 -
-workflow and app-adapter alignment** without repository-owner approval.
+tracking, selection, fallback-policy, and workflow/app-adapter ownership.
+Phase 5 retained every characterized schema and numerical value while making
+Main GUI, SweepTool, FitTool, fitting/grid-sweep evaluation, and the basic
+example consumers of `solveAcoustoelasticIOPHGOBranch`.
+
+Do not begin **Phase 6 - remove proven redundancy and finalize documentation**
+without repository-owner approval after this branch is reviewed and merged.
 
 Bounded parity requirements:
 

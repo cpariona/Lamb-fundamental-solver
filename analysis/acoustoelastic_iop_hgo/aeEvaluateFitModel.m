@@ -29,7 +29,7 @@ frequencyInput = frequency_Hz(:).';
 aeValidateRequest(params, 'Context', "fitting", 'Frequency', frequencyInput);
 params.frequency = frequencyInput;
 
-solverResult = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
+solverResult = solveAcoustoelasticIOPHGOBranch(params, options);
 Cp_mps = solverResult.Cp(:);
 validMask = solverResult.validCp(:) & isfinite(Cp_mps);
 
