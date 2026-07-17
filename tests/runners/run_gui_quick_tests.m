@@ -16,6 +16,7 @@ test_gui_sweep_adapters_smoke;
 test_gui_sweep_registry_smoke;
 test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke;
 test_gui_acoustoelastic_iop_hgo_main_adapter_smoke;
+test_ae_workflow_route_ownership;
 test_gui_fit_registry_contract;
 test_fit_tool_model_registry_contract;
 

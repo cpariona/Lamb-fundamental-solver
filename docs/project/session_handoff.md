@@ -6,15 +6,16 @@ Updated: 2026-07-16
 
 - Repository: `cpariona/Lamb-fundamental-solver`
 - Default branch: `main`
-- Phase 3 base: `9ec95069ad3c7cd114e1120cd7a32cec6edac0ac`
-- Current branch: `refactor/ae-result-quality-boundary`
-- Current task: AE architecture alignment Phase 3
+- Phase 5 base: `9eabe110d586fe78cbf9692806b8f26233249bcf`
+- Current branch: `refactor/ae-workflow-adapter-alignment`
+- Current task: AE architecture alignment Phase 5
 - Merge status: pending repository-owner review; do not open a PR or merge
 - Next phase: not authorized
 
 ## Implemented ownership
 
-Phases 2-3 establish these canonical model-layer owners:
+Phases 2-4 establish canonical configuration, result/quality, tracking, and
+policy owners. Phase 5 aligns production consumers:
 
 ```text
 aeValidateRequest             maintained flat-request checks
@@ -23,6 +24,24 @@ aeGetNumericalPreset          Fast/Balanced/Robust and Main GUI bundle
 aeBuildInternalTrackingGrid   unchanged requested/internal grid algorithm
 aeEvaluateAtlasA0Quality      requested-grid quality/reliability summary
 aeBuildResult                 characterized atlas result schema
+aeFindAtlasLocalMinima        production atlas minima
+aeLinkAtlasBranches           production branch linking
+aeSplitAtlasBranches          production branch splitting
+aeSelectAtlasA0Branch         official atlasA0 selection
+aeApplyAtlasA0FallbackPolicy  fallback invalidation decision
+```
+
+Maintained production routes now use:
+
+```text
+Main GUI -> guiRunAcoustoelasticIOPHGOModel
+         -> solveAcoustoelasticIOPHGOBranch
+SweepTool -> guiRunAcoustoelasticIOPHGOSweep
+          -> aeRunSweep -> solveAcoustoelasticIOPHGOBranch per point
+FitTool -> guiFitAcoustoelasticIOPHGOSolver
+        -> aeFitDispersionData -> aeEvaluateFitModel
+        -> solveAcoustoelasticIOPHGOBranch
+basic example -> solveAcoustoelasticIOPHGOBranch
 ```
 
 Public signatures remain:
@@ -63,5 +82,6 @@ Read the implemented-state contract in
 public/configuration inventory in
 `docs/models/acoustoelastic_iop_hgo/active/public_api.md`.
 
-Do not begin Phase 4 from this branch. After repository-owner review and manual
-merge, create the separately approved branch from updated `origin/main`.
+Do not begin Phase 6 from this branch. After repository-owner review and manual
+merge, create the separately approved finalization branch from updated
+`origin/main`.

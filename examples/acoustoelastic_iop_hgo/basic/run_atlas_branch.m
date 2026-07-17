@@ -27,7 +27,7 @@ options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 options.atlasBranchPolicy = "atlasA0";
 
-result = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
+result = solveAcoustoelasticIOPHGOBranch(params, options);
 
 outputFolder = aeOutputFolder(launchFolder, 'atlas_branch');
 save(fullfile(outputFolder, 'atlas_branch_workspace.mat'), 'params', 'options', 'result');

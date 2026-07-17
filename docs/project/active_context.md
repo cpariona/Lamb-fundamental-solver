@@ -3,8 +3,8 @@
 Last reviewed: 2026-07-16
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Last merged AE architecture change: PR #123, commit
-`9ec95069ad3c7cd114e1120cd7a32cec6edac0ac`
+Last merged AE architecture change: PR #125, commit
+`9eabe110d586fe78cbf9692806b8f26233249bcf`
 
 ## Current architecture
 
@@ -32,6 +32,11 @@ run_repository_hygiene_tests
 - AE atlas results and requested-grid reliability now have canonical
   model-layer owners; stable diagnostics remain separate from retained
   top-level internal/debug evidence.
+- AE production tracking, splitting, selection, and fallback invalidation have
+  canonical model-layer owners.
+- Phase 5 aligns Main GUI, SweepTool, FitTool, maintained fitting/grid-sweep
+  evaluation, and the basic example on `solveAcoustoelasticIOPHGOBranch`
+  without changing their characterized output schemas.
 - Current fitting and sweep behavior is documented under `docs/workflows/`.
 - Repository structure, naming, documentation ownership, and test ownership
   were consolidated and guarded by PR #119.
@@ -49,19 +54,16 @@ run_repository_hygiene_tests
 
 ## Current objective
 
-Phase 3 establishes `aeBuildResult` and
-`aeEvaluateAtlasA0Quality` on `refactor/ae-result-quality-boundary`.
-Exact pre/post `isequaln` parity covers direct, IOP/HGO, public, internal-grid,
-identity-diagnostic, and fallback-invalidated results. Model code no longer
-depends on `analysis/` for identity diagnostics.
-
-Phase 4 tracking/policy extraction is not authorized.
+Phase 5 aligns AE workflow and app consumers on
+`refactor/ae-workflow-adapter-alignment`. Exact characterization covers Main
+GUI requests/configuration/normalized output, SweepTool points and aggregate
+metadata, FitTool evaluation and summaries, and the basic example.
 
 ## Open technical areas
 
-1. **AE architecture alignment** - Phases 2-3 configuration/result/quality
-   ownership are complete on their review branches; tracking/policy Phase 4
-   requires separate approval and a new branch.
+1. **AE architecture alignment** - Phases 2-4 are merged. Phase 5 workflow and
+   app-adapter alignment is complete on its review branch. Phase 6 remains a
+   separate approval boundary.
 2. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
    documented in
    `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`.
@@ -76,4 +78,4 @@ Phase 4 tracking/policy extraction is not authorized.
    consumers, and removal conditions are listed in
    `docs/repository/validation_status.md`.
 
-No work beyond Phase 3 is currently authorized.
+No Phase 6 work is currently authorized.

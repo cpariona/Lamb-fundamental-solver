@@ -25,12 +25,12 @@ end
 
 params = guiRequest.params;
 options = guiMergeStructs(defaultAcoustoelasticIOPHGOOptions(), guiGetStructField(guiRequest, 'options', struct()));
-[profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
+[options, profileMetadata] = aeResolveExecutionProfile(options, ...
     'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
-    'DefaultSource', "model default");
-options.executionProfile = profile;
-options.robustness = profile;
-[options, configurationMetadata] = aeResolveConfiguration(options, 'Surface', "MainGUI");
+    'DefaultSource', "model default", ...
+    'Surface', "MainGUI", ...
+    'Overrides', options, ...
+    'ApplyNumericalPreset', false);
 
 elapsedTimer = tic;
 rawResult = solveAcoustoelasticIOPHGOBranch(params, options);
@@ -51,18 +51,6 @@ result.metadata.rawResult = rawResult;
 result.metadata.adapter = mfilename;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.aeGuiAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
-profileMetadata.internalSolverPreset = "";
-profileMetadata.internalAtlasPreset = configurationMetadata.internalAtlasPreset;
-profileMetadata.aeGuiInteractivePreset = configurationMetadata.aeGuiInteractivePreset;
-profileMetadata.profileOverrideApplied = configurationMetadata.profileOverrideApplied;
-profileMetadata.profileOverrideReason = "";
-profileMetadata.routePolicy = configurationMetadata.routePolicy;
-profileMetadata.optimizerProfile = "";
-profileMetadata.atlasNumYPoints = configurationMetadata.atlasNumYPoints;
-profileMetadata.atlasTopNMinima = configurationMetadata.atlasTopNMinima;
-profileMetadata.supportedExecutionProfiles = ["Fast", "Balanced", "Robust"];
-profileMetadata.profileSupportMode = "fully_supported";
-profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
 result.metadata.executionProfile = profileMetadata;
 result.diagnostics = getFieldOrDefault(rawResult, 'diagnostics', struct());
 result.diagnostics.elapsedSeconds = elapsedSeconds;

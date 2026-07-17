@@ -151,6 +151,12 @@ aeFitDispersionData
 
 The maintained fitting route uses the official `atlasA0` output only. Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, and branch-family candidates are not accepted as fitting outputs.
 
+Maintained Main GUI solving, SweepTool points, fitting evaluations, grid
+sweeps, and the basic example all enter through
+`solveAcoustoelasticIOPHGOBranch`. The longer atlas entrypoints remain
+advanced supported model APIs; they are not parallel production routes for
+app or analysis consumers.
+
 ## Maintained public workflows
 
 ```matlab
