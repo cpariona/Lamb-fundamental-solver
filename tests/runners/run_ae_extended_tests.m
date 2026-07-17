@@ -8,6 +8,7 @@ fprintf('\nRunning extended acoustoelastic IOP/HGO tests...\n');
 fprintf('------------------------------------------------\n');
 
 test_ae_result_schema_characterization;
+test_ae_tracking_policy_characterization;
 test_acoustoelastic_iop_hgo_fallback_invalidation;
 test_acoustoelastic_iop_hgo_internal_tracking_grid;
 test_acoustoelastic_iop_hgo_atlasA0_smoke;
