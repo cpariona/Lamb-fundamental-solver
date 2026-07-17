@@ -4,8 +4,8 @@
 
 # Generated figures and local results
 figures/
-results/
-Results/
+/results/
+/Results/
 
 # Generated sweep/data artifacts
 *.png

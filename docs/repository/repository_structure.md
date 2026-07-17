@@ -70,8 +70,17 @@ models/
     |-- constitutive/
     |-- core/
     |-- options/
+    |-- quality/
+    |-- results/
     `-- solvers/
 ```
+
+For AE, `quality/aeEvaluateAtlasA0Quality` summarizes the already-decided
+official output on the requested grid. `results/aeBuildResult` is the only
+atlas-result schema builder. Diagnostic identity helpers remain explicitly
+diagnostic-only under `results/` so an explicitly requested diagnostic can
+be attached without a forbidden model-to-`analysis/` dependency; they do not
+participate in production branch selection.
 
 Campaign execution, summary-table aggregation, figures, output folders, GUI
 normalization, and application state do not belong in `models/`.

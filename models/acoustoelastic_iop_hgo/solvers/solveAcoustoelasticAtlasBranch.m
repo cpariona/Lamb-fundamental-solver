@@ -86,33 +86,37 @@ for k = 1:numel(frequency)
     end
 end
 
-result = struct();
-result.frequency = frequency;
-result.Cp = Cp;
-result.validCp = validCp;
-result.branchExistsAtFrequency = branchExistsAtFrequency;
-result.interpolatedCp = interpolatedCp;
-result.pointStatus = pointStatus;
-result.objective = objective;
-result.nearestRank = nearestRank;
-result.nearestBranchID = nearestBranchID;
-result.selectedBranchID = selectedBranchID;
-result.selectedBranch = selectedBranch;
-result.selectedBranchPoints = branchPoints;
-result.minimaTable = minimaTable;
-result.branchTable = branchTable;
-result.objectiveMap = objectiveMap;
-result.yGrid = yGrid(:);
-result.cGrid = cGrid(:);
-result.cShear = cShear;
-result.options = options;
-result.reliability = summarizeReliability(result);
-result.diagnostics = summarizeResult(result);
+fields = struct();
+fields.frequency = frequency;
+fields.Cp = Cp;
+fields.validCp = validCp;
+fields.branchExistsAtFrequency = branchExistsAtFrequency;
+fields.interpolatedCp = interpolatedCp;
+fields.pointStatus = pointStatus;
+fields.objective = objective;
+fields.nearestRank = nearestRank;
+fields.nearestBranchID = nearestBranchID;
+fields.selectedBranchID = selectedBranchID;
+fields.selectedBranch = selectedBranch;
+fields.selectedBranchPoints = branchPoints;
+fields.minimaTable = minimaTable;
+fields.branchTable = branchTable;
+fields.objectiveMap = objectiveMap;
+fields.yGrid = yGrid(:);
+fields.cGrid = cGrid(:);
+fields.cShear = cShear;
+fields.options = options;
+result = aeBuildResult(struct('fields', fields));
 
 if strcmpi(string(options.atlasBranchPolicy), "identityA0Diagnostic")
-    result.identityA0 = aeBuildIdentityA0DiagnosticBranch(result);
-    result.diagnostics.identityA0CandidateValidPoints = result.identityA0.summary.CandidateValidPoints;
-    result.diagnostics.identityA0AddedCandidatePoints = result.identityA0.summary.AddedCandidatePoints;
+    identity = aeBuildIdentityA0DiagnosticBranch(result);
+    spec = struct();
+    spec.baseResult = result;
+    spec.postSummaryFields = struct('identityA0', identity);
+    spec.diagnosticFields = struct( ...
+        'identityA0CandidateValidPoints', identity.summary.CandidateValidPoints, ...
+        'identityA0AddedCandidatePoints', identity.summary.AddedCandidatePoints);
+    result = aeBuildResult(spec);
 end
 end
 
@@ -421,56 +425,6 @@ for k = find(missing)
 end
 end
 
-function reliability = summarizeReliability(result)
-valid = result.validCp & isfinite(result.Cp);
-f = result.frequency;
-reliability = struct();
-reliability.PolicyName = string(result.options.atlasBranchPolicy);
-reliability.TotalPoints = numel(result.Cp);
-reliability.ValidPoints = nnz(valid);
-reliability.MissingPoints = nnz(~valid);
-reliability.ValidFraction = nnz(valid) / max(numel(result.Cp), 1);
-reliability.InterpolatedPoints = nnz(result.interpolatedCp);
-reliability.ExplicitBranchPoints = nnz(result.branchExistsAtFrequency);
-reliability.SelectedBranchID = result.selectedBranchID;
-if any(valid)
-    validF = f(valid);
-    reliability.FirstValidFrequency_Hz = validF(1);
-    reliability.FirstValidFrequency_kHz = validF(1)/1e3;
-    reliability.LastValidFrequency_Hz = validF(end);
-    reliability.LastValidFrequency_kHz = validF(end)/1e3;
-else
-    reliability.FirstValidFrequency_Hz = nan;
-    reliability.FirstValidFrequency_kHz = nan;
-    reliability.LastValidFrequency_Hz = nan;
-    reliability.LastValidFrequency_kHz = nan;
-end
-missingAfterStart = find(~valid & f >= reliability.FirstValidFrequency_Hz, 1, 'first');
-if isempty(missingAfterStart)
-    reliability.FirstMissingFrequency_Hz = nan;
-    reliability.FirstMissingFrequency_kHz = nan;
-else
-    reliability.FirstMissingFrequency_Hz = f(missingAfterStart);
-    reliability.FirstMissingFrequency_kHz = f(missingAfterStart)/1e3;
-end
-if ~isempty(result.selectedBranch)
-    reliability.A0StartFilterPassed = logical(result.selectedBranch.A0StartFilterPassed);
-    reliability.SelectionFallbackUsed = logical(result.selectedBranch.SelectionFallbackUsed);
-    reliability.YStart = result.selectedBranch.YStart;
-    reliability.StartRank = result.selectedBranch.StartRank;
-    reliability.CpStart_mps = result.selectedBranch.CpStart_mps;
-    reliability.MaxBranchRelativeCpDrop = result.selectedBranch.MaxRelativeCpDrop;
-else
-    reliability.A0StartFilterPassed = false;
-    reliability.SelectionFallbackUsed = false;
-    reliability.YStart = nan;
-    reliability.StartRank = nan;
-    reliability.CpStart_mps = nan;
-    reliability.MaxBranchRelativeCpDrop = nan;
-end
-reliability.ValidityNote = "Cp is considered reliable only where validCp is true; high-frequency NaNs mean the selected atlasA0 branch is not explicitly traceable under the current atlas criteria.";
-end
-
 function x = normMetric(x)
 x = x(:);
 mask = isfinite(x);
@@ -485,24 +439,4 @@ else
     x(mask) = (x(mask)-xmin)./(xmax-xmin);
 end
 x(~mask) = 1;
-end
-
-function diagnostics = summarizeResult(result)
-diagnostics = struct();
-diagnostics.validCpPoints = nnz(result.validCp);
-diagnostics.totalPoints = numel(result.Cp);
-diagnostics.explicitBranchPoints = nnz(result.branchExistsAtFrequency);
-diagnostics.interpolatedPoints = nnz(result.interpolatedCp);
-diagnostics.missingBranchPoints = nnz(~result.validCp);
-diagnostics.selectedBranchID = result.selectedBranchID;
-diagnostics.policyName = string(result.options.atlasBranchPolicy);
-diagnostics.lastValidFrequency_kHz = result.reliability.LastValidFrequency_kHz;
-diagnostics.validFraction = result.reliability.ValidFraction;
-if any(result.validCp)
-    diagnostics.minCp = min(result.Cp(result.validCp));
-    diagnostics.maxCp = max(result.Cp(result.validCp));
-    diagnostics.medianCp = median(result.Cp(result.validCp), 'omitnan');
-else
-    diagnostics.minCp = nan; diagnostics.maxCp = nan; diagnostics.medianCp = nan;
-end
 end

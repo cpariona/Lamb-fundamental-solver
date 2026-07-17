@@ -7,6 +7,9 @@ function identity = aeBuildIdentityA0DiagnosticBranch(result, varargin)
 %   The candidate branch starts from the official atlasA0 output and fills only
 %   missing frequencies where aeScoreBranchIdentityCandidates finds a strong or
 %   caution candidate.
+%
+% This model-adjacent helper remains a diagnostic-only extension. It does not
+% participate in atlasA0 selection or alter official result fields.
 
 score = aeScoreBranchIdentityCandidates(result, varargin{:});
 

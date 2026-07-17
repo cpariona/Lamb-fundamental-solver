@@ -36,6 +36,36 @@ resolver, validator, and grid builder are maintained model internals used by
 the public flat `params, options` entrypoints; they do not introduce a public
 request struct or a second solver route.
 
+## Result and quality ownership
+
+```matlab
+aeBuildResult
+aeEvaluateAtlasA0Quality
+```
+
+These are maintained model internals. `aeBuildResult` is the sole constructor
+for the maintained atlas result schema, and `aeEvaluateAtlasA0Quality` is the
+sole owner of requested-grid reliability. Neither function performs branch
+selection, tracking, interpolation, fallback decisions, or numerical solving.
+
+The maintained field classification is:
+
+| Classification | Fields |
+| --- | --- |
+| Stable public result | `frequency`, `Cp`, `validCp`, `pointStatus`, `objective`, `nearestRank`, `nearestBranchID`, `selectedBranchID` |
+| Stable public tracking metadata | `branchExistsAtFrequency`, `interpolatedCp`, `selectedBranch`, `selectedBranchPoints`, `requestedFrequency`, `internalAtlasTracking` |
+| Stable public quality/reliability summary | `reliability` and all of its characterized fields |
+| Stable diagnostics summary | `diagnostics` |
+| Unstable internal/debug evidence retained in place | `minimaTable`, `branchTable`, `objectiveMap`, `trackingObjectiveMap`, `trackingFrequency`, `yGrid`, `cGrid`, `cShear`, `options`, `constitutiveState`, `directParams` |
+| Diagnostic-only extension | `identityA0`; external `raw_branch1` and `branch_families` diagnostic products |
+| Compatibility surface | `fallbackCandidateCp`, `fallbackCandidateValidCp`, `fallbackCandidateBranchExistsAtFrequency`, `fallbackCandidateInterpolatedCp`, `fallbackCandidatePointStatus` |
+
+The unstable evidence remains top-level in Phase 3 because moving it under a
+new `result.debug` field would break the exact schema contract. It may move
+only after all maintained and external consumers are characterized in a later
+approved phase. Fallback candidate fields remain until diagnostic/result-file
+consumers no longer require the rejected candidate evidence.
+
 ## Constitutive helpers
 
 ```matlab
@@ -78,6 +108,12 @@ aeDefaultIdentityA0ValidationGrid
 ```
 
 `aeExtractRawBranch1Candidate` is diagnostic infrastructure. It supports `track_raw_branch1` and `compare_atlasA0_vs_raw_branch1`; it does not promote `raw_branch1` to production output.
+
+`aeScoreBranchIdentityCandidates` and
+`aeBuildIdentityA0DiagnosticBranch` are stored with the model result boundary
+only to preserve explicit diagnostic requests without making model code depend
+on `analysis/`. They remain diagnostic-only and never alter official
+`Cp`, `validCp`, or `atlasA0` selection.
 
 `aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic. `diagnose_modal_atlas` starts at low frequency by design.
 
@@ -135,6 +171,8 @@ track_raw_branch1
 test_acoustoelastic_iop_hgo_branch_policy_validation
 test_ae_configuration_characterization
 test_ae_configuration_ownership
+test_ae_result_schema_characterization
+test_ae_result_ownership
 test_acoustoelastic_iop_hgo_atlasA0_smoke
 test_acoustoelastic_iop_hgo_constitutive_identity
 test_acoustoelastic_iop_hgo_fallback_invalidation
