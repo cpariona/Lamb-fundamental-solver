@@ -44,6 +44,9 @@ aeOptions.usePhysicalCpWindow = false;
 aeOptions.atlasBranchPolicy = "atlasA0";
 aeOptions.atlasInitializationNumFrequencyPoints = 50;
 [aeCp_mps, aeRaw] = aeEvaluateFitModel(aeParams, aeFrequency_Hz, "atlasA0", aeOptions);
+assert(isequal(fieldnames(aeRaw), {'modelFamily'; 'modelName'; 'branchName'; ...
+    'frequency_Hz'; 'Cp_mps'; 'validMask'; 'solverResult'; 'params'; ...
+    'options'}), 'AE fitting evaluator raw-result schema changed.');
 valid = aeRaw.validMask(:) & isfinite(aeCp_mps(:));
 aeFrequency_Hz = aeFrequency_Hz(valid);
 aeCp_mps = aeCp_mps(valid);
@@ -56,6 +59,9 @@ aeOutput = runCase("acoustoelastic_iop_hgo", "atlasA0", aeFrequency_Hz, aeCp_mps
     struct('useStandardErrorWeights', false, ...
         'optimizerOptions', optimset('Display', 'off', 'MaxIter', 4, 'MaxFunEvals', 12, 'TolX', 1e-3)));
 assertRequestedCurve(aeOutput, "acoustoelastic_iop_hgo", "atlasA0");
+assert(isequal(fieldnames(aeOutput), {'request'; 'modelFamily'; 'modelName'; ...
+    'branchName'; 'fitResult'; 'normalized'; 'executionProfile'; ...
+    'fitElapsedSeconds'; 'requestedCurve'}), 'AE FitTool model-result schema changed.');
 
 fprintf('\nFitTool requested-curve model coverage test passed.\n');
 

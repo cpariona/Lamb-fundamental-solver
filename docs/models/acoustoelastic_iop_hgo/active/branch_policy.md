@@ -147,6 +147,10 @@ result.fallbackCandidateValidCp
 
 The solver exposes a reliability summary:
 
+`aeEvaluateAtlasA0Quality` is the single model owner of this requested-grid
+summary. It evaluates an already-selected and, where applicable, already
+invalidated official output; it does not select branches or decide fallback.
+
 ```matlab
 result.reliability.PolicyName
 result.reliability.ValidFraction

@@ -3,8 +3,8 @@
 Last reviewed: 2026-07-16
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Last merged AE architecture change: PR #122, commit
-`9c862bd7e217defc9a580bb0a41ea9fd5cd0e8bb`
+Last merged AE architecture change: PR #123, commit
+`9ec95069ad3c7cd114e1120cd7a32cec6edac0ac`
 
 ## Current architecture
 
@@ -29,6 +29,9 @@ run_repository_hygiene_tests
 - AE production output remains the conservative `atlasA0` branch.
 - AE request validation, effective configuration, numerical presets, and
   internal tracking-grid construction now have canonical model-layer owners.
+- AE atlas results and requested-grid reliability now have canonical
+  model-layer owners; stable diagnostics remain separate from retained
+  top-level internal/debug evidence.
 - Current fitting and sweep behavior is documented under `docs/workflows/`.
 - Repository structure, naming, documentation ownership, and test ownership
   were consolidated and guarded by PR #119.
@@ -46,22 +49,19 @@ run_repository_hygiene_tests
 
 ## Current objective
 
-Phase 2 centralizes AE configuration ownership on
-`refactor/ae-configuration-ownership`. It preserves flat public signatures and
-numerical behavior while migrating model wrappers, physical workflows, Main
-GUI, SweepTool, and FitTool to `aeResolveConfiguration`,
-`aeGetNumericalPreset`, `aeValidateRequest`, and
-`aeBuildInternalTrackingGrid`.
+Phase 3 establishes `aeBuildResult` and
+`aeEvaluateAtlasA0Quality` on `refactor/ae-result-quality-boundary`.
+Exact pre/post `isequaln` parity covers direct, IOP/HGO, public, internal-grid,
+identity-diagnostic, and fallback-invalidated results. Model code no longer
+depends on `analysis/` for identity diagnostics.
 
-Phase 3 is not authorized. After Phase 2 review and manual merge, the next
-candidate is the bounded result/quality/diagnostic boundary described by the
-AE architecture audit.
+Phase 4 tracking/policy extraction is not authorized.
 
 ## Open technical areas
 
-1. **AE architecture alignment** - Phase 2 configuration ownership is complete
-   on its review branch; later result/quality and tracking/policy phases require
-   separate approval and branches.
+1. **AE architecture alignment** - Phases 2-3 configuration/result/quality
+   ownership are complete on their review branches; tracking/policy Phase 4
+   requires separate approval and a new branch.
 2. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
    documented in
    `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`.
@@ -76,4 +76,4 @@ AE architecture audit.
    consumers, and removal conditions are listed in
    `docs/repository/validation_status.md`.
 
-No work beyond Phase 2 is currently authorized.
+No work beyond Phase 3 is currently authorized.

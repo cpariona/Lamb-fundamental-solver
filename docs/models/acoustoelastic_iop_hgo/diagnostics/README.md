@@ -20,3 +20,9 @@ This folder contains diagnostic evidence that supports, but does not itself defi
 These documents are retained only because each has a surviving repeatable owner
 and a distinct interpretation. The production policy is defined only in
 `../active/branch_policy.md`.
+
+The diagnostic identity builder and scorer are located under
+`models/acoustoelastic_iop_hgo/results/`. This placement removes the former
+production-model dependency on `analysis/` while retaining their diagnostic
+classification. They are executed only for an explicit
+`identityA0Diagnostic` request and cannot replace official `atlasA0` output.

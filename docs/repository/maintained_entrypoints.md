@@ -286,6 +286,11 @@ elasticFromLame
 ### AE numerical internals
 
 ```matlab
+aeResolveConfiguration
+aeValidateRequest
+aeBuildInternalTrackingGrid
+aeEvaluateAtlasA0Quality
+aeBuildResult
 objectiveAcoustoelasticResidual
 objectiveAcoustoelasticComplexDeterminant
 buildAcoustoelasticMatrix
@@ -295,6 +300,12 @@ computeAcoustoelasticAlphaBetaGamma
 computeAcoustoelasticPrestressSigma
 solveAcoustoelasticHGOStretch
 ```
+
+`aeBuildResult` and `aeEvaluateAtlasA0Quality` are canonical internal
+owners, not additional public solver routes. `aeBuildIdentityA0DiagnosticBranch`
+and `aeScoreBranchIdentityCandidates` are diagnostic-only model-adjacent
+extensions used only when the explicit `identityA0Diagnostic` policy is
+requested.
 
 ### mRLFE production internals
 

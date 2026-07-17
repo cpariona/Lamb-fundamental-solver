@@ -28,8 +28,9 @@ directParams.fluidBulkModulus = params.fluidBulkModulus;
 directParams.frequency = params.frequency;
 
 result = solveWithInternalTrackingGrid(directParams, options);
-result.constitutiveState = state;
-result.directParams = directParams;
+spec = rebuildSpec(result);
+spec.postSummaryFields = struct('constitutiveState', state, 'directParams', directParams);
+result = aeBuildResult(spec);
 result = invalidateFallbackOutputIfNeeded(result);
 end
 
@@ -37,8 +38,11 @@ function result = solveWithInternalTrackingGrid(directParams, options)
 requestedFrequency = directParams.frequency(:).';
 if ~isfield(options, 'useInternalAtlasTrackingGrid') || ~logical(options.useInternalAtlasTrackingGrid)
     result = solveAcoustoelasticAtlasBranch(directParams, options);
-    result.requestedFrequency = requestedFrequency;
-    result.internalAtlasTracking = struct('Used', false, 'TrackingFrequency_Hz', requestedFrequency);
+    spec = rebuildSpec(result);
+    spec.postSummaryFields = struct( ...
+        'requestedFrequency', requestedFrequency, ...
+        'internalAtlasTracking', struct('Used', false, 'TrackingFrequency_Hz', requestedFrequency));
+    result = aeBuildResult(spec);
     return;
 end
 
@@ -51,43 +55,53 @@ result = restrictResultToRequestedFrequency(trackingResult, requestedFrequency, 
 end
 
 function result = restrictResultToRequestedFrequency(trackingResult, requestedFrequency, trackingFrequency, options)
-result = trackingResult;
 requestedFrequency = requestedFrequency(:).';
 [isTracked, loc] = ismember(requestedFrequency, trackingFrequency);
 
-result.trackingFrequency = trackingFrequency(:).';
-result.requestedFrequency = requestedFrequency;
-result.internalAtlasTracking = struct();
-result.internalAtlasTracking.Used = true;
-result.internalAtlasTracking.TrackingFrequency_Hz = trackingFrequency(:).';
-result.internalAtlasTracking.RequestedFrequency_Hz = requestedFrequency(:).';
-result.internalAtlasTracking.InitializationMinFrequency_Hz = options.atlasInitializationMinFrequency_Hz;
-result.internalAtlasTracking.InitializationNumFrequencyPoints = options.atlasInitializationNumFrequencyPoints;
-
-result.trackingObjectiveMap = trackingResult.objectiveMap;
-result.objectiveMap = [];
-
-result.frequency = requestedFrequency;
-result.Cp = nan(size(requestedFrequency));
-result.validCp = false(size(requestedFrequency));
-result.branchExistsAtFrequency = false(size(requestedFrequency));
-result.interpolatedCp = false(size(requestedFrequency));
-result.objective = nan(size(requestedFrequency));
-result.nearestRank = nan(size(requestedFrequency));
-result.nearestBranchID = nan(size(requestedFrequency));
-result.pointStatus = repmat("belowAtlasInitializationRange", size(requestedFrequency));
+fields = struct();
+fields.frequency = requestedFrequency;
+fields.Cp = nan(size(requestedFrequency));
+fields.validCp = false(size(requestedFrequency));
+fields.branchExistsAtFrequency = false(size(requestedFrequency));
+fields.interpolatedCp = false(size(requestedFrequency));
+fields.objective = nan(size(requestedFrequency));
+fields.nearestRank = nan(size(requestedFrequency));
+fields.nearestBranchID = nan(size(requestedFrequency));
+fields.pointStatus = repmat("belowAtlasInitializationRange", size(requestedFrequency));
 
 if any(isTracked)
     idx = loc(isTracked);
-    result.Cp(isTracked) = trackingResult.Cp(idx);
-    result.validCp(isTracked) = trackingResult.validCp(idx);
-    result.branchExistsAtFrequency(isTracked) = trackingResult.branchExistsAtFrequency(idx);
-    result.interpolatedCp(isTracked) = trackingResult.interpolatedCp(idx);
-    result.objective(isTracked) = trackingResult.objective(idx);
-    result.nearestRank(isTracked) = trackingResult.nearestRank(idx);
-    result.nearestBranchID(isTracked) = trackingResult.nearestBranchID(idx);
-    result.pointStatus(isTracked) = trackingResult.pointStatus(idx);
+    fields.Cp(isTracked) = trackingResult.Cp(idx);
+    fields.validCp(isTracked) = trackingResult.validCp(idx);
+    fields.branchExistsAtFrequency(isTracked) = trackingResult.branchExistsAtFrequency(idx);
+    fields.interpolatedCp(isTracked) = trackingResult.interpolatedCp(idx);
+    fields.objective(isTracked) = trackingResult.objective(idx);
+    fields.nearestRank(isTracked) = trackingResult.nearestRank(idx);
+    fields.nearestBranchID(isTracked) = trackingResult.nearestBranchID(idx);
+    fields.pointStatus(isTracked) = trackingResult.pointStatus(idx);
 end
+
+fields.objectiveMap = [];
+trackingMetadata = struct();
+trackingMetadata.Used = true;
+trackingMetadata.TrackingFrequency_Hz = trackingFrequency(:).';
+trackingMetadata.RequestedFrequency_Hz = requestedFrequency;
+trackingMetadata.InitializationMinFrequency_Hz = options.atlasInitializationMinFrequency_Hz;
+trackingMetadata.InitializationNumFrequencyPoints = options.atlasInitializationNumFrequencyPoints;
+
+spec = struct();
+spec.baseResult = trackingResult;
+spec.fields = fields;
+spec.qualityBase = trackingResult.reliability;
+spec.qualityNote = "Cp is reported on the requested output grid after branch identity is selected on an internal atlas tracking grid.";
+spec.diagnosticBase = trackingResult.diagnostics;
+spec.diagnosticFields = struct('internalAtlasTrackingUsed', true);
+spec.postSummaryFields = struct( ...
+    'trackingFrequency', trackingFrequency(:).', ...
+    'requestedFrequency', requestedFrequency, ...
+    'internalAtlasTracking', trackingMetadata, ...
+    'trackingObjectiveMap', trackingResult.objectiveMap);
+result = aeBuildResult(spec);
 
 % The diagnostic branch is part of the returned requested-grid schema. Build
 % it again from the projected official fields while retaining the objective
@@ -98,64 +112,13 @@ if isfield(trackingResult, 'identityA0')
     if any(isTracked)
         diagnosticResult.objectiveMap(:, isTracked) = trackingResult.objectiveMap(:, loc(isTracked));
     end
-    result.identityA0 = aeBuildIdentityA0DiagnosticBranch(diagnosticResult);
-end
-
-result.reliability = summarizeRequestedFrequencyReliability(result, trackingResult);
-result.diagnostics = summarizeRequestedFrequencyDiagnostics(result, trackingResult);
-end
-
-function reliability = summarizeRequestedFrequencyReliability(result, trackingResult)
-valid = result.validCp & isfinite(result.Cp);
-f = result.frequency;
-reliability = trackingResult.reliability;
-reliability.TotalPoints = numel(result.Cp);
-reliability.ValidPoints = nnz(valid);
-reliability.MissingPoints = nnz(~valid);
-reliability.ValidFraction = nnz(valid) / max(numel(result.Cp), 1);
-reliability.InterpolatedPoints = nnz(result.interpolatedCp);
-reliability.ExplicitBranchPoints = nnz(result.branchExistsAtFrequency);
-if any(valid)
-    validF = f(valid);
-    reliability.FirstValidFrequency_Hz = validF(1);
-    reliability.FirstValidFrequency_kHz = validF(1)/1e3;
-    reliability.LastValidFrequency_Hz = validF(end);
-    reliability.LastValidFrequency_kHz = validF(end)/1e3;
-else
-    reliability.FirstValidFrequency_Hz = nan;
-    reliability.FirstValidFrequency_kHz = nan;
-    reliability.LastValidFrequency_Hz = nan;
-    reliability.LastValidFrequency_kHz = nan;
-end
-missingAfterStart = find(~valid & f >= reliability.FirstValidFrequency_Hz, 1, 'first');
-if isempty(missingAfterStart)
-    reliability.FirstMissingFrequency_Hz = nan;
-    reliability.FirstMissingFrequency_kHz = nan;
-else
-    reliability.FirstMissingFrequency_Hz = f(missingAfterStart);
-    reliability.FirstMissingFrequency_kHz = f(missingAfterStart)/1e3;
-end
-reliability.ValidityNote = "Cp is reported on the requested output grid after branch identity is selected on an internal atlas tracking grid.";
-end
-
-function diagnostics = summarizeRequestedFrequencyDiagnostics(result, trackingResult)
-diagnostics = trackingResult.diagnostics;
-diagnostics.validCpPoints = nnz(result.validCp);
-diagnostics.totalPoints = numel(result.Cp);
-diagnostics.explicitBranchPoints = nnz(result.branchExistsAtFrequency);
-diagnostics.interpolatedPoints = nnz(result.interpolatedCp);
-diagnostics.missingBranchPoints = nnz(~result.validCp);
-diagnostics.lastValidFrequency_kHz = result.reliability.LastValidFrequency_kHz;
-diagnostics.validFraction = result.reliability.ValidFraction;
-diagnostics.internalAtlasTrackingUsed = true;
-if any(result.validCp)
-    diagnostics.minCp = min(result.Cp(result.validCp));
-    diagnostics.maxCp = max(result.Cp(result.validCp));
-    diagnostics.medianCp = median(result.Cp(result.validCp), 'omitnan');
-else
-    diagnostics.minCp = nan;
-    diagnostics.maxCp = nan;
-    diagnostics.medianCp = nan;
+    identity = aeBuildIdentityA0DiagnosticBranch(diagnosticResult);
+    spec = rebuildSpec(result);
+    spec.postSummaryFields = struct('identityA0', identity);
+    spec.diagnosticFields = struct( ...
+        'identityA0CandidateValidPoints', identity.summary.CandidateValidPoints, ...
+        'identityA0AddedCandidatePoints', identity.summary.AddedCandidatePoints);
+    result = aeBuildResult(spec);
 end
 end
 
@@ -189,29 +152,17 @@ result.nearestRank(:) = nan;
 result.nearestBranchID(:) = nan;
 result.pointStatus(:) = "fallbackRejectedA0StartFilter";
 
-result.reliability.ValidPoints = 0;
-result.reliability.MissingPoints = numel(result.Cp);
-result.reliability.ValidFraction = 0;
-result.reliability.InterpolatedPoints = 0;
-result.reliability.ExplicitBranchPoints = 0;
-result.reliability.FirstValidFrequency_Hz = nan;
-result.reliability.FirstValidFrequency_kHz = nan;
-result.reliability.LastValidFrequency_Hz = nan;
-result.reliability.LastValidFrequency_kHz = nan;
-result.reliability.FirstMissingFrequency_Hz = result.frequency(1);
-result.reliability.FirstMissingFrequency_kHz = result.frequency(1)/1e3;
-result.reliability.ValidityNote = "Official atlasA0 output invalidated because branch selection used unfiltered fallback after A0-like start filters failed. Fallback candidate data are diagnostic-only.";
-
-if isfield(result, 'diagnostics')
-    result.diagnostics.validCpPoints = 0;
-    result.diagnostics.explicitBranchPoints = 0;
-    result.diagnostics.interpolatedPoints = 0;
-    result.diagnostics.missingBranchPoints = numel(result.Cp);
-    result.diagnostics.lastValidFrequency_kHz = nan;
-    result.diagnostics.validFraction = 0;
-    result.diagnostics.minCp = nan;
-    result.diagnostics.maxCp = nan;
-    result.diagnostics.medianCp = nan;
-    result.diagnostics.fallbackOutputInvalidated = true;
+spec = rebuildSpec(result);
+spec.qualityNote = "Official atlasA0 output invalidated because branch selection used unfiltered fallback after A0-like start filters failed. Fallback candidate data are diagnostic-only.";
+spec.qualityFirstMissingAtStartWhenInvalid = true;
+spec.diagnosticFields = struct('fallbackOutputInvalidated', true);
+result = aeBuildResult(spec);
 end
+
+function spec = rebuildSpec(result)
+spec = struct();
+spec.baseResult = result;
+spec.qualityBase = result.reliability;
+spec.qualityNote = result.reliability.ValidityNote;
+spec.diagnosticBase = result.diagnostics;
 end

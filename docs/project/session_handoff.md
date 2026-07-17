@@ -6,21 +6,23 @@ Updated: 2026-07-16
 
 - Repository: `cpariona/Lamb-fundamental-solver`
 - Default branch: `main`
-- Phase 2 base: `9c862bd7e217defc9a580bb0a41ea9fd5cd0e8bb`
-- Current branch: `refactor/ae-configuration-ownership`
-- Current task: AE architecture alignment Phase 2
+- Phase 3 base: `9ec95069ad3c7cd114e1120cd7a32cec6edac0ac`
+- Current branch: `refactor/ae-result-quality-boundary`
+- Current task: AE architecture alignment Phase 3
 - Merge status: pending repository-owner review; do not open a PR or merge
 - Next phase: not authorized
 
 ## Implemented ownership
 
-Phase 2 establishes these canonical model-layer owners:
+Phases 2-3 establish these canonical model-layer owners:
 
 ```text
 aeValidateRequest             maintained flat-request checks
 aeResolveConfiguration        complete effective options and precedence
 aeGetNumericalPreset          Fast/Balanced/Robust and Main GUI bundle
 aeBuildInternalTrackingGrid   unchanged requested/internal grid algorithm
+aeEvaluateAtlasA0Quality      requested-grid quality/reliability summary
+aeBuildResult                 characterized atlas result schema
 ```
 
 Public signatures remain:
@@ -46,8 +48,13 @@ result formatting.
 - Requested and internal grids retain sorting, uniqueness, lower-frequency,
   and projection behavior.
 - Physics, constitutive equations, objectives, tracking, `atlasA0`, fallback,
-  reliability, fitting, sweeps, GUI presentation, and result schemas are not
-  changed.
+  fitting, sweeps, GUI presentation, and result schemas are not changed.
+- Full direct/IOP/public/internal/identity/fallback outputs compare exactly
+  equal to the pre-refactor commit with `isequaln`.
+- `result.diagnostics` remains the stable summary. Existing internal evidence
+  remains at characterized top-level fields; no new `result.debug` field was
+  added.
+- Identity-A0 remains diagnostic-only and does not alter official output.
 
 ## Review boundary
 
@@ -56,5 +63,5 @@ Read the implemented-state contract in
 public/configuration inventory in
 `docs/models/acoustoelastic_iop_hgo/active/public_api.md`.
 
-Do not begin Phase 3 from this branch. After repository-owner review and manual
+Do not begin Phase 4 from this branch. After repository-owner review and manual
 merge, create the separately approved branch from updated `origin/main`.

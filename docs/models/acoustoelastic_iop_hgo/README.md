@@ -35,6 +35,13 @@ Effective numerical configuration is model-owned by
 bundle are owned by `aeGetNumericalPreset`; app and analysis layers only
 select the applicable profile or surface and supply explicit overrides.
 
+Atlas result construction is model-owned by `aeBuildResult`, and requested-grid
+quality/reliability is owned by `aeEvaluateAtlasA0Quality`. The stable summary
+remains `result.diagnostics`; existing atlas evidence remains at its
+characterized top-level fields as a compatibility surface. No new
+`result.debug` nesting was introduced because that would change the public
+schema.
+
 ## Recommended user-facing commands
 
 From the repository root:
