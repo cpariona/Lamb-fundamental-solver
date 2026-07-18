@@ -7,8 +7,59 @@ paths = gitTrackedMatlab(repoRoot);
 assertLayer(repoRoot, paths, "models/", ["analysis/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "analysis/", ["app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "app/", ["examples/", "tests/"]);
+assertAeInternalBoundaries(repoRoot, paths);
 
 fprintf('Repository dependency-boundary contract test passed.\n');
+end
+
+function assertAeInternalBoundaries(repoRoot, paths)
+productionInternalNames = [ ...
+    "aeFindAtlasLocalMinima"; "aeLinkAtlasBranches"; "aeSplitAtlasBranches"; ...
+    "aeSelectAtlasA0Branch"; "aeApplyAtlasA0FallbackPolicy"];
+workflowPaths = paths( ...
+    startsWith(paths, ["app/", "examples/"]) | ...
+    startsWith(paths, [ ...
+        "analysis/acoustoelastic_iop_hgo/fitting/", ...
+        "analysis/acoustoelastic_iop_hgo/sweeps/"]));
+assertNoCalls(repoRoot, workflowPaths, productionInternalNames, ...
+    'App, workflow, and example code calls AE tracking or policy internals');
+
+diagnosticAnalysisPaths = paths(startsWith(paths, ...
+    "analysis/acoustoelastic_iop_hgo/diagnostics/") & endsWith(paths, ".m"));
+diagnosticAnalysisNames = matlabNames(diagnosticAnalysisPaths);
+solverPaths = paths(startsWith(paths, ...
+    "models/acoustoelastic_iop_hgo/solvers/") & endsWith(paths, ".m"));
+assertNoCalls(repoRoot, solverPaths, diagnosticAnalysisNames, ...
+    'AE solver calls an analysis-layer diagnostic');
+
+modelDiagnosticPaths = paths(startsWith(paths, ...
+    "models/acoustoelastic_iop_hgo/diagnostics/") & endsWith(paths, ".m"));
+assertNoCalls(repoRoot, modelDiagnosticPaths, productionInternalNames, ...
+    'AE model diagnostic owns production tracking or branch policy');
+end
+
+function assertNoCalls(repoRoot, sourcePaths, forbiddenNames, message)
+for i = 1:numel(sourcePaths)
+    source = fileread(fullfile(repoRoot, sourcePaths(i)));
+    executable = executableMatlabText(source);
+    callTokens = string(regexp(executable, ...
+        '(?<![A-Za-z0-9_])([A-Za-z]\w*)\s*\(', 'tokens'));
+    if isempty(callTokens)
+        callTokens = strings(0, 1);
+    else
+        callTokens = string([callTokens{:}]);
+    end
+    dynamicTokens = regexp(source, ...
+        '(?:feval|str2func)\s*\(\s*[''"]([A-Za-z]\w*)[''"]', 'tokens');
+    if isempty(dynamicTokens)
+        dynamicTokens = strings(0, 1);
+    else
+        dynamicTokens = string([dynamicTokens{:}]);
+    end
+    offenders = intersect(unique([callTokens(:); dynamicTokens(:)]), forbiddenNames);
+    assert(isempty(offenders), '%s through %s: %s', ...
+        message, sourcePaths(i), strjoin(offenders, ', '));
+end
 end
 
 function assertLayer(repoRoot, paths, sourcePrefix, forbiddenPrefixes)
