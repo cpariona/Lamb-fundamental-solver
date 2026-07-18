@@ -12,7 +12,7 @@ Updated: 2026-07-18
 - AE final contract:
   `docs/models/acoustoelastic_iop_hgo/active/architecture.md`
 - Repository-simplification final-state contract:
-  `docs/repository/simplification_plan.md`
+  `docs/repository/repository_simplification.md`
 
 The multi-phase AE architecture alignment and the bounded repository
 simplification are closed. Do not reopen migration phases or create a Phase 7.
@@ -67,7 +67,7 @@ Production consumers do not call tracking or policy internals.
   call graphs.
 
 The final structure and enforcement rules are recorded in
-`docs/repository/simplification_plan.md`,
+`docs/repository/repository_simplification.md`,
 `docs/repository/repository_structure.md`, and the test-runner contracts.
 
 ## Preserved contracts
