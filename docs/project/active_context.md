@@ -50,7 +50,7 @@ run_repository_hygiene_tests
 ## Current repository state
 
 The bounded repository simplification is complete. Its maintained final state is
-defined in `docs/repository/simplification_plan.md`:
+defined in `docs/repository/repository_simplification.md`:
 
 1. AE analysis is owned by `diagnostics/`, `fitting/`, `io/`, and `sweeps/`;
 2. identity-A0 model algorithms live under explicit diagnostic ownership;
