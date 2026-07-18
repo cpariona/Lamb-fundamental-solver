@@ -4,7 +4,7 @@ function test_ae_final_architecture_contract()
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 modelRoot = fullfile(repoRoot, 'models', 'acoustoelastic_iop_hgo');
 
-expectedFolders = sort(["configuration"; "constitutive"; "core"; "options"; ...
+expectedFolders = sort(["configuration"; "constitutive"; "core"; "diagnostics"; "options"; ...
     "policies"; "quality"; "results"; "solvers"; "tracking"]);
 folderEntries = dir(modelRoot);
 actualFolders = sort(string({folderEntries([folderEntries.isdir]).name}).');
@@ -28,8 +28,8 @@ canonicalOwners = [ ...
     "policies/aeApplyAtlasA0FallbackPolicy.m"
     "quality/aeEvaluateAtlasA0Quality.m"
     "results/aeBuildResult.m"
-    "results/aeBuildIdentityA0DiagnosticBranch.m"
-    "results/aeScoreBranchIdentityCandidates.m"];
+    "diagnostics/aeBuildIdentityA0DiagnosticBranch.m"
+    "diagnostics/aeScoreBranchIdentityCandidates.m"];
 for i = 1:numel(canonicalOwners)
     assert(isfile(fullfile(modelRoot, canonicalOwners(i))), ...
         'Missing canonical AE owner: %s', canonicalOwners(i));

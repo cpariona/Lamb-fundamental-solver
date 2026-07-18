@@ -119,8 +119,6 @@ summarizeAcoustoelasticIOPHGOTrackingQuality
 aePlotGridSweepCp
 aeOutputFolder
 aeResolveResultFile
-aeScoreBranchIdentityCandidates
-aeBuildIdentityA0DiagnosticBranch
 aeDiagnoseAtlasA0TruncationCause
 aeAnalyzeBranchPersistenceCandidates
 aeAnalyzeFirstUnrecoveredBreak
@@ -138,11 +136,17 @@ aeDefaultIdentityA0ValidationGrid
 
 `aeExtractRawBranch1Candidate` is diagnostic infrastructure. It supports `track_raw_branch1` and `compare_atlasA0_vs_raw_branch1`; it does not promote `raw_branch1` to production output.
 
-`aeScoreBranchIdentityCandidates` and
-`aeBuildIdentityA0DiagnosticBranch` are stored with the model result boundary
-only to preserve explicit diagnostic requests without making model code depend
-on `analysis/`. They remain diagnostic-only and never alter official
-`Cp`, `validCp`, or `atlasA0` selection.
+## Diagnostic model internals
+
+```matlab
+aeScoreBranchIdentityCandidates
+aeBuildIdentityA0DiagnosticBranch
+```
+
+These functions live under `models/acoustoelastic_iop_hgo/diagnostics/` to
+support explicit diagnostic requests without making model code depend on
+`analysis/`. They remain diagnostic-only and never alter official `Cp`,
+`validCp`, or `atlasA0` selection.
 
 `aeComputeModalAtlasForCase`, `aeFindTopModalAtlasLocalMinima`, and `aeLinkModalAtlasMinimaIntoBranches` centralize modal-atlas diagnostic logic. `diagnose_modal_atlas` starts at low frequency by design.
 

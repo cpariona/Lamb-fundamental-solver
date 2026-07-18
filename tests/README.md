@@ -12,9 +12,9 @@ tests/shared/    shared fitting, sweep, regression, and repository contracts
 `startup` adds `tests/` recursively, so canonical runner implementations are
 public MATLAB commands without requiring root-level wrappers.
 
-## Intentional public compatibility wrappers
+## Public convenience wrappers
 
-Nine established public commands retain thin wrappers that delegate through
+Five established public commands retain thin wrappers that delegate through
 `runRepositoryTestRunner` to same-named implementations under `tests/runners/`:
 
 ```text
@@ -22,17 +22,25 @@ tests/run_acoustoelastic_smoke_tests.m
 tests/run_all_smoke_tests.m
 tests/run_core_smoke_tests.m
 tests/run_gui_smoke_tests.m
-tests/run_mrlfe_route_integrity_tests.m
-tests/run_mrlfe_production_core_tests.m
-tests/run_mrlfe_public_contract_tests.m
 tests/run_mrlfe_smoke_tests.m
-tests/fitting/run_fit_validation_tests.m
 ```
 
-`tests/run_main_gui_export_tests.m` is a standalone public runner, not a
-wrapper. No additional test implementation or wrapper may be placed at the
-root or in a legacy test folder without updating the repository structure
-contract.
+Every wrapper contains no validation logic and delegates to exactly one
+same-named canonical runner. No additional test implementation or wrapper may
+be placed at the root.
+
+Specialized commands resolve directly from `tests/runners/`, including:
+
+```matlab
+run_fit_validation_tests
+run_main_gui_export_tests
+run_mrlfe_production_core_tests
+run_mrlfe_public_contract_tests
+run_mrlfe_route_integrity_tests
+```
+
+The recursive test path keeps these command names stable without duplicate
+definitions or physical-path exceptions.
 
 ## Maintained commands
 

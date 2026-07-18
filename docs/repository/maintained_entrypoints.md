@@ -226,30 +226,51 @@ rlSaveExampleFigure
 
 ### AE IOP/HGO analysis
 
-Campaign and fitting helpers:
+Fitting helpers under `analysis/acoustoelastic_iop_hgo/fitting/`:
 
 ```matlab
-aeRunSweep
-aeSummarizeSweep
-aeDefaultSweepParams
-aeDefaultSweepOptions
 aeBuildFitProblem
 aeEvaluateFitModel
 aeFitDispersionData
-aeOutputFolder
-aeResolveResultFile
 ```
 
-Maintained diagnostic-analysis helpers include:
+Sweep orchestration, summarization, visualization, and outputs under
+`analysis/acoustoelastic_iop_hgo/sweeps/`:
+
+```matlab
+aeDefaultSweepOptions
+aeDefaultSweepParams
+aeRunSweep
+aeRunGridSweep
+aeBuildGridSweepCpCube
+aeBuildSweepPlotData
+aeSummarizeSweep
+aeSummarizeGridSweep
+aePlotSweepCp
+aePlotGridSweepCp
+aePlotGridSweepCpByAxis
+aeWriteSweepOutputs
+```
+
+Result/output IO under `analysis/acoustoelastic_iop_hgo/io/`:
+
+```matlab
+aeOutputFolder
+aeResolveResultFile
+aeSaveExampleFigure
+aeDeleteExampleFigure
+```
+
+Diagnostic computation and defaults under
+`analysis/acoustoelastic_iop_hgo/diagnostics/`:
 
 ```matlab
 summarizeAcoustoelasticIOPHGOTrackingQuality
-aePlotGridSweepCp
-aeScoreBranchIdentityCandidates
-aeBuildIdentityA0DiagnosticBranch
 aeDiagnoseAtlasA0TruncationCause
 aeAnalyzeBranchPersistenceCandidates
 aeAnalyzeFirstUnrecoveredBreak
+aeAnalyzeSweepReliability
+aeAnalyzeTruncationRecovery
 aeClassifyTruncationRecovery
 aeRefineAtlasA0BranchPersistence
 aeClassifyAmbiguityRegime
@@ -318,10 +339,19 @@ solveAcoustoelasticHGOStretch
 ```
 
 `aeBuildResult` and `aeEvaluateAtlasA0Quality` are canonical internal
-owners, not additional public solver routes. `aeBuildIdentityA0DiagnosticBranch`
-and `aeScoreBranchIdentityCandidates` are diagnostic-only model-adjacent
-extensions used only when the explicit `identityA0Diagnostic` policy is
-requested.
+owners, not additional public solver routes.
+
+### AE diagnostic model internals
+
+```matlab
+aeBuildIdentityA0DiagnosticBranch
+aeScoreBranchIdentityCandidates
+```
+
+These model-owned diagnostic algorithms live under
+`models/acoustoelastic_iop_hgo/diagnostics/`. They are used only when the
+explicit `identityA0Diagnostic` policy is requested and never own production
+`atlasA0` selection or result construction.
 
 ### mRLFE production internals
 
@@ -442,8 +472,9 @@ run_mrlfe_main_gui_public_solver_tests
 run_mrlfe_route_integrity_tests
 ```
 
-Nine public compatibility wrappers delegate to canonical implementations under
-`tests/runners/` through `runRepositoryTestRunner`. The exact wrapper and
+Five public convenience wrappers delegate to canonical implementations under
+`tests/runners/` through `runRepositoryTestRunner`. Specialized commands resolve
+directly from their single canonical runner definitions. The exact wrapper and
 ownership contract is maintained in `tests/README.md` and
 `docs/repository/test_runner_ownership.md`.
 

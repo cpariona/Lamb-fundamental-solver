@@ -25,17 +25,10 @@ tests = sortrows(tests, 'Path');
 runnerRows = inventory(inventory.FileType == "runner", :);
 runnerPaths = string(runnerRows.Path);
 
-runtimePath = fullfile(inventoryFolder, 'test_runtime_measurements.csv');
-runtime = table();
-if isfile(runtimePath)
-    runtime = readtable(runtimePath, 'TextType', 'string');
-end
-
 testCount = height(tests);
 canonicalRunner = strings(testCount, 1);
 runtimeTier = strings(testCount, 1);
 manualOnly = false(testCount, 1);
-measuredSeconds = nan(testCount, 1);
 evidence = strings(testCount, 1);
 notes = strings(testCount, 1);
 
@@ -43,18 +36,10 @@ for i = 1:testCount
     entrypoint = string(tests.Entrypoint(i));
     [canonicalRunner(i), manualOnly(i), notes(i)] = proposedOwner(entrypoint, edges);
     runtimeTier(i) = tierForOwner(canonicalRunner(i), manualOnly(i));
-    if ~isempty(runtime)
-        match = find(runtime.Entrypoint == entrypoint, 1, 'last');
-        if ~isempty(match)
-            measuredSeconds(i) = runtime.ElapsedSecondsMedian(match);
-        end
-    end
     if manualOnly(i)
         evidence(i) = "documented manual registry; no normal runner execution";
-    elseif isnan(measuredSeconds(i))
-        evidence(i) = "static ownership design; runtime unmeasured";
     else
-        evidence(i) = "static ownership design; measured child runtime available";
+        evidence(i) = "static ownership design; runtime evidence is generated locally";
     end
 end
 
@@ -81,13 +66,13 @@ ownership = table( ...
     reachableFrom("run_numerical_regression_tests", tests.Path, runnerRows, runnerReach), ...
     reachableFrom("run_extended_integration_tests", tests.Path, runnerRows, runnerReach), ...
     reachableFrom("run_all_smoke_tests", tests.Path, runnerRows, runnerReach), ...
-    measuredSeconds, evidence, notes, ...
+    evidence, notes, ...
     'VariableNames', { ...
     'TestPath', 'Entrypoint', 'Category', 'RuntimeTier', 'CanonicalRunner', ...
     'AdditionalAggregateRunners', 'ManualOnly', ...
     'ReachableFromQuickContracts', 'ReachableFromQuickSmoke', ...
     'ReachableFromNumericalRegression', 'ReachableFromExtendedIntegration', ...
-    'ReachableFromHistoricalAllSmoke', 'MeasuredSeconds', 'Evidence', 'Notes'});
+    'ReachableFromHistoricalAllSmoke', 'Evidence', 'Notes'});
 
 if options.ValidateActual
     validateActualOwnership(ownership, edges);
@@ -128,7 +113,9 @@ groups(end + 1) = group("run_repository_hygiene_tests", [ ...
     "test_repository_naming_contract", "test_repository_structure_contract", ...
     "test_repository_documentation_contract", ...
     "test_repository_tracked_artifacts_contract", ...
-    "test_repository_dependency_boundaries_contract"]);
+    "test_repository_dependency_boundaries_contract", ...
+    "test_public_test_wrapper_contract", ...
+    "test_runtime_measurement_output_schema"]);
 groups(end + 1) = group("run_core_contract_tests", [ ...
     "test_model_output_folder_helpers", "test_fitting_helpers_smoke"]);
 groups(end + 1) = group("run_core_numerical_regression_tests", [ ...

@@ -29,7 +29,7 @@ end
 
 edges = buildEdges(testPaths, entrypoints, fileTypes, sources);
 maintainedRunnerPaths = testPaths(fileTypes == "runner" & ...
-    (startsWith(testPaths, "tests/runners/") | testPaths == "tests/run_main_gui_export_tests.m"));
+    startsWith(testPaths, "tests/runners/"));
 runnerMemberships = computeRunnerMemberships(testPaths, fileTypes, maintainedRunnerPaths, edges);
 runAllReachable = reachableTests("tests/runners/run_all_smoke_tests.m", edges, testPaths, fileTypes);
 
@@ -43,8 +43,7 @@ for i = 1:numel(testPaths)
     source = sources(i);
     fileType = fileTypes(i);
     directEdges = edges(edges.CalleePath == path & edges.DirectOrDynamic ~= "reference_only", :);
-    directRunnerEdges = directEdges(startsWith(directEdges.CallerPath, "tests/runners/") | ...
-        directEdges.CallerPath == "tests/run_main_gui_export_tests.m", :);
+    directRunnerEdges = directEdges(startsWith(directEdges.CallerPath, "tests/runners/"), :);
     memberships = runnerMemberships{i};
     isWrapper = fileType == "compatibility_wrapper";
     wrapperTarget = "";
@@ -419,10 +418,6 @@ notes = "";
 if fileType == "compatibility_wrapper"
     action = "document";
     notes = "Preserve public command compatibility; compare wrapper inventory with tests/README.md.";
-elseif path == "tests/run_main_gui_export_tests.m"
-    action = "document";
-    confidence = "medium";
-    notes = "Standalone root runner, not a wrapper; decide whether it is an intentional public command.";
 elseif likelyHeavy && fileType == "runner"
     action = "split_later";
     notes = "Keep behavior unchanged here; separate quick and extended membership in a future PR.";
