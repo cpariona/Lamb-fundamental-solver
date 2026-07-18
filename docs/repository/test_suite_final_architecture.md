@@ -13,9 +13,9 @@ tests/
 `-- shared/    fitting, sweeps, regression, path, and repository contracts
 ```
 
-Nine intentional public wrappers and the standalone Main GUI export runner are
-the only MATLAB files outside those stable locations. The wrapper inventory is
-owned by `tests/README.md`.
+Five intentional public wrappers are the only MATLAB files outside those stable
+locations. Main GUI export and other specialized commands are canonical runners
+under `tests/runners/`. The wrapper inventory is owned by `tests/README.md`.
 
 ## Validation tiers
 
@@ -43,6 +43,6 @@ for public command stability, not as the definition of the quick tier.
 Use `measureTestRuntime` when machine-specific runtime evidence is needed.
 Completed timing snapshots are not permanent architecture documents.
 
-Current generated inventory: 110 tests, 43 runner implementations, 9 public
-wrappers, 3 helpers, and 231 graph edges. The exact direct-owner mapping is
+Current generated inventory: 121 tests, 43 runner implementations, 5 public
+wrappers, 3 helpers, and 239 graph edges. The exact direct-owner mapping is
 regenerated rather than duplicated here.

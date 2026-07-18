@@ -69,6 +69,7 @@ models/
     |-- configuration/
     |-- constitutive/
     |-- core/
+    |-- diagnostics/
     |-- options/
     |-- policies/
     |-- quality/
@@ -79,10 +80,10 @@ models/
 
 For AE, `quality/aeEvaluateAtlasA0Quality` summarizes the already-decided
 official output on the requested grid. `results/aeBuildResult` is the only
-atlas-result schema builder. Diagnostic identity helpers remain explicitly
-diagnostic-only under `results/` so an explicitly requested diagnostic can
-be attached without a forbidden model-to-`analysis/` dependency; they do not
-participate in production branch selection.
+atlas-result schema builder. `diagnostics/` owns the identity-A0 builder and
+candidate scorer needed by an explicitly requested diagnostic without creating
+a forbidden model-to-`analysis/` dependency. They do not participate in
+production branch selection.
 
 Campaign execution, summary-table aggregation, figures, output folders, GUI
 normalization, and application state do not belong in `models/`.
@@ -91,8 +92,11 @@ normalization, and application state do not belong in `models/`.
 
 ```text
 analysis/
-|-- acoustoelastic_iop_hgo/  AE fitting, campaigns, summaries, diagnostics,
-|                            plot-data construction, and output helpers
+|-- acoustoelastic_iop_hgo/
+|   |-- diagnostics/         repeatable diagnostic computation and defaults
+|   |-- fitting/             fitting problem, evaluation, and optimization
+|   |-- io/                  result/output resolution and figure-file helpers
+|   `-- sweeps/              campaigns, summaries, plotting, and sweep outputs
 |-- execution_profiles/      cross-surface validation and benchmark analysis
 |-- fitting/                 model-neutral fitting and quality infrastructure
 |-- mrlfe/                   mRLFE fitting, sweep, request, and summary helpers
@@ -114,9 +118,9 @@ setSweepPlotLimits
 summarizeParametricSweepBranch
 ```
 
-`aeRunSweep` lives in `analysis/acoustoelastic_iop_hgo/`. It calls the public AE
-solver once per condition and aggregates campaign results; it does not implement
-solver physics.
+`aeRunSweep` lives in `analysis/acoustoelastic_iop_hgo/sweeps/`. It calls the
+public AE solver once per condition and aggregates campaign results; it does not
+implement solver physics.
 
 `resolveModelOutputFolder` remains at the analysis root because it is a small
 cross-model output-path primitive rather than part of the sweep module.
@@ -194,10 +198,10 @@ tests/
 `-- shared/    fitting, sweeps, regression, path, and utility tests
 ```
 
-Nine intentional public wrappers and the standalone Main GUI export runner are
-documented in `tests/README.md`. `startup` adds `tests/` recursively, so internal
-test paths may change only when canonical ownership and public runner commands
-remain stable.
+Five intentional public wrappers are documented in `tests/README.md`.
+Specialized runner commands, including Main GUI export, resolve directly from
+`tests/runners/`. `startup` adds `tests/` recursively, so physical runner paths
+may change only when canonical ownership and documented commands remain stable.
 
 ## Documentation
 
@@ -220,6 +224,7 @@ The canonical generated result roots are:
 Results/rayleigh_lamb/<task>
 Results/mrlfe/<task>
 Results/ae_iop_hgo/<task>
+Results/test_runtime/test_runtime_measurements.csv
 ```
 
 `rlOutputFolder`, `mrlfeOutputFolder`, and `aeOutputFolder` delegate to

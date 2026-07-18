@@ -22,9 +22,9 @@ and a distinct interpretation. The production policy is defined only in
 `../active/branch_policy.md`.
 
 The diagnostic identity builder and scorer are located under
-`models/acoustoelastic_iop_hgo/results/`. This placement removes the former
-production-model dependency on `analysis/` while retaining their diagnostic
-classification. They are executed only for an explicit
+`models/acoustoelastic_iop_hgo/diagnostics/`. This explicit ownership avoids a
+production-model dependency on `analysis/` and keeps result construction under
+`results/` free of diagnostic algorithms. They are executed only for an explicit
 `identityA0Diagnostic` request and cannot replace official `atlasA0` output.
 
 Reusable diagnostic helpers retained without production callers are classified

@@ -47,30 +47,23 @@ run_repository_hygiene_tests
 - Prefer deletion or direct moves over new wrappers and path exceptions.
 - Do not reorganize small model families merely for visual symmetry.
 
-## Current objective
+## Current repository state
 
-Perform the bounded repository simplification defined in:
+The bounded repository simplification is complete. Its maintained final state is
+defined in `docs/repository/simplification_plan.md`:
 
-`docs/repository/simplification_plan.md`
-
-The goal is to reduce navigation cost and structural exceptions while preserving
-all numerical and user-facing behavior. This is repository maintenance, not a
-new AE architecture phase.
-
-The approved scope includes:
-
-1. organize the flat AE analysis layer by actual responsibility;
-2. move identity-A0 diagnostic internals from `results/` to explicit model
-   diagnostic ownership;
-3. remove the `tests/fitting/` runner exception;
-4. reduce root-level test wrappers to a small justified public surface;
-5. stop versioning environment-dependent runtime measurements;
-6. update repository contracts and deterministic inventories.
+1. AE analysis is owned by `diagnostics/`, `fitting/`, `io/`, and `sweeps/`;
+2. identity-A0 model algorithms live under explicit diagnostic ownership;
+3. `tests/fitting/` is absent;
+4. five delegation-only public test wrappers remain;
+5. specialized commands resolve from `tests/runners/`;
+6. runtime measurements are ignored local evidence under `Results/test_runtime/`;
+7. deterministic inventories contain ownership and graph evidence only.
 
 Local ignored `Results/` workspaces and example figures are generated user
-outputs and are outside this task.
+outputs and remain outside source ownership.
 
-## Open technical areas after simplification
+## Open technical areas
 
 1. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
    documented in

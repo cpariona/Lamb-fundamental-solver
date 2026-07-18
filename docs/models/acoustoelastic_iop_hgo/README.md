@@ -115,7 +115,10 @@ run_acoustoelastic_smoke_tests
 Use this structure for new work:
 
 ```text
-analysis/acoustoelastic_iop_hgo/              reusable helpers
+analysis/acoustoelastic_iop_hgo/diagnostics/  diagnostic computation/defaults
+analysis/acoustoelastic_iop_hgo/fitting/      fitting workflow
+analysis/acoustoelastic_iop_hgo/io/           result/output IO
+analysis/acoustoelastic_iop_hgo/sweeps/       sweep workflow
 models/acoustoelastic_iop_hgo/                model and solver implementation
 examples/acoustoelastic_iop_hgo/basic/        simple executable examples
 examples/acoustoelastic_iop_hgo/sweeps/       sweep entrypoints
@@ -131,3 +134,7 @@ New generated outputs use `Results/ae_iop_hgo/<task>`. `aeOutputFolder` owns
 that convention. `aeResolveResultFile` may read the explicitly documented
 legacy result locations required by maintained diagnostics; it does not define
 a second output convention.
+
+Model-owned identity-A0 algorithms live under
+`models/acoustoelastic_iop_hgo/diagnostics/`; result construction remains alone
+under `models/acoustoelastic_iop_hgo/results/`.

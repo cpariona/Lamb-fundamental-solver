@@ -32,7 +32,7 @@ Model-specific execution-profile resolvers and mRLFE surface metadata helpers
 live in `app/adapters/`. Cross-surface profile normalization and diagnostics
 formatting remain at the app root. `createFittingTab` belongs to `app/fitting/`.
 The interactive AE grid-sweep plot belongs to `app/sweep/`; its numerical data
-construction remains in `analysis/acoustoelastic_iop_hgo/`.
+construction remains in `analysis/acoustoelastic_iop_hgo/sweeps/`.
 
 ## Main GUI flow
 

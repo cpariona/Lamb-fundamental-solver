@@ -20,7 +20,7 @@ Therefore, a candidate should not be judged only by objective rank or by the dee
 
 ### Main helper
 
-`models/acoustoelastic_iop_hgo/results/aeScoreBranchIdentityCandidates.m`
+`models/acoustoelastic_iop_hgo/diagnostics/aeScoreBranchIdentityCandidates.m`
 
 The helper returns:
 

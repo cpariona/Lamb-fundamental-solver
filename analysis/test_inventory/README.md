@@ -26,8 +26,7 @@ ownership = buildTestOwnership('WriteCsv', true, 'ValidateActual', true);
 ```
 
 The generated `test_runner_ownership.csv` contains one row for each maintained
-test, its canonical owner, runtime tier,
-aggregate reachability, and imported measured child runtime where available.
+test, its canonical owner, runtime tier, and aggregate reachability.
 `ValidateActual=true` requires exactly one executable direct runner edge for
 every non-manual test and no direct runner edge for a manual-only test.
 
@@ -79,10 +78,16 @@ results = measureTestRuntime(["test_a"; "test_b"], ...
     'WriteCsv', false);
 ```
 
-Set `WriteCsv` to `true` to write the deterministic, entrypoint-sorted
-`analysis/test_inventory/test_runtime_measurements.csv`. `OutputFile` must be a
-repository-relative path. The output records the measured commit, MATLAB
-release, broad platform, failures, and min/median/max duration.
+Set `WriteCsv` to `true` to write the entrypoint-sorted local evidence:
+
+```text
+Results/test_runtime/test_runtime_measurements.csv
+```
+
+`OutputFile` must be a repository-relative path. Resolution starts at the
+repository root, independent of the caller's current folder. The output records
+the measured commit, MATLAB release, broad platform, failures, and
+min/median/max duration.
 
 The harness uses in-process isolation: each script receives a separate function
 workspace, the MATLAB path and current folder are restored, and figures are
@@ -91,6 +96,7 @@ closed between entries. It does **not** implement a hard timeout and records
 per isolated `matlab -batch` process and apply the timeout to that process. A
 terminated process cannot emit a trustworthy completed measurement row.
 
-Historical measurement plans and timing snapshots are preserved in Git history.
-Use `measureTestRuntime` to generate current, machine-specific evidence when a
-runtime question needs to be answered.
+Runtime values are machine- and environment-dependent, remain ignored under
+`Results/`, and are never imported into deterministic inventory. Historical
+timing snapshots remain in Git history. Use `measureTestRuntime` to generate
+current local evidence when a runtime question needs to be answered.

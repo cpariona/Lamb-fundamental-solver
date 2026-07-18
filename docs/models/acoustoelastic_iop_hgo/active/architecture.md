@@ -56,10 +56,11 @@ models/acoustoelastic_iop_hgo/
 |-- configuration/  request validation, effective options, presets, grids
 |-- constitutive/    IOP/HGO stretch, prestress, and alpha/beta/gamma
 |-- core/            matrix, roots, and objective functions
+|-- diagnostics/     explicit identity-A0 diagnostic algorithms
 |-- options/         default options and branch-policy normalization
 |-- policies/        official atlasA0 selection and fallback decisions
 |-- quality/         requested-grid reliability and quality summaries
-|-- results/         canonical result assembly and diagnostic extensions
+|-- results/         canonical result assembly only
 |-- solvers/         public/advanced orchestration and atlas construction
 `-- tracking/        minima detection, branch linking, and splitting
 ```
@@ -231,8 +232,11 @@ candidates are diagnostic-only. They never replace official `result.Cp`,
 
 Diagnostic entrypoints live under
 `examples/acoustoelastic_iop_hgo/diagnostics/`; reusable diagnostic computation
-lives in `analysis/acoustoelastic_iop_hgo/`. Production tracking does not call
-those analysis implementations.
+lives in `analysis/acoustoelastic_iop_hgo/diagnostics/`. The explicit
+identity-A0 builder and scorer are model-owned under
+`models/acoustoelastic_iop_hgo/diagnostics/` because the requested policy is
+attached inside model orchestration. Production tracking does not call analysis
+diagnostics, and model diagnostic helpers do not own production selection.
 
 ```text
 diagnose_* / validate_* / compare_* / track_*

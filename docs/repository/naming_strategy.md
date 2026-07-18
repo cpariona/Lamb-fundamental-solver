@@ -147,7 +147,7 @@ test_mrlfe_removed_route_flags_absent
 run_mrlfe_route_integrity_tests
 ```
 
-The nine public runner wrappers documented in `tests/README.md` intentionally
+The five public runner wrappers documented in `tests/README.md` intentionally
 share names with implementations under `tests/runners/`. They are the only
 allowed filename-level duplicates for maintained documented commands.
 

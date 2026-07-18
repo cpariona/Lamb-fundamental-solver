@@ -11,13 +11,12 @@ Updated: 2026-07-18
 - AE architecture status: complete
 - AE final contract:
   `docs/models/acoustoelastic_iop_hgo/active/architecture.md`
-- Active repository-maintenance contract:
+- Repository-simplification final-state contract:
   `docs/repository/simplification_plan.md`
 
-The multi-phase AE architecture alignment is closed. Do not reopen migration
-phases or create a Phase 7. The next task is an independent repository
-simplification effort and must start from updated `origin/main` on a separate
-branch.
+The multi-phase AE architecture alignment and the bounded repository
+simplification are closed. Do not reopen migration phases or create a Phase 7.
+New work must start from updated `origin/main` on a separate branch.
 
 ## Stable production ownership
 
@@ -52,31 +51,24 @@ basic example -> solveAcoustoelasticIOPHGOBranch
 The longer solver entrypoints remain advanced supported scientific APIs.
 Production consumers do not call tracking or policy internals.
 
-## Approved repository simplification
+## Implemented repository simplification
 
-The next task must implement the decisions in
-`docs/repository/simplification_plan.md`:
+- `analysis/acoustoelastic_iop_hgo/` is organized into `diagnostics/`,
+  `fitting/`, `io/`, and `sweeps/`.
+- Identity-A0 model diagnostics are owned by
+  `models/acoustoelastic_iop_hgo/diagnostics/`.
+- `models/acoustoelastic_iop_hgo/results/` owns result construction only.
+- `tests/fitting/` and its structural exception are absent.
+- Five public wrappers remain; specialized commands resolve from canonical
+  implementations under `tests/runners/`.
+- Runtime measurement output is local ignored evidence under
+  `Results/test_runtime/` and is not imported into deterministic inventories.
+- Rayleigh-Lamb and mRLFE analysis remain flat based on their small cohesive
+  call graphs.
 
-1. characterize and reorganize `analysis/acoustoelastic_iop_hgo/` by fitting,
-   sweeps, diagnostics, and justified IO/output ownership;
-2. move `aeBuildIdentityA0DiagnosticBranch` and
-   `aeScoreBranchIdentityCandidates` to
-   `models/acoustoelastic_iop_hgo/diagnostics/` without algorithm changes;
-3. remove `tests/fitting/run_fit_validation_tests.m` and its structural
-   exception;
-4. characterize the nine root-level test wrappers and retain only a minimal,
-   explicitly public convenience surface;
-5. keep `measureTestRuntime.m`, but move generated runtime measurements to an
-   ignored `Results/test_runtime/` location and remove the tracked runtime CSV;
-6. update entrypoint, structure, validation, runner-ownership, test, project,
-   and inventory documentation.
-
-Use direct moves and caller migration. Do not create forwarding wrappers, path
-aliases, empty directories, or new exceptions.
-
-Rayleigh-Lamb should remain flat unless real dependency evidence justifies added
-structure. mRLFE must be audited for similar analysis-layer mixing, but should be
-subdivided only when the resulting structure is simpler than the current one.
+The final structure and enforcement rules are recorded in
+`docs/repository/simplification_plan.md`,
+`docs/repository/repository_structure.md`, and the test-runner contracts.
 
 ## Preserved contracts
 

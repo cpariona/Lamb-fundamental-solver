@@ -1,145 +1,98 @@
-# Repository simplification plan
+# Repository simplification final state
 
-This document defines the next bounded repository-maintenance task after the
-completed AE architecture alignment. The objective is to reduce structural
-exceptions and navigation cost without changing any physical model, numerical
-result, public result schema, GUI behavior, fitting behavior, or sweep campaign.
+Status: complete on `refactor/repository-simplification`.
 
-## Motivation
+This document records the maintained repository state after the bounded
+simplification. Git history is the implementation record. Numerical, scientific,
+GUI, fitting, sweep, output, and result behavior remain governed by their
+existing contracts.
 
-The production architecture is stable, but the repository still retains several
-forms of avoidable structural complexity:
+## Implemented structure
 
-- `analysis/acoustoelastic_iop_hgo/` mixes fitting, sweeps, plotting/output, and
-  diagnostic responsibilities in one flat directory;
-- two identity-A0 diagnostic model helpers live under `results/` even though
-  they implement diagnostic logic rather than public result construction;
-- `tests/fitting/run_fit_validation_tests.m` is a documented layout exception
-  beside the canonical runner in `tests/runners/`;
-- nine root-level test wrappers duplicate canonical runner identifiers and must
-  be reduced to a small, explicitly public convenience surface;
-- `analysis/test_inventory/test_runtime_measurements.csv` is an
-  environment-dependent measurement stored beside deterministic inventories;
-- `docs/repository/maintained_entrypoints.md` currently classifies the two
-  identity-A0 model helpers inconsistently.
-
-Generated example figures and `Results/` workspaces are local ignored outputs and
-are not part of this task.
-
-## Approved target
-
-### AE analysis layout
-
-Organize the AE workflow layer by real responsibility, with no forwarding
-wrappers and one tracked definition per MATLAB identifier:
+### AE analysis ownership
 
 ```text
 analysis/acoustoelastic_iop_hgo/
-|-- fitting/
-|-- sweeps/
-|-- diagnostics/
-`-- io/ or workflow-local output helpers where justified
+|-- diagnostics/  repeatable diagnostic computation and defaults
+|-- fitting/      fit problem construction, evaluation, and optimization
+|-- io/           result/output resolution and figure-file helpers
+`-- sweeps/       sweep orchestration, summaries, plot data, plots, and outputs
 ```
 
-Use the smallest directory set supported by the actual dependency graph. Do not
-create empty folders or one-file categories without a clear ownership benefit.
-Rayleigh-Lamb remains flat because its analysis layer is small. mRLFE must be
-audited for the same responsibility pattern, but it should be subdivided only if
-its current size and dependency graph justify the added structure.
+Every maintained AE analysis identifier has one tracked definition. Recursive
+project path configuration preserves command names without forwarding files or
+path aliases.
 
 ### AE model diagnostics
 
-Move these functions out of `models/acoustoelastic_iop_hgo/results/`:
-
-```text
-aeBuildIdentityA0DiagnosticBranch
-aeScoreBranchIdentityCandidates
-```
-
-Their target ownership is:
-
 ```text
 models/acoustoelastic_iop_hgo/diagnostics/
+|-- aeBuildIdentityA0DiagnosticBranch.m
+`-- aeScoreBranchIdentityCandidates.m
 ```
 
-They remain diagnostic-only model internals. Their algorithms, function names,
-callers, outputs, and policy status must not change.
+These helpers remain diagnostic-only model internals used by the explicit
+`identityA0Diagnostic` policy. `models/acoustoelastic_iop_hgo/results/` contains
+only `aeBuildResult.m`.
 
-### Test runners
+### Model-family analysis decisions
 
-- remove `tests/fitting/run_fit_validation_tests.m` and the resulting empty
-  directory;
-- keep canonical implementations under `tests/runners/`;
-- characterize all nine root-level wrappers and reduce them to a small public
-  convenience set;
-- root wrappers that remain must contain no validation logic and must delegate
-  through `runRepositoryTestRunner`;
-- remove structural-test exceptions instead of replacing them with new
-  whitelists.
+`analysis/rayleigh_lamb/` remains flat: its ten maintained files form one small
+fit/sweep/output workflow with eight internal call edges.
 
-The exact retained public wrapper set must be justified by documented user or
-automation value. Specialized model-contract runners should normally remain only
-under `tests/runners/`.
+`analysis/mrlfe/` remains flat: its twenty maintained files form a cohesive
+request-building, fitting, sweep, and diagnostic workflow with seventeen
+internal call edges. The shared request builder couples surface-specific
+requests intentionally. Subdirectories would add traversal without removing a
+responsibility exception.
 
-### Runtime measurements
+### Tests and runners
 
-Keep `measureTestRuntime.m`, but treat runtime data as local generated evidence,
-not deterministic repository inventory. Move its default output under an ignored
-`Results/test_runtime/` location, remove the tracked
-`test_runtime_measurements.csv`, and remove its approved-CSV exception. Add a
-focused schema test for the generated measurement table if needed.
+Canonical runner implementations live under `tests/runners/`. The explicit
+public convenience wrappers are:
 
-### Documentation and contracts
+```matlab
+run_acoustoelastic_smoke_tests
+run_all_smoke_tests
+run_core_smoke_tests
+run_gui_smoke_tests
+run_mrlfe_smoke_tests
+```
 
-Update:
+The former `tests/fitting/` exception is absent. Specialized commands,
+including fitting, Main GUI export, mRLFE production-core, public-contract, and
+route-integrity validation, resolve directly from `tests/runners/`.
 
-- `docs/repository/maintained_entrypoints.md`;
-- `docs/repository/repository_structure.md`;
-- `docs/repository/validation_status.md`;
-- `docs/repository/test_runner_ownership.md`;
-- `tests/README.md`;
-- project context and handoff documents;
-- deterministic test inventories.
+### Runtime evidence
 
-The final documentation must classify every maintained function by its actual
-layer and must contain no path exceptions for removed files.
+`measureTestRuntime` writes local machine-dependent evidence to:
 
-## Non-goals
+```text
+Results/test_runtime/test_runtime_measurements.csv
+```
 
-Do not change:
+The file is ignored and is never imported into deterministic ownership
+inventory. The tracked deterministic inventories remain:
 
-- solver equations, constitutive laws, matrices, residuals, objectives, roots,
-  tracking, policies, presets, grids, thresholds, tolerances, or branch results;
-- public model function names or result schemas;
-- GUI behavior or appearance;
-- fitting objectives, bounds, optimizers, or parameter summaries;
-- sweep values, order, outputs, or file names;
-- diagnostic algorithms or scientific interpretation;
-- local ignored example figures or result workspaces;
-- mRLFE or Rayleigh-Lamb model implementation merely for visual symmetry.
+```text
+analysis/test_inventory/test_inventory.csv
+analysis/test_inventory/runner_edges.csv
+analysis/test_inventory/test_runner_ownership.csv
+```
 
-## Required evidence
+## Enforced invariants
 
-Before every move or deletion:
+`run_repository_hygiene_tests` enforces:
 
-1. enumerate static callers, tests, examples, documentation, and dynamic lookup;
-2. characterize current behavior where execution is involved;
-3. migrate all callers in the same change;
-4. leave exactly one tracked definition and no forwarding alias;
-5. regenerate deterministic inventories;
-6. run focused and aggregate validation.
+- the four AE analysis responsibility directories and their explicit owners;
+- diagnostic model ownership outside result construction;
+- absence of `tests/fitting/` and unexpected root wrappers;
+- delegation-only retained wrappers with canonical runner targets;
+- no tracked runtime measurements;
+- maintained layer direction and AE internal dependency boundaries;
+- one tracked definition per maintained identifier;
+- deterministic runner ownership with no unowned or multiply owned tests.
 
-## Completion criteria
-
-The task is complete when:
-
-- AE analysis responsibilities are navigable by directory rather than only by
-  filename prefix;
-- identity-A0 diagnostic internals have explicit model diagnostic ownership;
-- `tests/fitting/` no longer exists;
-- the root test-wrapper surface is minimal and documented;
-- runtime measurements are generated locally and not versioned;
-- repository contracts contain no exception for removed paths;
-- all numerical and user-facing behavior remains unchanged;
-- repository hygiene, quick contracts, smoke, fitting, AE, mRLFE, RL, GUI, and
-  extended integration validation pass.
+The current validation counts and commands are maintained in
+`validation_status.md`; runner ownership is maintained in
+`test_runner_ownership.md`.
