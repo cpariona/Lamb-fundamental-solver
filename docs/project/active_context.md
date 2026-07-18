@@ -1,10 +1,10 @@
 # Active project context
 
-Last reviewed: 2026-07-17
+Last reviewed: 2026-07-18
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Last merged AE architecture change: PR #126, commit
-`816e74e2190a159063838517c39e2c98c60674a3`
+Last merged architecture change: PR #127, merge commit
+`13b00c4e6142988c0ac0d3e3b4c0fc76ddfae586`
 
 ## Current architecture
 
@@ -44,22 +44,41 @@ run_repository_hygiene_tests
   removal condition.
 - Start each implementation task from updated `origin/main` on a new branch.
 - Do not open a PR until focused validation and manual review are complete.
+- Prefer deletion or direct moves over new wrappers and path exceptions.
+- Do not reorganize small model families merely for visual symmetry.
 
 ## Current objective
 
-The AE architecture migration is closed. New work must be selected as an
-independent technical task and preserve the final ownership contract.
+Perform the bounded repository simplification defined in:
 
-## Open technical areas
+`docs/repository/simplification_plan.md`
+
+The goal is to reduce navigation cost and structural exceptions while preserving
+all numerical and user-facing behavior. This is repository maintenance, not a
+new AE architecture phase.
+
+The approved scope includes:
+
+1. organize the flat AE analysis layer by actual responsibility;
+2. move identity-A0 diagnostic internals from `results/` to explicit model
+   diagnostic ownership;
+3. remove the `tests/fitting/` runner exception;
+4. reduce root-level test wrappers to a small justified public surface;
+5. stop versioning environment-dependent runtime measurements;
+6. update repository contracts and deterministic inventories.
+
+Local ignored `Results/` workspaces and example figures are generated user
+outputs and are outside this task.
+
+## Open technical areas after simplification
 
 1. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
    documented in
    `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`.
-   This is numerical work, not architecture cleanup.
-2. **mRLFE runtime characterization** — a controlled benchmark is required
-   before treating perceived runtime changes as a regression.
-3. **Bounded compatibility debt** — retained aliases, wrappers, and
-   canonical-first legacy reads are listed in
-   `docs/repository/validation_status.md`.
+   This is numerical work, not repository cleanup.
+2. **mRLFE runtime characterization** — controlled measurements may be generated
+   locally, but environment-dependent measurements are not canonical inventory.
+3. **Bounded compatibility debt** — retained aliases and canonical-first legacy
+   reads remain governed by `docs/repository/validation_status.md`.
 
-Architecture finalization does not authorize numerical AE refinement.
+Repository simplification does not authorize numerical solver refinement.
