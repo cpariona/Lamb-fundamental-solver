@@ -11,38 +11,37 @@ The maintained production branch policy remains:
 atlasA0 = conservative official output
 ```
 
-The IOP/HGO wrapper still separates:
+The IOP/HGO wrapper separates:
 
 ```text
 internal atlas tracking grid
 requested output frequency grid
 ```
 
-The previously reported high-frequency waviness in `Cp(f)` has been addressed
-through selected-branch continuous refinement.
+The previously reported high-frequency waviness in `Cp(f)` has been resolved by
+replacing the former sub-grid candidate interpolation stage with continuous
+refinement of the already selected atlas branch.
 
-## Resolved numerical issue: residual waviness in Cp(f)
+## Final numerical pipeline
 
-The investigation established that:
-
-```text
-1. The selected branch identity remained stable.
-2. Increasing atlasNumYPoints did not remove the waviness and increased runtime.
-3. Disabling refinement produced quantized plateaus and large jumps.
-4. The three-point parabolic fit did not represent the narrow true SVD residual valleys.
-```
-
-The production fix keeps the atlas responsible for candidate discovery,
-branch linking, and A0 selection. After the maintained branch has been selected,
-only its explicit points are refined by minimizing the true objective
+The maintained atlas workflow is now:
 
 ```text
-log10(sigma_min(M))
+1. Evaluate log10(sigma_min(M)) on the discrete atlas frequency-velocity grid.
+2. Detect local candidate minima strictly on cGrid.
+3. Link the discrete candidates into branches.
+4. Select the maintained A0 branch with the atlasA0 policy.
+5. Refine only the explicit points of the selected branch by minimizing the true
+   SVD objective in log(Cp) between neighboring cGrid samples.
+6. Assign the refined branch to the requested output frequencies and interpolate
+   only across gaps allowed by the existing policy.
 ```
 
-with `fminbnd` in `log(Cp)` between neighboring atlas velocity samples.
+Candidate discovery, branch metrics, branch linking, and branch selection remain
+based on the discrete atlas. Continuous minimization cannot alter candidate
+ranking or branch identity because it occurs only after A0 selection.
 
-The implementation is owned by:
+The refinement implementation is owned by:
 
 ```text
 models/acoustoelastic_iop_hgo/tracking/aeRefineSelectedAtlasBranch.m
@@ -56,26 +55,26 @@ models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticAtlasBranch.m
 
 ## Configuration contract
 
-The selected-branch refinement is controlled by:
+The final continuous-refinement stage is controlled by:
 
 ```text
-refineSelectedAtlasBranch
+refineLocalMinima
 selectedBranchRefinementTolLogCp
 selectedBranchRefinementMaxFunEvals
 selectedBranchRefinementMaxIter
 ```
 
-`refineLocalMinima=false` disables both the original local-minimum refinement
-and the selected-branch continuous refinement, preserving the discrete-grid
-contract used by characterization tests.
+`refineLocalMinima=false` disables continuous refinement and preserves a fully
+discrete official branch on `cGrid`. The candidate table remains discrete in
+both configurations.
 
 ## Validation evidence
 
-For the representative 1-15 kHz case used during the investigation:
+For the representative 1-15 kHz case used during development:
 
 ```text
 - all 141 requested points remained valid;
-- nearestRank and nearestBranchID were unchanged;
+- nearestRank and nearestBranchID remained unchanged;
 - maximum high-frequency |Delta2Cp/Cp| decreased by about 42x;
 - median high-frequency |Delta2Cp/Cp| decreased by about 10x;
 - median high-frequency objective improved from about -1.46 to -6.20;
@@ -83,8 +82,8 @@ For the representative 1-15 kHz case used during the investigation:
 - the maintained acoustoelastic smoke and extended test suites passed.
 ```
 
-The temporary diagnostic scripts used to obtain this evidence were removed from
-the implementation branch after validation.
+Temporary diagnostic scripts used to obtain this evidence were removed after
+validation.
 
 ## Remaining solver-side work
 
