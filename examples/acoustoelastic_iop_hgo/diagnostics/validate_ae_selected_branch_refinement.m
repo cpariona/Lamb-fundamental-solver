@@ -27,12 +27,19 @@ params = struct( ...
     'frequency', frequency, ...
     'IOP', 15 * 133.322);
 
-caseNames = ["parabolic_only", "selected_branch_bounded"];
-enableBoundedRefinement = [false, true];
+caseNames = ["parabolic_only"; "selected_branch_bounded"];
+enableBoundedRefinement = [false; true];
+numCases = numel(caseNames);
 results = struct();
-summaryRows = struct([]);
 
-for i = 1:numel(caseNames)
+summaryCaseName = strings(numCases, 1);
+summaryElapsedTime_s = nan(numCases, 1);
+summaryValidPoints = nan(numCases, 1);
+summaryHighFrequencyMaxAbsRelativeDelta2Cp = nan(numCases, 1);
+summaryHighFrequencyMedianAbsRelativeDelta2Cp = nan(numCases, 1);
+summaryHighFrequencyMedianObjective = nan(numCases, 1);
+
+for i = 1:numCases
     options = defaultAcoustoelasticIOPHGOOptions();
     options.M54_variant = "corrected";
     options.normalizeRows = false;
@@ -59,10 +66,24 @@ for i = 1:numel(caseNames)
     results.(fieldName).elapsedTime_s = elapsedTime_s;
     writetable(diagnostic, fullfile(outputFolder, caseNames(i) + "_diagnostic.csv"));
 
-    summaryRows(i) = summarizeCase(caseNames(i), diagnostic, elapsedTime_s); %#ok<SAGROW>
+    metrics = summarizeCase(diagnostic, elapsedTime_s);
+    summaryCaseName(i) = caseNames(i);
+    summaryElapsedTime_s(i) = metrics.ElapsedTime_s;
+    summaryValidPoints(i) = metrics.ValidPoints;
+    summaryHighFrequencyMaxAbsRelativeDelta2Cp(i) = metrics.HighFrequencyMaxAbsRelativeDelta2Cp;
+    summaryHighFrequencyMedianAbsRelativeDelta2Cp(i) = metrics.HighFrequencyMedianAbsRelativeDelta2Cp;
+    summaryHighFrequencyMedianObjective(i) = metrics.HighFrequencyMedianObjective;
 end
 
-summaryTable = struct2table(summaryRows);
+summaryTable = table(summaryCaseName, summaryElapsedTime_s, summaryValidPoints, ...
+    summaryHighFrequencyMaxAbsRelativeDelta2Cp, ...
+    summaryHighFrequencyMedianAbsRelativeDelta2Cp, ...
+    summaryHighFrequencyMedianObjective, ...
+    'VariableNames', {'CaseName', 'ElapsedTime_s', 'ValidPoints', ...
+    'HighFrequencyMaxAbsRelativeDelta2Cp', ...
+    'HighFrequencyMedianAbsRelativeDelta2Cp', ...
+    'HighFrequencyMedianObjective'});
+
 comparisonTable = compareCases(results.parabolic_only.diagnostic, ...
     results.selected_branch_bounded.diagnostic);
 writetable(summaryTable, fullfile(outputFolder, 'selected_branch_refinement_summary.csv'));
@@ -110,16 +131,15 @@ T = table(frequency, frequency ./ 1e3, Cp, valid, result.objective(:), ...
     'Objective', 'NearestRank', 'NearestBranchID', 'RelativeDelta2Cp'});
 end
 
-function row = summarizeCase(caseName, T, elapsedTime_s)
+function metrics = summarizeCase(T, elapsedTime_s)
 highMask = T.ValidCp & T.Frequency_Hz >= 8e3 & isfinite(T.RelativeDelta2Cp);
 curvature = abs(T.RelativeDelta2Cp(highMask));
-row = struct( ...
-    'CaseName', caseName, ...
-    'ElapsedTime_s', elapsedTime_s, ...
-    'ValidPoints', nnz(T.ValidCp), ...
-    'HighFrequencyMaxAbsRelativeDelta2Cp', max(curvature, [], 'omitnan'), ...
-    'HighFrequencyMedianAbsRelativeDelta2Cp', median(curvature, 'omitnan'), ...
-    'HighFrequencyMedianObjective', median(T.Objective(highMask), 'omitnan'));
+metrics = struct();
+metrics.ElapsedTime_s = elapsedTime_s;
+metrics.ValidPoints = nnz(T.ValidCp);
+metrics.HighFrequencyMaxAbsRelativeDelta2Cp = max(curvature, [], 'omitnan');
+metrics.HighFrequencyMedianAbsRelativeDelta2Cp = median(curvature, 'omitnan');
+metrics.HighFrequencyMedianObjective = median(T.Objective(highMask), 'omitnan');
 end
 
 function T = compareCases(parabolic, bounded)
