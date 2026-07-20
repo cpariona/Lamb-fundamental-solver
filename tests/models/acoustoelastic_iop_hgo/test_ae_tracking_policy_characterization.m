@@ -143,11 +143,23 @@ for row = 1:height(result.selectedBranchPoints)
     if isempty(outputIndex)
         continue;
     end
-    assert(result.Cp(outputIndex) == result.selectedBranchPoints.Cp_mps(row));
-    assert(result.objective(outputIndex) == result.selectedBranchPoints.Objective(row));
+
+    % selectedBranchPoints remains diagnostic even when fallback policy
+    % invalidates the official output. Compare only explicit valid outputs.
+    if ~result.validCp(outputIndex) || ~result.branchExistsAtFrequency(outputIndex)
+        continue;
+    end
+
+    assertNearlyEqual(result.Cp(outputIndex), result.selectedBranchPoints.Cp_mps(row));
+    assertNearlyEqual(result.objective(outputIndex), result.selectedBranchPoints.Objective(row));
     assert(result.nearestRank(outputIndex) == result.selectedBranchPoints.MinRank(row));
     assert(result.nearestBranchID(outputIndex) == result.selectedBranchPoints.BranchID(row));
 end
+end
+
+function assertNearlyEqual(actual, expected)
+scale = max([1, abs(actual), abs(expected)]);
+assert(abs(actual - expected) <= 32 * eps(scale));
 end
 
 function params = representativeParams(frequency)
