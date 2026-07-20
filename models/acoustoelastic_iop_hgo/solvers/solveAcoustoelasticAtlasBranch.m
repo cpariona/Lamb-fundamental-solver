@@ -1,10 +1,9 @@
 function result = solveAcoustoelasticAtlasBranch(params, options)
-%SOLVEACOUSTOELASTICATLASBRANCH Track a persistent atlas branch.
+%SOLVEACOUSTOELASTICATLASBRANCH Track and refine a persistent atlas branch.
 %
-% Conservative official output:
-%   result.Cp and result.validCp are always assigned from the maintained atlas
-%   branch logic. The optional identityA0Diagnostic policy only adds separate
-%   candidate fields under result.identityA0.
+% The atlas stage discovers discrete local minima, links candidate branches,
+% and selects the maintained A0 branch. Continuous minimization is then applied
+% only to the selected branch before official Cp assignment.
 
 if nargin < 2
     options = [];
@@ -18,7 +17,7 @@ rows = [];
 
 for k = 1:numel(frequency)
     f = frequency(k);
-    minima = aeFindAtlasLocalMinima(cGrid, objectiveMap(:,k), cShear, options.atlasTopNMinima, options);
+    minima = aeFindAtlasLocalMinima(cGrid, objectiveMap(:,k), cShear, options.atlasTopNMinima);
     for m = 1:height(minima)
         row = struct();
         row.Frequency_Hz = f;
@@ -55,7 +54,6 @@ if ~isempty(branchTable)
     [selectedBranch, selectedBranchID, branchTable] = aeSelectAtlasA0Branch(branchTable, options);
     branchPoints = sortrows(minimaTable(minimaTable.BranchID == selectedBranchID, :), 'Frequency_Hz');
     branchPoints = aeRefineSelectedAtlasBranch(branchPoints, params, cGrid, options);
-    minimaTable = updateSelectedBranchRows(minimaTable, branchPoints, selectedBranchID);
     [Cp, branchExistsAtFrequency, interpolatedCp] = assignCpFromBranch(frequency, branchPoints, options);
 end
 
@@ -68,11 +66,23 @@ pointStatus(branchExistsAtFrequency) = "explicitBranchPoint";
 pointStatus(interpolatedCp) = "interpolatedWithinAllowedGap";
 
 for k = 1:numel(frequency)
+    if ~isfinite(Cp(k))
+        continue;
+    end
+
+    explicitRow = find(branchPoints.Frequency_Hz == frequency(k), 1, 'first');
+    if ~isempty(explicitRow)
+        objective(k) = branchPoints.Objective(explicitRow);
+        nearestRank(k) = branchPoints.MinRank(explicitRow);
+        nearestBranchID(k) = branchPoints.BranchID(explicitRow);
+        continue;
+    end
+
     if isempty(minimaTable)
         continue;
     end
     candidates = minimaTable(minimaTable.Frequency_Hz == frequency(k), :);
-    if ~isempty(candidates) && isfinite(Cp(k))
+    if ~isempty(candidates)
         [~, idx] = min(abs(candidates.Cp_mps - Cp(k)));
         objective(k) = candidates.Objective(idx);
         nearestRank(k) = candidates.MinRank(idx);
@@ -114,24 +124,6 @@ if strcmpi(string(options.atlasBranchPolicy), "identityA0Diagnostic")
 end
 end
 
-function minimaTable = updateSelectedBranchRows(minimaTable, branchPoints, selectedBranchID)
-if isempty(minimaTable) || isempty(branchPoints)
-    return;
-end
-for n = 1:height(branchPoints)
-    mask = minimaTable.BranchID == selectedBranchID & ...
-        minimaTable.Frequency_Hz == branchPoints.Frequency_Hz(n);
-    idx = find(mask, 1, 'first');
-    if isempty(idx)
-        continue;
-    end
-    minimaTable.Cp_mps(idx) = branchPoints.Cp_mps(n);
-    minimaTable.y(idx) = branchPoints.y(n);
-    minimaTable.log10y(idx) = branchPoints.log10y(n);
-    minimaTable.Objective(idx) = branchPoints.Objective(n);
-end
-end
-
 function [Cp, branchExists, interpolated] = assignCpFromBranch(frequency, branchPoints, options)
 Cp = nan(size(frequency));
 branchExists = false(size(frequency));
@@ -146,7 +138,6 @@ branchExists(isMember) = true;
 if ~options.atlasAllowInterpolationAcrossGaps
     return;
 end
-
 missing = ~branchExists;
 if ~any(missing)
     return;
