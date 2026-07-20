@@ -1,9 +1,10 @@
-function minima = aeFindAtlasLocalMinima(cGrid, obj, cShear, topN)
+function minima = aeFindAtlasLocalMinima(cGrid, obj, cShear, topN, varargin)
 %AEFINDATLASLOCALMINIMA Find and rank discrete local minima in one atlas column.
 %
 % Candidate discovery remains strictly on the atlas velocity grid. Continuous
 % refinement belongs to the selected-branch stage after branch linking and A0
-% policy selection.
+% policy selection. A fifth legacy options argument is accepted for call-site
+% compatibility but does not alter discrete candidate discovery.
 
 idx = [];
 for i = 2:numel(obj)-1
