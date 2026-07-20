@@ -11,103 +11,91 @@ The maintained production branch policy remains:
 atlasA0 = conservative official output
 ```
 
-The main GUI uses a dense requested output grid, and the IOP/HGO wrapper
-separates:
+The IOP/HGO wrapper still separates:
 
 ```text
 internal atlas tracking grid
 requested output frequency grid
 ```
 
-The current plotted AE curve is usable for the GUI, but a small residual
-waviness remains in the phase-velocity curve.
+The previously reported high-frequency waviness in `Cp(f)` has been addressed
+through selected-branch continuous refinement.
 
-## Pending numerical issue: residual waviness in Cp(f)
+## Resolved numerical issue: residual waviness in Cp(f)
 
-Observed symptom:
-
-```text
-Cp(f) is mostly smooth and monotonic, but shows small high-frequency waviness
-after dense output-grid evaluation and local-minimum refinement.
-```
-
-Current interpretation:
+The investigation established that:
 
 ```text
-The issue is likely numerical rather than physical.
+1. The selected branch identity remained stable.
+2. Increasing atlasNumYPoints did not remove the waviness and increased runtime.
+3. Disabling refinement produced quantized plateaus and large jumps.
+4. The three-point parabolic fit did not represent the narrow true SVD residual valleys.
 ```
 
-Likely contributors:
+The production fix keeps the atlas responsible for candidate discovery,
+branch linking, and A0 selection. After the maintained branch has been selected,
+only its explicit points are refined by minimizing the true objective
 
 ```text
-1. Cp is still derived from a finite atlas velocity grid yGrid/cGrid.
-2. The current local refinement uses a three-point parabolic fit around a discrete minimum.
-3. Neighboring local minima can be close in residual value and may alternate slightly across frequency.
-4. Branch linking is based on residual minima and continuity in log(y), not on modal-shape information.
-5. The dense GUI output grid makes small tracking/refinement noise visually apparent.
+log10(sigma_min(M))
 ```
 
-## Do not solve this by visual smoothing alone
+with `fminbnd` in `log(Cp)` between neighboring atlas velocity samples.
 
-Avoid using plotting-only smoothing as the production fix:
+The implementation is owned by:
 
 ```text
-smooth
-movmean
-Savitzky-Golay
-spline smoothing applied only to the plotted curve
+models/acoustoelastic_iop_hgo/tracking/aeRefineSelectedAtlasBranch.m
 ```
 
-Those tools may hide branch-selection or residual-landscape problems. If
-smoothing is ever used, it should be diagnostic-only and explicitly labeled.
-
-## Recommended future strategy
-
-The preferred solver-side strategy is a two-stage workflow:
+and is invoked from:
 
 ```text
-1. Use the atlas grid to identify the A0-like modal family.
-2. Evaluate Cp on the requested output grid using a continuous local minimizer around a branch-guided predictor.
+models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticAtlasBranch.m
 ```
 
-Candidate implementation:
+## Configuration contract
+
+The selected-branch refinement is controlled by:
 
 ```text
-- build atlasA0 on a moderate internal grid;
-- construct a smooth predictor Cp_pred(f) from the selected branch, for example with pchip;
-- for each requested output frequency, minimize objectiveAcoustoelasticResidual in log(Cp) inside a bounded local window around Cp_pred(f);
-- reject the point if the refined minimum leaves the window, introduces a large jump, has poor residual behavior, or violates the branch identity constraints;
-- preserve result.validCp and reliability diagnostics as the official quality gate.
+refineSelectedAtlasBranch
+selectedBranchRefinementTolLogCp
+selectedBranchRefinementMaxFunEvals
+selectedBranchRefinementMaxIter
 ```
 
-This should be more efficient than simply increasing `atlasNumYPoints`, because
-it avoids a very dense global velocity scan at every frequency.
+`refineLocalMinima=false` disables both the original local-minimum refinement
+and the selected-branch continuous refinement, preserving the discrete-grid
+contract used by characterization tests.
 
-## Diagnostic checks before implementation
+## Validation evidence
 
-Before replacing the current refinement, add or extend diagnostics to inspect:
+For the representative 1-15 kHz case used during the investigation:
 
 ```text
-Cp(f)
-diff(Cp)
-diff(Cp, 2)
-nearestRank(f)
-nearestBranchID(f)
-objective(f)
-selectedBranchPoints.MinRank
-selectedBranchPoints.Objective
+- all 141 requested points remained valid;
+- nearestRank and nearestBranchID were unchanged;
+- maximum high-frequency |Delta2Cp/Cp| decreased by about 42x;
+- median high-frequency |Delta2Cp/Cp| decreased by about 10x;
+- median high-frequency objective improved from about -1.46 to -6.20;
+- repeated alternating benchmarks measured about 6.3% median runtime overhead;
+- the maintained acoustoelastic smoke and extended test suites passed.
 ```
 
-Interpretation guide:
+The temporary diagnostic scripts used to obtain this evidence were removed from
+the implementation branch after validation.
+
+## Remaining solver-side work
+
+The resolved waviness issue should not be reopened through plotting-side
+smoothing. Remaining numerical work, if separately prioritized, includes:
 
 ```text
-- waviness correlated with nearestRank or BranchID changes suggests modal tracking ambiguity;
-- waviness without rank/branch changes suggests local minimization or velocity-grid quantization;
-- objective spikes suggest residual conditioning or matrix-scaling issues.
+- low-frequency modal degeneracy characterization;
+- optional modal-signature/MAC reinforcement near difficult branch crossings;
+- controlled runtime characterization for other solvers and parameter regimes.
 ```
 
-## Maintenance status
-
-This remains a bounded solver-refinement task. Address it only through a focused
-numerical PR with diagnostic and regression evidence, not through GUI-side
-smoothing or repository-cleanup work.
+Any future change should remain focused, preserve official output contracts,
+and include numerical and runtime evidence.
