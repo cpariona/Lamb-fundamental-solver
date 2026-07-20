@@ -54,6 +54,8 @@ branchPoints = table();
 if ~isempty(branchTable)
     [selectedBranch, selectedBranchID, branchTable] = aeSelectAtlasA0Branch(branchTable, options);
     branchPoints = sortrows(minimaTable(minimaTable.BranchID == selectedBranchID, :), 'Frequency_Hz');
+    branchPoints = aeRefineSelectedAtlasBranch(branchPoints, params, cGrid, options);
+    minimaTable = updateSelectedBranchRows(minimaTable, branchPoints, selectedBranchID);
     [Cp, branchExistsAtFrequency, interpolatedCp] = assignCpFromBranch(frequency, branchPoints, options);
 end
 
@@ -111,6 +113,25 @@ if strcmpi(string(options.atlasBranchPolicy), "identityA0Diagnostic")
     result = aeBuildResult(spec);
 end
 end
+
+function minimaTable = updateSelectedBranchRows(minimaTable, branchPoints, selectedBranchID)
+if isempty(minimaTable) || isempty(branchPoints)
+    return;
+end
+for n = 1:height(branchPoints)
+    mask = minimaTable.BranchID == selectedBranchID & ...
+        minimaTable.Frequency_Hz == branchPoints.Frequency_Hz(n);
+    idx = find(mask, 1, 'first');
+    if isempty(idx)
+        continue;
+    end
+    minimaTable.Cp_mps(idx) = branchPoints.Cp_mps(n);
+    minimaTable.y(idx) = branchPoints.y(n);
+    minimaTable.log10y(idx) = branchPoints.log10y(n);
+    minimaTable.Objective(idx) = branchPoints.Objective(n);
+end
+end
+
 function [Cp, branchExists, interpolated] = assignCpFromBranch(frequency, branchPoints, options)
 Cp = nan(size(frequency));
 branchExists = false(size(frequency));
