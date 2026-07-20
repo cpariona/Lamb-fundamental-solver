@@ -1,9 +1,8 @@
 function test_ae_tracking_policy_characterization()
 %TEST_AE_TRACKING_POLICY_CHARACTERIZATION Freeze the production decision path.
 %
-% This characterization intentionally observes only the maintained solver
-% result. It predates the Phase-4 extraction and therefore does not depend on
-% the future tracking or policy helper names.
+% Atlas candidates must remain discrete grid points. Continuous minimization is
+% owned only by the selected-branch stage.
 
 params = representativeParams(logspace(log10(300), log10(12e3), 16));
 profiles = ["Fast", "Balanced", "Robust"];
@@ -24,6 +23,7 @@ for i = 1:numel(profiles)
     assertIntermediateSchema(result);
     assertDiscreteMinima(result);
     assertTrackingConsistency(result);
+    assertSelectedBranchConsistency(result);
 end
 
 mainGuiOptions = aeResolveConfiguration(struct(), 'Surface', "MainGUI");
@@ -34,7 +34,9 @@ assert(mainGuiResult.options.atlasTopNMinima == 18);
 assert(mainGuiResult.options.numCpScanPoints == 420);
 assert(mainGuiResult.options.maxLocalCandidates == 8);
 assertIntermediateSchema(mainGuiResult);
+assertDiscreteMinima(mainGuiResult);
 assertTrackingConsistency(mainGuiResult);
+assertSelectedBranchConsistency(mainGuiResult);
 
 overrideOptions = representativeOptions("Fast");
 overrideOptions.atlasNumYPoints = 137;
@@ -48,7 +50,9 @@ assert(overrideResult.options.atlasTopNMinima == 7);
 assert(overrideResult.options.atlasMaxLogYJump == 0.031);
 assert(overrideResult.options.atlasMaxRelativeCpJump == 0.021);
 assertIntermediateSchema(overrideResult);
+assertDiscreteMinima(overrideResult);
 assertTrackingConsistency(overrideResult);
+assertSelectedBranchConsistency(overrideResult);
 
 fallbackParams = representativeParams(logspace(log10(1000), log10(15e3), 35));
 fallbackOptions = representativeOptions("Fast");
@@ -57,6 +61,7 @@ fallbackOptions.atlasTopNMinima = 12;
 fallbackOptions.useInternalAtlasTrackingGrid = false;
 fallbackOptions.invalidateAtlasFallbackOutput = true;
 fallbackResult = solveAcoustoelasticIOPHGOAtlasBranch(fallbackParams, fallbackOptions);
+assertDiscreteMinima(fallbackResult);
 assert(fallbackResult.reliability.SelectionFallbackUsed == true);
 assert(fallbackResult.reliability.A0StartFilterPassed == false);
 assert(any(isfinite(fallbackResult.fallbackCandidateCp)));
@@ -94,7 +99,7 @@ if isempty(result.minimaTable)
     return;
 end
 [isGridPoint, gridIndex] = ismember(result.minimaTable.Cp_mps, result.cGrid);
-assert(all(isGridPoint), 'Unrefined minima must remain on the atlas cGrid.');
+assert(all(isGridPoint), 'Atlas candidate minima must remain on cGrid.');
 for row = 1:height(result.minimaTable)
     column = find(result.frequency == result.minimaTable.Frequency_Hz(row), 1);
     assert(~isempty(column));
@@ -127,6 +132,22 @@ assert(result.branchTable.SelectionScore(selectedRow) == ...
 assert(all(isfinite(result.minimaTable.BranchID) | isnan(result.minimaTable.BranchID)));
 assert(all(result.validCp == (isfinite(result.Cp) & ...
     (result.branchExistsAtFrequency | result.interpolatedCp))));
+end
+
+function assertSelectedBranchConsistency(result)
+if isempty(result.selectedBranchPoints)
+    return;
+end
+for row = 1:height(result.selectedBranchPoints)
+    outputIndex = find(result.frequency == result.selectedBranchPoints.Frequency_Hz(row), 1);
+    if isempty(outputIndex)
+        continue;
+    end
+    assert(result.Cp(outputIndex) == result.selectedBranchPoints.Cp_mps(row));
+    assert(result.objective(outputIndex) == result.selectedBranchPoints.Objective(row));
+    assert(result.nearestRank(outputIndex) == result.selectedBranchPoints.MinRank(row));
+    assert(result.nearestBranchID(outputIndex) == result.selectedBranchPoints.BranchID(row));
+end
 end
 
 function params = representativeParams(frequency)
