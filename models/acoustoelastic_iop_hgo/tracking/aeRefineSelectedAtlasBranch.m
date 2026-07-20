@@ -1,13 +1,12 @@
 function branchPoints = aeRefineSelectedAtlasBranch(branchPoints, params, cGrid, options)
 %AEREFINESELECTEDATLASBRANCH Refine the selected atlas branch on the true SVD objective.
 %
-% The atlas remains responsible for candidate discovery and branch identity.
-% Only the already selected branch is refined, using a bounded minimization in
-% log(Cp) between the neighboring atlas velocity samples.
+% The atlas grid is used only for discrete candidate discovery, branch linking,
+% and A0 policy selection. Once the branch is selected, each explicit branch
+% point is refined by bounded minimization in log(Cp) between neighboring atlas
+% velocity samples.
 
-if isempty(branchPoints) || ...
-        ~getLocalOption(options, 'refineLocalMinima', true) || ...
-        ~getLocalOption(options, 'refineSelectedAtlasBranch', true)
+if isempty(branchPoints) || ~getLocalOption(options, 'refineLocalMinima', true)
     return;
 end
 
