@@ -5,21 +5,21 @@ startup
 
 %DIAGNOSE_AE_HIGH_FREQUENCY_WAVINESS Explore residual waviness in AE Cp(f).
 %
-% This temporary diagnostic compares:
-%   1. the maintained baseline;
-%   2. the same atlas grid without three-point parabolic refinement;
-%   3. a denser atlas velocity grid.
+% This temporary diagnostic compares the maintained solution with discrete
+% minima and a denser velocity grid. It also inspects the true residual valley
+% around the largest high-frequency curvature events and compares it with the
+% three-point parabolic approximation used by the solver.
 %
-% It records Cp curvature, rank/branch changes, objective values, and total
-% solver runtime. Outputs are written to:
+% Outputs:
 %   Results/ae_iop_hgo/high_frequency_waviness
 %
-% The script does not modify solver output and does not apply smoothing.
+% The script does not modify solver output and does not smooth Cp(f).
 
 outputFolder = aeOutputFolder(launchFolder, 'high_frequency_waviness');
 plotFolder = fullfile(outputFolder, 'plots');
-if ~exist(plotFolder, 'dir')
-    mkdir(plotFolder);
+valleyPlotFolder = fullfile(plotFolder, 'local_valleys');
+if ~exist(valleyPlotFolder, 'dir')
+    mkdir(valleyPlotFolder);
 end
 
 frequency = linspace(1e3, 15e3, 141);
@@ -90,16 +90,29 @@ plotComparison(comparisonTables.baseline_vs_discrete_minima, ...
 plotComparison(comparisonTables.baseline_vs_dense_velocity_grid, ...
     "baseline", "dense velocity grid", 'baseline_vs_dense_velocity_grid.png', plotFolder);
 
+fprintf('\nInspecting local residual valleys at high-curvature frequencies...\n');
+[valleySummaryTable, valleySamples] = inspectLocalResidualValleys( ...
+    results.baseline.result, results.baseline.diagnostic, representativeOptions(), ...
+    valleyPlotFolder);
+writetable(valleySummaryTable, fullfile(outputFolder, 'local_valley_summary.csv'));
+for i = 1:numel(valleySamples)
+    writetable(valleySamples(i).table, fullfile(outputFolder, ...
+        sprintf('local_valley_%05dHz.csv', round(valleySamples(i).frequency_Hz))));
+end
+
 save(fullfile(outputFolder, 'high_frequency_waviness_workspace.mat'), ...
     'params', 'caseSpecs', 'results', 'summaryTable', 'comparisonTables', ...
-    'launchFolder', '-v7.3');
+    'valleySummaryTable', 'valleySamples', 'launchFolder', '-v7.3');
 
 disp(summaryTable);
+disp(valleySummaryTable);
 fprintf('\nDiagnostic files written to:\n%s\n', outputFolder);
 
 assignin('base', 'AEHighFrequencyWavinessSummary', summaryTable);
 assignin('base', 'AEHighFrequencyWavinessComparisons', comparisonTables);
 assignin('base', 'AEHighFrequencyWavinessResults', results);
+assignin('base', 'AELocalValleySummary', valleySummaryTable);
+assignin('base', 'AELocalValleySamples', valleySamples);
 assignin('base', 'AEHighFrequencyWavinessOutputFolder', outputFolder);
 
 function params = representativeParams(frequency)
@@ -167,6 +180,129 @@ T = table(frequency, frequency ./ 1e3, Cp, validCp, pointStatus, objective, ...
     'PointStatus', 'Objective', 'NearestRank', 'NearestBranchID', ...
     'RankChanged', 'BranchChanged', 'DeltaCp_mps', 'Delta2Cp_mps', ...
     'RelativeDeltaCp', 'RelativeDelta2Cp'});
+end
+
+function [summaryTable, samples] = inspectLocalResidualValleys(result, diagnostic, options, plotFolder)
+highMask = diagnostic.ValidCp & diagnostic.Frequency_Hz >= 8e3 & ...
+    isfinite(diagnostic.RelativeDelta2Cp);
+candidateIdx = find(highMask);
+[~, order] = sort(abs(diagnostic.RelativeDelta2Cp(candidateIdx)), 'descend');
+candidateIdx = candidateIdx(order(1:min(6, numel(order))));
+
+direct = result.directParams;
+cGrid = result.cGrid(:);
+samples = struct([]);
+rows = struct([]);
+
+for n = 1:numel(candidateIdx)
+    rowIdx = candidateIdx(n);
+    f = diagnostic.Frequency_Hz(rowIdx);
+    cpSolver = diagnostic.Cp_mps(rowIdx);
+
+    [~, centerIdx] = min(abs(cGrid - cpSolver));
+    centerIdx = min(max(centerIdx, 2), numel(cGrid)-1);
+    localIdx = centerIdx-1:centerIdx+1;
+    localC = cGrid(localIdx);
+    localObj = evaluateObjective(direct, f, localC, options);
+
+    [cpParabolic, objParabolic, fitAccepted, coefficients] = ...
+        fitThreePointParabola(localC, localObj);
+
+    denseC = exp(linspace(log(localC(1)), log(localC(end)), 121)).';
+    denseObj = evaluateObjective(direct, f, denseC, options);
+    [objDenseMin, denseMinIdx] = min(denseObj);
+    cpDenseMin = denseC(denseMinIdx);
+
+    if fitAccepted
+        objParabolicTrue = evaluateObjective(direct, f, cpParabolic, options);
+    else
+        objParabolicTrue = NaN;
+    end
+    objSolverTrue = evaluateObjective(direct, f, cpSolver, options);
+
+    parabolaDense = polyval(coefficients, log(denseC));
+    if ~fitAccepted
+        parabolaDense(:) = NaN;
+    end
+
+    sampleTable = table(denseC, denseObj, parabolaDense, ...
+        'VariableNames', {'Cp_mps', 'TrueObjective', 'ParabolicApproximation'});
+    samples(n).frequency_Hz = f;
+    samples(n).table = sampleTable;
+
+    rows(n) = struct( ... %#ok<AGROW>
+        'Frequency_Hz', f, ...
+        'Frequency_kHz', f / 1e3, ...
+        'RelativeDelta2Cp', diagnostic.RelativeDelta2Cp(rowIdx), ...
+        'SolverCp_mps', cpSolver, ...
+        'NearestDiscreteCp_mps', cGrid(centerIdx), ...
+        'ParabolicCp_mps', cpParabolic, ...
+        'DenseTrueMinimumCp_mps', cpDenseMin, ...
+        'SolverMinusDense_mps', cpSolver - cpDenseMin, ...
+        'ParabolicMinusDense_mps', cpParabolic - cpDenseMin, ...
+        'SolverTrueObjective', objSolverTrue, ...
+        'ParabolicPredictedObjective', objParabolic, ...
+        'ParabolicTrueObjective', objParabolicTrue, ...
+        'DenseTrueMinimumObjective', objDenseMin, ...
+        'ParabolicFitAccepted', fitAccepted);
+
+    fig = figure('Visible', 'off');
+    plot(denseC, denseObj, '-', 'DisplayName', 'true objective'); hold on;
+    plot(denseC, parabolaDense, '--', 'DisplayName', 'three-point parabola');
+    plot(localC, localObj, 'o', 'DisplayName', 'atlas samples');
+    xline(cpSolver, ':', 'solver Cp', 'DisplayName', 'solver Cp');
+    xline(cpDenseMin, '-.', 'dense true min', 'DisplayName', 'dense true min');
+    grid on;
+    xlabel('Cp [m/s]');
+    ylabel('log_{10}(\sigma_{min})');
+    title(sprintf('Local residual valley at %.1f kHz', f / 1e3));
+    legend('Location', 'best');
+    saveas(fig, fullfile(plotFolder, sprintf('local_valley_%05dHz.png', round(f))));
+    close(fig);
+end
+
+if isempty(rows)
+    summaryTable = table();
+else
+    summaryTable = struct2table(rows);
+end
+end
+
+function objective = evaluateObjective(params, frequency, cp, options)
+objective = nan(size(cp));
+for i = 1:numel(cp)
+    objective(i) = objectiveAcoustoelasticResidual( ...
+        params.alpha, params.beta, params.gamma, params.thickness, ...
+        params.rho, params.rhoF, params.fluidBulkModulus, ...
+        frequency, cp(i), options);
+end
+end
+
+function [cpRefined, objRefined, accepted, coefficients] = fitThreePointParabola(cp, objective)
+cpRefined = cp(2);
+objRefined = objective(2);
+accepted = false;
+coefficients = [NaN NaN NaN];
+
+x = log(cp(:));
+y = objective(:);
+if any(~isfinite(x)) || any(~isfinite(y))
+    return;
+end
+
+coefficients = polyfit(x, y, 2);
+if ~isfinite(coefficients(1)) || coefficients(1) <= 0
+    return;
+end
+
+x0 = -coefficients(2) / (2 * coefficients(1));
+if x0 <= x(1) || x0 >= x(3)
+    return;
+end
+
+cpRefined = exp(x0);
+objRefined = polyval(coefficients, x0);
+accepted = true;
 end
 
 function values = setInvalidToNaN(values, validMask)
