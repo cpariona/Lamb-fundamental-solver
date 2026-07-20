@@ -5,7 +5,9 @@ function branchPoints = aeRefineSelectedAtlasBranch(branchPoints, params, cGrid,
 % Only the already selected branch is refined, using a bounded minimization in
 % log(Cp) between the neighboring atlas velocity samples.
 
-if isempty(branchPoints) || ~getLocalOption(options, 'refineSelectedAtlasBranch', true)
+if isempty(branchPoints) || ...
+        ~getLocalOption(options, 'refineLocalMinima', true) || ...
+        ~getLocalOption(options, 'refineSelectedAtlasBranch', true)
     return;
 end
 
