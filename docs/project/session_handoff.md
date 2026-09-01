@@ -1,98 +1,155 @@
 # Session handoff
 
-Updated: 2026-07-18
+Updated: 2026-08-31
 
 ## Repository state
 
 - Repository: `cpariona/Lamb-fundamental-solver`
 - Default branch: `main`
-- Last merged architecture change: PR #127, merge commit
-  `13b00c4e6142988c0ac0d3e3b4c0fc76ddfae586`
-- AE architecture status: complete
-- AE final contract:
-  `docs/models/acoustoelastic_iop_hgo/active/architecture.md`
-- Repository-simplification final-state contract:
-  `docs/repository/repository_simplification.md`
+- Planning branch: `planning/full-repository-restructure`
+- Starting main checkpoint:
+  `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
+- Starting checkpoint message:
+  `Replace AE parabolic refinement with bounded continuous refinement`
 
-The multi-phase AE architecture alignment and the bounded repository
-simplification are closed. Do not reopen migration phases or create a Phase 7.
-New work must start from updated `origin/main` on a separate branch.
+## Immediate context
 
-## Stable production ownership
+The AE high-frequency refinement work is complete and merged to `main`.
+Production AE candidate discovery is discrete on the atlas `cGrid`; branch
+identity is selected before bounded continuous refinement of the selected
+branch using the true SVD objective. The old three-point parabolic candidate
+refinement is not part of the maintained production pipeline.
 
-```text
-aeValidateRequest             maintained flat-request checks
-aeResolveConfiguration        complete effective options and precedence
-aeGetNumericalPreset          numerical presets and Main GUI bundle
-aeBuildInternalTrackingGrid   requested/internal grid algorithm
-aeBuildAtlas                  configured atlas and objective landscape
-aeFindAtlasLocalMinima        production atlas minima
-aeLinkAtlasBranches           production branch linking
-aeSplitAtlasBranches          production branch splitting
-aeSelectAtlasA0Branch         official atlasA0 selection
-aeApplyAtlasA0FallbackPolicy  fallback invalidation decision
-aeEvaluateAtlasA0Quality      requested-grid quality/reliability
-aeBuildResult                 characterized atlas result schema
-```
-
-Maintained production routes use:
+Last confirmed validation:
 
 ```text
-Main GUI -> guiRunAcoustoelasticIOPHGOModel
-         -> solveAcoustoelasticIOPHGOBranch
-SweepTool -> guiRunAcoustoelasticIOPHGOSweep
-          -> aeRunSweep -> solveAcoustoelasticIOPHGOBranch per point
-FitTool -> guiFitAcoustoelasticIOPHGOSolver
-        -> aeFitDispersionData -> aeEvaluateFitModel
-        -> solveAcoustoelasticIOPHGOBranch
-basic example -> solveAcoustoelasticIOPHGOBranch
+AE IOP/HGO synthetic atlasA0 fitting test passed.
+True mu: 50.000 kPa
+Fit  mu: 50.000 kPa
+Relative mu error: 5.06201e-08
+
+Extended acoustoelastic IOP/HGO tests passed.
+Acoustoelastic IOP/HGO smoke tests passed.
 ```
 
-The longer solver entrypoints remain advanced supported scientific APIs.
-Production consumers do not call tracking or policy internals.
+## New active campaign
 
-## Implemented repository simplification
+The next task is a full repository restructuring. It is intentionally broader
+than the previous bounded simplification and may reconsider the entire physical
+organization and ownership graph.
 
-- `analysis/acoustoelastic_iop_hgo/` is organized into `diagnostics/`,
-  `fitting/`, `io/`, and `sweeps/`.
-- Identity-A0 model diagnostics are owned by
-  `models/acoustoelastic_iop_hgo/diagnostics/`.
-- `models/acoustoelastic_iop_hgo/results/` owns result construction only.
-- `tests/fitting/` and its structural exception are absent.
-- Five public wrappers remain; specialized commands resolve from canonical
-  implementations under `tests/runners/`.
-- Runtime measurement output is local ignored evidence under
-  `Results/test_runtime/` and is not imported into deterministic inventories.
-- Rayleigh-Lamb and mRLFE analysis remain flat based on their small cohesive
-  call graphs.
+Primary goals:
 
-The final structure and enforcement rules are recorded in
-`docs/repository/repository_simplification.md`,
-`docs/repository/repository_structure.md`, and the test-runner contracts.
+```text
+order
+structure
+organization
+versatility
+adaptability
+human comprehension
+simplicity
+```
 
-## Preserved contracts
+Do not preserve a file, wrapper, route, helper, folder, or historical strategy
+solely because changing it is inconvenient. Likewise, do not reorganize already
+clear code merely for visual symmetry.
 
-- Official AE production output remains conservative `atlasA0`.
-- Physics, constitutive equations, matrices, roots, objectives, presets, grids,
-  thresholds, tracking, policy, fitting, sweeps, GUI behavior, and result
-  schemas must remain unchanged.
-- Fast/Balanced/Robust and the separate Main GUI numerical bundle retain their
-  characterized values and precedence.
-- `result.diagnostics` remains the stable summary; characterized internal
-  evidence remains in place for schema compatibility.
-- Identity-A0, raw branch 1, modal atlases, and branch families remain
-  diagnostic-only.
-- `aeResolveResultFile` retains canonical-first legacy read fallback unless a
-  separate task proves all external and scientific workspace consumers migrated.
-- Local ignored `Results/` workspaces and example figures are outside the
-  simplification task.
+## Read first in the next session
 
-## Work remaining after repository simplification
+```text
+docs/project/full_repository_restructure_handoff.md
+docs/project/active_context.md
+docs/repository/maintainability_policy.md
+docs/repository/refactor_policy.md
+docs/repository/human_interface_contract.md
+docs/repository/restructure_target_architecture.md
+```
 
-1. AE high-frequency `Cp(f)` numerical refinement, governed by
-   `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`.
-2. Controlled mRLFE runtime characterization using locally generated evidence.
-3. Explicitly authorized compatibility-debt retirement after complete consumer
-   and fixture evidence.
+These files define the authorized scope, principles, target qualities,
+human-interface contract, validation expectations, and first required audit.
 
-None of these is part of the repository simplification task.
+## Core rules
+
+1. One canonical owner per maintained responsibility.
+2. Search/reuse existing owners before creating new ones.
+3. Replace obsolete strategies and delete the superseded implementation.
+4. Preserve stable scientific stage boundaries where they remain useful.
+5. Main GUI, FitTool, SweepTool, examples, and scripts should converge on
+   canonical model APIs.
+6. GUI code owns interaction/request/display, not solver physics.
+7. Keep scientific calculation, interaction, plotting, and persistence separate.
+8. Limit conceptual call depth; remove forwarding-only helper chains.
+9. Keep physical parameters, numerical options, execution profiles, and UI state
+   conceptually distinct.
+10. Keep official output, diagnostics, quality, and effective configuration
+    explicit in result contracts.
+11. Production must not depend on examples or exploratory diagnostics.
+12. New investigation-only MATLAB files use `% TEMPORARY_DIAGNOSTIC` exactly and
+    are removed before final integration unless promoted intentionally.
+13. Tests must protect final architecture and numerical behavior, not obsolete
+    migration paths.
+14. Do not update deterministic baselines merely to make structural changes
+    pass.
+15. Characterize performance for meaningful solver changes without brittle
+    hardware-specific thresholds.
+
+## Required first deliverable in the next session
+
+Do not begin by moving files.
+
+First audit the entire maintained repository and produce:
+
+```text
+current ownership/call map
+current GUI/FitTool/SweepTool route map
+public/internal API inventory
+dependency map
+configuration/result ownership inventory
+compatibility/dead-code inventory
+test/runner inventory
+proposed final physical folder tree
+proposed final dependency graph
+phased migration sequence
+validation matrix by phase
+```
+
+Classify files/owners using:
+
+```text
+KEEP
+REUSE
+EXTEND
+SIMPLIFY
+MOVE
+RENAME
+MERGE
+SPLIT
+INLINE
+REMOVE
+REMOVE_REDUNDANT_VALIDATION
+REPLACE_STRATEGY
+```
+
+## Git startup for the next session
+
+```bash
+git fetch origin
+git switch planning/full-repository-restructure
+git pull --ff-only origin planning/full-repository-restructure
+git status -sb
+```
+
+The planning branch contains the authoritative handoff documents. After the
+repository-wide audit and target architecture are approved, implementation may
+continue on this campaign branch or on dedicated implementation branches based
+on it.
+
+Do not merge partially broken restructuring into `main`.
+
+## Completion standard
+
+The campaign is complete only when a human researcher can quickly understand
+where each model, workflow, configuration, result, GUI route, plot/export path,
+and test is owned; obsolete routes are gone; the active documentation describes
+one final architecture; and the intended scientific functionality has been
+validated.
