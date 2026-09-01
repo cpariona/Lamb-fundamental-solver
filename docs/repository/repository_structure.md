@@ -41,6 +41,16 @@ The executable boundary matrix is:
 | `examples/` | `app/`, `analysis/`, `models/` | production ownership of example code |
 | `tests/` | all maintained layers | none within the repository test contract |
 
+Within `models/`, sibling model families are independent except for one
+documented scientific seed edge:
+
+```text
+mrlfeBuildSeed -> rlComputeFundamentalLambModes
+```
+
+Rayleigh-Lamb has no reverse dependency on mRLFE. Cross-model dispatch belongs
+to an owning consumer or workflow, never inside the RL solver.
+
 ## `models/`: physical and numerical ownership
 
 `models/` owns equations, constitutive laws, matrix construction, residuals,

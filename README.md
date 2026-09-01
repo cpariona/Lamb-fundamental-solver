@@ -173,6 +173,11 @@ SweepTool -+-> mrlfeSolve
 FitTool   -+
 ```
 
+Rayleigh-Lamb and mRLFE have one explicit dependency direction: mRLFE obtains
+its branch seed through `mrlfeBuildSeed -> rlComputeFundamentalLambModes`.
+Rayleigh-Lamb defaults and compute functions contain no mRLFE configuration or
+execution route.
+
 For A0Like production solving, the maintained termination policy is:
 
 ```matlab
@@ -201,7 +206,6 @@ Maintained mRLFE analysis helpers:
 
 ```matlab
 summarizeMRLFETrackingQuality
-compareMRLFETrackingStrategies
 ```
 
 Internal mRLFE model defaults and residual evaluation use

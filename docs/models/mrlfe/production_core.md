@@ -14,6 +14,7 @@ mrlfeSolve
        -> mrlfeSolveElasticBranch
        -> mrlfeSolveViscoelasticBranch
        -> mrlfeBuildSeed
+            -> rlComputeFundamentalLambModes
        -> mrlfeTrackBranchAdaptive
        -> mrlfeApplyTerminationPolicy
   -> mrlfeBuildResult
@@ -79,15 +80,16 @@ Numerical preset remains separate from branch policy, termination, and fallback.
 ```text
 requested frequency grid
 internal solve grid
-Rayleigh-Lamb seed result
 material
 geometry
 fluid properties
 branch name
 ```
 
-The Rayleigh-Lamb dependency is isolated in the model layer and is used only to
-build seed modes. It disables unrelated mRLFE routes when computing the seed.
+`mrlfeBuildSeed` is the sole owner of the intentional Rayleigh-Lamb dependency.
+It requests the matching fundamental RL branch, converts that result into the
+mRLFE seed mode, and preserves the raw seed result as diagnostic evidence. RL
+does not expose or disable any mRLFE route while producing this seed.
 
 ## Elastic Path
 

@@ -38,7 +38,7 @@ The previous `YoungPoissonFixedCL` route is no longer part of the maintained mat
 | --- | --- | --- |
 | `models/rayleigh_lamb/core/` | `rlDefaultParams` | Build the default Rayleigh-Lamb parameter structure. |
 | `models/rayleigh_lamb/core/` | `rlDefaultOptions` | Build the default Rayleigh-Lamb solver options structure. |
-| `models/rayleigh_lamb/core/` | `rlComputeFundamentalLambModes` | Compute the fundamental A0/S0 Rayleigh-Lamb modes and optional model outputs. |
+| `models/rayleigh_lamb/core/` | `rlComputeFundamentalLambModes` | Compute only the requested fundamental A0/S0 Rayleigh-Lamb modes. |
 | `models/rayleigh_lamb/core/` | `rlBuildFrequencyVector` | Construct the frequency vector used by the base solver workflow. |
 | `models/rayleigh_lamb/core/` | `rlComputeMaterial` | Compute material quantities derived from Rayleigh-Lamb parameters. |
 | `models/rayleigh_lamb/core/` | `rlComputeGeometry` | Compute geometry quantities derived from Rayleigh-Lamb parameters. |

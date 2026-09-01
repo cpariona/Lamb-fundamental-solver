@@ -52,6 +52,11 @@ rlComputeAnalyticalApproximations
 
 Advanced workflows and tests may also call the lower-level `rl*` helpers documented in the public API reference.
 
+The RL core owns only Rayleigh-Lamb A0/S0 calculation. Its defaults and compute
+path do not expose mRLFE flags and do not invoke mRLFE. The intentional
+cross-model dependency points in the opposite direction: mRLFE may request an
+RL seed through `mrlfeBuildSeed`.
+
 ## Examples
 
 Maintained Rayleigh-Lamb examples and validation scripts live under:

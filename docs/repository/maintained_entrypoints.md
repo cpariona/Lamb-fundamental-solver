@@ -286,11 +286,8 @@ aeDefaultIdentityA0ValidationGrid
 ### mRLFE analysis
 
 ```matlab
-mrlfeModelCandidateNames
 mrlfeSetYoungModulusForShearPoisson
-mrlfeSelectRealKBranches
 summarizeMRLFETrackingQuality
-compareMRLFETrackingStrategies
 mrlfeBuildFitProblem
 mrlfeBuildPublicSolveRequest
 mrlfeBuildFitSolveRequest

@@ -7,12 +7,20 @@ Updated: 2026-08-31
 - Repository: `cpariona/Lamb-fundamental-solver`
 - Default branch: `main`
 - Planning branch: `planning/full-repository-restructure`
+- Phase 1 branch: `restructure/phase-01-model-boundaries`
 - Starting main checkpoint:
   `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 - Starting checkpoint message:
   `Replace AE parabolic refinement with bounded continuous refinement`
 
 ## Immediate context
+
+Phase 1 of the restructure removes the inverted RL-to-mRLFE dependency. The RL
+core now computes only A0/S0, mRLFE consumers call `mrlfeSolve`, and
+`mrlfeBuildSeed` owns the sole intentional cross-model call to
+`rlComputeFundamentalLambModes`. Legacy `computeMRLFE*` configuration has been
+removed from maintained RL and GUI routes. AE production remains protected as
+discrete selection followed by bounded refinement on the true SVD objective.
 
 The AE high-frequency refinement work is complete and merged to `main`.
 Production AE candidate discovery is discrete on the atlas `cGrid`; branch

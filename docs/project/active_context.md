@@ -4,6 +4,7 @@ Last reviewed: 2026-08-31
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
 Planning branch: `planning/full-repository-restructure`
+Active implementation branch: `restructure/phase-01-model-boundaries`
 Starting main checkpoint:
 `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 
@@ -12,6 +13,8 @@ Starting main checkpoint:
 - Rayleigh-Lamb, mRLFE, and AE IOP/HGO have maintained scientific APIs.
 - Main GUI, SweepTool, and FitTool are the principal human-facing surfaces.
 - mRLFE production consumers route through `mrlfeSolve`.
+- Phase 1 establishes a one-way model dependency: `mrlfeBuildSeed` may call the
+  RL public solver to obtain a seed; RL contains no mRLFE flags or execution.
 - AE production consumers route through the maintained AE public route and
   conservative `atlasA0` policy.
 - The AE high-frequency refinement issue is resolved in `main`: production now
@@ -88,29 +91,22 @@ architecture.
 - numerical baselines are not updated merely to make structural refactors pass;
 - performance is characterized for meaningful algorithmic changes.
 
-## Required next step
+## Current phase
 
-Before moving production code, perform a repository-wide audit and propose the
-final target architecture.
-
-The audit must cover:
+The repository-wide audit and target architecture are complete on the planning
+branch. Phase 1 implements the highest-value scientific boundary without a
+broad physical move:
 
 ```text
-top-level structure and dependency direction
-GUI and adapter routes
-Rayleigh-Lamb, mRLFE, and AE ownership
-analysis/fitting/sweeps
-configuration/default/profile ownership
-result/quality schemas
-plotting/export
-examples/diagnostics
-tests/runners
-compatibility/dead code
-documentation
-startup/path behavior
-tracked/generated artifacts
+mRLFE -> Rayleigh-Lamb seed
+Rayleigh-Lamb -/-> mRLFE
 ```
 
-The audit should produce a concrete final folder tree, dependency graph,
-ownership map, phased migration plan, and validation matrix before broad code
-movement begins.
+Consumers use `mrlfeSolve`, obsolete embedded-route helpers and their
+architecture-freezing tests are removed, and AE retains discrete branch
+selection followed by bounded true-objective refinement.
+
+## Next planning step
+
+After Phase 1 validation and review, select the next bounded migration from the
+approved phased plan rather than combining multiple ownership changes.

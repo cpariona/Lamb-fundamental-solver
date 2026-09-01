@@ -161,10 +161,11 @@ mrlfeSolve
   -> mrlfeSolveBranch
        -> mrlfeSolveElasticBranch
        -> mrlfeSolveViscoelasticBranch
-  -> mrlfeBuildSeed
-  -> mrlfeTrackBranchAdaptive
-  -> mrlfeApplyTerminationPolicy
-       -> mrlfeEvaluatePhysicalTail
+       -> mrlfeBuildSeed
+            -> rlComputeFundamentalLambModes
+       -> mrlfeTrackBranchAdaptive
+       -> mrlfeApplyTerminationPolicy
+            -> mrlfeEvaluatePhysicalTail
   -> mrlfeBuildResult
 ```
 
@@ -269,6 +270,7 @@ mrlfeSolve
        -> mrlfeSolveElasticBranch
        -> mrlfeSolveViscoelasticBranch
        -> mrlfeBuildSeed
+            -> rlComputeFundamentalLambModes
        -> mrlfeTrackBranchAdaptive
        -> mrlfeApplyTerminationPolicy
   -> mrlfeBuildResult

@@ -78,13 +78,13 @@ analysis/test_inventory/runner_edges.csv
 analysis/test_inventory/test_runner_ownership.csv
 ```
 
-Current generated state: 121 tests, 43 canonical runner implementations, 5
-public convenience wrappers, 3 test helpers, 239 graph edges, and 121
+Current generated state: 113 tests, 43 canonical runner implementations, 5
+public convenience wrappers, 3 test helpers, 228 graph edges, and 113
 canonical owners. Validation reports 0 manual-only tests, 0 unowned tests, 0
 multiple canonical owners, 0 sibling direct overlaps, and 0 runner cycles.
 
-Current static reach is 21 tests from quick contracts, 60 from quick smoke, 17
-from numerical regression, 47 from extended integration, and 70 from the broad
+Current static reach is 21 tests from quick contracts, 52 from quick smoke, 17
+from numerical regression, 47 from extended integration, and 62 from the broad
 all-smoke aggregate.
 
 AE configuration, result, tracking/policy, workflow-route, final-architecture,

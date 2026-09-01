@@ -54,6 +54,6 @@ The public wrapper surface contains five delegation-only commands. Specialized
 commands, including fitting, Main GUI export, and focused mRLFE validation,
 resolve directly from canonical implementations under `tests/runners/`.
 
-Current generated state: 121 tests, 43 runner implementations, 5 wrappers, 3
-helpers, 239 graph edges, and 121 canonical owners, with 0 manual-only,
+Current generated state: 113 tests, 43 runner implementations, 5 wrappers, 3
+helpers, 228 graph edges, and 113 canonical owners, with 0 manual-only,
 unowned, multiply owned, sibling-overlapping, or cyclic tests/runners.
