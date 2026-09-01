@@ -115,8 +115,15 @@ options.A0CpWindowScale = [0.03, 1.15];
 options.A0HighCpWindowScale = [0.60, 1.25];
 options.S0CpWindowScale = [0.20, 1.25];
 
-% Local refinement around minima detected in the coarse Cp scan.
+% Continuous refinement of the selected atlas branch. Candidate discovery and
+% branch linking remain strictly on the discrete atlas cGrid. Setting
+% refineLocalMinima=false disables this final bounded minimization stage.
 options.refineLocalMinima = true;
+options.selectedBranchRefinementTolLogCp = 1e-6;
+options.selectedBranchRefinementMaxFunEvals = 24;
+options.selectedBranchRefinementMaxIter = 24;
+
+% Local-search width used by the separate direct-dispersion solver.
 options.refineHalfWindowPoints = 2;
 
 % Continuity penalties for choosing among local minima.

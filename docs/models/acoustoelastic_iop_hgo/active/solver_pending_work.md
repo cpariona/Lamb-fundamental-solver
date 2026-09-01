@@ -11,103 +11,90 @@ The maintained production branch policy remains:
 atlasA0 = conservative official output
 ```
 
-The main GUI uses a dense requested output grid, and the IOP/HGO wrapper
-separates:
+The IOP/HGO wrapper separates:
 
 ```text
 internal atlas tracking grid
 requested output frequency grid
 ```
 
-The current plotted AE curve is usable for the GUI, but a small residual
-waviness remains in the phase-velocity curve.
+The previously reported high-frequency waviness in `Cp(f)` has been resolved by
+replacing the former sub-grid candidate interpolation stage with continuous
+refinement of the already selected atlas branch.
 
-## Pending numerical issue: residual waviness in Cp(f)
+## Final numerical pipeline
 
-Observed symptom:
-
-```text
-Cp(f) is mostly smooth and monotonic, but shows small high-frequency waviness
-after dense output-grid evaluation and local-minimum refinement.
-```
-
-Current interpretation:
+The maintained atlas workflow is now:
 
 ```text
-The issue is likely numerical rather than physical.
+1. Evaluate log10(sigma_min(M)) on the discrete atlas frequency-velocity grid.
+2. Detect local candidate minima strictly on cGrid.
+3. Link the discrete candidates into branches.
+4. Select the maintained A0 branch with the atlasA0 policy.
+5. Refine only the explicit points of the selected branch by minimizing the true
+   SVD objective in log(Cp) between neighboring cGrid samples.
+6. Assign the refined branch to the requested output frequencies and interpolate
+   only across gaps allowed by the existing policy.
 ```
 
-Likely contributors:
+Candidate discovery, branch metrics, branch linking, and branch selection remain
+based on the discrete atlas. Continuous minimization cannot alter candidate
+ranking or branch identity because it occurs only after A0 selection.
+
+The refinement implementation is owned by:
 
 ```text
-1. Cp is still derived from a finite atlas velocity grid yGrid/cGrid.
-2. The current local refinement uses a three-point parabolic fit around a discrete minimum.
-3. Neighboring local minima can be close in residual value and may alternate slightly across frequency.
-4. Branch linking is based on residual minima and continuity in log(y), not on modal-shape information.
-5. The dense GUI output grid makes small tracking/refinement noise visually apparent.
+models/acoustoelastic_iop_hgo/tracking/aeRefineSelectedAtlasBranch.m
 ```
 
-## Do not solve this by visual smoothing alone
-
-Avoid using plotting-only smoothing as the production fix:
+and is invoked from:
 
 ```text
-smooth
-movmean
-Savitzky-Golay
-spline smoothing applied only to the plotted curve
+models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticAtlasBranch.m
 ```
 
-Those tools may hide branch-selection or residual-landscape problems. If
-smoothing is ever used, it should be diagnostic-only and explicitly labeled.
+## Configuration contract
 
-## Recommended future strategy
-
-The preferred solver-side strategy is a two-stage workflow:
+The final continuous-refinement stage is controlled by:
 
 ```text
-1. Use the atlas grid to identify the A0-like modal family.
-2. Evaluate Cp on the requested output grid using a continuous local minimizer around a branch-guided predictor.
+refineLocalMinima
+selectedBranchRefinementTolLogCp
+selectedBranchRefinementMaxFunEvals
+selectedBranchRefinementMaxIter
 ```
 
-Candidate implementation:
+`refineLocalMinima=false` disables continuous refinement and preserves a fully
+discrete official branch on `cGrid`. The candidate table remains discrete in
+both configurations.
+
+## Validation evidence
+
+For the representative 1-15 kHz case used during development:
 
 ```text
-- build atlasA0 on a moderate internal grid;
-- construct a smooth predictor Cp_pred(f) from the selected branch, for example with pchip;
-- for each requested output frequency, minimize objectiveAcoustoelasticResidual in log(Cp) inside a bounded local window around Cp_pred(f);
-- reject the point if the refined minimum leaves the window, introduces a large jump, has poor residual behavior, or violates the branch identity constraints;
-- preserve result.validCp and reliability diagnostics as the official quality gate.
+- all 141 requested points remained valid;
+- nearestRank and nearestBranchID remained unchanged;
+- maximum high-frequency |Delta2Cp/Cp| decreased by about 42x;
+- median high-frequency |Delta2Cp/Cp| decreased by about 10x;
+- median high-frequency objective improved from about -1.46 to -6.20;
+- repeated alternating benchmarks measured about 6.3% median runtime overhead;
+- the maintained acoustoelastic smoke and extended test suites passed.
 ```
 
-This should be more efficient than simply increasing `atlasNumYPoints`, because
-it avoids a very dense global velocity scan at every frequency.
+Temporary diagnostic scripts used to obtain this evidence were removed after
+validation.
 
-## Diagnostic checks before implementation
+## Remaining solver-side work
 
-Before replacing the current refinement, add or extend diagnostics to inspect:
+The resolved waviness issue should not be reopened through plotting-side
+smoothing. Remaining numerical work, if separately prioritized, includes:
 
 ```text
-Cp(f)
-diff(Cp)
-diff(Cp, 2)
-nearestRank(f)
-nearestBranchID(f)
-objective(f)
-selectedBranchPoints.MinRank
-selectedBranchPoints.Objective
+- low-frequency modal degeneracy characterization;
+- optional modal-signature/MAC reinforcement near difficult branch crossings;
+- controlled runtime characterization for other solvers and parameter regimes.
 ```
 
-Interpretation guide:
-
-```text
-- waviness correlated with nearestRank or BranchID changes suggests modal tracking ambiguity;
-- waviness without rank/branch changes suggests local minimization or velocity-grid quantization;
-- objective spikes suggest residual conditioning or matrix-scaling issues.
-```
-
-## Maintenance status
-
-This remains a bounded solver-refinement task. Address it only through a focused
-numerical PR with diagnostic and regression evidence, not through GUI-side
-smoothing or repository-cleanup work.
+Any future change should remain focused, preserve official output contracts,
+and include numerical and runtime evidence.
