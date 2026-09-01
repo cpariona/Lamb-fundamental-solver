@@ -1,77 +1,116 @@
 # Active project context
 
-Last reviewed: 2026-07-18
+Last reviewed: 2026-08-31
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
-Last merged architecture change: PR #127, merge commit
-`13b00c4e6142988c0ac0d3e3b4c0fc76ddfae586`
-
-## Current architecture
-
-The maintained source layers are `models/`, `analysis/`, `app/`, and
-`examples/`, with dependency direction defined by
-`docs/repository/repository_structure.md`. Public and maintained MATLAB
-surfaces are inventoried in `docs/repository/maintained_entrypoints.md`.
-
-Repository naming is owned by `docs/repository/naming_strategy.md`. Test layout
-and ownership are owned by the two test contracts under `docs/repository/`.
-Repository-wide static hygiene is checked by:
-
-```matlab
-run_repository_hygiene_tests
-```
+Planning branch: `planning/full-repository-restructure`
+Starting main checkpoint:
+`026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 
 ## Current product state
 
-- Rayleigh-Lamb, mRLFE, and AE IOP/HGO use their maintained public model APIs.
-- Main GUI, SweepTool, and FitTool route through app adapters.
+- Rayleigh-Lamb, mRLFE, and AE IOP/HGO have maintained scientific APIs.
+- Main GUI, SweepTool, and FitTool are the principal human-facing surfaces.
 - mRLFE production consumers route through `mrlfeSolve`.
-- AE production consumers route through `solveAcoustoelasticIOPHGOBranch`.
-- AE production output remains the conservative `atlasA0` branch.
-- AE configuration, atlas construction, production tracking, policies, quality,
-  result construction, workflows, and app adapters have canonical owners.
-- The AE architecture alignment is complete. Its final contract is
-  `docs/models/acoustoelastic_iop_hgo/active/architecture.md`.
-- Current fitting and sweep behavior is documented under `docs/workflows/`.
+- AE production consumers route through the maintained AE public route and
+  conservative `atlasA0` policy.
+- The AE high-frequency refinement issue is resolved in `main`: production now
+  uses discrete atlas candidates followed by bounded continuous refinement of
+  the selected branch on the true SVD objective.
+- The former three-point parabolic sub-grid candidate refinement is no longer a
+  production strategy.
+- The last confirmed AE smoke and extended suites passed, including synthetic
+  recovery of `mu = 50 kPa` with relative error `5.06201e-08`.
 
-## Current technical constraints
+## Active repository objective
 
-- Preserve solver physics, numerical presets, grids, policies, and tolerances.
-- Preserve fitting, sweep, GUI, output, and result-schema behavior unless a
-  focused task authorizes change.
-- Use Git history for completed migrations, audits, and task reports.
-- Do not add compatibility aliases without an explicit public-use contract and
-  removal condition.
-- Start each implementation task from updated `origin/main` on a new branch.
-- Do not open a PR until focused validation and manual review are complete.
-- Prefer deletion or direct moves over new wrappers and path exceptions.
-- Do not reorganize small model families merely for visual symmetry.
+The next campaign is a full repository restructuring. The existing physical
+layout is not protected merely because it is current.
 
-## Current repository state
+The required qualities are:
 
-The bounded repository simplification is complete. Its maintained final state is
-defined in `docs/repository/repository_simplification.md`:
+```text
+order
+structure
+organization
+versatility
+adaptability
+human comprehension
+simplicity
+scientific correctness
+controlled performance
+```
 
-1. AE analysis is owned by `diagnostics/`, `fitting/`, `io/`, and `sweeps/`;
-2. identity-A0 model algorithms live under explicit diagnostic ownership;
-3. `tests/fitting/` is absent;
-4. five delegation-only public test wrappers remain;
-5. specialized commands resolve from `tests/runners/`;
-6. runtime measurements are ignored local evidence under `Results/test_runtime/`;
-7. deterministic inventories contain ownership and graph evidence only.
+Broad moves, renames, merges, splits, deletions, API cleanup, ownership changes,
+test reorganization, and documentation cleanup are authorized when they improve
+the final maintained architecture.
 
-Local ignored `Results/` workspaces and example figures are generated user
-outputs and remain outside source ownership.
+Temporary breakage on implementation branches is acceptable. The final state
+must restore intended maintained functionality and pass the approved scientific,
+contract, GUI, and integration gates.
 
-## Open technical areas
+## Governing planning contracts
 
-1. **AE solver refinement** — residual high-frequency waviness in `Cp(f)` is
-   documented in
-   `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`.
-   This is numerical work, not repository cleanup.
-2. **mRLFE runtime characterization** — controlled measurements may be generated
-   locally, but environment-dependent measurements are not canonical inventory.
-3. **Bounded compatibility debt** — retained aliases and canonical-first legacy
-   reads remain governed by `docs/repository/validation_status.md`.
+The full campaign is defined by:
 
-Repository simplification does not authorize numerical solver refinement.
+```text
+docs/project/full_repository_restructure_handoff.md
+docs/repository/maintainability_policy.md
+docs/repository/refactor_policy.md
+docs/repository/human_interface_contract.md
+docs/repository/restructure_target_architecture.md
+```
+
+These documents supersede the assumption that repository changes must remain a
+bounded cosmetic simplification. Previous final-state documents remain useful
+as historical/current-state evidence but do not constrain the new target
+architecture.
+
+## Core architectural rules for the next campaign
+
+- one canonical owner per responsibility;
+- reuse before creation;
+- replace obsolete strategies instead of stacking old/new implementations;
+- GUI coordinates and presents; models calculate;
+- Main GUI, FitTool, SweepTool, examples, and scripts should converge on
+  canonical model APIs;
+- limit conceptual call depth and forwarding-only helpers;
+- extract by responsibility, not line count;
+- keep physical, numerical, execution-profile, and UI configuration concepts
+  distinct;
+- keep official results, diagnostics, quality, and effective configuration
+  explicit;
+- production must not depend on examples or exploratory diagnostics;
+- new investigation-only MATLAB files use `% TEMPORARY_DIAGNOSTIC` and are
+  removed before final integration unless intentionally promoted;
+- tests protect the final maintained architecture, not obsolete migration
+  behavior;
+- numerical baselines are not updated merely to make structural refactors pass;
+- performance is characterized for meaningful algorithmic changes.
+
+## Required next step
+
+Before moving production code, perform a repository-wide audit and propose the
+final target architecture.
+
+The audit must cover:
+
+```text
+top-level structure and dependency direction
+GUI and adapter routes
+Rayleigh-Lamb, mRLFE, and AE ownership
+analysis/fitting/sweeps
+configuration/default/profile ownership
+result/quality schemas
+plotting/export
+examples/diagnostics
+tests/runners
+compatibility/dead code
+documentation
+startup/path behavior
+tracked/generated artifacts
+```
+
+The audit should produce a concrete final folder tree, dependency graph,
+ownership map, phased migration plan, and validation matrix before broad code
+movement begins.
