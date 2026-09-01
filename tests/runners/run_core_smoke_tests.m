@@ -108,8 +108,6 @@ regressionParams.frequencySpacing = "linspace";
 regressionOptions = rlDefaultOptions();
 regressionOptions.computeA0 = true;
 regressionOptions.computeS0 = true;
-regressionOptions.computeMRLFE = false;
-
 regressionResults = rlComputeFundamentalLambModes(regressionParams, regressionOptions);
 regressionRepeat = rlComputeFundamentalLambModes(regressionParams, regressionOptions);
 expectedSize = size(rlBuildFrequencyVector(regressionParams));

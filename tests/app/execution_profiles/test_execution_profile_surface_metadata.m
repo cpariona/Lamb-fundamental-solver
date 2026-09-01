@@ -31,13 +31,11 @@ assert(profileResult.metadata.executionProfile.effectiveExecutionProfile == "Fas
     'RL metadata should report effective Fast.');
 
 %% mRLFE main adapter applies the requested Balanced preset directly.
-mrlfeOptions = rlDefaultOptions("Balanced");
+mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
 mrlfeOptions.executionProfile = "Balanced";
-mrlfeOptions.computeA0 = true;
-mrlfeOptions.computeS0 = false;
-mrlfeOptions.computeMRLFERealK = true;
-mrlfeOptions.mrlfeComputeA0Like = true;
-mrlfeOptions.mrlfeComputeS0Like = false;
+mrlfeOptions.effectiveExecutionProfile = "Balanced";
+mrlfeOptions.robustness = "Balanced";
+mrlfeOptions.branchNames = "A0Like";
 mrlfeOptions.mrlfeA0Policy = "physicalTail";
 mrlfeOptions.mrlfeParams = mrlfeDefaultInternalParameters();
 mrlfeOptions.mrlfeParams.etaS = 0;

@@ -1,6 +1,4 @@
-% Run the default real-k elastic mRLFE example.
-% This model is seeded from the Rayleigh-Lamb A0/S0 branches and computes
-% only A0-like and S0-like fundamental branches.
+% Run the default real-k elastic mRLFE example through the public API.
 
 startup();
 
@@ -9,29 +7,20 @@ params.fmin = 500;
 params.fmax = 8000;
 params.numFrequencyPoints = 120;
 params.frequencySpacing = "hybrid";
+frequency_Hz = rlBuildFrequencyVector(params);
 
-options = rlDefaultOptions("Fast");
-options.computeA0 = true;
-options.computeS0 = true;
-options.computeMRLFE = true;
-
-results = rlComputeFundamentalLambModes(params, options);
+results = struct();
+for branchName = ["A0Like", "S0Like"]
+    options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
+    request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
+        struct('parameterOptions', options));
+    results.(char(branchName)) = mrlfeSolve(request);
+end
 
 figure;
 hold on;
-plot(results.modes.A0.frequency, results.modes.A0.Cp, '-', 'LineWidth', 2, 'DisplayName', 'A0');
-plot(results.modes.S0.frequency, results.modes.S0.Cp, '-', 'LineWidth', 2, 'DisplayName', 'S0');
-
-if isfield(results.models, 'mRLFE')
-    branches = results.models.mRLFE.branches;
-    if isfield(branches, 'A0Like')
-        plot(branches.A0Like.frequency, branches.A0Like.Cp, ':', 'LineWidth', 2, 'DisplayName', 'mRLFE A0-like');
-    end
-    if isfield(branches, 'S0Like')
-        plot(branches.S0Like.frequency, branches.S0Like.Cp, ':', 'LineWidth', 2, 'DisplayName', 'mRLFE S0-like');
-    end
-end
-
+plotBranch(results.A0Like, 'mRLFE A0-like');
+plotBranch(results.S0Like, 'mRLFE S0-like');
 grid on;
 xlabel('frequency [Hz]');
 ylabel('Phase velocity Cp [m/s]');
@@ -41,19 +30,20 @@ hold off;
 
 fprintf('\nDefault mRLFE summary\n');
 fprintf('---------------------\n');
-if isfield(results.models, 'mRLFE')
-    branchNames = fieldnames(results.models.mRLFE.branches);
-    for i = 1:numel(branchNames)
-        name = branchNames{i};
-        branch = results.models.mRLFE.branches.(name);
-        fprintf('%s valid points: %d / %d\n', name, sum(branch.valid), numel(branch.valid));
-        if any(branch.valid)
-            fprintf('%s Cp range: %.6g to %.6g m/s\n', name, min(branch.Cp(branch.valid)), max(branch.Cp(branch.valid)));
-        end
-        if any(isfinite(branch.residual))
-            fprintf('%s max residual: %.3e\n', name, max(branch.residual(isfinite(branch.residual))));
-        end
+for branchName = ["A0Like", "S0Like"]
+    result = results.(char(branchName));
+    fprintf('%s valid points: %d / %d\n', branchName, ...
+        nnz(result.validMask), numel(result.validMask));
+    if any(result.validMask)
+        cp = result.phaseVelocity_mps(result.validMask);
+        fprintf('%s Cp range: %.6g to %.6g m/s\n', branchName, min(cp), max(cp));
     end
-else
-    fprintf('No mRLFE result was computed.\n');
+end
+
+assignin('base', 'MRLFEDefaultResults', results);
+
+function plotBranch(result, labelText)
+cp = result.phaseVelocity_mps;
+cp(~result.validMask) = nan;
+plot(result.frequency_Hz, cp, ':', 'LineWidth', 2, 'DisplayName', labelText);
 end

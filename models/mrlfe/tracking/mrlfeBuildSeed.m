@@ -1,38 +1,26 @@
-function seedMode = mrlfeBuildSeed(problem, configuration)
-%MRLFEBUILDSEED Build the production seed for an mRLFE branch.
+function [seedMode, seedResult] = mrlfeBuildSeed(problem, configuration)
+%MRLFEBUILDSEED Build an mRLFE branch seed through Rayleigh-Lamb.
 
 branchName = string(configuration.branch);
 frequency = problem.frequencySolve_Hz(:);
 material = problem.material;
 geometry = problem.geometry;
-seedModes = problem.seedModes;
+seedOptions = rlDefaultOptions("Fast");
+seedOptions.computeA0 = branchName == "A0Like";
+seedOptions.computeS0 = branchName == "S0Like";
+seedResult = rlComputeFundamentalLambModes(problem.params, seedOptions);
+seedModes = seedResult.modes;
 
 omega = 2*pi*frequency;
 
-switch branchName
-    case "S0Like"
-        preferredSeedNames = {'S0', 'S0Like'};
-    otherwise
-        preferredSeedNames = {'A0', 'A0Like'};
-end
-
 seedMode = [];
 seedSource = "physicalSynthetic";
-if isstruct(seedModes)
-    for i = 1:numel(preferredSeedNames)
-        candidateName = preferredSeedNames{i};
-        if isfield(seedModes, candidateName) && isstruct(seedModes.(candidateName))
-            candidate = seedModes.(candidateName);
-            if isfield(candidate, 'Cp') && numel(candidate.Cp) == numel(frequency)
-                seedMode = candidate;
-                if endsWith(candidateName, 'Like')
-                    seedSource = "mRLFESeedFallback";
-                else
-                    seedSource = "RayleighLambSeed";
-                end
-                break;
-            end
-        end
+seedName = char(erase(branchName, "Like"));
+if isstruct(seedModes) && isfield(seedModes, seedName) && isstruct(seedModes.(seedName))
+    candidate = seedModes.(seedName);
+    if isfield(candidate, 'Cp') && numel(candidate.Cp) == numel(frequency)
+        seedMode = candidate;
+        seedSource = "RayleighLambSeed";
     end
 end
 

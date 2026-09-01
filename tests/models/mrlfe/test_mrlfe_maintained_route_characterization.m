@@ -51,13 +51,8 @@ request = mrlfeBuildGuiSolveRequest(params, rlBuildFrequencyVector(params), bran
 end
 
 function options = localGuiOptions(branch, etaS)
-options = rlDefaultOptions("Fast");
-options.computeA0 = branch == "A0Like";
-options.computeS0 = branch == "S0Like";
-options.computeMRLFERealK = true;
-options.mrlfeComputeA0Like = branch == "A0Like";
-options.mrlfeComputeS0Like = branch == "S0Like";
-options.mrlfeA0Policy = "physicalTail";
+options = mrlfeDefaultSweepOptions(branch, 'EtaS', etaS);
+options.branchNames = branch;
 options.mrlfeParams = localMrlfeParams(etaS);
 end
 

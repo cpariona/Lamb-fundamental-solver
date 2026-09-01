@@ -16,7 +16,6 @@ rlParams.frequencySpacing = "linspace";
 rlOptions = rlDefaultOptions();
 rlOptions.computeA0 = true;
 rlOptions.computeS0 = true;
-rlOptions.computeMRLFE = false;
 
 rlResult = rlComputeFundamentalLambModes(rlParams, rlOptions);
 assertNumericClose(rlResult.grid.frequency([1 10]), [10; 100], 1e-12, ...
@@ -39,25 +38,12 @@ mrlfeParams.fmax = 4000;
 mrlfeParams.numFrequencyPoints = 18;
 mrlfeParams.frequencySpacing = "linspace";
 
-mrlfeOptions = rlDefaultOptions("Fast");
-mrlfeOptions.computeA0 = true;
-mrlfeOptions.computeS0 = true;
-mrlfeOptions.computeMRLFE = true;
-mrlfeOptions.computeMRLFERealK = false;
-mrlfeOptions.mrlfeParams = mrlfeDefaultInternalParameters();
-mrlfeOptions.mrlfeParams.fluidDensity = 1000;
-mrlfeOptions.mrlfeParams.fluidSoundSpeed = 1500;
-mrlfeOptions.mrlfeParams.etaS = 0;
-mrlfeOptions.mrlfeParams.etaL = 0;
-mrlfeOptions.mrlfeParams.solveComplexK = false;
-
-mrlfeResult = rlComputeFundamentalLambModes(mrlfeParams, mrlfeOptions);
-mrlfeA0 = mrlfeResult.models.mRLFE.branches.A0Like;
-mrlfeS0 = mrlfeResult.models.mRLFE.branches.S0Like;
-mrlfeA0Public = mrlfeResult.models.mRLFE.publicModelResults.A0Like;
-mrlfeS0Public = mrlfeResult.models.mRLFE.publicModelResults.S0Like;
-
 requestedFrequency_Hz = linspace(500, 4000, 18).';
+mrlfeA0Public = solveMRLFERegressionBranch(mrlfeParams, requestedFrequency_Hz, "A0Like");
+mrlfeS0Public = solveMRLFERegressionBranch(mrlfeParams, requestedFrequency_Hz, "S0Like");
+mrlfeA0 = mrlfeA0Public.debug.rawInternalResult.branch;
+mrlfeS0 = mrlfeS0Public.debug.rawInternalResult.branch;
+
 fastSolveFrequency_Hz = (500:50:4000).';
 assertNumericClose(mrlfeA0Public.frequency_Hz, requestedFrequency_Hz, 1e-12, ...
     'mRLFE A0Like requested frequency grid changed.');
@@ -127,6 +113,13 @@ assertNumericClose(aeResult.Cp([1 18 35]), ...
     'AE IOP/HGO atlasA0 Cp snapshot changed.');
 
 fprintf('test_lightweight_numerical_regression passed. Solver snapshots are unchanged.\n');
+
+function result = solveMRLFERegressionBranch(params, frequency_Hz, branchName)
+options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
+request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
+    struct('parameterOptions', options));
+result = mrlfeSolve(request);
+end
 
 function assertNumericClose(actual, expected, tol, message)
 assert(numel(actual) == numel(expected), message);

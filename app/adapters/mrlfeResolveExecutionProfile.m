@@ -24,14 +24,9 @@ numericalPreset = profileToNumericalPreset(requestedProfile);
 
 switch surface
     case {"gui", "main", "sweep", "api"}
-        options = rlDefaultOptions(requestedProfile);
-        options.computeMRLFEComplexK = false;
-        options.mrlfeA0Policy = normalizeA0Policy(p.Results.A0Policy);
-        options.mrlfeParams = mrlfeDefaultInternalParameters();
-        options.mrlfeParams.etaS = p.Results.EtaS;
-        options.mrlfeParams.etaL = 0;
-        options.mrlfeParams.useComplexLambda = false;
-        options = localApplyBranchFlags(options, branchName);
+        options = mrlfeDefaultSweepOptions(branchName, ...
+            'EtaS', p.Results.EtaS, ...
+            'A0Policy', normalizeA0Policy(p.Results.A0Policy));
     case "fit"
         options = mrlfeDefaultSweepOptions(branchName, ...
             'EtaS', p.Results.EtaS, ...
@@ -83,25 +78,4 @@ policy = string(policyIn);
 if policy ~= "physicalTail"
     policy = "physicalTail";
 end
-end
-
-function options = localApplyBranchFlags(options, branchName)
-switch branchName
-    case "A0Like"
-        options.computeA0 = true;
-        options.computeS0 = false;
-        options.mrlfeComputeA0Like = true;
-        options.mrlfeComputeS0Like = false;
-    case "S0Like"
-        options.computeA0 = false;
-        options.computeS0 = true;
-        options.mrlfeComputeA0Like = false;
-        options.mrlfeComputeS0Like = true;
-    otherwise
-        error('mrlfeResolveExecutionProfile:UnsupportedBranch', ...
-            'Unsupported mRLFE branchName "%s". Use "A0Like" or "S0Like".', branchName);
-end
-options.computeMRLFERealK = true;
-options.computeMRLFEElasticRealK = false;
-options.computeMRLFEViscoRealK = false;
 end

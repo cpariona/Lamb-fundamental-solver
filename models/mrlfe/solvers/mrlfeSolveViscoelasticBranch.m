@@ -7,12 +7,13 @@ mrlfeParams.solveComplexK = false;
 mrlfeParams.etaL = 0;
 mrlfeParams.useComplexLambda = false;
 
-seed = mrlfeBuildSeed(problem, configuration);
+[seed, seedResult] = mrlfeBuildSeed(problem, configuration);
 branchSolve = mrlfeTrackBranchRobustStart(problem, seed, configuration, mrlfeParams, options);
 branchSolve = mrlfeApplyTerminationPolicy(branchSolve, seed, configuration);
 branchSolve.productionPolicy = branchPolicyName(configuration.branch, configuration.terminationPolicy, "viscoelastic");
 branchSolve.solverRoute = "viscoelasticAdaptive";
 branchSolve.seedMode = seed;
+branchSolve.seedResult = seedResult;
 
 mrlfeResult = buildModelResult(problem, mrlfeParams, branchSolve, "viscoelastic-adaptive-real-k");
 rawResult = mrlfeBuildInternalBranchResult(problem, configuration, mrlfeResult, branchSolve, ...

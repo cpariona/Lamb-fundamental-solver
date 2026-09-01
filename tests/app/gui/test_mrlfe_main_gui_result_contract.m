@@ -14,13 +14,11 @@ params.thickness = 0.5e-3;
 params.rho = 1070;
 params.nu = 0.4999;
 
-options = rlDefaultOptions("Balanced");
+options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
 options.executionProfile = "Balanced";
-options.computeA0 = true;
-options.computeS0 = false;
-options.computeMRLFERealK = true;
-options.mrlfeComputeA0Like = true;
-options.mrlfeComputeS0Like = false;
+options.effectiveExecutionProfile = "Balanced";
+options.robustness = "Balanced";
+options.branchNames = "A0Like";
 options.mrlfeA0Policy = "physicalTail";
 options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = 0;

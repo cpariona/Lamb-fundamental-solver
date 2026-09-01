@@ -74,19 +74,15 @@ end
 function branch = extractMRLFESweepBranch(result, modelName, branchName)
 branch = [];
 branchName = string(branchName);
-modelCandidates = mrlfeModelCandidateNames(modelName);
 
 if ~isfield(result, 'models')
     return;
 end
 
-for i = 1:numel(modelCandidates)
-    candidate = char(modelCandidates(i));
-    if isfield(result.models, candidate) && isfield(result.models.(candidate), 'branches') && ...
-            isfield(result.models.(candidate).branches, char(branchName))
-        branch = result.models.(candidate).branches.(char(branchName));
-        return;
-    end
+candidate = char(string(modelName));
+if isfield(result.models, candidate) && isfield(result.models.(candidate), 'branches') && ...
+        isfield(result.models.(candidate).branches, char(branchName))
+    branch = result.models.(candidate).branches.(char(branchName));
 end
 end
 

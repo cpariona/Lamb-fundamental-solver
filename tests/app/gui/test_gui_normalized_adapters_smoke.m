@@ -17,8 +17,6 @@ rlParams.frequencySpacing = "linspace";
 rlOptions = rlDefaultOptions();
 rlOptions.computeA0 = true;
 rlOptions.computeS0 = true;
-rlOptions.computeMRLFE = false;
-rlOptions.computeMRLFERealK = false;
 
 rlRequest = struct();
 rlRequest.params = rlParams;
@@ -53,13 +51,8 @@ assertBranchTablesAreValid(rlBranchTables, 'Rayleigh-Lamb normalized branch tabl
 
 %% mRLFE normalized adapter, etaS = 0 elastic limit
 mrlfeParams = rlParams;
-mrlfeOptions = rlOptions;
-mrlfeOptions.computeA0 = true;
-mrlfeOptions.computeS0 = false;
-mrlfeOptions.computeMRLFE = false;
-mrlfeOptions.computeMRLFERealK = true;
-mrlfeOptions.mrlfeComputeA0Like = true;
-mrlfeOptions.mrlfeComputeS0Like = false;
+mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
+mrlfeOptions.branchNames = "A0Like";
 mrlfeOptions.mrlfeParams = mrlfeDefaultInternalParameters();
 mrlfeOptions.mrlfeParams.solveComplexK = false;
 mrlfeOptions.mrlfeParams.etaS = 0;
@@ -106,7 +99,6 @@ assertBranchTablesAreValid(mrlfeBranchTables, 'mRLFE normalized branch tables ar
 
 %% mRLFE normalized adapter, etaS > 0 viscous case
 viscoRequest = mrlfeRequest;
-viscoRequest.options.computeMRLFERealK = true;
 viscoRequest.options.mrlfeParams.etaS = 0.05;
 viscoRequest.mrlfeParams = viscoRequest.options.mrlfeParams;
 viscoRequest.computeElastic = true;

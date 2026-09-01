@@ -4,7 +4,7 @@ function rawResult = mrlfeBuildInternalBranchResult(problem, configuration, mrlf
 [branch, Cp_mps] = resampleBranch(branchSolve, problem.frequencyRequested_Hz);
 validMask = branchValidMask(branch);
 
-rawFullResult = problem.rawSeedResult;
+rawFullResult = branchSolve.seedResult;
 rawFullResult.models.mRLFERealK = mrlfeResult;
 rawFullResult.models.mRLFE = mrlfeResult;
 

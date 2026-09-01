@@ -46,7 +46,15 @@ for i = 1:n
     [params, options] = setSweepValue(params, options, paramName, values(i));
 
     t = tic;
-    result = rlComputeFundamentalLambModes(params, options);
+    if isfield(options, 'modelFamily') && string(options.modelFamily) == "mrlfe"
+        frequency_Hz = rlBuildFrequencyVector(params);
+        branchName = string(options.branchName);
+        request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
+            struct('parameterOptions', options));
+        result = mrlfeSolve(request);
+    else
+        result = rlComputeFundamentalLambModes(params, options);
+    end
 
     sweepResults.results{i} = result;
     sweepResults.params{i} = params;

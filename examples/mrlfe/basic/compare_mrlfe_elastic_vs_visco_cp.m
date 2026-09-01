@@ -19,11 +19,7 @@ etaSValues = [0.1, 0.5, 1.0]; % [Pa*s]
 sampleFrequencies = [2000, 4000, 6000, 8000]; % [Hz]
 maxAbsShiftForPlot = 0.25; % hide extreme/suspicious relative-shift values in plots
 
-optionsBase = rlDefaultOptions("Fast");
-optionsBase.computeA0 = true;
-optionsBase.computeS0 = true;
-optionsBase.computeMRLFERealK = true;
-optionsBase.computeMRLFEViscoRealK = true;
+frequency_Hz = rlBuildFrequencyVector(params);
 
 resultsByEtaS = cell(size(etaSValues));
 allShiftRows = [];
@@ -35,16 +31,11 @@ fprintf('--------------------------------------------\n');
 fprintf('Plot shift cutoff: |relative shift| <= %.3g\n', maxAbsShiftForPlot);
 
 for i = 1:numel(etaSValues)
-    options = optionsBase;
-    mrlfeParams = mrlfeDefaultInternalParameters();
-    mrlfeParams.fluidDensity = 1000;
-    mrlfeParams.fluidSoundSpeed = 1500;
-    mrlfeParams.etaS = etaSValues(i);
-    mrlfeParams.etaL = 0;
-    mrlfeParams.useComplexLambda = false;
-    options.mrlfeParams = mrlfeParams;
-
-    results = rlComputeFundamentalLambModes(params, options);
+    results = struct('elastic', struct(), 'visco', struct());
+    for branchName = ["A0Like", "S0Like"]
+        results.elastic.(char(branchName)) = solveCase(params, frequency_Hz, branchName, 0);
+        results.visco.(char(branchName)) = solveCase(params, frequency_Hz, branchName, etaSValues(i));
+    end
     resultsByEtaS{i} = results;
 
     fprintf('\netaS = %.4g Pa*s\n', etaSValues(i));
@@ -84,10 +75,10 @@ for i = 1:numel(etaSValues)
     results = resultsByEtaS{i};
     figure;
     hold on;
-    plotBranchCp(results.models.mRLFEElasticRealK.branches.A0Like, 'A0-like elastic', '-');
-    plotBranchCp(results.models.mRLFEViscoRealK.branches.A0Like, 'A0-like visco', '--');
-    plotBranchCp(results.models.mRLFEElasticRealK.branches.S0Like, 'S0-like elastic', '-');
-    plotBranchCp(results.models.mRLFEViscoRealK.branches.S0Like, 'S0-like visco', '--');
+    plotBranchCp(results.elastic.A0Like, 'A0-like elastic', '-');
+    plotBranchCp(results.visco.A0Like, 'A0-like visco', '--');
+    plotBranchCp(results.elastic.S0Like, 'S0-like elastic', '-');
+    plotBranchCp(results.visco.S0Like, 'S0-like visco', '--');
     grid on;
     xlabel('frequency [Hz]');
     ylabel('Phase velocity Cp [m/s]');
@@ -126,14 +117,14 @@ fprintf('  mRLFE_elastic_visco_cp_shift_summary.csv\n');
 fprintf('  mRLFE_elastic_visco_cp_shift_samples.csv\n');
 
 function [shiftRows, summaryRow, sampleRows] = buildShiftTables(results, etaS, branchName, sampleFrequencies, maxAbsShiftForPlot)
-elastic = results.models.mRLFEElasticRealK.branches.(branchName);
-visco = results.models.mRLFEViscoRealK.branches.(branchName);
-valid = getValidCp(elastic) & getValidCp(visco);
+elastic = results.elastic.(branchName);
+visco = results.visco.(branchName);
+valid = elastic.validMask(:) & visco.validMask(:);
 valid = valid(:);
 
-frequency = elastic.frequency(:);
-CpElastic = elastic.Cp(:);
-CpVisco = visco.Cp(:);
+frequency = elastic.frequency_Hz(:);
+CpElastic = elastic.phaseVelocity_mps(:);
+CpVisco = visco.phaseVelocity_mps(:);
 relativeShift = nan(size(frequency));
 relativeShift(valid) = (CpVisco(valid) - CpElastic(valid)) ./ CpElastic(valid);
 plotShift = relativeShift;
@@ -231,30 +222,28 @@ fprintf('  %s common valid: %d / %d, shift %.4g to %.4g, max |shift| %.4g at %.0
 end
 
 function plotBranchCp(branch, labelText, lineStyle)
-valid = getValidCp(branch);
-y = branch.Cp;
+valid = branch.validMask(:);
+y = branch.phaseVelocity_mps;
 y(~valid) = nan;
-plot(branch.frequency, y, lineStyle, 'LineWidth', 1.6, 'DisplayName', labelText);
+plot(branch.frequency_Hz, y, lineStyle, 'LineWidth', 1.6, 'DisplayName', labelText);
 end
 
 function plotRelativeShift(results, branchName, labelText, maxAbsShiftForPlot)
-elastic = results.models.mRLFEElasticRealK.branches.(branchName);
-visco = results.models.mRLFEViscoRealK.branches.(branchName);
-valid = getValidCp(elastic) & getValidCp(visco);
+elastic = results.elastic.(branchName);
+visco = results.visco.(branchName);
+valid = elastic.validMask(:) & visco.validMask(:);
 valid = valid(:);
-y = nan(size(elastic.Cp(:)));
-cpElastic = elastic.Cp(:);
-cpVisco = visco.Cp(:);
+y = nan(size(elastic.phaseVelocity_mps(:)));
+cpElastic = elastic.phaseVelocity_mps(:);
+cpVisco = visco.phaseVelocity_mps(:);
 y(valid) = (cpVisco(valid) - cpElastic(valid)) ./ cpElastic(valid);
 y(abs(y) > maxAbsShiftForPlot) = nan;
-plot(elastic.frequency(:), y, 'LineWidth', 1.6, 'DisplayName', labelText);
+plot(elastic.frequency_Hz(:), y, 'LineWidth', 1.6, 'DisplayName', labelText);
 end
 
-function valid = getValidCp(branch)
-if isfield(branch, 'validCp')
-    valid = branch.validCp;
-else
-    valid = branch.valid;
-end
-valid = valid(:) & isfinite(branch.Cp(:));
+function result = solveCase(params, frequency_Hz, branchName, etaS)
+options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
+request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
+    struct('parameterOptions', options));
+result = mrlfeSolve(request);
 end

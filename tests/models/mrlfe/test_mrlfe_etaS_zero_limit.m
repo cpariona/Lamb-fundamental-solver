@@ -3,56 +3,26 @@ if isempty(which('mrlfeSolve'))
     startup
 end
 
-%TEST_MRLFE_ETAS_ZERO_LIMIT Contract test for the unified mRLFE real-k model.
-%
-% etaS = 0 must be the elastic fluid-loaded limit of the same maintained
-% mRLFERealK model, not a separate user-facing model branch.
-
+% etaS = 0 is the elastic material regime of the same public mRLFE API.
 params = rlDefaultParams();
-params.fmin = 500;
-params.fmax = 4000;
-params.numFrequencyPoints = 14;
-params.frequencySpacing = "linspace";
+frequency_Hz = linspace(500, 4000, 14).';
 
-options = rlDefaultOptions("Fast");
-options.computeA0 = true;
-options.computeS0 = true;
-options.computeMRLFE = false;
-options.computeMRLFERealK = true;
-options.computeMRLFEElasticRealK = false;
-options.computeMRLFEViscoRealK = false;
-options.computeMRLFEComplexK = false;
-options.mrlfeComputeA0Like = true;
-options.mrlfeComputeS0Like = true;
-options.mrlfeParams = mrlfeDefaultInternalParameters();
-options.mrlfeParams.etaS = 0;
-options.mrlfeParams.etaL = 0;
-options.mrlfeParams.useComplexLambda = false;
-options.mrlfeParams.solveComplexK = false;
+for branchName = ["A0Like", "S0Like"]
+    options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
+    request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
+        struct('parameterOptions', options));
+    result = mrlfeSolve(request);
 
-results = rlComputeFundamentalLambModes(params, options);
-
-assert(isfield(results, 'models'), 'mRLFE result must contain models.');
-assert(isfield(results.models, 'mRLFERealK'), 'etaS = 0 must expose the unified mRLFERealK model.');
-assert(isfield(results.models, 'mRLFE'), 'mRLFE compatibility alias must remain available.');
-assert(isfield(results.models, 'mRLFEElasticRealK'), 'etaS = 0 reference result must remain available internally.');
-assert(~isfield(results.models, 'mRLFEViscoRealK'), 'etaS = 0 must not create a separate viscous raw result.');
-
-realK = results.models.mRLFERealK;
-elastic = results.models.mRLFEElasticRealK;
-assert(isfield(realK, 'branches'), 'mRLFERealK must contain branches.');
-assert(isfield(realK.branches, 'A0Like'), 'mRLFERealK must contain A0Like.');
-assert(isfield(realK.branches, 'S0Like'), 'mRLFERealK must contain S0Like.');
-
-assertBranchSame(realK.branches.A0Like, elastic.branches.A0Like, 'A0Like');
-assertBranchSame(realK.branches.S0Like, elastic.branches.S0Like, 'S0Like');
-
-fprintf('test_mrlfe_etaS_zero_limit passed. etaS = 0 exposes unified mRLFERealK.\n');
-
-function assertBranchSame(a, b, branchName)
-assert(isequal(size(a.Cp), size(b.Cp)), '%s Cp size mismatch.', branchName);
-assert(isequal(size(a.frequency), size(b.frequency)), '%s frequency size mismatch.', branchName);
-assert(max(abs(a.frequency(:) - b.frequency(:))) < 1e-12, '%s frequency mismatch.', branchName);
-assert(max(abs(a.Cp(:) - b.Cp(:)), [], 'omitnan') < 1e-12, '%s Cp mismatch.', branchName);
-assert(isequal(a.valid(:), b.valid(:)), '%s valid mask mismatch.', branchName);
+    assert(result.model == "mrlfe" && result.branch == branchName, ...
+        'etaS = 0 must remain on the canonical public mRLFE branch contract.');
+    assert(result.execution.internalEngine == "elastic_adaptive", ...
+        'etaS = 0 must select the elastic mRLFE engine.');
+    assert(result.configuration.materialRegime == "elasticZeroViscosity", ...
+        'etaS = 0 material regime metadata changed.');
+    assert(result.configuration.parameters.etaS_Pas == 0, ...
+        'etaS = 0 must remain explicit in public configuration.');
+    assert(result.fallback.policy == "none" && ~result.fallback.applied, ...
+        'etaS = 0 public solve must not use fallback.');
 end
+
+fprintf('test_mrlfe_etaS_zero_limit passed. etaS = 0 uses the public elastic engine.\n');

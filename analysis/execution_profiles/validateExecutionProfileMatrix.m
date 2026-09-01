@@ -210,18 +210,9 @@ end
 
 function [out, cp] = runMainMRLFE(profile, etaS)
 params = shortRLParams();
-options = rlDefaultOptions(profile);
-options.executionProfile = profile;
-options.computeA0 = true;
-options.computeS0 = false;
-options.computeMRLFERealK = true;
-options.mrlfeComputeA0Like = true;
-options.mrlfeComputeS0Like = false;
-options.mrlfeA0Policy = "physicalTail";
-options.mrlfeParams = mrlfeDefaultInternalParameters();
-options.mrlfeParams.etaS = etaS;
-options.mrlfeParams.etaL = 0;
-options.mrlfeParams.useComplexLambda = false;
+[options, ~] = mrlfeResolveExecutionProfile("A0Like", profile, ...
+    'Surface', "main", 'EtaS', etaS);
+options.branchNames = "A0Like";
 out = guiRunMRLFEModel(struct('params', params, 'options', options, ...
     'mrlfeParams', options.mrlfeParams, 'computeVisco', etaS > 0));
 cp = extractMainCp(out, "mRLFERealK", "A0Like");

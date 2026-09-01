@@ -111,19 +111,9 @@ end
 
 function out = runMainCase(branch, profile, etaS, pointCount)
 params = shortParams(pointCount);
-options = rlDefaultOptions(profile);
-options.executionProfile = profile;
-options.robustness = profile;
-options.computeA0 = branch == "A0Like";
-options.computeS0 = branch == "S0Like";
-options.computeMRLFERealK = true;
-options.mrlfeComputeA0Like = branch == "A0Like";
-options.mrlfeComputeS0Like = branch == "S0Like";
-options.mrlfeA0Policy = "physicalTail";
-options.mrlfeParams = mrlfeDefaultInternalParameters();
-options.mrlfeParams.etaS = etaS;
-options.mrlfeParams.etaL = 0;
-options.mrlfeParams.useComplexLambda = false;
+[options, ~] = mrlfeResolveExecutionProfile(branch, profile, ...
+    'Surface', "main", 'EtaS', etaS);
+options.branchNames = branch;
 t = tic;
 result = guiRunMRLFEModel(struct('params', params, 'options', options, ...
     'mrlfeParams', options.mrlfeParams, 'computeVisco', etaS > 0));

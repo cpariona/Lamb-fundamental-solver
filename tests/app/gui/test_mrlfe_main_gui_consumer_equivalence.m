@@ -72,12 +72,8 @@ params.thickness = 0.5e-3;
 params.rho = 1070;
 params.nu = 0.4999;
 
-options = rlDefaultOptions("Fast");
-options.computeA0 = branchName == "A0Like";
-options.computeS0 = branchName == "S0Like";
-options.computeMRLFERealK = true;
-options.mrlfeComputeA0Like = branchName == "A0Like";
-options.mrlfeComputeS0Like = branchName == "S0Like";
+options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
+options.branchNames = branchName;
 options.mrlfeA0Policy = "physicalTail";
 options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = etaS;

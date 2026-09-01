@@ -7,7 +7,6 @@ end
 branchName = string(branchName);
 
 options = rlDefaultOptions("Balanced");
-options.computeMRLFE = false;
 
 switch branchName
     case "A0"

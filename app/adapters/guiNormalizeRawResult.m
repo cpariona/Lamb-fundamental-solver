@@ -52,13 +52,11 @@ modelNames = modelNames(modelNames ~= "mRLFE");
 primaryModelNames = ["mRLFERealK", "mRLFEViscoRealK", "mRLFEElasticRealK"];
 for i = 1:numel(primaryModelNames)
     primaryName = primaryModelNames(i);
-    candidates = mrlfeModelCandidateNames(primaryName);
-    available = candidates(ismember(candidates, modelNames));
-    if isempty(available)
+    if ~any(modelNames == primaryName)
         continue;
     end
 
-    rawModelName = available(1);
+    rawModelName = primaryName;
     modelResult = rawResult.models.(char(rawModelName));
     if ~isfield(modelResult, 'branches') || ~isstruct(modelResult.branches)
         continue;

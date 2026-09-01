@@ -6,7 +6,7 @@ if nargin < 1 || isempty(guiRequest)
 end
 
 params = guiMergeStructs(rlDefaultParams(), guiGetStructField(guiRequest, 'params', struct()));
-options = guiMergeStructs(rlDefaultOptions(), guiGetStructField(guiRequest, 'options', struct()));
+options = guiGetStructField(guiRequest, 'options', struct());
 [profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
     'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
     'DefaultSource', "model default");
@@ -83,11 +83,14 @@ elapsedSeconds = toc(timerStart);
 end
 
 function branchNames = selectedBranches(options)
-computeA0 = logical(guiGetStructField(options, 'mrlfeComputeA0Like', guiGetStructField(options, 'computeA0', true)));
-computeS0 = logical(guiGetStructField(options, 'mrlfeComputeS0Like', guiGetStructField(options, 'computeS0', false)));
-branchNames = [repmat("A0Like", 1, double(computeA0)), repmat("S0Like", 1, double(computeS0))];
+branchNames = string(guiGetStructField(options, 'branchNames', ...
+    guiGetStructField(options, 'branchName', "A0Like")));
+branchNames = unique(branchNames(:).', 'stable');
 if isempty(branchNames)
     error('mrlfe:InvalidGuiBranchSelection', 'Main GUI mRLFE requires A0Like or S0Like selection.');
+end
+if any(~ismember(branchNames, ["A0Like", "S0Like"]))
+    error('mrlfe:InvalidGuiBranchSelection', 'Main GUI mRLFE branches must be A0Like or S0Like.');
 end
 end
 

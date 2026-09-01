@@ -129,10 +129,6 @@ options = struct( ...
     'mrlfeResidualMethod', "minSingularValueRatio", ...
     'mrlfeRealKResidualFloor', 1e-14, ...
     'mrlfeA0DPEdgeGuardPoints', 8);
-options.computeMRLFERealK = true;
-options.computeMRLFEElasticRealK = false;
-options.computeMRLFEViscoRealK = false;
-options.computeMRLFEComplexK = false;
 options.mrlfeA0Policy = "physicalTail";
 options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.fluidDensity = request.fluid.density_kgm3;
@@ -157,18 +153,6 @@ options.mrlfeRobustStartCandidateFrequencies_Hz = [75 100 150 200 300 500 750 10
 options.mrlfeRobustStartMinValidRun = 8;
 options.mrlfeRobustStartMaxCandidates = 8;
 
-switch branch
-    case "A0Like"
-        options.computeA0 = true;
-        options.computeS0 = false;
-        options.mrlfeComputeA0Like = true;
-        options.mrlfeComputeS0Like = false;
-    case "S0Like"
-        options.computeA0 = false;
-        options.computeS0 = true;
-        options.mrlfeComputeA0Like = false;
-        options.mrlfeComputeS0Like = true;
-end
 end
 
 function out = ternary(condition, a, b)
