@@ -52,7 +52,6 @@ params.frequency = requestedFrequency;
 options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
 options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
@@ -72,7 +71,7 @@ assert(isequal(fieldnames(result.branches), {'modelName'; 'branchName'; ...
     'frequency'; 'phaseVelocity'; 'wavenumber'; 'kThickness'; 'metadata'; ...
     'diagnostics'}), 'AE Main GUI branch schema changed.');
 assert(isequal(fieldnames(result.metadata), {'params'; 'options'; 'rawResult'; ...
-    'adapter'; 'elapsedSeconds'; 'aeGuiAtlasPreset'; 'executionProfile'}), ...
+    'adapter'; 'elapsedSeconds'; 'executionProfile'}), ...
     'AE Main GUI metadata schema changed.');
 assert(isstruct(result), 'AE main GUI adapter must return a struct.');
 assert(string(result.modelName) == "AcoustoelasticIOPHGO", 'Unexpected AE modelName.');

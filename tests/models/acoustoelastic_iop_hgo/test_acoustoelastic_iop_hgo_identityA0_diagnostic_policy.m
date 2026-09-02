@@ -17,7 +17,6 @@ params.frequency = logspace(log10(100), log10(20e3), 40);
 options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
 options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 500;
 options.atlasTopNMinima = 18;

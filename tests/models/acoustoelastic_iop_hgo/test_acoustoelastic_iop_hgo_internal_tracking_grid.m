@@ -23,7 +23,6 @@ params.frequency = logspace(log10(1000), log10(15e3), 35);
 options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
 options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 600;
 options.atlasTopNMinima = 16;
@@ -32,7 +31,7 @@ options.useInternalAtlasTrackingGrid = true;
 options.atlasInitializationMinFrequency_Hz = 300;
 options.atlasInitializationNumFrequencyPoints = 50;
 
-result = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
+result = solveAcoustoelasticIOPHGOBranch(params, options);
 
 assert(isstruct(result), 'Result must be a struct.');
 assert(isfield(result, 'internalAtlasTracking'), 'Result must report internal tracking metadata.');

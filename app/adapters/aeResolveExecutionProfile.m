@@ -16,9 +16,10 @@ parse(p, varargin{:});
 
 [numericalPreset, applyNumericalPreset] = selectedNumericalPreset( ...
     profile, p.Results.ApplyNumericalPreset);
-[options, configurationMetadata] = aeResolveConfiguration(p.Results.Overrides, ...
-    'NumericalPreset', numericalPreset, ...
-    'Surface', p.Results.Surface);
+surface = canonicalSurface(p.Results.Surface);
+surfaceOverrides = buildSurfaceOverrides(surface, p.Results.Overrides);
+[options, configurationMetadata] = aeResolveConfiguration(surfaceOverrides, ...
+    'NumericalPreset', numericalPreset);
 options.executionProfile = profile;
 options.robustness = profile;
 
@@ -39,8 +40,38 @@ metadata.atlasTopNMinima = configurationMetadata.atlasTopNMinima;
 metadata.supportedExecutionProfiles = guiExecutionProfileValues();
 metadata.profileSupportMode = "fully_supported";
 metadata.surfaceDefaultExecutionProfile = string(p.Results.DefaultProfile);
-if strcmpi(string(p.Results.Surface), "FitTool") || strcmpi(string(p.Results.Surface), "fit")
+metadata.surface = surface;
+if surface == "FitTool"
     metadata.atlasInitializationNumFrequencyPoints = options.atlasInitializationNumFrequencyPoints;
+end
+end
+
+function overrides = buildSurfaceOverrides(surface, requestedOverrides)
+overrides = struct();
+if ismember(surface, ["MainGUI", "FitTool", "SweepTool", "physicalSweep"])
+    overrides = struct( ...
+        'M54_variant', "corrected", ...
+        'normalizeRows', false, ...
+        'atlasBranchPolicy', "atlasA0");
+end
+overrides = guiMergeStructs(overrides, requestedOverrides);
+end
+
+function surface = canonicalSurface(value)
+switch lower(strtrim(string(value)))
+    case {"", "direct", "model"}
+        surface = "direct";
+    case {"physicalsweep", "physical_sweep", "analysis"}
+        surface = "physicalSweep";
+    case {"sweeptool", "sweep"}
+        surface = "SweepTool";
+    case {"fittool", "fit", "fittool requested curve", "fittool synthetic"}
+        surface = "FitTool";
+    case {"maingui", "main_gui", "main"}
+        surface = "MainGUI";
+    otherwise
+        error('aeResolveExecutionProfile:InvalidSurface', ...
+            'Unknown AE application surface "%s".', string(value));
 end
 end
 

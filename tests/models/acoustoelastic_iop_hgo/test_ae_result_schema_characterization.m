@@ -5,7 +5,7 @@ params = representativeParams(logspace(log10(300), log10(15e3), 12));
 options = representativeOptions();
 options.useInternalAtlasTrackingGrid = false;
 
-iopResult = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
+iopResult = solveAcoustoelasticIOPHGOBranch(params, options);
 publicResult = solveAcoustoelasticIOPHGOBranch(params, options);
 directResult = solveAcoustoelasticAtlasBranch(iopResult.directParams, options);
 
@@ -47,7 +47,7 @@ internalOptions = options;
 internalOptions.useInternalAtlasTrackingGrid = true;
 internalOptions.atlasInitializationMinFrequency_Hz = 200;
 internalOptions.atlasInitializationNumFrequencyPoints = 20;
-internalResult = solveAcoustoelasticIOPHGOAtlasBranch(params, internalOptions);
+internalResult = solveAcoustoelasticIOPHGOBranch(params, internalOptions);
 internalFields = [directFields; {'trackingFrequency'; 'requestedFrequency'; ...
     'internalAtlasTracking'; 'trackingObjectiveMap'; 'constitutiveState'; ...
     'directParams'}];
@@ -95,7 +95,7 @@ fallbackOptions.atlasNumYPoints = 300;
 fallbackOptions.atlasTopNMinima = 12;
 fallbackOptions.useInternalAtlasTrackingGrid = false;
 fallbackOptions.invalidateAtlasFallbackOutput = true;
-fallbackResult = solveAcoustoelasticIOPHGOAtlasBranch(fallbackParams, fallbackOptions);
+fallbackResult = solveAcoustoelasticIOPHGOBranch(fallbackParams, fallbackOptions);
 fallbackFields = [iopFields; {'fallbackCandidateCp'; ...
     'fallbackCandidateValidCp'; 'fallbackCandidateBranchExistsAtFrequency'; ...
     'fallbackCandidateInterpolatedCp'; 'fallbackCandidatePointStatus'}];
@@ -147,7 +147,6 @@ function options = representativeOptions()
 options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
 options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 180;
 options.atlasTopNMinima = 8;

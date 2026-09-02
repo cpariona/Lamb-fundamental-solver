@@ -1,8 +1,8 @@
 function result = guiRunAcoustoelasticIOPHGOModel(guiRequest)
 %GUIRUNACOUSTOELASTICIOPHGOMODEL Run Acoustoelastic IOP/HGO for GUI usage.
 %
-% result = guiRunAcoustoelasticIOPHGOModel(guiRequest) calls the existing
-% long author-neutral Acoustoelastic IOP/HGO API and returns a normalized
+% result = guiRunAcoustoelasticIOPHGOModel(guiRequest) calls the canonical
+% Acoustoelastic IOP/HGO API and returns a normalized
 % result struct for future GUI plotting/export layers.
 %
 % Required guiRequest field:
@@ -11,9 +11,6 @@ function result = guiRunAcoustoelasticIOPHGOModel(guiRequest)
 % Optional guiRequest field:
 %   options - struct overlay for defaultAcoustoelasticIOPHGOOptions()
 %
-% This adapter intentionally does not introduce ae* aliases. Short ae* names
-% may be added later in a dedicated tested/documented PR.
-
 if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
 end
@@ -50,11 +47,9 @@ result.metadata.options = options;
 result.metadata.rawResult = rawResult;
 result.metadata.adapter = mfilename;
 result.metadata.elapsedSeconds = elapsedSeconds;
-result.metadata.aeGuiAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
 result.metadata.executionProfile = profileMetadata;
 result.diagnostics = getFieldOrDefault(rawResult, 'diagnostics', struct());
 result.diagnostics.elapsedSeconds = elapsedSeconds;
-result.diagnostics.aeGuiAtlasPreset = guiGetStructField(options, 'aeGuiAtlasPreset', "none");
 result.diagnostics.executionProfile = profileMetadata;
 if isfield(rawResult, 'reliability')
     result.diagnostics.reliability = rawResult.reliability;

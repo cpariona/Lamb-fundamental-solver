@@ -12,9 +12,10 @@ function result = solveAcoustoelasticDispersion(params, options)
 % Optional params field:
 %   cGrid              : custom Cp grid [m/s]
 
-if nargin < 2 || isempty(options)
-    options = defaultAcoustoelasticIOPHGOOptions();
+if nargin < 2
+    options = [];
 end
+options = aeDefaultDiagnosticOptions(options);
 
 validateDirectParams(params);
 

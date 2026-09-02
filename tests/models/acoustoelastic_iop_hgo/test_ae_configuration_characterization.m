@@ -3,19 +3,22 @@ if isempty(which('mrlfeSolve'))
     startup
 end
 
-% Phase-2 characterization baseline. Expected values are the maintained
-% pre-refactor contracts, not values derived from the future resolver.
-
-direct = defaultAcoustoelasticIOPHGOOptions();
-assert(~isfield(direct, 'atlasNumYPoints'));
-assert(~isfield(direct, 'atlasTopNMinima'));
-assert(direct.numCpScanPoints == 1400);
-assert(direct.maxLocalCandidates == 12);
-assert(direct.refineLocalMinima == true);
-assert(direct.atlasInitializationMinFrequency_Hz == 300);
-assert(direct.atlasInitializationNumFrequencyPoints == 50);
-assert(direct.trackingMethod == "globalScan");
-assert(direct.atlasBranchPolicy == "atlasA0");
+production = defaultAcoustoelasticIOPHGOOptions();
+assert(production.atlasNumYPoints == 1000);
+assert(production.atlasTopNMinima == 18);
+assert(production.refineLocalMinima == true);
+assert(production.atlasInitializationMinFrequency_Hz == 300);
+assert(production.atlasInitializationNumFrequencyPoints == 50);
+assert(production.atlasBranchPolicy == "atlasA0");
+for diagnosticField = ["trackingMethod", "numCpScanPoints", ...
+        "complexCMaxIter", "usePhysicalCpWindow"]
+    assert(~isfield(production, diagnosticField), ...
+        'Public production defaults must not expose %s.', diagnosticField);
+end
+diagnostic = aeDefaultDiagnosticOptions();
+assert(diagnostic.numCpScanPoints == 1400);
+assert(diagnostic.maxLocalCandidates == 12);
+assert(diagnostic.trackingMethod == "globalScan");
 
 profileNames = ["Fast", "Balanced", "Robust"];
 expectedY = [300, 600, 900];
@@ -26,7 +29,6 @@ for i = 1:numel(profileNames)
     assert(physicalSweep.atlasTopNMinima == expectedTopN(i));
     assert(physicalSweep.M54_variant == "corrected");
     assert(physicalSweep.normalizeRows == false);
-    assert(physicalSweep.usePhysicalCpWindow == false);
     assert(physicalSweep.atlasBranchPolicy == "atlasA0");
 
     [surfaceOptions, metadata] = aeResolveExecutionProfile(profileNames(i));
@@ -46,11 +48,8 @@ end
 mainGui = guiBuildAcoustoelasticIOPHGOOptions("Balanced");
 assert(mainGui.atlasNumYPoints == 600);
 assert(mainGui.atlasTopNMinima == 16);
-assert(mainGui.numCpScanPoints == 1400);
-assert(mainGui.maxLocalCandidates == 12);
 assert(mainGui.refineLocalMinima == true);
 assert(mainGui.atlasInitializationNumFrequencyPoints == 50);
-assert(mainGui.trackingMethod == "globalScan");
 assert(mainGui.executionProfileMetadata.surfaceDefaultExecutionProfile == "Balanced");
 
 % SweepTool and FitTool both begin with the Fast profile. Their adapters may
@@ -68,19 +67,15 @@ assert(fitMetadata.surfaceDefaultExecutionProfile == "Fast");
 explicit = defaultAcoustoelasticIOPHGOOptions( ...
     'atlasNumYPoints', 321, ...
     'atlasTopNMinima', 7, ...
-    'numCpScanPoints', 432, ...
-    'trackingMethod', "predictiveContinuation", ...
     'atlasBranchPolicy', "ATLASA0");
 assert(explicit.atlasNumYPoints == 321);
 assert(explicit.atlasTopNMinima == 7);
-assert(explicit.numCpScanPoints == 432);
-assert(explicit.trackingMethod == "predictiveContinuation");
 assert(explicit.atlasBranchPolicy == "atlasA0");
 
 missingParams = struct('IOP', 1);
 didReject = false;
 try
-    solveAcoustoelasticIOPHGOAtlasBranch(missingParams, direct);
+    solveAcoustoelasticIOPHGOBranch(missingParams, production);
 catch ME
     didReject = contains(ME.message, ...
         'Missing required acoustoelastic IOP/HGO atlas parameter: R');

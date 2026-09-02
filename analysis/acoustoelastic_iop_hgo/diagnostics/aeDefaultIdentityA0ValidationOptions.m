@@ -7,7 +7,6 @@ function options = aeDefaultIdentityA0ValidationOptions(varargin)
 options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
 options.atlasNumYPoints = 1000;
 options.atlasTopNMinima = 18;
 

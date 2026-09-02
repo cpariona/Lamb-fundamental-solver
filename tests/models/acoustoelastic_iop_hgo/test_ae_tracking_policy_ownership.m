@@ -27,10 +27,14 @@ for oldLocal = ["function minima = localMinima", "function [minimaTable, branchT
     assert(~contains(solverText, oldLocal), 'Old local production owner remains: %s', oldLocal);
 end
 
-wrapperText = fileread(fullfile(modelRoot, 'solvers', 'solveAcoustoelasticIOPHGOAtlasBranch.m'));
-assertContains(wrapperText, 'aeApplyAtlasA0FallbackPolicy(result)');
-assert(~contains(wrapperText, 'result.fallbackCandidateCp = result.Cp'), ...
-    'Fallback decision logic must not remain in the wrapper.');
+publicOwnerText = fileread(fullfile(modelRoot, 'solvers', 'solveAcoustoelasticIOPHGOBranch.m'));
+assertContains(publicOwnerText, 'aeValidateRequest(params');
+assertContains(publicOwnerText, 'aeResolveConfiguration(options)');
+assertContains(publicOwnerText, 'computeAcoustoelasticABGFromIOPHGO(');
+assertContains(publicOwnerText, 'solveAcoustoelasticAtlasBranch(');
+assertContains(publicOwnerText, 'aeApplyAtlasA0FallbackPolicy(result)');
+assert(~contains(publicOwnerText, 'solveAcoustoelasticIOPHGOAtlasBranch'), ...
+    'The public AE owner must not be a forwarding wrapper.');
 
 assertLocalMinimaContract();
 assertLinkContract();

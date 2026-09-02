@@ -22,14 +22,13 @@ params.frequency = logspace(log10(1000), log10(15e3), 35);
 options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
 options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 options.invalidateAtlasFallbackOutput = true;
 options.useInternalAtlasTrackingGrid = false;
 
-result = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
+result = solveAcoustoelasticIOPHGOBranch(params, options);
 
 assert(isstruct(result), 'Result must be a struct.');
 assert(isfield(result, 'reliability'), 'Result must include reliability.');

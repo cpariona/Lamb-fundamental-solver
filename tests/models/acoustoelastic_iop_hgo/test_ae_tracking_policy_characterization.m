@@ -13,7 +13,7 @@ for i = 1:numel(profiles)
     options = representativeOptions(profiles(i));
     options.useInternalAtlasTrackingGrid = false;
     options.refineLocalMinima = false;
-    result = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
+    result = solveAcoustoelasticIOPHGOBranch(params, options);
 
     assert(size(result.objectiveMap, 1) == expectedYPoints(i));
     assert(size(result.objectiveMap, 2) == numel(params.frequency));
@@ -26,25 +26,13 @@ for i = 1:numel(profiles)
     assertSelectedBranchConsistency(result);
 end
 
-mainGuiOptions = aeResolveConfiguration(struct(), 'Surface', "MainGUI");
-mainGuiOptions.useInternalAtlasTrackingGrid = false;
-mainGuiResult = solveAcoustoelasticIOPHGOAtlasBranch(params, mainGuiOptions);
-assert(mainGuiResult.options.atlasNumYPoints == 1000);
-assert(mainGuiResult.options.atlasTopNMinima == 18);
-assert(mainGuiResult.options.numCpScanPoints == 420);
-assert(mainGuiResult.options.maxLocalCandidates == 8);
-assertIntermediateSchema(mainGuiResult);
-assertDiscreteMinima(mainGuiResult);
-assertTrackingConsistency(mainGuiResult);
-assertSelectedBranchConsistency(mainGuiResult);
-
 overrideOptions = representativeOptions("Fast");
 overrideOptions.atlasNumYPoints = 137;
 overrideOptions.atlasTopNMinima = 7;
 overrideOptions.atlasMaxLogYJump = 0.031;
 overrideOptions.atlasMaxRelativeCpJump = 0.021;
 overrideOptions.useInternalAtlasTrackingGrid = false;
-overrideResult = solveAcoustoelasticIOPHGOAtlasBranch(params, overrideOptions);
+overrideResult = solveAcoustoelasticIOPHGOBranch(params, overrideOptions);
 assert(size(overrideResult.objectiveMap, 1) == 137);
 assert(overrideResult.options.atlasTopNMinima == 7);
 assert(overrideResult.options.atlasMaxLogYJump == 0.031);
@@ -60,7 +48,7 @@ fallbackOptions.atlasNumYPoints = 300;
 fallbackOptions.atlasTopNMinima = 12;
 fallbackOptions.useInternalAtlasTrackingGrid = false;
 fallbackOptions.invalidateAtlasFallbackOutput = true;
-fallbackResult = solveAcoustoelasticIOPHGOAtlasBranch(fallbackParams, fallbackOptions);
+fallbackResult = solveAcoustoelasticIOPHGOBranch(fallbackParams, fallbackOptions);
 assertDiscreteMinima(fallbackResult);
 assert(fallbackResult.reliability.SelectionFallbackUsed == true);
 assert(fallbackResult.reliability.A0StartFilterPassed == false);
@@ -169,11 +157,9 @@ params = struct('R', 7.8e-3, 'thickness', 550e-6, 'mu', 50e3, ...
 end
 
 function options = representativeOptions(profile)
-options = defaultAcoustoelasticIOPHGOOptions();
-options = aeResolveConfiguration(options, 'NumericalPreset', profile);
+options = aeResolveConfiguration(struct(), 'NumericalPreset', profile);
 options.M54_variant = "corrected";
 options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
 options.atlasBranchPolicy = "atlasA0";
 options.invalidateAtlasFallbackOutput = false;
 end

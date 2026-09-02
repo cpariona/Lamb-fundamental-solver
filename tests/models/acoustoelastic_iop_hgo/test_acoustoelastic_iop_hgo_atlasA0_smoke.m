@@ -21,12 +21,11 @@ params.IOP = 15 * 133.322;
 options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
 options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 options.atlasBranchPolicy = "atlasA0";
 
-result = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
+result = solveAcoustoelasticIOPHGOBranch(params, options);
 resolvedOptions = result.options;
 
 assert(isstruct(result), 'Result must be a struct.');

@@ -98,12 +98,11 @@ aeParams.IOP = 15 * 133.322;
 aeOptions = defaultAcoustoelasticIOPHGOOptions();
 aeOptions.M54_variant = "corrected";
 aeOptions.normalizeRows = false;
-aeOptions.usePhysicalCpWindow = false;
 aeOptions.atlasNumYPoints = 300;
 aeOptions.atlasTopNMinima = 12;
 aeOptions.atlasBranchPolicy = "atlasA0";
 
-aeResult = solveAcoustoelasticIOPHGOAtlasBranch(aeParams, aeOptions);
+aeResult = solveAcoustoelasticIOPHGOBranch(aeParams, aeOptions);
 assert(nnz(aeResult.validCp) == 35 && numel(aeResult.validCp) == 35, ...
     'AE IOP/HGO validCp mask snapshot changed.');
 assert(string(aeResult.reliability.PolicyName) == "atlasA0", ...

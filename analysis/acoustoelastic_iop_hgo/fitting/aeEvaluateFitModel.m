@@ -13,11 +13,10 @@ if nargin < 3 || isempty(branchName)
     branchName = "atlasA0";
 end
 if nargin < 4 || isempty(options)
-    options = aeResolveConfiguration(struct(), ...
-        'NumericalPreset', "Fast", 'Surface', "FitTool");
+    options = aeDefaultSweepOptions("Fast");
 else
     options.atlasBranchPolicy = "atlasA0";
-    options = aeResolveConfiguration(options, 'Surface', "FitTool");
+    options = aeResolveConfiguration(options);
 end
 
 branchName = aeNormalizeBranchPolicy(branchName);

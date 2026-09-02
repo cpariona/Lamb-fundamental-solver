@@ -21,7 +21,6 @@ trueParams.frequency = logspace(log10(300), log10(15e3), 35);
 solverOptions = defaultAcoustoelasticIOPHGOOptions();
 solverOptions.M54_variant = "corrected";
 solverOptions.normalizeRows = false;
-solverOptions.usePhysicalCpWindow = false;
 solverOptions.atlasNumYPoints = 300;
 solverOptions.atlasTopNMinima = 12;
 solverOptions.atlasBranchPolicy = "atlasA0";
