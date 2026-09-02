@@ -24,17 +24,19 @@ end
 
 sweepSpec = struct();
 sweepSpec.parameter = string(request.sweepField);
+sweepSpec.parameterPath = "params." + string(request.sweepField);
 sweepSpec.values = request.sweepValuesDisplay .* request.displayScale;
 sweepSpec.label = string(request.sweepLabel);
 sweepSpec.units = string(request.displayUnit);
 sweepSpec.displayScale = request.displayScale;
 
 modelName = "RayleighLamb";
-rawResults = runParametricSweep(params, options, sweepSpec);
-summaryTable = summarizeParametricSweepBranch(rawResults, modelName, branchName, 'Print', false);
-normalized = guiNormalizeRLSweep(rawResults, summaryTable, request, modelName, branchName);
+sweepResults = runParametricSweep(params, options, sweepSpec, ...
+    @(pointParams, pointOptions)rlComputeFundamentalLambModes(pointParams, pointOptions));
+summaryTable = summarizeParametricSweepBranch(sweepResults, modelName, branchName, 'Print', false);
+normalized = guiNormalizeRLSweep(sweepResults, summaryTable, request, modelName, branchName);
 normalized.metadata.executionProfile = profileMetadata;
-normalized.metadata.elapsedSeconds = sum(rawResults.elapsedSeconds, 'omitnan');
+normalized.metadata.elapsedSeconds = sum(sweepResults.elapsedSeconds, 'omitnan');
 
 sweepOutput = struct();
 sweepOutput.request = request;
@@ -43,7 +45,7 @@ sweepOutput.modelFamily = "rayleigh_lamb";
 sweepOutput.modelName = modelName;
 sweepOutput.branchName = branchName;
 sweepOutput.sweepSpec = sweepSpec;
-sweepOutput.rawResults = rawResults;
+sweepOutput.sweepResult = sweepResults;
 sweepOutput.summaryTable = summaryTable;
 sweepOutput.normalized = normalized;
 sweepOutput.executionProfile = profileMetadata;

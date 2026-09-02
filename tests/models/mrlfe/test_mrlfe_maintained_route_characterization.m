@@ -47,7 +47,7 @@ end
 
 function request = localRequest(branch, etaS)
 params = localParams();
-request = mrlfeBuildGuiSolveRequest(params, rlBuildFrequencyVector(params), branch, localGuiOptions(branch, etaS));
+request = mrlfeBuildSolveRequest(params, rlBuildFrequencyVector(params), branch, localGuiOptions(branch, etaS));
 end
 
 function options = localGuiOptions(branch, etaS)

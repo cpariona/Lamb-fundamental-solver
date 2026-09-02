@@ -243,7 +243,6 @@ end
 
 function result = solveCase(params, frequency_Hz, branchName, etaS)
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
-request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
-    struct('parameterOptions', options));
+request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
 result = mrlfeSolve(request);
 end

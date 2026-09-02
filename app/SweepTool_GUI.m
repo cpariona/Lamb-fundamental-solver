@@ -207,7 +207,7 @@ updateFamilySpecificControls();
 
             setStatus({sprintf('Status: running %s / %s sweep...', activeFamily.label, sweepParameter)}); drawnow;
             lastSweepOutput = guiRunSweep(request);
-            lastSweepResults = lastSweepOutput.rawResults;
+            lastSweepResults = lastSweepOutput.sweepResult;
             lastSweepSummary = lastSweepOutput.summaryTable;
             lastModelName = lastSweepOutput.modelName;
             lastBranchName = lastSweepOutput.branchName;
@@ -332,8 +332,8 @@ updateFamilySpecificControls();
         elapsed = nan;
         if isfield(sweepOutput, 'elapsedSeconds') && ~isempty(sweepOutput.elapsedSeconds)
             elapsed = sweepOutput.elapsedSeconds;
-        elseif isfield(sweepOutput, 'rawResults') && isfield(sweepOutput.rawResults, 'elapsedSeconds')
-            elapsed = sum(sweepOutput.rawResults.elapsedSeconds, 'omitnan');
+        elseif isfield(sweepOutput, 'sweepResult') && isfield(sweepOutput.sweepResult, 'elapsedSeconds')
+            elapsed = sum(sweepOutput.sweepResult.elapsedSeconds, 'omitnan');
         end
     end
 end

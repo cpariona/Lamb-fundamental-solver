@@ -12,8 +12,7 @@ frequency_Hz = rlBuildFrequencyVector(params);
 results = struct();
 for branchName = ["A0Like", "S0Like"]
     options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
-    request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
-        struct('parameterOptions', options));
+    request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
     results.(char(branchName)) = mrlfeSolve(request);
 end
 

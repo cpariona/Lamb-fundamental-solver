@@ -17,10 +17,10 @@ sweepConfig.ValueScale = displayScale;
 sweepConfig.ValueFormatter = '%.1f';
 
 elapsedTimer = tic;
-rawResults = aeRunSweep(params, string(request.sweepField), valuesSolver, options, sweepConfig);
+sweepResult = aeRunSweep(params, string(request.sweepField), valuesSolver, options, sweepConfig);
 elapsedSeconds = toc(elapsedTimer);
-summary = aeSummarizeSweep(rawResults);
-normalized = guiNormalizeAcoustoelasticIOPHGOSweep(rawResults, summary, request);
+summary = aeSummarizeSweep(sweepResult);
+normalized = guiNormalizeAcoustoelasticIOPHGOSweep(sweepResult, summary, request);
 if isfield(options, 'executionProfileMetadata')
     normalized.metadata.executionProfile = options.executionProfileMetadata;
 end
@@ -37,7 +37,7 @@ sweepOutput.sweepSpec.values = valuesSolver;
 sweepOutput.sweepSpec.label = string(getRequestField(request, 'sweepLabel', request.sweepField));
 sweepOutput.sweepSpec.units = units;
 sweepOutput.sweepSpec.displayScale = displayScale;
-sweepOutput.rawResults = rawResults;
+sweepOutput.sweepResult = sweepResult;
 sweepOutput.summary = summary;
 sweepOutput.summaryTable = summary.conditionTable;
 sweepOutput.normalized = normalized;

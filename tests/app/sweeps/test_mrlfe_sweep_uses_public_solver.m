@@ -15,16 +15,16 @@ assert(~contains(adapterText, "guiRunMRLFEModel"), ...
 assert(~contains(adapterText, "solveMRLFE") && ~contains(adapterText, "computeMRLFE") && ...
     ~contains(adapterText, "mrlfeTrackBranchAdaptive"), ...
     'mRLFE SweepTool adapter must not contain low-level mRLFE solver logic.');
-assert(~contains(adapterText, "mrlfeBuildFitSolveRequest"), ...
-    'mRLFE SweepTool adapter must not use the fitting request mapper.');
+assert(contains(adapterText, "runParametricSweep"), ...
+    'mRLFE SweepTool adapter must delegate iteration to runParametricSweep.');
 
 branches = ["A0Like", "S0Like"];
 etaSValues = [0, 0.05];
 for iBranch = 1:numel(branches)
     for iEta = 1:numel(etaSValues)
         out = runSmallSweep(branches(iBranch), etaSValues(iEta));
-        assert(numel(out.rawResults.points) == 1, 'Expected one public-solver sweep point.');
-        point = out.rawResults.points{1};
+        assert(numel(out.sweepResult.points) == 1, 'Expected one public-solver sweep point.');
+        point = out.sweepResult.points{1};
         assert(point.status == "ok", 'Sweep point must complete successfully.');
         assert(isfield(point, 'modelResult') && isstruct(point.modelResult), ...
             'Sweep point must preserve the public model result.');

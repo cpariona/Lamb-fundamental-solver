@@ -75,5 +75,5 @@ options.mrlfeParams.fluidSoundSpeed = 1500;
 
 out = guiRunMRLFEModel(struct('params', params, 'options', options, ...
     'mrlfeParams', options.mrlfeParams, 'computeVisco', etaS > 0));
-request = mrlfeBuildGuiSolveRequest(params, rlBuildFrequencyVector(params), branchName, options);
+request = mrlfeBuildSolveRequest(params, rlBuildFrequencyVector(params), branchName, options);
 end

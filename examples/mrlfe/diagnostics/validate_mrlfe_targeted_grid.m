@@ -61,7 +61,7 @@ for iCase = 1:numel(cases)
     options.effectiveExecutionProfile = "Fast";
     options.robustness = "Fast";
 
-    referenceRequest = mrlfeBuildFitSolveRequest(params, frequencyOutput_Hz, "A0Like", options);
+    referenceRequest = mrlfeBuildSolveRequest(params, frequencyOutput_Hz, "A0Like", options);
     referenceRequest.numerics.preset = "fast";
     referenceRequest.numerics.frequencySolveOverride_Hz = frequencyOutput_Hz;
     t = tic;
@@ -74,7 +74,7 @@ for iCase = 1:numel(cases)
     hold on; grid on;
 
     for candidateStep_Hz = candidateSteps_Hz
-        candidateRequest = mrlfeBuildFitSolveRequest(params, frequencyOutput_Hz, "A0Like", options);
+        candidateRequest = mrlfeBuildSolveRequest(params, frequencyOutput_Hz, "A0Like", options);
         candidateRequest.numerics.preset = "fast";
         candidateRequest.numerics.frequencySolveOverride_Hz = ...
             buildCoveredGrid(fmin_Hz, c.fmax_Hz, candidateStep_Hz);

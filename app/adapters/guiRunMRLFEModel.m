@@ -74,7 +74,7 @@ results = cell(1, numel(branchNames));
 requests = cell(1, numel(branchNames));
 timerStart = tic;
 for i = 1:numel(branchNames)
-    requests{i} = mrlfeBuildGuiSolveRequest(params, frequency_Hz, branchNames(i), options);
+    requests{i} = mrlfeBuildSolveRequest(params, frequency_Hz, branchNames(i), options);
     results{i} = mrlfeSolve(requests{i});
 end
 elapsedSeconds = toc(timerStart);

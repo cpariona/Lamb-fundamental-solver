@@ -29,7 +29,6 @@ fprintf('test_mrlfe_tracking_quality_summary passed. Public results are summariz
 
 function result = solveCase(params, frequency_Hz, etaS)
 options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', etaS);
-request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, "A0Like", ...
-    struct('parameterOptions', options));
+request = mrlfeBuildSolveRequest(params, frequency_Hz, "A0Like", options);
 result = mrlfeSolve(request);
 end

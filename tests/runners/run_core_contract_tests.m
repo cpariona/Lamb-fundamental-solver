@@ -11,6 +11,7 @@ run_repository_hygiene_tests;
 test_model_output_folder_helpers;
 test_fitting_helpers_smoke;
 test_shared_fit_optimizer_contract;
+test_parametric_sweep_workflow;
 test_rl_result_contract;
 
 fprintf('\nCore contract tests passed.\n');

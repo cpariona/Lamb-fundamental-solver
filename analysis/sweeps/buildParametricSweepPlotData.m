@@ -48,11 +48,6 @@ if isfield(result, 'model') && string(result.model) == "mrlfe" && ...
     return;
 end
 
-if isfield(result, 'models') && isfield(result.models, char(modelName)) && ...
-        isfield(result.models.(char(modelName)), 'branches') && ...
-        isfield(result.models.(char(modelName)).branches, char(branchName))
-    branch = result.models.(char(modelName)).branches.(char(branchName));
-end
 end
 
 function valid = getBranchValidityMask(branch)

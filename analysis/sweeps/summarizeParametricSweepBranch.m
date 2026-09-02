@@ -9,8 +9,7 @@ function summaryTable = summarizeParametricSweepBranch(sweepResults, modelName, 
 % solver time.
 %
 % Examples:
-%   T = summarizeParametricSweepBranch(S, "mRLFEViscoRealK", "A0Like");
-%   T = summarizeParametricSweepBranch(S, "mRLFEElasticRealK", "S0Like");
+%   T = summarizeParametricSweepBranch(S, "mRLFERealK", "A0Like");
 %   T = summarizeParametricSweepBranch(S, "RayleighLamb", "A0");
 %
 % Optional name-value arguments:
@@ -139,11 +138,6 @@ if isfield(result, 'model') && string(result.model) == "mrlfe" && ...
     return;
 end
 
-if isfield(result, 'models') && isfield(result.models, char(modelName)) && ...
-        isfield(result.models.(char(modelName)), 'branches') && ...
-        isfield(result.models.(char(modelName)).branches, char(branchName))
-    branch = result.models.(char(modelName)).branches.(char(branchName));
-end
 end
 
 function valid = getBranchValidityMask(branch)

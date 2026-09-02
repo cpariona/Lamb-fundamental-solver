@@ -24,7 +24,7 @@ sweepRequest = guiBuildSweepRequest("mrlfe", ...
         'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
         'mrlfeA0Policy', "physicalTail"));
 sweepOut = guiRunMRLFESweep(sweepRequest);
-sweepResult = sweepOut.rawResults.points{1}.modelResult;
+sweepResult = sweepOut.sweepResult.points{1}.modelResult;
 
 %% FitTool requested-curve evaluator on the same numerical preset grid.
 fitParams = params;

@@ -22,6 +22,7 @@ switch sweepName
     case "mu"
         mu_kPa = [60, 65, 70, 75, 80];
         sweepSpec.parameter = "mu";
+        sweepSpec.parameterPath = "params.mu";
         sweepSpec.values = mu_kPa * 1e3;
         sweepSpec.displayValues = mu_kPa;
         sweepSpec.label = "Shear modulus mu";
@@ -34,6 +35,7 @@ switch sweepName
 
     case "viscosity"
         sweepSpec.parameter = "etaS";
+        sweepSpec.parameterPath = "options.mrlfeParams.etaS";
         sweepSpec.values = [0, 0.1, 0.2, 0.3, 0.4, 0.5];
         sweepSpec.label = "etaS";
         sweepSpec.units = "Pa*s";
@@ -46,6 +48,7 @@ switch sweepName
     case "thickness"
         thickness_mm = [0.3, 0.4, 0.5, 0.6, 0.7];
         sweepSpec.parameter = "thickness";
+        sweepSpec.parameterPath = "params.thickness";
         sweepSpec.values = thickness_mm * 1e-3;
         sweepSpec.displayValues = thickness_mm;
         sweepSpec.label = "Full thickness 2h";

@@ -15,6 +15,7 @@ switch sweepName
     case "thickness"
         thickness_mm = [0.3, 0.4, 0.5, 0.6, 0.7];
         sweepSpec.parameter = "thickness";
+        sweepSpec.parameterPath = "params.thickness";
         sweepSpec.values = thickness_mm * 1e-3;
         sweepSpec.displayValues = thickness_mm;
         sweepSpec.label = "Full thickness 2h";

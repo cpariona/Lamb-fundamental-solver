@@ -9,8 +9,7 @@ frequency_Hz = linspace(500, 4000, 14).';
 
 for branchName = ["A0Like", "S0Like"]
     options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
-    request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
-        struct('parameterOptions', options));
+    request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
     result = mrlfeSolve(request);
 
     assert(result.model == "mrlfe" && result.branch == branchName, ...

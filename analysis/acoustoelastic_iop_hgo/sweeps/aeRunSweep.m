@@ -56,11 +56,20 @@ conditions = repmat(struct( ...
     'quality', [], ...
     'diagnostics', []), 1, numel(sweepValues));
 
-summaryRows = [];
+spec = struct( ...
+    'parameter', sweepField, ...
+    'parameterPath', "params." + sweepField, ...
+    'values', sweepValues, ...
+    'label', string(sweepConfig.Label), ...
+    'units', string(sweepConfig.Unit), ...
+    'displayScale', sweepConfig.ValueScale);
+workflow = runParametricSweep(baseParams, options, spec, ...
+    @(params, pointOptions)solveAcoustoelasticIOPHGOBranch(params, pointOptions));
 
+summaryRows = [];
 for i = 1:numel(sweepValues)
-    params = setNestedField(baseParams, sweepField, sweepValues(i));
-    result = solveAcoustoelasticIOPHGOBranch(params, options);
+    params = workflow.params{i};
+    result = workflow.results{i};
 
     conditions(i).index = i;
     conditions(i).sweepField = sweepField;
@@ -83,6 +92,8 @@ sweepResult.sweepValues = sweepValues;
 sweepResult.options = options;
 sweepResult.baseParams = baseParams;
 sweepResult.conditions = conditions;
+sweepResult.elapsedSeconds = workflow.elapsedSeconds;
+sweepResult.points = workflow.points;
 
 if isempty(summaryRows)
     sweepResult.summaryTable = table();
@@ -107,24 +118,6 @@ end
 if ~isfield(sweepConfig, 'ValueFormatter') || isempty(sweepConfig.ValueFormatter)
     sweepConfig.ValueFormatter = '%.6g';
 end
-end
-
-function params = setNestedField(params, fieldPath, value)
-parts = split(string(fieldPath), '.');
-parts = cellstr(parts);
-params = setNestedFieldRecursive(params, parts, value);
-end
-
-function s = setNestedFieldRecursive(s, parts, value)
-fieldName = parts{1};
-if isscalar(parts)
-    s.(fieldName) = value;
-    return;
-end
-if ~isfield(s, fieldName) || isempty(s.(fieldName))
-    s.(fieldName) = struct();
-end
-s.(fieldName) = setNestedFieldRecursive(s.(fieldName), parts(2:end), value);
 end
 
 function text = formatSweepValue(value, sweepConfig)

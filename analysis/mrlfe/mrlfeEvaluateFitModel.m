@@ -19,7 +19,7 @@ if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInp
     error('frequency_Hz must contain positive finite values.');
 end
 
-request = mrlfeBuildFitSolveRequest(params, frequencyInput, branchName, solverOptions);
+request = mrlfeBuildSolveRequest(params, frequencyInput, branchName, solverOptions);
 [request, fitGridMetadata] = applyForwardGridPolicy(request, frequencyInput, solverOptions);
 modelResult = mrlfeSolve(request);
 Cp_mps = modelResult.phaseVelocity_mps(:);

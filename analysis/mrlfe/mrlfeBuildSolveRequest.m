@@ -1,12 +1,12 @@
-function request = mrlfeBuildPublicSolveRequest(source, frequency_Hz, branchName, policy)
-%MRLFEBUILDPUBLICSOLVEREQUEST Build one validated public mRLFE request.
+function request = mrlfeBuildSolveRequest(source, frequency_Hz, branchName, options)
+%MRLFEBUILDSOLVEREQUEST Translate analysis parameters to one mRLFE request.
 %
 % source contains physical parameters using maintained public/app aliases.
-% policy.parameterOptions may contain mrlfeParams and numerical-preset input.
+% options may contain mrlfeParams and numerical-preset input.
 % This helper is independent of GUI handles, sweeps, fitting, and plotting.
 
-if nargin < 4 || isempty(policy)
-    policy = struct();
+if nargin < 4 || isempty(options)
+    options = struct();
 end
 if nargin < 3 || isempty(branchName)
     branchName = "A0Like";
@@ -14,8 +14,8 @@ end
 if nargin < 1 || ~isstruct(source)
     error('mrlfe:InvalidParameters', 'mRLFE source parameters must be a struct.');
 end
-if ~isstruct(policy)
-    error('mrlfe:InvalidPolicy', 'mRLFE request policy must be a struct.');
+if ~isstruct(options)
+    error('mrlfe:InvalidOptions', 'mRLFE request options must be a struct.');
 end
 
 branchName = string(branchName);
@@ -32,8 +32,6 @@ if any(diff(frequency_Hz) <= 0)
 end
 
 defaults = mrlfeDefaultParameters();
-options = policyOptions(policy);
-
 request = struct();
 request.branch = branchName;
 request.frequency_Hz = frequency_Hz;
@@ -55,17 +53,6 @@ request.termination = struct('policy', terminationPolicy(branchName));
 request.fallback = struct('policy', "none");
 
 validatePhysicalScalars(request);
-end
-
-function options = policyOptions(policy)
-if isfield(policy, 'parameterOptions') && ~isempty(policy.parameterOptions)
-    options = policy.parameterOptions;
-    if ~isstruct(options)
-        error('mrlfe:InvalidPolicy', 'policy.parameterOptions must be a struct.');
-    end
-else
-    options = struct();
-end
 end
 
 function value = etaSValue(source, options, defaultValue)

@@ -325,7 +325,7 @@ function cp = extractAESweepCp(out)
 cp = extractSweepCp(out);
 if all(~isfinite(cp))
     try
-        cp = out.rawResults.results{1}.Cp(:);
+        cp = out.sweepResult.results{1}.phaseVelocity_mps(:);
     catch
     end
 end

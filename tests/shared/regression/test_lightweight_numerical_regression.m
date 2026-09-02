@@ -115,8 +115,7 @@ fprintf('test_lightweight_numerical_regression passed. Solver snapshots are unch
 
 function result = solveMRLFERegressionBranch(params, frequency_Hz, branchName)
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
-request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
-    struct('parameterOptions', options));
+request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
 result = mrlfeSolve(request);
 end
 

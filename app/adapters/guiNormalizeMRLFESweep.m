@@ -1,10 +1,10 @@
-function normalized = guiNormalizeMRLFESweep(rawResults, summaryTable, request, modelName, branchName)
+function normalized = guiNormalizeMRLFESweep(sweepResult, summaryTable, request, modelName, branchName)
 %GUINORMALIZEMRLFESWEEP Normalize mRLFE sweep output for GUI plotting/export.
 %
 % Plotting code should consume this normalized structure instead of reading
 % model-specific raw solver fields directly.
 
-n = numel(rawResults.results);
+n = numel(sweepResult.results);
 curves = repmat(struct( ...
     'label', "", ...
     'sweepValue', nan, ...
@@ -20,13 +20,13 @@ curves = repmat(struct( ...
     'errorMessage', ""), 1, n);
 
 for i = 1:n
-    branch = extractMRLFESweepBranch(rawResults.results{i}, branchName);
-    curves(i).label = makeMRLFELegendLabel(rawResults, i);
-    curves(i).sweepValue = rawResults.values(i);
-    curves(i).sweepValueDisplay = rawResults.displayValues(i);
+    branch = extractMRLFESweepBranch(sweepResult.results{i}, branchName);
+    curves(i).label = makeMRLFELegendLabel(sweepResult, i);
+    curves(i).sweepValue = sweepResult.values(i);
+    curves(i).sweepValueDisplay = sweepResult.displayValues(i);
     curves(i).rawBranch = branch;
-    if isfield(rawResults, 'points') && numel(rawResults.points) >= i && isstruct(rawResults.points{i})
-        point = rawResults.points{i};
+    if isfield(sweepResult, 'points') && numel(sweepResult.points) >= i && isstruct(sweepResult.points{i})
+        point = sweepResult.points{i};
         curves(i).status = string(point.status);
         curves(i).errorIdentifier = string(point.errorIdentifier);
         curves(i).errorMessage = string(point.errorMessage);
@@ -59,15 +59,15 @@ normalized.modelFamily = "mrlfe";
 normalized.modelName = string(modelName);
 normalized.branchName = string(branchName);
 normalized.sweepField = string(request.sweepField);
-normalized.sweepLabel = string(rawResults.spec.label);
-normalized.sweepUnit = string(rawResults.spec.units);
-normalized.displayScale = rawResults.spec.displayScale;
+normalized.sweepLabel = string(sweepResult.spec.label);
+normalized.sweepUnit = string(sweepResult.spec.units);
+normalized.displayScale = sweepResult.spec.displayScale;
 normalized.curves = curves;
 normalized.summaryTable = summaryTable;
 normalized.metadata = struct();
 normalized.metadata.request = request;
-if isfield(rawResults, 'points')
-    normalized.metadata.points = rawResults.points;
+if isfield(sweepResult, 'points')
+    normalized.metadata.points = sweepResult.points;
 end
 end
 
@@ -81,9 +81,9 @@ if isfield(result, 'model') && string(result.model) == "mrlfe" && ...
 end
 end
 
-function txt = makeMRLFELegendLabel(rawResults, idx)
-spec = rawResults.spec;
-value = rawResults.displayValues(idx);
+function txt = makeMRLFELegendLabel(sweepResult, idx)
+spec = sweepResult.spec;
+value = sweepResult.displayValues(idx);
 if isfield(spec, 'units') && strlength(string(spec.units)) > 0
     txt = sprintf('%s = %.4g %s', string(spec.label), value, string(spec.units));
 else

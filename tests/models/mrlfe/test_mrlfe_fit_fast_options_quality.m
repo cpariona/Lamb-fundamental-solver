@@ -25,7 +25,7 @@ fastOptions.forwardModel = struct( ...
     'maximumStep_Hz', 250);
 
 [CpFast_mps, rawFast] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, fastOptions);
-request = mrlfeBuildFitSolveRequest(params, frequency_Hz, branchName, fastOptions);
+request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, fastOptions);
 request.numerics.frequencySolveOverride_Hz = rawFast.frequencySolve_Hz;
 directSameFitGrid = mrlfeSolve(request);
 
@@ -45,7 +45,7 @@ numericalPresetOptions = fastOptions;
 numericalPresetOptions.forwardModel = struct('gridPolicy', "numericalPreset");
 [CpNumericalPreset_mps, rawNumericalPreset] = mrlfeEvaluateFitModel( ...
     params, frequency_Hz, branchName, numericalPresetOptions);
-directNumericalPresetRequest = mrlfeBuildFitSolveRequest( ...
+directNumericalPresetRequest = mrlfeBuildSolveRequest( ...
     params, frequency_Hz, branchName, numericalPresetOptions);
 directNumericalPreset = mrlfeSolve(directNumericalPresetRequest);
 validNumericalPreset = rawNumericalPreset.validMask(:) & ...

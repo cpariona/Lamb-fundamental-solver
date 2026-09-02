@@ -1,10 +1,10 @@
-function normalized = guiNormalizeAcoustoelasticIOPHGOSweep(rawResults, summary, request)
+function normalized = guiNormalizeAcoustoelasticIOPHGOSweep(sweepResult, summary, request)
 %GUINORMALIZEACOUSTOELASTICIOPHGOSWEEP Normalize Acoustoelastic IOP/HGO sweep output.
 %
 % The normalized curve schema matches guiPlotSweepResult and keeps official
 % atlasA0 outputs separate from diagnostic branch information.
 
-conditions = rawResults.conditions;
+conditions = sweepResult.conditions;
 n = numel(conditions);
 curves = repmat(struct( ...
     'label', "", ...

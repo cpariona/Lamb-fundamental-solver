@@ -1,7 +1,7 @@
-function normalized = guiNormalizeRLSweep(rawResults, summaryTable, request, modelName, branchName)
+function normalized = guiNormalizeRLSweep(sweepResult, summaryTable, request, modelName, branchName)
 %GUINORMALIZERLSWEEP Normalize Rayleigh-Lamb sweep output for GUI plotting/export.
 
-n = numel(rawResults.results);
+n = numel(sweepResult.results);
 curves = repmat(struct( ...
     'label', "", ...
     'sweepValue', nan, ...
@@ -13,10 +13,10 @@ curves = repmat(struct( ...
     'rawBranch', []), 1, n);
 
 for i = 1:n
-    branch = extractRLBranch(rawResults.results{i}, branchName);
-    curves(i).label = makeLegendLabel(rawResults, i);
-    curves(i).sweepValue = rawResults.values(i);
-    curves(i).sweepValueDisplay = rawResults.displayValues(i);
+    branch = extractRLBranch(sweepResult.results{i}, branchName);
+    curves(i).label = makeLegendLabel(sweepResult, i);
+    curves(i).sweepValue = sweepResult.values(i);
+    curves(i).sweepValueDisplay = sweepResult.displayValues(i);
     curves(i).rawBranch = branch;
 
     if isempty(branch)
@@ -42,9 +42,9 @@ normalized.modelFamily = "rayleigh_lamb";
 normalized.modelName = string(modelName);
 normalized.branchName = string(branchName);
 normalized.sweepField = string(request.sweepField);
-normalized.sweepLabel = string(rawResults.spec.label);
-normalized.sweepUnit = string(rawResults.spec.units);
-normalized.displayScale = rawResults.spec.displayScale;
+normalized.sweepLabel = string(sweepResult.spec.label);
+normalized.sweepUnit = string(sweepResult.spec.units);
+normalized.displayScale = sweepResult.spec.displayScale;
 normalized.curves = curves;
 normalized.summaryTable = summaryTable;
 normalized.metadata = struct();
@@ -63,9 +63,9 @@ function valid = getBranchValidityMask(branch)
 valid = branch.validMask(:) & isfinite(branch.phaseVelocity_mps(:));
 end
 
-function txt = makeLegendLabel(rawResults, idx)
-spec = rawResults.spec;
-value = rawResults.displayValues(idx);
+function txt = makeLegendLabel(sweepResult, idx)
+spec = sweepResult.spec;
+value = sweepResult.displayValues(idx);
 if isfield(spec, 'units') && strlength(string(spec.units)) > 0
     txt = sprintf('%s = %.4g %s', char(string(spec.label)), value, char(string(spec.units)));
 else

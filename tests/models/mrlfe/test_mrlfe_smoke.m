@@ -27,7 +27,6 @@ fprintf('test_mrlfe_smoke passed. A0Like valid: %d/%d. S0Like valid: %d/%d.\n', 
 
 function result = solveBranch(params, frequency_Hz, branchName)
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
-request = mrlfeBuildPublicSolveRequest(params, frequency_Hz, branchName, ...
-    struct('parameterOptions', options));
+request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
 result = mrlfeSolve(request);
 end

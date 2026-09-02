@@ -134,7 +134,7 @@ request = guiBuildSweepRequest("mrlfe", 'modelLabel', "mRLFE real-k", ...
 t = tic;
 result = guiRunSweep(request);
 elapsed = toc(t);
-modelResult = result.rawResults.points{1}.modelResult;
+modelResult = result.sweepResult.points{1}.modelResult;
 out = makeOutput(modelResult, result.executionProfile, "numericalPreset", elapsed);
 end
 
