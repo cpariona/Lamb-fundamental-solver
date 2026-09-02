@@ -8,7 +8,7 @@ startup
 %   Results/ae_iop_hgo/sweep_reliability
 
 specs = makeWorkspaceSpecs(launchFolder);
-outputFolder = aeOutputFolder(launchFolder, 'sweep_reliability');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'sweep_reliability');
 
 allOverallRows = [];
 analysisBySweep = struct();

@@ -7,7 +7,7 @@ startup
 % Outputs are written to:
 %   Results/ae_iop_hgo/atlas_truncation
 
-outputFolder = aeOutputFolder(launchFolder, 'atlas_truncation');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'atlas_truncation');
 
 cases = makeCaseSpecs(launchFolder);
 summaryRows = [];

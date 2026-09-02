@@ -15,7 +15,7 @@ startup
 % Outputs:
 %   Results/ae_iop_hgo/raw_branch_corner
 
-outputFolder = aeOutputFolder(launchFolder, 'raw_branch_corner');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'raw_branch_corner');
 plotFolder = fullfile(outputFolder, 'plots');
 if ~exist(plotFolder, 'dir')
     mkdir(plotFolder);

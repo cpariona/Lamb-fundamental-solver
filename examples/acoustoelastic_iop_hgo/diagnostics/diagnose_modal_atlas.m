@@ -115,7 +115,7 @@ end
 plotBranchPersistenceSummary(allBranches);
 plotConditionMinimaDensity(conditionSummary);
 
-outputFolder = aeOutputFolder(pwd, 'modal_atlas');
+outputFolder = resolveModelOutputFolder(pwd, 'ae_iop_hgo', 'modal_atlas');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end

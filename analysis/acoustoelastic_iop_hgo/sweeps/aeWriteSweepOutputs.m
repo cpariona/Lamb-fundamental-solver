@@ -7,7 +7,7 @@ if nargin < 6 || isempty(sweepMetadata)
     sweepMetadata = struct();
 end
 
-outputFolder = aeOutputFolder(launchFolder, taskName);
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', taskName);
 filePrefix = string(filePrefix);
 
 writetable(summary.conditionTable, fullfile(outputFolder, filePrefix + "_condition_summary.csv"));

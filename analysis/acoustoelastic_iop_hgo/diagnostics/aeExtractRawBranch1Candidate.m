@@ -29,7 +29,7 @@ elseif ~exist(inputFolder, 'dir') && exist(legacyInputFolder, 'dir')
     inputFolder = legacyInputFolder;
 end
 
-outputFolder = aeOutputFolder(launchFolder, 'raw_branch1');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'raw_branch1');
 if opts.WriteOutputs && ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end

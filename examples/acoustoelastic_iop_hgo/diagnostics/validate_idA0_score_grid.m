@@ -7,7 +7,7 @@ startup
 % New outputs are written to:
 %   Results/ae_iop_hgo/idA0_score_grid
 
-outputFolder = aeOutputFolder(launchFolder, 'idA0_score_grid');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'idA0_score_grid');
 
 baseParams = aeDefaultIdentityA0ValidationParams();
 baseOptions = aeDefaultIdentityA0ValidationOptions('AtlasBranchPolicy', "atlasA0");

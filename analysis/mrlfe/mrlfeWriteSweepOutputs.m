@@ -7,7 +7,7 @@ if nargin < 6 || isempty(sweepMetadata)
     sweepMetadata = struct();
 end
 
-outputFolder = mrlfeOutputFolder(launchFolder, taskName);
+outputFolder = resolveModelOutputFolder(launchFolder, 'mrlfe', taskName);
 filePrefix = string(filePrefix);
 
 writetable(sweepSummary, fullfile(outputFolder, filePrefix + "_branch_summary.csv"));

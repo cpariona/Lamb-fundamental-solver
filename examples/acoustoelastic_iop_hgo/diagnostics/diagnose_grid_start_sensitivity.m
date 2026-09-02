@@ -10,7 +10,7 @@ startup
 % Outputs are written to:
 %   Results/ae_iop_hgo/grid_start_sensitivity
 
-outputFolder = aeOutputFolder(launchFolder, 'grid_start_sensitivity');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'grid_start_sensitivity');
 
 fprintf('\nAE IOP/HGO grid/start-frequency sensitivity diagnostic\n');
 fprintf('Output folder:\n%s\n', outputFolder);

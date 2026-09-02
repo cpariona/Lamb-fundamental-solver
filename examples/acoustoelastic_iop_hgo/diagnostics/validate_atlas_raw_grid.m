@@ -12,7 +12,7 @@ startup
 % Outputs:
 %   Results/ae_iop_hgo/atlas_vs_raw_branch1_grid
 
-outputFolder = aeOutputFolder(launchFolder, 'atlas_vs_raw_branch1_grid');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'atlas_vs_raw_branch1_grid');
 plotFolder = fullfile(outputFolder, 'plots');
 if ~exist(plotFolder, 'dir')
     mkdir(plotFolder);

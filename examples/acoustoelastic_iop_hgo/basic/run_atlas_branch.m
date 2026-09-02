@@ -29,7 +29,7 @@ options.atlasBranchPolicy = "atlasA0";
 
 result = solveAcoustoelasticIOPHGOBranch(params, options);
 
-outputFolder = aeOutputFolder(launchFolder, 'atlas_branch');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'atlas_branch');
 save(fullfile(outputFolder, 'atlas_branch_workspace.mat'), 'params', 'options', 'result');
 
 validMask = result.validMask(:) & isfinite(result.phaseVelocity_mps(:));

@@ -7,7 +7,7 @@ startup
 % Outputs are written to:
 %   Results/ae_iop_hgo/idA0_score
 
-outputFolder = aeOutputFolder(launchFolder, 'idA0_score');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'idA0_score');
 plotFolder = fullfile(outputFolder, 'plots');
 if ~exist(plotFolder, 'dir')
     mkdir(plotFolder);

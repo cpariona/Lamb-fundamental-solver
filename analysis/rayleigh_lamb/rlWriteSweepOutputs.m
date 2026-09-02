@@ -7,7 +7,7 @@ if nargin < 6 || isempty(sweepMetadata)
     sweepMetadata = struct();
 end
 
-outputFolder = rlOutputFolder(launchFolder, taskName);
+outputFolder = resolveModelOutputFolder(launchFolder, 'rayleigh_lamb', taskName);
 filePrefix = string(filePrefix);
 
 writetable(sweepSummary, fullfile(outputFolder, filePrefix + "_branch_summary.csv"));

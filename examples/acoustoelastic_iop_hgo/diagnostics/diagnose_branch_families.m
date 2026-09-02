@@ -11,7 +11,7 @@ startup
 % Outputs:
 %   Results/ae_iop_hgo/branch_families
 
-outputFolder = aeOutputFolder(launchFolder, 'branch_families');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'branch_families');
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
