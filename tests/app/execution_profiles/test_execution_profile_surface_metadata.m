@@ -22,8 +22,8 @@ profileOptions = legacyOptions;
 profileOptions.executionProfile = "Fast";
 profileOptions.robustness = "Fast";
 profileResult = guiRunRayleighLambModel(struct('params', params, 'options', profileOptions));
-profileCp = profileResult.metadata.rawResult.modes.A0.Cp(:);
-assert(max(abs(profileCp - legacy.modes.A0.Cp(:))) < 10 * eps(max(abs(legacy.modes.A0.Cp(:)))), ...
+profileCp = profileResult.metadata.modelResult.modes.A0.phaseVelocity_mps(:);
+assert(max(abs(profileCp - legacy.modes.A0.phaseVelocity_mps(:))) < 10 * eps(max(abs(legacy.modes.A0.phaseVelocity_mps(:)))), ...
     'RL execution profile metadata changed deterministic Cp output.');
 assert(profileResult.metadata.executionProfile.requestedExecutionProfile == "Fast", ...
     'RL metadata should report requested Fast.');

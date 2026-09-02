@@ -263,7 +263,7 @@ updateAxisFieldState();
         if getOptionValueLocal(options, 'computeAcoustoelasticIOPHGO', false)
             guiRequest = guiBuildAcoustoelasticIOPHGORequest(params, modelControls.ae, options.robustness);
             guiResult = guiRunAcoustoelasticIOPHGOModel(guiRequest);
-            results = guiResult.metadata.rawResult;
+            results = guiResult.metadata.modelResult;
             return;
         end
 
@@ -279,7 +279,7 @@ updateAxisFieldState();
         else
             guiResult = guiRunRayleighLambModel(guiRequest);
         end
-        results = guiResult.metadata.rawResult;
+        results = guiResult.metadata.modelResult;
     end
 
     function updatePlotCheckboxesFromResults()
@@ -496,20 +496,20 @@ updateAxisFieldState();
     end
 
     function [x, Cp] = branchXY(branch)
-        frequency = branch.frequency(:);
-        Cp = branch.Cp(:);
+        frequency = branch.frequency_Hz(:);
+        Cp = branch.phaseVelocity_mps(:);
         switch string(plotControls.xaxis.Value)
             case "angularFrequency"
                 x = 2*pi*frequency;
             case "wavenumber"
-                if isfield(branch, 'k') && ~isempty(branch.k)
-                    x = real(branch.k(:));
+                if isfield(branch, 'wavenumber_radpm') && ~isempty(branch.wavenumber_radpm)
+                    x = real(branch.wavenumber_radpm(:));
                 else
                     x = frequency;
                 end
             case "kThickness"
-                if isfield(branch, 'kThickness') && ~isempty(branch.kThickness)
-                    x = real(branch.kThickness(:));
+                if isfield(branch, 'wavenumberThickness') && ~isempty(branch.wavenumberThickness)
+                    x = real(branch.wavenumberThickness(:));
                 else
                     x = frequency;
                 end
@@ -548,8 +548,8 @@ updateAxisFieldState();
             lastParams.mu/1e3, lastParams.rho, lastParams.thickness*1e3, ...
             modelControls.ae.IOP.Value, modelControls.ae.R.Value, modelControls.ae.k1.Value, modelControls.ae.k2.Value);
         elapsedText = formatElapsedText(getGuiElapsedSeconds());
-        statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d%s', numel(r.Cp), elapsedText), ...
-            sprintf('Cp valid %d/%d', nnz(r.validCp), numel(r.Cp))};
+        statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d%s', numel(r.phaseVelocity_mps), elapsedText), ...
+            sprintf('Cp valid %d/%d', nnz(r.validMask), numel(r.phaseVelocity_mps))};
         setStatusText(statusLines);
     end
 
@@ -624,9 +624,6 @@ updateAxisFieldState();
         lines(end+1) = "Raw/internal result content:";
         if isfield(lastResults, 'modes')
             lines(end+1) = sprintf("  RL seed/result modes: %s", strjoin(string(fieldnames(lastResults.modes)), ", "));
-        end
-        if isfield(lastResults, 'models')
-            lines(end+1) = sprintf("  computed internal models: %s", strjoin(string(fieldnames(lastResults.models)), ", "));
         end
         lines(end+1) = "";
     end
@@ -965,8 +962,10 @@ end
 end
 
 function gridData = getGridData(results)
-if isfield(results,'grid')
-    gridData = results.grid;
+if isfield(results, 'modes') && isfield(results.modes, 'A0')
+    gridData = struct('frequency', results.modes.A0.frequency_Hz);
+elseif isfield(results, 'modes') && isfield(results.modes, 'S0')
+    gridData = struct('frequency', results.modes.S0.frequency_Hz);
 else
     gridData = [];
 end

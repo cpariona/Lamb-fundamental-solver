@@ -37,10 +37,10 @@ profileMetadata.profileSupportMode = "fully_supported";
 profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
 
 elapsedTimer = tic;
-rawResult = rlComputeFundamentalLambModes(params, options);
+modelResult = rlComputeFundamentalLambModes(params, options);
 elapsedSeconds = toc(elapsedTimer);
 
-result = guiNormalizeRawResult(rawResult, mfilename);
+result = guiBuildModelResultView(modelResult, mfilename);
 result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.metadata.params = params;
 result.metadata.options = options;

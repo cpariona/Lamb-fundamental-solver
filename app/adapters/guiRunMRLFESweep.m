@@ -65,7 +65,7 @@ for i = 1:n
             frequency_Hz, branchName, options);
         modelResult = mrlfeSolve(solveRequest);
         point = completePoint(point, modelResult);
-        sweep.results{i} = guiBuildMRLFECompatibilityResult(modelResult);
+        sweep.results{i} = modelResult;
         sweep.requests{i} = solveRequest;
     catch err
         point.status = "failed";

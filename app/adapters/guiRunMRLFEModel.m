@@ -21,9 +21,7 @@ branchNames = selectedBranches(options);
 frequency_Hz = rlBuildFrequencyVector(params);
 [modelResults, requests, elapsedSeconds] = solveBranches(params, options, frequency_Hz, branchNames);
 
-rawResult = guiBuildMRLFECompatibilityResult(modelResults);
-result = guiNormalizeRawResult(rawResult, mfilename);
-result.branches = filterMRLFEBranches(result.branches);
+result = normalizeModelResults(modelResults);
 result.modelResult = modelResults{1};
 result.modelResults = cellsByBranch(modelResults);
 result.requests = cellsByBranch(requests);
@@ -32,7 +30,7 @@ profileMetadata.effectiveExecutionProfile = profile;
 profileMetadata.internalSolverPreset = profile;
 profileMetadata = mrlfeBuildSurfaceExecutionMetadata(profileMetadata, modelResults, ...
     'SurfaceDefault', "Balanced", 'RoutePolicy', "mrlfeSolve", ...
-    'EtaS', modelResults{1}.configuration.parameters.etaS_Pas, ...
+    'EtaS', modelResults{1}.configuration.effective.parameters.etaS_Pas, ...
     'A0Policy', "physicalTail");
 status = "success";
 if ~profileMetadata.qualityAccepted
@@ -49,7 +47,7 @@ result.diagnostics = guiMergeStructs(result.diagnostics, struct( ...
     'executionProfile', profileMetadata, ...
     'modelResults', result.modelResults));
 result.metadata = struct( ...
-    'params', params, 'options', options, 'rawResult', rawResult, ...
+    'params', params, 'options', options, ...
     'modelResult', modelResults{1}, 'modelResults', result.modelResults, ...
     'requests', result.requests, 'elapsedSeconds', elapsedSeconds, ...
     'seedBranchesHiddenFromPlotSurface', true, 'status', status, ...
@@ -108,10 +106,13 @@ for i = 1:numel(results)
 end
 end
 
-function branches = filterMRLFEBranches(branches)
-if ~isempty(branches)
-    branches = branches(string({branches.modelName}) == "mRLFERealK");
+function result = normalizeModelResults(modelResults)
+result = guiBuildModelResultView(modelResults{1}, mfilename);
+for i = 2:numel(modelResults)
+    view = guiBuildModelResultView(modelResults{i}, mfilename);
+    result.branches = [result.branches; view.branches]; %#ok<AGROW>
 end
+result.diagnostics.branchCount = numel(result.branches);
 end
 
 function policy = normalizeA0Policy(policy)

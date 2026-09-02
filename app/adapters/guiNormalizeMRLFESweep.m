@@ -20,7 +20,7 @@ curves = repmat(struct( ...
     'errorMessage', ""), 1, n);
 
 for i = 1:n
-    branch = extractMRLFESweepBranch(rawResults.results{i}, modelName, branchName);
+    branch = extractMRLFESweepBranch(rawResults.results{i}, branchName);
     curves(i).label = makeMRLFELegendLabel(rawResults, i);
     curves(i).sweepValue = rawResults.values(i);
     curves(i).sweepValueDisplay = rawResults.displayValues(i);
@@ -39,9 +39,9 @@ for i = 1:n
         continue;
     end
 
-    valid = getMRLFEBranchValidityMask(branch);
-    frequency = branch.frequency(:);
-    cp = branch.Cp(:);
+    valid = branch.validMask(:);
+    frequency = branch.frequency_Hz(:);
+    cp = branch.phaseVelocity_mps(:);
     valid = valid & isfinite(frequency) & isfinite(cp);
 
     curves(i).frequency_Hz = frequency;
@@ -71,28 +71,13 @@ if isfield(rawResults, 'points')
 end
 end
 
-function branch = extractMRLFESweepBranch(result, modelName, branchName)
+function branch = extractMRLFESweepBranch(result, branchName)
 branch = [];
 branchName = string(branchName);
 
-if ~isfield(result, 'models')
-    return;
-end
-
-candidate = char(string(modelName));
-if isfield(result.models, candidate) && isfield(result.models.(candidate), 'branches') && ...
-        isfield(result.models.(candidate).branches, char(branchName))
-    branch = result.models.(candidate).branches.(char(branchName));
-end
-end
-
-function valid = getMRLFEBranchValidityMask(branch)
-if isfield(branch, 'validCp')
-    valid = branch.validCp(:) & isfinite(branch.Cp(:));
-elseif isfield(branch, 'valid')
-    valid = branch.valid(:) & isfinite(branch.Cp(:));
-else
-    valid = isfinite(branch.Cp(:));
+if isfield(result, 'model') && string(result.model) == "mrlfe" && ...
+        string(result.branch) == branchName
+    branch = result;
 end
 end
 

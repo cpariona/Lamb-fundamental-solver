@@ -23,8 +23,8 @@ for i = 1:n
         continue;
     end
 
-    frequency = branch.frequency(:);
-    cp = branch.Cp(:);
+    frequency = branch.frequency_Hz(:);
+    cp = branch.phaseVelocity_mps(:);
     valid = getBranchValidityMask(branch) & isfinite(frequency) & isfinite(cp);
 
     curves(i).frequency_Hz = frequency;
@@ -60,13 +60,7 @@ end
 end
 
 function valid = getBranchValidityMask(branch)
-if isfield(branch, 'validCp')
-    valid = branch.validCp(:) & isfinite(branch.Cp(:));
-elseif isfield(branch, 'valid')
-    valid = branch.valid(:) & isfinite(branch.Cp(:));
-else
-    valid = isfinite(branch.Cp(:));
-end
+valid = branch.validMask(:) & isfinite(branch.phaseVelocity_mps(:));
 end
 
 function txt = makeLegendLabel(rawResults, idx)

@@ -30,33 +30,31 @@ options = guiMergeStructs(defaultAcoustoelasticIOPHGOOptions(), guiGetStructFiel
     'ApplyNumericalPreset', false);
 
 elapsedTimer = tic;
-rawResult = solveAcoustoelasticIOPHGOBranch(params, options);
+modelResult = solveAcoustoelasticIOPHGOBranch(params, options);
 elapsedSeconds = toc(elapsedTimer);
 
 result = struct();
 result.modelName = "AcoustoelasticIOPHGO";
 result.branchName = guiGetStructField(options, 'branch', "A0");
-result.frequency = getFieldOrDefault(rawResult, 'frequency', []);
-result.phaseVelocity = getFieldOrDefault(rawResult, 'Cp', []);
-result.wavenumber = computeWavenumber(result.frequency, result.phaseVelocity);
+result.frequency = modelResult.frequency_Hz;
+result.phaseVelocity = modelResult.phaseVelocity_mps;
+result.wavenumber = modelResult.wavenumber_radpm;
 result.kThickness = computeKThickness(result.wavenumber, params);
-result.branches = normalizeAcoustoelasticBranch(result, rawResult, params, options);
+result.branches = normalizeAcoustoelasticBranch(result, modelResult, params, options);
 result.metadata = struct();
 result.metadata.params = params;
 result.metadata.options = options;
-result.metadata.rawResult = rawResult;
+result.metadata.modelResult = modelResult;
 result.metadata.adapter = mfilename;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.executionProfile = profileMetadata;
-result.diagnostics = getFieldOrDefault(rawResult, 'diagnostics', struct());
+result.diagnostics = modelResult.diagnostics;
 result.diagnostics.elapsedSeconds = elapsedSeconds;
 result.diagnostics.executionProfile = profileMetadata;
-if isfield(rawResult, 'reliability')
-    result.diagnostics.reliability = rawResult.reliability;
-end
+result.diagnostics.quality = modelResult.quality;
 end
 
-function branch = normalizeAcoustoelasticBranch(result, rawResult, params, options)
+function branch = normalizeAcoustoelasticBranch(result, modelResult, params, options)
 branch = struct();
 branch.modelName = result.modelName;
 branch.branchName = result.branchName;
@@ -67,12 +65,12 @@ branch.kThickness = result.kThickness(:);
 branch.metadata = struct();
 branch.metadata.params = params;
 branch.metadata.options = options;
-branch.metadata.rawBranch = rawResult;
+branch.metadata.modelResult = modelResult;
 branch.metadata.units = struct('frequency', 'Hz', 'phaseVelocity', 'm/s', 'wavenumber', '1/m', 'kThickness', 'dimensionless');
 branch.diagnostics = struct();
-branch.diagnostics.objective = getFieldOrDefault(rawResult, 'objective', []);
-branch.diagnostics.valid = getFieldOrDefault(rawResult, 'validCp', isfinite(branch.phaseVelocity));
-branch.diagnostics.pointStatus = getFieldOrDefault(rawResult, 'pointStatus', strings(size(branch.phaseVelocity)));
+branch.diagnostics.objective = getFieldOrDefault(modelResult, 'objective', []);
+branch.diagnostics.valid = modelResult.validMask;
+branch.diagnostics.pointStatus = getFieldOrDefault(modelResult, 'pointStatus', strings(size(branch.phaseVelocity)));
 end
 
 function k = computeWavenumber(frequency, phaseVelocity)

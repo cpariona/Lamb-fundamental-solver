@@ -30,12 +30,12 @@ assert(hasNormalizedBranch(rlGuiResult, "RayleighLamb", "A0"), ...
     'Rayleigh-Lamb GUI adapter must include normalized A0 branch.');
 assert(hasNormalizedBranch(rlGuiResult, "RayleighLamb", "S0"), ...
     'Rayleigh-Lamb GUI adapter must include normalized S0 branch.');
-assert(isfield(rlGuiResult, 'metadata') && isfield(rlGuiResult.metadata, 'rawResult'), ...
-    'Rayleigh-Lamb GUI adapter must preserve rawResult in metadata.');
+assert(isfield(rlGuiResult, 'metadata') && isfield(rlGuiResult.metadata, 'modelResult'), ...
+    'Rayleigh-Lamb GUI adapter must preserve the canonical model result in metadata.');
 assert(isfield(rlGuiResult.metadata, 'elapsedSeconds') && isfinite(rlGuiResult.metadata.elapsedSeconds), ...
     'Rayleigh-Lamb GUI adapter must report elapsedSeconds metadata.');
 
-rlRawNormalized = guiNormalizeRawResult(rlGuiResult.metadata.rawResult, "testRawRL");
+rlRawNormalized = guiBuildModelResultView(rlGuiResult.metadata.modelResult, "testCanonicalRL");
 assert(numel(rlRawNormalized.branches) == numel(rlGuiResult.branches), ...
     'Raw Rayleigh-Lamb normalization must preserve the normalized branch count.');
 
@@ -83,11 +83,9 @@ assert(isfield(mrlfeGuiResult.metadata, 'elapsedSeconds') && isfinite(mrlfeGuiRe
 assert(isfield(mrlfeGuiResult.metadata, 'seedBranchesHiddenFromPlotSurface') && mrlfeGuiResult.metadata.seedBranchesHiddenFromPlotSurface, ...
     'mRLFE GUI adapter must report that seed branches are hidden from the plotting surface.');
 
-mrlfeRawNormalized = guiNormalizeRawResult(mrlfeGuiResult.metadata.rawResult, "testRawMRLFE");
-assert(hasNormalizedBranch(mrlfeRawNormalized, "RayleighLamb", "A0"), ...
-    'Raw mRLFE normalization should still expose Rayleigh-Lamb seed evidence when applied directly to rawResult.');
+mrlfeRawNormalized = guiBuildModelResultView(mrlfeGuiResult.metadata.modelResult, "testCanonicalMRLFE");
 assert(hasNormalizedBranch(mrlfeRawNormalized, "mRLFERealK", "A0Like"), ...
-    'Raw mRLFE normalization must include the unified real-k A0-like branch.');
+    'Canonical mRLFE normalization must include the unified real-k A0-like branch.');
 
 mrlfePlotData = guiGetNormalizedBranchPlotData(mrlfeGuiResult.branches(1), "frequency");
 assertPlotDataIsValid(mrlfePlotData, 'mRLFE normalized plot data is invalid.');

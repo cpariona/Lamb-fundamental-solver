@@ -25,9 +25,9 @@ for i = 1:n
     curves(i).sweepValueDisplay = condition.sweepValueDisplay;
     curves(i).rawBranch = result;
 
-    frequency = result.frequency(:);
-    cp = result.Cp(:);
-    valid = result.validCp(:);
+    frequency = result.frequency_Hz(:);
+    cp = result.phaseVelocity_mps(:);
+    valid = result.validMask(:);
     valid = valid & isfinite(frequency) & isfinite(cp);
 
     curves(i).frequency_Hz = frequency;
