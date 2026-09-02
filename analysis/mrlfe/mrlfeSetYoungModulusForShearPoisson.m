@@ -9,7 +9,7 @@ function params = mrlfeSetYoungModulusForShearPoisson(params, youngModulus)
 %
 %   mu = E/(2*(1 + nu))
 %
-% The stored params.E value remains a displayed/derived equivalent value.
+% The converted primary parameter is mu; E is not stored in the model request.
 
 arguments
     params (1,1) struct
@@ -23,6 +23,5 @@ if params.nu <= -1
     error('params.nu must be greater than -1 to convert E-equivalent stiffness to mu.');
 end
 
-params.E = youngModulus;
 params.mu = youngModulus / (2 * (1 + params.nu));
 end

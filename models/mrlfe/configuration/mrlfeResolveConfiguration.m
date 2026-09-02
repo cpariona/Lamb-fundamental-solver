@@ -125,11 +125,10 @@ function options = buildInternalOptions(request, preset)
 branch = string(request.branch);
 etaS = request.material.etaS_Pas;
 options = struct( ...
-    'mrlfeResidualTolerance', 1e-4, ...
-    'mrlfeResidualMethod', "minSingularValueRatio", ...
-    'mrlfeRealKResidualFloor', 1e-14, ...
-    'mrlfeA0DPEdgeGuardPoints', 8);
-options.mrlfeA0Policy = "physicalTail";
+    'residualTolerance', 1e-4, ...
+    'residualMethod', "minSingularValueRatio", ...
+    'residualFloor', 1e-14, ...
+    'trackerEdgeGuardPoints', 8);
 options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.fluidDensity = request.fluid.density_kgm3;
 options.mrlfeParams.fluidSoundSpeed = request.fluid.soundSpeed_mps;
@@ -137,21 +136,14 @@ options.mrlfeParams.etaS = etaS;
 options.mrlfeParams.etaL = 0;
 options.mrlfeParams.useComplexLambda = false;
 options.mrlfeParams.solveComplexK = false;
-options.mrlfeFitAtlasCpScanPoints = preset.scanPoints;
-options.mrlfeFitAtlasCandidates = preset.candidateCount;
-options.mrlfeFitAtlasRefineCandidates = preset.refineCandidates;
-options.mrlfeA0DPCpScanPoints = preset.scanPoints;
-options.mrlfeViscoAtlasCpScanPoints = preset.scanPoints;
-options.mrlfeAdaptiveCpScanPoints = preset.scanPoints;
-options.mrlfeA0DPCandidates = preset.candidateCount;
-options.mrlfeA0DPRefineCandidates = preset.refineCandidates;
-options.mrlfeAdaptiveRefineCandidates = preset.refineCandidates;
-options.mrlfeAdaptiveWindows = preset.adaptiveWindows;
-options.mrlfeUseA0PhysicalTailCut = string(request.termination.policy) == "physicalTail";
-options.mrlfeRobustStartEnabled = branch == "A0Like";
-options.mrlfeRobustStartCandidateFrequencies_Hz = [75 100 150 200 300 500 750 1000];
-options.mrlfeRobustStartMinValidRun = 8;
-options.mrlfeRobustStartMaxCandidates = 8;
+options.trackerCpScanPoints = preset.scanPoints;
+options.trackerCandidateCount = preset.candidateCount;
+options.trackerRefineCandidates = preset.refineCandidates;
+options.trackerWindows = preset.adaptiveWindows;
+options.robustStartEnabled = branch == "A0Like";
+options.robustStartCandidateFrequencies_Hz = [75 100 150 200 300 500 750 1000];
+options.robustStartMinValidRun = 8;
+options.robustStartMaxCandidates = 8;
 
 end
 

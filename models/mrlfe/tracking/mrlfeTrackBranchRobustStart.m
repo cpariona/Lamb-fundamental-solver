@@ -57,15 +57,15 @@ function policy = resolvePolicy(configuration, options)
 policy = struct();
 policy.name = "robustStart";
 policy.enabled = configuration.branch == "A0Like" && ...
-    logical(getOption(options, 'mrlfeRobustStartEnabled', true));
-policy.candidateFrequencies_Hz = getOption(options, 'mrlfeRobustStartCandidateFrequencies_Hz', ...
+    logical(getOption(options, 'robustStartEnabled', true));
+policy.candidateFrequencies_Hz = getOption(options, 'robustStartCandidateFrequencies_Hz', ...
     [75 100 150 200 300 500 750 1000]);
 policy.candidateFrequencies_Hz = unique(double(policy.candidateFrequencies_Hz(:)), 'stable');
 policy.candidateFrequencies_Hz = policy.candidateFrequencies_Hz( ...
     isfinite(policy.candidateFrequencies_Hz) & policy.candidateFrequencies_Hz > 0);
-policy.minValidRun = max(2, round(getOption(options, 'mrlfeRobustStartMinValidRun', ...
-    getOption(options, 'mrlfeAdaptiveEstablishedMinValidRun', 8))));
-policy.maxCandidates = max(1, round(getOption(options, 'mrlfeRobustStartMaxCandidates', 8)));
+policy.minValidRun = max(2, round(getOption(options, 'robustStartMinValidRun', ...
+    getOption(options, 'trackerEstablishedMinValidRun', 8))));
+policy.maxCandidates = max(1, round(getOption(options, 'robustStartMaxCandidates', 8)));
 end
 
 function indices = resolveCandidateIndices(frequency, candidateFrequencies_Hz, maxCandidates)

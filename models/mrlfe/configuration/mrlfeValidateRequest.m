@@ -1,5 +1,5 @@
 function mrlfeValidateRequest(request)
-%MRLFEVALIDATEREQUEST Validate a resolved public mRLFE request structure.
+%MRLFEVALIDATEREQUEST Validate a resolved internal mRLFE request structure.
 
 if nargin < 1 || ~isstruct(request)
     error('mrlfe:InvalidRequest', 'mRLFE request must be a struct.');

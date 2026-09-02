@@ -183,7 +183,7 @@ summary.mrlfeUseFitPerformanceDefaults = getOption(options, 'mrlfeUseFitPerforma
 summary.mrlfeUseInternalTrackingGrid = getOption(options, 'mrlfeUseInternalTrackingGrid', []);
 summary.mrlfeInternalTrackingMinPoints = getOption(options, 'mrlfeInternalTrackingMinPoints', []);
 summary.mrlfeInternalTrackingPointFactor = getOption(options, 'mrlfeInternalTrackingPointFactor', []);
-summary.mrlfeA0DPCpScanPoints = getOption(options, 'mrlfeA0DPCpScanPoints', []);
+summary.trackerCpScanPoints = getOption(options, 'trackerCpScanPoints', []);
 end
 
 function etaS = localEtaSFromOptions(options)
