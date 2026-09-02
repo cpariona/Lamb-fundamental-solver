@@ -58,12 +58,12 @@ for i = 1:n
     result = sweepResults.results{i};
     branch = extractSweepBranch(result, modelName, branchName);
 
-    if isempty(branch) || ~isfield(branch, 'frequency') || ~isfield(branch, 'Cp')
+    if isempty(branch) || ~isfield(branch, 'frequency_Hz') || ~isfield(branch, 'phaseVelocity_mps')
         continue;
     end
 
-    freq = branch.frequency(:);
-    cp = branch.Cp(:);
+    freq = branch.frequency_Hz(:);
+    cp = branch.phaseVelocity_mps(:);
     finiteFreq = isfinite(freq);
     finiteCp = isfinite(cp);
     valid = getBranchValidityMask(branch) & finiteFreq & finiteCp;
@@ -135,10 +135,7 @@ end
 
 if isfield(result, 'model') && string(result.model) == "mrlfe" && ...
         string(result.branch) == branchName
-    branch = struct( ...
-        'frequency', result.frequency_Hz(:), ...
-        'Cp', result.phaseVelocity_mps(:), ...
-        'valid', result.validMask(:));
+    branch = result;
     return;
 end
 
@@ -150,13 +147,7 @@ end
 end
 
 function valid = getBranchValidityMask(branch)
-if isfield(branch, 'validCp')
-    valid = branch.validCp(:) & isfinite(branch.Cp(:));
-elseif isfield(branch, 'valid')
-    valid = branch.valid(:) & isfinite(branch.Cp(:));
-else
-    valid = isfinite(branch.Cp(:));
-end
+valid = branch.validMask(:) & isfinite(branch.phaseVelocity_mps(:));
 end
 
 function value = getSweepFieldAsString(sweepResults, fieldName)

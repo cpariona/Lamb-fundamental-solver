@@ -35,9 +35,9 @@ for g = 1:numel(groupValues)
 
         groupDisplay = string(condition.axisValueDisplays.(groupAxisName));
         result = condition.result;
-        frequency_kHz = result.frequency(:) / 1e3;
-        Cp = result.Cp(:);
-        valid = result.validCp(:) & isfinite(frequency_kHz) & isfinite(Cp);
+        frequency_kHz = result.frequency_Hz(:) / 1e3;
+        Cp = result.phaseVelocity_mps(:);
+        valid = result.validMask(:) & isfinite(frequency_kHz) & isfinite(Cp);
         if ~any(valid)
             continue;
         end
@@ -67,8 +67,8 @@ function limits = computeGlobalCpLimits(sweepResult, paddingFraction)
 values = [];
 for i = 1:numel(sweepResult.conditions)
     result = sweepResult.conditions(i).result;
-    Cp = result.Cp(:);
-    valid = result.validCp(:) & isfinite(Cp);
+    Cp = result.phaseVelocity_mps(:);
+    valid = result.validMask(:) & isfinite(Cp);
     values = [values; Cp(valid)]; %#ok<AGROW>
 end
 if isempty(values)

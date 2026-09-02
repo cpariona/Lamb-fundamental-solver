@@ -19,8 +19,8 @@ for i = 1:numel(sweepResults.results)
         curves(i).Cp_mps = nan;
         curves(i).valid = false;
     else
-        curves(i).frequency_Hz = branch.frequency(:);
-        curves(i).Cp_mps = branch.Cp(:);
+        curves(i).frequency_Hz = branch.frequency_Hz(:);
+        curves(i).Cp_mps = branch.phaseVelocity_mps(:);
         curves(i).valid = getBranchValidityMask(branch);
     end
     curves(i).legendLabel = makeLegendLabel(sweepResults, i);
@@ -44,10 +44,7 @@ end
 
 if isfield(result, 'model') && string(result.model) == "mrlfe" && ...
         string(result.branch) == branchName
-    branch = struct( ...
-        'frequency', result.frequency_Hz(:), ...
-        'Cp', result.phaseVelocity_mps(:), ...
-        'valid', result.validMask(:));
+    branch = result;
     return;
 end
 
@@ -59,13 +56,7 @@ end
 end
 
 function valid = getBranchValidityMask(branch)
-if isfield(branch, 'validCp')
-    valid = logical(branch.validCp(:)) & isfinite(branch.Cp(:));
-elseif isfield(branch, 'valid')
-    valid = logical(branch.valid(:)) & isfinite(branch.Cp(:));
-else
-    valid = isfinite(branch.Cp(:));
-end
+valid = logical(branch.validMask(:)) & isfinite(branch.phaseVelocity_mps(:));
 end
 
 function txt = makeLegendLabel(sweepResults, idx)

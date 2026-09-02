@@ -363,10 +363,10 @@ end
 end
 
 function points = compareFamilyPoints(branchPoints, familyRow, atlasResult, identityResult, settings)
-f = atlasResult.frequency(:);
+f = atlasResult.frequency_Hz(:);
 [rawCp, rawValid, rawRank] = assignToFrequency(f, branchPoints);
-atlasCp = atlasResult.Cp(:);
-atlasValid = logical(atlasResult.validCp(:)) & isfinite(atlasCp);
+atlasCp = atlasResult.phaseVelocity_mps(:);
+atlasValid = logical(atlasResult.validMask(:)) & isfinite(atlasCp);
 [identityCp, identityValid] = identityCandidateOnFrequencyGrid(identityResult, f);
 [atlasErr, atlasOverlap] = relativeError(rawCp, rawValid, atlasCp, atlasValid, settings.RelativeMismatchThreshold);
 [identityErr, identityOverlap] = relativeError(rawCp, rawValid, identityCp, identityValid, settings.RelativeMismatchThreshold);
@@ -405,11 +405,12 @@ f = f(:);
 cp = nan(size(f));
 valid = false(size(f));
 
-if ~isstruct(identityResult) || ~isfield(identityResult, 'identityA0') || ~isstruct(identityResult.identityA0)
+if ~isstruct(identityResult) || ~isfield(identityResult, 'diagnostics') || ...
+        ~isfield(identityResult.diagnostics, 'identityA0') || ~isstruct(identityResult.diagnostics.identityA0)
     return;
 end
 
-identity = identityResult.identityA0;
+identity = identityResult.diagnostics.identityA0;
 if ~isfield(identity, 'CpCandidate') || isempty(identity.CpCandidate)
     return;
 end

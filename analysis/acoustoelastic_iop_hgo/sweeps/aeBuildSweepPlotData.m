@@ -14,9 +14,9 @@ curves = repmat(struct('frequency_Hz', [], 'Cp_mps', [], ...
 for i = 1:numel(sweepResult.conditions)
     condition = sweepResult.conditions(i);
     result = condition.result;
-    curves(i).frequency_Hz = result.frequency(:);
-    curves(i).Cp_mps = result.Cp(:);
-    curves(i).valid = logical(result.validCp(:));
+    curves(i).frequency_Hz = result.frequency_Hz(:);
+    curves(i).Cp_mps = result.phaseVelocity_mps(:);
+    curves(i).valid = logical(result.validMask(:));
     curves(i).legendLabel = shortLabel + " = " + string(condition.sweepValueDisplay);
 end
 

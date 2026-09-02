@@ -1,138 +1,70 @@
 function test_ae_result_schema_characterization()
-%TEST_AE_RESULT_SCHEMA_CHARACTERIZATION Freeze maintained AE result surfaces.
+%TEST_AE_RESULT_SCHEMA_CHARACTERIZATION Protect canonical AE semantics.
 
 params = representativeParams(logspace(log10(300), log10(15e3), 12));
 options = representativeOptions();
 options.useInternalAtlasTrackingGrid = false;
 
-iopResult = solveAcoustoelasticIOPHGOBranch(params, options);
-publicResult = solveAcoustoelasticIOPHGOBranch(params, options);
-directResult = solveAcoustoelasticAtlasBranch(iopResult.directParams, options);
+result = solveAcoustoelasticIOPHGOBranch(params, options);
+assertCanonicalResult(result, params.frequency);
+assert(result.model == "acoustoelastic_iop_hgo" && result.branch == "atlasA0");
+assert(~isfield(result, 'Cp') && ~isfield(result, 'validCp') && ...
+    ~isfield(result, 'frequency') && ~isfield(result, 'reliability'), ...
+    'Historical AE output aliases must not remain public.');
+assert(isfield(result.configuration, 'requested') && isfield(result.configuration, 'effective'));
+assert(isequaln(result.configuration.requested.parameters, params));
+assert(isequaln(result.configuration.requested.options, options));
+assert(result.configuration.effective.parameters.alpha == result.directParams.alpha);
+assert(isfield(result, 'execution') && result.execution.engine == "atlasA0_iop_hgo");
+assertQualityParity(result);
+assertDiagnosticParity(result);
 
-directFields = {'frequency'; 'Cp'; 'validCp'; 'branchExistsAtFrequency'; ...
-    'interpolatedCp'; 'pointStatus'; 'objective'; 'nearestRank'; ...
-    'nearestBranchID'; 'selectedBranchID'; 'selectedBranch'; ...
-    'selectedBranchPoints'; 'minimaTable'; 'branchTable'; 'objectiveMap'; ...
-    'yGrid'; 'cGrid'; 'cShear'; 'options'; 'reliability'; 'diagnostics'};
-iopFields = [directFields; {'requestedFrequency'; 'internalAtlasTracking'; ...
-    'constitutiveState'; 'directParams'}];
-reliabilityFields = {'PolicyName'; 'TotalPoints'; 'ValidPoints'; ...
-    'MissingPoints'; 'ValidFraction'; 'InterpolatedPoints'; ...
-    'ExplicitBranchPoints'; 'SelectedBranchID'; 'FirstValidFrequency_Hz'; ...
-    'FirstValidFrequency_kHz'; 'LastValidFrequency_Hz'; ...
-    'LastValidFrequency_kHz'; 'FirstMissingFrequency_Hz'; ...
-    'FirstMissingFrequency_kHz'; 'A0StartFilterPassed'; ...
-    'SelectionFallbackUsed'; 'YStart'; 'StartRank'; 'CpStart_mps'; ...
-    'MaxBranchRelativeCpDrop'; 'ValidityNote'};
-diagnosticFields = {'validCpPoints'; 'totalPoints'; 'explicitBranchPoints'; ...
-    'interpolatedPoints'; 'missingBranchPoints'; 'selectedBranchID'; ...
-    'policyName'; 'lastValidFrequency_kHz'; 'validFraction'; ...
-    'minCp'; 'maxCp'; 'medianCp'};
-
-assert(isequal(fieldnames(directResult), directFields), ...
-    'Direct atlas result field names/order changed.');
-assert(isequal(fieldnames(iopResult), iopFields), ...
-    'IOP/HGO atlas result field names/order changed.');
-assert(isequaln(publicResult, iopResult), ...
-    'Primary public entrypoint must return the IOP/HGO atlas result unchanged.');
-assert(isequal(fieldnames(iopResult.reliability), reliabilityFields), ...
-    'AE reliability field names/order changed.');
-assert(isequal(fieldnames(iopResult.diagnostics), diagnosticFields), ...
-    'AE diagnostic-summary field names/order changed.');
-assertRequestedGridTypes(iopResult, params.frequency);
-assertReliabilityParity(iopResult);
-assertDiagnosticParity(iopResult);
+directResult = solveAcoustoelasticAtlasBranch(result.directParams, options);
+assertCanonicalResult(directResult, params.frequency);
+assert(isfield(directResult.configuration, 'requested') && ...
+    isfield(directResult.configuration, 'effective'));
 
 internalOptions = options;
 internalOptions.useInternalAtlasTrackingGrid = true;
 internalOptions.atlasInitializationMinFrequency_Hz = 200;
 internalOptions.atlasInitializationNumFrequencyPoints = 20;
 internalResult = solveAcoustoelasticIOPHGOBranch(params, internalOptions);
-internalFields = [directFields; {'trackingFrequency'; 'requestedFrequency'; ...
-    'internalAtlasTracking'; 'trackingObjectiveMap'; 'constitutiveState'; ...
-    'directParams'}];
-assert(isequal(fieldnames(internalResult), internalFields), ...
-    'Internal-grid result field names/order changed.');
-assert(isempty(internalResult.objectiveMap), ...
-    'Requested-grid projection must keep objectiveMap empty.');
-assert(size(internalResult.trackingObjectiveMap, 2) == numel(internalResult.trackingFrequency), ...
-    'Internal objective-map columns must match the tracking grid.');
-assertRequestedGridTypes(internalResult, params.frequency);
-assertReliabilityParity(internalResult);
-assertDiagnosticParity(internalResult);
-assert(internalResult.diagnostics.internalAtlasTrackingUsed == true, ...
-    'Internal-grid diagnostic marker changed.');
+assertCanonicalResult(internalResult, params.frequency);
+assert(isempty(internalResult.objectiveMap));
+assert(size(internalResult.trackingObjectiveMap, 2) == numel(internalResult.trackingFrequency));
+assert(internalResult.diagnostics.internalAtlasTrackingUsed == true);
 
 identityOptions = options;
 identityOptions.atlasBranchPolicy = "identityA0Diagnostic";
 identityResult = solveAcoustoelasticIOPHGOBranch(params, identityOptions);
-identityFields = [directFields; {'identityA0'; 'requestedFrequency'; ...
-    'internalAtlasTracking'; 'constitutiveState'; 'directParams'}];
-identityPayloadFields = {'policyName'; 'officialPolicyEquivalent'; 'note'; ...
-    'frequency'; 'CpCandidate'; 'validCandidate'; 'addedFromIdentityScore'; ...
-    'branchIdentityScore'; 'candidateRank'; 'candidateClass'; ...
-    'candidateSource'; 'score'; 'summary'};
-identitySummaryFields = {'TotalPoints'; 'OfficialValidPoints'; ...
-    'CandidateValidPoints'; 'AddedCandidatePoints'; 'OfficialValidFraction'; ...
-    'CandidateValidFraction'; 'FirstOfficialMissingFrequency_kHz'; ...
-    'FirstCandidateMissingFrequency_kHz'; 'LastOfficialValidFrequency_kHz'; ...
-    'LastCandidateValidFrequency_kHz'; 'MedianAddedScore'; ...
-    'MedianAddedRank'; 'ValidityNote'};
-assert(isequal(fieldnames(identityResult), identityFields), ...
-    'Diagnostic-enabled result field names/order changed.');
-assert(isequal(fieldnames(identityResult.identityA0), identityPayloadFields), ...
-    'identityA0 diagnostic field names/order changed.');
-assert(isequal(fieldnames(identityResult.identityA0.summary), identitySummaryFields), ...
-    'identityA0 summary field names/order changed.');
-assert(isequal(size(identityResult.identityA0.CpCandidate), size(identityResult.Cp)), ...
-    'identityA0 candidate orientation changed.');
-assert(isa(identityResult.identityA0.candidateClass, 'string'), ...
-    'identityA0 candidateClass must remain a string array.');
+assertCanonicalResult(identityResult, params.frequency);
+assert(isfield(identityResult.diagnostics, 'identityA0'), ...
+    'identityA0 must remain diagnostic-only.');
+identity = identityResult.diagnostics.identityA0;
+assert(isequal(size(identity.CpCandidate), size(identityResult.phaseVelocity_mps)));
+assert(isa(identity.candidateClass, 'string'));
 
 fallbackParams = representativeParams(logspace(log10(1000), log10(15e3), 35));
 fallbackOptions = representativeOptions();
 fallbackOptions.atlasNumYPoints = 300;
 fallbackOptions.atlasTopNMinima = 12;
-fallbackOptions.useInternalAtlasTrackingGrid = false;
 fallbackOptions.invalidateAtlasFallbackOutput = true;
+fallbackOptions.useInternalAtlasTrackingGrid = false;
 fallbackResult = solveAcoustoelasticIOPHGOBranch(fallbackParams, fallbackOptions);
-fallbackFields = [iopFields; {'fallbackCandidateCp'; ...
-    'fallbackCandidateValidCp'; 'fallbackCandidateBranchExistsAtFrequency'; ...
-    'fallbackCandidateInterpolatedCp'; 'fallbackCandidatePointStatus'}];
-assert(fallbackResult.reliability.SelectionFallbackUsed == true, ...
-    'Fallback characterization fixture no longer reaches fallback selection.');
-assert(isequal(fieldnames(fallbackResult), fallbackFields), ...
-    'Fallback-invalidated result field names/order changed.');
-assert(all(isnan(fallbackResult.Cp)) && all(~fallbackResult.validCp), ...
-    'Fallback-invalidated official mask/NaN contract changed.');
-assert(all(fallbackResult.pointStatus == "fallbackRejectedA0StartFilter"), ...
-    'Fallback-invalidated pointStatus changed.');
-assert(isequal(size(fallbackResult.fallbackCandidateCp), size(fallbackResult.Cp)), ...
-    'Fallback candidate Cp orientation changed.');
-assert(isa(fallbackResult.fallbackCandidateValidCp, 'logical'), ...
-    'Fallback candidate validity must remain logical.');
+assert(fallbackResult.quality.SelectionFallbackUsed == true);
+assert(all(isnan(fallbackResult.phaseVelocity_mps)) && all(~fallbackResult.validMask));
+assert(any(isfinite(fallbackResult.fallbackCandidateCp)));
 
 physicalSweep = aeRunSweep(params, "IOP", params.IOP, options, ...
     struct('Name', "iop", 'Label', "IOP"));
-assert(isequal(fieldnames(physicalSweep), {'name'; 'label'; 'sweepField'; ...
-    'sweepValues'; 'options'; 'baseParams'; 'conditions'; 'summaryTable'}), ...
-    'Maintained physical sweep aggregate schema changed.');
-assert(isequal(fieldnames(physicalSweep.conditions), {'index'; 'sweepField'; ...
-    'sweepValue'; 'sweepValueDisplay'; 'params'; 'result'; 'reliability'; ...
-    'diagnostics'}), 'Maintained physical sweep point schema changed.');
-assert(isequaln(physicalSweep.conditions.result.reliability, ...
-    physicalSweep.conditions.reliability), ...
-    'Maintained physical sweep must consume canonical reliability unchanged.');
+assert(isequaln(physicalSweep.conditions.result.quality, physicalSweep.conditions.quality));
+assert(~isfield(physicalSweep.conditions, 'reliability'));
 
 axisSpec = struct('Field', "IOP", 'Values', params.IOP, 'Name', "IOP", ...
     'Label', "IOP", 'Unit', "Pa", 'ValueScale', 1, 'ValueFormatter', "%.6g");
 gridSweep = aeRunGridSweep(params, axisSpec, options, struct('Name', "grid"));
-assert(isequal(fieldnames(gridSweep), {'name'; 'label'; 'axes'; 'options'; ...
-    'baseParams'; 'conditions'; 'gridSize'; 'summaryTable'}), ...
-    'Maintained grid-sweep aggregate schema changed.');
-assert(isequal(fieldnames(gridSweep.conditions), {'index'; 'params'; 'result'; ...
-    'reliability'; 'diagnostics'; 'axisValues'; 'axisValueDisplays'}), ...
-    'Maintained grid-sweep point schema changed.');
+assert(isequaln(gridSweep.conditions.result.quality, gridSweep.conditions.quality));
+assert(~isfield(gridSweep.conditions, 'reliability'));
 
 fprintf('AE result schema characterization passed.\n');
 end
@@ -153,46 +85,36 @@ options.atlasTopNMinima = 8;
 options.invalidateAtlasFallbackOutput = false;
 end
 
-function assertRequestedGridTypes(result, requestedFrequency)
+function assertCanonicalResult(result, requestedFrequency)
+required = {'model', 'branch', 'frequency_Hz', 'phaseVelocity_mps', ...
+    'wavenumber_radpm', 'validMask', 'quality', 'diagnostics', ...
+    'configuration', 'execution'};
+assert(all(isfield(result, required)), 'Canonical AE result fields are incomplete.');
 rowSize = size(requestedFrequency(:).');
-names = {'frequency', 'Cp', 'validCp', 'branchExistsAtFrequency', ...
-    'interpolatedCp', 'pointStatus', 'objective', 'nearestRank', 'nearestBranchID'};
-for i = 1:numel(names)
-    assert(isequal(size(result.(names{i})), rowSize), ...
-        '%s requested-grid shape changed.', names{i});
-end
-assert(isa(result.frequency, 'double') && isa(result.Cp, 'double'), ...
-    'AE frequency and Cp must remain double arrays.');
-assert(isa(result.validCp, 'logical') && isa(result.branchExistsAtFrequency, 'logical') && ...
-    isa(result.interpolatedCp, 'logical'), 'AE requested-grid masks must remain logical.');
-assert(isa(result.pointStatus, 'string'), 'AE pointStatus must remain a string array.');
-assert(isequaln(result.frequency, requestedFrequency(:).'), ...
-    'AE requested output frequency changed.');
-assert(isequal(isnan(result.Cp), ~isfinite(result.Cp)), ...
-    'Invalid AE Cp locations must remain NaN rather than Inf.');
+assert(isequal(size(result.frequency_Hz), rowSize));
+assert(isequal(size(result.phaseVelocity_mps), rowSize));
+assert(isequal(size(result.wavenumber_radpm), rowSize));
+assert(isequal(size(result.validMask), rowSize));
+assert(isequaln(result.frequency_Hz, requestedFrequency(:).'));
+assert(isa(result.validMask, 'logical'));
+assert(all(isnan(result.phaseVelocity_mps(~result.validMask))));
 end
 
-function assertReliabilityParity(result)
-valid = result.validCp & isfinite(result.Cp);
-rel = result.reliability;
-assert(rel.TotalPoints == numel(result.Cp));
-assert(rel.ValidPoints == nnz(valid));
-assert(rel.MissingPoints == nnz(~valid));
-assert(rel.ValidFraction == nnz(valid) / max(numel(valid), 1));
-assert(rel.InterpolatedPoints == nnz(result.interpolatedCp));
-assert(rel.ExplicitBranchPoints == nnz(result.branchExistsAtFrequency));
-assert(isa(rel.PolicyName, 'string') && isa(rel.ValidityNote, 'string'));
-assert(isa(rel.A0StartFilterPassed, 'logical'));
-assert(isa(rel.SelectionFallbackUsed, 'logical'));
+function assertQualityParity(result)
+valid = result.validMask & isfinite(result.phaseVelocity_mps);
+quality = result.quality;
+assert(quality.TotalPoints == numel(result.phaseVelocity_mps));
+assert(quality.ValidPoints == nnz(valid));
+assert(quality.MissingPoints == nnz(~valid));
+assert(quality.ValidFraction == nnz(valid) / max(numel(valid), 1));
+assert(quality.InterpolatedPoints == nnz(result.interpolatedCp));
+assert(quality.ExplicitBranchPoints == nnz(result.branchExistsAtFrequency));
 end
 
 function assertDiagnosticParity(result)
 diagnostics = result.diagnostics;
-assert(diagnostics.validCpPoints == nnz(result.validCp));
-assert(diagnostics.totalPoints == numel(result.Cp));
-assert(diagnostics.explicitBranchPoints == nnz(result.branchExistsAtFrequency));
-assert(diagnostics.interpolatedPoints == nnz(result.interpolatedCp));
-assert(diagnostics.missingBranchPoints == nnz(~result.validCp));
-assert(diagnostics.validFraction == result.reliability.ValidFraction);
-assert(isa(diagnostics.policyName, 'string'));
+assert(diagnostics.validCpPoints == nnz(result.validMask));
+assert(diagnostics.totalPoints == numel(result.phaseVelocity_mps));
+assert(diagnostics.missingBranchPoints == nnz(~result.validMask));
+assert(diagnostics.validFraction == result.quality.ValidFraction);
 end

@@ -50,11 +50,11 @@ fallbackOptions.useInternalAtlasTrackingGrid = false;
 fallbackOptions.invalidateAtlasFallbackOutput = true;
 fallbackResult = solveAcoustoelasticIOPHGOBranch(fallbackParams, fallbackOptions);
 assertDiscreteMinima(fallbackResult);
-assert(fallbackResult.reliability.SelectionFallbackUsed == true);
-assert(fallbackResult.reliability.A0StartFilterPassed == false);
+assert(fallbackResult.quality.SelectionFallbackUsed == true);
+assert(fallbackResult.quality.A0StartFilterPassed == false);
 assert(any(isfinite(fallbackResult.fallbackCandidateCp)));
-assert(all(isnan(fallbackResult.Cp)));
-assert(all(~fallbackResult.validCp));
+assert(all(isnan(fallbackResult.phaseVelocity_mps)));
+assert(all(~fallbackResult.validMask));
 assert(all(fallbackResult.pointStatus == "fallbackRejectedA0StartFilter"));
 
 fprintf('AE tracking and policy characterization passed.\n');
@@ -77,9 +77,9 @@ assert(isequal(result.minimaTable.Properties.VariableNames, minimaNames));
 if ~isempty(result.branchTable)
     assert(isequal(result.branchTable.Properties.VariableNames, branchNames));
 end
-assert(size(result.objectiveMap, 2) == numel(result.frequency));
-assert(isequal(size(result.Cp), size(result.frequency)));
-assert(isequal(size(result.validCp), size(result.frequency)));
+assert(size(result.objectiveMap, 2) == numel(result.frequency_Hz));
+assert(isequal(size(result.phaseVelocity_mps), size(result.frequency_Hz)));
+assert(isequal(size(result.validMask), size(result.frequency_Hz)));
 end
 
 function assertDiscreteMinima(result)
@@ -89,7 +89,7 @@ end
 [isGridPoint, gridIndex] = ismember(result.minimaTable.Cp_mps, result.cGrid);
 assert(all(isGridPoint), 'Atlas candidate minima must remain on cGrid.');
 for row = 1:height(result.minimaTable)
-    column = find(result.frequency == result.minimaTable.Frequency_Hz(row), 1);
+    column = find(result.frequency_Hz == result.minimaTable.Frequency_Hz(row), 1);
     assert(~isempty(column));
     assert(result.objectiveMap(gridIndex(row), column) == result.minimaTable.Objective(row));
 end
@@ -118,7 +118,7 @@ assert(nnz(selectedRow) == 1);
 assert(result.branchTable.SelectionScore(selectedRow) == ...
     min(result.branchTable.SelectionScore));
 assert(all(isfinite(result.minimaTable.BranchID) | isnan(result.minimaTable.BranchID)));
-assert(all(result.validCp == (isfinite(result.Cp) & ...
+assert(all(result.validMask == (isfinite(result.phaseVelocity_mps) & ...
     (result.branchExistsAtFrequency | result.interpolatedCp))));
 end
 
@@ -127,18 +127,18 @@ if isempty(result.selectedBranchPoints)
     return;
 end
 for row = 1:height(result.selectedBranchPoints)
-    outputIndex = find(result.frequency == result.selectedBranchPoints.Frequency_Hz(row), 1);
+    outputIndex = find(result.frequency_Hz == result.selectedBranchPoints.Frequency_Hz(row), 1);
     if isempty(outputIndex)
         continue;
     end
 
     % selectedBranchPoints remains diagnostic even when fallback policy
     % invalidates the official output. Compare only explicit valid outputs.
-    if ~result.validCp(outputIndex) || ~result.branchExistsAtFrequency(outputIndex)
+    if ~result.validMask(outputIndex) || ~result.branchExistsAtFrequency(outputIndex)
         continue;
     end
 
-    assertNearlyEqual(result.Cp(outputIndex), result.selectedBranchPoints.Cp_mps(row));
+    assertNearlyEqual(result.phaseVelocity_mps(outputIndex), result.selectedBranchPoints.Cp_mps(row));
     assertNearlyEqual(result.objective(outputIndex), result.selectedBranchPoints.Objective(row));
     assert(result.nearestRank(outputIndex) == result.selectedBranchPoints.MinRank(row));
     assert(result.nearestBranchID(outputIndex) == result.selectedBranchPoints.BranchID(row));

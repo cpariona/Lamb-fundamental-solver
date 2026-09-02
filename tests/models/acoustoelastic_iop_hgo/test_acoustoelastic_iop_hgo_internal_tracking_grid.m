@@ -36,22 +36,22 @@ result = solveAcoustoelasticIOPHGOBranch(params, options);
 assert(isstruct(result), 'Result must be a struct.');
 assert(isfield(result, 'internalAtlasTracking'), 'Result must report internal tracking metadata.');
 assert(result.internalAtlasTracking.Used == true, 'Internal atlas tracking grid must be used.');
-assert(numel(result.frequency) == numel(params.frequency), 'Official output must remain on the requested grid.');
-assert(all(abs(result.frequency(:) - params.frequency(:)) < 1e-9), 'Output frequency must match requested frequency.');
+assert(numel(result.frequency_Hz) == numel(params.frequency), 'Official output must remain on the requested grid.');
+assert(all(abs(result.frequency_Hz(:) - params.frequency(:)) < 1e-9), 'Output frequency must match requested frequency.');
 assert(isfield(result, 'trackingFrequency'), 'Result must expose the internal tracking frequency grid.');
 assert(numel(result.trackingFrequency) > numel(params.frequency), 'Tracking grid should contain additional internal frequencies.');
 assert(min(result.trackingFrequency) <= options.atlasInitializationMinFrequency_Hz * (1 + 1e-12), ...
     'Tracking frequency should include the internal initialization range.');
 
-if result.reliability.SelectionFallbackUsed
+if result.quality.SelectionFallbackUsed
     assert(isfield(result, 'fallbackCandidateCp'), 'Fallback candidate must be preserved when fallback is used.');
-    assert(all(~result.validCp), 'Fallback-selected official output must be invalidated.');
-    assert(result.reliability.ValidFraction == 0, 'Fallback-invalidated official output must report zero valid fraction.');
+    assert(all(~result.validMask), 'Fallback-selected official output must be invalidated.');
+    assert(result.quality.ValidFraction == 0, 'Fallback-invalidated official output must report zero valid fraction.');
 else
-    assert(result.reliability.A0StartFilterPassed == true, 'Non-fallback branch should pass the A0-like start filter.');
-    assert(any(result.validCp), 'Non-fallback internal tracking output should produce official valid Cp points.');
+    assert(result.quality.A0StartFilterPassed == true, 'Non-fallback branch should pass the A0-like start filter.');
+    assert(any(result.validMask), 'Non-fallback internal tracking output should produce official valid Cp points.');
     assert(~isfield(result, 'fallbackCandidateCp'), 'Non-fallback output should not create fallback candidate fields.');
 end
 
 fprintf('test_acoustoelastic_iop_hgo_internal_tracking_grid passed. Fallback=%d, valid points: %d/%d.\n', ...
-    result.reliability.SelectionFallbackUsed, nnz(result.validCp), numel(result.validCp));
+    result.quality.SelectionFallbackUsed, nnz(result.validMask), numel(result.validMask));

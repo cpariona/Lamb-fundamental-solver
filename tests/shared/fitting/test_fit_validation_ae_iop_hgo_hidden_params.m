@@ -29,7 +29,7 @@ solverOptions.atlasInitializationNumFrequencyPoints = 50;
 
 [CpSynthetic_mps, syntheticRaw] = aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
 assert(any(syntheticRaw.validMask), 'AE hidden-parameter validation synthetic atlasA0 output must contain valid points.');
-assert(syntheticRaw.solverResult.reliability.SelectionFallbackUsed == false, ...
+assert(syntheticRaw.solverResult.quality.SelectionFallbackUsed == false, ...
     'AE hidden-parameter validation must not rely on fallback branch selection.');
 
 experimental = struct();

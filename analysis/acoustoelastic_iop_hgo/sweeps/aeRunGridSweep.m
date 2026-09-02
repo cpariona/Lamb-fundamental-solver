@@ -20,7 +20,7 @@ conditions = repmat(struct( ...
     'index', [], ...
     'params', [], ...
     'result', [], ...
-    'reliability', [], ...
+    'quality', [], ...
     'diagnostics', [], ...
     'axisValues', [], ...
     'axisValueDisplays', []), 1, numConditions);
@@ -44,7 +44,7 @@ for idx = 1:numConditions
     conditions(idx).index = idx;
     conditions(idx).params = params;
     conditions(idx).result = result;
-    conditions(idx).reliability = result.reliability;
+    conditions(idx).quality = result.quality;
     conditions(idx).diagnostics = result.diagnostics;
     conditions(idx).axisValues = axisValuesStruct;
     conditions(idx).axisValueDisplays = axisDisplayStruct;
@@ -128,7 +128,7 @@ end
 end
 
 function row = makeSummaryRow(index, axesSpec, axisValues, axisDisplays, result)
-rel = result.reliability;
+rel = result.quality;
 row = struct();
 row.ConditionIndex = index;
 for a = 1:numel(axesSpec)

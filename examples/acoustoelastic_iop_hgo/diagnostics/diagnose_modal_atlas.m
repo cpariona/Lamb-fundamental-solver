@@ -277,9 +277,9 @@ for g = 1:numel(gridList)
     result = solveAcoustoelasticIOPHGODispersion(params, opt);
     trackerResultsForCase{g} = result;
 
-    for k = 1:numel(result.frequency)
-        f = result.frequency(k);
-        cpTracked = result.Cp(k);
+    for k = 1:numel(result.frequency_Hz)
+        f = result.frequency_Hz(k);
+        cpTracked = result.phaseVelocity_mps(k);
         candidates = atlas.minimaTable(atlas.minimaTable.Frequency_Hz == f, :);
         row = struct();
         row.GridPoints = gridList(g);
@@ -340,10 +340,10 @@ if condition.overlayTrackers && isfield(trackerResults, key)
         if isempty(r)
             continue;
         end
-        yTracked = r.Cp ./ atlas.cShear;
-        valid = r.validCp & isfinite(yTracked);
+        yTracked = r.phaseVelocity_mps ./ atlas.cShear;
+        valid = r.validMask & isfinite(yTracked);
         style = markerList{min(g, numel(markerList))};
-        plot(r.frequency(valid)/1e3, yTracked(valid), style, 'LineWidth', 1.8, ...
+        plot(r.frequency_Hz(valid)/1e3, yTracked(valid), style, 'LineWidth', 1.8, ...
             'DisplayName', sprintf('tracker grid %d', r.options.numCpScanPoints));
     end
     legend('Location', 'best');

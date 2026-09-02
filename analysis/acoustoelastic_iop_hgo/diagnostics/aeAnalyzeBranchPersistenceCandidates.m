@@ -83,9 +83,9 @@ T.PersistenceQuality(T.PersistenceCandidateAccepted & ~T.RankStrong) = "bridge_o
 end
 
 function summary = buildSummary(result, recovery, candidateTable, opts)
-f = result.frequency(:);
-cp = result.Cp(:);
-valid = logical(result.validCp(:)) & isfinite(cp);
+f = result.frequency_Hz(:);
+cp = result.phaseVelocity_mps(:);
+valid = logical(result.validMask(:)) & isfinite(cp);
 summary = struct();
 summary.TotalPoints = numel(valid);
 summary.OriginalValidPoints = nnz(valid);

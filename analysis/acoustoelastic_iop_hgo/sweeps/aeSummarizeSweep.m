@@ -47,9 +47,9 @@ for i = 1:numel(sweepResult.conditions)
         continue;
     end
     result = condition.result;
-    frequency = result.frequency(:);
-    Cp = result.Cp(:);
-    validCp = result.validCp(:);
+    frequency = result.frequency_Hz(:);
+    Cp = result.phaseVelocity_mps(:);
+    validCp = result.validMask(:);
 
     for k = 1:numel(frequency)
         row = struct();

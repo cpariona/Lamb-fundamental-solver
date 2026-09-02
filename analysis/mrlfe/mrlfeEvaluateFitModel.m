@@ -47,7 +47,7 @@ end
 end
 
 function rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions, fitGridMetadata)
-internal = modelResult.debug.rawInternalResult;
+internal = modelResult.debug.solverResult;
 rawResult = struct();
 rawResult.modelFamily = "mrlfe";
 rawResult.modelName = "mRLFERealK";
@@ -58,28 +58,13 @@ rawResult.Cp_mps = modelResult.phaseVelocity_mps(:);
 rawResult.validMask = modelResult.validMask(:);
 rawResult.branch = internal.branch;
 rawResult.branchSolve = internal.branchSolve;
-rawResult.rawFullResult = internal.rawFullResult;
-rawResult.rawFullResult = localAddCompatibilityModelAliases(rawResult.rawFullResult, modelResult);
-rawResult.elasticReferenceResult = rawResult.rawFullResult.models.mRLFERealK;
+rawResult.elasticReferenceResult = internal.branchSolve;
 rawResult.params = params;
 rawResult.options = localMergeReportedOptions(solverOptions, internal.options);
 rawResult.modelResult = modelResult;
 rawResult.fitGrid = fitGridMetadata;
 rawResult.fitPerformanceDefaults = localBuildPublicFitPerformanceSummary(modelResult, fitGridMetadata);
 rawResult.evaluationPath = localPublicEvaluationPathSummary(modelResult, fitGridMetadata);
-end
-
-function rawFullResult = localAddCompatibilityModelAliases(rawFullResult, modelResult)
-if ~isstruct(rawFullResult) || ~isfield(rawFullResult, 'models') || ...
-        ~isfield(rawFullResult.models, 'mRLFERealK')
-    return;
-end
-switch string(modelResult.execution.internalEngine)
-    case "elastic_adaptive"
-        rawFullResult.models.mRLFEElasticRealK = rawFullResult.models.mRLFERealK;
-    case "viscoelastic_adaptive"
-        rawFullResult.models.mRLFEViscoRealK = rawFullResult.models.mRLFERealK;
-end
 end
 
 function options = localMergeReportedOptions(inputOptions, internalOptions)
@@ -97,7 +82,7 @@ end
 end
 
 function summary = localBuildPublicFitPerformanceSummary(modelResult, fitGridMetadata)
-preset = modelResult.configuration.numericalPreset;
+preset = modelResult.configuration.effective.numericalPreset;
 summary = struct();
 summary.routeFamily = "public_solver";
 summary.useFitAtlasPreset = logical(preset.useFitAtlasPreset);
@@ -125,7 +110,7 @@ summary.requestedUnifiedAtlas = false;
 summary.usedUnifiedAtlas = false;
 summary.requestedDirectViscoAtlas = false;
 summary.usedDirectViscoAtlas = false;
-summary.etaS = modelResult.configuration.parameters.etaS_Pas;
+summary.etaS = modelResult.configuration.effective.parameters.etaS_Pas;
 summary.mrlfeA0Policy = modelResult.termination.policy;
 summary.fitAtlasPreset = string(modelResult.execution.effectivePreset);
 summary.internalFitAtlasPreset = string(modelResult.execution.effectivePreset);

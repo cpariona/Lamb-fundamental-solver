@@ -10,9 +10,9 @@ function breakAnalysis = aeAnalyzeFirstUnrecoveredBreak(result, recovery, vararg
 %   does not alter atlasA0 or recovered branches.
 
 opts = parseOptions(varargin{:});
-f = result.frequency(:);
-cp = result.Cp(:);
-valid = logical(result.validCp(:)) & isfinite(cp);
+f = result.frequency_Hz(:);
+cp = result.phaseVelocity_mps(:);
+valid = logical(result.validMask(:)) & isfinite(cp);
 contiguousValid = logical(recovery.contiguousRecoveredValid(:));
 contiguousCp = recovery.contiguousRecoveredCp(:);
 

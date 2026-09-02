@@ -18,7 +18,7 @@ seedSource = "physicalSynthetic";
 seedName = char(erase(branchName, "Like"));
 if isstruct(seedModes) && isfield(seedModes, seedName) && isstruct(seedModes.(seedName))
     candidate = seedModes.(seedName);
-    if isfield(candidate, 'Cp') && numel(candidate.Cp) == numel(frequency)
+    if isfield(candidate, 'phaseVelocity_mps') && numel(candidate.phaseVelocity_mps) == numel(frequency)
         seedMode = candidate;
         seedSource = "RayleighLambSeed";
     end
@@ -30,7 +30,9 @@ if isempty(seedMode)
     seedMode.residual = nan(size(frequency));
     seedMode.valid = isfinite(cp) & cp > 0;
 else
-    cp = seedMode.Cp(:);
+    cp = seedMode.phaseVelocity_mps(:);
+    seedMode.residual = seedMode.diagnostics.residual;
+    seedMode.valid = seedMode.validMask;
 end
 
 if branchName == "S0Like" && startsWith(seedSource, "RayleighLambSeed")

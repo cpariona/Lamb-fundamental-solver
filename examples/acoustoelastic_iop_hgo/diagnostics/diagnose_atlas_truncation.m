@@ -117,9 +117,9 @@ if ~exist(plotFolder, 'dir')
     mkdir(plotFolder);
 end
 
-f = result.frequency(:) / 1e3;
-cp = result.Cp(:);
-valid = logical(result.validCp(:)) & isfinite(cp);
+f = result.frequency_Hz(:) / 1e3;
+cp = result.phaseVelocity_mps(:);
+valid = logical(result.validMask(:)) & isfinite(cp);
 T = diagnosis.localCauseTable;
 
 fig = figure('Visible', 'off');

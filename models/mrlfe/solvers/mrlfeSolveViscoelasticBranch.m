@@ -15,8 +15,7 @@ branchSolve.solverRoute = "viscoelasticAdaptive";
 branchSolve.seedMode = seed;
 branchSolve.seedResult = seedResult;
 
-mrlfeResult = buildModelResult(problem, mrlfeParams, branchSolve, "viscoelastic-adaptive-real-k");
-rawResult = mrlfeBuildInternalBranchResult(problem, configuration, mrlfeResult, branchSolve, ...
+rawResult = mrlfeBuildInternalBranchResult(problem, configuration, branchSolve, ...
     "viscoelastic_adaptive", "viscoelastic_adaptive");
 end
 
@@ -60,18 +59,6 @@ if branchName == "A0Like" && terminationPolicy == "physicalTail"
 else
     policy = regime + "_" + string(branchName) + "_adaptive";
 end
-end
-
-function result = buildModelResult(problem, mrlfeParams, branch, variant)
-result = struct();
-result.modelName = "mRLFE";
-result.variant = variant;
-result.description = "mRLFE model-layer production branch result.";
-result.parameters = mrlfeParams;
-result.frequency = problem.frequencySolve_Hz(:);
-result.branches = struct();
-result.branches.(char(problem.branch)) = branch;
-result.diagnostics = struct('variant', variant, 'branchNames', problem.branch);
 end
 
 function value = getOption(options, fieldName, defaultValue)

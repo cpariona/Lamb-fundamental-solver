@@ -20,17 +20,17 @@ modeNames = fieldnames(results.modes);
 for i = 1:numel(modeNames)
     name = modeNames{i};
     mode = results.modes.(name);
-    finiteCp = isfinite(mode.Cp);
+    finiteCp = isfinite(mode.phaseVelocity_mps);
     finiteKThickness = isfinite(mode.kThickness);
     finiteResidual = isfinite(mode.residual);
 
     fprintf('%s:\n', name);
-    fprintf('  valid points: %d / %d\n', sum(mode.valid), numel(mode.valid));
+    fprintf('  valid points: %d / %d\n', sum(mode.validMask), numel(mode.validMask));
     fprintf('  finite Cp points: %d / %d\n', sum(finiteCp), numel(finiteCp));
     fprintf('  finite kThickness points: %d / %d\n', sum(finiteKThickness), numel(finiteKThickness));
 
     if any(finiteCp)
-        fprintf('  Cp min/max: %.6g / %.6g m/s\n', min(mode.Cp(finiteCp)), max(mode.Cp(finiteCp)));
+        fprintf('  Cp min/max: %.6g / %.6g m/s\n', min(mode.phaseVelocity_mps(finiteCp)), max(mode.phaseVelocity_mps(finiteCp)));
     else
         fprintf('  Cp min/max: no finite values\n');
     end

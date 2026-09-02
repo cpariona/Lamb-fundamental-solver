@@ -4,8 +4,8 @@ function [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, branchNa
 % [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, branchName, options)
 %
 % This helper uses the maintained official AE/IOP/HGO atlas output:
-%   result.Cp
-%   result.validCp
+%   result.phaseVelocity_mps
+%   result.validMask
 %
 % Diagnostic branch outputs are not used for fitting.
 
@@ -29,8 +29,8 @@ aeValidateRequest(params, 'Context', "fitting", 'Frequency', frequencyInput);
 params.frequency = frequencyInput;
 
 solverResult = solveAcoustoelasticIOPHGOBranch(params, options);
-Cp_mps = solverResult.Cp(:);
-validMask = solverResult.validCp(:) & isfinite(Cp_mps);
+Cp_mps = solverResult.phaseVelocity_mps(:);
+validMask = solverResult.validMask(:) & isfinite(Cp_mps);
 
 rawResult = struct();
 rawResult.modelFamily = "acoustoelastic_iop_hgo";

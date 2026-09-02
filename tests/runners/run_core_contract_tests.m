@@ -10,5 +10,6 @@ fprintf('------------------------------\n');
 run_repository_hygiene_tests;
 test_model_output_folder_helpers;
 test_fitting_helpers_smoke;
+test_rl_result_contract;
 
 fprintf('\nCore contract tests passed.\n');

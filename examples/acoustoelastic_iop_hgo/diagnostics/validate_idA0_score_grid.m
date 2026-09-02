@@ -73,7 +73,7 @@ assignin('base', 'AcoustoelasticIOPHGOBranchIdentityScoreGridAggregate', aggrega
 assignin('base', 'AcoustoelasticIOPHGOBranchIdentityScoreGridOutputFolder', outputFolder);
 
 function row = buildSummaryRow(caseIndex, gridRow, result, score)
-valid = logical(result.validCp(:)) & isfinite(result.Cp(:));
+valid = logical(result.validMask(:)) & isfinite(result.phaseVelocity_mps(:));
 s = score.summary;
 row = struct();
 row.CaseIndex = caseIndex;

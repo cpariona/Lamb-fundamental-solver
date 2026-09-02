@@ -22,9 +22,9 @@ function recovery = aeAnalyzeTruncationRecovery(result, varargin)
 %   The output is intended for diagnostics, not for replacing atlasA0.
 
 opts = parseOptions(varargin{:});
-f = result.frequency(:);
-cp = result.Cp(:);
-valid = logical(result.validCp(:)) & isfinite(cp);
+f = result.frequency_Hz(:);
+cp = result.phaseVelocity_mps(:);
+valid = logical(result.validMask(:)) & isfinite(cp);
 
 [recoveredCp, recoveryMode, recoveryConfidence, selectedMinRank, selectedMinObjective, selectedMinBranchID, rows] = ...
     buildPointwiseRecovery(result, f, cp, valid, opts);

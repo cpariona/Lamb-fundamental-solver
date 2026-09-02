@@ -7,8 +7,8 @@ function refinement = aeRefineAtlasA0BranchPersistence(result, varargin)
 analysis = aeAnalyzeBranchPersistenceCandidates(result, varargin{:});
 classification = classifyPersistence(analysis.summary);
 
-candidateCp = result.Cp(:);
-candidateValid = logical(result.validCp(:)) & isfinite(candidateCp);
+candidateCp = result.phaseVelocity_mps(:);
+candidateValid = logical(result.validMask(:)) & isfinite(candidateCp);
 candidateMode = repmat("official_missing", size(candidateCp));
 candidateMode(candidateValid) = "official_atlasA0";
 
@@ -29,9 +29,9 @@ refinement = struct();
 refinement.options = analysis.options;
 refinement.analysis = analysis;
 refinement.classification = classification;
-refinement.CpCandidate = reshape(candidateCp, size(result.Cp));
-refinement.validCandidate = reshape(candidateValid, size(result.Cp));
-refinement.candidateMode = reshape(candidateMode, size(result.Cp));
+refinement.CpCandidate = reshape(candidateCp, size(result.phaseVelocity_mps));
+refinement.validCandidate = reshape(candidateValid, size(result.phaseVelocity_mps));
+refinement.candidateMode = reshape(candidateMode, size(result.phaseVelocity_mps));
 refinement.summary = buildSummary(result, refinement);
 end
 
@@ -79,7 +79,7 @@ decision.PolicyNote = "Diagnostic classification only; atlasA0 remains maintaine
 end
 
 function summary = buildSummary(result, refinement)
-officialValid = logical(result.validCp(:)) & isfinite(result.Cp(:));
+officialValid = logical(result.validMask(:)) & isfinite(result.phaseVelocity_mps(:));
 candidateValid = logical(refinement.validCandidate(:)) & isfinite(refinement.CpCandidate(:));
 summary = refinement.analysis.summary;
 summary.Classification = refinement.classification.DecisionClass;

@@ -257,16 +257,16 @@ end
 end
 
 function T = compareTrackerCase(points, result, iop, gridPoints, condition)
-cpInterp = interp1(points.Frequency_Hz, points.Cp_mps, result.frequency(:), 'linear', nan);
-valid = result.validCp(:) & isfinite(result.Cp(:)) & isfinite(cpInterp);
+cpInterp = interp1(points.Frequency_Hz, points.Cp_mps, result.frequency_Hz(:), 'linear', nan);
+valid = result.validMask(:) & isfinite(result.phaseVelocity_mps(:)) & isfinite(cpInterp);
 T = table();
-T.Condition = repmat(condition, numel(result.frequency), 1);
-T.IOP_mmHg = repmat(iop, numel(result.frequency), 1);
-T.GridPoints = repmat(gridPoints, numel(result.frequency), 1);
-T.Frequency_Hz = result.frequency(:);
-T.Frequency_kHz = result.frequency(:)/1e3;
+T.Condition = repmat(condition, numel(result.frequency_Hz), 1);
+T.IOP_mmHg = repmat(iop, numel(result.frequency_Hz), 1);
+T.GridPoints = repmat(gridPoints, numel(result.frequency_Hz), 1);
+T.Frequency_Hz = result.frequency_Hz(:);
+T.Frequency_kHz = result.frequency_Hz(:)/1e3;
 T.CandidateCp_mps = cpInterp(:);
-T.TrackerCp_mps = result.Cp(:);
+T.TrackerCp_mps = result.phaseVelocity_mps(:);
 T.ValidComparison = valid(:);
 T.RelativeDifference = abs(T.TrackerCp_mps - T.CandidateCp_mps) ./ max(abs(T.CandidateCp_mps), eps);
 end

@@ -11,13 +11,9 @@ omega = 2 * pi * frequency;
 
 solverOptions = buildSolverOptions(options, material);
 
-results = struct();
-results.material = material;
-results.geometry = rmfield(geometry, 'halfThickness');
-results.grid.frequency = frequency;
-results.grid.omega = omega;
-results.modes = struct();
-results.approximations = rlComputeAnalyticalApproximations(frequency, material, results.geometry);
+modes = struct();
+publicGeometry = rmfield(geometry, 'halfThickness');
+approximations = rlComputeAnalyticalApproximations(frequency, material, publicGeometry);
 
 if options.computeA0
     geometryForSpec = geometry;
@@ -29,7 +25,7 @@ if options.computeA0
     [CpA0, residualA0] = rlSolveFundamentalBranch(frequency, residualFcnA, solverOptionsA);
     kA0 = omega ./ CpA0;
 
-    results.modes.A0 = packModeResults("A0", branchSpecA.family, frequency, omega, CpA0, kA0, geometry.thickness, residualA0);
+    modes.A0 = packModeResults("A0", branchSpecA.family, frequency, omega, CpA0, kA0, geometry.thickness, residualA0);
 end
 if options.computeS0
     branchSpecS = rlMakeBranchSpec("S0", material, geometry);
@@ -39,8 +35,9 @@ if options.computeS0
     [CpS0, residualS0] = rlSolveFundamentalBranch(frequency, residualFcnS, solverOptionsS);
     kS0 = omega ./ CpS0;
 
-    results.modes.S0 = packModeResults("S0", branchSpecS.family, frequency, omega, CpS0, kS0, geometry.thickness, residualS0);
+    modes.S0 = packModeResults("S0", branchSpecS.family, frequency, omega, CpS0, kS0, geometry.thickness, residualS0);
 end
+results = rlBuildResult(params, options, material, geometry, frequency, modes, approximations);
 end
 
 function solverOptions = buildSolverOptions(options, material)
@@ -73,11 +70,11 @@ function mode = packModeResults(name, family, frequency, omega, Cp, k, thickness
 mode = struct( ...
     'name', name, ...
     'family', family, ...
-    'frequency', frequency, ...
-    'omega', omega, ...
-    'Cp', Cp, ...
-    'k', k, ...
-    'kThickness', k * thickness, ...
-    'residual', residual, ...
-    'valid', isfinite(Cp));
+    'frequency_Hz', frequency(:), ...
+    'phaseVelocity_mps', Cp(:), ...
+    'wavenumber_radpm', k(:), ...
+    'validMask', isfinite(Cp(:)), ...
+    'angularFrequency_radps', omega(:), ...
+    'wavenumberThickness', k(:) * thickness, ...
+    'diagnostics', struct('residual', residual(:)));
 end

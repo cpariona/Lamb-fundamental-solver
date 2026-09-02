@@ -1,32 +1,24 @@
-function rawResult = mrlfeBuildInternalBranchResult(problem, configuration, mrlfeResult, branchSolve, engineName, referenceOracle)
+function solverResult = mrlfeBuildInternalBranchResult(problem, configuration, branchSolve, engineName, referenceOracle)
 %MRLFEBUILDINTERNALBRANCHRESULT Build normalized internal solver output.
 
 [branch, Cp_mps] = resampleBranch(branchSolve, problem.frequencyRequested_Hz);
 validMask = branchValidMask(branch);
 
-rawFullResult = branchSolve.seedResult;
-rawFullResult.models.mRLFERealK = mrlfeResult;
-rawFullResult.models.mRLFE = mrlfeResult;
-
-rawResult = struct();
-rawResult.modelFamily = "mrlfe";
-rawResult.modelName = "mRLFERealK";
-rawResult.branchName = configuration.branch;
-rawResult.frequency_Hz = problem.frequencyRequested_Hz(:);
-rawResult.frequencySolve_Hz = problem.frequencySolve_Hz(:);
-rawResult.Cp_mps = Cp_mps(:);
-rawResult.validMask = validMask(:);
-rawResult.branch = branch;
-rawResult.branchSolve = branchSolve;
-rawResult.rawFullResult = rawFullResult;
-rawResult.params = problem.params;
-rawResult.options = configuration.internalOptions;
-rawResult.executionPath = struct( ...
+solverResult = struct();
+solverResult.frequency_Hz = problem.frequencyRequested_Hz(:);
+solverResult.frequencySolve_Hz = problem.frequencySolve_Hz(:);
+solverResult.Cp_mps = Cp_mps(:);
+solverResult.validMask = validMask(:);
+solverResult.branch = branch;
+solverResult.branchSolve = branchSolve;
+solverResult.params = problem.params;
+solverResult.options = configuration.internalOptions;
+solverResult.executionPath = struct( ...
     'engine', string(engineName), ...
     'referenceOracle', string(referenceOracle), ...
     'requestedPreset', configuration.requestedPreset, ...
     'effectivePreset', configuration.effectivePreset);
-rawResult.routeQuality = summarizeBranchQuality(branchSolve);
+solverResult.routeQuality = summarizeBranchQuality(branchSolve);
 end
 
 function [branchOut, CpRequested_mps] = resampleBranch(branchIn, frequencyRequested_Hz)

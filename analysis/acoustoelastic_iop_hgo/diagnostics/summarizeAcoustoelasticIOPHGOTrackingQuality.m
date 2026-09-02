@@ -134,7 +134,7 @@ end
 
 function [cp, f, valid, cpImag] = extractCurve(r)
 if isfield(r, 'Cp')
-    cp = r.Cp(:);
+    cp = r.phaseVelocity_mps(:);
 elseif isfield(r, 'CpReal')
     cp = r.CpReal(:);
 else
@@ -142,13 +142,13 @@ else
 end
 
 if isfield(r, 'frequency')
-    f = r.frequency(:);
+    f = r.frequency_Hz(:);
 else
     f = (1:numel(cp)).';
 end
 
 if isfield(r, 'validCp')
-    valid = logical(r.validCp(:));
+    valid = logical(r.validMask(:));
 elseif isfield(r, 'valid')
     valid = logical(r.valid(:));
 else

@@ -41,7 +41,7 @@ options.computeS0 = false;
 t = tic;
 raw = rlComputeFundamentalLambModes(params, options);
 elapsed = toc(t);
-cp = raw.modes.A0.Cp(:);
+cp = raw.modes.A0.phaseVelocity_mps(:);
 metadataOK = metadata.requestedExecutionProfile == "Fast" && ...
     metadata.effectiveExecutionProfile == "Fast" && ...
     options.gridPointsInitial == rlDefaultOptions("Fast").gridPointsInitial;

@@ -25,7 +25,7 @@ function sweepResult = aeRunSweep(baseParams, sweepField, sweepValues, options, 
 %   ------
 %   sweepResult.conditions(i).params
 %   sweepResult.conditions(i).result
-%   sweepResult.conditions(i).reliability
+%   sweepResult.conditions(i).quality
 %   sweepResult.summaryTable
 %
 %   Current solver call
@@ -53,7 +53,7 @@ conditions = repmat(struct( ...
     'sweepValueDisplay', [], ...
     'params', [], ...
     'result', [], ...
-    'reliability', [], ...
+    'quality', [], ...
     'diagnostics', []), 1, numel(sweepValues));
 
 summaryRows = [];
@@ -68,7 +68,7 @@ for i = 1:numel(sweepValues)
     conditions(i).sweepValueDisplay = formatSweepValue(sweepValues(i), sweepConfig);
     conditions(i).params = params;
     conditions(i).result = result;
-    conditions(i).reliability = result.reliability;
+    conditions(i).quality = result.quality;
     conditions(i).diagnostics = result.diagnostics;
 
     row = makeSummaryRow(i, sweepField, sweepValues(i), sweepConfig, result);
@@ -136,7 +136,7 @@ end
 end
 
 function row = makeSummaryRow(index, sweepField, sweepValue, sweepConfig, result)
-rel = result.reliability;
+rel = result.quality;
 row = struct();
 row.ConditionIndex = index;
 row.SweepName = string(sweepConfig.Name);

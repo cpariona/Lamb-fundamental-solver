@@ -12,6 +12,8 @@ function result = solveAcoustoelasticIOPHGOBranch(params, options)
 if nargin < 2
     options = [];
 end
+requestedOptions = options;
+timerStart = tic;
 
 aeValidateRequest(params, 'Context', "iopSolver");
 options = aeResolveConfiguration(options);
@@ -31,9 +33,19 @@ directParams.frequency = params.frequency;
 
 result = solveWithInternalTrackingGrid(directParams, options);
 spec = rebuildSpec(result);
+[result, fallbackInvalidated] = aeApplyAtlasA0FallbackPolicy(result);
+spec = rebuildSpec(result);
+if fallbackInvalidated
+    spec.qualityNote = "Official atlasA0 output invalidated because branch selection used unfiltered fallback after A0-like start filters failed. Fallback candidate data are diagnostic-only.";
+    spec.qualityFirstMissingAtStartWhenInvalid = true;
+    spec.diagnosticFields = struct('fallbackOutputInvalidated', true);
+end
 spec.postSummaryFields = struct('constitutiveState', state, 'directParams', directParams);
+spec.configuration = struct( ...
+    'requested', struct('parameters', params, 'options', requestedOptions), ...
+    'effective', struct('parameters', directParams, 'options', options));
+spec.execution = struct('engine', "atlasA0_iop_hgo", 'elapsedSeconds', toc(timerStart));
 result = aeBuildResult(spec);
-result = applyFallbackPolicyAndRebuild(result);
 end
 
 function result = solveWithInternalTrackingGrid(directParams, options)
@@ -73,8 +85,8 @@ fields.pointStatus = repmat("belowAtlasInitializationRange", size(requestedFrequ
 
 if any(isTracked)
     idx = loc(isTracked);
-    fields.Cp(isTracked) = trackingResult.Cp(idx);
-    fields.validCp(isTracked) = trackingResult.validCp(idx);
+    fields.Cp(isTracked) = trackingResult.phaseVelocity_mps(idx);
+    fields.validCp(isTracked) = trackingResult.validMask(idx);
     fields.branchExistsAtFrequency(isTracked) = trackingResult.branchExistsAtFrequency(idx);
     fields.interpolatedCp(isTracked) = trackingResult.interpolatedCp(idx);
     fields.objective(isTracked) = trackingResult.objective(idx);
@@ -94,7 +106,7 @@ trackingMetadata.InitializationNumFrequencyPoints = options.atlasInitializationN
 spec = struct();
 spec.baseResult = trackingResult;
 spec.fields = fields;
-spec.qualityBase = trackingResult.reliability;
+spec.qualityBase = trackingResult.quality;
 spec.qualityNote = "Cp is reported on the requested output grid after branch identity is selected on an internal atlas tracking grid.";
 spec.diagnosticBase = trackingResult.diagnostics;
 spec.diagnosticFields = struct('internalAtlasTrackingUsed', true);
@@ -108,7 +120,7 @@ result = aeBuildResult(spec);
 % The diagnostic branch is part of the returned requested-grid schema. Build
 % it again from the projected official fields while retaining the objective
 % columns that correspond exactly to those requested frequencies.
-if isfield(trackingResult, 'identityA0')
+if isfield(trackingResult.diagnostics, 'identityA0')
     diagnosticResult = result;
     diagnosticResult.objectiveMap = nan(size(trackingResult.objectiveMap, 1), numel(requestedFrequency));
     if any(isTracked)
@@ -116,31 +128,18 @@ if isfield(trackingResult, 'identityA0')
     end
     identity = aeBuildIdentityA0DiagnosticBranch(diagnosticResult);
     spec = rebuildSpec(result);
-    spec.postSummaryFields = struct('identityA0', identity);
     spec.diagnosticFields = struct( ...
+        'identityA0', identity, ...
         'identityA0CandidateValidPoints', identity.summary.CandidateValidPoints, ...
         'identityA0AddedCandidatePoints', identity.summary.AddedCandidatePoints);
     result = aeBuildResult(spec);
 end
 end
 
-function result = applyFallbackPolicyAndRebuild(result)
-[result, fallbackInvalidated] = aeApplyAtlasA0FallbackPolicy(result);
-if ~fallbackInvalidated
-    return;
-end
-
-spec = rebuildSpec(result);
-spec.qualityNote = "Official atlasA0 output invalidated because branch selection used unfiltered fallback after A0-like start filters failed. Fallback candidate data are diagnostic-only.";
-spec.qualityFirstMissingAtStartWhenInvalid = true;
-spec.diagnosticFields = struct('fallbackOutputInvalidated', true);
-result = aeBuildResult(spec);
-end
-
 function spec = rebuildSpec(result)
 spec = struct();
 spec.baseResult = result;
-spec.qualityBase = result.reliability;
-spec.qualityNote = result.reliability.ValidityNote;
+spec.qualityBase = result.quality;
+spec.qualityNote = result.quality.ValidityNote;
 spec.diagnosticBase = result.diagnostics;
 end

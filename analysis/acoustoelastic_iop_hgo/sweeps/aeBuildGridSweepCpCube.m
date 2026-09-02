@@ -21,9 +21,9 @@ for i = 1:numel(sweepResult.conditions)
     iy = find(yRawValues == yRaw, 1, 'first');
 
     result = condition.result;
-    f = result.frequency(:);
-    c = result.Cp(:);
-    valid = result.validCp(:) & isfinite(f) & isfinite(c);
+    f = result.frequency_Hz(:);
+    c = result.phaseVelocity_mps(:);
+    valid = result.validMask(:) & isfinite(f) & isfinite(c);
     if nnz(valid) >= 2
         Cp(iy, ix, :) = interp1(f(valid), c(valid), referenceFrequency, 'linear', nan);
     elseif nnz(valid) == 1
@@ -54,8 +54,8 @@ function frequency = findReferenceFrequency(sweepResult)
 frequency = [];
 for i = 1:numel(sweepResult.conditions)
     condition = sweepResult.conditions(i);
-    if isfield(condition, 'result') && isfield(condition.result, 'frequency') && ~isempty(condition.result.frequency)
-        frequency = condition.result.frequency(:).';
+    if isfield(condition, 'result') && isfield(condition.result, 'frequency_Hz') && ~isempty(condition.result.frequency_Hz)
+        frequency = condition.result.frequency_Hz(:).';
         return;
     end
 end

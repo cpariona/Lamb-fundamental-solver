@@ -44,16 +44,16 @@ for i = 1:height(grid)
     identityOptions.atlasBranchPolicy = "identityA0Diagnostic";
     resultIdentity = solveAcoustoelasticIOPHGOBranch(params, identityOptions);
 
-    officialCpPreserved = isequaln(resultAtlas.Cp, resultIdentity.Cp);
-    officialValidPreserved = isequal(resultAtlas.validCp, resultIdentity.validCp);
+    officialCpPreserved = isequaln(resultAtlas.phaseVelocity_mps, resultIdentity.phaseVelocity_mps);
+    officialValidPreserved = isequal(resultAtlas.validMask, resultIdentity.validMask);
     if ~officialCpPreserved || ~officialValidPreserved
         error('identityA0Diagnostic modified official atlas output for case %s.', caseName);
     end
-    if ~isfield(resultIdentity, 'identityA0')
-        error('identityA0Diagnostic did not add result.identityA0 for case %s.', caseName);
+    if ~isfield(resultIdentity.diagnostics, 'identityA0')
+        error('identityA0Diagnostic did not add diagnostics.identityA0 for case %s.', caseName);
     end
 
-    identityByCase.(safeName) = compactIdentity(resultIdentity.identityA0);
+    identityByCase.(safeName) = compactIdentity(resultIdentity.diagnostics.identityA0);
 
     row = buildSummaryRow(i, grid(i,:), resultIdentity, caseName);
     summaryRows = [summaryRows; row]; %#ok<AGROW>
@@ -98,8 +98,8 @@ compact.candidateClass = identity.candidateClass;
 end
 
 function row = buildSummaryRow(caseIndex, gridRow, result, caseName)
-id = result.identityA0.summary;
-valid = logical(result.validCp(:)) & isfinite(result.Cp(:));
+id = result.diagnostics.identityA0.summary;
+valid = logical(result.validMask(:)) & isfinite(result.phaseVelocity_mps(:));
 row = struct();
 row.CaseIndex = caseIndex;
 row.CaseName = string(caseName);
@@ -124,13 +124,13 @@ row.MedianAddedScore = id.MedianAddedScore;
 row.MedianAddedRank = id.MedianAddedRank;
 row.OfficialTruncated = any(~valid) && isfinite(id.FirstOfficialMissingFrequency_kHz);
 row.CandidateExtendsOfficial = id.AddedCandidatePoints > 0;
-row.CandidateReachesFinalFrequency = logical(result.identityA0.validCandidate(end));
+row.CandidateReachesFinalFrequency = logical(result.diagnostics.identityA0.validCandidate(end));
 row.Note = "identityA0Diagnostic only; official atlas fields preserved.";
 end
 
 function rows = buildAddedCandidateRows(caseIndex, gridRow, result, caseName)
 rows = [];
-id = result.identityA0;
+id = result.diagnostics.identityA0;
 idx = find(logical(id.addedFromIdentityScore));
 for i = 1:numel(idx)
     k = idx(i);

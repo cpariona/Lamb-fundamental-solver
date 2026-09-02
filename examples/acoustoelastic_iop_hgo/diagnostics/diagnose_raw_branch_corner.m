@@ -446,17 +446,17 @@ end
 end
 
 function comparison = compareConfig(config, caseParams, rawPoints, refRawPoints, atlasResult, identityResult, settings)
-f = atlasResult.frequency(:);
+f = atlasResult.frequency_Hz(:);
 [rawCp, rawValid, rawRank] = assignRawBranchToFrequency(f, rawPoints);
 [refCp, refValid, ~] = assignRawBranchToFrequency(f, refRawPoints);
 
-atlasCp = atlasResult.Cp(:);
-atlasValid = logical(atlasResult.validCp(:)) & isfinite(atlasCp);
+atlasCp = atlasResult.phaseVelocity_mps(:);
+atlasValid = logical(atlasResult.validMask(:)) & isfinite(atlasCp);
 identityCp = nan(size(f));
 identityValid = false(size(f));
-if isfield(identityResult, 'identityA0')
-    identityCp = identityResult.identityA0.CpCandidate(:);
-    identityValid = logical(identityResult.identityA0.validCandidate(:)) & isfinite(identityCp);
+if isfield(identityResult.diagnostics, 'identityA0')
+    identityCp = identityResult.diagnostics.identityA0.CpCandidate(:);
+    identityValid = logical(identityResult.diagnostics.identityA0.validCandidate(:)) & isfinite(identityCp);
 end
 
 [atlasErr, atlasOverlap, atlasMismatch] = relativeError(rawCp, rawValid, atlasCp, atlasValid, settings.RelativeMismatchThreshold);

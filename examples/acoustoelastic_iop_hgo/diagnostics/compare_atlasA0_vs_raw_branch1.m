@@ -144,12 +144,12 @@ options.AlignmentMaxThreshold = 0.10;
 end
 
 function comparison = compareCase(iop, rawCase, atlasResult, identityResult, options)
-f = atlasResult.frequency(:);
+f = atlasResult.frequency_Hz(:);
 rawCp = interp1(rawCase.Frequency_Hz, rawCase.Cp_mps, f, 'linear', nan);
 rawValid = isfinite(rawCp);
 
-atlasCp = atlasResult.Cp(:);
-atlasValid = logical(atlasResult.validCp(:)) & isfinite(atlasCp);
+atlasCp = atlasResult.phaseVelocity_mps(:);
+atlasValid = logical(atlasResult.validMask(:)) & isfinite(atlasCp);
 
 [identityCp, identityValid] = identityCandidateOnFrequencyGrid(identityResult, f);
 
@@ -196,11 +196,12 @@ f = f(:);
 cp = nan(size(f));
 valid = false(size(f));
 
-if ~isstruct(identityResult) || ~isfield(identityResult, 'identityA0') || ~isstruct(identityResult.identityA0)
+if ~isstruct(identityResult) || ~isfield(identityResult, 'diagnostics') || ...
+        ~isfield(identityResult.diagnostics, 'identityA0') || ~isstruct(identityResult.diagnostics.identityA0)
     return;
 end
 
-identity = identityResult.identityA0;
+identity = identityResult.diagnostics.identityA0;
 if ~isfield(identity, 'CpCandidate') || isempty(identity.CpCandidate)
     return;
 end

@@ -14,9 +14,9 @@ modeNames = fieldnames(results.modes);
 for i = 1:numel(modeNames)
     name = modeNames{i};
     mode = results.modes.(name);
-    fprintf('%s valid points: %d / %d\n', name, sum(mode.valid), numel(mode.valid));
-    if any(mode.valid)
-        fprintf('%s Cp range: %.6g to %.6g m/s\n', name, min(mode.Cp(mode.valid)), max(mode.Cp(mode.valid)));
+    fprintf('%s valid points: %d / %d\n', name, sum(mode.validMask), numel(mode.validMask));
+    if any(mode.validMask)
+        fprintf('%s Cp range: %.6g to %.6g m/s\n', name, min(mode.phaseVelocity_mps(mode.validMask)), max(mode.phaseVelocity_mps(mode.validMask)));
     end
     if any(isfinite(mode.residual))
         fprintf('%s max residual: %.3e\n', name, max(mode.residual(isfinite(mode.residual))));
@@ -26,10 +26,10 @@ end
 figure;
 hold on;
 if isfield(results.modes, 'A0')
-    plot(results.modes.A0.frequency, results.modes.A0.Cp, 'LineWidth', 2, 'DisplayName', 'A0');
+    plot(results.modes.A0.frequency_Hz, results.modes.A0.phaseVelocity_mps, 'LineWidth', 2, 'DisplayName', 'A0');
 end
-if isfield(results.modes, 'S0') && any(isfinite(results.modes.S0.Cp))
-    plot(results.modes.S0.frequency, results.modes.S0.Cp, '--', 'LineWidth', 1.5, 'DisplayName', 'S0 experimental');
+if isfield(results.modes, 'S0') && any(isfinite(results.modes.S0.phaseVelocity_mps))
+    plot(results.modes.S0.frequency_Hz, results.modes.S0.phaseVelocity_mps, '--', 'LineWidth', 1.5, 'DisplayName', 'S0 experimental');
 end
 grid on;
 xlabel('frequency [Hz]');

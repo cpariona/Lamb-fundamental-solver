@@ -7,9 +7,9 @@ function diagnosis = aeDiagnoseAtlasA0TruncationCause(result, varargin)
 %   official valid point. Internal gaps are reported separately.
 
 opts = parseOptions(varargin{:});
-f = result.frequency(:);
-cp = result.Cp(:);
-valid = logical(result.validCp(:)) & isfinite(cp);
+f = result.frequency_Hz(:);
+cp = result.phaseVelocity_mps(:);
+valid = logical(result.validMask(:)) & isfinite(cp);
 
 recovery = aeAnalyzeTruncationRecovery(result, ...
     'MaxRelativeCpDistance', opts.MaxRelativeCpJump, ...
@@ -396,8 +396,8 @@ end
 end
 
 function value = getReliabilityField(result, name, defaultValue)
-if isfield(result, 'reliability') && isstruct(result.reliability) && isfield(result.reliability, name)
-    value = result.reliability.(name);
+if isfield(result, 'quality') && isstruct(result.quality) && isfield(result.quality, name)
+    value = result.quality.(name);
 else
     value = defaultValue;
 end

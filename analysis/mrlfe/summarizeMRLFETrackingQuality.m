@@ -123,7 +123,7 @@ if isstruct(result) && isfield(result, 'model') && string(result.model) == "mrlf
         error('summarizeMRLFETrackingQuality:MissingBranch', ...
             'mRLFE public result is for branch %s, not %s.', result.branch, branchName);
     end
-    branch = result.debug.rawInternalResult.branch;
+    branch = result.debug.solverResult.branch;
 end
 if isstruct(result) && isfield(result, 'branches')
     if ~isfield(result.branches, char(branchName))
