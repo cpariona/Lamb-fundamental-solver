@@ -1,6 +1,7 @@
 # Acoustoelastic IOP/HGO public API
 
-The supported acoustoelastic IOP/HGO API is author-neutral. Maintained code, examples, tests, GUI callbacks, and analysis scripts should call the `Acoustoelastic` / `AcoustoelasticIOPHGO` entrypoints listed below.
+The canonical acoustoelastic IOP/HGO API contains one production solver and
+one production-default owner. Maintained consumers use these entrypoints.
 
 The former author-specific compatibility layer and legacy branch-policy aliases have been removed. Do not add new compatibility wrappers or call removed names from active MATLAB code.
 
@@ -10,21 +11,10 @@ The former author-specific compatibility layer and legacy branch-policy aliases 
 solveAcoustoelasticIOPHGOBranch
 ```
 
-## Advanced supported scientific solver APIs
-
-```matlab
-solveAcoustoelasticIOPHGOAtlasBranch
-solveAcoustoelasticAtlasBranch
-solveAcoustoelasticIOPHGODispersion
-solveAcoustoelasticDispersion
-solveAcoustoelasticComplexCDispersion
-```
-
 ## Options
 
 ```matlab
 defaultAcoustoelasticIOPHGOOptions
-aeNormalizeBranchPolicy
 ```
 
 ## Configuration ownership
@@ -36,10 +26,9 @@ aeValidateRequest
 aeBuildInternalTrackingGrid
 ```
 
-`aeGetNumericalPreset` is an advanced supported configuration surface. The
-resolver, validator, and grid builder are maintained model internals used by
-the public flat `params, options` entrypoints; they do not introduce a public
-request struct or a second solver route.
+The preset owner, resolver, validator, and grid builder are maintained model
+internals. App surface names and UI profile translation are owned by
+`app/adapters/aeResolveExecutionProfile`.
 
 ## Result and quality ownership
 
@@ -164,9 +153,8 @@ The maintained fitting route uses the official `atlasA0` output only. Diagnostic
 
 Maintained Main GUI solving, SweepTool points, fitting evaluations, grid
 sweeps, and the basic example all enter through
-`solveAcoustoelasticIOPHGOBranch`. The longer atlas entrypoints remain
-advanced supported model APIs; they are not parallel production routes for
-app or analysis consumers.
+`solveAcoustoelasticIOPHGOBranch`. Direct atlas, real-Cp, and complex-C solvers
+are retained internal diagnostics; they are not parallel production routes.
 
 ## Maintained public workflows
 

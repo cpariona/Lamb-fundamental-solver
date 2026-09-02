@@ -37,22 +37,6 @@ rlComputeFundamentalLambModes
 rlComputeAnalyticalApproximations
 ```
 
-Advanced supported model functions:
-
-```matlab
-rlBuildFrequencyVector
-rlComputeGeometry
-rlComputeMaterial
-rlMakeBranchSpec
-rlValidateOptions
-rlValidateParams
-rlAResidual
-rlSResidual
-rlComputeA0ThinPlateApproximation
-rlComputeS0ExtensionalApproximation
-rlSolveFundamentalBranch
-```
-
 ### Acoustoelastic IOP/HGO
 
 Primary production API:
@@ -60,21 +44,10 @@ Primary production API:
 ```matlab
 solveAcoustoelasticIOPHGOBranch
 defaultAcoustoelasticIOPHGOOptions
-aeNormalizeBranchPolicy
 ```
 
-Advanced supported scientific APIs:
-
-```matlab
-solveAcoustoelasticIOPHGOAtlasBranch
-solveAcoustoelasticAtlasBranch
-solveAcoustoelasticIOPHGODispersion
-solveAcoustoelasticDispersion
-solveAcoustoelasticComplexCDispersion
-```
-
-The supported production policy is `atlasA0`. Diagnostic branches are not
-public production outputs.
+The supported production policy is `atlasA0`. Direct real-Cp, complex-C, and
+identity branches are retained diagnostics, not public production outputs.
 
 ### mRLFE
 
@@ -82,13 +55,11 @@ public production outputs.
 mrlfeSolve
 mrlfeDefaultParameters
 mrlfeDefaultOptions
-mrlfeValidateRequest
-mrlfeGetNumericalPreset
 ```
 
-`mrlfeSolve` is the production solver entrypoint. The other functions define
-the request/default/preset boundary. Configuration, tracking, termination,
-quality, and result builders are maintained internals, listed separately below.
+`mrlfeSolve` is the production solver entrypoint. Configuration, validation,
+presets, tracking, termination, quality, and result builders are maintained
+internals, listed separately below.
 
 ## Application APIs and helpers
 
@@ -311,11 +282,28 @@ elasticFromMuNu
 elasticFromLame
 ```
 
+### Rayleigh-Lamb numerical internals
+
+```matlab
+rlBuildFrequencyVector
+rlComputeGeometry
+rlComputeMaterial
+rlMakeBranchSpec
+rlValidateOptions
+rlValidateParams
+rlAResidual
+rlSResidual
+rlComputeA0ThinPlateApproximation
+rlComputeS0ExtensionalApproximation
+rlSolveFundamentalBranch
+```
+
 ### AE numerical internals
 
 ```matlab
 aeResolveConfiguration
 aeValidateRequest
+aeGetNumericalPreset
 aeBuildInternalTrackingGrid
 aeBuildAtlas
 aeFindAtlasLocalMinima
@@ -341,6 +329,11 @@ owners, not additional public solver routes.
 ### AE diagnostic model internals
 
 ```matlab
+aeDefaultDiagnosticOptions
+solveAcoustoelasticAtlasBranch
+solveAcoustoelasticIOPHGODispersion
+solveAcoustoelasticDispersion
+solveAcoustoelasticComplexCDispersion
 aeBuildIdentityA0DiagnosticBranch
 aeScoreBranchIdentityCandidates
 ```
@@ -354,6 +347,8 @@ explicit `identityA0Diagnostic` policy is requested and never own production
 
 ```matlab
 mrlfeResolveConfiguration
+mrlfeValidateRequest
+mrlfeGetNumericalPreset
 mrlfeBuildProblem
 mrlfeDefaultInternalParameters
 mrlfeObjectiveResidual

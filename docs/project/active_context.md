@@ -1,22 +1,27 @@
 # Active project context
 
-Last reviewed: 2026-08-31
+Last reviewed: 2026-09-01
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
 Planning branch: `planning/full-repository-restructure`
-Active implementation branch: `restructure/phase-01-model-boundaries`
+Active implementation branch: `restructure/phase-02-model-api-configuration`
 Starting main checkpoint:
 `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 
 ## Current product state
 
 - Rayleigh-Lamb, mRLFE, and AE IOP/HGO have maintained scientific APIs.
+- Canonical public APIs are intentionally small: four for RL, three for mRLFE,
+  and two for AE.
 - Main GUI, SweepTool, and FitTool are the principal human-facing surfaces.
 - mRLFE production consumers route through `mrlfeSolve`.
 - Phase 1 establishes a one-way model dependency: `mrlfeBuildSeed` may call the
   RL public solver to obtain a seed; RL contains no mRLFE flags or execution.
 - AE production consumers route through the maintained AE public route and
   conservative `atlasA0` policy.
+- AE app surfaces translate Fast/Balanced/Robust requests in
+  `aeResolveExecutionProfile`; model configuration does not know Main GUI,
+  FitTool, or SweepTool.
 - The AE high-frequency refinement issue is resolved in `main`: production now
   uses discrete atlas candidates followed by bounded continuous refinement of
   the selected branch on the true SVD objective.
@@ -93,20 +98,25 @@ architecture.
 
 ## Current phase
 
-The repository-wide audit and target architecture are complete on the planning
-branch. Phase 1 implements the highest-value scientific boundary without a
-broad physical move:
+Phase 2 builds on the Phase 1 dependency boundary and establishes canonical
+model APIs and configuration ownership:
 
 ```text
-mRLFE -> Rayleigh-Lamb seed
-Rayleigh-Lamb -/-> mRLFE
+RL public:    rlDefaultParams, rlDefaultOptions,
+              rlComputeFundamentalLambModes,
+              rlComputeAnalyticalApproximations
+mRLFE public: mrlfeDefaultParameters, mrlfeDefaultOptions, mrlfeSolve
+AE public:    defaultAcoustoelasticIOPHGOOptions,
+              solveAcoustoelasticIOPHGOBranch
 ```
 
-Consumers use `mrlfeSolve`, obsolete embedded-route helpers and their
-architecture-freezing tests are removed, and AE retains discrete branch
-selection followed by bounded true-objective refinement.
+AE direct real-Cp and complex-C controls now belong to diagnostic configuration.
+The public AE solver owns validation, configuration, constitutive conversion,
+tracking-grid projection, atlas solve, production policy, and result assembly.
+It retains discrete branch selection followed by bounded true-objective
+refinement.
 
 ## Next planning step
 
-After Phase 1 validation and review, select the next bounded migration from the
-approved phased plan rather than combining multiple ownership changes.
+After Phase 2 review, proceed to result-schema normalization only as a separate
+Phase 3 migration.

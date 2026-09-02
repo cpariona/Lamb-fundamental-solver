@@ -83,12 +83,9 @@ No Main GUI legacy fallback is applied by this API.
 
 ## Presets
 
-Use:
-
-```matlab
-preset = mrlfeGetNumericalPreset("fast");
-preset = mrlfeGetNumericalPreset("dense");
-```
+Public requests select `request.numerics.preset` as `"fast"` or `"dense"`.
+`mrlfeGetNumericalPreset` is the internal configuration owner that resolves
+those names; it is not an additional public API.
 
 `fast` maps to the maintained FitTool fast-atlas settings:
 

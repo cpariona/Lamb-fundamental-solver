@@ -135,7 +135,7 @@ result.validCp
 from:
 
 ```matlab
-solveAcoustoelasticIOPHGOAtlasBranch
+solveAcoustoelasticIOPHGOBranch
 ```
 
 It explicitly checks that the synthetic validation case does not rely on fallback branch selection and that the branch policy remains:

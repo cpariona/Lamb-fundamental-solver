@@ -1,6 +1,6 @@
 # Session handoff
 
-Updated: 2026-08-31
+Updated: 2026-09-01
 
 ## Repository state
 
@@ -8,6 +8,7 @@ Updated: 2026-08-31
 - Default branch: `main`
 - Planning branch: `planning/full-repository-restructure`
 - Phase 1 branch: `restructure/phase-01-model-boundaries`
+- Phase 2 branch: `restructure/phase-02-model-api-configuration`
 - Starting main checkpoint:
   `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 - Starting checkpoint message:
@@ -21,6 +22,13 @@ core now computes only A0/S0, mRLFE consumers call `mrlfeSolve`, and
 `rlComputeFundamentalLambModes`. Legacy `computeMRLFE*` configuration has been
 removed from maintained RL and GUI routes. AE production remains protected as
 discrete selection followed by bounded refinement on the true SVD objective.
+
+Phase 2 reduces the public surfaces to four RL APIs, three mRLFE APIs, and two
+AE APIs. `solveAcoustoelasticIOPHGOBranch` is the complete AE production owner;
+the forwarding-only `solveAcoustoelasticIOPHGOAtlasBranch` was removed. AE
+surface translation is app-owned, direct/complex solver options are diagnostic,
+and the mRLFE adaptive tracker no longer carries historical FitAtlas/A0DP/
+ViscoAtlas option names.
 
 The AE high-frequency refinement work is complete and merged to `main`.
 Production AE candidate discovery is discrete on the atlas `cGrid`; branch
@@ -38,6 +46,9 @@ Relative mu error: 5.06201e-08
 
 Extended acoustoelastic IOP/HGO tests passed.
 Acoustoelastic IOP/HGO smoke tests passed.
+mRLFE production characterization: 24 Fast and 6 Dense cases, max abs DeltaCp 0 m/s.
+Main GUI vs SweepTool max Cp diff: 0.
+Main GUI vs FitTool max Cp diff: 0.
 ```
 
 ## New active campaign

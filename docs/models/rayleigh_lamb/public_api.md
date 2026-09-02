@@ -2,7 +2,10 @@
 
 ## API status
 
-The `rl*` functions under `models/rayleigh_lamb/` are the supported Rayleigh-Lamb implementation entrypoints. Historical old-name compatibility wrappers have been removed and are not part of the maintained public API.
+The canonical public surface contains four functions: `rlDefaultParams`,
+`rlDefaultOptions`, `rlComputeFundamentalLambModes`, and
+`rlComputeAnalyticalApproximations`. Other `rl*` functions are maintained
+implementation owners, not additional public contracts.
 
 For architecture, path behavior, validation, and GUI guidance, see [Rayleigh-Lamb solver overview](overview.md).
 
@@ -32,15 +35,15 @@ params.rho = ...;
 
 The previous `YoungPoissonFixedCL` route is no longer part of the maintained material contract.
 
-## Primary API table
+## Ownership table
 
-| Folder | Primary function | Purpose |
+| Folder | Function | Classification and purpose |
 | --- | --- | --- |
 | `models/rayleigh_lamb/core/` | `rlDefaultParams` | Build the default Rayleigh-Lamb parameter structure. |
 | `models/rayleigh_lamb/core/` | `rlDefaultOptions` | Build the default Rayleigh-Lamb solver options structure. |
 | `models/rayleigh_lamb/core/` | `rlComputeFundamentalLambModes` | Compute only the requested fundamental A0/S0 Rayleigh-Lamb modes. |
-| `models/rayleigh_lamb/core/` | `rlBuildFrequencyVector` | Construct the frequency vector used by the base solver workflow. |
-| `models/rayleigh_lamb/core/` | `rlComputeMaterial` | Compute material quantities derived from Rayleigh-Lamb parameters. |
+| `models/rayleigh_lamb/core/` | `rlBuildFrequencyVector` | Internal: construct the base solver frequency vector. |
+| `models/rayleigh_lamb/core/` | `rlComputeMaterial` | Internal: derive material quantities. |
 | `models/rayleigh_lamb/core/` | `rlComputeGeometry` | Compute geometry quantities derived from Rayleigh-Lamb parameters. |
 | `models/rayleigh_lamb/core/` | `rlMakeBranchSpec` | Construct branch specifications for fundamental-mode tracking. |
 | `models/rayleigh_lamb/core/` | `rlValidateParams` | Validate Rayleigh-Lamb parameter structures. |

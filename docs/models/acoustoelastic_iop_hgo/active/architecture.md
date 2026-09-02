@@ -22,12 +22,11 @@ solver route for application and maintained workflow consumers:
 
 ```text
 solveAcoustoelasticIOPHGOBranch
-  -> solveAcoustoelasticIOPHGOAtlasBranch
-     -> aeValidateRequest
-     -> aeResolveConfiguration
-     -> computeAcoustoelasticABGFromIOPHGO
-     -> aeBuildInternalTrackingGrid, when enabled
-     -> solveAcoustoelasticAtlasBranch
+  -> aeValidateRequest
+  -> aeResolveConfiguration
+  -> computeAcoustoelasticABGFromIOPHGO
+  -> aeBuildInternalTrackingGrid, when enabled
+  -> solveAcoustoelasticAtlasBranch
         -> aeBuildAtlas
            -> objectiveAcoustoelasticResidual
               -> buildAcoustoelasticMatrix
@@ -43,7 +42,7 @@ solveAcoustoelasticIOPHGOBranch
      -> aeBuildResult
 ```
 
-The public convenience entrypoint is intentionally thin. Configuration,
+The public entrypoint owns complete production orchestration. Configuration,
 tracking, policy, quality, and result construction each have one model-layer
 owner.
 
@@ -80,11 +79,10 @@ workflows.
 | --- | --- | --- |
 | Flat request validation | `aeValidateRequest` | maintained internal |
 | Effective option resolution | `aeResolveConfiguration` | maintained internal |
-| Fast/Balanced/Robust and Main GUI numerical bundles | `aeGetNumericalPreset` | advanced supported configuration API |
+| Fast/Balanced/Robust numerical presets | `aeGetNumericalPreset` | maintained internal configuration |
 | Requested/internal tracking grid | `aeBuildInternalTrackingGrid` | maintained internal |
 | IOP/HGO public solve | `solveAcoustoelasticIOPHGOBranch` | public production API |
-| IOP/HGO-to-direct orchestration | `solveAcoustoelasticIOPHGOAtlasBranch` | advanced supported scientific API |
-| Direct atlas orchestration | `solveAcoustoelasticAtlasBranch` | advanced supported scientific API |
+| Direct atlas orchestration | `solveAcoustoelasticAtlasBranch` | maintained internal diagnostic |
 | Objective atlas construction | `aeBuildAtlas` | maintained internal |
 | Local minima | `aeFindAtlasLocalMinima` | maintained internal |
 | Branch linking | `aeLinkAtlasBranches` | maintained internal |
@@ -162,18 +160,11 @@ Output folders and files are workflow responsibilities. `aeOutputFolder` and
 `aeWriteSweepOutputs` own AE analysis output handling; model solvers do not
 write files.
 
-## Advanced scientific solver APIs
+## Retained diagnostic solvers
 
-These entrypoints are retained because they expose distinct scientific
-capabilities and external use cannot be excluded:
+These internal entrypoints retain distinct scientific diagnostic capabilities:
 
 ```text
-advanced IOP/HGO atlas
-  -> solveAcoustoelasticIOPHGOAtlasBranch
-  -> constitutive conversion
-  -> solveAcoustoelasticAtlasBranch
-  -> canonical atlas tracking, policy, quality, and result owners
-
 direct real-Cp tracking
   -> solveAcoustoelasticIOPHGODispersion, for IOP/HGO inputs
      -> constitutive conversion
@@ -192,11 +183,10 @@ complex-C tracking
 
 | Entrypoint | Classification | Purpose |
 | --- | --- | --- |
-| `solveAcoustoelasticIOPHGOAtlasBranch` | advanced supported scientific API | Explicit IOP/HGO constitutive conversion plus atlas orchestration |
-| `solveAcoustoelasticAtlasBranch` | advanced supported scientific API | Direct alpha/beta/gamma real-Cp atlas solve |
-| `solveAcoustoelasticIOPHGODispersion` | advanced supported scientific API | IOP/HGO conversion plus direct real-Cp dispersion tracking |
-| `solveAcoustoelasticDispersion` | advanced supported scientific API | Direct alpha/beta/gamma real-Cp dispersion tracking |
-| `solveAcoustoelasticComplexCDispersion` | advanced supported scientific API | Distinct complex-C continuation solve |
+| `solveAcoustoelasticAtlasBranch` | maintained internal diagnostic | Direct alpha/beta/gamma atlas solve |
+| `solveAcoustoelasticIOPHGODispersion` | retained diagnostic | IOP/HGO conversion plus direct real-Cp tracking |
+| `solveAcoustoelasticDispersion` | retained diagnostic | Direct alpha/beta/gamma real-Cp tracking |
+| `solveAcoustoelasticComplexCDispersion` | retained diagnostic | Distinct complex-C continuation solve |
 
 They are not parallel production routes for Main GUI, SweepTool, FitTool,
 maintained sweeps, fitting, or the basic example. Tests and diagnostics may call

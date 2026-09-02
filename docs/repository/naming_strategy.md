@@ -46,14 +46,11 @@ Public solver APIs make the model and responsibility visible:
 rlComputeFundamentalLambModes
 mrlfeSolve
 solveAcoustoelasticIOPHGOBranch
-solveAcoustoelasticIOPHGOAtlasBranch
-solveAcoustoelasticIOPHGODispersion
 defaultAcoustoelasticIOPHGOOptions
 ```
 
-Long AE public solver names are intentional because they distinguish the
-IOP/HGO contract from generic acoustoelastic calculations. Public APIs are not
-renamed solely to shorten them.
+The long AE public solver name is intentional because it distinguishes the
+IOP/HGO contract from generic diagnostic acoustoelastic calculations.
 
 ## Internal helper naming
 
