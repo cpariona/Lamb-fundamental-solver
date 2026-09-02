@@ -92,13 +92,34 @@ and result-file compatibility contracts are assigned to the maintained focused
 runners; the deterministic inventory CSVs include their canonical ownership
 edges.
 
+## Phase 3 result-contract validation
+
+Validation completed on 2026-09-02 for
+`restructure/phase-03-result-contracts`:
+
+- repository hygiene, quick contracts, and quick smoke passed;
+- mRLFE production core, route integrity, and smoke passed;
+- AE extended, execution-profile end-to-end, and focused fitting validation
+  passed;
+- mRLFE production characterization covered 24 Fast and 6 Dense cases with
+  maximum absolute difference `0 m/s`, maximum relative difference `0`, and no
+  validity-mask differences;
+- Main GUI, FitTool, and SweepTool mRLFE characterizations each covered 24
+  cases with maximum absolute difference `0 m/s`, maximum relative difference
+  `0`, and no validity-mask differences;
+- AE synthetic atlasA0 fitting recovered `mu` with relative error
+  `5.062e-08`, using the maintained bounded `fminbnd` path.
+
+The lightweight numerical regression retains one known baseline failure:
+`AE IOP/HGO atlasA0 Cp snapshot changed.` The Phase 3 migration does not update
+that golden or relax its `1e-12` tolerance.
+
 ## Compatibility debt
 
 | Exception | Owner | Current consumer | Reason retained | Removal condition |
 | --- | --- | --- | --- | --- |
 | Five public test wrappers | `tests/README.md`; `runRepositoryTestRunner` | Users and automation invoking the broad established smoke commands | Keeps the small convenience surface stable while canonical implementations live under `tests/runners/` | Remove only through an explicit public deprecation after external callers migrate. |
 | `robustness` request/control alias | `guiNormalizeExecutionProfile`; `guiNormalizeControlExecutionProfile` | Existing GUI controls, adapters, request builders, tests, and external request structs | Preserves the established profile field while `executionProfile` is canonical | Remove after all maintained and external producers emit only `executionProfile` and a release deprecation is complete. |
-| `result.diagnostics.rawInternalResult` | `mrlfeBuildResult` | No maintained production or numerical-test consumer; the public result-schema contract test verifies temporary alias availability and parity | Keeps the pre-debug-path diagnostic schema while `result.debug.rawInternalResult` is canonical | Remove only through an explicit schema-versioned compatibility change after external callers are considered. |
 | `aeResolveResultFile` legacy-result fallback | AE analysis layer | Five maintained diagnostic scripts at eight call sites reading previously generated workspaces | Resolves the canonical task/file first while preserving repeatability from explicitly supplied legacy result roots | Remove after required diagnostic fixtures are regenerated in canonical result roots, external legacy inputs have migrated, and focused plus manual loading checks pass. |
 
 No new compatibility alias is authorized by this table.

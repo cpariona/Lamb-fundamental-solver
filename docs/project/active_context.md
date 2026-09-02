@@ -1,10 +1,10 @@
 # Active project context
 
-Last reviewed: 2026-09-01
+Last reviewed: 2026-09-02
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
 Planning branch: `planning/full-repository-restructure`
-Active implementation branch: `restructure/phase-02-model-api-configuration`
+Active implementation branch: `restructure/phase-03-result-contracts`
 Starting main checkpoint:
 `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 
@@ -98,8 +98,8 @@ architecture.
 
 ## Current phase
 
-Phase 2 builds on the Phase 1 dependency boundary and establishes canonical
-model APIs and configuration ownership:
+Phase 3 builds on the Phase 2 public APIs and establishes canonical result
+ownership and semantics:
 
 ```text
 RL public:    rlDefaultParams, rlDefaultOptions,
@@ -110,13 +110,19 @@ AE public:    defaultAcoustoelasticIOPHGOOptions,
               solveAcoustoelasticIOPHGOBranch
 ```
 
-AE direct real-Cp and complex-C controls now belong to diagnostic configuration.
-The public AE solver owns validation, configuration, constitutive conversion,
-tracking-grid projection, atlas solve, production policy, and result assembly.
-It retains discrete branch selection followed by bounded true-objective
-refinement.
+Each model now owns result construction through `rlBuildResult`,
+`mrlfeBuildResult`, or `aeBuildResult`. Official dispersion arrays use
+`frequency_Hz`, `phaseVelocity_mps`, `wavenumber_radpm`, and `validMask`.
+`quality` is the sole official-output assessment name. Configuration separates
+caller intent under `requested` from resolved execution under `effective`.
+
+The mRLFE compatibility result and raw GUI normalizer are removed. Main GUI and
+SweepTool consume public model results through shallow presentation adapters.
+mRLFE internal evidence has one owner at `debug.solverResult`; AE
+`identityA0Diagnostic` evidence is nested under diagnostics and remains distinct
+from productive `atlasA0` output.
 
 ## Next planning step
 
-After Phase 2 review, proceed to result-schema normalization only as a separate
-Phase 3 migration.
+After Phase 3 validation and review, proceed only to the separately authorized
+Phase 4 scope; do not broaden this phase into fitter or sweep-engine consolidation.

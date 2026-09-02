@@ -53,7 +53,7 @@ Under this policy, the solver:
 4. Keeps only A0-like candidate branches that start at low dimensionless phase speed and low rank.
 5. Splits branches when a large relative phase-speed jump is detected.
 6. Does not interpolate or reconnect missing high-frequency portions by default.
-7. Reports missing or untraceable portions as `NaN` in `result.Cp` and `false` in `result.validCp`.
+7. Reports missing or untraceable portions as `NaN` in `result.phaseVelocity_mps` and `false` in `result.validMask`.
 
 The maintained production ownership path is:
 
@@ -85,7 +85,7 @@ This means:
 
 ```text
 internal tracking grid = used to identify and link the atlas-A0 branch
-requested output grid  = frequencies returned to GUI/users in result.Cp and result.validCp
+requested output grid  = frequencies returned to GUI/users in result.phaseVelocity_mps and result.validMask
 ```
 
 The internal grid prevents the first requested output frequency from becoming the identity anchor of the branch. This is necessary because very low requested frequencies can be dominated by near-degenerate minima, while high requested starting frequencies can start after the A0-like identity region has already been skipped.
@@ -135,8 +135,8 @@ options.atlasAllowInterpolationAcrossGaps = false;
 Therefore, if the A0-like branch is not explicitly traceable at high frequency, the output should be interpreted as:
 
 ```matlab
-result.Cp(k) = NaN;
-result.validCp(k) = false;
+result.phaseVelocity_mps(k) = NaN;
+result.validMask(k) = false;
 result.pointStatus(k) = "missingSelectedBranch";
 ```
 
@@ -147,8 +147,8 @@ This is a reliability statement, not necessarily a physical claim that the mode 
 If no branch satisfies the A0-like start filters and the atlas solver falls back to an unfiltered selection, the IOP/HGO wrapper invalidates that fallback as official output:
 
 ```matlab
-result.Cp(:) = NaN;
-result.validCp(:) = false;
+result.phaseVelocity_mps(:) = NaN;
+result.validMask(:) = false;
 result.pointStatus(:) = "fallbackRejectedA0StartFilter";
 ```
 
@@ -159,29 +159,29 @@ result.fallbackCandidateCp
 result.fallbackCandidateValidCp
 ```
 
-## Reliability outputs
+## Quality outputs
 
-The solver exposes a reliability summary:
+The solver exposes a quality summary:
 
 `aeEvaluateAtlasA0Quality` is the single model owner of this requested-grid
 summary. It evaluates an already-selected and, where applicable, already
 invalidated official output; it does not select branches or decide fallback.
 
 ```matlab
-result.reliability.PolicyName
-result.reliability.ValidFraction
-result.reliability.ValidPoints
-result.reliability.MissingPoints
-result.reliability.FirstValidFrequency_kHz
-result.reliability.LastValidFrequency_kHz
-result.reliability.FirstMissingFrequency_kHz
-result.reliability.A0StartFilterPassed
-result.reliability.SelectionFallbackUsed
-result.reliability.YStart
-result.reliability.StartRank
-result.reliability.CpStart_mps
-result.reliability.MaxBranchRelativeCpDrop
-result.reliability.ValidityNote
+result.quality.PolicyName
+result.quality.ValidFraction
+result.quality.ValidPoints
+result.quality.MissingPoints
+result.quality.FirstValidFrequency_kHz
+result.quality.LastValidFrequency_kHz
+result.quality.FirstMissingFrequency_kHz
+result.quality.A0StartFilterPassed
+result.quality.SelectionFallbackUsed
+result.quality.YStart
+result.quality.StartRank
+result.quality.CpStart_mps
+result.quality.MaxBranchRelativeCpDrop
+result.quality.ValidityNote
 ```
 
 For high-IOP cases, the recommended interpretation is to use `LastValidFrequency_kHz` as the upper frequency limit of the reported atlas-A0 curve.

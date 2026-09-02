@@ -266,6 +266,14 @@ axes/units
 Public schemas should be stable enough that GUI, fitting, sweeps, export, and
 examples consume the same scientific result semantics.
 
+Phase 3 realizes this target with explicit builders `rlBuildResult`,
+`mrlfeBuildResult`, and `aeBuildResult`. Dispersion branches use
+`frequency_Hz`, `phaseVelocity_mps`, `wavenumber_radpm`, and `validMask`.
+Model-specific evidence remains model-specific; strictly internal mRLFE state
+lives only under `debug.solverResult`, while AE identity evidence lives under
+`diagnostics.identityA0`. Every canonical result distinguishes
+`configuration.requested` from `configuration.effective`.
+
 ## Plot/export target
 
 The target rule is:

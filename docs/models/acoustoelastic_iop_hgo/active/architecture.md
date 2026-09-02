@@ -215,8 +215,8 @@ No maintained field is removed or relocated without a separately authorized,
 schema-versioned change and complete consumer evidence.
 
 `identityA0Diagnostic`, `raw_branch1`, modal atlases, and branch-family
-candidates are diagnostic-only. They never replace official `result.Cp`,
-`result.validCp`, or the `atlasA0` policy.
+candidates are diagnostic-only. They never replace official
+`result.phaseVelocity_mps`, `result.validMask`, or the `atlasA0` policy.
 
 ## Diagnostic separation and retained helpers
 

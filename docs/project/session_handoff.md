@@ -1,6 +1,6 @@
 # Session handoff
 
-Updated: 2026-09-01
+Updated: 2026-09-02
 
 ## Repository state
 
@@ -9,6 +9,7 @@ Updated: 2026-09-01
 - Planning branch: `planning/full-repository-restructure`
 - Phase 1 branch: `restructure/phase-01-model-boundaries`
 - Phase 2 branch: `restructure/phase-02-model-api-configuration`
+- Phase 3 branch: `restructure/phase-03-result-contracts`
 - Starting main checkpoint:
   `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 - Starting checkpoint message:
@@ -29,6 +30,25 @@ the forwarding-only `solveAcoustoelasticIOPHGOAtlasBranch` was removed. AE
 surface translation is app-owned, direct/complex solver options are diagnostic,
 and the mRLFE adaptive tracker no longer carries historical FitAtlas/A0DP/
 ViscoAtlas option names.
+
+Phase 3 establishes explicit model-owned result contracts. RL retains natural
+`modes.A0`/`modes.S0` and analytical approximations while each branch uses the
+canonical SI field names. mRLFE returns one public branch result and keeps
+internal evidence only at `debug.solverResult`. AE uses `quality` rather than
+the historical `reliability`, exposes canonical official arrays, and keeps the
+identity candidate at `diagnostics.identityA0`. All three results distinguish
+`configuration.requested` and `configuration.effective`.
+
+The app no longer builds an mRLFE `models.*` compatibility graph. The shallow
+`guiBuildModelResultView` maps completed canonical results to display branches;
+plotting and export consume those existing branches without solving again.
+
+Phase 3 validation passed repository hygiene, quick contracts/smoke, mRLFE
+production/route/smoke, AE extended, execution-profile end-to-end, and focused
+fitting suites. Production mRLFE Fast/Dense and Main GUI/FitTool/SweepTool
+characterizations reported `Delta Cp = 0` with identical validity masks. The
+pre-existing lightweight AE atlasA0 snapshot remains the only known regression
+failure; its golden and tolerance were not changed.
 
 The AE high-frequency refinement work is complete and merged to `main`.
 Production AE candidate discovery is discrete on the atlas `cGrid`; branch

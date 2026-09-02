@@ -40,8 +40,8 @@ construction remains in `analysis/acoustoelastic_iop_hgo/sweeps/`.
 LambFundamental_GUI
     -> GUI request struct
     -> app/adapters/guiRun*Model
-    -> raw solver result
-    -> app/adapters/guiNormalizeRawResult
+    -> canonical model result
+    -> app/adapters/guiBuildModelResultView
     -> normalized branches
     -> plotting/export
 ```
@@ -53,7 +53,9 @@ lastResults
 lastGuiResult
 ```
 
-`lastResults` is kept for compatibility and diagnostics. `lastGuiResult` is the preferred GUI-facing structure for plotting and export.
+`lastResults` is the completed canonical model result. `lastGuiResult` is its
+shallow presentation view for plotting and export. Neither plotting nor export
+invokes a solver or reconstructs scientific branches.
 
 The maintained Main GUI mRLFE adapter is model-API based:
 

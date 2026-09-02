@@ -10,10 +10,9 @@ I want to continue technical work in the repository:
 
 cpariona/Lamb-fundamental-solver
 
-The previous task migrated maintained internal consumers from
-result.diagnostics.rawInternalResult to result.debug.rawInternalResult while
-preserving the temporary compatibility alias. That task has been merged into
-main.
+The previous restructuring phase established canonical result contracts and
+removed duplicated mRLFE internal-result aliases. Internal evidence now has one
+owner at result.debug.solverResult.
 
 The next selected objective is an AE IOP/HGO architecture audit and alignment
 plan. This is an audit and documentation task, not an implementation phase.

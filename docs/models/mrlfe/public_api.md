@@ -149,6 +149,16 @@ result.fallback.applied = false;
 Execution metadata reports requested preset, effective preset, internal engine,
 and elapsed seconds as distinct fields.
 
+Configuration is explicitly split:
+
+```matlab
+result.configuration.requested
+result.configuration.effective
+```
+
+The first preserves the caller request. The second records resolved physical
+parameters, output frequency grid, numerical preset, policies, and engine.
+
 The production implementation path is neutral:
 
 ```text
@@ -249,11 +259,10 @@ fallback policies represented by the points.
 
 ## Diagnostics and debug boundary
 
-Stable diagnostics live under `result.diagnostics.summary`. Complete internal
-solver state is explicitly unstable and available under
-`result.debug.rawInternalResult` for maintained diagnostics and compatibility
-adapters. The former `result.diagnostics.rawInternalResult` field remains as a
-temporary compatibility alias; new production consumers must not depend on it.
+Stable diagnostic summary fields live directly under `result.diagnostics`.
+Complete internal solver state is explicitly unstable and has one owner under
+`result.debug.solverResult`. It is not duplicated under diagnostics, and
+application adapters do not inspect it.
 
 ## Production Core
 

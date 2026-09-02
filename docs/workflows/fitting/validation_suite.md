@@ -128,8 +128,8 @@ AE_atlasA0_mu_app_adapter
 The AE validation uses only the official atlas output:
 
 ```matlab
-result.Cp
-result.validCp
+result.phaseVelocity_mps
+result.validMask
 ```
 
 from:

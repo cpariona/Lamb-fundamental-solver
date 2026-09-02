@@ -233,4 +233,4 @@ run_fit_validation_tests
 - Active tests should validate author-neutral names only.
 - The only maintained production atlas-A0 policy name is `"atlasA0"`.
 - Removed compatibility and legacy branch-policy names are not part of the supported API.
-- `identityA0Diagnostic`, `raw_branch1`, and `branch_families` are diagnostic-only and should not replace `result.Cp` or `result.validCp`.
+- `identityA0Diagnostic`, `raw_branch1`, and `branch_families` are diagnostic-only and should not replace `result.phaseVelocity_mps` or `result.validMask`.

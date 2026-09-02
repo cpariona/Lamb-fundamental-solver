@@ -35,8 +35,8 @@ atlasA0
 The fitting evaluator uses only:
 
 ```matlab
-result.Cp
-result.validCp
+result.phaseVelocity_mps
+result.validMask
 ```
 
 from:
@@ -66,7 +66,7 @@ experimental.validMask
 
 Only `frequency_Hz` and `Cp_mps` are required.
 
-`validMask` is intersected with `result.validCp` through the shared residual helper because invalid atlas points return nonfinite or invalid model output.
+`validMask` is intersected with `result.validMask` through the shared residual helper because invalid atlas points return nonfinite or invalid model output.
 
 ## Solver options
 

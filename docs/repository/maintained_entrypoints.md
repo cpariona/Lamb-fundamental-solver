@@ -326,6 +326,11 @@ solveAcoustoelasticHGOStretch
 `aeBuildResult` and `aeEvaluateAtlasA0Quality` are canonical internal
 owners, not additional public solver routes.
 
+The canonical AE result names official arrays `frequency_Hz`,
+`phaseVelocity_mps`, `wavenumber_radpm`, and `validMask`; its official-output
+assessment is `quality`. The historical `frequency`, `Cp`, `validCp`, and
+`reliability` aliases are not maintained result fields.
+
 ### AE diagnostic model internals
 
 ```matlab
@@ -366,6 +371,11 @@ mrlfeBuildResult
 Main GUI, SweepTool, and FitTool all reach these internals through `mrlfeSolve`.
 No internal model policy, tracker, or result builder is a separate public solver
 contract.
+
+`rlBuildResult`, `mrlfeBuildResult`, and `aeBuildResult` are the model-specific
+result owners. Application presentation uses `guiBuildModelResultView`; it
+copies canonical arrays into display branches and never reads solver debug
+state or reconstructs a scientific result.
 
 ## Examples
 
