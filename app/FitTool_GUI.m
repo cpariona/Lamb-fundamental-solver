@@ -628,10 +628,10 @@ onFitModelChanged();
 
     function pathText = getEvaluationPathText(fitOutput)
         pathText = "";
-        if isfield(fitOutput, 'fitResult') && isfield(fitOutput.fitResult, 'rawSolverResult') && ...
-                isfield(fitOutput.fitResult.rawSolverResult, 'evaluationPath') && ...
-                isfield(fitOutput.fitResult.rawSolverResult.evaluationPath, 'path')
-            pathText = " | path " + string(fitOutput.fitResult.rawSolverResult.evaluationPath.path);
+        if isfield(fitOutput, 'fitResult') && isfield(fitOutput.fitResult, 'modelEvaluation') && ...
+                isfield(fitOutput.fitResult.modelEvaluation, 'evaluationPath') && ...
+                isfield(fitOutput.fitResult.modelEvaluation.evaluationPath, 'path')
+            pathText = " | path " + string(fitOutput.fitResult.modelEvaluation.evaluationPath.path);
         end
     end
 
@@ -718,10 +718,10 @@ onFitModelChanged();
                 extra(end+1) = "A0 policy: " + string(fitOutput.routePolicy.mrlfeA0Policy);
             end
         end
-        if isfield(fitOutput, 'fitResult') && isfield(fitOutput.fitResult, 'rawSolverResult') && ...
-                isfield(fitOutput.fitResult.rawSolverResult, 'evaluationPath') && ...
-                isfield(fitOutput.fitResult.rawSolverResult.evaluationPath, 'fitAtlasPreset')
-            extra(end+1) = "fit atlas preset: " + string(fitOutput.fitResult.rawSolverResult.evaluationPath.fitAtlasPreset);
+        if isfield(fitOutput, 'fitResult') && isfield(fitOutput.fitResult, 'modelEvaluation') && ...
+                isfield(fitOutput.fitResult.modelEvaluation, 'evaluationPath') && ...
+                isfield(fitOutput.fitResult.modelEvaluation.evaluationPath, 'fitAtlasPreset')
+            extra(end+1) = "fit atlas preset: " + string(fitOutput.fitResult.modelEvaluation.evaluationPath.fitAtlasPreset);
         end
         extra = extra(:);
     end

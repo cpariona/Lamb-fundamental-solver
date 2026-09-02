@@ -40,8 +40,8 @@ fitConfig = struct('branchName', branchName, 'freeParams', request.freeParams, .
 timerStart = tic;
 fitResult = mrlfeFitDispersionData(request.experimental, fitConfig);
 fitElapsedSeconds = toc(timerStart);
-evaluation = fitResult.rawSolverResult.evaluationPath;
-modelResult = fitResult.rawSolverResult.modelResult;
+evaluation = fitResult.modelEvaluation.evaluationPath;
+modelResult = fitResult.modelEvaluation.modelResult;
 
 profileMetadata = mrlfeBuildSurfaceExecutionMetadata(profileMetadata, modelResult, ...
     'SurfaceDefault', "Fast", 'RoutePolicy', "mrlfeSolve", ...
