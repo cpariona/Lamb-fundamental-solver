@@ -29,9 +29,9 @@ result = solveAcoustoelasticIOPHGOBranch(params, options);
 resolvedOptions = result.options;
 
 assert(isstruct(result), 'Result must be a struct.');
-assert(isfield(result, 'Cp'), 'Result must contain Cp.');
+assert(isfield(result, 'phaseVelocity_mps'), 'Result must contain phaseVelocity_mps.');
 assert(isfield(result, 'validMask'), 'Result must contain validMask.');
-assert(isfield(result, 'reliability'), 'Result must contain reliability.');
+assert(isfield(result, 'quality'), 'Result must contain quality.');
 assert(isfield(result, 'options'), 'Result must contain resolved solver options.');
 assert(numel(result.phaseVelocity_mps) == numel(params.frequency), 'Cp length must match frequency length.');
 assert(numel(result.validMask) == numel(params.frequency), 'validMask length must match frequency length.');

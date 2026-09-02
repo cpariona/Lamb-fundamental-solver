@@ -149,18 +149,20 @@ curve = struct('frequency_Hz', frequency, 'Cp_mps', Cp, ...
 end
 
 function result = makeRlResult(frequency, Cp)
-branch = struct('frequency', frequency, 'Cp', Cp, 'validCp', true(size(Cp)));
+branch = struct('frequency_Hz', frequency, 'phaseVelocity_mps', Cp, ...
+    'validMask', true(size(Cp)));
 result = struct('modes', struct('A0', branch));
 end
 
 function result = makeMrlfeResult(frequency, Cp)
-branch = struct('frequency', frequency, 'Cp', Cp, 'validCp', true(size(Cp)));
-result = struct('models', struct('mRLFEViscoRealK', struct('branches', struct('A0Like', branch))));
+result = struct('model', "mrlfe", 'branch', "A0Like", ...
+    'frequency_Hz', frequency, 'phaseVelocity_mps', Cp, ...
+    'validMask', true(size(Cp)));
 end
 
 function condition = makeAeCondition(frequency, Cp, displayValue)
-result = struct('frequency', frequency, 'Cp', Cp, ...
-    'validCp', true(size(Cp)));
+result = struct('frequency_Hz', frequency, 'phaseVelocity_mps', Cp, ...
+    'validMask', true(size(Cp)));
 condition = struct('result', result, 'sweepValueDisplay', string(displayValue));
 end
 
