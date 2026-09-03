@@ -1,8 +1,8 @@
 function results = measureTestRuntime(entrypoints, varargin)
 %MEASURETESTRUNTIME Measure repository test or runner entrypoints.
 %   RESULTS = MEASURETESTRUNTIME(NAMES) measures each named entrypoint once.
-%   RESULTS = MEASURETESTRUNTIME(NAMES, 'EntryType', "runner") selects runner
-%   implementations when wrapper and runner basenames are duplicated.
+%   RESULTS = MEASURETESTRUNTIME(NAMES, 'EntryType', "runner") requires each
+%   entrypoint to resolve to a maintained runner under tests/runners/.
 %
 %   Name-value options:
 %     EntryType          "auto" (default), "test", or "runner"
@@ -37,11 +37,10 @@ else
 end
 names = sort(unique(names));
 if isempty(names) || any(strlength(names) == 0)
-    error('testInventory:InvalidEntrypoint', 'Entrypoint names must be nonempty.');
+    error('testRuntime:InvalidEntrypoint', 'Entrypoint names must be nonempty.');
 end
 
 repoRoot = findRepositoryRoot(mfilename('fullpath'));
-inventory = buildTestInventory('WriteCsv', false);
 measuredCommit = gitHead(repoRoot);
 originalFolder = pwd;
 originalPath = path;
@@ -71,7 +70,7 @@ Notes = repmat("In-process measurement; no hard timeout enforcement.", rowCount,
 
 for i = 1:rowCount
     name = names(i);
-    metadata = resolveMetadata(inventory, name, string(options.EntryType));
+    metadata = resolveMetadata(repoRoot, name, string(options.EntryType));
     Entrypoint(i) = name;
     Path(i) = metadata.Path;
     EntryType(i) = metadata.EntryType;
@@ -125,39 +124,38 @@ results = table(Entrypoint, Path, EntryType, OwningArea, Category, ...
 maybeWrite(results, options, repoRoot);
 end
 
-function metadata = resolveMetadata(inventory, name, requestedType)
-matches = inventory(inventory.Entrypoint == name, :);
-if isempty(matches)
-    error('testInventory:EntrypointNotFound', ...
-        'Entrypoint is not present in the tracked test inventory: %s', name);
+function metadata = resolveMetadata(repoRoot, name, requestedType)
+absolutePath = string(which(name));
+if absolutePath == ""
+    error('testRuntime:EntrypointNotFound', ...
+        'Entrypoint does not resolve on the maintained MATLAB path: %s', name);
 end
 
-if requestedType == "test"
-    matches = matches(matches.FileType == "test", :);
-elseif requestedType == "runner"
-    matches = matches(matches.FileType == "runner", :);
-else
-    if startsWith(name, "test_")
-        matches = matches(matches.FileType == "test", :);
-    else
-        runnerMatches = matches(matches.FileType == "runner", :);
-        if ~isempty(runnerMatches)
-            matches = runnerMatches;
-        end
-    end
-end
-if height(matches) ~= 1
-    error('testInventory:AmbiguousEntrypoint', ...
-        'Expected one %s inventory row for %s; found %d.', requestedType, name, height(matches));
+normalizedRoot = replace(string(repoRoot), "\", "/") + "/";
+normalizedPath = replace(absolutePath, "\", "/");
+relativePath = erase(normalizedPath, normalizedRoot);
+if relativePath == normalizedPath || ~startsWith(relativePath, "tests/")
+    error('testRuntime:EntrypointOutsideTests', ...
+        'Entrypoint must resolve under tests/: %s', absolutePath);
 end
 
-if matches.FileType(1) == "test"
+if startsWith(name, "test_")
     resolvedType = "test";
-else
+elseif startsWith(name, "run_")
     resolvedType = "runner";
+else
+    error('testRuntime:UnsupportedEntrypoint', ...
+        'Entrypoint must use a test_ or run_ name: %s', name);
 end
-metadata = struct('Path', matches.Path(1), 'EntryType', resolvedType, ...
-    'OwningArea', matches.OwningArea(1), 'Category', matches.Category(1));
+if requestedType ~= "auto" && requestedType ~= resolvedType
+    error('testRuntime:EntryTypeMismatch', ...
+        'Entrypoint %s resolves as %s, not %s.', name, resolvedType, requestedType);
+end
+
+parts = split(relativePath, "/");
+owningArea = parts(2);
+metadata = struct('Path', relativePath, 'EntryType', resolvedType, ...
+    'OwningArea', owningArea, 'Category', resolvedType);
 end
 
 function executeEntry(repoRoot, relativePath, entrypoint, entryType)
@@ -206,7 +204,7 @@ if ~options.WriteCsv
 end
 outputFile = string(options.OutputFile);
 if isAbsolutePath(outputFile)
-    error('testInventory:AbsoluteOutputPath', ...
+    error('testRuntime:AbsoluteOutputPath', ...
         'OutputFile must be repository-relative to keep evidence portable.');
 end
 absoluteOutput = fullfile(repoRoot, strrep(char(outputFile), '/', filesep));
@@ -241,7 +239,7 @@ while true
     end
     parent = fileparts(folder);
     if strcmp(parent, folder)
-        error('testInventory:RepositoryRootNotFound', ...
+        error('testRuntime:RepositoryRootNotFound', ...
             'Could not locate repository root from %s.', anchorFile);
     end
     folder = parent;

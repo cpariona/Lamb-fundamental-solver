@@ -1,8 +1,8 @@
 clear; clc;
 startup
 
-fprintf('\nRunning mRLFE neutral production dependency guard...\n');
-fprintf('--------------------------------------------------\n');
+fprintf('\nRunning mRLFE production dependency contract...\n');
+fprintf('---------------------------------------------\n');
 
 root = testRepositoryRoot(mfilename('fullpath'));
 productionDirs = [ ...
@@ -13,7 +13,7 @@ productionDirs = [ ...
     string(fullfile(root, 'models', 'mrlfe', 'policies')); ...
     string(fullfile(root, 'models', 'mrlfe', 'results'))];
 
-historicalNames = [ ...
+retiredNames = [ ...
     "mrlfeMakePhysicalSeedMode", ...
     "solveMRLFEBranchAdaptiveAtlas", ...
     "mrlfeApplyPhysicalCorridorCut"];
@@ -23,18 +23,18 @@ for iDir = 1:numel(productionDirs)
     for iFile = 1:numel(files)
         filePath = fullfile(files(iFile).folder, files(iFile).name);
         text = string(fileread(filePath));
-        for iName = 1:numel(historicalNames)
-            assert(~contains(text, historicalNames(iName)), ...
-                'Production file still references %s: %s', historicalNames(iName), filePath);
+        for iName = 1:numel(retiredNames)
+            assert(~contains(text, retiredNames(iName)), ...
+                'Production file still references retired owner %s: %s', retiredNames(iName), filePath);
         end
     end
 end
 
 assert(isempty(which('mrlfeMakePhysicalSeedMode')), ...
-    'Historical seed helper should not resolve on the MATLAB path.');
+    'Retired seed helper should not resolve on the MATLAB path.');
 assert(isempty(which('solveMRLFEBranchAdaptiveAtlas')), ...
-    'Historical adaptive tracker should not resolve on the MATLAB path.');
+    'Retired adaptive tracker should not resolve on the MATLAB path.');
 assert(isempty(which('mrlfeApplyPhysicalCorridorCut')), ...
-    'Historical physical-tail helper should not resolve on the MATLAB path.');
+    'Retired physical-tail helper should not resolve on the MATLAB path.');
 
-fprintf('mRLFE neutral production dependency guard passed.\n');
+fprintf('mRLFE production dependency contract passed.\n');

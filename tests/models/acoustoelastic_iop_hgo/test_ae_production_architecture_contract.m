@@ -1,5 +1,5 @@
-function test_ae_final_architecture_contract()
-%TEST_AE_FINAL_ARCHITECTURE_CONTRACT Guard canonical AE ownership.
+function test_ae_production_architecture_contract()
+%TEST_AE_PRODUCTION_ARCHITECTURE_CONTRACT Guard canonical AE ownership.
 
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 modelRoot = fullfile(repoRoot, 'models', 'acoustoelastic_iop_hgo');
@@ -76,14 +76,14 @@ end
 
 architecturePath = fullfile(repoRoot, 'docs', 'models', ...
     'acoustoelastic_iop_hgo', 'active', 'architecture.md');
-assert(isfile(architecturePath), 'Missing final AE architecture contract.');
+assert(isfile(architecturePath), 'Missing maintained AE architecture contract.');
 architectureText = string(fileread(architecturePath));
 for identifier = ["solveAcoustoelasticIOPHGOBranch"; internalSolvers]
     assert(contains(architectureText, identifier), ...
         'Architecture contract does not classify %s.', identifier);
 end
 
-fprintf('AE final architecture contract passed.\n');
+fprintf('AE production architecture contract passed.\n');
 end
 
 function text = readMatlabTree(root)

@@ -1,8 +1,8 @@
 clear; clc;
 startup
 
-fprintf('\nRunning mRLFE removed-routes-absent test...\n');
-fprintf('-------------------------------------\n');
+fprintf('\nRunning mRLFE canonical route contract...\n');
+fprintf('--------------------------------------\n');
 
 root = testRepositoryRoot(mfilename('fullpath'));
 deletedFunctions = [ ...
@@ -54,4 +54,4 @@ for i = 1:numel(consumerFiles)
     end
 end
 
-fprintf('mRLFE removed-routes-absent test passed.\n');
+fprintf('mRLFE canonical route contract passed.\n');

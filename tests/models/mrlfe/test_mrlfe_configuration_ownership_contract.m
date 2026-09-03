@@ -1,8 +1,8 @@
 clear; clc;
 startup
 
-fprintf('\nRunning mRLFE removed-route-flags-absent test...\n');
-fprintf('------------------------------------------\n');
+fprintf('\nRunning mRLFE configuration ownership contract...\n');
+fprintf('-----------------------------------------------\n');
 
 root = testRepositoryRoot(mfilename('fullpath'));
 maintainedFiles = string({ ...
@@ -55,4 +55,4 @@ for i = 1:numel(maintainedFiles)
     end
 end
 
-fprintf('mRLFE removed-route-flags-absent test passed.\n');
+fprintf('mRLFE configuration ownership contract passed.\n');
