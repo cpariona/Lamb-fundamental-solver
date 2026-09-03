@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE optimized fit-grid contract test...\n');
 fprintf('-------------------------------------------------\n');
 

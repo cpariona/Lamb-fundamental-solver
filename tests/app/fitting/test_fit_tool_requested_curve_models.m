@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning FitTool requested-curve model coverage test...\n');
 fprintf('-----------------------------------------------------\n');
 

@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE SweepTool metadata and mapping test...\n');
 fprintf('---------------------------------------------------\n');
 

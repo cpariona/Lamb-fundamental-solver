@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 %TEST_MRLFE_ROBUST_START_CONTRACT Verify forward-only A0Like recovery.

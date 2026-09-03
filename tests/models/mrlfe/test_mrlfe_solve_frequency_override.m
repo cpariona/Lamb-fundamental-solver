@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 %TEST_MRLFE_SOLVE_FREQUENCY_OVERRIDE Contract test for diagnostic solve grids.

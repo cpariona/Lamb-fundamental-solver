@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE Main GUI public-solver route guard test...\n');
 fprintf('-------------------------------------------------------\n');
 

@@ -1,7 +1,8 @@
 clear; clc; close all;
 launchFolder = pwd;
 scriptFile = mfilename('fullpath');
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %AE_SWEEP_IOP_A0LIKE Maintained IOP sweep for the acoustoelastic IOP/HGO A0-like branch.
 %

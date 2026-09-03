@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 % Test conservative official-output policy for fallback-selected atlasA0 branches.

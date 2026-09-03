@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning GUI mRLFE on-demand full-curve test...\n');
 fprintf('---------------------------------------------\n');
 

@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning GUI mRLFE fit route policy contract test...\n');
 fprintf('------------------------------------------------\n');
 

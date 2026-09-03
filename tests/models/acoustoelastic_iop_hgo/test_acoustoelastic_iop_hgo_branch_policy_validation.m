@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 %TEST_ACOUSTOELASTIC_IOP_HGO_BRANCH_POLICY_VALIDATION Verify maintained branch-policy names.

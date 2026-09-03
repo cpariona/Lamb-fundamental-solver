@@ -2,7 +2,7 @@ function configureProjectPath(projectRoot)
 %CONFIGUREPROJECTPATH Reset and add only active repository folders.
 
 projectRoot = normalizePath(projectRoot);
-excludedNames = ["archive", "figures"];
+excludedNames = ["archive", "figures", "outputs", "generated"];
 
 currentEntries = string(strsplit(path, pathsep));
 for i = 1:numel(currentEntries)
@@ -16,15 +16,13 @@ addpath(char(projectRoot));
 roots = [ ...
     fullfile(projectRoot, "app"), ...
     fullfile(projectRoot, "models"), ...
-    fullfile(projectRoot, "analysis"), ...
-    fullfile(projectRoot, "examples", "rayleigh_lamb"), ...
-    fullfile(projectRoot, "examples", "acoustoelastic_iop_hgo"), ...
-    fullfile(projectRoot, "examples", "mrlfe"), ...
-    fullfile(projectRoot, "tests")];
+    fullfile(projectRoot, "analysis")];
 
 for i = 1:numel(roots)
     addActiveTree(roots(i), excludedNames);
 end
+% Only six explicit launchers are discoverable; test bodies are opt-in.
+addpath(char(fullfile(projectRoot, "tests", "runners")));
 end
 
 function addActiveTree(treeRoot, excludedNames)

@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning physical QC test for flat Rayleigh-Lamb A0-like fit...\n');
 fprintf('-------------------------------------------------------------\n');
 

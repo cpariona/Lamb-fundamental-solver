@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE fitting public-solver characterization test...\n');
 fprintf('------------------------------------------------------------\n');
 

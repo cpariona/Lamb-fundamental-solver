@@ -1,7 +1,8 @@
 clear; clc; close all;
 launchFolder = pwd;
 scriptFile = mfilename('fullpath');
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %MRLFE_SWEEP_ETAS_A0LIKE Maintained shear-viscosity sweep for mRLFE A0-like.
 %

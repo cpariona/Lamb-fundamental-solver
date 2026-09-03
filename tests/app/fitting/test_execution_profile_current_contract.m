@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning execution profile current-behavior contract test...\n');
 fprintf('----------------------------------------------------------\n');
 

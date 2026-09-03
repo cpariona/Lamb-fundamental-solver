@@ -1,5 +1,6 @@
 clear; clc; close all;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 % Li 2024 modal atlas diagnostic.
 %

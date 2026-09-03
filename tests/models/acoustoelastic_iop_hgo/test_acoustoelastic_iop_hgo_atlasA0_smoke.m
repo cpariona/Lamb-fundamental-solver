@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 % Smoke test for the maintained Acoustoelastic IOP/HGO atlas-A0 branch solver.

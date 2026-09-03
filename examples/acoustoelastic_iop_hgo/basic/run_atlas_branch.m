@@ -1,6 +1,7 @@
 clear; clc; close all;
 launchFolder = pwd;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %RUN_ATLAS_BRANCH Maintained AE IOP/HGO atlas-branch example.
 %

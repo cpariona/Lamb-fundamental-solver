@@ -1,6 +1,7 @@
 clear; clc; close all;
 launchFolder = pwd;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %DIAGNOSE_GRID_START_SENSITIVITY Diagnose AE atlasA0 sensitivity to output grid start/density.
 %

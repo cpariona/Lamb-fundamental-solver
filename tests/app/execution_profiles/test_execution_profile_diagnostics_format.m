@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning execution profile diagnostics format test...\n');
 fprintf('-------------------------------------------------\n');
 

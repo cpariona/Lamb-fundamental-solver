@@ -6,12 +6,11 @@ function matrix = validateExecutionProfileMatrix(varargin)
 
 p = inputParser;
 addParameter(p, 'WriteCsv', false, @(x)islogical(x) || isnumeric(x));
-addParameter(p, 'OutputFile', fullfile('analysis', 'execution_profiles', 'execution_profile_validation_matrix.csv'), ...
+addParameter(p, 'OutputFile', fullfile('Results', 'validation', 'execution_profile_validation_matrix.csv'), ...
     @(x)ischar(x) || isstring(x));
 parse(p, varargin{:});
 
-startup;
-
+configureTestPath;
 profiles = guiExecutionProfileValues();
 surfaces = ["Main GUI", "SweepTool", "FitTool"];
 scenarios = [
@@ -38,7 +37,9 @@ matrix = cell2table(rows, 'VariableNames', ...
     'SyntheticFittingApplicability', 'Notes', 'ElapsedSeconds'});
 
 if logical(p.Results.WriteCsv)
-    writetable(matrix, fullfile(testRepositoryRoot(), char(p.Results.OutputFile)));
+    outputFile = fullfile(testRepositoryRoot(), char(p.Results.OutputFile));
+    if ~isfolder(fileparts(outputFile)), mkdir(fileparts(outputFile)); end
+    writetable(matrix, outputFile);
 end
 
 disp(matrix);

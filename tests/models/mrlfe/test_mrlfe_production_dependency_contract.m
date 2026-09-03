@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE production dependency contract...\n');
 fprintf('---------------------------------------------\n');
 

@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning execution profile surface integration tests...\n');
 fprintf('----------------------------------------------------\n');
 

@@ -1,6 +1,14 @@
-clear; clc;
-if isempty(which('mrlfeSolve')), startup; end
+function run_quick_contract_tests()
+% Explicit validation scope: restore the caller path on success or failure.
+callerPath = path;
+restorePath = onCleanup(@() path(callerPath)); %#ok<NASGU>
+projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+addpath(fullfile(projectRoot, 'tests', 'tooling'));
+configureTestPath();
+runTests();
+end
 
+function runTests()
 fprintf('\nRunning quick contract validation...\n');
 fprintf('------------------------------------\n');
 
@@ -26,3 +34,4 @@ disp(table(importResults));
 assertSuccess(importResults);
 
 fprintf('\nQuick contract validation passed.\n');
+end

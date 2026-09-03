@@ -1,6 +1,14 @@
-clear; clc;
-if isempty(which('mrlfeSolve')), startup; end
+function run_numerical_regression_tests()
+% Explicit validation scope: restore the caller path on success or failure.
+callerPath = path;
+restorePath = onCleanup(@() path(callerPath)); %#ok<NASGU>
+projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+addpath(fullfile(projectRoot, 'tests', 'tooling'));
+configureTestPath();
+runTests();
+end
 
+function runTests()
 fprintf('\nRunning numerical regression tests...\n');
 fprintf('-------------------------------------\n');
 
@@ -24,8 +32,8 @@ test_acoustoelastic_iop_hgo_internal_tracking_grid;
 test_acoustoelastic_iop_hgo_atlasA0_smoke;
 test_ae_fit_synthetic_atlasA0;
 
-% Keep the inherited snapshot last so all other numerical evidence is emitted
-% before the known atlasA0 snapshot failure is reported.
+% Snapshot follows independent objective, tracking, and recovery evidence.
 test_lightweight_numerical_regression;
 
 fprintf('\nNumerical regression tests passed.\n');
+end

@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE production core characterization test...\n');
 fprintf('-----------------------------------------------------\n');
 

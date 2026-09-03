@@ -1,6 +1,14 @@
-clear; clc;
-if isempty(which('mrlfeSolve')), startup; end
+function run_quick_smoke_tests()
+% Explicit validation scope: restore the caller path on success or failure.
+callerPath = path;
+restorePath = onCleanup(@() path(callerPath)); %#ok<NASGU>
+projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+addpath(fullfile(projectRoot, 'tests', 'tooling'));
+configureTestPath();
+runTests();
+end
 
+function runTests()
 fprintf('\nRunning quick smoke validation...\n');
 fprintf('---------------------------------\n');
 
@@ -40,3 +48,4 @@ test_mrlfe_tracking_quality_summary;
 test_mrlfe_maintained_surface_contract;
 
 fprintf('\nQuick smoke validation passed.\n');
+end

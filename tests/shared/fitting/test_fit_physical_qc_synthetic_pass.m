@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning physical QC pass test for a clearly dispersive synthetic fit...\n');
 fprintf('---------------------------------------------------------------\n');
 

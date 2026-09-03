@@ -1,6 +1,7 @@
 % Run the default real-k elastic mRLFE example through the public API.
 
-startup();
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 params = rlDefaultParams();
 params.fmin = 500;

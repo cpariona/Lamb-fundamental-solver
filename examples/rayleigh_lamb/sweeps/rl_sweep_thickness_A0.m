@@ -1,7 +1,8 @@
 clear; clc; close all;
 launchFolder = pwd;
 scriptFile = mfilename('fullpath');
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %RL_SWEEP_THICKNESS_A0 Maintained full-thickness sweep for Rayleigh-Lamb A0.
 %

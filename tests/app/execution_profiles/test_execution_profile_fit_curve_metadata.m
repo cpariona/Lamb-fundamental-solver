@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning execution profile fit curve metadata test...\n');
 fprintf('--------------------------------------------------\n');
 

@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning RL fitting prediction-fallback rejection test...\n');
 fprintf('----------------------------------------------------\n');
 

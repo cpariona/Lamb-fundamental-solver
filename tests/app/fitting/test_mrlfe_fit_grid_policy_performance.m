@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning lightweight mRLFE fit-grid characterization...\n');
 fprintf('---------------------------------------------------\n');
 

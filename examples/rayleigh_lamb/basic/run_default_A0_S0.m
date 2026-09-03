@@ -1,7 +1,8 @@
 % Run the default A0/S0 fundamental Lamb-wave calculation.
 % S0 is currently experimental and should be benchmarked before use.
 
-startup();
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 params = rlDefaultParams();
 options = rlDefaultOptions("Balanced");

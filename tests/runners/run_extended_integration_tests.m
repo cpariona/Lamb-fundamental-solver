@@ -1,6 +1,14 @@
-clear; clc;
-if isempty(which('mrlfeSolve')), startup; end
+function run_extended_integration_tests()
+% Explicit validation scope: restore the caller path on success or failure.
+callerPath = path;
+restorePath = onCleanup(@() path(callerPath)); %#ok<NASGU>
+projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+addpath(fullfile(projectRoot, 'tests', 'tooling'));
+configureTestPath();
+runTests();
+end
 
+function runTests()
 fprintf('\nRunning extended integration tests...\n');
 fprintf('-------------------------------------\n');
 
@@ -53,3 +61,4 @@ test_mrlfe_production_core_presets;
 test_mrlfe_production_core_characterization;
 
 fprintf('\nExtended integration tests passed.\n');
+end

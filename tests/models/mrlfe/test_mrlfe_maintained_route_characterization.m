@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE maintained-route characterization test...\n');
 fprintf('----------------------------------------------------\n');
 

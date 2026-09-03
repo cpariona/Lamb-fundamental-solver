@@ -1,6 +1,7 @@
 clear; clc; close all;
 launchFolder = pwd;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %DIAGNOSE_SWEEP_RELIABILITY Analyze maintained sweep workspaces.
 %

@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning execution profile validation matrix test...\n');
 fprintf('------------------------------------------------\n');
 

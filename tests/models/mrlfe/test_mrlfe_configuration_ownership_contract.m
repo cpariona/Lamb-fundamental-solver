@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE configuration ownership contract...\n');
 fprintf('-----------------------------------------------\n');
 

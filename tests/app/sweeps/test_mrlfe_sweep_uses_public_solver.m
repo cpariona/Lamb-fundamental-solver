@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE SweepTool public-solver route guard test...\n');
 fprintf('--------------------------------------------------------\n');
 

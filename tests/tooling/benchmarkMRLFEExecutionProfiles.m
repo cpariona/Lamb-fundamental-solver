@@ -10,12 +10,12 @@ addParameter(p, 'RepeatCount', 1, @(x)isnumeric(x) && isscalar(x) && x >= 1 && f
 addParameter(p, 'Repeats', NaN, @(x)isnumeric(x) && isscalar(x) && (isnan(x) || (x >= 1 && fix(x) == x)));
 addParameter(p, 'FitRepeats', NaN, @(x)isnumeric(x) && isscalar(x) && (isnan(x) || (x >= 1 && fix(x) == x)));
 addParameter(p, 'WriteCsv', false, @(x)islogical(x) && isscalar(x));
-addParameter(p, 'OutputFile', fullfile('analysis', 'execution_profiles', 'mrlfe_execution_profile_benchmark.csv'), ...
+addParameter(p, 'OutputFile', fullfile('Results', 'validation', 'mrlfe_execution_profile_benchmark.csv'), ...
     @(x)ischar(x) || (isstring(x) && isscalar(x)));
 parse(p, varargin{:});
 
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 mode = lower(string(p.Results.Mode));
@@ -89,6 +89,7 @@ summaryTable = summarizeResults(resultsTable);
 if p.Results.WriteCsv
     root = testRepositoryRoot();
     outputFile = fullfile(root, char(p.Results.OutputFile));
+    if ~isfolder(fileparts(outputFile)), mkdir(fileparts(outputFile)); end
     writetable(resultsTable, outputFile);
     [folder, base, ext] = fileparts(outputFile);
     writetable(summaryTable, fullfile(folder, base + "_summary" + ext));

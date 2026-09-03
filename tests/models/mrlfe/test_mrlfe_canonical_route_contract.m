@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE canonical route contract...\n');
 fprintf('--------------------------------------\n');
 

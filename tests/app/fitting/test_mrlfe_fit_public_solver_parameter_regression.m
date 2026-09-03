@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE public-solver fit parameter regression test...\n');
 fprintf('----------------------------------------------------------\n');
 

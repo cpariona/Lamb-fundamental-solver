@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeBuildSolveRequest'))
-    startup
+    configureTestPath;
 end
 
 fprintf('\nRunning shared mRLFE solve-request builder test...\n');

@@ -28,8 +28,8 @@ assert(isequal(sort(actual), sort(expected)), ...
 for i = 1:numel(expected)
     [~, name] = fileparts(expected(i));
     expectedPath = fullfile(exampleRoot, expected(i));
-    assert(strcmp(which(name), expectedPath), ...
-        'Maintained AE example or diagnostic does not resolve uniquely: %s.', name);
+    assert(isfile(expectedPath), 'Explicit example path is missing: %s.', name);
+    assert(isempty(which(name)), 'Examples must not be globally on the path: %s.', name);
 end
 
 fprintf('AE maintained examples and diagnostics contract passed.\n');

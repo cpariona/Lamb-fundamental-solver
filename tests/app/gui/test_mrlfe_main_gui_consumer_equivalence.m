@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE Main GUI consumer-equivalence test...\n');
 fprintf('---------------------------------------------------\n');
 

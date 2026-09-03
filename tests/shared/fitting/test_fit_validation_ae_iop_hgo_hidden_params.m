@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning AE IOP/HGO hidden-parameter fitting validation tests...\n');
 fprintf('-----------------------------------------------------------\n');
 
