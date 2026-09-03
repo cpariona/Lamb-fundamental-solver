@@ -1,9 +1,9 @@
-function registry = guiGetSweepRegistry()
-%GUIGETSWEEPREGISTRY Return declarative sweep-tool model and parameter metadata.
+function configuration = guiGetSweepModelConfiguration()
+%GUIGETSWEEPMODELCONFIGURATION Return declarative SweepTool model metadata.
 
-registry = struct();
-registry.defaultModelFamily = "mrlfe";
-registry.modelFamilies = makeModelFamilies();
+configuration = struct();
+configuration.defaultModelFamily = "mrlfe";
+configuration.modelFamilies = makeModelFamilies();
 end
 
 function modelFamilies = makeModelFamilies()

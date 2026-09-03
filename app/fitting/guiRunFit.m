@@ -2,7 +2,7 @@ function fitOutput = guiRunFit(request)
 %GUIRUNFIT Dispatch a normalized fitting request to a model adapter.
 %
 % This is the stable app-facing fitting entrypoint. Model-specific details
-% belong in app/adapters/guiFit<Model>Solver functions.
+% belong in the model-specific guiFit<Model>Solver functions beside this dispatcher.
 
 modelFamily = lower(string(request.modelFamily));
 

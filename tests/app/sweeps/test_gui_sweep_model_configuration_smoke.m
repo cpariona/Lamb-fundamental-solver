@@ -1,15 +1,15 @@
-%TEST_GUI_SWEEP_REGISTRY_SMOKE Smoke test for declarative GUI sweep registry.
+%TEST_GUI_SWEEP_MODEL_CONFIGURATION_SMOKE Smoke test for declarative sweep configuration.
 %
 % This validates that SweepTool metadata is available without instantiating the
-% interactive GUI and that the registry feeds the request/adapter pipeline.
+% interactive GUI and that the configuration feeds the request pipeline.
 
-fprintf('Running GUI sweep registry smoke test...\n');
+fprintf('Running GUI sweep model-configuration smoke test...\n');
 
-registry = guiGetSweepRegistry();
-assert(isstruct(registry), 'Sweep registry must be a struct.');
-assert(isfield(registry, 'defaultModelFamily'), 'Sweep registry must define defaultModelFamily.');
+registry = guiGetSweepModelConfiguration();
+assert(isstruct(registry), 'Sweep model configuration must be a struct.');
+assert(isfield(registry, 'defaultModelFamily'), 'Sweep model configuration must define defaultModelFamily.');
 assert(isfield(registry, 'modelFamilies') && ~isempty(registry.modelFamilies), ...
-    'Sweep registry must define at least one model family.');
+    'Sweep model configuration must define at least one model family.');
 
 family = guiGetSweepFamilyConfig(registry, "mrlfe");
 assert(string(family.id) == "mrlfe", 'mRLFE family id must be mrlfe.');
@@ -114,4 +114,4 @@ assert(string(rlOutput.sweepSpec.units) == "mm", ...
 assert(numel(rlOutput.normalized.curves) == 2, ...
     'RL registry-backed GUI sweep must produce one curve per requested value.');
 
-fprintf('GUI sweep registry smoke test passed.\n');
+fprintf('GUI sweep model-configuration smoke test passed.\n');

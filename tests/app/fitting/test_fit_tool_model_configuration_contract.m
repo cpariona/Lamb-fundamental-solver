@@ -3,11 +3,11 @@ if isempty(which('mrlfeSolve'))
     startup
 end
 
-fprintf('\nRunning FitTool model registry contract test...\n');
+fprintf('\nRunning FitTool model configuration contract test...\n');
 fprintf('--------------------------------------------\n');
 
-registry = guiGetFitRegistry();
-assert(numel(registry.modelFamilies) >= 3, 'Fit registry must expose at least three model families.');
+registry = guiGetFitModelConfiguration();
+assert(numel(registry.modelFamilies) >= 3, 'Fit configuration must expose at least three model families.');
 
 ids = strings(1, numel(registry.modelFamilies));
 labels = strings(1, numel(registry.modelFamilies));
@@ -45,7 +45,7 @@ assert(any(strcmp(controls.model.Items, 'mRLFE')), 'Model dropdown must include 
 assert(any(strcmp(controls.model.Items, 'AE IOP/HGO')), 'Model dropdown must include AE IOP/HGO.');
 
 fprintf('Available fitting models: %s\n', strjoin(cellstr(labels), ', '));
-fprintf('\nFitTool model registry contract test passed.\n');
+fprintf('\nFitTool model configuration contract test passed.\n');
 
 function assertFamilyParameters(registry, familyId, requiredParams)
 family = [];

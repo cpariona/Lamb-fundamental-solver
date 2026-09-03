@@ -1,9 +1,9 @@
-function registry = guiGetFitRegistry()
-%GUIGETFITREGISTRY Return declarative fitting metadata for app/GUI callers.
+function configuration = guiGetFitModelConfiguration()
+%GUIGETFITMODELCONFIGURATION Return declarative fitting metadata for app callers.
 
-registry = struct();
-registry.defaultModelFamily = "rayleigh_lamb";
-registry.modelFamilies = makeModelFamilies();
+configuration = struct();
+configuration.defaultModelFamily = "rayleigh_lamb";
+configuration.modelFamilies = makeModelFamilies();
 end
 
 function modelFamilies = makeModelFamilies()

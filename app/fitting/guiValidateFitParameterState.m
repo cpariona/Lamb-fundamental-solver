@@ -6,7 +6,7 @@ if ~isstruct(state) || ~isfield(state, 'modelFamily') || ~isfield(state, 'parame
         'Fit parameter state must contain modelFamily and parameters.');
 end
 
-registry = guiGetFitRegistry();
+registry = guiGetFitModelConfiguration();
 family = findFamily(registry, state.modelFamily);
 rows = state.parameters;
 if numel(rows) ~= numel(family.parameters)

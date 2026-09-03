@@ -6,10 +6,10 @@ end
 fprintf('\nRunning GUI fitting backend contract test...\n');
 fprintf('------------------------------------------\n');
 
-registry = guiGetFitRegistry();
-assert(isfield(registry, 'defaultModelFamily'), 'Fit registry missing defaultModelFamily.');
-assert(isfield(registry, 'modelFamilies'), 'Fit registry missing modelFamilies.');
-assert(numel(registry.modelFamilies) >= 3, 'Fit registry must expose Rayleigh-Lamb, mRLFE, and AE IOP/HGO model families.');
+registry = guiGetFitModelConfiguration();
+assert(isfield(registry, 'defaultModelFamily'), 'Fit configuration missing defaultModelFamily.');
+assert(isfield(registry, 'modelFamilies'), 'Fit configuration missing modelFamilies.');
+assert(numel(registry.modelFamilies) >= 3, 'Fit configuration must expose Rayleigh-Lamb, mRLFE, and AE IOP/HGO model families.');
 
 rlFamily = registry.modelFamilies(1);
 assert(rlFamily.id == "rayleigh_lamb", 'First fit family should be Rayleigh-Lamb.');

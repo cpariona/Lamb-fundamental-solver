@@ -5,7 +5,7 @@ fprintf('\nRunning mRLFE SweepTool public-solver route guard test...\n');
 fprintf('--------------------------------------------------------\n');
 
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
-adapterPath = fullfile(repoRoot, 'app', 'adapters', 'guiRunMRLFESweep.m');
+adapterPath = fullfile(repoRoot, 'app', 'sweep', 'guiRunMRLFESweep.m');
 adapterText = string(fileread(adapterPath));
 
 assert(contains(adapterText, "mrlfeSolve"), ...

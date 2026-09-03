@@ -15,7 +15,7 @@ assert(mainOptions.robustness == "Balanced", 'Main GUI visible default should re
 assert(mainMetadata.surfaceDefaultExecutionProfile == "Balanced", ...
     'Main GUI metadata should record Balanced surface default.');
 
-sweepRegistry = guiGetSweepRegistry();
+sweepRegistry = guiGetSweepModelConfiguration();
 for i = 1:numel(sweepRegistry.modelFamilies)
     family = sweepRegistry.modelFamilies(i);
     assert(string(family.defaultExecutionProfile) == "Fast", ...
@@ -27,7 +27,7 @@ mrlfeSweepFamily = guiGetSweepFamilyConfig(sweepRegistry, "mrlfe");
 assert(mrlfeSweepFamily.profileSupportMode == "direct", ...
     'mRLFE SweepTool should advertise direct profile support.');
 
-fitRegistry = guiGetFitRegistry();
+fitRegistry = guiGetFitModelConfiguration();
 for i = 1:numel(fitRegistry.modelFamilies)
     family = fitRegistry.modelFamilies(i);
     assert(string(family.defaultExecutionProfile) == "Fast", ...

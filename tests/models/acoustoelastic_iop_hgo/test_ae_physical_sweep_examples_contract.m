@@ -6,8 +6,8 @@ function test_ae_physical_sweep_examples_contract()
 % computationally expensive Robust sweeps.
 
 repoRoot = testRepositoryRoot();
-analysisPath = fullfile(repoRoot, 'analysis', 'acoustoelastic_iop_hgo', ...
-    'sweeps', 'aeRunSweep.m');
+analysisPath = fullfile(repoRoot, 'analysis', 'sweeps', ...
+    'acoustoelastic_iop_hgo', 'aeRunSweep.m');
 oldModelPath = fullfile(repoRoot, 'models', 'acoustoelastic_iop_hgo', 'solvers', 'aeRunSweep.m');
 assert(isfile(analysisPath), 'aeRunSweep must be owned by the AE analysis layer.');
 assert(~isfile(oldModelPath), 'The former model-layer aeRunSweep path must be absent.');

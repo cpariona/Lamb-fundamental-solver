@@ -1,7 +1,7 @@
 function parameterSummaryTable = guiBuildFitParameterSummaryTable(fitResult, request)
 %GUIBUILDFITPARAMETERSUMMARYTABLE Build per-parameter fit summary rows.
 
-registry = guiGetFitRegistry();
+registry = guiGetFitModelConfiguration();
 family = localFindFamily(registry, fitResult.modelFamily);
 n = numel(family.parameters);
 

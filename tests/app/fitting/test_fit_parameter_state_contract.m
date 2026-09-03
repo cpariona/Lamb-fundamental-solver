@@ -1,6 +1,6 @@
 %TEST_FIT_PARAMETER_STATE_CONTRACT Registry-driven one-parameter state contract.
 
-registry = guiGetFitRegistry();
+registry = guiGetFitModelConfiguration();
 for iFamily = 1:numel(registry.modelFamilies)
     family = registry.modelFamilies(iFamily);
     fitIds = string({family.parameters([family.parameters.canFit]).id});

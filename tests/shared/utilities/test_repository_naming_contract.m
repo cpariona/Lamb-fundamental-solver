@@ -106,10 +106,10 @@ for i = 1:numel(paths)
         allowed = startsWith(name, "ae") || startsWith(name, "solveAcoustoelastic") || ...
             startsWith(name, "defaultAcoustoelastic") || any(name == aeExplicit);
         assert(allowed, 'AE model function violates the prefix/public-API contract: %s', path);
-    elseif startsWith(path, "app/adapters/")
+    elseif startsWith(path, "app/shared/")
         allowed = startsWith(name, "gui") || startsWith(name, "ae") || ...
             startsWith(name, "mrlfe") || startsWith(name, "rl");
-        assert(allowed, 'App adapter function has no ownership prefix: %s', path);
+        assert(allowed, 'Shared app function has no ownership prefix: %s', path);
     end
 end
 end
