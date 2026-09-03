@@ -19,8 +19,8 @@ for i = 1:numel(modeNames)
     if any(mode.validMask)
         fprintf('%s Cp range: %.6g to %.6g m/s\n', name, min(mode.phaseVelocity_mps(mode.validMask)), max(mode.phaseVelocity_mps(mode.validMask)));
     end
-    if any(isfinite(mode.residual))
-        fprintf('%s max residual: %.3e\n', name, max(mode.residual(isfinite(mode.residual))));
+    if any(isfinite(mode.diagnostics.residual))
+        fprintf('%s max residual: %.3e\n', name, max(mode.diagnostics.residual(isfinite(mode.diagnostics.residual))));
     end
 end
 

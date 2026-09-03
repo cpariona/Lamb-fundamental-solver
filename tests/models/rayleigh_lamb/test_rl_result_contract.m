@@ -28,8 +28,19 @@ for name = ["A0", "S0"]
     assert(isequal(branch.frequency_Hz, result.configuration.effective.frequency_Hz));
     assert(isequal(size(branch.frequency_Hz), size(branch.phaseVelocity_mps)));
     assert(isequal(size(branch.frequency_Hz), size(branch.validMask)));
+    assert(isfield(branch.diagnostics, 'residual') && ~isfield(branch, 'residual'));
+    assert(isequal(size(branch.frequency_Hz), size(branch.diagnostics.residual)));
     assert(result.quality.(char(name)).validCount == nnz(branch.validMask));
 end
+
+repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+exampleSource = fileread(fullfile(repoRoot, 'examples', 'rayleigh_lamb', ...
+    'basic', 'run_default_A0_S0.m'));
+assert(contains(exampleSource, 'mode.diagnostics.residual'));
+assert(~contains(exampleSource, 'mode.residual'), 'Example uses a retired residual field.');
+approximations = rlComputeAnalyticalApproximations( ...
+    result.configuration.effective.frequency_Hz, result.material, result.geometry);
+assert(isequaln(approximations, result.approximations));
 
 fprintf('Rayleigh-Lamb result contract passed.\n');
 end
