@@ -61,7 +61,7 @@ The maintained Main GUI mRLFE adapter is model-API based:
 
 ```text
 guiRunMRLFEModel
-    -> mrlfeBuildGuiSolveRequest
+    -> mrlfeBuildSolveRequest
     -> mrlfeSolve
     -> GUI result adapter
 ```
@@ -151,14 +151,15 @@ The maintained mRLFE SweepTool adapter is model-API based:
 
 ```text
 guiRunMRLFESweep
-    -> mrlfeBuildSweepSolveRequest
+    -> runParametricSweep
+    -> mrlfeBuildSolveRequest
     -> mrlfeSolve, once per sweep point
     -> guiNormalizeMRLFESweep
 ```
 
 It does not call `guiRunMRLFEModel`, choose adaptive versus modal trackers,
 inspect atlas candidates, or apply Main GUI fallback. The per-point public
-`modelResult` remains available under `rawResults.points{i}.modelResult`, while
+`modelResult` remains available under `sweepResult.points{i}.modelResult`, while
 the normalized curve schema remains the plotting contract.
 
 ### Normalized sweep curve schema

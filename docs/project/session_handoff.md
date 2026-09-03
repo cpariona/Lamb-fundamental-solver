@@ -10,6 +10,7 @@ Updated: 2026-09-02
 - Phase 1 branch: `restructure/phase-01-model-boundaries`
 - Phase 2 branch: `restructure/phase-02-model-api-configuration`
 - Phase 3 branch: `restructure/phase-03-result-contracts`
+- Phase 4 branch: `restructure/phase-04-analysis-workflows`
 - Starting main checkpoint:
   `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 - Starting checkpoint message:
@@ -43,12 +44,32 @@ The app no longer builds an mRLFE `models.*` compatibility graph. The shallow
 `guiBuildModelResultView` maps completed canonical results to display branches;
 plotting and export consume those existing branches without solving again.
 
+Phase 4 consolidates analysis workflow ownership. `solveDispersionFitProblem`
+owns generic bounded optimizer orchestration while model-specific problem
+builders, evaluators, and fit entrypoints remain explicit. `runParametricSweep`
+owns one-dimensional iteration and canonical result collection; RL, mRLFE, AE,
+and SweepTool provide model evaluators. The AE two-dimensional grid workflow
+remains explicit.
+
+mRLFE now has one request builder, `mrlfeBuildSolveRequest`, independent of the
+human surface. `rlRunSweepExample` and `mrlfeRunSweepExample` were renamed to
+`rlRunSweep` and `mrlfeRunSweep` without aliases. The forwarding-only
+`rlOutputFolder`, `mrlfeOutputFolder`, and `aeOutputFolder` functions were
+removed; all writers and examples use `resolveModelOutputFolder` directly.
+
 Phase 3 validation passed repository hygiene, quick contracts/smoke, mRLFE
 production/route/smoke, AE extended, execution-profile end-to-end, and focused
 fitting suites. Production mRLFE Fast/Dense and Main GUI/FitTool/SweepTool
 characterizations reported `Delta Cp = 0` with identical validity masks. The
 pre-existing lightweight AE atlasA0 snapshot remains the only known regression
 failure; its golden and tolerance were not changed.
+
+Phase 4 validation passed the same global gates plus the new shared fitting and
+sweep contracts. mRLFE production, FitTool, and SweepTool characterizations
+again reported maximum `Delta Cp = 0` with identical validity masks. Fit
+objective counts remained 11/8/7/7 for A0Like mu/etaS and S0Like mu/etaS. AE
+extended validation and synthetic recovery passed; the known AE snapshot is
+still the only numerical-regression failure and was not normalized.
 
 The AE high-frequency refinement work is complete and merged to `main`.
 Production AE candidate discovery is discrete on the atlas `cGrid`; branch

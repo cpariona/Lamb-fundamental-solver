@@ -12,6 +12,7 @@ Implemented helpers:
 rlBuildFitProblem
 rlEvaluateFitModel
 rlFitDispersionData
+solveDispersionFitProblem
 ```
 
 The first maintained tested use case is:
@@ -77,13 +78,10 @@ The official fitting result uses `Cp_mps` sampled at `frequency_Hz`. Internal tr
 
 ## Optimizer policy
 
-`rlFitDispersionData` currently uses:
-
-```matlab
-fminsearch
-```
-
-with objective penalties for out-of-bound candidates. This avoids requiring Optimization Toolbox during the first implementation.
+`rlFitDispersionData` builds the model-specific problem and delegates optimizer
+orchestration to `solveDispersionFitProblem`. One finite-bounded free parameter
+uses `fminbnd`; multi-parameter or unbounded cases use `fminsearch` with bound
+penalties. No Optimization Toolbox dependency is required.
 
 Bounds are still declared in the fit configuration:
 
@@ -91,7 +89,8 @@ Bounds are still declared in the fit configuration:
 fitConfig.bounds.mu = [20e3, 200e3];
 ```
 
-The current optimizer policy is deliberately simple. If the `RMSE(mu)` landscape remains irregular after branch-coherent evaluation, the next step should be a shared coarse-global plus local-refine optimizer policy in `analysis/fitting`, not model-specific optimizer logic inside GUI code.
+The exact RL iteration limits and tolerances remain owned by
+`rlBuildFitProblem`; the shared owner does not replace model-specific defaults.
 
 ## Example
 

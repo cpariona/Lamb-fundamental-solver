@@ -26,7 +26,7 @@ Main GUI forward solving reaches this core through the public API:
 
 ```text
 guiRunMRLFEModel
-  -> mrlfeBuildGuiSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
@@ -39,8 +39,9 @@ FitTool fitting now reaches this core through the public API:
 ```text
 guiFitMRLFESolver
   -> mrlfeFitDispersionData
+  -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildFitSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
@@ -52,7 +53,8 @@ SweepTool mRLFE forward sweeps also reach this core through the public API:
 
 ```text
 guiRunMRLFESweep
-  -> mrlfeBuildSweepSolveRequest
+  -> runParametricSweep
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve, once per sweep point
 ```
 
@@ -162,19 +164,13 @@ preserves diagnostic raw output. `mrlfeBuildResult` remains the public schema
 builder for units, vector orientation, invalid-value handling, execution
 metadata, termination metadata, fallback metadata, and quality metadata.
 
-FitTool fitting preserves the public `modelResult` in the compatibility-shaped
-fitting raw result. The compatibility fields still consumed by FitTool are the
-branch identity, requested frequencies, fitted Cp values, valid mask, route path
-metadata, preset metadata, and raw branch diagnostics used by full-curve
-diagnostics. New metadata comes from `mrlfeBuildResult`: requested/effective
+FitTool fitting preserves the final public evaluation under
+`fitResult.modelEvaluation`. Metadata comes from `mrlfeBuildResult`: requested/effective
 preset, neutral internal engine, termination policy, fallback policy/applied
 state, and quality summary.
 
-Main GUI preserves the public `modelResult` for each requested visible branch
-under normalized metadata. Its compatibility raw result keeps the existing
-`models.mRLFERealK.branches.<branch>` shape required by normalized plotting,
-workspace inspection, and compact exports, but the branch data is adapted from
-`mrlfeBuildResult` output. Partial-quality results remain visible and are
+Main GUI preserves the completed public `modelResult` and derives a shallow
+presentation view for plotting and export. Partial-quality results remain visible and are
 reported with neutral status metadata instead of being replaced by fallback.
 
 SweepTool stores the same public `modelResult` for each sweep point. Aggregate

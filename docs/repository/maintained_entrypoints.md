@@ -178,6 +178,7 @@ buildParameterVector
 unpackParameterVector
 estimateLocalSensitivity
 assessFitIdentifiability
+solveDispersionFitProblem
 ```
 
 ### Rayleigh-Lamb analysis
@@ -189,8 +190,7 @@ rlFitDispersionData
 rlDefaultSweepParams
 rlDefaultSweepOptions
 rlMakeSweepSpec
-rlRunSweepExample
-rlOutputFolder
+rlRunSweep
 rlWriteSweepOutputs
 rlSaveExampleFigure
 ```
@@ -226,7 +226,6 @@ aeWriteSweepOutputs
 Result/output IO under `analysis/acoustoelastic_iop_hgo/io/`:
 
 ```matlab
-aeOutputFolder
 aeResolveResultFile
 aeSaveExampleFigure
 aeDeleteExampleFigure
@@ -260,14 +259,10 @@ aeDefaultIdentityA0ValidationGrid
 mrlfeSetYoungModulusForShearPoisson
 summarizeMRLFETrackingQuality
 mrlfeBuildFitProblem
-mrlfeBuildPublicSolveRequest
-mrlfeBuildFitSolveRequest
-mrlfeBuildGuiSolveRequest
-mrlfeBuildSweepSolveRequest
+mrlfeBuildSolveRequest
 mrlfeEvaluateFitModel
 mrlfeFitDispersionData
-mrlfeRunSweepExample
-mrlfeOutputFolder
+mrlfeRunSweep
 ```
 
 These are maintained workflows or analysis helpers, not additional public

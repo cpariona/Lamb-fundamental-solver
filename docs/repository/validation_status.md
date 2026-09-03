@@ -78,13 +78,13 @@ analysis/test_inventory/runner_edges.csv
 analysis/test_inventory/test_runner_ownership.csv
 ```
 
-Current generated state: 113 tests, 43 canonical runner implementations, 5
-public convenience wrappers, 3 test helpers, 228 graph edges, and 113
+Current generated state: 116 tests, 43 canonical runner implementations, 5
+public convenience wrappers, 3 test helpers, 231 graph edges, and 116
 canonical owners. Validation reports 0 manual-only tests, 0 unowned tests, 0
 multiple canonical owners, 0 sibling direct overlaps, and 0 runner cycles.
 
-Current static reach is 21 tests from quick contracts, 52 from quick smoke, 17
-from numerical regression, 47 from extended integration, and 62 from the broad
+Current static reach is 24 tests from quick contracts, 55 from quick smoke, 17
+from numerical regression, 47 from extended integration, and 65 from the broad
 all-smoke aggregate.
 
 AE configuration, result, tracking/policy, workflow-route, final-architecture,
@@ -113,6 +113,33 @@ Validation completed on 2026-09-02 for
 The lightweight numerical regression retains one known baseline failure:
 `AE IOP/HGO atlasA0 Cp snapshot changed.` The Phase 3 migration does not update
 that golden or relax its `1e-12` tolerance.
+
+## Phase 4 analysis-workflow validation
+
+Validation completed on 2026-09-02 for
+`restructure/phase-04-analysis-workflows`:
+
+- repository hygiene, quick contracts, and quick smoke passed;
+- mRLFE production core, route integrity, smoke, and execution-profile
+  end-to-end suites passed;
+- focused fitting validation passed for RL, mRLFE, and AE, including bounds,
+  fixed parameters, physical quality, and identifiability;
+- focused SweepTool validation passed, including request mapping, effective
+  configuration, summaries, and canonical per-point results;
+- mRLFE production, FitTool, and SweepTool characterizations each reported
+  maximum absolute difference `0 m/s`, maximum relative difference `0`, and no
+  validity-mask differences;
+- mRLFE fitting retained objective evaluation counts `11`, `8`, `7`, and `7`
+  for A0Like mu, A0Like etaS, S0Like mu, and S0Like etaS respectively;
+- AE extended validation passed, including the explicit one-dimensional and
+  two-dimensional sweep routes and synthetic atlasA0 recovery with relative mu
+  error `5.06201e-08`;
+- the three maintained test inventories were regenerated: 116 tests, 231
+  edges, and 116 canonical owners.
+
+The numerical regression still stops only at the known
+`AE IOP/HGO atlasA0 Cp snapshot changed.` baseline. Phase 4 changes neither its
+golden data nor its tolerance.
 
 ## Compatibility debt
 

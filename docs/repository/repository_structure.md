@@ -128,9 +128,9 @@ setSweepPlotLimits
 summarizeParametricSweepBranch
 ```
 
-`aeRunSweep` lives in `analysis/acoustoelastic_iop_hgo/sweeps/`. It calls the
-public AE solver once per condition and aggregates campaign results; it does not
-implement solver physics.
+`aeRunSweep` lives in `analysis/acoustoelastic_iop_hgo/sweeps/`. It supplies an
+AE evaluator to the shared one-dimensional `runParametricSweep` owner;
+`aeRunGridSweep` remains the explicit two-dimensional campaign owner.
 
 `resolveModelOutputFolder` remains at the analysis root because it is a small
 cross-model output-path primitive rather than part of the sweep module.
@@ -237,9 +237,8 @@ Results/ae_iop_hgo/<task>
 Results/test_runtime/test_runtime_measurements.csv
 ```
 
-`rlOutputFolder`, `mrlfeOutputFolder`, and `aeOutputFolder` delegate to
-`resolveModelOutputFolder`, which creates these paths relative to the caller's
-launch folder. Existing documented AE legacy folders remain readable only where
+`resolveModelOutputFolder` is the sole maintained owner that creates these
+paths relative to the caller's launch folder. Existing documented AE legacy folders remain readable only where
 `aeResolveResultFile` explicitly provides fallback compatibility.
 
 ## Path behavior

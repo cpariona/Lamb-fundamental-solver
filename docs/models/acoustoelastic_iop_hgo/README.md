@@ -131,7 +131,7 @@ docs/models/acoustoelastic_iop_hgo/diagnostics/ repeatable scientific evidence
 Results/ae_iop_hgo/<task>                     generated outputs
 ```
 
-New generated outputs use `Results/ae_iop_hgo/<task>`. `aeOutputFolder` owns
+New generated outputs use `Results/ae_iop_hgo/<task>`. `resolveModelOutputFolder` owns
 that convention. `aeResolveResultFile` may read the explicitly documented
 legacy result locations required by maintained diagnostics; it does not define
 a second output convention.

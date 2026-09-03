@@ -153,7 +153,7 @@ These scripts are user-facing examples or validation scripts built on the `rl*` 
 The maintained Rayleigh-Lamb thickness sweep wrappers delegate to:
 
 ```matlab
-rlRunSweepExample
+rlRunSweep
 ```
 
 This helper lives under:

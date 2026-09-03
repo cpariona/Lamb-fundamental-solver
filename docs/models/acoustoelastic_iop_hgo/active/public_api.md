@@ -106,7 +106,7 @@ aeRunSweep
 aeSummarizeSweep
 summarizeAcoustoelasticIOPHGOTrackingQuality
 aePlotGridSweepCp
-aeOutputFolder
+resolveModelOutputFolder
 aeResolveResultFile
 aeDiagnoseAtlasA0TruncationCause
 aeAnalyzeBranchPersistenceCandidates

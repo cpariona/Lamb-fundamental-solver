@@ -131,7 +131,7 @@ rl_sweep_thickness_S0
 They delegate reusable setup to:
 
 ```matlab
-rlRunSweepExample
+rlRunSweep
 ```
 
 The helper lives under:

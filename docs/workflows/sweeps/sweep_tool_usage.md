@@ -88,7 +88,7 @@ Expected outcome:
 - The sweep completes without adapter errors.
 - The summary table has one row.
 - `SweepToolOutput.atlasPolicy.effectiveA0Policy` is `physicalTail`.
-- `SweepToolOutput.rawResults.points{1}.termination.policy` is `physicalTail`.
+- `SweepToolOutput.sweepResult.points{1}.modelResult.termination.policy` is `physicalTail`.
 - This check verifies routing only. It does not prove physical validity of the physical-tail policy for a given experiment.
 
 ### Rayleigh-Lamb thickness check
@@ -189,8 +189,9 @@ guiRunRLSweep
 guiRunAcoustoelasticIOPHGOSweep
 ```
 
-For mRLFE, `guiRunMRLFESweep` maps each sweep point with
-`mrlfeBuildSweepSolveRequest` and calls `mrlfeSolve` once per point. SweepTool
+For mRLFE, `guiRunMRLFESweep` delegates one-dimensional iteration to
+`runParametricSweep`; its evaluator maps each point with
+`mrlfeBuildSolveRequest` and calls `mrlfeSolve` once per point. SweepTool
 does not call `guiRunMRLFEModel`, inherit Main GUI fallback, or choose
 historical GUI route names. Main GUI remains a separate surface over the same
 shared request-construction and public-solver contracts.
@@ -205,17 +206,9 @@ A0Like termination  physicalTail
 S0Like termination  none
 ```
 
-Each point stores its public model result in `rawResults.points{i}.modelResult`
-and exposes compatibility aliases for plotting and export:
-
-```matlab
-frequency_Hz
-phaseVelocity_mps
-validMask
-status
-errorIdentifier
-errorMessage
-```
+Each point stores exactly one public model result in
+`sweepResult.points{i}.modelResult`. Normalizers derive plotting/export curves
+from that canonical result rather than retaining duplicated scientific arrays.
 
 Aggregate metadata reports unique effective values across all points rather
 than treating the first point as representative:

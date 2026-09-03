@@ -54,7 +54,7 @@ mrlfe_sweep_thickness_A0Like
 mrlfe_sweep_thickness_S0Like
 ```
 
-All six scripts delegate to `mrlfeRunSweepExample` and share helpers under `analysis/mrlfe/`.
+All six scripts delegate to `mrlfeRunSweep` and share helpers under `analysis/mrlfe/`.
 
 Current mRLFE reference settings:
 
@@ -128,7 +128,7 @@ rl_sweep_thickness_S0
 Both scripts delegate to:
 
 ```matlab
-rlRunSweepExample
+rlRunSweep
 ```
 
 and shared helpers under:
@@ -177,7 +177,9 @@ plotParametricSweepCp
 summarizeParametricSweepBranch
 ```
 
-`runParametricSweep` changes one scalar solver parameter. It supports optional `displayValues`, used by the mRLFE and Rayleigh-Lamb examples to display `2h` or `mu` while preserving current internal solver fields.
+`runParametricSweep` is the model-neutral one-dimensional iteration owner. A model-specific caller supplies `parameterPath`, values, and one evaluator callback; the engine applies each value to `params` or `options`, calls that evaluator exactly once, validates the canonical model result, and records the requested/effective configuration. `displayValues` remains available for labels.
+
+`aeRunSweep`, `mrlfeRunSweep`, `rlRunSweep`, and the three SweepTool adapters reuse this owner. The AE two-dimensional `aeRunGridSweep` remains explicit because it owns a genuinely different grid workflow.
 
 `plotParametricSweepCp` adapts Rayleigh-Lamb and mRLFE sweep results into neutral plot data. `plotSweepCpFigure` then renders `Cp(f)` with one standard MATLAB axes, a compact fixed-parameter subtitle, and a native lower-right legend. The shared renderer preserves the Alternative B boundary: model-specific branch extraction remains in `buildParametricSweepPlotData` or `aeBuildSweepPlotData`, not in the renderer.
 

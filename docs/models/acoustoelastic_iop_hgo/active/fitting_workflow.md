@@ -12,6 +12,7 @@ Implemented helpers:
 aeBuildFitProblem
 aeEvaluateFitModel
 aeFitDispersionData
+solveDispersionFitProblem
 ```
 
 The first maintained tested use case is:
@@ -86,7 +87,8 @@ The synthetic fitting tests use reduced atlas configurations for speed. These ar
 
 ## Optimizer policy
 
-`aeFitDispersionData` uses no Optimization Toolbox dependency.
+`aeFitDispersionData` builds the AE-specific problem and delegates optimizer
+orchestration to `solveDispersionFitProblem`. It uses no Optimization Toolbox dependency.
 
 Current behavior:
 

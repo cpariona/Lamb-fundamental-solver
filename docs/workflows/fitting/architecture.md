@@ -23,8 +23,8 @@ The fitting layer is reusable from scripts, tests, and `FitTool_GUI`. GUI callba
 ## Design principles
 
 1. GUI code builds requests and renders normalized results.
-2. Optimizers and residual definitions remain in fitting backends.
-3. Model-specific adapters call maintained model APIs.
+2. `solveDispersionFitProblem` owns optimizer orchestration and result assembly.
+3. Model-specific builders and evaluators retain model physics and defaults.
 4. Example and diagnostic scripts are not production dependencies.
 5. Objective values and optional full-curve evaluations remain distinguishable.
 6. A complete fitted curve is evaluated only after an explicit user action.
@@ -117,7 +117,7 @@ fitResult.validMask
 fitResult.metrics
 fitResult.identifiability
 fitResult.optimizer
-fitResult.rawSolverResult
+fitResult.modelEvaluation
 ```
 
 The normalized GUI result may add:
@@ -141,6 +141,8 @@ The visible parameter summary shows only the fitted parameter. Fixed parameters 
 
 ```text
 rlFitDispersionData
+  -> rlBuildFitProblem
+  -> solveDispersionFitProblem
   -> rlEvaluateFitModel
   -> maintained Rayleigh-Lamb solver
 ```
@@ -149,8 +151,10 @@ rlFitDispersionData
 
 ```text
 mrlfeFitDispersionData
+  -> mrlfeBuildFitProblem
+  -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildFitSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
@@ -177,6 +181,8 @@ and resolves Fast, Balanced, or Robust into the corresponding public numerical p
 
 ```text
 aeFitDispersionData
+  -> aeBuildFitProblem
+  -> solveDispersionFitProblem
   -> aeEvaluateFitModel
   -> maintained AE IOP/HGO API
 ```
@@ -185,7 +191,7 @@ AE may legitimately use atlas terminology. This is separate from the removed leg
 
 ## Physical quality and identifiability
 
-Shared fitting helpers include residual calculation, fit metrics, constant-speed baseline comparison, physical-quality assessment, local sensitivity, and identifiability assessment. These checks are numerical diagnostics, not external experimental validation.
+Shared fitting helpers include optimizer orchestration, residual calculation, fit metrics, constant-speed baseline comparison, physical-quality assessment, local sensitivity, and identifiability assessment. `solveDispersionFitProblem` selects `fminbnd` or `fminsearch`, performs the final evaluation, and assembles the canonical fit result. Model builders still own their historical optimizer options, bounds, and evaluators. These checks are numerical diagnostics, not external experimental validation.
 
 ## Validation
 

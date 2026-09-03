@@ -4,7 +4,7 @@ Last reviewed: 2026-09-02
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
 Planning branch: `planning/full-repository-restructure`
-Active implementation branch: `restructure/phase-03-result-contracts`
+Active implementation branch: `restructure/phase-04-analysis-workflows`
 Starting main checkpoint:
 `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 
@@ -98,8 +98,8 @@ architecture.
 
 ## Current phase
 
-Phase 3 builds on the Phase 2 public APIs and establishes canonical result
-ownership and semantics:
+Phase 4 builds on the canonical Phase 3 result contracts and consolidates the
+reusable analysis workflows:
 
 ```text
 RL public:    rlDefaultParams, rlDefaultOptions,
@@ -110,19 +110,24 @@ AE public:    defaultAcoustoelasticIOPHGOOptions,
               solveAcoustoelasticIOPHGOBranch
 ```
 
-Each model now owns result construction through `rlBuildResult`,
-`mrlfeBuildResult`, or `aeBuildResult`. Official dispersion arrays use
-`frequency_Hz`, `phaseVelocity_mps`, `wavenumber_radpm`, and `validMask`.
-`quality` is the sole official-output assessment name. Configuration separates
-caller intent under `requested` from resolved execution under `effective`.
+`solveDispersionFitProblem` owns only generic optimizer mechanics, final model
+evaluation, and fit-result assembly. RL, mRLFE, and AE retain explicit fit
+problem builders, scientific evaluators, public fit operations, and their exact
+optimizer defaults.
 
-The mRLFE compatibility result and raw GUI normalizer are removed. Main GUI and
-SweepTool consume public model results through shallow presentation adapters.
-mRLFE internal evidence has one owner at `debug.solverResult`; AE
-`identityA0Diagnostic` evidence is nested under diagnostics and remains distinct
-from productive `atlasA0` output.
+`runParametricSweep` owns one-dimensional iteration over a declared parameter
+path and invokes a model-specific evaluator once per condition. RL, mRLFE, AE,
+their examples, and SweepTool reuse it. `aeRunGridSweep` remains the explicit
+two-dimensional owner. Plotting and persistence consume completed results and
+never solve.
+
+mRLFE request construction has one analysis owner,
+`mrlfeBuildSolveRequest`; surface translation remains in `app/`. The three
+model-specific output-folder forwarders are removed in favor of the sole shared
+`resolveModelOutputFolder` owner.
 
 ## Next planning step
 
-After Phase 3 validation and review, proceed only to the separately authorized
-Phase 4 scope; do not broaden this phase into fitter or sweep-engine consolidation.
+After Phase 4 validation and review, proceed only to a separately authorized
+Phase 5. Do not broaden this phase into the complete physical reorganization of
+`analysis/`, `app/`, tests, examples, or documentation.

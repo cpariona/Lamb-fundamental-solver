@@ -50,7 +50,7 @@ The maintained dependency path is:
 ```text
 surface profile resolver
   -> thin surface request wrapper
-  -> mrlfeBuildPublicSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 

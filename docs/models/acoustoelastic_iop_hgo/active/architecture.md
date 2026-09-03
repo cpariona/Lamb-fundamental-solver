@@ -156,7 +156,7 @@ fitting example
   -> solveAcoustoelasticIOPHGOBranch
 ```
 
-Output folders and files are workflow responsibilities. `aeOutputFolder` and
+Output folders and files are workflow responsibilities. `resolveModelOutputFolder` and
 `aeWriteSweepOutputs` own AE analysis output handling; model solvers do not
 write files.
 
@@ -258,7 +258,7 @@ New outputs use:
 Results/ae_iop_hgo/<task>
 ```
 
-`aeOutputFolder` owns writes to that convention. `aeResolveResultFile` owns
+`resolveModelOutputFolder` owns writes to that convention. `aeResolveResultFile` owns
 read resolution for five maintained diagnostic scripts at eight call sites:
 
 - `compare_atlasA0_vs_raw_branch1`;

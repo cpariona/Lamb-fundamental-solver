@@ -183,8 +183,7 @@ The maintained Main GUI mRLFE chain is:
 ```text
 LambFundamental_GUI
   -> guiRunMRLFEModel
-  -> mrlfeBuildGuiSolveRequest
-  -> mrlfeBuildPublicSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
   -> GUI result adapter
 ```
@@ -212,9 +211,9 @@ The maintained FitTool mRLFE fitting chain is:
 FitTool_GUI
   -> guiFitMRLFESolver
   -> mrlfeFitDispersionData
+  -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildFitSolveRequest
-  -> mrlfeBuildPublicSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
@@ -239,8 +238,8 @@ SweepTool_GUI
   -> guiBuildSweepRequest
   -> guiRunSweep
   -> guiRunMRLFESweep
-  -> mrlfeBuildSweepSolveRequest
-  -> mrlfeBuildPublicSolveRequest
+  -> runParametricSweep
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve, once per sweep point
 ```
 
@@ -253,7 +252,7 @@ additional termination and no fallback.
 
 SweepTool no longer delegates mRLFE solving to `guiRunMRLFEModel` and no longer
 inherits Main GUI zero-viscosity fallback. Each point stores the full public
-model result under `rawResults.points{i}.modelResult`; aggregate sweep metadata
+model result under `sweepResult.points{i}.modelResult`; aggregate sweep metadata
 reports all unique effective engines, presets, termination policies, and
 fallback policies represented by the points.
 
