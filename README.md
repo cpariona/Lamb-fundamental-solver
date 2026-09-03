@@ -211,32 +211,23 @@ summarizeMRLFETrackingQuality
 Internal mRLFE model defaults and residual evaluation use
 `mrlfeDefaultInternalParameters` and `mrlfeObjectiveResidual`.
 
-Maintained mRLFE sweeps:
+Maintained representative mRLFE sweep:
 
 ```matlab
-mrlfe_sweep_mu_A0Like
-mrlfe_sweep_mu_S0Like
 mrlfe_sweep_etaS_A0Like
-mrlfe_sweep_etaS_S0Like
-mrlfe_sweep_thickness_A0Like
-mrlfe_sweep_thickness_S0Like
 ```
 
-Maintained mRLFE fitting and comparison examples:
+Maintained mRLFE basic and fitting examples:
 
 ```matlab
 run_default_mrlfe
 fit_mrlfe_A0Like
-compare_mrlfe_elastic_vs_visco_cp
 ```
 
-Focused mRLFE diagnostics:
+Maintained mRLFE diagnostic:
 
 ```matlab
-diagnose_mrlfe_fit_performance
-validate_mrlfe_targeted_grid
 validate_grid_presets
-validate_grid_presets_full
 ```
 
 The complete active mRLFE diagnostic inventory is documented in:

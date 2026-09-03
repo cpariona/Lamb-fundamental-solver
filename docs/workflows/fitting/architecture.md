@@ -198,15 +198,14 @@ Shared fitting helpers include optimizer orchestration, residual calculation, fi
 Broad fitting validation:
 
 ```matlab
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
 mRLFE-focused validation:
 
 ```matlab
-run_mrlfe_fit_public_solver_tests
-run_execution_profile_surface_tests
-run_gui_smoke_tests
+run_extended_integration_tests
+run_quick_smoke_tests
 ```
 
 The focused mRLFE suite checks public-solver routing, parameter regression, fit-grid behavior, absence of automatic solver reevaluation, and explicit full-curve evaluation.

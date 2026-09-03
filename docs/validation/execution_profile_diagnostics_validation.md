@@ -192,7 +192,7 @@ Run:
 ```matlab
 clear; clc; close all;
 startup
-run_execution_profile_diagnostics_tests
+run_extended_integration_tests
 ```
 
 This covers:

@@ -133,9 +133,9 @@ Run:
 
 ```matlab
 startup
-run_fit_data_import_tests
-run_fit_validation_tests
-run_gui_smoke_tests
+run_quick_contract_tests
+run_extended_integration_tests
+run_quick_smoke_tests
 ```
 
 The import tests use temporary files and do not write artifacts into the repository.

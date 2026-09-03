@@ -1,48 +1,29 @@
 # Final MATLAB test-suite architecture
 
-This document owns the stable test layout and validation-tier responsibilities.
-Canonical direct ownership is defined separately in `test_runner_ownership.md`.
-
-## Layout
+The test suite has four implementation areas plus tooling, and six validation tiers:
 
 ```text
 tests/
-|-- app/       GUI, FitTool, SweepTool, adapter, and surface contracts
-|-- models/    model-family numerical and contract tests
-|-- runners/   canonical runner implementations
-`-- shared/    fitting, sweeps, regression, path, and repository contracts
+|-- app/
+|-- models/
+|-- runners/
+|-- shared/
+`-- tooling/
 ```
 
-Five intentional public wrappers are the only MATLAB files outside those stable
-locations. Main GUI export and other specialized commands are canonical runners
-under `tests/runners/`. The wrapper inventory is owned by `tests/README.md`.
-
-## Validation tiers
-
-| Tier | Command | Responsibility |
+| Tier | Command | Purpose |
 | --- | --- | --- |
-| repository hygiene | `run_repository_hygiene_tests` | static structure, docs, naming, artifacts, boundaries, paths, and ownership |
-| quick contract | `run_quick_contract_tests` | bounded structural, metadata, import, and pure-helper contracts |
-| quick smoke | `run_quick_smoke_tests` | routine contracts plus representative GUI, AE, and mRLFE execution |
-| numerical regression | `run_numerical_regression_tests` | deterministic model and result-schema evidence |
-| extended integration | `run_extended_integration_tests` | matrices, fitting recovery, consumers, and characterization |
-| performance | `run_performance_and_benchmark_tests` | descriptive timing and performance evidence |
+| repository hygiene | `run_repository_hygiene_tests` | static repository contracts |
+| quick contract | `run_quick_contract_tests` | fast API and schema checks |
+| quick smoke | `run_quick_smoke_tests` | routine executable coverage |
+| numerical regression | `run_numerical_regression_tests` | deterministic scientific evidence |
+| extended integration | `run_extended_integration_tests` | cross-surface and characterization coverage |
+| performance | `run_performance_and_benchmark_tests` | descriptive timing and benchmarks |
 
-`run_all_smoke_tests` remains the historical broad aggregate. It is maintained
-for public command stability, not as the definition of the quick tier.
+The runners are flat: each test is called directly by exactly one tier and no
+runner calls another runner. Root wrappers, dynamic runner dispatch, focused
+runner aliases, and generated graph inventories are intentionally absent.
 
-## Runner rules
-
-- Every test has one direct canonical owner.
-- Aggregates call focused owners rather than sibling tests.
-- Repeated transitive reachability is allowed; duplicate direct ownership is not.
-- Runtime is descriptive and never a pass/fail threshold.
-- New tests belong in the stable layout and must be added to one canonical owner.
-- New public wrappers require a documented external command contract.
-
-Use `measureTestRuntime` when machine-specific runtime evidence is needed.
-Completed timing snapshots are not permanent architecture documents.
-
-Current generated inventory: 121 tests, 43 runner implementations, 5 public
-wrappers, 3 helpers, and 239 graph edges. The exact direct-owner mapping is
-regenerated rather than duplicated here.
+Use `measureTestRuntime` from `tests/tooling/` when machine-specific runtime
+evidence is needed. Runtime remains descriptive rather than a correctness
+threshold.

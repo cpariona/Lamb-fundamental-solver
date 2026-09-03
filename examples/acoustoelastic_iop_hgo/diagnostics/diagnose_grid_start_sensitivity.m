@@ -4,7 +4,7 @@ startup
 
 %DIAGNOSE_GRID_START_SENSITIVITY Diagnose AE atlasA0 sensitivity to output grid start/density.
 %
-% This diagnostic is intentionally not part of run_all_smoke_tests. It is a
+% This diagnostic is intentionally not part of the automated validation tiers. It is a
 % solver-interface diagnostic for the AE IOP/HGO branch-selection issue.
 %
 % Outputs are written to:

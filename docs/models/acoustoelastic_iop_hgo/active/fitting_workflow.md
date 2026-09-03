@@ -124,7 +124,7 @@ AE smoke validation runs:
 clear functions
 rehash toolboxcache
 startup
-run_acoustoelastic_smoke_tests
+run_quick_smoke_tests
 ```
 
 The AE smoke runner checks the AE fitting helper path and runs:
@@ -136,7 +136,7 @@ test_ae_fit_synthetic_atlasA0
 Focused fitting validation runs:
 
 ```matlab
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
 AE cases inside the focused validation suite include:

@@ -38,11 +38,8 @@ The extended grid matrix completed on 2026-07-14. Cases responsible for aggregat
 ## Related tests and runners
 
 ```matlab
-run_mrlfe_public_contract_tests
-run_mrlfe_production_core_tests
-run_mrlfe_neutral_production_helper_tests
-run_mrlfe_fit_public_solver_tests
-run_mrlfe_sweeptool_public_solver_tests
-run_mrlfe_main_gui_public_solver_tests
-run_mrlfe_route_integrity_tests
+run_quick_contract_tests
+run_quick_smoke_tests
+run_extended_integration_tests
+run_performance_and_benchmark_tests
 ```

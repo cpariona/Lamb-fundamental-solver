@@ -65,10 +65,9 @@ Maintained Rayleigh-Lamb examples and validation scripts live under:
 examples/rayleigh_lamb/
 ```
 
-Current basic scripts:
+Current basic script:
 
 ```matlab
-run_default_A0
 run_default_A0_S0
 ```
 
@@ -80,29 +79,16 @@ examples/rayleigh_lamb/basic/
 
 and are reserved for minimal default runs without parametric sweeps.
 
-Current sweep scripts:
+Current sweep script:
 
 ```matlab
 rl_sweep_thickness_A0
-rl_sweep_thickness_S0
 ```
 
 Sweep scripts live under:
 
 ```text
 examples/rayleigh_lamb/sweeps/
-```
-
-Current validation script:
-
-```matlab
-check_default_outputs
-```
-
-The validation script lives under:
-
-```text
-examples/rayleigh_lamb/validation/
 ```
 
 Current fitting example:
@@ -121,11 +107,10 @@ The old top-level example folders were removed. Rayleigh-Lamb examples should re
 
 ## Sweep helper layer
 
-The maintained thickness sweep entrypoints are branch-specific:
+The maintained representative thickness sweep entrypoint is:
 
 ```matlab
 rl_sweep_thickness_A0
-rl_sweep_thickness_S0
 ```
 
 They delegate reusable setup to:
@@ -162,25 +147,25 @@ This keeps the public sweep examples short while aligning Rayleigh-Lamb sweep na
 
 ## Tests and validation
 
-`run_core_smoke_tests` validates the modern Rayleigh-Lamb API by checking that the primary `rl*` entrypoints, shared material helpers, fitting helpers, and sweep helpers are on the MATLAB path, then running minimal A0/S0 numerical regression fixtures and the maintained Rayleigh-Lamb synthetic fitting smoke test.
+`run_quick_smoke_tests` validates the modern Rayleigh-Lamb API by checking that the primary `rl*` entrypoints, shared material helpers, fitting helpers, and sweep helpers are on the MATLAB path, then running minimal A0/S0 numerical regression fixtures and the maintained Rayleigh-Lamb synthetic fitting smoke test.
 
-`run_fit_validation_tests` runs the focused synthetic fitting validation suite, including Rayleigh-Lamb A0 single-parameter recovery cases for `mu` and `thickness`.
-
-`run_all_smoke_tests` runs the complete smoke suite across core, GUI, AE IOP/HGO, mRLFE smoke, and mRLFE atlas groups.
+`run_extended_integration_tests` covers synthetic fitting recovery, including
+Rayleigh-Lamb A0 single-parameter cases for `mu` and `thickness`, plus broader
+cross-model and application integration.
 
 Recommended local validation from the repository root after Rayleigh-Lamb documentation or helper changes:
 
 ```matlab
 clear; clc; close all;
 startup
-run_core_smoke_tests
-run_fit_validation_tests
+run_quick_smoke_tests
+run_extended_integration_tests
 ```
 
 For a complete repository-level check, run:
 
 ```matlab
-run_all_smoke_tests
+run_extended_integration_tests
 ```
 
 ## GUI development guidance

@@ -130,9 +130,8 @@ fit-consistent, while explicit requested-curve evaluation uses
 Run:
 
 ```matlab
-run_mrlfe_fit_public_solver_tests
-run_execution_profile_surface_tests
-run_gui_smoke_tests
+run_extended_integration_tests
+run_quick_smoke_tests
 ```
 
 The focused suite checks public-solver routing, parameter regression, fit-grid policy, no automatic solver reevaluation during normalization, and explicit full-curve evaluation behavior.

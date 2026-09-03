@@ -1,33 +1,17 @@
-# AE IOP/HGO diagnostic documentation
+# AE IOP/HGO diagnostics
 
-This folder contains diagnostic evidence that supports, but does not itself define, the maintained AE IOP/HGO solver policy.
+Maintained executable diagnostics are:
 
-## Maintained evidence
+```matlab
+diagnose_atlas_truncation
+diagnose_branch_families
+diagnose_grid_start_sensitivity
+diagnose_modal_atlas
+diagnose_sweep_reliability
+```
 
-| Document | Executable evidence | Unique current value |
-| --- | --- | --- |
-| `atlas_vs_raw_branch1_diagnostic.md` | `compare_atlasA0_vs_raw_branch1`, `validate_atlas_raw_grid`, `diagnose_raw_branch_corner` | Defines the raw-branch comparison and difficult-corner interpretation. |
-| `branch_families_diagnostic.md` | `diagnose_branch_families` | Records why coverage alone does not resolve modal-family ambiguity. |
-| `atlasA0_truncation_cause_diagnostic.md` | `diagnose_atlas_truncation` | Distinguishes terminal truncation from internal gaps and defines causal outputs. |
-| `identityA0_diagnostic_policy.md` | solver option plus focused test | Defines the diagnostic-only output schema and safety rule. |
-| `branch_identity_score_diagnostic.md` | `diagnose_idA0_score` | Defines the score components and candidate classes. |
-| `branch_identity_score_grid_validation.md` | `validate_idA0_score_grid` | Preserves the 110-case score-validation interpretation. |
-| `identityA0_diagnostic_grid_validation.md` | `validate_idA0_grid` | Preserves official-field parity and candidate-extension evidence. |
-| `identityA0_physical_plausibility_diagnostic.md` | `diagnose_idA0_plausibility` | Defines plausibility classes and the low-mu/high-IOP caution boundary. |
-
-## Policy
-
-These documents are retained only because each has a surviving repeatable owner
-and a distinct interpretation. The production policy is defined only in
-`../active/branch_policy.md`.
-
-The diagnostic identity builder and scorer are located under
-`models/acoustoelastic_iop_hgo/diagnostics/`. This explicit ownership avoids a
-production-model dependency on `analysis/` and keeps result construction under
-`results/` free of diagnostic algorithms. They are executed only for an explicit
-`identityA0Diagnostic` request and cannot replace official `atlasA0` output.
-
-Reusable diagnostic helpers retained without production callers are classified
-in [`../active/architecture.md`](../active/architecture.md). They remain
-scientific evidence infrastructure or intentionally dormant supported helpers;
-they do not define an alternate solver route.
+They characterize production atlas behavior without changing branch policy or
+official results. Detailed active interpretations are retained in
+`atlasA0_truncation_cause_diagnostic.md` and `branch_families_diagnostic.md`.
+Completed raw-branch and identity-score investigations remain available in Git
+history rather than as maintained executable or documentation surfaces.

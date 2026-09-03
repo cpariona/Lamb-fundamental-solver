@@ -95,14 +95,14 @@ The lightweight characterization measured approximately 3.0x to 4.3x speedup for
 ## Tests and diagnostics
 
 ```matlab
-run_mrlfe_production_core_tests
-run_mrlfe_fit_public_solver_tests
+run_extended_integration_tests
+run_performance_and_benchmark_tests
 ```
 
-For bounded diagnostic follow-up:
+For bounded manual diagnostic follow-up:
 
 ```matlab
-validate_mrlfe_targeted_grid
+validate_grid_presets
 ```
 
 Do not add the extended full matrix to lightweight smoke runners.

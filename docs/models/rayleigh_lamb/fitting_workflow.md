@@ -23,7 +23,7 @@ free parameter: mu
 fixed parameters: thickness, rho, nu
 ```
 
-Additional synthetic fitting validation cases are covered by `run_fit_validation_tests`.
+Additional synthetic fitting validation cases are covered by `run_extended_integration_tests`.
 
 ## Data contract
 
@@ -113,7 +113,7 @@ Core smoke validation runs:
 clear functions
 rehash toolboxcache
 startup
-run_core_smoke_tests
+run_quick_smoke_tests
 ```
 
 The core runner checks Rayleigh-Lamb API/helper path coverage and runs:
@@ -125,7 +125,7 @@ test_rl_fit_synthetic_A0
 Focused fitting validation runs:
 
 ```matlab
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
 Rayleigh-Lamb cases inside the focused validation suite include:

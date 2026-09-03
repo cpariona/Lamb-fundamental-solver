@@ -314,13 +314,13 @@ After GUI adapter changes, run:
 ```matlab
 clear; clc; close all;
 startup
-run_gui_smoke_tests
-run_fit_validation_tests
-run_mrlfe_route_integrity_tests
+run_quick_smoke_tests
+run_extended_integration_tests
+run_quick_contract_tests
 ```
 
 For a complete repository check, run:
 
 ```matlab
-run_all_smoke_tests
+run_extended_integration_tests
 ```

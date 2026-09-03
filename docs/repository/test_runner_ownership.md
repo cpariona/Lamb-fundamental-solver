@@ -1,59 +1,19 @@
 # MATLAB test runner ownership
 
-This document owns the canonical direct-owner policy for `tests/`. The exact
-generated graph is maintained in:
+The six files in `tests/runners/` are the complete maintained runner surface.
+Every test has one direct owner, expressed by an explicit call in that owner.
+There are no aggregate-to-focused runner edges, dynamic dispatch helpers,
+root-level wrappers, or generated ownership CSVs.
 
-```text
-analysis/test_inventory/test_inventory.csv
-analysis/test_inventory/runner_edges.csv
-analysis/test_inventory/test_runner_ownership.csv
-```
+| Runner | Responsibility | Direct tests |
+| --- | --- | ---: |
+| `run_repository_hygiene_tests` | structure, docs, naming, artifacts, boundaries, startup and root resolution | 7 |
+| `run_quick_contract_tests` | bounded API, schema, configuration and import contracts | 16 |
+| `run_quick_smoke_tests` | representative model and application execution | 29 |
+| `run_numerical_regression_tests` | deterministic scientific and result-schema evidence | 17 |
+| `run_extended_integration_tests` | fitting, sweeps, GUI consumers and characterization matrices | 40 |
+| `run_performance_and_benchmark_tests` | descriptive runtime and benchmark evidence | 5 |
 
-## Invariants
-
-- Every maintained test has exactly one executable direct runner owner.
-- No test is manual-only.
-- No test has multiple canonical owners.
-- Sibling runners do not call the same test directly.
-- The runner graph has no cycles.
-- Aggregate reachability does not change direct ownership.
-
-## Hygiene ownership
-
-`run_repository_hygiene_tests` directly owns:
-
-```matlab
-test_repository_structure_contract
-test_repository_documentation_contract
-test_repository_naming_contract
-test_repository_tracked_artifacts_contract
-test_repository_dependency_boundaries_contract
-test_startup_path_policy
-test_repository_root_utilities
-```
-
-`run_core_contract_tests` calls the hygiene owner and separately owns the model
-output-folder and shared fitting-helper contracts.
-
-## Regeneration
-
-```matlab
-clear functions
-rehash toolboxcache
-startup
-
-[inventory, edges] = buildTestInventory('WriteCsv', true);
-ownership = buildTestOwnership('WriteCsv', true, 'ValidateActual', true);
-```
-
-The parser is conservative static evidence. Dynamic wrapper dispatch through
-`runRepositoryTestRunner` is modeled explicitly, and maintained runners must
-also be executed.
-
-The public wrapper surface contains five delegation-only commands. Specialized
-commands, including fitting, Main GUI export, and focused mRLFE validation,
-resolve directly from canonical implementations under `tests/runners/`.
-
-Current generated state: 113 tests, 43 runner implementations, 5 wrappers, 3
-helpers, 228 graph edges, and 113 canonical owners, with 0 manual-only,
-unowned, multiply owned, sibling-overlapping, or cyclic tests/runners.
+The current total is 114 maintained tests. Static hygiene verifies that every
+test is mentioned exactly once, every mention resolves, and only the six
+canonical runner files exist.

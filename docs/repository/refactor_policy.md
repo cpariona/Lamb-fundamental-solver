@@ -289,8 +289,6 @@ expected gates include, as applicable:
 run_repository_hygiene_tests
 run_quick_contract_tests
 run_quick_smoke_tests
-run_acoustoelastic_smoke_tests
-run_mrlfe_smoke_tests
 run_numerical_regression_tests
 run_extended_integration_tests
 run_performance_and_benchmark_tests

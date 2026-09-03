@@ -8,10 +8,10 @@ Smoke tests check that maintained APIs, adapters, and minimal synthetic cases ru
 
 The focused fitting validation suite is different. It checks whether implemented fitting backends can recover known synthetic parameters within explicit tolerances.
 
-The suite is intentionally separate from:
+Routine fitting smoke coverage belongs to:
 
 ```matlab
-run_all_smoke_tests
+run_quick_smoke_tests
 ```
 
 because fitting validation may be slower, especially for atlas-based model families.
@@ -24,7 +24,7 @@ Run:
 clear functions
 rehash toolboxcache
 startup
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
 This executes:
@@ -111,7 +111,7 @@ etaS: 0 Pa*s
 mRLFE FitTool route-specific contracts are validated separately by:
 
 ```matlab
-run_mrlfe_fit_public_solver_tests
+run_extended_integration_tests
 ```
 
 ## AE IOP/HGO validation cases
@@ -170,21 +170,21 @@ After fitting-related changes, run:
 ```matlab
 clear; clc; close all;
 startup
-run_all_smoke_tests
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
-For mRLFE FitTool route or plotting behavior, also run:
+For mRLFE FitTool route or plotting behavior, the same extended tier plus its
+bounded contracts cover:
 
 ```matlab
-run_mrlfe_fit_public_solver_tests
-run_mrlfe_route_integrity_tests
+run_extended_integration_tests
+run_quick_contract_tests
 ```
 
 For FitTool interaction changes that do not alter solvers, run:
 
 ```matlab
-run_fit_tool_interaction_tests
+run_extended_integration_tests
 ```
 
 This focal runner checks:

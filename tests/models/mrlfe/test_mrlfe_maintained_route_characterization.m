@@ -27,9 +27,9 @@ for i = 1:numel(cases)
     assertSameResult(guiResult, direct, 'Main GUI');
 end
 
-% FitTool route and optimized-grid equivalence are covered by the dedicated
-% run_mrlfe_fit_public_solver_tests runner. Keeping that work out of this
-% route-integrity runner avoids duplicate solver evaluations and grid-policy coupling.
+% FitTool route and optimized-grid equivalence are covered by dedicated tests in
+% the same extended tier. Keeping that work out of this test avoids duplicate
+% solver evaluations and grid-policy coupling.
 
 fprintf('mRLFE maintained-route characterization test passed.\n');
 
