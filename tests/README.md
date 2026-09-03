@@ -33,3 +33,23 @@ startup % remove test bodies/tooling again
 Runtime is descriptive, not a hardware-specific correctness threshold.
 Exported measurements belong under `Results/validation/` or the caller's
 explicit output path, never under production source.
+
+## Historical characterization
+
+The mRLFE core matrix checks 24 Fast and 6 Dense cases. Without an independent
+reference it reports schema/coverage only, never an assumed zero delta.
+For a historical comparison, evaluate the same test against an isolated
+historical models tree and save its two returned cell arrays, `fastResults`
+and `denseResults`, to a disposable MAT file. Restore current production/test
+paths, clear functions, then call:
+
+```matlab
+test_mrlfe_production_core_characterization(referenceFile)
+```
+
+That invocation computes actual Cp differences and checks frequency grids,
+branches, presets, finite patterns, and masks. It never updates the reference.
+The integration comparison uses Phase 1 commit
+`1b6b3a15a7ce46b1644918383e1bd6a1c630f5f4`; generated reference files are not
+tracked. Human-surface tests independently compare each consumer with the
+current public solver.
