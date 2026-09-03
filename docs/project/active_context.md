@@ -3,34 +3,41 @@
 Last reviewed: 2026-09-03
 
 Repository: `cpariona/Lamb-fundamental-solver`
+Integration branch: `restructure/phase-07-final-integration`
+Base: Phase 6 HEAD `5183565`.
 
-Active implementation branch:
-`restructure/phase-06-validation-surface-cleanup`
+## Final architecture
 
-## Current state
+Models own physics, tracking, numerical configuration, quality, and scientific
+results. Analysis owns fitting, sweeps, plotting, IO, and diagnostic
+interpretation. App is surface-first: main, fitting, sweep, shared.
+The dependency mRLFE -> RL is restricted to seed construction; RL never calls
+mRLFE. Human interfaces consume the same maintained scientific owners.
 
-- Rayleigh-Lamb, mRLFE, and AE IOP/HGO have small canonical scientific APIs.
-- Main GUI, SweepTool, and FitTool converge on those model APIs.
-- Model, analysis, and application ownership is physically separated.
-- Official result contracts separate arrays, quality, diagnostics, and
-  requested/effective configuration.
-- Examples and diagnostics form a representative maintained surface rather
-  than an archive of completed investigations.
-- Validation has exactly six flat runner tiers and 114 uniquely owned tests.
+Production startup loads root/models/analysis/app plus only the six test
+launchers. Test bodies and tooling load explicitly and runners restore the
+caller path. Examples/diagnostics are opt-in files.
 
-AE production uses discrete atlas candidates followed by bounded continuous
-refinement on the true SVD objective. The earlier three-point parabolic
-candidate strategy is not part of production.
+There are 114 tests, exactly six runners, and 16 representative executable
+examples (including six diagnostics). Authoritative ownership is in
+`tests/README.md`; architecture is in
+`docs/repository/repository_structure.md`.
 
-## Phase 6 boundary
+## Scientific baseline
 
-Phase 6 changes validation and documentation surfaces only. It does not change
-solver equations, tracking policy, optimizer defaults, numerical presets,
-goldens, or tolerances. The known AE atlasA0 Cp snapshot difference remains an
-explicit baseline result.
+AE retains discrete atlas selection followed by bounded fminbnd refinement on
+the true SVD objective. Causal replay proves that its earlier snapshot predates
+that approved algorithm. Commit `6911727` updates only three golden values;
+the 1e-12 tolerance and all production science are unchanged.
+Evidence: `docs/validation/ae_atlasA0_baseline.md`.
 
-## Next phase
+## Integration
 
-Phase 7 may perform final startup/path and documentation consistency review,
-then prepare integration. It must not normalize the known AE baseline or expand
-public APIs without separate authorization.
+Integration is BLOCKED by a historical mRLFE configuration delta, independently
+of the six ordinary tiers, all of which passed. The edge guard migrated from an
+effective 4 to 8 in Phase 2; restoring 4 in memory reproduces all 24 Fast
+reference cases exactly. A production correction requires explicit approval.
+See `docs/validation/mrlfe_restructure_baseline.md` and
+`docs/repository/validation_status.md`.
+No push or merge is authorized. Review and integration are separate actions;
+there is no subsequent restructuring phase.

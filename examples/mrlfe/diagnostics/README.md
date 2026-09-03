@@ -7,3 +7,9 @@ canonical `mrlfeSolve` route. Broader characterization is automated by
 `run_performance_and_benchmark_tests`.
 
 Generated `.mat`, `.csv`, `.fig`, and `.png` outputs are not source artifacts.
+
+The diagnostic is opt-in, not on the production path. From repository root:
+
+```matlab
+run('examples/mrlfe/diagnostics/validate_grid_presets.m')
+```

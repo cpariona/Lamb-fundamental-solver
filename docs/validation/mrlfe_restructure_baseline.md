@@ -85,4 +85,4 @@ It would restore the demonstrated historical behavior without changing
 equations, public presets, goldens, tolerances, or AE refinement.
 Because it changes the current numerical output, explicit authorization was
 requested before applying it. After authorization, repeat historical
-characterization and all affected validation tiers before integration.
+characterization and all six validation tiers before integration.

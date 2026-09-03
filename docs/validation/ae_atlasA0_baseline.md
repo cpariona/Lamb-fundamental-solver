@@ -80,3 +80,8 @@ establish universal branch identity near ambiguous crossings.
 
 All six validation tiers must run again after the separate baseline commit.
 The completed results belong in `docs/repository/validation_status.md`.
+
+Disposition: the recommended update was applied in the isolated scientific
+baseline commit `6911727`. The full numerical tier then passed without changing
+1e-12. The separate mRLFE historical gate is documented independently; it is
+not a reason to revert the validated AE refinement or its corrected snapshot.

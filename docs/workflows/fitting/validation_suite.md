@@ -107,6 +107,11 @@ etaS: 0 Pa*s
 
 `test_fit_validation_mrlfe_hidden_params` currently validates A0Like thickness recovery with hidden/fixed material parameters in the stable zero-viscosity fitting path. It does not validate `etaS` recovery.
 
+The separate `test_mrlfe_etaS_fit_forward_cache` covers a bounded synthetic
+etaS-only recovery case and cache ownership, with a 35% relative-parameter
+guard and RMSE below 0.20 m/s. This is not a general viscosity-identifiability
+or experimental-accuracy guarantee.
+
 mRLFE FitTool route-specific contracts are validated separately by:
 
 ```matlab
@@ -148,10 +153,10 @@ Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, or branch-fam
 
 ## Current limitations
 
-This validation phase does not yet validate:
+The maintained suite does not establish:
 
 ```text
-mRLFE etaS fitting as a parameter-recovery case
+broad mRLFE etaS identifiability across parameter regimes
 mRLFE thickness fitting outside the stable zero-viscosity hidden-parameter case
 AE multiparameter fitting
 weighted fitting using standardError_Cp_mps

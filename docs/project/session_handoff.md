@@ -1,46 +1,31 @@
-# Session handoff
+# Integration handoff
 
-Updated: 2026-09-03
+Last reviewed: 2026-09-03
 
-## Repository state
+Branch: `restructure/phase-07-final-integration`
+Base: `5183565`, the final Phase 6 commit. No merge or push performed.
 
-- Default branch: `main`
-- Planning branch: `planning/full-repository-restructure`
-- Active branch: `restructure/phase-06-validation-surface-cleanup`
-- Phase 6 base: Phase 5 commit `c70d3cc`
+## Review scope
 
-## Completed architecture
+- Production/test/example path ownership is explicit.
+- Cross-surface benchmark tooling is test-owned, not analysis-owned.
+- Active architecture/model/workflow docs supersede historical campaign plans.
+- Repository checks enforce unique MATLAB names and one runner per test.
+- AE independent SVD, branch-identity, convergence, and synthetic-recovery
+  evidence justifies the isolated golden update `6911727` (1e-12 unchanged).
+- mRLFE historical comparisons must measure a real reference, not report
+  initialized zero statistics. The Phase 1 reference is `1b6b3a1`.
 
-Phases 1-3 established one-way model dependencies, small public APIs, explicit
-configuration ownership, and canonical result contracts. Phase 4 consolidated
-fitting and sweep workflows. Phase 5 organized `analysis/` by workflow and
-`app/` by human surface.
+## Integration gate
 
-Phase 6 reduces examples and diagnostics to representative maintained commands,
-removes completed investigation artifacts, and replaces wrapper/focused runner
-graphs with six explicit tiers. The suite contains 114 tests with exactly one
-direct runner owner each. Test tooling is separate and generated ownership CSVs
-are absent.
+BLOCKED: the historical mRLFE comparison detected a Phase 2 edge-guard mapping
+regression (effective 4 became 8), maximum Fast delta 0.0120684309767 m/s.
+An in-memory guard of 4 restores all 24 Fast cases exactly; the production
+configuration has not been changed pending explicit approval. Evidence is in
+`docs/validation/mrlfe_restructure_baseline.md`. All six ordinary tiers and
+targeted presentation reruns passed; measured status and performance are in
+`docs/repository/validation_status.md`.
 
-## Validation boundary
-
-Run, in order:
-
-```matlab
-run_repository_hygiene_tests
-run_quick_contract_tests
-run_quick_smoke_tests
-run_numerical_regression_tests
-run_extended_integration_tests
-run_performance_and_benchmark_tests
-```
-
-The numerical tier is expected to report the existing
-`AE IOP/HGO atlasA0 Cp snapshot changed.` difference only; its golden and
-`1e-12` tolerance are unchanged. RL, mRLFE, synthetic fitting, sweep, GUI, and
-Delta-Cp characterization evidence must remain independently visible.
-
-## Next work
-
-Phase 7 is limited to final consistency review and integration preparation.
-Do not merge a partially validated restructuring into `main`.
+After a successful gate, review the branch diff and the separate AE scientific
+baseline commit. Push/merge only after explicit authorization. Keep generated
+results and disposable historical reference files out of Git.
