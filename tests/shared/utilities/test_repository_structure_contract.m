@@ -29,6 +29,7 @@ assert(~any(startsWith(paths, "docs/") & endsWith(paths, ".m")), ...
     'Production MATLAB files are forbidden under docs/.');
 
 assertTestLocations(paths);
+assertTestOwnership(repoRoot, paths);
 assertAeAnalysisOwnership(paths);
 assertAppSurfaceOwnership(paths);
 assertAeModelDiagnosticOwnership(paths);
@@ -66,6 +67,24 @@ assert(~isfolder(fullfile(repoRoot, 'tests', 'fitting')), ...
     'The removed tests/fitting structural exception must not exist.');
 assert(~any(startsWith(paths, "analysis/test_inventory/")), ...
     'Generated test-inventory infrastructure must not be tracked under analysis/.');
+end
+
+function assertTestOwnership(repoRoot, paths)
+testPaths = paths(startsWith(paths, "tests/") & endsWith(paths, ".m"));
+testNames = strings(0,1);
+for p = testPaths(:).'
+    [~,name] = fileparts(p);
+    if startsWith(name,"test_"), testNames(end+1,1) = name; end %#ok<AGROW>
+end
+mentions = strings(0,1);
+runnerPaths = paths(startsWith(paths,"tests/runners/") & endsWith(paths,".m"));
+for p = runnerPaths(:).'
+    source = regexprep(fileread(fullfile(repoRoot,p)), '%[^\r\n]*', '');
+    found = string(regexp(source, '\<test_[A-Za-z0-9_]+\>', 'match'));
+    mentions = [mentions; found(:)]; %#ok<AGROW>
+end
+assert(numel(mentions) == numel(unique(mentions)), 'A test has multiple runner owners.');
+assert(isequal(sort(testNames),sort(mentions)), 'Every maintained test needs exactly one runner owner.');
 end
 
 function assertAeAnalysisOwnership(paths)

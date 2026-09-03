@@ -57,7 +57,51 @@ assert(all(isnan(fallbackResult.phaseVelocity_mps)));
 assert(all(~fallbackResult.validMask));
 assert(all(fallbackResult.pointStatus == "fallbackRejectedA0StartFilter"));
 
+assertContinuousRefinement();
 fprintf('AE tracking and policy characterization passed.\n');
+end
+
+function assertContinuousRefinement()
+% Independent guards for the historical atlasA0 snapshot fixture. No golden
+% values enter these objective, identity, or convergence assertions.
+params = representativeParams(logspace(log10(300), log10(15e3), 35));
+options = defaultAcoustoelasticIOPHGOOptions();
+options.M54_variant = "corrected";
+options.normalizeRows = false;
+options.usePhysicalCpWindow = false;
+options.atlasNumYPoints = 300;
+options.atlasTopNMinima = 12;
+options.atlasBranchPolicy = "atlasA0";
+refined = solveAcoustoelasticIOPHGOBranch(params, options);
+options.refineLocalMinima = false;
+discrete = solveAcoustoelasticIOPHGOBranch(params, options);
+assert(all(refined.validMask) && ~refined.quality.SelectionFallbackUsed);
+assert(isequal(refined.validMask, discrete.validMask));
+assert(isequaln(refined.minimaTable, discrete.minimaTable));
+assert(isequaln(refined.nearestRank, discrete.nearestRank));
+assert(isequaln(refined.nearestBranchID, discrete.nearestBranchID));
+assert(all(ismember(refined.minimaTable.Cp_mps, refined.cGrid)), ...
+    'Refinement must leave atlas candidates on the discrete grid.');
+[a,b,g] = computeAcoustoelasticABGFromIOPHGO(params.IOP, params.R, ...
+    params.thickness, params.mu, params.k1, params.k2);
+for j = 1:numel(params.frequency)
+    objective = objectiveAcoustoelasticResidual(a,b,g,params.thickness, ...
+        params.rho,params.rhoF,params.fluidBulkModulus,params.frequency(j), ...
+        refined.phaseVelocity_mps(j),options);
+    assertNearlyEqual(objective, refined.objective(j));
+    assert(objective < discrete.objective(j), ...
+        'Continuous refinement must improve the true SVD objective.');
+end
+options.refineLocalMinima = true;
+options.selectedBranchRefinementTolLogCp = 1e-10;
+options.selectedBranchRefinementMaxFunEvals = 100;
+options.selectedBranchRefinementMaxIter = 100;
+tight = solveAcoustoelasticIOPHGOBranch(params, options);
+assert(isequal(refined.validMask, tight.validMask));
+delta = max(abs(refined.phaseVelocity_mps(:) - tight.phaseVelocity_mps(:)));
+% Measured 1.441e-6 m/s; 3e-6 is a convergence bound, not a relaxed golden.
+assert(delta < 3e-6, 'Selected-branch refinement failed convergence guard.');
+fprintf('AE true-SVD/identity/convergence guards passed: max delta %.9g m/s.\n', delta);
 end
 
 function assertIntermediateSchema(result)

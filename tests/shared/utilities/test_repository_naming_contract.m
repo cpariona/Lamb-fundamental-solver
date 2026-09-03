@@ -4,6 +4,8 @@ function test_repository_naming_contract()
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 trackedPaths = trackedMatlabPaths(repoRoot);
 names = erase(string({trackedPaths.name}), ".m");
+assert(numel(names) == numel(unique(lower(names))), ...
+    'Tracked MATLAB filenames must be globally unique, including case-insensitive platforms.');
 
 assertFilenameFunctionAgreement(repoRoot, trackedPaths);
 assertExampleTerms(trackedPaths);
