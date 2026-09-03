@@ -79,10 +79,10 @@ They are explicit retained exceptions to the prefix rule, not aliases.
 
 ## App naming
 
-Cross-surface UI, normalization, and adapter helpers use `gui*`. Existing
-component constructors use `create*`. Model-specific translators under
-`app/adapters/` may use `ae*`, `mrlfe*`, or `rl*` so model ownership remains
-visible.
+Cross-surface UI, normalization, and surface-translation functions use `gui*`.
+Existing component constructors use `create*`. Model-specific profile
+resolvers under `app/shared/` may use `ae*`, `mrlfe*`, or `rl*` so model
+ownership remains visible.
 
 The following names already distinguish their responsibilities and remain
 canonical:

@@ -116,10 +116,10 @@ run_acoustoelastic_smoke_tests
 Use this structure for new work:
 
 ```text
-analysis/acoustoelastic_iop_hgo/diagnostics/  diagnostic computation/defaults
-analysis/acoustoelastic_iop_hgo/fitting/      fitting workflow
-analysis/acoustoelastic_iop_hgo/io/           result/output IO
-analysis/acoustoelastic_iop_hgo/sweeps/       sweep workflow
+analysis/diagnostics/acoustoelastic_iop_hgo/  diagnostic computation/defaults
+analysis/fitting/acoustoelastic_iop_hgo/      fitting workflow
+analysis/io/acoustoelastic_iop_hgo/           result/output IO
+analysis/sweeps/acoustoelastic_iop_hgo/       sweep workflow
 models/acoustoelastic_iop_hgo/                model and solver implementation
 examples/acoustoelastic_iop_hgo/basic/        simple executable examples
 examples/acoustoelastic_iop_hgo/sweeps/       sweep entrypoints

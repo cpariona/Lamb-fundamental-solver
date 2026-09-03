@@ -141,6 +141,38 @@ The numerical regression still stops only at the known
 `AE IOP/HGO atlasA0 Cp snapshot changed.` baseline. Phase 4 changes neither its
 golden data nor its tolerance.
 
+## Phase 5 physical-architecture validation
+
+Validation completed on 2026-09-02 for
+`restructure/phase-05-physical-architecture`:
+
+- repository hygiene, quick contracts, and the final quick smoke aggregate
+  passed after a clean `startup`;
+- mRLFE production core, route integrity, smoke, and execution-profile
+  end-to-end suites passed;
+- focused fitting plus FitTool, SweepTool, Main GUI, and result-contract suites
+  passed with the new physical paths;
+- production mRLFE covered 24 Fast and 6 Dense cases with maximum absolute
+  difference `0 m/s`, maximum relative difference `0`, and no validity-mask
+  differences;
+- FitTool, SweepTool, and Main GUI each covered 24 mRLFE cases with maximum
+  absolute difference `0 m/s`, maximum relative difference `0`, and no
+  validity-mask differences;
+- Main GUI versus SweepTool and Main GUI versus FitTool both reported maximum
+  `Cp` difference `0`;
+- mRLFE fitting retained objective evaluation counts `11`, `8`, `7`, and `7`,
+  and the production performance contract passed with medians between `2.60 s`
+  and `2.87 s` for its four characterized scenarios;
+- AE extended validation and synthetic atlasA0 recovery passed with relative mu
+  error `5.06201e-08`;
+- the regenerated inventories remain at 116 tests, 231 graph edges, and 116
+  canonical owners.
+
+The lightweight numerical regression continues to report only
+`AE IOP/HGO atlasA0 Cp snapshot changed.` The remaining RL and mRLFE numerical
+regressions passed independently. Phase 5 changes neither the AE golden nor its
+`1e-12` tolerance.
+
 ## Compatibility debt
 
 | Exception | Owner | Current consumer | Reason retained | Removal condition |

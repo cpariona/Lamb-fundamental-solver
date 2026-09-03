@@ -24,7 +24,7 @@ The repository only needs to be available through `startup`.
 
 The causal diagnostic helper is:
 
-`analysis/acoustoelastic_iop_hgo/diagnostics/aeDiagnoseAtlasA0TruncationCause.m`
+`analysis/diagnostics/acoustoelastic_iop_hgo/aeDiagnoseAtlasA0TruncationCause.m`
 
 It returns:
 

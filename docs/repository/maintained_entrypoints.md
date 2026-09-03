@@ -66,18 +66,19 @@ internals, listed separately below.
 Cross-surface dispatch and registries:
 
 ```matlab
-guiGetSweepRegistry
+guiGetSweepModelConfiguration
 guiBuildSweepRequest
 guiRunSweep
 guiPlotSweepResult
-guiGetFitRegistry
+guiGetFitModelConfiguration
 guiBuildFitRequest
 guiRunFit
 guiNormalizeFitResult
 guiEvaluateRequestedFitCurve
 ```
 
-Model-to-surface adapters in `app/adapters/`:
+Surface-local model translation functions under `app/main/`, `app/fitting/`,
+and `app/sweep/`:
 
 ```matlab
 guiRunRayleighLambModel
@@ -98,7 +99,7 @@ aeResolveExecutionProfile
 mrlfeBuildSurfaceExecutionMetadata
 ```
 
-Cross-surface infrastructure retained at the app root:
+Cross-surface infrastructure under `app/shared/`:
 
 ```matlab
 guiExecutionProfileValues
@@ -129,7 +130,7 @@ guiValidateFitAxisLimits
 guiApplyFitAxisView
 ```
 
-Main GUI control builders remain at the app root:
+Main GUI control builders under `app/main/`:
 
 ```matlab
 createSetupTab
@@ -148,7 +149,8 @@ aePlotGridSweepFrequencySurfaceInteractive
 
 ### Shared sweeps
 
-The coherent shared sweep module lives under `analysis/sweeps/`:
+The shared sweep owners live under `analysis/sweeps/shared/`; plot-data and
+rendering owners live under `analysis/plotting/sweeps/shared/`:
 
 ```matlab
 runParametricSweep
@@ -197,7 +199,7 @@ rlSaveExampleFigure
 
 ### AE IOP/HGO analysis
 
-Fitting helpers under `analysis/acoustoelastic_iop_hgo/fitting/`:
+Fitting helpers under `analysis/fitting/acoustoelastic_iop_hgo/`:
 
 ```matlab
 aeBuildFitProblem
@@ -206,7 +208,9 @@ aeFitDispersionData
 ```
 
 Sweep orchestration, summarization, visualization, and outputs under
-`analysis/acoustoelastic_iop_hgo/sweeps/`:
+`analysis/sweeps/acoustoelastic_iop_hgo/`, with plotting under
+`analysis/plotting/sweeps/acoustoelastic_iop_hgo/` and persistence under
+`analysis/io/acoustoelastic_iop_hgo/`:
 
 ```matlab
 aeDefaultSweepOptions
@@ -223,7 +227,7 @@ aePlotGridSweepCpByAxis
 aeWriteSweepOutputs
 ```
 
-Result/output IO under `analysis/acoustoelastic_iop_hgo/io/`:
+Result/output IO under `analysis/io/acoustoelastic_iop_hgo/`:
 
 ```matlab
 aeResolveResultFile
@@ -232,7 +236,7 @@ aeDeleteExampleFigure
 ```
 
 Diagnostic computation and defaults under
-`analysis/acoustoelastic_iop_hgo/diagnostics/`:
+`analysis/diagnostics/acoustoelastic_iop_hgo/`:
 
 ```matlab
 summarizeAcoustoelasticIOPHGOTrackingQuality
@@ -254,6 +258,11 @@ aeDefaultIdentityA0ValidationGrid
 ```
 
 ### mRLFE analysis
+
+Fit workflows live under `analysis/fitting/mrlfe/`, sweep workflows under
+`analysis/sweeps/mrlfe/`, diagnostics under `analysis/diagnostics/mrlfe/`,
+request translation under `analysis/requests/mrlfe/`, and persistence under
+`analysis/io/mrlfe/`.
 
 ```matlab
 mrlfeSetYoungModulusForShearPoisson

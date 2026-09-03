@@ -59,7 +59,7 @@ the selected numerical preset, adaptive selection, branch termination, and
 disabled fallback. Adapters do not overwrite the preset after construction.
 
 The model-specific profile resolvers and mRLFE surface metadata builder live in
-`app/adapters/`. Cross-surface normalization, accepted profile values, and
+`app/shared/`. Cross-surface normalization, accepted profile values, and
 diagnostic formatting remain at the root of `app/`.
 
 ## Metadata

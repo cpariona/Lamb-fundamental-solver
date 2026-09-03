@@ -173,7 +173,7 @@ The GUI should continue to follow this sequence:
 
 ```text
 SweepTool_GUI
-    -> guiGetSweepRegistry
+    -> guiGetSweepModelConfiguration
     -> guiBuildSweepRequest
     -> guiRunSweep
     -> model-specific sweep adapter

@@ -28,7 +28,7 @@ aeBuildInternalTrackingGrid
 
 The preset owner, resolver, validator, and grid builder are maintained model
 internals. App surface names and UI profile translation are owned by
-`app/adapters/aeResolveExecutionProfile`.
+`app/shared/aeResolveExecutionProfile`.
 
 ## Result and quality ownership
 

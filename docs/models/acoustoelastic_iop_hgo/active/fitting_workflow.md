@@ -171,7 +171,7 @@ guiFitAcoustoelasticIOPHGOSolver
 The fitting registry exposes AE IOP/HGO through:
 
 ```matlab
-guiGetFitRegistry
+guiGetFitModelConfiguration
 FitTool_GUI
 ```
 

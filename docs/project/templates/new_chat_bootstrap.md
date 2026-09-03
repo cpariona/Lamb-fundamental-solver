@@ -49,7 +49,7 @@ recreate completed cleanup work.
 Audit scope:
 
 - models/acoustoelastic_iop_hgo/
-- analysis/acoustoelastic_iop_hgo/
+- analysis/{diagnostics,fitting,io,plotting/sweeps,sweeps}/acoustoelastic_iop_hgo/
 - AE app adapters and AE fitting/sweep integration points
 - examples/acoustoelastic_iop_hgo/
 - tests/models/acoustoelastic_iop_hgo/

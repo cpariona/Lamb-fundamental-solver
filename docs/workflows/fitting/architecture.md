@@ -46,9 +46,9 @@ FitTool_GUI
 Model-specific adapters:
 
 ```text
-app/adapters/guiFitRLSolver.m
-app/adapters/guiFitMRLFESolver.m
-app/adapters/guiFitAcoustoelasticIOPHGOSolver.m
+app/fitting/guiFitRLSolver.m
+app/fitting/guiFitMRLFESolver.m
+app/fitting/guiFitAcoustoelasticIOPHGOSolver.m
 ```
 
 Fitted-curve helpers:

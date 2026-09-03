@@ -9,14 +9,17 @@ existing contracts.
 
 ## Implemented structure
 
-### AE analysis ownership
+### Analysis workflow ownership
 
 ```text
-analysis/acoustoelastic_iop_hgo/
-|-- diagnostics/  repeatable diagnostic computation and defaults
-|-- fitting/      fit problem construction, evaluation, and optimization
-|-- io/           result/output resolution and figure-file helpers
-`-- sweeps/       sweep orchestration, summaries, plot data, plots, and outputs
+analysis/
+|-- diagnostics/<model>/  repeatable diagnostic computation and defaults
+|-- fitting/<model>/      model-specific fitting workflows
+|-- fitting/shared/       neutral optimizer, metrics, and fit contracts
+|-- io/<model|shared>/    result/output and figure persistence
+|-- plotting/sweeps/      plot data and renderers
+|-- requests/<model>/     reusable model-request translation
+`-- sweeps/<model|shared>/ sweep orchestration and summaries
 ```
 
 Every maintained AE analysis identifier has one tracked definition. Recursive
@@ -37,14 +40,9 @@ only `aeBuildResult.m`.
 
 ### Model-family analysis decisions
 
-`analysis/rayleigh_lamb/` remains flat: its ten maintained files form one small
-fit/sweep/output workflow with eight internal call edges.
-
-`analysis/mrlfe/` remains flat: its twenty maintained files form a cohesive
-request-building, fitting, sweep, and diagnostic workflow with seventeen
-internal call edges. The shared request builder couples surface-specific
-requests intentionally. Subdirectories would add traversal without removing a
-responsibility exception.
+RL, mRLFE, and AE analysis files are grouped first by the workflow that changes
+them and then by model. Cross-workflow mRLFE request translation has one owner
+under `analysis/requests/mrlfe/`; no flat model-family analysis folder remains.
 
 ### Tests and runners
 

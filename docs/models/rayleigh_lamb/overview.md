@@ -137,7 +137,7 @@ rlRunSweep
 The helper lives under:
 
 ```text
-analysis/rayleigh_lamb/
+analysis/sweeps/rayleigh_lamb/
 ```
 
 It reuses the generic parametric sweep utilities:
@@ -150,7 +150,8 @@ plotSweepCpFigure
 summarizeParametricSweepBranch
 ```
 
-These cross-model utilities are grouped under `analysis/sweeps/`; their MATLAB
+These cross-model utilities are grouped under `analysis/sweeps/shared/` and
+`analysis/plotting/sweeps/shared/`; their MATLAB
 command names remain unchanged because startup adds `analysis/` recursively.
 
 This keeps the public sweep examples short while aligning Rayleigh-Lamb sweep naming and outputs with the maintained mRLFE and AE examples. The plotting path preserves Alternative B: `buildParametricSweepPlotData` handles Rayleigh-Lamb result extraction and fixed-parameter formatting, while `plotSweepCpFigure` only renders the neutral curves, main axes, and external information panel.

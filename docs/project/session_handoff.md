@@ -11,6 +11,7 @@ Updated: 2026-09-02
 - Phase 2 branch: `restructure/phase-02-model-api-configuration`
 - Phase 3 branch: `restructure/phase-03-result-contracts`
 - Phase 4 branch: `restructure/phase-04-analysis-workflows`
+- Phase 5 branch: `restructure/phase-05-physical-architecture`
 - Starting main checkpoint:
   `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 - Starting checkpoint message:
@@ -57,6 +58,15 @@ human surface. `rlRunSweepExample` and `mrlfeRunSweepExample` were renamed to
 `rlOutputFolder`, `mrlfeOutputFolder`, and `aeOutputFolder` functions were
 removed; all writers and examples use `resolveModelOutputFolder` directly.
 
+Phase 5 reorganizes `analysis/` by workflow ownership and `app/` by human
+surface. Shared fitting and one-dimensional sweep mechanics now live under
+explicit `shared/` workflow folders; model-specific fitting, sweeps,
+diagnostics, plotting, requests, and persistence are physically separated.
+The app root contains only the three GUI entrypoints, with Main GUI, FitTool,
+SweepTool, and truly cross-surface code under `main/`, `fitting/`, `sweep/`, and
+`shared/`. The former `app/adapters/` folder is gone. Fixed declarative UI
+tables were renamed from `Registry` to `ModelConfiguration` without aliases.
+
 Phase 3 validation passed repository hygiene, quick contracts/smoke, mRLFE
 production/route/smoke, AE extended, execution-profile end-to-end, and focused
 fitting suites. Production mRLFE Fast/Dense and Main GUI/FitTool/SweepTool
@@ -70,6 +80,15 @@ again reported maximum `Delta Cp = 0` with identical validity masks. Fit
 objective counts remained 11/8/7/7 for A0Like mu/etaS and S0Like mu/etaS. AE
 extended validation and synthetic recovery passed; the known AE snapshot is
 still the only numerical-regression failure and was not normalized.
+
+Phase 5 validation passed repository hygiene, quick contracts and smoke,
+mRLFE production core/route/smoke, AE extended, execution-profile end-to-end,
+and focused fitting, FitTool, SweepTool, Main GUI, and result-contract suites.
+Production mRLFE Fast/Dense plus all three surface characterizations reported
+maximum `Delta Cp = 0` and identical validity masks. The production performance
+check passed, and AE synthetic fitting retained relative mu error
+`5.06201e-08`. The lightweight numerical regression still fails only at the
+known AE atlasA0 snapshot; its golden and `1e-12` tolerance remain unchanged.
 
 The AE high-frequency refinement work is complete and merged to `main`.
 Production AE candidate discovery is discrete on the atlas `cGrid`; branch

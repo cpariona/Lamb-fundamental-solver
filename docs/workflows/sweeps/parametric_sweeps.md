@@ -54,7 +54,7 @@ mrlfe_sweep_thickness_A0Like
 mrlfe_sweep_thickness_S0Like
 ```
 
-All six scripts delegate to `mrlfeRunSweep` and share helpers under `analysis/mrlfe/`.
+All six scripts delegate to `mrlfeRunSweep` under `analysis/sweeps/mrlfe/`.
 
 Current mRLFE reference settings:
 
@@ -134,7 +134,7 @@ rlRunSweep
 and shared helpers under:
 
 ```text
-analysis/rayleigh_lamb/
+analysis/sweeps/rayleigh_lamb/
 ```
 
 Current Rayleigh-Lamb reference settings:
@@ -169,7 +169,8 @@ Figures are saved as `.fig` and `.png`.
 
 ## Generic sweep utilities
 
-Generic helpers live under `analysis/sweeps/`:
+Generic iteration and summary helpers live under `analysis/sweeps/shared/`;
+plotting helpers live under `analysis/plotting/sweeps/shared/`:
 
 ```matlab
 runParametricSweep

@@ -102,22 +102,18 @@ normalization, and application state do not belong in `models/`.
 
 ```text
 analysis/
-|-- acoustoelastic_iop_hgo/
-|   |-- diagnostics/         repeatable diagnostic computation and defaults
-|   |-- fitting/             fitting problem, evaluation, and optimization
-|   |-- io/                  result/output resolution and figure-file helpers
-|   `-- sweeps/              campaigns, summaries, plotting, and sweep outputs
+|-- diagnostics/             repeatable scientific diagnostics by model
 |-- execution_profiles/      cross-surface validation and benchmark analysis
-|-- fitting/                 model-neutral fitting and quality infrastructure
-|-- mrlfe/                   mRLFE fitting, sweep, request, and summary helpers
+|-- fitting/                 shared optimizer plus model-specific fit workflows
+|-- io/                      output paths, writers, and figure persistence
 |-- performance/             maintained performance validation workflows
-|-- rayleigh_lamb/           RL fitting, sweep, output, and figure helpers
-|-- sweeps/                  shared cross-model sweep module
-|-- test_inventory/          deterministic test graph and ownership tooling
-`-- resolveModelOutputFolder.m
+|-- plotting/                plotting and plot-data construction from results
+|-- requests/                reusable canonical model-request translation
+|-- sweeps/                  shared iteration plus model-specific sweep workflows
+`-- test_inventory/          deterministic test graph and ownership tooling
 ```
 
-The shared sweep module owns:
+The shared sweep and plotting modules own:
 
 ```matlab
 runParametricSweep
@@ -128,12 +124,12 @@ setSweepPlotLimits
 summarizeParametricSweepBranch
 ```
 
-`aeRunSweep` lives in `analysis/acoustoelastic_iop_hgo/sweeps/`. It supplies an
+`aeRunSweep` lives in `analysis/sweeps/acoustoelastic_iop_hgo/`. It supplies an
 AE evaluator to the shared one-dimensional `runParametricSweep` owner;
 `aeRunGridSweep` remains the explicit two-dimensional campaign owner.
 
-`resolveModelOutputFolder` remains at the analysis root because it is a small
-cross-model output-path primitive rather than part of the sweep module.
+`resolveModelOutputFolder` lives in `analysis/io/shared/`; model-specific output
+writers live beside the persistence functions they reuse.
 
 Analysis helpers may generate normal MATLAB figures. Helpers that own UI
 controls, callbacks, or persistent interactive state belong in `app/`.
@@ -142,12 +138,11 @@ controls, callbacks, or persistent interactive state belong in `app/`.
 
 ```text
 app/
-|-- adapters/  model-to-surface request translation, profile resolution,
-|              result normalization, and surface metadata
-|-- export/    normalized Main GUI result export
-|-- fitting/   FitTool request/state/display workflow and visual controls
-|-- sweep/     SweepTool registry/request/plot workflow and interactive sweep UI
-`-- root       public GUI entrypoints and cross-surface UI infrastructure
+|-- fitting/   FitTool request, model translation, state, and presentation
+|-- main/      Main GUI controls, model translation, presentation, and export
+|-- shared/    profile and struct operations used by multiple surfaces
+|-- sweep/     SweepTool configuration, model translation, and presentation
+`-- root       the three public GUI entrypoints only
 ```
 
 Root app entrypoints:
@@ -158,11 +153,11 @@ FitTool_GUI
 SweepTool_GUI
 ```
 
-The root also retains the four Main GUI tab builders because there is no
-separate Main-GUI submodule, plus genuinely cross-surface execution-profile
-normalization and formatting helpers. `createFittingTab` is owned by
-`app/fitting/`. Model-specific execution-profile resolvers and mRLFE surface
-metadata construction are owned by `app/adapters/`.
+The four Main GUI tab builders and normalized-result export live under
+`app/main/`. `createFittingTab` and model-specific fit translators live under
+`app/fitting/`. Model-specific sweep translators live under `app/sweep/`.
+Execution-profile resolvers and struct operations used by multiple surfaces
+live under `app/shared/`. The former mixed `app/adapters/` folder is absent.
 
 The interactive AE grid-sweep surface helper lives in `app/sweep/` because it
 owns a slider callback and UI state. Its numerical cube construction remains in

@@ -222,7 +222,7 @@ candidates are diagnostic-only. They never replace official
 
 Diagnostic entrypoints live under
 `examples/acoustoelastic_iop_hgo/diagnostics/`; reusable diagnostic computation
-lives in `analysis/acoustoelastic_iop_hgo/diagnostics/`. The explicit
+lives in `analysis/diagnostics/acoustoelastic_iop_hgo/`. The explicit
 identity-A0 builder and scorer are model-owned under
 `models/acoustoelastic_iop_hgo/diagnostics/` because the requested policy is
 attached inside model orchestration. Production tracking does not call analysis

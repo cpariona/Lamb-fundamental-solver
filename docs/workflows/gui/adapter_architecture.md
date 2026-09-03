@@ -9,7 +9,7 @@ Allowed dependency direction:
 ```text
 GUI surface
     -> app-layer request/dispatcher
-    -> app/adapters
+    -> surface-local model translation
     -> analysis/models
     -> normalized GUI result
     -> plotting/export
@@ -21,27 +21,27 @@ GUI files should not call scripts under `examples/` directly, and they should no
 
 ```text
 app/
-|-- adapters/  model-specific request/result translation and profile resolution
-|-- export/    normalized Main GUI export
-|-- fitting/   FitTool state, visual controls, and display workflow
-|-- sweep/     SweepTool workflow and interactive sweep UI
-`-- root       GUI entrypoints and genuinely cross-surface UI infrastructure
+|-- fitting/   FitTool request, translation, state, and display workflow
+|-- main/      Main GUI controls, translation, presentation, and export
+|-- shared/    cross-surface profiles and struct operations
+|-- sweep/     SweepTool request, translation, and interactive visualization
+`-- root       the three GUI entrypoints
 ```
 
 Model-specific execution-profile resolvers and mRLFE surface metadata helpers
-live in `app/adapters/`. Cross-surface profile normalization and diagnostics
-formatting remain at the app root. `createFittingTab` belongs to `app/fitting/`.
+live in `app/shared/`. Cross-surface profile normalization and diagnostics
+formatting live there as well. `createFittingTab` belongs to `app/fitting/`.
 The interactive AE grid-sweep plot belongs to `app/sweep/`; its numerical data
-construction remains in `analysis/acoustoelastic_iop_hgo/sweeps/`.
+construction remains in `analysis/plotting/sweeps/acoustoelastic_iop_hgo/`.
 
 ## Main GUI flow
 
 ```text
 LambFundamental_GUI
     -> GUI request struct
-    -> app/adapters/guiRun*Model
+    -> app/main/guiRun*Model
     -> canonical model result
-    -> app/adapters/guiBuildModelResultView
+    -> app/main/guiBuildModelResultView
     -> normalized branches
     -> plotting/export
 ```
@@ -91,7 +91,7 @@ Each exported curve contains only `Frequency_Hz`, `PhaseVelocity_mps`, and
 
 ```text
 SweepTool_GUI
-    -> guiGetSweepRegistry
+    -> guiGetSweepModelConfiguration
     -> guiBuildSweepRequest
     -> guiRunSweep
     -> model-specific sweep adapter
@@ -101,12 +101,12 @@ SweepTool_GUI
 
 `SweepTool_GUI` should not call scripts under `examples/` directly.
 
-### Sweep registry
+### Sweep model configuration
 
-The registry entrypoint is:
+The declarative configuration entrypoint is:
 
 ```text
-app/sweep/guiGetSweepRegistry.m
+app/sweep/guiGetSweepModelConfiguration.m
 ```
 
 Visible families:
@@ -125,19 +125,19 @@ AE IOP/HGO
     branch: atlasA0
 ```
 
-The registry owns GUI-facing labels, default values, display units, and display-to-solver scales.
+The configuration owns GUI-facing labels, default values, display units, and display-to-solver scales.
 
 ### Sweep adapters
 
 Current sweep adapters:
 
 ```text
-app/adapters/guiRunMRLFESweep.m
-app/adapters/guiNormalizeMRLFESweep.m
-app/adapters/guiRunRLSweep.m
-app/adapters/guiNormalizeRLSweep.m
-app/adapters/guiRunAcoustoelasticIOPHGOSweep.m
-app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m
+app/sweep/guiRunMRLFESweep.m
+app/sweep/guiNormalizeMRLFESweep.m
+app/sweep/guiRunRLSweep.m
+app/sweep/guiNormalizeRLSweep.m
+app/sweep/guiRunAcoustoelasticIOPHGOSweep.m
+app/sweep/guiNormalizeAcoustoelasticIOPHGOSweep.m
 ```
 
 All new sweep-capable families should follow the same pair pattern:
@@ -199,7 +199,7 @@ SweepToolBranchName
 
 ```text
 FitTool_GUI
-    -> guiGetFitRegistry
+    -> guiGetFitModelConfiguration
     -> guiBuildFitRequest
     -> guiRunFit
     -> model-specific fitting adapter
@@ -212,12 +212,12 @@ The fit action uses only the objective-consistent display interpolation. The
 separate **Evaluate fitted curve** action calls
 `guiEvaluateRequestedFitCurve` and performs the requested solver evaluation.
 
-### Fitting registry
+### Fitting model configuration
 
-The registry entrypoint is:
+The declarative configuration entrypoint is:
 
 ```text
-app/fitting/guiGetFitRegistry.m
+app/fitting/guiGetFitModelConfiguration.m
 ```
 
 Visible families:
@@ -236,16 +236,16 @@ AE IOP/HGO
     fit-capable parameters: mu, IOP, thickness
 ```
 
-Registry entries may expose additional fixed parameters such as density, Poisson ratio, fluid density, fluid sound speed, curvature radius, and HGO parameters.
+Configuration entries may expose additional fixed parameters such as density, Poisson ratio, fluid density, fluid sound speed, curvature radius, and HGO parameters.
 
 ### Fitting adapters
 
 Current fitting adapters:
 
 ```text
-app/adapters/guiFitRLSolver.m
-app/adapters/guiFitMRLFESolver.m
-app/adapters/guiFitAcoustoelasticIOPHGOSolver.m
+app/fitting/guiFitRLSolver.m
+app/fitting/guiFitMRLFESolver.m
+app/fitting/guiFitAcoustoelasticIOPHGOSolver.m
 ```
 
 All new fit-capable families should follow the same pattern:

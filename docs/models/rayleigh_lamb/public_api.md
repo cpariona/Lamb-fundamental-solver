@@ -73,7 +73,7 @@ These names should be used for maintained examples, documentation, application c
 The maintained Rayleigh-Lamb fitting helpers live under:
 
 ```text
-analysis/rayleigh_lamb/
+analysis/fitting/rayleigh_lamb/
 ```
 
 Current fitting helpers:
@@ -159,7 +159,7 @@ rlRunSweep
 This helper lives under:
 
 ```text
-analysis/rayleigh_lamb/
+analysis/sweeps/rayleigh_lamb/
 ```
 
 It is a workflow helper, not a replacement for the `rl*` solver API. Use it for maintained branch-specific sweep examples or for creating similar short examples. Rayleigh-Lamb sweep plotting follows `runParametricSweep -> buildParametricSweepPlotData -> plotSweepCpFigure`, with fixed parameters and sweep labels rendered outside the main data axes.

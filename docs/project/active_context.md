@@ -4,7 +4,7 @@ Last reviewed: 2026-09-02
 Repository: `cpariona/Lamb-fundamental-solver`
 Default branch: `main`
 Planning branch: `planning/full-repository-restructure`
-Active implementation branch: `restructure/phase-04-analysis-workflows`
+Active implementation branch: `restructure/phase-05-physical-architecture`
 Starting main checkpoint:
 `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 
@@ -98,36 +98,31 @@ architecture.
 
 ## Current phase
 
-Phase 4 builds on the canonical Phase 3 result contracts and consolidates the
-reusable analysis workflows:
+Phase 5 preserves the canonical APIs and workflows from Phases 1-4 while making
+their physical ownership explicit. `analysis/` is organized by scientific
+workflow:
 
 ```text
-RL public:    rlDefaultParams, rlDefaultOptions,
-              rlComputeFundamentalLambModes,
-              rlComputeAnalyticalApproximations
-mRLFE public: mrlfeDefaultParameters, mrlfeDefaultOptions, mrlfeSolve
-AE public:    defaultAcoustoelasticIOPHGOOptions,
-              solveAcoustoelasticIOPHGOBranch
+analysis/fitting/{shared,rayleigh_lamb,mrlfe,acoustoelastic_iop_hgo}
+analysis/sweeps/{shared,rayleigh_lamb,mrlfe,acoustoelastic_iop_hgo}
+analysis/diagnostics/{mrlfe,acoustoelastic_iop_hgo}
+analysis/plotting/sweeps/{shared,acoustoelastic_iop_hgo}
+analysis/io/{shared,rayleigh_lamb,mrlfe,acoustoelastic_iop_hgo}
+analysis/requests/mrlfe
 ```
 
-`solveDispersionFitProblem` owns only generic optimizer mechanics, final model
-evaluation, and fit-result assembly. RL, mRLFE, and AE retain explicit fit
-problem builders, scientific evaluators, public fit operations, and their exact
-optimizer defaults.
+`app/` is surface-first: its root contains only `LambFundamental_GUI`,
+`FitTool_GUI`, and `SweepTool_GUI`; implementation lives in `main/`, `fitting/`,
+and `sweep/`, with only cross-surface execution-profile and struct/result
+translation in `shared/`. The former mixed `app/adapters/` folder is absent.
 
-`runParametricSweep` owns one-dimensional iteration over a declared parameter
-path and invokes a model-specific evaluator once per condition. RL, mRLFE, AE,
-their examples, and SweepTool reuse it. `aeRunGridSweep` remains the explicit
-two-dimensional owner. Plotting and persistence consume completed results and
-never solve.
-
-mRLFE request construction has one analysis owner,
-`mrlfeBuildSolveRequest`; surface translation remains in `app/`. The three
-model-specific output-folder forwarders are removed in favor of the sole shared
-`resolveModelOutputFolder` owner.
+The declarative UI tables are named `guiGetFitModelConfiguration` and
+`guiGetSweepModelConfiguration`; their historical `Registry` names were removed
+without aliases. No solver equations, tracking policies, optimizer defaults,
+sweep numerical options, golden data, or tolerances changed in this phase.
 
 ## Next planning step
 
-After Phase 4 validation and review, proceed only to a separately authorized
-Phase 5. Do not broaden this phase into the complete physical reorganization of
-`analysis/`, `app/`, tests, examples, or documentation.
+After Phase 5 validation and review, proceed only to a separately authorized
+Phase 6. Remaining cleanup belongs to examples/diagnostics, test runners,
+startup/path finalization, and final documentation consolidation.
