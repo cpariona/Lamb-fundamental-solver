@@ -100,7 +100,7 @@ Run:
 clear functions
 rehash toolboxcache
 startup
-fit_default_A0
+run('examples/rayleigh_lamb/fitting/fit_default_A0.m')
 ```
 
 The example generates synthetic A0 data with a known shear modulus and fits `mu` while keeping thickness, density, and Poisson ratio fixed.
@@ -140,10 +140,9 @@ Use the focused suite after fitting-related changes. Use the core smoke suite af
 
 ## Current limitations
 
-This phase does not implement:
+The maintained workflow does not implement:
 
 ```text
-new optimizer policy
 fitting against multiple Rayleigh-Lamb branches simultaneously
 advanced uncertainty estimates for fitted parameters
 ```

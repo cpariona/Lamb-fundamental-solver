@@ -1,6 +1,6 @@
 # mRLFE public API
 
-Last reviewed: 2026-07-07
+Last reviewed: 2026-09-03
 
 ## Scope
 
@@ -10,15 +10,8 @@ The maintained model-oriented entry point for real-k mRLFE solving is:
 result = mrlfeSolve(request);
 ```
 
-This is an initial public contract. It preserves the currently validated
-FitTool numerical behavior through a model-layer production core. Main GUI
-forward solving, FitTool fitting, and SweepTool sweeps now consume this API.
-The maintained FitTool fitting path consumes this API through
-`mrlfeEvaluateFitModel`. The maintained SweepTool mRLFE path consumes the same
-API once per sweep point through `guiRunMRLFESweep`.
-Broad legacy solvers and diagnostic route helpers have been removed from the
-maintained production surface. The maintained seed, adaptive tracker, and
-physical-tail implementations live behind neutral model-layer names.
+Main GUI, FitTool, and SweepTool consume this model-owned API. Application
+adapters translate units and policies but do not own tracking or physics.
 
 ## Request
 
@@ -79,11 +72,12 @@ S0 termination     none
 fallback policy    none
 ```
 
-No Main GUI legacy fallback is applied by this API.
+The API never substitutes another branch as fallback.
 
 ## Presets
 
-Public requests select `request.numerics.preset` as `"fast"` or `"dense"`.
+Public requests select `request.numerics.preset` as `"fast"`, `"balanced"`,
+`"robust"`, or `"dense"`.
 `mrlfeGetNumericalPreset` is the internal configuration owner that resolves
 those names; it is not an additional public API.
 
@@ -96,8 +90,9 @@ candidate refine  false
 adaptive windows  [0.20 0.40 0.80]
 ```
 
-The old internal name `fast_fit_atlas` has been removed from maintained
-production metadata. The public fitting preset is `fast`.
+`balanced` uses 420 scan points and 6 refined candidates; `robust` uses
+620 scan points and 8 refined candidates. Their high-frequency grid steps are
+25 and 20 Hz respectively (Fast 50 Hz, Dense 10 Hz).
 
 `dense` maps to the maintained dense atlas settings:
 
@@ -139,7 +134,7 @@ Termination metadata reports whether a physical-tail or continuity cut was
 observed from the underlying branch. Neutral defaults are used when no cut was
 reported.
 
-Fallback metadata is explicit. The initial public contract is:
+Fallback metadata is explicit. The maintained fallback contract is:
 
 ```matlab
 result.fallback.policy = "none";
@@ -226,8 +221,7 @@ selection with no additional termination and no fallback.
 
 Objective evaluations, automatic full-curve diagnostics, and explicit requested
 fitted-curve evaluations use the same public solver route with the final fitted
-parameters. Characterization now compares maintained consumers directly against
-`mrlfeSolve`; `mrlfeEvaluateAtlasFitModel` has been removed.
+parameters. Characterization compares maintained consumers directly against `mrlfeSolve`.
 
 ## SweepTool Use
 
@@ -263,39 +257,10 @@ Complete internal solver state is explicitly unstable and has one owner under
 `result.debug.solverResult`. It is not duplicated under diagnostics, and
 application adapters do not inspect it.
 
-## Production Core
+## Algorithm and limitations
 
-The current implementation uses this model-layer call graph:
-
-```text
-mrlfeSolve
-  -> mrlfeResolveConfiguration
-  -> mrlfeBuildProblem
-  -> mrlfeSolveBranch
-       -> mrlfeSolveElasticBranch
-       -> mrlfeSolveViscoelasticBranch
-       -> mrlfeBuildSeed
-            -> rlComputeFundamentalLambModes
-       -> mrlfeTrackBranchAdaptive
-       -> mrlfeApplyTerminationPolicy
-  -> mrlfeBuildResult
-```
-
-The production core reproduces the audited maintained consumer behavior without
-calling GUI adapters or fitting evaluators:
-
-```text
-etaS = 0  -> elastic_adaptive
-etaS > 0  -> viscoelastic_adaptive
-```
-
-The effective public engine names are neutral:
-
-```text
-elastic_adaptive
-viscoelastic_adaptive
-```
-
-The production core uses neutral maintained helpers for seed construction,
-adaptive tracking, and A0 physical-tail cutting. Historical route names are not
-public request or result concepts.
+See `production_core.md` for model-layer algorithm ownership. The engines are
+`elastic_adaptive` for etaS=0 and `viscoelastic_adaptive` for etaS>0.
+The real-k approximation does not solve a complex-wavenumber attenuation
+problem. Branches may be partial or quality-rejected; validMask and quality
+must be honored. Do not infer physical absence solely from a numerical cut.

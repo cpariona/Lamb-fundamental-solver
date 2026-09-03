@@ -52,7 +52,7 @@ Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, and branch-fa
 physical inputs, requests official `atlasA0`, and delegates every production
 evaluation to the maintained public solver. FitTool and explicit requested
 curve evaluation use this same route; neither app code nor analysis fitting
-code calls the advanced atlas wrapper directly.
+code calls the internal atlas solver directly.
 
 ## Data contract
 
@@ -105,7 +105,7 @@ Run:
 clear functions
 rehash toolboxcache
 startup
-fit_ae_atlasA0
+run('examples/acoustoelastic_iop_hgo/fitting/fit_ae_atlasA0.m')
 ```
 
 The example generates synthetic atlasA0 data with a known shear modulus and fits `mu` while keeping IOP, thickness, curvature, HGO fiber parameters, density, and fluid parameters fixed.
@@ -168,7 +168,7 @@ The AE fitting adapter is:
 guiFitAcoustoelasticIOPHGOSolver
 ```
 
-The fitting registry exposes AE IOP/HGO through:
+The declarative fitting configuration exposes AE IOP/HGO through:
 
 ```matlab
 guiGetFitModelConfiguration
@@ -177,12 +177,10 @@ FitTool_GUI
 
 ## Current limitations
 
-This phase does not implement:
+The maintained validation does not establish:
 
 ```text
 fitting against diagnostic branches
-AE IOP fitting validation
-AE thickness fitting validation
 AE multiparameter fitting validation
 parameter covariance/uncertainty estimates
 ```

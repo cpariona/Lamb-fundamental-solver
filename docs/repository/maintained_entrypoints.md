@@ -1,6 +1,8 @@
 # Maintained entrypoints
 
-Run `startup` from the repository root before using these commands.
+Run `startup` from the repository root for production APIs. Examples and
+executable diagnostics are opt-in through the explicit paths shown below.
+The six runner launchers are available but load test internals only while running.
 
 ## User and model APIs
 
@@ -28,18 +30,7 @@ are not alternative production APIs.
 
 ## Analysis APIs
 
-Shared sweep and fitting entrypoints are:
-
-```matlab
-runParametricSweep
-buildParametricSweepPlotData
-plotParametricSweepCp
-normalizeExperimentalDispersionData
-validateExperimentalDispersionData
-solveDispersionFitProblem
-```
-
-Model workflow entrypoints are:
+The generic 1D workflow is `runParametricSweep`. Model workflow APIs are:
 
 ```matlab
 rlRunSweep
@@ -52,44 +43,46 @@ aeFitDispersionData
 ```
 
 Main GUI, SweepTool, and FitTool reach mRLFE only through `mrlfeSolve`.
+Shared optimizers, data normalizers, plot-data builders, and renderers are
+implementation helpers, not additional public model APIs.
 
 ## Examples
 
 Rayleigh-Lamb:
 
 ```matlab
-run_default_A0_S0
-fit_default_A0
-rl_sweep_thickness_A0
+run('examples/rayleigh_lamb/basic/run_default_A0_S0.m')
+run('examples/rayleigh_lamb/fitting/fit_default_A0.m')
+run('examples/rayleigh_lamb/sweeps/rl_sweep_thickness_A0.m')
 ```
 
 mRLFE:
 
 ```matlab
-run_default_mrlfe
-fit_mrlfe_A0Like
-mrlfe_sweep_etaS_A0Like
+run('examples/mrlfe/basic/run_default_mrlfe.m')
+run('examples/mrlfe/fitting/fit_mrlfe_A0Like.m')
+run('examples/mrlfe/sweeps/mrlfe_sweep_etaS_A0Like.m')
 ```
 
 AE IOP/HGO:
 
 ```matlab
-run_atlas_branch
-fit_ae_atlasA0
-ae_sweep_iop_A0Like
-ae_sweep_mu_iop_A0Like
+run('examples/acoustoelastic_iop_hgo/basic/run_atlas_branch.m')
+run('examples/acoustoelastic_iop_hgo/fitting/fit_ae_atlasA0.m')
+run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_iop_A0Like.m')
+run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_mu_iop_A0Like.m')
 ```
 
 ## Diagnostics
 
 ```matlab
-validate_grid_presets
+run('examples/mrlfe/diagnostics/validate_grid_presets.m')
 
-diagnose_atlas_truncation
-diagnose_branch_families
-diagnose_grid_start_sensitivity
-diagnose_modal_atlas
-diagnose_sweep_reliability
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_atlas_truncation.m')
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_branch_families.m')
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_grid_start_sensitivity.m')
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m')
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_sweep_reliability.m')
 ```
 
 ## Validation
@@ -104,4 +97,4 @@ run_performance_and_benchmark_tests
 ```
 
 These are the complete maintained runner surface. Detailed ownership is in
-`test_runner_ownership.md`.
+`../../tests/README.md`.

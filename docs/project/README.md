@@ -44,7 +44,7 @@ When sources disagree, use this order:
 | Naming | `../repository/naming_strategy.md` |
 | Maintained entrypoints | `../repository/maintained_entrypoints.md` |
 | Validation | `../repository/validation_status.md` |
-| Tests | `../repository/test_suite_final_architecture.md` and `../repository/test_runner_ownership.md` |
+| Tests | `../../tests/README.md` |
 | GUI | `../workflows/gui/adapter_architecture.md` |
 | Fitting | `../workflows/fitting/architecture.md` |
 | Sweeps | `../workflows/sweeps/parametric_sweeps.md` |

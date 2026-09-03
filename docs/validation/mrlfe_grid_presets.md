@@ -102,7 +102,7 @@ run_performance_and_benchmark_tests
 For bounded manual diagnostic follow-up:
 
 ```matlab
-validate_grid_presets
+run('examples/mrlfe/diagnostics/validate_grid_presets.m')
 ```
 
 Do not add the extended full matrix to lightweight smoke runners.

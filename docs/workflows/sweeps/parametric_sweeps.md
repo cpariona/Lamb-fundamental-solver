@@ -4,10 +4,10 @@ The maintained executable examples deliberately cover one representative 1D
 sweep per model plus one AE 2D grid:
 
 ```matlab
-rl_sweep_thickness_A0
-mrlfe_sweep_etaS_A0Like
-ae_sweep_iop_A0Like
-ae_sweep_mu_iop_A0Like
+run('examples/rayleigh_lamb/sweeps/rl_sweep_thickness_A0.m')
+run('examples/mrlfe/sweeps/mrlfe_sweep_etaS_A0Like.m')
+run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_iop_A0Like.m')
+run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_mu_iop_A0Like.m')
 ```
 
 Reusable orchestration belongs to `runParametricSweep` and the model-owned

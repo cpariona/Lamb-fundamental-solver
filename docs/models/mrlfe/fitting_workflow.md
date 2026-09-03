@@ -15,7 +15,7 @@ FitTool_GUI
   -> mrlfeSolve
 ```
 
-There is one maintained physical evaluation route. `mrlfeEvaluateFitModel` builds a public request and calls `mrlfeSolve`; it does not contain a legacy opt-out route. `mrlfeEvaluateAtlasFitModel` has been removed.
+There is one maintained physical evaluation route. `mrlfeEvaluateFitModel` builds a public request and calls `mrlfeSolve`.
 
 ## Supported fitting cases
 

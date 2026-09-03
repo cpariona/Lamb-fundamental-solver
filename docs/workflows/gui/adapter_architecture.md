@@ -193,7 +193,7 @@ SweepToolModelName
 SweepToolBranchName
 ```
 
-`SweepToolNormalized` is preferred for app-level plotting and downstream workflows. `SweepToolResults` is preserved for raw diagnostics and compatibility.
+`SweepToolNormalized` is preferred for app-level plotting and downstream workflows. `SweepToolResults` contains the computed point results for inspection; it is not another solve.
 
 ## FitTool flow
 
@@ -319,8 +319,37 @@ run_extended_integration_tests
 run_quick_contract_tests
 ```
 
-For a complete repository check, run:
+Complete repository validation requires all six tiers listed in
+`tests/README.md`; the extended tier alone is not a complete check.
 
-```matlab
-run_extended_integration_tests
-```
+## Concrete call traces
+
+These are implementation traces, not an expansion of the public API.
+
+| Surface/model | Computation path |
+| --- | --- |
+| Main / RL | LambFundamental_GUI -> guiRunRayleighLambModel -> rlComputeFundamentalLambModes -> rlBuildResult -> guiBuildModelResultView |
+| Main / mRLFE | LambFundamental_GUI -> guiRunMRLFEModel -> mrlfeBuildSolveRequest -> mrlfeSolve -> mrlfeBuildResult -> guiBuildModelResultView |
+| Main / AE | LambFundamental_GUI -> guiRunAcoustoelasticIOPHGOModel -> solveAcoustoelasticIOPHGOBranch -> aeBuildResult -> adapter view |
+| Fit / RL | FitTool_GUI -> guiRunFit -> guiFitRLSolver -> rlFitDispersionData -> solveDispersionFitProblem -> rlEvaluateFitModel -> rlSolveFundamentalBranch |
+| Fit / mRLFE | FitTool_GUI -> guiRunFit -> guiFitMRLFESolver -> mrlfeFitDispersionData -> solveDispersionFitProblem -> mrlfeEvaluateFitModel -> mrlfeSolve |
+| Fit / AE | FitTool_GUI -> guiRunFit -> guiFitAcoustoelasticIOPHGOSolver -> aeFitDispersionData -> solveDispersionFitProblem -> aeEvaluateFitModel -> solveAcoustoelasticIOPHGOBranch |
+| Sweep / RL | SweepTool_GUI -> guiRunSweep -> guiRunRLSweep -> runParametricSweep -> rlComputeFundamentalLambModes |
+| Sweep / mRLFE | SweepTool_GUI -> guiRunSweep -> guiRunMRLFESweep -> runParametricSweep -> mrlfeSolve |
+| Sweep / AE | SweepTool_GUI -> guiRunSweep -> guiRunAcoustoelasticIOPHGOSweep -> aeRunSweep -> runParametricSweep -> solveAcoustoelasticIOPHGOBranch |
+
+The GUI entrypoints are in `app/`; model adapters are under `app/main/`,
+`app/fitting/`, and `app/sweep/`. Model-specific fit/sweep workflows are
+under `analysis/fitting/` and `analysis/sweeps/`.
+RL fitting intentionally uses the shared model-layer continuator rather than
+the batch-grid API: see `docs/workflows/fitting/architecture.md`.
+
+Completed fit output goes through guiNormalizeFitResult and guiBuildFitDisplayCurve
+to guiPlotFitResult; completed sweep output goes through its model normalizer
+to guiPlotSweepResult. Main export uses guiBuildMainResultExport then
+guiSaveMainResultExport. None of those render/export stages solves again.
+
+AE 2D is a programmatic/example workflow, not a SweepTool control:
+`examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_mu_iop_A0Like.m`
+calls aeRunGridSweep, whose two-axis iterator calls the same public AE solver.
+Its Cp cube is built in analysis; optional interactive rendering is in app/sweep.

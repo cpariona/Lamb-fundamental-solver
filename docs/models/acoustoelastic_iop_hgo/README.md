@@ -8,20 +8,20 @@ validity, and quality fields.
 Maintained examples are:
 
 ```matlab
-run_atlas_branch
-fit_ae_atlasA0
-ae_sweep_iop_A0Like
-ae_sweep_mu_iop_A0Like
+run('examples/acoustoelastic_iop_hgo/basic/run_atlas_branch.m')
+run('examples/acoustoelastic_iop_hgo/fitting/fit_ae_atlasA0.m')
+run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_iop_A0Like.m')
+run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_mu_iop_A0Like.m')
 ```
 
 Maintained diagnostics are:
 
 ```matlab
-diagnose_atlas_truncation
-diagnose_branch_families
-diagnose_grid_start_sensitivity
-diagnose_modal_atlas
-diagnose_sweep_reliability
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_atlas_truncation.m')
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_branch_families.m')
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_grid_start_sensitivity.m')
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m')
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_sweep_reliability.m')
 ```
 
 Fitting is owned by `aeFitDispersionData`; 1D and 2D sweeps are owned by

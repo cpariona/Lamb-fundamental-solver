@@ -1,6 +1,6 @@
 # mRLFE production core
 
-Last reviewed: 2026-07-07
+Last reviewed: 2026-09-03
 
 ## Scope
 
@@ -20,9 +20,8 @@ mrlfeSolve
   -> mrlfeBuildResult
 ```
 
-The core preserves the audited FitTool atlas-first numerical behavior without
-calling `mrlfeEvaluateAtlasFitModel`, `mrlfeEvaluateFitModel`, or GUI adapters.
-Main GUI forward solving reaches this core through the public API:
+The core owns model physics and tracking without calling analysis evaluators
+or application adapters. Main GUI forward solving reaches this core through the public API:
 
 ```text
 guiRunMRLFEModel
@@ -31,7 +30,7 @@ guiRunMRLFEModel
 ```
 
 The Main GUI adapter translates app input and adapts the public result for
-plotting/export compatibility. It does not select low-level trackers, apply
+plotting/export presentation. It does not select low-level trackers, apply
 physical-tail cuts, or perform zero-viscosity fallback.
 
 FitTool fitting now reaches this core through the public API:
@@ -180,23 +179,8 @@ instead of reporting one point's route as sweep-wide state. The maintained
 SweepTool route uses the public `fast` preset, adaptive selection, no fallback,
 `physicalTail` termination for A0Like, and `none` termination for S0Like.
 
-## Neutralized Helper Dependencies
+## Boundary
 
-The maintained production core no longer depends on the historically named
-seed, adaptive tracker, or A0 tail-cut helpers. Their maintained implementations
-now reside behind:
-
-```text
-mrlfeBuildSeed
-mrlfeTrackBranchAdaptive
-mrlfeApplyTerminationPolicy
-  -> mrlfeEvaluatePhysicalTail
-```
-
-The old historical helper files have been removed from the maintained
-production surface. Broad legacy routes such as `computeMRLFE`,
-`solveMRLFEAtlasUnified`, `solveMRLFEViscoBranchAtlas`,
-`solveMRLFEBranchModalAtlas`, `solveMRLFEBranchDP`, and
-`mrlfeEvaluateAtlasFitModel` have also been removed. Historical route-audit
-documents may still mention those names as pre-migration evidence, but they are
-not callable maintained entrypoints.
+Seed, tracking, termination, result construction, and quality are model-owned.
+Human consumers reach this core through mrlfeSolve. No production dependency
+points back to analysis, app, tests, or executable examples/diagnostics.

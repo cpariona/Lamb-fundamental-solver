@@ -49,7 +49,7 @@ The maintained dependency path is:
 
 ```text
 surface profile resolver
-  -> thin surface request wrapper
+  -> surface-local physical request translation
   -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
@@ -60,7 +60,7 @@ disabled fallback. Adapters do not overwrite the preset after construction.
 
 The model-specific profile resolvers and mRLFE surface metadata builder live in
 `app/shared/`. Cross-surface normalization, accepted profile values, and
-diagnostic formatting remain at the root of `app/`.
+diagnostic formatting also live in `app/shared/`.
 
 ## Metadata
 

@@ -9,8 +9,7 @@ docs/repository/repository_structure.md
 docs/repository/naming_strategy.md
 docs/repository/validation_status.md
 docs/repository/maintained_entrypoints.md
-docs/repository/test_suite_final_architecture.md
-docs/repository/test_runner_ownership.md
+tests/README.md
 ```
 
 ## Active topic folders

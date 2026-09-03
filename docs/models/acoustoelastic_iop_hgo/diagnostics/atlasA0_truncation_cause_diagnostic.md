@@ -4,8 +4,8 @@ This diagnostic investigates why the maintained `atlasA0` branch becomes invalid
 
 The diagnostic is read-only. It does not modify:
 
-- `result.Cp`
-- `result.validCp`
+- `result.phaseVelocity_mps`
+- `result.validMask`
 - `options.atlasBranchPolicy`
 
 The official branch policy remains:
@@ -92,7 +92,7 @@ The short-path script writes:
 
 ### Validation snapshot after terminal-break correction
 
-The corrected helper distinguishes terminal truncation from internal gaps. Current numeric checks from the uploaded workspace are:
+The corrected helper distinguishes terminal truncation from internal gaps. Historical numeric checks from the originally uploaded workspace were (not a current-regime guarantee):
 
 | Case | Last official valid [kHz] | First terminal missing [kHz] | First internal gap [kHz] | Has internal gap | Diagnostic accepted points | Diagnostic extension [kHz] |
 |---|---:|---:|---:|---:|---:|---:|

@@ -37,11 +37,10 @@ test_fit_validation_ae_iop_hgo
 test_fit_validation_ae_iop_hgo_hidden_params
 ```
 
-The combined summary is assigned to the MATLAB base workspace as:
-
-```matlab
-FitValidationSummary
-```
+Each test publishes its own summary: `RayleighLambFitValidationSummary`,
+`MRLFEFitValidationSummary`, `MRLFEHiddenParamFitValidationSummary`,
+`AEIOPHGOFitValidationSummary`, and `AEIOPHGOHiddenParamFitValidationSummary`.
+There is no aggregate runner-generated summary object.
 
 ## Shared assertion helper
 
@@ -123,7 +122,8 @@ AE_atlasA0_mu_exact
 AE_atlasA0_mu_app_adapter
 ```
 
-`test_fit_validation_ae_iop_hgo_hidden_params` validates hidden/fixed parameter handling for the AE fitting path.
+`test_fit_validation_ae_iop_hgo_hidden_params` validates thickness and IOP single-parameter recovery with the other physical
+parameters fixed, as well as hidden/fixed parameter handling.
 
 The AE validation uses only the official atlas output:
 
@@ -153,8 +153,6 @@ This validation phase does not yet validate:
 ```text
 mRLFE etaS fitting as a parameter-recovery case
 mRLFE thickness fitting outside the stable zero-viscosity hidden-parameter case
-AE IOP fitting
-AE thickness fitting
 AE multiparameter fitting
 weighted fitting using standardError_Cp_mps
 real experimental data fitting
@@ -197,7 +195,8 @@ explicit requested fitted-curve evaluation
 presence of the new FitTool controls
 ```
 
-If the focused suite fails, run individual groups:
+For individual tests, first opt into the test path with
+`addpath('tests/tooling'); configureTestPath;`, then run a focused group:
 
 ```matlab
 test_fit_validation_rayleigh_lamb

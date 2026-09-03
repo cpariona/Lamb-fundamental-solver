@@ -21,10 +21,10 @@ solveAcoustoelasticIOPHGOBranch
 Examples use `run_*`, `fit_*`, or `<model>_sweep_*`. Diagnostics use
 `diagnose_*`, `validate_*`, or `summarize*`. Tests use `test_*`. The only
 maintained runners are the six `run_*` validation tiers documented in
-`test_suite_final_architecture.md`.
+`../../tests/README.md`.
 
 Every function filename must match its top-level function exactly, including
-case. Names must be globally unambiguous on the recursive MATLAB path and must
+case. Names must be globally unambiguous across tracked MATLAB files and must
 not exceed `namelengthmax`.
 
 ## Parameters and outputs

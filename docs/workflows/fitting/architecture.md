@@ -144,8 +144,14 @@ rlFitDispersionData
   -> rlBuildFitProblem
   -> solveDispersionFitProblem
   -> rlEvaluateFitModel
-  -> maintained Rayleigh-Lamb solver
+  -> rlSolveFundamentalBranch
 ```
+
+The RL evaluator shares the canonical model-layer continuation owner with
+`rlComputeFundamentalLambModes`. It preserves exact experimental frequencies
+in its own tracking grid and disables prediction fallback. It therefore does
+not call the public batch-grid API; there is no second physics or optimizer
+implementation. This distinction is deliberate and numerically protected.
 
 ### mRLFE
 
@@ -184,14 +190,14 @@ aeFitDispersionData
   -> aeBuildFitProblem
   -> solveDispersionFitProblem
   -> aeEvaluateFitModel
-  -> maintained AE IOP/HGO API
+  -> solveAcoustoelasticIOPHGOBranch
 ```
 
-AE may legitimately use atlas terminology. This is separate from the removed legacy mRLFE atlas production routes.
+Atlas construction and branch selection belong to the AE model, not the optimizer.
 
 ## Physical quality and identifiability
 
-Shared fitting helpers include optimizer orchestration, residual calculation, fit metrics, constant-speed baseline comparison, physical-quality assessment, local sensitivity, and identifiability assessment. `solveDispersionFitProblem` selects `fminbnd` or `fminsearch`, performs the final evaluation, and assembles the canonical fit result. Model builders still own their historical optimizer options, bounds, and evaluators. These checks are numerical diagnostics, not external experimental validation.
+Shared fitting helpers include optimizer orchestration, residual calculation, fit metrics, constant-speed baseline comparison, physical-quality assessment, local sensitivity, and identifiability assessment. `solveDispersionFitProblem` selects `fminbnd` or `fminsearch`, performs the final evaluation, and assembles the canonical fit result. Model builders still own their model-specific optimizer options, bounds, and evaluators. These checks are numerical diagnostics, not external experimental validation.
 
 ## Validation
 

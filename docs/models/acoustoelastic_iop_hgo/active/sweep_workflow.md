@@ -3,8 +3,8 @@
 Two examples represent the maintained sweep surface:
 
 ```matlab
-ae_sweep_iop_A0Like
-ae_sweep_mu_iop_A0Like
+run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_iop_A0Like.m')
+run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_mu_iop_A0Like.m')
 ```
 
 The first is the canonical one-dimensional pressure sweep. The second is the

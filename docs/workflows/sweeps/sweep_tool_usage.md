@@ -1,6 +1,6 @@
 # SweepTool usage notes
 
-`SweepTool_GUI` is the registry-driven interface for one-parameter sweep workflows.
+`SweepTool_GUI` is the declaratively configured interface for one-parameter sweep workflows.
 
 ## Launch
 
@@ -39,7 +39,7 @@ A0 termination policy: physicalTail
 Expected outcome:
 
 - The sweep runs without an adapter error.
-- The values are interpreted in kPa and converted to solver units by the registry scale.
+- The values are interpreted in kPa and converted to solver units by the model-configuration scale.
 - The summary table has two rows.
 - The normalized model name is `mRLFERealK`.
 - `SweepToolOutput.atlasPolicy.guiRoutePolicy` is `mrlfeSolve`.
@@ -107,7 +107,7 @@ Execution profile: Fast
 Expected outcome:
 
 - The sweep runs through `guiRunSweep` and the Rayleigh-Lamb adapter.
-- The values are interpreted in mm and converted to solver units by the registry scale.
+- The values are interpreted in mm and converted to solver units by the model-configuration scale.
 - The summary table has two rows.
 - The normalized output has one A0 curve per sweep value.
 
@@ -127,7 +127,7 @@ Execution profile: Fast
 Expected outcome:
 
 - The sweep runs through the same Rayleigh-Lamb adapter.
-- The values are interpreted in kPa and converted to solver units by the registry scale.
+- The values are interpreted in kPa and converted to solver units by the model-configuration scale.
 - `E`, `lambda_Lame`, `K`, `CT`, and `CL` are derived by the material helper from `mu`, `nu`, and `rho`.
 
 ### AE IOP/HGO IOP check
@@ -165,7 +165,7 @@ Execution profile: Fast
 Expected outcome:
 
 - The sweep runs through the same AE IOP/HGO adapter.
-- The values are interpreted in kPa and converted to solver units by the registry scale.
+- The values are interpreted in kPa and converted to solver units by the model-configuration scale.
 
 ## Architecture contract
 
@@ -259,4 +259,4 @@ SweepToolModelName
 SweepToolBranchName
 ```
 
-`SweepToolNormalized` is the preferred object for plotting and downstream app work. `SweepToolResults` is preserved for raw diagnostics and compatibility.
+`SweepToolNormalized` is the preferred object for plotting and downstream app work. `SweepToolResults` contains the computed point results for inspection; it is not another solve.

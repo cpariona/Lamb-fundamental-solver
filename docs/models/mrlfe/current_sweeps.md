@@ -3,7 +3,7 @@
 The maintained representative sweep is:
 
 ```matlab
-mrlfe_sweep_etaS_A0Like
+run('examples/mrlfe/sweeps/mrlfe_sweep_etaS_A0Like.m')
 ```
 
 It exercises the public `mrlfeSolve` route using shear viscosity as the swept
