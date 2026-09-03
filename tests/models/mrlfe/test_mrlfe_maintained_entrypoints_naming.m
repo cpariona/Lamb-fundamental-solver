@@ -156,11 +156,14 @@ analysisFiles = { ...
     fullfile(repoRoot, 'analysis', 'sweeps', 'summarizeParametricSweepBranch.m')};
 for i = 1:numel(analysisFiles)
     fileText = fileread(analysisFiles{i});
-    assert(contains(fileText, 'mRLFEViscoRealK'), ...
-        'Maintained analysis helper should document mRLFEViscoRealK: %s', analysisFiles{i});
     assert(~contains(fileText, forbiddenModelName), ...
         'Maintained analysis helper should not contain author-labeled mRLFE model names: %s', analysisFiles{i});
 end
+
+summaryText = fileread(fullfile(repoRoot, 'analysis', 'sweeps', ...
+    'summarizeParametricSweepBranch.m'));
+assert(~contains(summaryText, 'mRLFEViscoRealK'), ...
+    'Shared sweep summary should not encode a historical mRLFE surface name.');
 
 function section = extractSection(text, startMarker, endMarker)
 startIndex = strfind(text, startMarker);
