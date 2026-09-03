@@ -2,8 +2,8 @@ function guiResult = guiBuildModelResultView(modelResult, adapterName)
 %GUIBUILDMODELRESULTVIEW Build a shallow display view from a canonical result.
 %
 % This adapter copies canonical scientific arrays into the long-lived GUI
-% presentation shape. It does not inspect solver internals or make numerical
-% decisions.
+% presentation shape, including dimensionless plot coordinates derived from
+% canonical geometry. It does not inspect solver internals or run a solver.
 
 if nargin < 2 || strlength(string(adapterName)) == 0
     adapterName = "guiBuildModelResultView";
@@ -59,7 +59,8 @@ branch.wavenumber = source.wavenumber_radpm(:);
 if isfield(source, 'wavenumberThickness')
     branch.kThickness = source.wavenumberThickness(:);
 else
-    branch.kThickness = [];
+    thickness = source.configuration.effective.parameters.thickness_m;
+    branch.kThickness = branch.wavenumber * thickness;
 end
 branch.metadata = struct('modelResult', source, 'units', defaultUnits());
 branch.diagnostics = struct('valid', logical(source.validMask(:)));

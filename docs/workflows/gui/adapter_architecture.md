@@ -57,6 +57,10 @@ lastGuiResult
 shallow presentation view for plotting and export. Neither plotting nor export
 invokes a solver or reconstructs scientific branches.
 
+The mRLFE dimensionless plotting coordinate is computed in the view from the
+stored canonical wavenumber and effective full thickness. It is not another
+scientific solve and does not read newly edited GUI controls.
+
 The maintained Main GUI mRLFE adapter is model-API based:
 
 ```text
