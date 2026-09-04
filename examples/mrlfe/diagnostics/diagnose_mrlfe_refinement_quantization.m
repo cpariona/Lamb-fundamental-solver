@@ -123,7 +123,8 @@ if opt.WriteCsv
     writetable(summary, fullfile(outputFolder, 'refinement_quantization_summary.csv'));
     caseNames = fieldnames(curves);
     for i = 1:numel(caseNames)
-        writetable(curves.(caseNames{i}), fullfile(outputFolder, caseNames{i} + "_curves.csv"));
+        fileName = string(caseNames{i}) + "_curves.csv";
+        writetable(curves.(caseNames{i}), fullfile(outputFolder, fileName));
     end
     fprintf('\nSaved diagnostic output under Results/mrlfe/diagnostics/refinement_quantization\n');
 end
@@ -175,11 +176,13 @@ else
 end
 
 step = approximateScanStep(branch);
-metrics.medianApproxScanStep_mps = median(step(isfinite(step)), 'omitnan');
-metrics.maxApproxScanStep_mps = max(step(isfinite(step)), [], 'omitnan');
-if isempty(step(isfinite(step)))
+finiteStep = step(isfinite(step));
+if isempty(finiteStep)
     metrics.medianApproxScanStep_mps = NaN;
     metrics.maxApproxScanStep_mps = NaN;
+else
+    metrics.medianApproxScanStep_mps = median(finiteStep, 'omitnan');
+    metrics.maxApproxScanStep_mps = max(finiteStep, [], 'omitnan');
 end
 end
 
@@ -203,9 +206,19 @@ delta(valid) = refined.Cp(valid) - discrete.Cp(valid);
 
 scanStep = approximateScanStep(discrete);
 deltaInSteps = abs(delta) ./ scanStep;
-comparison.maxAbsCpDifference_mps = max(abs(delta(valid)), [], 'omitnan');
-comparison.medianAbsCpDifference_mps = median(abs(delta(valid)), 'omitnan');
-comparison.medianDifferenceInApproxScanSteps = median(deltaInSteps(valid & isfinite(deltaInSteps)), 'omitnan');
+if any(valid)
+    comparison.maxAbsCpDifference_mps = max(abs(delta(valid)), [], 'omitnan');
+    comparison.medianAbsCpDifference_mps = median(abs(delta(valid)), 'omitnan');
+else
+    comparison.maxAbsCpDifference_mps = NaN;
+    comparison.medianAbsCpDifference_mps = NaN;
+end
+stepMask = valid & isfinite(deltaInSteps);
+if any(stepMask)
+    comparison.medianDifferenceInApproxScanSteps = median(deltaInSteps(stepMask), 'omitnan');
+else
+    comparison.medianDifferenceInApproxScanSteps = NaN;
+end
 comparison.candidateTypeMismatchCount = nnz(string(discrete.candidateType(:)) ~= string(refined.candidateType(:)));
 comparison.validMaskMismatchCount = nnz(logical(discrete.validCp(:)) ~= logical(refined.validCp(:)));
 comparison.curveTable = table( ...
