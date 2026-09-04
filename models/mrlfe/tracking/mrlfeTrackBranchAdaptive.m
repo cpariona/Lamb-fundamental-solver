@@ -217,6 +217,9 @@ for i = 1:numel(tracker.windows)
         continue;
     end
     best = chooseBestCandidate(candidates, center, tracker);
+    if ~tracker.refineCandidates
+        best = mrlfeRefineSelectedCandidate(best, CpScan, center, omega, material, geometry, mrlfeParams, tracker);
+    end
     best.numCandidates = numel(candidates.cp);
     usedWindow = width;
     return;
