@@ -12,9 +12,9 @@ function branch = mrlfeTrackBranchAdaptive(problem, seedMode, configuration, mrl
 % Optional valley fallback:
 %   Some physical branches become shallow shoulders rather than strict local
 %   minima. When enabled, the tracker adds a prediction-centered candidate from
-%   a narrow trust region around the predicted Cp. This fallback is allowed only
-%   after the branch has already been established by strict accepted points, so
-%   it cannot initialize the branch on a low-Cp residual artifact.
+%   a narrow trust region around the predicted Cp. The fallback is suppressed
+%   when that trust region already contains a strict local minimum, so the same
+%   residual valley cannot enter candidate selection twice.
 
 name = configuration.branch;
 material = problem.material;
@@ -265,6 +265,14 @@ candidates.type = repmat("localMinimum", numel(candidates.cp), 1);
 end
 
 function candidates = appendValleyFallbackCandidate(candidates, CpScan, residual, center, tracker)
+strict = string(candidates.type) == "localMinimum" & isfinite(candidates.cp) & candidates.cp > 0;
+if any(strict)
+    strictDistance = abs(candidates.cp(strict) - center) ./ max(abs(center), eps);
+    if any(strictDistance <= tracker.valleyFallbackRelativeWindow)
+        return;
+    end
+end
+
 mask = isfinite(residual) & residual > 0 & residual <= tracker.valleyFallbackResidualTolerance;
 trust = abs(CpScan - center) ./ max(abs(center), eps) <= tracker.valleyFallbackRelativeWindow;
 idx = find(mask & trust);
