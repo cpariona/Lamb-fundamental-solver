@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 fprintf('\nRunning mRLFE termination policy test...\n');
@@ -10,11 +10,11 @@ physicalTail = mrlfeSolve(localRequest("A0Like", 0.05, "physicalTail"));
 none = mrlfeSolve(localRequest("A0Like", 0.05, "none"));
 s0PhysicalTail = mrlfeSolve(localRequest("S0Like", 0.05, "physicalTail"));
 
-assert(isfield(physicalTail.debug.rawInternalResult.branchSolve, 'physicalCorridor'), ...
+assert(isfield(physicalTail.debug.solverResult.branchSolve, 'physicalCorridor'), ...
     'A0 physicalTail should evaluate the physical-tail policy.');
-assert(~isfield(none.debug.rawInternalResult.branchSolve, 'physicalCorridor'), ...
+assert(~isfield(none.debug.solverResult.branchSolve, 'physicalCorridor'), ...
     'A0 none policy must not apply the physical-tail policy.');
-assert(~isfield(s0PhysicalTail.debug.rawInternalResult.branchSolve, 'physicalCorridor'), ...
+assert(~isfield(s0PhysicalTail.debug.solverResult.branchSolve, 'physicalCorridor'), ...
     'S0 must not apply A0 physical-tail policy.');
 assert(none.termination.policy == "none", 'Termination metadata should preserve requested none policy.');
 assert(none.fallback.applied == false, 'Termination policy must not apply fallback.');

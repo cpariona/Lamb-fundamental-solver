@@ -1,116 +1,43 @@
 # Active project context
 
-Last reviewed: 2026-08-31
+Last reviewed: 2026-09-03
+
 Repository: `cpariona/Lamb-fundamental-solver`
-Default branch: `main`
-Planning branch: `planning/full-repository-restructure`
-Starting main checkpoint:
-`026994f86a2d1dfe5a740034d7a5fd81d4f08235`
+Integration branch: `restructure/phase-07-final-integration`
+Base: Phase 6 HEAD `5183565`.
 
-## Current product state
+## Final architecture
 
-- Rayleigh-Lamb, mRLFE, and AE IOP/HGO have maintained scientific APIs.
-- Main GUI, SweepTool, and FitTool are the principal human-facing surfaces.
-- mRLFE production consumers route through `mrlfeSolve`.
-- AE production consumers route through the maintained AE public route and
-  conservative `atlasA0` policy.
-- The AE high-frequency refinement issue is resolved in `main`: production now
-  uses discrete atlas candidates followed by bounded continuous refinement of
-  the selected branch on the true SVD objective.
-- The former three-point parabolic sub-grid candidate refinement is no longer a
-  production strategy.
-- The last confirmed AE smoke and extended suites passed, including synthetic
-  recovery of `mu = 50 kPa` with relative error `5.06201e-08`.
+Models own physics, tracking, numerical configuration, quality, and scientific
+results. Analysis owns fitting, sweeps, plotting, IO, and diagnostic
+interpretation. App is surface-first: main, fitting, sweep, shared.
+The dependency mRLFE -> RL is restricted to seed construction; RL never calls
+mRLFE. Human interfaces consume the same maintained scientific owners.
 
-## Active repository objective
+Production startup loads root/models/analysis/app plus only the six test
+launchers. Test bodies and tooling load explicitly and runners restore the
+caller path. Examples/diagnostics are opt-in files.
 
-The next campaign is a full repository restructuring. The existing physical
-layout is not protected merely because it is current.
+There are 114 tests, exactly six runners, and 16 representative executable
+examples (including six diagnostics). Authoritative ownership is in
+`tests/README.md`; architecture is in
+`docs/repository/repository_structure.md`.
 
-The required qualities are:
+## Scientific baseline
 
-```text
-order
-structure
-organization
-versatility
-adaptability
-human comprehension
-simplicity
-scientific correctness
-controlled performance
-```
+AE retains discrete atlas selection followed by bounded fminbnd refinement on
+the true SVD objective. Causal replay proves that its earlier snapshot predates
+that approved algorithm. Commit `6911727` updates only three golden values;
+the 1e-12 tolerance and all production science are unchanged.
+Evidence: `docs/validation/ae_atlasA0_baseline.md`.
 
-Broad moves, renames, merges, splits, deletions, API cleanup, ownership changes,
-test reorganization, and documentation cleanup are authorized when they improve
-the final maintained architecture.
+## Integration
 
-Temporary breakage on implementation branches is acceptable. The final state
-must restore intended maintained functionality and pass the approved scientific,
-contract, GUI, and integration gates.
-
-## Governing planning contracts
-
-The full campaign is defined by:
-
-```text
-docs/project/full_repository_restructure_handoff.md
-docs/repository/maintainability_policy.md
-docs/repository/refactor_policy.md
-docs/repository/human_interface_contract.md
-docs/repository/restructure_target_architecture.md
-```
-
-These documents supersede the assumption that repository changes must remain a
-bounded cosmetic simplification. Previous final-state documents remain useful
-as historical/current-state evidence but do not constrain the new target
-architecture.
-
-## Core architectural rules for the next campaign
-
-- one canonical owner per responsibility;
-- reuse before creation;
-- replace obsolete strategies instead of stacking old/new implementations;
-- GUI coordinates and presents; models calculate;
-- Main GUI, FitTool, SweepTool, examples, and scripts should converge on
-  canonical model APIs;
-- limit conceptual call depth and forwarding-only helpers;
-- extract by responsibility, not line count;
-- keep physical, numerical, execution-profile, and UI configuration concepts
-  distinct;
-- keep official results, diagnostics, quality, and effective configuration
-  explicit;
-- production must not depend on examples or exploratory diagnostics;
-- new investigation-only MATLAB files use `% TEMPORARY_DIAGNOSTIC` and are
-  removed before final integration unless intentionally promoted;
-- tests protect the final maintained architecture, not obsolete migration
-  behavior;
-- numerical baselines are not updated merely to make structural refactors pass;
-- performance is characterized for meaningful algorithmic changes.
-
-## Required next step
-
-Before moving production code, perform a repository-wide audit and propose the
-final target architecture.
-
-The audit must cover:
-
-```text
-top-level structure and dependency direction
-GUI and adapter routes
-Rayleigh-Lamb, mRLFE, and AE ownership
-analysis/fitting/sweeps
-configuration/default/profile ownership
-result/quality schemas
-plotting/export
-examples/diagnostics
-tests/runners
-compatibility/dead code
-documentation
-startup/path behavior
-tracked/generated artifacts
-```
-
-The audit should produce a concrete final folder tree, dependency graph,
-ownership map, phased migration plan, and validation matrix before broad code
-movement begins.
+Integration is BLOCKED by a historical mRLFE configuration delta, independently
+of the six ordinary tiers, all of which passed. The edge guard migrated from an
+effective 4 to 8 in Phase 2; restoring 4 in memory reproduces all 24 Fast
+reference cases exactly. A production correction requires explicit approval.
+See `docs/validation/mrlfe_restructure_baseline.md` and
+`docs/repository/validation_status.md`.
+No push or merge is authorized. Review and integration are separate actions;
+there is no subsequent restructuring phase.

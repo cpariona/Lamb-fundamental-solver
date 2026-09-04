@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 fprintf('\nRunning mRLFE synthetic A0-like fitting test...\n');

@@ -6,10 +6,6 @@ frequencyInput = configuration.request.frequency_Hz(:);
     frequencyInput, configuration.request.numerics, configuration.numericalPreset);
 params = prepareFrequencyParams(configuration.solverParams, frequencySolve_Hz);
 
-seedOptions = buildRayleighLambSeedOptions(configuration.branch);
-
-rawRL = rlComputeFundamentalLambModes(params, seedOptions);
-
 problem = struct();
 problem.model = "mrlfe";
 problem.branch = configuration.branch;
@@ -17,23 +13,9 @@ problem.frequencyRequested_Hz = frequencyInput;
 problem.frequencySolve_Hz = frequencySolve_Hz;
 problem.frequencyGrid = frequencyGrid;
 problem.params = params;
-problem.material = rawRL.material;
-problem.geometry = rawRL.geometry;
-problem.seedModes = rawRL.modes;
-problem.rawSeedResult = rawRL;
+problem.material = elasticFromMuNu(params.mu, params.nu, params.rho);
+problem.geometry = struct('thickness', params.thickness);
 problem.fluid = configuration.request.fluid;
-end
-
-function options = buildRayleighLambSeedOptions(branch)
-% Rayleigh-Lamb owns the physical seed solve; mRLFE only selects its branch.
-options = rlDefaultOptions("Fast");
-options.computeA0 = branch == "A0Like";
-options.computeS0 = branch == "S0Like";
-options.computeMRLFE = false;
-options.computeMRLFERealK = false;
-options.computeMRLFEElasticRealK = false;
-options.computeMRLFEViscoRealK = false;
-options.computeMRLFEComplexK = false;
 end
 
 function params = prepareFrequencyParams(params, frequencySolve_Hz)

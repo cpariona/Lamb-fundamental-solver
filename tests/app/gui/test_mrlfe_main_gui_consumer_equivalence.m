@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE Main GUI consumer-equivalence test...\n');
 fprintf('---------------------------------------------------\n');
 
@@ -24,7 +23,7 @@ sweepRequest = guiBuildSweepRequest("mrlfe", ...
         'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
         'mrlfeA0Policy', "physicalTail"));
 sweepOut = guiRunMRLFESweep(sweepRequest);
-sweepResult = sweepOut.rawResults.points{1}.modelResult;
+sweepResult = sweepOut.sweepResult.points{1}.modelResult;
 
 %% FitTool requested-curve evaluator on the same numerical preset grid.
 fitParams = params;
@@ -72,12 +71,8 @@ params.thickness = 0.5e-3;
 params.rho = 1070;
 params.nu = 0.4999;
 
-options = rlDefaultOptions("Fast");
-options.computeA0 = branchName == "A0Like";
-options.computeS0 = branchName == "S0Like";
-options.computeMRLFERealK = true;
-options.mrlfeComputeA0Like = branchName == "A0Like";
-options.mrlfeComputeS0Like = branchName == "S0Like";
+options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
+options.branchNames = branchName;
 options.mrlfeA0Policy = "physicalTail";
 options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = etaS;

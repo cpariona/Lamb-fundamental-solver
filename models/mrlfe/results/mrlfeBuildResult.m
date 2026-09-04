@@ -1,9 +1,9 @@
-function result = mrlfeBuildResult(configuration, rawResult, elapsedSeconds)
+function result = mrlfeBuildResult(configuration, solverResult, elapsedSeconds)
 %MRLFEBUILDRESULT Normalize internal mRLFE output to the public result schema.
 
 frequency_Hz = configuration.request.frequency_Hz(:);
-phaseVelocity_mps = rawResult.Cp_mps(:);
-validMask = logical(rawResult.validMask(:)) & isfinite(phaseVelocity_mps) & phaseVelocity_mps > 0;
+phaseVelocity_mps = solverResult.Cp_mps(:);
+validMask = logical(solverResult.validMask(:)) & isfinite(phaseVelocity_mps) & phaseVelocity_mps > 0;
 phaseVelocity_mps(~validMask) = nan;
 
 wavenumber_radpm = nan(size(phaseVelocity_mps));
@@ -19,7 +19,7 @@ result.phaseVelocity_mps = phaseVelocity_mps;
 result.wavenumber_radpm = wavenumber_radpm;
 result.validMask = validMask;
 result.quality = quality;
-result.termination = buildTermination(configuration, rawResult);
+result.termination = buildTermination(configuration, solverResult);
 result.fallback = struct( ...
     'policy', configuration.fallbackPolicy, ...
     'applied', false, ...
@@ -30,11 +30,9 @@ result.execution = struct( ...
     'effectivePreset', configuration.effectivePreset, ...
     'internalEngine', configuration.internalEngine, ...
     'elapsedSeconds', elapsedSeconds);
-result.configuration = publicConfiguration(configuration);
-result.diagnostics = struct( ...
-    'summary', buildDiagnosticSummary(configuration, rawResult), ...
-    'rawInternalResult', rawResult);
-result.debug = struct('rawInternalResult', rawResult);
+result.configuration = configuration.public;
+result.diagnostics = buildDiagnosticSummary(configuration, solverResult);
+result.debug = struct('solverResult', solverResult);
 end
 
 function summary = buildDiagnosticSummary(configuration, rawResult)
@@ -85,10 +83,6 @@ if isfinite(idx) || isfinite(freq)
     termination.firstRejectedFrequency_Hz = freq;
     termination.reason = getStringField(cut, reasonField, "cut_applied");
 end
-end
-
-function configurationOut = publicConfiguration(configuration)
-configurationOut = rmfield(configuration, {'internalOptions', 'solverParams'});
 end
 
 function value = getNumericField(s, fieldName, defaultValue)

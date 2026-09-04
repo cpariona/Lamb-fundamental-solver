@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 %TEST_MRLFE_NUMERICAL_PRESET_GRIDS Verify production preset grid contracts.

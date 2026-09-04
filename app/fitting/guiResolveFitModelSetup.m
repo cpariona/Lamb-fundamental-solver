@@ -5,7 +5,7 @@ params = guiMergeStructs(baseParams, config.fixedParams);
 params = guiMergeStructs(params, config.initialGuess);
 controls = config.controls;
 
-registry = guiGetFitRegistry();
+registry = guiGetFitModelConfiguration();
 family = findFamily(registry, modelFamily);
 for i = 1:numel(family.parameters)
     meta = family.parameters(i);

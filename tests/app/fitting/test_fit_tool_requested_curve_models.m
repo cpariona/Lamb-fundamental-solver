@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning FitTool requested-curve model coverage test...\n');
 fprintf('-----------------------------------------------------\n');
 
@@ -50,12 +49,12 @@ assert(isequal(fieldnames(aeRaw), {'modelFamily'; 'modelName'; 'branchName'; ...
 expectedAeParams = aeParams;
 expectedAeParams.frequency = aeFrequency_Hz(:).';
 expectedAeResult = solveAcoustoelasticIOPHGOBranch(expectedAeParams, aeRaw.options);
-assert(isequaln(aeRaw.solverResult.Cp, expectedAeResult.Cp), ...
+assert(isequaln(aeRaw.solverResult.phaseVelocity_mps, expectedAeResult.phaseVelocity_mps), ...
     'AE fitting Cp must equal the maintained public solver output.');
-assert(isequal(aeRaw.solverResult.validCp, expectedAeResult.validCp), ...
+assert(isequal(aeRaw.solverResult.validMask, expectedAeResult.validMask), ...
     'AE fitting validCp must equal the maintained public solver output.');
-assert(isequaln(aeRaw.solverResult.reliability, expectedAeResult.reliability), ...
-    'AE fitting reliability must remain the canonical model value.');
+assert(isequaln(aeRaw.solverResult.quality, expectedAeResult.quality), ...
+    'AE fitting quality must remain the canonical model value.');
 valid = aeRaw.validMask(:) & isfinite(aeCp_mps(:));
 aeFrequency_Hz = aeFrequency_Hz(valid);
 aeCp_mps = aeCp_mps(valid);

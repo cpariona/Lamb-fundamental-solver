@@ -1,15 +1,15 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 %TEST_ACOUSTOELASTIC_IOP_HGO_BRANCH_PERSISTENCE_REFINEMENT
 % Lightweight synthetic test for diagnostic branch-persistence refinement.
 
 result = struct();
-result.frequency = (1:6) * 1e3;
-result.Cp = [10 11 12 nan nan nan];
-result.validCp = [true true true false false false];
+result.frequency_Hz = (1:6) * 1e3;
+result.phaseVelocity_mps = [10 11 12 nan nan nan];
+result.validMask = [true true true false false false];
 result.cShear = 100;
 
 rows = [];
@@ -26,7 +26,7 @@ refinement = aeRefineAtlasA0BranchPersistence(result, ...
     'MaxCandidateRank', 12, ...
     'StrongCandidateRank', 3);
 
-assert(isequaln(result.Cp, [10 11 12 nan nan nan]), ...
+assert(isequaln(result.phaseVelocity_mps, [10 11 12 nan nan nan]), ...
     'The maintained result.Cp must remain unchanged.');
 
 assert(isfield(refinement, 'CpCandidate'), ...
@@ -35,7 +35,7 @@ assert(isfield(refinement, 'CpCandidate'), ...
 assert(isfield(refinement, 'classification'), ...
     'Missing classification output.');
 
-assert(nnz(refinement.validCandidate & ~result.validCp) >= 1, ...
+assert(nnz(refinement.validCandidate & ~result.validMask) >= 1, ...
     'Expected at least one diagnostic candidate point.');
 
 expectedClasses = ["caution_low_rank_branch","weak_partial_extension","accepted_contiguous_extension"];

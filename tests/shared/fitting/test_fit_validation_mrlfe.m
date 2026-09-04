@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE fitting validation tests...\n');
 fprintf('--------------------------------------\n');
 

@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 %TEST_MRLFE_RESIDUAL_OBJECTIVE_CONTRACT Contract test for mRLFE residual objective.

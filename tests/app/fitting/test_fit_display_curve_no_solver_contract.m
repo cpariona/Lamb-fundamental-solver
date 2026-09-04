@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning fit display-curve no-solver contract test...\n');
 fprintf('--------------------------------------------------\n');
 

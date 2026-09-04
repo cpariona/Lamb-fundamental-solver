@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE neutral tracker/termination contract test...\n');
 fprintf('---------------------------------------------------------\n');
 

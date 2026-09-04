@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning physical QC test for flat Rayleigh-Lamb A0-like fit...\n');
 fprintf('-------------------------------------------------------------\n');
 
@@ -32,7 +31,7 @@ fitResult.metrics = computeDispersionFitMetrics(Cp_mps, experimental);
 fitResult.sensitivityMatrix = 0.1 * ones(size(frequency_Hz));
 fitResult.identifiability = struct('classification', "locally_identifiable");
 fitResult.optimizer = struct('name', "constructed", 'objective', 0, 'exitFlag', 1, 'output', struct());
-fitResult.rawSolverResult = struct();
+fitResult.modelEvaluation = struct();
 
 qc = assessFitPhysicalQuality(fitResult);
 

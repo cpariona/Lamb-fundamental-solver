@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 fprintf('\nRunning execution profile normalization contract test...\n');
@@ -14,12 +14,12 @@ adapterFunctions = [ ...
     "mrlfeBuildSurfaceExecutionMetadata"];
 for i = 1:numel(adapterFunctions)
     fileName = adapterFunctions(i) + ".m";
-    expectedPath = fullfile(repoRoot, 'app', 'adapters', fileName);
-    oldPath = fullfile(repoRoot, 'app', fileName);
-    assert(isfile(expectedPath), '%s must live in app/adapters.', adapterFunctions(i));
-    assert(~isfile(oldPath), 'The former app-root path must be absent for %s.', adapterFunctions(i));
+    expectedPath = fullfile(repoRoot, 'app', 'shared', fileName);
+    oldPath = fullfile(repoRoot, 'app', 'adapters', fileName);
+    assert(isfile(expectedPath), '%s must live in app/shared.', adapterFunctions(i));
+    assert(~isfile(oldPath), 'The former app/adapters path must be absent for %s.', adapterFunctions(i));
     assert(strcmp(which(adapterFunctions(i)), expectedPath), ...
-        '%s must resolve uniquely from app/adapters.', adapterFunctions(i));
+        '%s must resolve uniquely from app/shared.', adapterFunctions(i));
 end
 
 profiles = guiExecutionProfileValues();
@@ -74,8 +74,8 @@ assert(sweepRequest.controls.robustness == "Robust", ...
     'Sweep builder should retain robustness compatibility alias.');
 
 %% Registries expose canonical supported profile metadata.
-sweepRegistry = guiGetSweepRegistry();
-fitRegistry = guiGetFitRegistry();
+sweepRegistry = guiGetSweepModelConfiguration();
+fitRegistry = guiGetFitModelConfiguration();
 assertRegistryProfiles(sweepRegistry, "SweepTool");
 assertRegistryProfiles(fitRegistry, "FitTool");
 

@@ -1,13 +1,14 @@
 clear; clc; close all;
 launchFolder = pwd;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %DIAGNOSE_ATLAS_TRUNCATION AtlasA0 truncation-cause diagnostic.
 %
 % Outputs are written to:
 %   Results/ae_iop_hgo/atlas_truncation
 
-outputFolder = aeOutputFolder(launchFolder, 'atlas_truncation');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'atlas_truncation');
 
 cases = makeCaseSpecs(launchFolder);
 summaryRows = [];
@@ -117,9 +118,9 @@ if ~exist(plotFolder, 'dir')
     mkdir(plotFolder);
 end
 
-f = result.frequency(:) / 1e3;
-cp = result.Cp(:);
-valid = logical(result.validCp(:)) & isfinite(cp);
+f = result.frequency_Hz(:) / 1e3;
+cp = result.phaseVelocity_mps(:);
+valid = logical(result.validMask(:)) & isfinite(cp);
 T = diagnosis.localCauseTable;
 
 fig = figure('Visible', 'off');

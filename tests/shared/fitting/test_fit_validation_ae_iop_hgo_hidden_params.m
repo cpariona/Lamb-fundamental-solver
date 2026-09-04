@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning AE IOP/HGO hidden-parameter fitting validation tests...\n');
 fprintf('-----------------------------------------------------------\n');
 
@@ -22,7 +21,6 @@ trueParams.frequency = logspace(log10(300), log10(15e3), 35);
 solverOptions = defaultAcoustoelasticIOPHGOOptions();
 solverOptions.M54_variant = "corrected";
 solverOptions.normalizeRows = false;
-solverOptions.usePhysicalCpWindow = false;
 solverOptions.atlasNumYPoints = 300;
 solverOptions.atlasTopNMinima = 12;
 solverOptions.atlasBranchPolicy = "atlasA0";
@@ -30,7 +28,7 @@ solverOptions.atlasInitializationNumFrequencyPoints = 50;
 
 [CpSynthetic_mps, syntheticRaw] = aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
 assert(any(syntheticRaw.validMask), 'AE hidden-parameter validation synthetic atlasA0 output must contain valid points.');
-assert(syntheticRaw.solverResult.reliability.SelectionFallbackUsed == false, ...
+assert(syntheticRaw.solverResult.quality.SelectionFallbackUsed == false, ...
     'AE hidden-parameter validation must not rely on fallback branch selection.');
 
 experimental = struct();

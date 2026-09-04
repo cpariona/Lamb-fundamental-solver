@@ -8,8 +8,10 @@ function result = solveAcoustoelasticAtlasBranch(params, options)
 if nargin < 2
     options = [];
 end
+requestedOptions = options;
 options = aeResolveConfiguration(options);
 aeValidateRequest(params, 'Context', "directAtlas");
+timerStart = tic;
 
 frequency = params.frequency(:).';
 [objectiveMap, yGrid, cGrid, cShear] = aeBuildAtlas(params, options);
@@ -110,14 +112,19 @@ fields.yGrid = yGrid(:);
 fields.cGrid = cGrid(:);
 fields.cShear = cShear;
 fields.options = options;
-result = aeBuildResult(struct('fields', fields));
+spec = struct('fields', fields);
+spec.configuration = struct( ...
+    'requested', struct('parameters', params, 'options', requestedOptions), ...
+    'effective', struct('parameters', params, 'options', options));
+spec.execution = struct('engine', "atlasA0", 'elapsedSeconds', toc(timerStart));
+result = aeBuildResult(spec);
 
 if strcmpi(string(options.atlasBranchPolicy), "identityA0Diagnostic")
     identity = aeBuildIdentityA0DiagnosticBranch(result);
     spec = struct();
     spec.baseResult = result;
-    spec.postSummaryFields = struct('identityA0', identity);
     spec.diagnosticFields = struct( ...
+        'identityA0', identity, ...
         'identityA0CandidateValidPoints', identity.summary.CandidateValidPoints, ...
         'identityA0AddedCandidatePoints', identity.summary.AddedCandidatePoints);
     result = aeBuildResult(spec);

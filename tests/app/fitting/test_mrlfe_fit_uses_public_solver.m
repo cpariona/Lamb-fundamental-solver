@@ -1,13 +1,12 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE FitTool public-solver route guard test...\n');
 fprintf('------------------------------------------------------\n');
 
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
-evaluatorPath = fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeEvaluateFitModel.m');
-adapterPath = fullfile(repoRoot, 'app', 'adapters', 'guiFitMRLFESolver.m');
-fitWorkflowPath = fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeFitDispersionData.m');
+evaluatorPath = fullfile(repoRoot, 'analysis', 'fitting', 'mrlfe', 'mrlfeEvaluateFitModel.m');
+adapterPath = fullfile(repoRoot, 'app', 'fitting', 'guiFitMRLFESolver.m');
+fitWorkflowPath = fullfile(repoRoot, 'analysis', 'fitting', 'mrlfe', 'mrlfeFitDispersionData.m');
 
 evaluatorText = string(fileread(evaluatorPath));
 adapterText = string(fileread(adapterPath));

@@ -1,7 +1,7 @@
 function h = createFittingTab(tabs, params0, callbacks)
 %CREATEFITTINGTAB Build experimental fitting controls.
 
-registry = guiGetFitRegistry();
+registry = guiGetFitModelConfiguration();
 families = registry.modelFamilies;
 modelLabels = strings(1, numel(families));
 for i = 1:numel(families)

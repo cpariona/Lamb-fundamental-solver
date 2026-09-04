@@ -49,8 +49,8 @@ The maintained dependency path is:
 
 ```text
 surface profile resolver
-  -> thin surface request wrapper
-  -> mrlfeBuildPublicSolveRequest
+  -> surface-local physical request translation
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
@@ -59,8 +59,8 @@ the selected numerical preset, adaptive selection, branch termination, and
 disabled fallback. Adapters do not overwrite the preset after construction.
 
 The model-specific profile resolvers and mRLFE surface metadata builder live in
-`app/adapters/`. Cross-surface normalization, accepted profile values, and
-diagnostic formatting remain at the root of `app/`.
+`app/shared/`. Cross-surface normalization, accepted profile values, and
+diagnostic formatting also live in `app/shared/`.
 
 ## Metadata
 
@@ -151,7 +151,7 @@ FitTool:
 Surface integration coverage is grouped in:
 
 ```matlab
-run_execution_profile_surface_tests
+run_extended_integration_tests
 ```
 
 It covers:
@@ -163,7 +163,7 @@ It covers:
 - mRLFE public numerical preset mapping;
 - legacy AE Fit atlas-density override metadata.
 
-`run_gui_smoke_tests` includes lightweight surface contracts without turning the
+`run_quick_smoke_tests` includes lightweight surface contracts without turning the
 smoke suite into a benchmark.
 
 Performance benchmarks and full validation matrices remain separate diagnostic
@@ -174,7 +174,7 @@ The reproducible cross-surface matrix is:
 
 ```matlab
 matrix = validateExecutionProfileMatrix('WriteCsv', false);
-run_execution_profile_integration_tests
+run_extended_integration_tests
 ```
 
 The bounded mRLFE profile contract is:

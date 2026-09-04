@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE neutral seed contract test...\n');
 fprintf('------------------------------------------\n');
 

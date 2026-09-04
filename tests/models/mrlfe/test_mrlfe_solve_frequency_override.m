@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 %TEST_MRLFE_SOLVE_FREQUENCY_OVERRIDE Contract test for diagnostic solve grids.
@@ -38,9 +38,8 @@ assert(problem.params.frequencySpacing == "explicit", ...
     'Rayleigh-Lamb seed parameters must use explicit spacing.');
 assert(isequal(problem.params.frequencyVector_Hz(:), solveFrequency_Hz), ...
     'Seed frequency vector must equal the internal solve grid.');
-assert(isfield(problem.rawSeedResult, 'grid') && isfield(problem.rawSeedResult.grid, 'frequency'), ...
-    'Rayleigh-Lamb seed result must expose grid.frequency.');
-assert(isequal(problem.rawSeedResult.grid.frequency(:), solveFrequency_Hz), ...
+[~, rawSeedResult] = mrlfeBuildSeed(problem, configuration);
+assert(isequal(rawSeedResult.modes.A0.frequency_Hz(:), solveFrequency_Hz), ...
     'Rayleigh-Lamb seed result must be evaluated on the exact solve grid.');
 
 result = mrlfeSolve(request);

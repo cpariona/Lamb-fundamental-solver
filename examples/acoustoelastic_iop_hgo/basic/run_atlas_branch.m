@@ -1,6 +1,7 @@
 clear; clc; close all;
 launchFolder = pwd;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %RUN_ATLAS_BRANCH Maintained AE IOP/HGO atlas-branch example.
 %
@@ -29,16 +30,16 @@ options.atlasBranchPolicy = "atlasA0";
 
 result = solveAcoustoelasticIOPHGOBranch(params, options);
 
-outputFolder = aeOutputFolder(launchFolder, 'atlas_branch');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'atlas_branch');
 save(fullfile(outputFolder, 'atlas_branch_workspace.mat'), 'params', 'options', 'result');
 
-validMask = result.validCp(:) & isfinite(result.Cp(:));
+validMask = result.validMask(:) & isfinite(result.phaseVelocity_mps(:));
 
 fprintf('run_atlas_branch complete. Valid points: %d/%d. Output: %s\n', ...
-    nnz(validMask), numel(result.Cp), outputFolder);
+    nnz(validMask), numel(result.phaseVelocity_mps), outputFolder);
 
 figure('Color', 'w');
-plot(result.frequency(validMask) ./ 1e3, result.Cp(validMask), 'o-', 'LineWidth', 1.2);
+plot(result.frequency_Hz(validMask) ./ 1e3, result.phaseVelocity_mps(validMask), 'o-', 'LineWidth', 1.2);
 grid on;
 xlabel('Frequency [kHz]');
 ylabel('Phase speed [m/s]');

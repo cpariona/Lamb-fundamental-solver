@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning Rayleigh-Lamb fitting validation tests...\n');
 fprintf('------------------------------------------------\n');
 

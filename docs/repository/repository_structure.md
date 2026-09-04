@@ -1,247 +1,92 @@
 # Repository structure
 
-This document defines the maintained repository layers and dependency
-direction.
-
-## Top-level contract
-
-```text
-analysis/    reusable analysis, fitting, sweep, summary, and workflow helpers
-app/         GUI surfaces, adapters, UI state, plotting, and export
-docs/        current contracts, workflows, validation, and project context
-examples/    executable examples, maintained campaigns, and diagnostics
-models/      physical and numerical model implementation
-tests/       tests, runners, shared test infrastructure, and public wrappers
-Results/     generated outputs; never source code
-```
-
-`analysis/` is the shared reusable workflow layer. A root-level `shared/`
-source directory is not planned: shared material transformations belong in
-`models/materials/`, and shared tests belong in `tests/shared/`.
-
-The allowed production dependency direction is:
-
-```text
-app/ or examples/
-    -> analysis/
-    -> models/
-```
-
-App adapters may call model APIs directly when no reusable analysis workflow is
-needed. Models must not depend on `analysis/`, `app/`, or `examples/`.
-Production and analysis code must not call files under `examples/`.
-
-The executable boundary matrix is:
-
-| Caller | Allowed maintained dependencies | Forbidden dependencies |
-| --- | --- | --- |
-| `models/` | model-local and shared material model code | `analysis/`, `app/`, `examples/`, `tests/` |
-| `analysis/` | `models/`, analysis-local helpers | `app/`, `examples/`, `tests/` |
-| `app/` | `analysis/`, `models/`, app-local helpers | `examples/`, `tests/` |
-| `examples/` | `app/`, `analysis/`, `models/` | production ownership of example code |
-| `tests/` | all maintained layers | none within the repository test contract |
-
-## `models/`: physical and numerical ownership
-
-`models/` owns equations, constitutive laws, matrix construction, residuals,
-root solving, branch tracking, model numerical policies, request validation,
-model result construction, and public model APIs.
+## Ownership
 
 ```text
 models/
-|-- materials/                    shared elastic-material transformations
-|-- rayleigh_lamb/
-|   |-- approximations/
-|   |-- core/
-|   |-- equations/
-|   `-- tracking/
-|-- mrlfe/
-|   |-- api/
-|   |-- configuration/
-|   |-- core/
-|   |-- options/
-|   |-- policies/
-|   |-- quality/
-|   |-- results/
-|   |-- solvers/
-|   `-- tracking/
-`-- acoustoelastic_iop_hgo/
-    |-- configuration/
-    |-- constitutive/
-    |-- core/
-    |-- diagnostics/
-    |-- options/
-    |-- policies/
-    |-- quality/
-    |-- results/
-    |-- solvers/
-    `-- tracking/
-```
-
-For AE, `quality/aeEvaluateAtlasA0Quality` summarizes the already-decided
-official output on the requested grid. `results/aeBuildResult` is the only
-atlas-result schema builder. `diagnostics/` owns the identity-A0 builder and
-candidate scorer needed by an explicitly requested diagnostic without creating
-a forbidden model-to-`analysis/` dependency. They do not participate in
-production branch selection.
-
-Campaign execution, summary-table aggregation, figures, output folders, GUI
-normalization, and application state do not belong in `models/`.
-
-## `analysis/`: reusable workflow ownership
-
-```text
+  materials/
+  rayleigh_lamb/          core, equations, approximations, tracking, results
+  mrlfe/                 api, configuration, core, solvers, tracking, policies, quality, results
+  acoustoelastic_iop_hgo/ configuration, constitutive, core, solvers, tracking, policies, quality, results
 analysis/
-|-- acoustoelastic_iop_hgo/
-|   |-- diagnostics/         repeatable diagnostic computation and defaults
-|   |-- fitting/             fitting problem, evaluation, and optimization
-|   |-- io/                  result/output resolution and figure-file helpers
-|   `-- sweeps/              campaigns, summaries, plotting, and sweep outputs
-|-- execution_profiles/      cross-surface validation and benchmark analysis
-|-- fitting/                 model-neutral fitting and quality infrastructure
-|-- mrlfe/                   mRLFE fitting, sweep, request, and summary helpers
-|-- performance/             maintained performance validation workflows
-|-- rayleigh_lamb/           RL fitting, sweep, output, and figure helpers
-|-- sweeps/                  shared cross-model sweep module
-|-- test_inventory/          deterministic test graph and ownership tooling
-`-- resolveModelOutputFolder.m
-```
-
-The shared sweep module owns:
-
-```matlab
-runParametricSweep
-buildParametricSweepPlotData
-plotParametricSweepCp
-plotSweepCpFigure
-setSweepPlotLimits
-summarizeParametricSweepBranch
-```
-
-`aeRunSweep` lives in `analysis/acoustoelastic_iop_hgo/sweeps/`. It calls the
-public AE solver once per condition and aggregates campaign results; it does not
-implement solver physics.
-
-`resolveModelOutputFolder` remains at the analysis root because it is a small
-cross-model output-path primitive rather than part of the sweep module.
-
-Analysis helpers may generate normal MATLAB figures. Helpers that own UI
-controls, callbacks, or persistent interactive state belong in `app/`.
-
-## `app/`: surface ownership
-
-```text
+  fitting/               shared optimizer and model-specific evaluators
+  sweeps/                shared 1D iteration and model workflows; explicit AE 2D
+  requests/              mRLFE SI request translation
+  plotting/              render completed sweep results
+  io/                    output paths and persistence
+  diagnostics/           reusable inspection of scientific evidence
 app/
-|-- adapters/  model-to-surface request translation, profile resolution,
-|              result normalization, and surface metadata
-|-- export/    normalized Main GUI result export
-|-- fitting/   FitTool request/state/display workflow and visual controls
-|-- sweep/     SweepTool registry/request/plot workflow and interactive sweep UI
-`-- root       public GUI entrypoints and cross-surface UI infrastructure
+  LambFundamental_GUI.m
+  FitTool_GUI.m
+  SweepTool_GUI.m
+  main/                  controls, model translation, result view, export
+  fitting/               experimental data, fit request, fit view
+  sweep/                 sweep request, result view, interactive grid plot
+  shared/                execution profiles and shared struct translation
+examples/<family>/       basic, fitting, sweeps, optional diagnostics
+tests/                   app, models, shared, runners, tooling
+docs/                    current contracts and operating handoff
 ```
 
-Root app entrypoints:
+## Dependency contract
 
-```matlab
-LambFundamental_GUI
-FitTool_GUI
-SweepTool_GUI
-```
+| Caller | Allowed scientific/workflow dependencies | Forbidden |
+| --- | --- | --- |
+| models | own internals, shared materials; mRLFE seed may call RL | app, analysis, examples, tests |
+| analysis | analysis and models | app, examples, tests |
+| app | app, analysis, models | examples, tests |
+| examples/diagnostics | maintained APIs and scientific inspection | ownership of production calculations |
+| tests | all maintained layers | becoming a production dependency |
 
-The root also retains the four Main GUI tab builders because there is no
-separate Main-GUI submodule, plus genuinely cross-surface execution-profile
-normalization and formatting helpers. `createFittingTab` is owned by
-`app/fitting/`. Model-specific execution-profile resolvers and mRLFE surface
-metadata construction are owned by `app/adapters/`.
+The only cross-family seed edge is
+`mrlfeBuildSeed -> rlComputeFundamentalLambModes`. RL never calls mRLFE.
 
-The interactive AE grid-sweep surface helper lives in `app/sweep/` because it
-owns a slider callback and UI state. Its numerical cube construction remains in
-the AE analysis layer.
+Model-owned AE diagnostic candidate construction is an explicitly requested
+inspection mode; it does not select production branches. Executable diagnostic
+scripts live under examples. Benchmark/matrix tooling that calls app surfaces
+lives under tests, not analysis.
 
-App code may orchestrate and present results but must not implement physical
-equations, constitutive behavior, residuals, or numerical solvers.
+## Canonical owners
 
-## `examples/`: executable workflows
-
-```text
-examples/<family>/basic/        minimal model execution
-examples/<family>/sweeps/       maintained campaign entrypoints
-examples/<family>/fitting/      maintained fitting examples where present
-examples/<family>/diagnostics/  active repeatable diagnostics
-examples/rayleigh_lamb/validation/  maintained RL validation example
-```
-
-Examples call maintained APIs in `models/`, `analysis/`, or `app/`. They do not
-own reusable production helpers, and no production, app, or analysis file may
-call an example.
-
-## Model-family ownership
-
-| Path | Responsibility |
+| Responsibility | Owner |
 | --- | --- |
-| `models/<family>/` | Model APIs, physical equations, numerical policies, and solvers |
-| `analysis/<family>/` | Reusable fitting, campaigns, summaries, diagnostics, and output helpers |
-| `examples/<family>/` | User-executable examples and diagnostics |
-| `tests/models/<family>/` | Model-family numerical and contract tests |
-| `docs/models/<family>/` | Current model API, workflow, and diagnostic contracts |
+| RL physics/tracking | RL residuals and `rlSolveFundamentalBranch` |
+| mRLFE physics/tracking | mRLFE matrix/residual and adaptive tracking |
+| AE physics/tracking | constitutive/SVD objective, discrete atlas linking, selected-branch `fminbnd` refinement |
+| Public scientific results | `rlBuildResult`, `mrlfeBuildResult`, `aeBuildResult` |
+| Quality | RL result builder, `mrlfeEvaluateBranchQuality`, `aeEvaluateAtlasA0Quality` |
+| Fitting optimizer | `solveDispersionFitProblem` |
+| 1D sweep iteration | `runParametricSweep` |
+| AE 2D sweep | `aeRunGridSweep` |
+| Execution profiles | app/shared model-specific resolvers |
+| Main GUI view/export | app/main; export serializes existing curves |
+| Plotting | app surface renderers and analysis/plotting |
+| Validation | six runners and opt-in tests/tooling |
 
-GUI-facing tests live under `tests/app/`; shared analysis tests live under
-`tests/shared/`.
+Model results distinguish official SI arrays, quality, diagnostics,
+`configuration.requested`, `configuration.effective`, and operational execution
+metadata. RL branches live naturally under `modes.A0`/`modes.S0`. mRLFE internal
+state has one owner at `debug.solverResult`. AE diagnostic candidates live
+under `diagnostics.identityA0`. Display curves are not alternate scientific
+results.
 
-## Tests
+## Paths and invocation
 
-```text
-tests/
-|-- app/       GUI, FitTool, SweepTool, adapters, and surface integration
-|-- models/    model-family numerical and contract tests
-|-- runners/   canonical runner implementations
-`-- shared/    fitting, sweeps, regression, path, and utility tests
-```
+`startup` resets repository-owned paths, adds root plus maintained models,
+analysis, and app trees, and exposes only `tests/runners/` as a narrow
+validation-launcher exception. Test bodies/tooling and examples are not
+globally loaded. Source `results/` directories contain result builders and
+must not be confused with generated root `Results/`.
 
-Five intentional public wrappers are documented in `tests/README.md`.
-Specialized runner commands, including Main GUI export, resolve directly from
-`tests/runners/`. `startup` adds `tests/` recursively, so physical runner paths
-may change only when canonical ownership and documented commands remain stable.
+Each runner calls `configureTestPath` from tests/tooling, executes its explicit
+test list in a local workspace, and restores the caller path with `onCleanup`.
+Individual tests can be run after explicitly adding tests/tooling and invoking
+`configureTestPath`. Call `startup` to return to production-only operation.
 
-## Documentation
+Examples bootstrap root from `mfilename('fullpath')` and are run by file path.
+Generated output roots are `Results/rayleigh_lamb/`, `Results/mrlfe/`, and
+`Results/ae_iop_hgo/`. Validation exports use `Results/validation/`.
+Generated results, figures, and archives are never source paths.
 
-```text
-docs/architecture/  accepted ADRs and cross-cutting architecture
-docs/models/        model-family API, workflow, and diagnostic contracts
-docs/project/       operational context, handoff, and task templates
-docs/repository/    repository-wide maintained contracts
-docs/validation/    current repeatable validation procedures
-docs/workflows/     fitting, GUI, and sweep workflow contracts
-```
-
-Completed audits, phase reports, and investigations belong in Git history.
-
-## Output paths
-
-The canonical generated result roots are:
-
-```text
-Results/rayleigh_lamb/<task>
-Results/mrlfe/<task>
-Results/ae_iop_hgo/<task>
-Results/test_runtime/test_runtime_measurements.csv
-```
-
-`rlOutputFolder`, `mrlfeOutputFolder`, and `aeOutputFolder` delegate to
-`resolveModelOutputFolder`, which creates these paths relative to the caller's
-launch folder. Existing documented AE legacy folders remain readable only where
-`aeResolveResultFile` explicitly provides fallback compatibility.
-
-## Path behavior
-
-`configureProjectPath` adds `models/`, `analysis/`, `app/`, maintained examples,
-and tests recursively. Moving a function inside one of these trees preserves its
-MATLAB command name. A move must leave exactly one tracked definition and must
-not add a path-only compatibility wrapper.
-
-## Executable guardrail
-
-Run `run_repository_hygiene_tests` to validate the top-level allowlist,
-required directories, test locations, archive absence, model UI/campaign
-absence, dependency matrix, generated-artifact policy, documentation paths,
-naming, startup path, and test ownership.
+[Human call traces](../workflows/gui/adapter_architecture.md) and
+[test ownership](../../tests/README.md) complete this map.

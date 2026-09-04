@@ -159,39 +159,39 @@ updateAxisFieldState();
         if options.computeAcoustoelasticIOPHGO
             options.computeA0 = false;
             options.computeS0 = false;
-            options.computeMRLFERealK = false;
-            options.computeMRLFEElasticRealK = false;
-            options.computeMRLFEViscoRealK = false;
-            options.computeMRLFEComplexK = false;
-            options.mrlfeComputeA0Like = false;
-            options.mrlfeComputeS0Like = false;
+            options.runMRLFE = false;
             options.acoustoelasticOptions = guiBuildAcoustoelasticIOPHGOOptions(options.executionProfile);
             return;
         end
 
         options.computeA0 = logical(modelControls.rl.computeA0.Value);
         options.computeS0 = logical(modelControls.rl.computeS0.Value);
-        options.computeMRLFERealK = logical(modelControls.mrlfe.computeRealK.Value);
-        options.computeMRLFEElasticRealK = false;
-        options.computeMRLFEViscoRealK = false;
-        options.computeMRLFEComplexK = false;
-        options.mrlfeComputeA0Like = logical(modelControls.mrlfe.computeA0Like.Value);
-        options.mrlfeComputeS0Like = logical(modelControls.mrlfe.computeS0Like.Value);
+        options.runMRLFE = logical(modelControls.mrlfe.computeRealK.Value);
+        requestedA0Like = logical(modelControls.mrlfe.computeA0Like.Value);
+        requestedS0Like = logical(modelControls.mrlfe.computeS0Like.Value);
         options.mrlfeA0Policy = "physicalTail";
 
-        if options.computeMRLFERealK
-            if ~options.mrlfeComputeA0Like && ~options.mrlfeComputeS0Like
+        if options.runMRLFE
+            if ~requestedA0Like && ~requestedS0Like
                 error('Select at least one mRLFE branch: A0-like or S0-like.');
             end
-            options.computeA0 = options.computeA0 || options.mrlfeComputeA0Like;
-            options.computeS0 = options.computeS0 || options.mrlfeComputeS0Like;
-            modelControls.rl.computeA0.Value = options.computeA0;
-            modelControls.rl.computeS0.Value = options.computeS0;
+            branchName = "S0Like";
+            if requestedA0Like
+                branchName = "A0Like";
+            end
+            [mrlfeOptions, mrlfeMetadata] = mrlfeResolveExecutionProfile(branchName, ...
+                advanced.robustness.Value, 'Surface', "main", ...
+                'DefaultProfile', "Balanced", 'DefaultSource', "Main GUI default", ...
+                'EtaS', modelControls.mrlfe.etaS.Value);
+            mrlfeOptions.runMRLFE = true;
+            mrlfeOptions.branchNames = [repmat("A0Like", 1, double(requestedA0Like)), ...
+                repmat("S0Like", 1, double(requestedS0Like))];
+            options = mrlfeOptions;
+            options.executionProfileMetadata = mrlfeMetadata;
             options.mrlfeParams = readMRLFEParamsFromGui();
             if isfield(modelControls.mrlfe, 'a0Policy')
                 options.mrlfeA0Policy = normalizeMrlfeA0Policy(string(modelControls.mrlfe.a0Policy.Value));
             end
-            options = attachCachedElasticReferenceIfUseful(options, params);
         end
     end
 
@@ -252,86 +252,18 @@ updateAxisFieldState();
             physicalParameters.k2 = modelControls.ae.k2.Value;
             physicalParameters.fluidDensity_kg_m3 = modelControls.ae.rhoF.Value;
             physicalParameters.fluidBulkModulus_Pa = modelControls.ae.fluidBulkModulus.Value * 1e9;
-        elseif getOptionValueLocal(options, 'computeMRLFERealK', false)
+        elseif getOptionValueLocal(options, 'runMRLFE', false)
             physicalParameters.fluidDensity_kg_m3 = options.mrlfeParams.fluidDensity;
             physicalParameters.fluidSoundSpeed_m_s = options.mrlfeParams.fluidSoundSpeed;
             physicalParameters.etaS_Pa_s = options.mrlfeParams.etaS;
         end
     end
 
-    function options = attachCachedElasticReferenceIfUseful(options, params)
-        if ~isfield(options, 'mrlfeParams') || options.mrlfeParams.etaS <= 0
-            return;
-        end
-        cachedReference = getCachedElasticReference(params);
-        if ~isempty(cachedReference)
-            options.mrlfeElasticReferenceResult = cachedReference;
-        end
-    end
-
-    function reference = getCachedElasticReference(params)
-        reference = [];
-        if isempty(lastResults) || ~isstruct(lastResults) || ~isfield(lastResults, 'models')
-            return;
-        end
-        if isfield(lastResults.models, 'mRLFEElasticRealK')
-            candidate = lastResults.models.mRLFEElasticRealK;
-        elseif isfield(lastResults.models, 'mRLFERealK') && lastOptionsEtaSIsZero()
-            candidate = lastResults.models.mRLFERealK;
-        else
-            return;
-        end
-        if isCompatibleWithCurrentRequest(candidate, params)
-            reference = candidate;
-        end
-    end
-
-    function tf = lastOptionsEtaSIsZero()
-        tf = isstruct(lastOptions) && isfield(lastOptions, 'mrlfeParams') && ...
-            isfield(lastOptions.mrlfeParams, 'etaS') && lastOptions.mrlfeParams.etaS <= 0;
-    end
-
-    function tf = isCompatibleWithCurrentRequest(reference, params)
-        tf = false;
-        if ~isstruct(reference) || ~isfield(reference, 'branches') || isempty(lastResults)
-            return;
-        end
-        if ~isfield(lastResults, 'material') || ~isfield(lastResults, 'geometry') || ~isfield(lastResults, 'grid')
-            return;
-        end
-        material = rlComputeMaterial(params);
-        frequency = rlBuildFrequencyVector(params);
-        if ~numericClose(lastResults.material.mu, material.mu) || ...
-                ~numericClose(lastResults.material.nu, material.nu) || ...
-                ~numericClose(lastResults.material.rho, material.rho) || ...
-                ~numericClose(lastResults.geometry.thickness, params.thickness)
-            return;
-        end
-        if ~isfield(lastResults.grid, 'frequency') || numel(lastResults.grid.frequency) ~= numel(frequency)
-            return;
-        end
-        if max(abs(lastResults.grid.frequency(:) - frequency(:))) > 10 * eps(max(1, max(abs(frequency(:)))))
-            return;
-        end
-        if modelControls.mrlfe.computeA0Like.Value && ~isfield(reference.branches, 'A0Like')
-            return;
-        end
-        if modelControls.mrlfe.computeS0Like.Value && ~isfield(reference.branches, 'S0Like')
-            return;
-        end
-        tf = true;
-    end
-
-    function tf = numericClose(a, b)
-        scale = max([1, abs(a), abs(b)]);
-        tf = abs(a - b) <= 1e-10 * scale;
-    end
-
     function [results, guiResult] = runModelRequestThroughAdapter(params, options)
         if getOptionValueLocal(options, 'computeAcoustoelasticIOPHGO', false)
             guiRequest = guiBuildAcoustoelasticIOPHGORequest(params, modelControls.ae, options.robustness);
             guiResult = guiRunAcoustoelasticIOPHGOModel(guiRequest);
-            results = guiResult.metadata.rawResult;
+            results = guiResult.metadata.modelResult;
             return;
         end
 
@@ -340,14 +272,14 @@ updateAxisFieldState();
             guiRequest.mrlfeParams = options.mrlfeParams;
         end
 
-        if options.computeMRLFERealK
+        if getOptionValueLocal(options, 'runMRLFE', false)
             guiRequest.computeElastic = true;
             guiRequest.computeVisco = isfield(options, 'mrlfeParams') && options.mrlfeParams.etaS > 0;
             guiResult = guiRunMRLFEModel(guiRequest);
         else
             guiResult = guiRunRayleighLambModel(guiRequest);
         end
-        results = guiResult.metadata.rawResult;
+        results = guiResult.metadata.modelResult;
     end
 
     function updatePlotCheckboxesFromResults()
@@ -564,20 +496,20 @@ updateAxisFieldState();
     end
 
     function [x, Cp] = branchXY(branch)
-        frequency = branch.frequency(:);
-        Cp = branch.Cp(:);
+        frequency = branch.frequency_Hz(:);
+        Cp = branch.phaseVelocity_mps(:);
         switch string(plotControls.xaxis.Value)
             case "angularFrequency"
                 x = 2*pi*frequency;
             case "wavenumber"
-                if isfield(branch, 'k') && ~isempty(branch.k)
-                    x = real(branch.k(:));
+                if isfield(branch, 'wavenumber_radpm') && ~isempty(branch.wavenumber_radpm)
+                    x = real(branch.wavenumber_radpm(:));
                 else
                     x = frequency;
                 end
             case "kThickness"
-                if isfield(branch, 'kThickness') && ~isempty(branch.kThickness)
-                    x = real(branch.kThickness(:));
+                if isfield(branch, 'wavenumberThickness') && ~isempty(branch.wavenumberThickness)
+                    x = real(branch.wavenumberThickness(:));
                 else
                     x = frequency;
                 end
@@ -616,8 +548,8 @@ updateAxisFieldState();
             lastParams.mu/1e3, lastParams.rho, lastParams.thickness*1e3, ...
             modelControls.ae.IOP.Value, modelControls.ae.R.Value, modelControls.ae.k1.Value, modelControls.ae.k2.Value);
         elapsedText = formatElapsedText(getGuiElapsedSeconds());
-        statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d%s', numel(r.Cp), elapsedText), ...
-            sprintf('Cp valid %d/%d', nnz(r.validCp), numel(r.Cp))};
+        statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d%s', numel(r.phaseVelocity_mps), elapsedText), ...
+            sprintf('Cp valid %d/%d', nnz(r.validMask), numel(r.phaseVelocity_mps))};
         setStatusText(statusLines);
     end
 
@@ -693,9 +625,6 @@ updateAxisFieldState();
         if isfield(lastResults, 'modes')
             lines(end+1) = sprintf("  RL seed/result modes: %s", strjoin(string(fieldnames(lastResults.modes)), ", "));
         end
-        if isfield(lastResults, 'models')
-            lines(end+1) = sprintf("  computed internal models: %s", strjoin(string(fieldnames(lastResults.models)), ", "));
-        end
         lines(end+1) = "";
     end
 
@@ -767,15 +696,17 @@ updateAxisFieldState();
                     string(mdProfile.requestedExecutionProfile));
                 lines(end+1) = sprintf("  control profile source: %s", string(mdProfile.executionProfileSource));
             end
-            optionNames = ["computeA0", "computeS0", "computeMRLFERealK", ...
-                "mrlfeComputeA0Like", "mrlfeComputeS0Like", "computeAcoustoelasticIOPHGO"];
+            optionNames = ["computeA0", "computeS0", "runMRLFE", "computeAcoustoelasticIOPHGO"];
             optionLabels = ["Rayleigh-Lamb seed A0", "Rayleigh-Lamb seed S0", ...
-                "mRLFE real-k", "mRLFE A0-like", "mRLFE S0-like", "AE IOP/HGO"];
+                "mRLFE real-k", "AE IOP/HGO"];
             for i = 1:numel(optionNames)
                 name = optionNames(i);
                 if isfield(lastOptions, char(name))
                     lines(end+1) = sprintf("  %s = %d", optionLabels(i), logical(lastOptions.(char(name)))); %#ok<AGROW>
                 end
+            end
+            if isfield(lastOptions, 'branchNames')
+                lines(end+1) = sprintf("  mRLFE branches = %s", strjoin(string(lastOptions.branchNames), ", "));
             end
             if isfield(lastOptions, 'mrlfeParams') && isfield(lastOptions.mrlfeParams, 'etaS')
                 lines(end+1) = sprintf("  etaS = %.6g Pa*s", lastOptions.mrlfeParams.etaS);
@@ -816,7 +747,7 @@ updateAxisFieldState();
         modelName = "Rayleigh-Lamb";
         if ~isempty(lastOptions) && getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
             modelName = "AE IOP/HGO";
-        elseif ~isempty(lastOptions) && getOptionValueLocal(lastOptions, 'computeMRLFERealK', false)
+        elseif ~isempty(lastOptions) && getOptionValueLocal(lastOptions, 'runMRLFE', false)
             modelName = "mRLFE";
         end
     end
@@ -1031,8 +962,10 @@ end
 end
 
 function gridData = getGridData(results)
-if isfield(results,'grid')
-    gridData = results.grid;
+if isfield(results, 'modes') && isfield(results.modes, 'A0')
+    gridData = struct('frequency', results.modes.A0.frequency_Hz);
+elseif isfield(results, 'modes') && isfield(results.modes, 'S0')
+    gridData = struct('frequency', results.modes.S0.frequency_Hz);
 else
     gridData = [];
 end

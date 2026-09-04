@@ -39,7 +39,7 @@ request = guiBuildSweepRequest("mrlfe", ...
 sweepOutput = guiRunSweep(request);
 
 assert(isstruct(sweepOutput), 'GUI sweep adapter must return a struct.');
-assert(isfield(sweepOutput, 'rawResults'), 'GUI sweep output must include rawResults.');
+assert(isfield(sweepOutput, 'sweepResult'), 'GUI sweep output must include sweepResult.');
 assert(isfield(sweepOutput, 'summaryTable'), 'GUI sweep output must include summaryTable.');
 assert(isfield(sweepOutput, 'normalized'), 'GUI sweep output must include normalized output.');
 assert(string(sweepOutput.modelFamily) == "mrlfe", 'GUI sweep output modelFamily must be mrlfe.');
@@ -48,7 +48,7 @@ assert(string(sweepOutput.branchName) == "A0Like", 'Sweep branch must be A0Like.
 assert(isequal(sweepOutput.sweepSpec.values, [60 75] * 1e3), ...
     'mRLFE mu displayScale must propagate to solver-unit sweep values.');
 
-assert(numel(sweepOutput.rawResults.results) == 2, 'GUI sweep must run one result per sweep value.');
+assert(numel(sweepOutput.sweepResult.results) == 2, 'GUI sweep must run one result per sweep value.');
 assert(height(sweepOutput.summaryTable) == 2, 'GUI sweep summary must have one row per sweep value.');
 assert(numel(sweepOutput.normalized.curves) == 2, 'Normalized sweep must have one curve per requested value.');
 
@@ -81,7 +81,7 @@ request = guiBuildSweepRequest("rayleigh_lamb", ...
 sweepOutput = guiRunSweep(request);
 
 assert(isstruct(sweepOutput), 'RL GUI sweep adapter must return a struct.');
-assert(isfield(sweepOutput, 'rawResults'), 'RL GUI sweep output must include rawResults.');
+assert(isfield(sweepOutput, 'sweepResult'), 'RL GUI sweep output must include sweepResult.');
 assert(isfield(sweepOutput, 'summaryTable'), 'RL GUI sweep output must include summaryTable.');
 assert(isfield(sweepOutput, 'normalized'), 'RL GUI sweep output must include normalized output.');
 assert(string(sweepOutput.modelFamily) == "rayleigh_lamb", 'RL GUI sweep output modelFamily must be rayleigh_lamb.');
@@ -92,7 +92,7 @@ assert(isequal(sweepOutput.sweepSpec.values, [0.3 0.4] * 1e-3), ...
     'RL displayScale must propagate to solver-unit sweep values.');
 assert(string(sweepOutput.sweepSpec.units) == "mm", ...
     'RL displayUnit must propagate to sweepSpec units.');
-assert(numel(sweepOutput.rawResults.results) == 2, 'RL GUI sweep must run one result per sweep value.');
+assert(numel(sweepOutput.sweepResult.results) == 2, 'RL GUI sweep must run one result per sweep value.');
 assert(height(sweepOutput.summaryTable) == 2, 'RL GUI sweep summary must have one row per sweep value.');
 assert(numel(sweepOutput.normalized.curves) == 2, 'RL normalized sweep must have one curve per requested value.');
 

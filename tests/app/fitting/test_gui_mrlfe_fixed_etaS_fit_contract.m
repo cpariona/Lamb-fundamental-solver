@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning GUI mRLFE fixed etaS fit contract test...\n');
 fprintf('------------------------------------------------\n');
 

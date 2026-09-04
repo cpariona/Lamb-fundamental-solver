@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 fprintf('\nRunning execution profile surface metadata tests...\n');
@@ -22,8 +22,8 @@ profileOptions = legacyOptions;
 profileOptions.executionProfile = "Fast";
 profileOptions.robustness = "Fast";
 profileResult = guiRunRayleighLambModel(struct('params', params, 'options', profileOptions));
-profileCp = profileResult.metadata.rawResult.modes.A0.Cp(:);
-assert(max(abs(profileCp - legacy.modes.A0.Cp(:))) < 10 * eps(max(abs(legacy.modes.A0.Cp(:)))), ...
+profileCp = profileResult.metadata.modelResult.modes.A0.phaseVelocity_mps(:);
+assert(max(abs(profileCp - legacy.modes.A0.phaseVelocity_mps(:))) < 10 * eps(max(abs(legacy.modes.A0.phaseVelocity_mps(:)))), ...
     'RL execution profile metadata changed deterministic Cp output.');
 assert(profileResult.metadata.executionProfile.requestedExecutionProfile == "Fast", ...
     'RL metadata should report requested Fast.');
@@ -31,13 +31,11 @@ assert(profileResult.metadata.executionProfile.effectiveExecutionProfile == "Fas
     'RL metadata should report effective Fast.');
 
 %% mRLFE main adapter applies the requested Balanced preset directly.
-mrlfeOptions = rlDefaultOptions("Balanced");
+mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
 mrlfeOptions.executionProfile = "Balanced";
-mrlfeOptions.computeA0 = true;
-mrlfeOptions.computeS0 = false;
-mrlfeOptions.computeMRLFERealK = true;
-mrlfeOptions.mrlfeComputeA0Like = true;
-mrlfeOptions.mrlfeComputeS0Like = false;
+mrlfeOptions.effectiveExecutionProfile = "Balanced";
+mrlfeOptions.robustness = "Balanced";
+mrlfeOptions.branchNames = "A0Like";
 mrlfeOptions.mrlfeA0Policy = "physicalTail";
 mrlfeOptions.mrlfeParams = mrlfeDefaultInternalParameters();
 mrlfeOptions.mrlfeParams.etaS = 0;
@@ -107,7 +105,7 @@ assert(mrlfeFit.executionProfile.profileOverrideApplied == false, ...
     'mRLFE Fit should not report a profile override.');
 assert(mrlfeFit.executionProfile.internalAtlasPreset == "robust", ...
     'mRLFE Fit should report robust metadata.');
-assert(mrlfeFit.fitResult.rawSolverResult.modelResult.execution.effectivePreset == "robust", ...
+assert(mrlfeFit.fitResult.modelEvaluation.modelResult.execution.effectivePreset == "robust", ...
     'mRLFE Fit solver result should use robust preset.');
 
 %% FitTool AE applies requested Robust when atlas density controls are not supplied.

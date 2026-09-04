@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning GUI mRLFE on-demand full-curve test...\n');
 fprintf('---------------------------------------------\n');
 
@@ -64,7 +63,7 @@ assert(isempty(normalized.fullCurve.denseSolver.rawResult), ...
 assert(contains(string(normalized.fullCurve.denseSolver.errorMessage), "skipped until requested"), ...
     'Dense-solver metadata must record that reevaluation is deferred.');
 
-fprintf('Fit path:       %s\n', fitResult.rawSolverResult.evaluationPath.path);
+fprintf('Fit path:       %s\n', fitResult.modelEvaluation.evaluationPath.path);
 fprintf('Fit funcCount:  %d\n', fitResult.optimizer.output.funcCount);
 fprintf('Display source: %s\n', normalized.fullCurve.source);
 fprintf('Full curve:     %s\n', normalized.fullCurve.extension.errorMessage);

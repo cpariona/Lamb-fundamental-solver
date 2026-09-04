@@ -7,7 +7,8 @@
 % used only for accepted solutions whose valid branch ends before fmax.
 
 clear; clc;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %% Output
 launchFolder = pwd;

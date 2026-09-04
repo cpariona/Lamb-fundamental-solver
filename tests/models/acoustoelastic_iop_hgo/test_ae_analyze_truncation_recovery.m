@@ -19,9 +19,9 @@ minimaTable.SpacingToNearestLogY = [inf; inf];
 minimaTable.BranchID = [4; 5];
 
 result = struct();
-result.frequency = frequency;
-result.Cp = Cp;
-result.validCp = validCp;
+result.frequency_Hz = frequency;
+result.phaseVelocity_mps = Cp;
+result.validMask = validCp;
 result.minimaTable = minimaTable;
 
 recovery = aeAnalyzeTruncationRecovery(result, ...

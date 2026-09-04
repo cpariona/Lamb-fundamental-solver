@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 %TEST_MRLFE_ROBUST_START_CONTRACT Verify forward-only A0Like recovery.
@@ -28,7 +28,7 @@ request.termination = struct('policy', "physicalTail");
 request.fallback = struct('policy', "none");
 
 result = mrlfeSolve(request);
-branch = result.debug.rawInternalResult.branchSolve;
+branch = result.debug.solverResult.branchSolve;
 
 assert(isfield(branch, 'robustStart') && isstruct(branch.robustStart), ...
     'A0Like branch diagnostics must include robustStart metadata.');
@@ -58,7 +58,7 @@ if ~branch.robustStart.Applied
         probeRequest.termination.policy = "none";
 
         probeResult = mrlfeSolve(probeRequest);
-        probeBranch = probeResult.debug.rawInternalResult.branchSolve;
+        probeBranch = probeResult.debug.solverResult.branchSolve;
         initialRun = countInitialValidRun(probeBranch.validCp);
         firstValid = find(probeBranch.validCp, 1, 'first');
         lastValid = find(probeBranch.validCp, 1, 'last');

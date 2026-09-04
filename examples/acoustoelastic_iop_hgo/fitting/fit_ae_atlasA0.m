@@ -1,5 +1,6 @@
 clear; clc; close all;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %FIT_AE_ATLASA0 Example AE IOP/HGO atlasA0 fit against synthetic data.
 %

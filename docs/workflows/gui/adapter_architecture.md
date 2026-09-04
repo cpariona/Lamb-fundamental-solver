@@ -9,7 +9,7 @@ Allowed dependency direction:
 ```text
 GUI surface
     -> app-layer request/dispatcher
-    -> app/adapters
+    -> surface-local model translation
     -> analysis/models
     -> normalized GUI result
     -> plotting/export
@@ -21,27 +21,27 @@ GUI files should not call scripts under `examples/` directly, and they should no
 
 ```text
 app/
-|-- adapters/  model-specific request/result translation and profile resolution
-|-- export/    normalized Main GUI export
-|-- fitting/   FitTool state, visual controls, and display workflow
-|-- sweep/     SweepTool workflow and interactive sweep UI
-`-- root       GUI entrypoints and genuinely cross-surface UI infrastructure
+|-- fitting/   FitTool request, translation, state, and display workflow
+|-- main/      Main GUI controls, translation, presentation, and export
+|-- shared/    cross-surface profiles and struct operations
+|-- sweep/     SweepTool request, translation, and interactive visualization
+`-- root       the three GUI entrypoints
 ```
 
 Model-specific execution-profile resolvers and mRLFE surface metadata helpers
-live in `app/adapters/`. Cross-surface profile normalization and diagnostics
-formatting remain at the app root. `createFittingTab` belongs to `app/fitting/`.
+live in `app/shared/`. Cross-surface profile normalization and diagnostics
+formatting live there as well. `createFittingTab` belongs to `app/fitting/`.
 The interactive AE grid-sweep plot belongs to `app/sweep/`; its numerical data
-construction remains in `analysis/acoustoelastic_iop_hgo/sweeps/`.
+construction remains in `analysis/plotting/sweeps/acoustoelastic_iop_hgo/`.
 
 ## Main GUI flow
 
 ```text
 LambFundamental_GUI
     -> GUI request struct
-    -> app/adapters/guiRun*Model
-    -> raw solver result
-    -> app/adapters/guiNormalizeRawResult
+    -> app/main/guiRun*Model
+    -> canonical model result
+    -> app/main/guiBuildModelResultView
     -> normalized branches
     -> plotting/export
 ```
@@ -53,13 +53,19 @@ lastResults
 lastGuiResult
 ```
 
-`lastResults` is kept for compatibility and diagnostics. `lastGuiResult` is the preferred GUI-facing structure for plotting and export.
+`lastResults` is the completed canonical model result. `lastGuiResult` is its
+shallow presentation view for plotting and export. Neither plotting nor export
+invokes a solver or reconstructs scientific branches.
+
+The mRLFE dimensionless plotting coordinate is computed in the view from the
+stored canonical wavenumber and effective full thickness. It is not another
+scientific solve and does not read newly edited GUI controls.
 
 The maintained Main GUI mRLFE adapter is model-API based:
 
 ```text
 guiRunMRLFEModel
-    -> mrlfeBuildGuiSolveRequest
+    -> mrlfeBuildSolveRequest
     -> mrlfeSolve
     -> GUI result adapter
 ```
@@ -89,7 +95,7 @@ Each exported curve contains only `Frequency_Hz`, `PhaseVelocity_mps`, and
 
 ```text
 SweepTool_GUI
-    -> guiGetSweepRegistry
+    -> guiGetSweepModelConfiguration
     -> guiBuildSweepRequest
     -> guiRunSweep
     -> model-specific sweep adapter
@@ -99,12 +105,12 @@ SweepTool_GUI
 
 `SweepTool_GUI` should not call scripts under `examples/` directly.
 
-### Sweep registry
+### Sweep model configuration
 
-The registry entrypoint is:
+The declarative configuration entrypoint is:
 
 ```text
-app/sweep/guiGetSweepRegistry.m
+app/sweep/guiGetSweepModelConfiguration.m
 ```
 
 Visible families:
@@ -123,19 +129,19 @@ AE IOP/HGO
     branch: atlasA0
 ```
 
-The registry owns GUI-facing labels, default values, display units, and display-to-solver scales.
+The configuration owns GUI-facing labels, default values, display units, and display-to-solver scales.
 
 ### Sweep adapters
 
 Current sweep adapters:
 
 ```text
-app/adapters/guiRunMRLFESweep.m
-app/adapters/guiNormalizeMRLFESweep.m
-app/adapters/guiRunRLSweep.m
-app/adapters/guiNormalizeRLSweep.m
-app/adapters/guiRunAcoustoelasticIOPHGOSweep.m
-app/adapters/guiNormalizeAcoustoelasticIOPHGOSweep.m
+app/sweep/guiRunMRLFESweep.m
+app/sweep/guiNormalizeMRLFESweep.m
+app/sweep/guiRunRLSweep.m
+app/sweep/guiNormalizeRLSweep.m
+app/sweep/guiRunAcoustoelasticIOPHGOSweep.m
+app/sweep/guiNormalizeAcoustoelasticIOPHGOSweep.m
 ```
 
 All new sweep-capable families should follow the same pair pattern:
@@ -149,14 +155,15 @@ The maintained mRLFE SweepTool adapter is model-API based:
 
 ```text
 guiRunMRLFESweep
-    -> mrlfeBuildSweepSolveRequest
+    -> runParametricSweep
+    -> mrlfeBuildSolveRequest
     -> mrlfeSolve, once per sweep point
     -> guiNormalizeMRLFESweep
 ```
 
 It does not call `guiRunMRLFEModel`, choose adaptive versus modal trackers,
 inspect atlas candidates, or apply Main GUI fallback. The per-point public
-`modelResult` remains available under `rawResults.points{i}.modelResult`, while
+`modelResult` remains available under `sweepResult.points{i}.modelResult`, while
 the normalized curve schema remains the plotting contract.
 
 ### Normalized sweep curve schema
@@ -190,13 +197,13 @@ SweepToolModelName
 SweepToolBranchName
 ```
 
-`SweepToolNormalized` is preferred for app-level plotting and downstream workflows. `SweepToolResults` is preserved for raw diagnostics and compatibility.
+`SweepToolNormalized` is preferred for app-level plotting and downstream workflows. `SweepToolResults` contains the computed point results for inspection; it is not another solve.
 
 ## FitTool flow
 
 ```text
 FitTool_GUI
-    -> guiGetFitRegistry
+    -> guiGetFitModelConfiguration
     -> guiBuildFitRequest
     -> guiRunFit
     -> model-specific fitting adapter
@@ -209,12 +216,12 @@ The fit action uses only the objective-consistent display interpolation. The
 separate **Evaluate fitted curve** action calls
 `guiEvaluateRequestedFitCurve` and performs the requested solver evaluation.
 
-### Fitting registry
+### Fitting model configuration
 
-The registry entrypoint is:
+The declarative configuration entrypoint is:
 
 ```text
-app/fitting/guiGetFitRegistry.m
+app/fitting/guiGetFitModelConfiguration.m
 ```
 
 Visible families:
@@ -233,16 +240,16 @@ AE IOP/HGO
     fit-capable parameters: mu, IOP, thickness
 ```
 
-Registry entries may expose additional fixed parameters such as density, Poisson ratio, fluid density, fluid sound speed, curvature radius, and HGO parameters.
+Configuration entries may expose additional fixed parameters such as density, Poisson ratio, fluid density, fluid sound speed, curvature radius, and HGO parameters.
 
 ### Fitting adapters
 
 Current fitting adapters:
 
 ```text
-app/adapters/guiFitRLSolver.m
-app/adapters/guiFitMRLFESolver.m
-app/adapters/guiFitAcoustoelasticIOPHGOSolver.m
+app/fitting/guiFitRLSolver.m
+app/fitting/guiFitMRLFESolver.m
+app/fitting/guiFitAcoustoelasticIOPHGOSolver.m
 ```
 
 All new fit-capable families should follow the same pattern:
@@ -311,13 +318,42 @@ After GUI adapter changes, run:
 ```matlab
 clear; clc; close all;
 startup
-run_gui_smoke_tests
-run_fit_validation_tests
-run_mrlfe_route_integrity_tests
+run_quick_smoke_tests
+run_extended_integration_tests
+run_quick_contract_tests
 ```
 
-For a complete repository check, run:
+Complete repository validation requires all six tiers listed in
+`tests/README.md`; the extended tier alone is not a complete check.
 
-```matlab
-run_all_smoke_tests
-```
+## Concrete call traces
+
+These are implementation traces, not an expansion of the public API.
+
+| Surface/model | Computation path |
+| --- | --- |
+| Main / RL | LambFundamental_GUI -> guiRunRayleighLambModel -> rlComputeFundamentalLambModes -> rlBuildResult -> guiBuildModelResultView |
+| Main / mRLFE | LambFundamental_GUI -> guiRunMRLFEModel -> mrlfeBuildSolveRequest -> mrlfeSolve -> mrlfeBuildResult -> guiBuildModelResultView |
+| Main / AE | LambFundamental_GUI -> guiRunAcoustoelasticIOPHGOModel -> solveAcoustoelasticIOPHGOBranch -> aeBuildResult -> adapter view |
+| Fit / RL | FitTool_GUI -> guiRunFit -> guiFitRLSolver -> rlFitDispersionData -> solveDispersionFitProblem -> rlEvaluateFitModel -> rlSolveFundamentalBranch |
+| Fit / mRLFE | FitTool_GUI -> guiRunFit -> guiFitMRLFESolver -> mrlfeFitDispersionData -> solveDispersionFitProblem -> mrlfeEvaluateFitModel -> mrlfeSolve |
+| Fit / AE | FitTool_GUI -> guiRunFit -> guiFitAcoustoelasticIOPHGOSolver -> aeFitDispersionData -> solveDispersionFitProblem -> aeEvaluateFitModel -> solveAcoustoelasticIOPHGOBranch |
+| Sweep / RL | SweepTool_GUI -> guiRunSweep -> guiRunRLSweep -> runParametricSweep -> rlComputeFundamentalLambModes |
+| Sweep / mRLFE | SweepTool_GUI -> guiRunSweep -> guiRunMRLFESweep -> runParametricSweep -> mrlfeSolve |
+| Sweep / AE | SweepTool_GUI -> guiRunSweep -> guiRunAcoustoelasticIOPHGOSweep -> aeRunSweep -> runParametricSweep -> solveAcoustoelasticIOPHGOBranch |
+
+The GUI entrypoints are in `app/`; model adapters are under `app/main/`,
+`app/fitting/`, and `app/sweep/`. Model-specific fit/sweep workflows are
+under `analysis/fitting/` and `analysis/sweeps/`.
+RL fitting intentionally uses the shared model-layer continuator rather than
+the batch-grid API: see `docs/workflows/fitting/architecture.md`.
+
+Completed fit output goes through guiNormalizeFitResult and guiBuildFitDisplayCurve
+to guiPlotFitResult; completed sweep output goes through its model normalizer
+to guiPlotSweepResult. Main export uses guiBuildMainResultExport then
+guiSaveMainResultExport. None of those render/export stages solves again.
+
+AE 2D is a programmatic/example workflow, not a SweepTool control:
+`examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_mu_iop_A0Like.m`
+calls aeRunGridSweep, whose two-axis iterator calls the same public AE solver.
+Its Cp cube is built in analysis; optional interactive rendering is in app/sweep.

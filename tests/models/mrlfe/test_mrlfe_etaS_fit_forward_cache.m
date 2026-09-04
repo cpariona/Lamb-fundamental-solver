@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 fprintf('\nRunning mRLFE etaS fitting forward-cache test...\n');
@@ -51,7 +51,7 @@ assert(isfield(fitResult.problem.solverOptions, 'mrlfeElasticReferenceResult'), 
     'Cached etaS solver options must include mrlfeElasticReferenceResult.');
 assert(isstruct(fitResult.problem.solverOptions.mrlfeElasticReferenceResult), ...
     'mrlfeElasticReferenceResult must be a structure.');
-assert(isfield(fitResult.rawSolverResult.options, 'mrlfeElasticReferenceResult'), ...
+assert(isfield(fitResult.modelEvaluation.options, 'mrlfeElasticReferenceResult'), ...
     'Final raw solver options should include the cached elastic reference.');
 assert(all(isfinite(fitResult.Cp_fit_mps(fitResult.validMask))), 'Cached etaS fitted Cp contains invalid values.');
 

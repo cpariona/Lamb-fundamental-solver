@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 fprintf('\nRunning execution profile state transition contract test...\n');
@@ -38,7 +38,7 @@ assert(rlAgain.internalAtlasPreset == "" && rlAgain.internalSolverPreset == "Bal
     'Returning to RL should not preserve another model internal preset.');
 
 %% SweepTool family transitions keep Fast default and profile declarations.
-sweepRegistry = guiGetSweepRegistry();
+sweepRegistry = guiGetSweepModelConfiguration();
 sweepOrder = ["rayleigh_lamb", "ae_iop_hgo", "mrlfe", "rayleigh_lamb"];
 for i = 1:numel(sweepOrder)
     family = guiGetSweepFamilyConfig(sweepRegistry, sweepOrder(i));
@@ -51,7 +51,7 @@ for i = 1:numel(sweepOrder)
 end
 
 %% FitTool model transitions keep Fast default, free parameter state, and controls.
-fitRegistry = guiGetFitRegistry();
+fitRegistry = guiGetFitModelConfiguration();
 fitOrder = ["rayleigh_lamb", "acoustoelastic_iop_hgo", "mrlfe", "acoustoelastic_iop_hgo", "rayleigh_lamb"];
 previousState = struct();
 for i = 1:numel(fitOrder)

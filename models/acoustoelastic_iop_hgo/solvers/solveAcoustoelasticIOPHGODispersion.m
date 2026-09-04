@@ -10,9 +10,10 @@ function result = solveAcoustoelasticIOPHGODispersion(params, options)
 % for the A0 corrected/backward workflow while the direct solver is being
 % validated.
 
-if nargin < 2 || isempty(options)
-    options = defaultAcoustoelasticIOPHGOOptions();
+if nargin < 2
+    options = [];
 end
+options = aeDefaultDiagnosticOptions(options);
 
 requiredFields = {'IOP', 'R', 'thickness', 'mu', 'k1', 'k2', 'rho', 'rhoF', 'fluidBulkModulus', 'frequency'};
 for i = 1:numel(requiredFields)

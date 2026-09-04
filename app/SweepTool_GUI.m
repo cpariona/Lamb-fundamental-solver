@@ -6,8 +6,8 @@ function SweepTool_GUI(baseParams, baseOptions)
 %   SweepTool_GUI(params, options)
 %
 % The tool builds a normalized GUI sweep request and dispatches it through
-% guiRunSweep. Model-specific solver details live in app/adapters, while
-% selectable sweep metadata lives in app/sweep/guiGetSweepRegistry.
+% guiRunSweep. Model-specific sweep translation lives in app/sweep, while
+% selectable metadata lives in guiGetSweepModelConfiguration.
 
 if nargin < 1 || isempty(baseParams)
     baseParams = rlDefaultParams();
@@ -19,7 +19,7 @@ if ~isfield(baseOptions, 'mrlfeParams') || isempty(baseOptions.mrlfeParams)
     baseOptions.mrlfeParams = mrlfeDefaultInternalParameters();
 end
 
-registry = guiGetSweepRegistry();
+registry = guiGetSweepModelConfiguration();
 activeModelFamily = string(registry.defaultModelFamily);
 activeFamily = guiGetSweepFamilyConfig(registry, activeModelFamily);
 activeParameter = guiGetSweepParameterConfig(activeFamily, activeFamily.defaultParameter);
@@ -207,7 +207,7 @@ updateFamilySpecificControls();
 
             setStatus({sprintf('Status: running %s / %s sweep...', activeFamily.label, sweepParameter)}); drawnow;
             lastSweepOutput = guiRunSweep(request);
-            lastSweepResults = lastSweepOutput.rawResults;
+            lastSweepResults = lastSweepOutput.sweepResult;
             lastSweepSummary = lastSweepOutput.summaryTable;
             lastModelName = lastSweepOutput.modelName;
             lastBranchName = lastSweepOutput.branchName;
@@ -332,8 +332,8 @@ updateFamilySpecificControls();
         elapsed = nan;
         if isfield(sweepOutput, 'elapsedSeconds') && ~isempty(sweepOutput.elapsedSeconds)
             elapsed = sweepOutput.elapsedSeconds;
-        elseif isfield(sweepOutput, 'rawResults') && isfield(sweepOutput.rawResults, 'elapsedSeconds')
-            elapsed = sum(sweepOutput.rawResults.elapsedSeconds, 'omitnan');
+        elseif isfield(sweepOutput, 'sweepResult') && isfield(sweepOutput.sweepResult, 'elapsedSeconds')
+            elapsed = sum(sweepOutput.sweepResult.elapsedSeconds, 'omitnan');
         end
     end
 end

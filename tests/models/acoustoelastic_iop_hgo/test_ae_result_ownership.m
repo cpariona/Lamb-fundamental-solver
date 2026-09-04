@@ -29,7 +29,7 @@ assert(isequal(string({resultFiles.name}), "aeBuildResult.m"), ...
 
 solverFiles = [ ...
     dir(fullfile(solverRoot, 'solveAcoustoelasticAtlasBranch.m')); ...
-    dir(fullfile(solverRoot, 'solveAcoustoelasticIOPHGOAtlasBranch.m'))];
+    dir(fullfile(solverRoot, 'solveAcoustoelasticIOPHGOBranch.m'))];
 solverText = "";
 for i = 1:numel(solverFiles)
     solverText = solverText + newline + string(fileread(fullfile(solverFiles(i).folder, solverFiles(i).name)));
@@ -40,8 +40,8 @@ for name = removedBuilders
     assert(~contains(solverText, name), ...
         'Obsolete local result/quality builder remains active: %s.', name);
 end
-assert(~contains(solverText, "result.reliability ="), ...
-    'Solver wrappers must not assemble reliability outside aeBuildResult.');
+assert(~contains(solverText, "result.quality ="), ...
+    'Solver wrappers must not assemble quality outside aeBuildResult.');
 
 params = representativeDirectParams();
 options = defaultAcoustoelasticIOPHGOOptions();
@@ -49,10 +49,13 @@ options.atlasNumYPoints = 120;
 options.atlasTopNMinima = 6;
 options.useInternalAtlasTrackingGrid = false;
 result = solveAcoustoelasticAtlasBranch(params, options);
-fields = rmfield(result, {'reliability', 'diagnostics'});
+fields = rmfield(result, {'quality', 'diagnostics', 'model', 'branch', ...
+    'configuration', 'execution', 'wavenumber_radpm'});
 rebuilt = aeBuildResult(struct('fields', fields));
-assert(isequaln(rebuilt, result), ...
-    'Canonical builder must reproduce the characterized direct result exactly.');
+assert(isequaln(rebuilt.phaseVelocity_mps, result.phaseVelocity_mps) && ...
+    isequal(rebuilt.validMask, result.validMask) && ...
+    isequaln(rebuilt.quality, result.quality), ...
+    'Canonical builder must reproduce official output and quality semantics.');
 
 fprintf('AE result and quality ownership contract passed.\n');
 end

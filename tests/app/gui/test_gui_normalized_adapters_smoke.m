@@ -2,7 +2,7 @@
 %
 % This test validates the GUI adapter normalization layer independently from
 % the interactive app. It intentionally uses the smallest valid frequency grid
-% accepted by rlValidateParams so it can be called from run_all_smoke_tests
+% accepted by rlValidateParams so it can be called from run_quick_smoke_tests
 % without generating figures.
 
 fprintf('Running GUI normalized adapters smoke test...\n');
@@ -17,8 +17,6 @@ rlParams.frequencySpacing = "linspace";
 rlOptions = rlDefaultOptions();
 rlOptions.computeA0 = true;
 rlOptions.computeS0 = true;
-rlOptions.computeMRLFE = false;
-rlOptions.computeMRLFERealK = false;
 
 rlRequest = struct();
 rlRequest.params = rlParams;
@@ -32,12 +30,12 @@ assert(hasNormalizedBranch(rlGuiResult, "RayleighLamb", "A0"), ...
     'Rayleigh-Lamb GUI adapter must include normalized A0 branch.');
 assert(hasNormalizedBranch(rlGuiResult, "RayleighLamb", "S0"), ...
     'Rayleigh-Lamb GUI adapter must include normalized S0 branch.');
-assert(isfield(rlGuiResult, 'metadata') && isfield(rlGuiResult.metadata, 'rawResult'), ...
-    'Rayleigh-Lamb GUI adapter must preserve rawResult in metadata.');
+assert(isfield(rlGuiResult, 'metadata') && isfield(rlGuiResult.metadata, 'modelResult'), ...
+    'Rayleigh-Lamb GUI adapter must preserve the canonical model result in metadata.');
 assert(isfield(rlGuiResult.metadata, 'elapsedSeconds') && isfinite(rlGuiResult.metadata.elapsedSeconds), ...
     'Rayleigh-Lamb GUI adapter must report elapsedSeconds metadata.');
 
-rlRawNormalized = guiNormalizeRawResult(rlGuiResult.metadata.rawResult, "testRawRL");
+rlRawNormalized = guiBuildModelResultView(rlGuiResult.metadata.modelResult, "testCanonicalRL");
 assert(numel(rlRawNormalized.branches) == numel(rlGuiResult.branches), ...
     'Raw Rayleigh-Lamb normalization must preserve the normalized branch count.');
 
@@ -53,13 +51,8 @@ assertBranchTablesAreValid(rlBranchTables, 'Rayleigh-Lamb normalized branch tabl
 
 %% mRLFE normalized adapter, etaS = 0 elastic limit
 mrlfeParams = rlParams;
-mrlfeOptions = rlOptions;
-mrlfeOptions.computeA0 = true;
-mrlfeOptions.computeS0 = false;
-mrlfeOptions.computeMRLFE = false;
-mrlfeOptions.computeMRLFERealK = true;
-mrlfeOptions.mrlfeComputeA0Like = true;
-mrlfeOptions.mrlfeComputeS0Like = false;
+mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
+mrlfeOptions.branchNames = "A0Like";
 mrlfeOptions.mrlfeParams = mrlfeDefaultInternalParameters();
 mrlfeOptions.mrlfeParams.solveComplexK = false;
 mrlfeOptions.mrlfeParams.etaS = 0;
@@ -90,11 +83,9 @@ assert(isfield(mrlfeGuiResult.metadata, 'elapsedSeconds') && isfinite(mrlfeGuiRe
 assert(isfield(mrlfeGuiResult.metadata, 'seedBranchesHiddenFromPlotSurface') && mrlfeGuiResult.metadata.seedBranchesHiddenFromPlotSurface, ...
     'mRLFE GUI adapter must report that seed branches are hidden from the plotting surface.');
 
-mrlfeRawNormalized = guiNormalizeRawResult(mrlfeGuiResult.metadata.rawResult, "testRawMRLFE");
-assert(hasNormalizedBranch(mrlfeRawNormalized, "RayleighLamb", "A0"), ...
-    'Raw mRLFE normalization should still expose Rayleigh-Lamb seed evidence when applied directly to rawResult.');
+mrlfeRawNormalized = guiBuildModelResultView(mrlfeGuiResult.metadata.modelResult, "testCanonicalMRLFE");
 assert(hasNormalizedBranch(mrlfeRawNormalized, "mRLFERealK", "A0Like"), ...
-    'Raw mRLFE normalization must include the unified real-k A0-like branch.');
+    'Canonical mRLFE normalization must include the unified real-k A0-like branch.');
 
 mrlfePlotData = guiGetNormalizedBranchPlotData(mrlfeGuiResult.branches(1), "frequency");
 assertPlotDataIsValid(mrlfePlotData, 'mRLFE normalized plot data is invalid.');
@@ -106,7 +97,6 @@ assertBranchTablesAreValid(mrlfeBranchTables, 'mRLFE normalized branch tables ar
 
 %% mRLFE normalized adapter, etaS > 0 viscous case
 viscoRequest = mrlfeRequest;
-viscoRequest.options.computeMRLFERealK = true;
 viscoRequest.options.mrlfeParams.etaS = 0.05;
 viscoRequest.mrlfeParams = viscoRequest.options.mrlfeParams;
 viscoRequest.computeElastic = true;

@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE fitting public-solver characterization test...\n');
 fprintf('------------------------------------------------------------\n');
 
@@ -36,7 +35,7 @@ for iBranch = 1:numel(branches)
 
             [CpPublic_mps, rawPublic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
 
-            request = mrlfeBuildFitSolveRequest(params, frequency_Hz, branchName, options);
+            request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
             request.numerics.preset = "fast";
             [frequencySolve_Hz, ~] = mrlfeBuildFitFrequencyGrid(frequency_Hz, options.forwardModel);
             request.numerics.frequencySolveOverride_Hz = frequencySolve_Hz;

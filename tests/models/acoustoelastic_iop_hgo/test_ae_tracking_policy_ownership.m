@@ -27,10 +27,14 @@ for oldLocal = ["function minima = localMinima", "function [minimaTable, branchT
     assert(~contains(solverText, oldLocal), 'Old local production owner remains: %s', oldLocal);
 end
 
-wrapperText = fileread(fullfile(modelRoot, 'solvers', 'solveAcoustoelasticIOPHGOAtlasBranch.m'));
-assertContains(wrapperText, 'aeApplyAtlasA0FallbackPolicy(result)');
-assert(~contains(wrapperText, 'result.fallbackCandidateCp = result.Cp'), ...
-    'Fallback decision logic must not remain in the wrapper.');
+publicOwnerText = fileread(fullfile(modelRoot, 'solvers', 'solveAcoustoelasticIOPHGOBranch.m'));
+assertContains(publicOwnerText, 'aeValidateRequest(params');
+assertContains(publicOwnerText, 'aeResolveConfiguration(options)');
+assertContains(publicOwnerText, 'computeAcoustoelasticABGFromIOPHGO(');
+assertContains(publicOwnerText, 'solveAcoustoelasticAtlasBranch(');
+assertContains(publicOwnerText, 'aeApplyAtlasA0FallbackPolicy(result)');
+assert(~contains(publicOwnerText, 'solveAcoustoelasticIOPHGOAtlasBranch'), ...
+    'The public AE owner must not be a forwarding wrapper.');
 
 assertLocalMinimaContract();
 assertLinkContract();
@@ -106,9 +110,10 @@ end
 function assertFallbackContract()
 result = struct();
 result.options = struct('invalidateAtlasFallbackOutput', true);
-result.reliability = struct('SelectionFallbackUsed', true);
-result.Cp = [100, nan];
-result.validCp = [true, false];
+result.quality = struct('SelectionFallbackUsed', true);
+result.phaseVelocity_mps = [100, nan];
+result.validMask = [true, false];
+result.wavenumber_radpm = [1, nan];
 result.branchExistsAtFrequency = [true, false];
 result.interpolatedCp = [false, false];
 result.objective = [0.1, nan];
@@ -117,11 +122,11 @@ result.nearestBranchID = [2, nan];
 result.pointStatus = ["explicitBranchPoint", "missingSelectedBranch"];
 [decided, applied] = aeApplyAtlasA0FallbackPolicy(result);
 assert(applied == true);
-assert(isequaln(decided.fallbackCandidateCp, result.Cp));
-assert(isequal(decided.fallbackCandidateValidCp, result.validCp));
-assert(all(isnan(decided.Cp)) && all(~decided.validCp));
+assert(isequaln(decided.fallbackCandidateCp, result.phaseVelocity_mps));
+assert(isequal(decided.fallbackCandidateValidCp, result.validMask));
+assert(all(isnan(decided.phaseVelocity_mps)) && all(~decided.validMask));
 assert(all(decided.pointStatus == "fallbackRejectedA0StartFilter"));
-assert(isequaln(decided.reliability, result.reliability), ...
+assert(isequaln(decided.quality, result.quality), ...
     'Fallback policy must not rebuild quality.');
 result.options.invalidateAtlasFallbackOutput = false;
 [unchanged, applied] = aeApplyAtlasA0FallbackPolicy(result);

@@ -13,9 +13,9 @@ function identity = aeBuildIdentityA0DiagnosticBranch(result, varargin)
 
 score = aeScoreBranchIdentityCandidates(result, varargin{:});
 
-f = result.frequency(:).';
-officialCp = result.Cp(:).';
-officialValid = logical(result.validCp(:).');
+f = result.frequency_Hz(:).';
+officialCp = result.phaseVelocity_mps(:).';
+officialValid = logical(result.validMask(:).');
 
 CpCandidate = officialCp;
 validCandidate = officialValid;
@@ -53,7 +53,7 @@ end
 identity = struct();
 identity.policyName = "identityA0Diagnostic";
 identity.officialPolicyEquivalent = "atlasA0";
-identity.note = "Diagnostic only. result.Cp and result.validCp remain the official atlasA0 output.";
+identity.note = "Diagnostic only. Canonical phaseVelocity_mps and validMask remain the official atlasA0 output.";
 identity.frequency = f;
 identity.CpCandidate = CpCandidate;
 identity.validCandidate = validCandidate;

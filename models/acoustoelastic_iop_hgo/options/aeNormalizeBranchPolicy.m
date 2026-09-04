@@ -3,7 +3,7 @@ function policy = aeNormalizeBranchPolicy(policy)
 %
 %   "atlasA0" is the maintained atlas-based A0 branch-selection policy.
 %   "identityA0Diagnostic" keeps the official atlasA0 output unchanged and
-%   writes an identity-scored candidate branch under result.identityA0.
+%   writes an identity-scored candidate branch under result.diagnostics.identityA0.
 
 if nargin < 1 || isempty(policy)
     policy = "atlasA0";

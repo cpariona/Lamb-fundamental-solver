@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 fprintf('\nRunning AE IOP/HGO synthetic atlasA0 fitting test...\n');
@@ -21,7 +21,6 @@ trueParams.frequency = logspace(log10(300), log10(15e3), 35);
 solverOptions = defaultAcoustoelasticIOPHGOOptions();
 solverOptions.M54_variant = "corrected";
 solverOptions.normalizeRows = false;
-solverOptions.usePhysicalCpWindow = false;
 solverOptions.atlasNumYPoints = 300;
 solverOptions.atlasTopNMinima = 12;
 solverOptions.atlasBranchPolicy = "atlasA0";
@@ -31,7 +30,7 @@ solverOptions.atlasInitializationNumFrequencyPoints = 50;
 assert(any(syntheticRaw.validMask), 'Synthetic AE atlasA0 output must contain at least one valid point.');
 assert(all(isfinite(CpSynthetic_mps(syntheticRaw.validMask)) & CpSynthetic_mps(syntheticRaw.validMask) > 0), ...
     'Synthetic AE atlasA0 valid Cp must be finite and positive.');
-assert(syntheticRaw.solverResult.reliability.SelectionFallbackUsed == false, ...
+assert(syntheticRaw.solverResult.quality.SelectionFallbackUsed == false, ...
     'Synthetic AE atlasA0 fitting test should not rely on fallback branch selection.');
 
 experimental = struct();
@@ -56,8 +55,8 @@ assert(relativeMuError < 0.15, 'Synthetic AE atlasA0 fit did not recover mu with
 assert(fitResult.metrics.RMSE < 0.50, 'Synthetic AE atlasA0 fit RMSE is unexpectedly high.');
 assert(any(fitResult.validMask), 'AE atlasA0 fit must retain at least one valid fitted point.');
 assert(string(fitResult.branchName) == "atlasA0", 'AE fitting branch must remain atlasA0.');
-assert(~isfield(fitResult.rawSolverResult.solverResult, 'identityA0') || ...
-    string(fitResult.rawSolverResult.solverResult.options.atlasBranchPolicy) == "atlasA0", ...
+assert(~isfield(fitResult.modelEvaluation.solverResult, 'identityA0') || ...
+    string(fitResult.modelEvaluation.solverResult.options.atlasBranchPolicy) == "atlasA0", ...
     'AE fitting must not use identityA0Diagnostic as production output.');
 
 fprintf('True mu: %.3f kPa\n', trueParams.mu / 1e3);

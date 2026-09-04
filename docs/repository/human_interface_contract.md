@@ -163,9 +163,14 @@ A user-facing result should distinguish:
 ```text
 official output
 diagnostic information
-quality/reliability state
+quality state
 requested versus effective configuration
+execution metadata
 ```
+
+`quality` is the common name for assessment of official model output. A model
+may expose its own scientifically meaningful metrics beneath that field. The
+AE historical name `reliability` is not a parallel alias.
 
 The GUI should not convert diagnostic candidates into official curves merely
 because they are convenient to plot.

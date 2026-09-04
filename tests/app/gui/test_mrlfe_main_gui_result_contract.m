@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE Main GUI result contract test...\n');
 fprintf('----------------------------------------------\n');
 
@@ -14,13 +13,11 @@ params.thickness = 0.5e-3;
 params.rho = 1070;
 params.nu = 0.4999;
 
-options = rlDefaultOptions("Balanced");
+options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
 options.executionProfile = "Balanced";
-options.computeA0 = true;
-options.computeS0 = false;
-options.computeMRLFERealK = true;
-options.mrlfeComputeA0Like = true;
-options.mrlfeComputeS0Like = false;
+options.effectiveExecutionProfile = "Balanced";
+options.robustness = "Balanced";
+options.branchNames = "A0Like";
 options.mrlfeA0Policy = "physicalTail";
 options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = 0;
@@ -36,8 +33,20 @@ assert(out.branches(1).modelName == "mRLFERealK", 'Visible model name changed.')
 assert(out.branches(1).branchName == "A0Like", 'Visible branch name changed.');
 assert(isequal(size(out.branches(1).frequency), size(out.branches(1).phaseVelocity)), ...
     'Plotting frequency and phase velocity sizes must match.');
-assert(isfield(out.branches(1).diagnostics, 'validCp'), ...
-    'Normalized branch must retain validCp diagnostics for export validity.');
+canonical = out.metadata.modelResult;
+assert(isequaln(out.branches(1).kThickness, ...
+    canonical.wavenumber_radpm(:) * canonical.configuration.effective.parameters.thickness_m), ...
+    'Dimensionless plotting coordinate must use canonical wavenumber and full thickness.');
+for axisName = ["frequency", "angularFrequency", "wavenumber", "kThickness"]
+    plotData = guiGetNormalizedBranchPlotData(out.branches(1), axisName);
+    assert(numel(plotData.x) == numel(canonical.frequency_Hz));
+    assert(isequal(plotData.validMask, canonical.validMask));
+    assert(isequaln(plotData.y, canonical.phaseVelocity_mps));
+end
+assert(isfield(out.branches(1).diagnostics, 'valid') && ...
+    isequal(out.branches(1).diagnostics.valid(:), ...
+        out.metadata.modelResult.validMask(:)), ...
+    'Presentation validity must be a shallow copy of the canonical validMask.');
 
 qualityAccepted = logical(out.metadata.modelResult.quality.accepted);
 expectedStatus = "partial";

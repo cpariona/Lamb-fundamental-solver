@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 % Consistency test for the Acoustoelastic IOP/HGO constitutive block.

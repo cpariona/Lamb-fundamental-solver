@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning execution profile current-behavior contract test...\n');
 fprintf('----------------------------------------------------------\n');
 
@@ -17,8 +16,8 @@ assert(fast.gridPointsTracking < balanced.gridPointsTracking, ...
     'Fast RL gridPointsTracking should be lower than Balanced.');
 assert(balanced.gridPointsTracking < robust.gridPointsTracking, ...
     'Balanced RL gridPointsTracking should be lower than Robust.');
-assert(fast.mrlfeGridPoints < balanced.mrlfeGridPoints && balanced.mrlfeGridPoints < robust.mrlfeGridPoints, ...
-    'RL robustness presets should alter mRLFE seed grid density.');
+assert(~any(startsWith(string(fieldnames(fast)), "mrlfe", 'IgnoreCase', true)), ...
+    'Rayleigh-Lamb presets must not own mRLFE numerical settings.');
 
 %% AE default sweep preset mapping is the public atlas-density behavior.
 aeFast = aeDefaultSweepOptions("Fast");
@@ -32,14 +31,14 @@ assert(aeBalanced.atlasNumYPoints == 600 && aeBalanced.atlasTopNMinima == 16, ..
 assert(aeRobust.atlasNumYPoints == 900 && aeRobust.atlasTopNMinima == 20, ...
     'AE Robust should map to atlas 900/20.');
 
-%% Fit mRLFE currently accepts robustness in controls but uses mrlfeDefaultSweepOptions Fast.
+%% Fit mRLFE defaults are model-owned and use the public Fast preset.
 requestedRobustControls = struct('robustness', "Robust", 'etaS', 0.05, ...
     'fluidDensity', 1000, 'fluidSoundSpeed', 1500, ...
     'mrlfeA0Policy', "physicalTail");
 mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', requestedRobustControls.etaS, ...
     'A0Policy', requestedRobustControls.mrlfeA0Policy);
 assert(mrlfeOptions.robustness == "Fast", ...
-    'mRLFE default sweep options currently force rlDefaultOptions("Fast") independent of Fit controls.robustness.');
+    'mRLFE default sweep options should select the public Fast profile.');
 
 %% mRLFE public fit route applies the fast preset by default.
 params = mrlfeDefaultSweepParams();

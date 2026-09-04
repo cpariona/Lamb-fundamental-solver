@@ -1,104 +1,125 @@
 # Validation status
 
-This document owns the current validation commands, repository architecture
-status, test counts, and bounded compatibility debt. Detailed run logs belong
-in Git and pull-request history.
+## Integration gate
 
-## Maintained commands
+BLOCKED for historical mRLFE preservation; all six ordinary tiers passed on
+`restructure/phase-07-final-integration`, based on Phase 6 HEAD `5183565`.
+MATLAB R2024b, Windows, 2026-09-03.
+The final run starts with clear functions, rehash toolboxcache, and startup,
+and checks caller-path restoration after every tier.
 
-Repository structure and documentation:
+| Tier | Direct tests | Final status |
+| --- | ---: | --- |
+| run_repository_hygiene_tests | 7 | PASS |
+| run_quick_contract_tests | 16 | PASS |
+| run_quick_smoke_tests | 29 | PASS |
+| run_numerical_regression_tests | 17 | PASS |
+| run_extended_integration_tests | 40 | PASS |
+| run_performance_and_benchmark_tests | 5 | PASS |
 
-```matlab
-run_repository_hygiene_tests
-```
+There are exactly 114 tests and six flat runners; ownership is checked directly,
+without wrapper graphs or generated inventories. See `tests/README.md`.
 
-Routine validation:
+The quick-contract tier was rerun after strengthening the RL example/result
+guard. The quick-smoke tier and mRLFE Main GUI result/axis contract were rerun
+after restoring the dimensionless plotting coordinate; all passed.
 
-```matlab
-run_quick_contract_tests
-run_quick_smoke_tests
-run_numerical_regression_tests
-```
+Main GUI, FitTool, and SweepTool each completed 24 direct-public-solver
+comparisons with absolute/relative Cp delta 0 and identical masks. Main GUI
+versus FitTool/SweepTool also gave 0. Synthetic mu relative errors were
+1.73383e-10 (RL), 5.00318e-09 (mRLFE), and 5.06201e-08 (AE).
+The four mRLFE fitting regression cases retained 11, 8, 7, and 7 evaluations.
+These current-consumer equivalences are distinct from the historical gate below.
 
-Focused model and application validation:
+## Performance
 
-```matlab
-run_mrlfe_public_contract_tests
-run_mrlfe_production_core_tests
-run_mrlfe_smoke_tests
-run_ae_quick_tests
-run_acoustoelastic_smoke_tests
-run_gui_quick_tests
-run_gui_smoke_tests
-run_fit_validation_tests
-run_execution_profile_contract_tests
-run_execution_profile_integration_tests
-```
+The full performance tier passed after extended integration. The four warm
+production-core medians were 0.8700 s (A0Like, etaS=0), 0.9194 s (A0Like,
+etaS=0.05), 0.9350 s (S0Like, etaS=0), and 0.9538 s (S0Like, etaS=0.05).
+The same fixture in Phase 6 reported a 0.8465-0.8885 s range. The modest timing
+increase is a machine-local measurement; its cause has not been isolated.
+It does not establish added solver calls; production computation is unchanged
+in this phase.
+No architectural solve/evaluation duplication was observed: fitting counts
+remain 11/8/7/7 and display/export contracts prohibit reevaluation.
 
-Final aggregates:
+The optimized fitting grid measured 3.768x, 3.824x, and 4.830x speedups versus
+the preset grid in its three fixtures. Worst relative cross-grid Cp difference
+was 0.00120634, with zero mask differences. This is a grid-policy comparison,
+not the historical preservation comparison. No timing or numerical tolerance
+was weakened to pass these checks.
 
-```matlab
-run_all_smoke_tests
-run_extended_integration_tests
-```
+## Scientific evidence
 
-Performance and full benchmark commands are descriptive and run only for
-explicit performance work.
+AE causal replay identifies `026994f`, not this restructuring, as the source
+of the obsolete snapshot delta. Historical origin/parent and causal/current
+pairs each match all 35 points exactly. Independent true-SVD, branch identity,
+tight convergence, grid-density, and synthetic mu recovery evidence justified
+the explicit golden update `6911727`, with 1e-12 unchanged.
+See `docs/validation/ae_atlasA0_baseline.md`.
 
-## Repository hygiene contract
+mRLFE historical replay against Phase 1 `1b6b3a1` exposes a real Fast delta:
+maximum 0.0120684309767 m/s, relative 0.00113100537214, no mask differences.
+Three A0Like cases at mu=250 kPa differ. An in-memory correction of the
+migrated edge guard from 8 to its prior effective value 4 restores exact
+equality in all 24 Fast cases. Production remains unchanged pending explicit
+authorization; this is an integration blocker even if ordinary tiers pass.
+All six Dense reference cases match exactly, including masks.
+See `docs/validation/mrlfe_restructure_baseline.md`.
 
-`run_repository_hygiene_tests` owns the structure, documentation, naming,
-tracked-artifact, dependency-boundary, startup-path, repository-root, and test
-ownership checks. The maintained final state requires:
+The inherited matrix printed initialized zeros without a reference comparison;
+it now distinguishes coverage-only checks from measured historical deltas.
+Human-surface tests use the current public solver as their adapter reference,
+so their exact equality does not establish historical numerical preservation.
 
-- only `analysis/`, `app/`, `docs/`, `examples/`, `models/`, and `tests/` as
-  tracked top-level content directories;
-- no root `shared/` directory and no archive directories in source trees;
-- no production or analysis dependency on examples or tests;
-- no model dependency on analysis or app code;
-- no broken relative Markdown links or missing exact documented files;
-- one tracked definition for each documented MATLAB identifier, except the
-  five intentional public-wrapper pairs;
-- no tracked generated figures, images, MAT files, or result folders;
-- only approved test inventories or fixtures as tracked CSV files;
-- one canonical owner for every maintained test and no runner cycles.
+## Architecture and hygiene audit
 
-## Current architecture and inventory
+- Models, fitting, and sweep calculation are unchanged by Phase 7. Changes
+  cover paths, validation, tooling placement, examples' bootstrap,
+  documentation, and the isolated AE snapshot update. The RL
+  basic example also now reads the canonical diagnostics.residual field;
+  executing it exposed the stale direct residual access.
+- The mRLFE Main GUI view now derives its missing k*thickness plotting
+  coordinate from canonical wavenumber and stored full thickness. No solver
+  is called and official Cp, wavenumber, masks, and geometry are unchanged.
+- Model -> app/analysis/examples/tests and analysis -> app/examples/tests
+  dependencies are forbidden and checked. mRLFE -> RL seed is intentional;
+  RL -> mRLFE is absent.
+- Each maintained MATLAB filename is globally unique; critical public APIs
+  resolve once through which -all.
+- Result quality/configuration/diagnostic owners are explicit; plotting and
+  export consume completed results without scientific recomputation.
+- Low-reference functions were reviewed semantically. Complex-C AE inspection,
+  diagnostic persistence continuation, and the all-condition grid renderer
+  retain distinct responsibilities; they were not removed merely for low
+  caller counts.
+- The obsolete analysis performance smoke script was removed. App-facing
+  benchmark/matrix functions moved to tests/tooling. Historical architecture
+  plans and duplicate test-ownership docs were consolidated into current
+  repository contracts and tests/README.
+- Four obsolete empty directories were removed. No temporary diagnostic or
+  generated output was added to tracked source.
+- Main GUI, FitTool, and SweepTool launch successfully in an isolated MATLAB
+  process. This is a launch/API check, not an assertion of manual visual QA.
+- All three basic examples ran by explicit path in a disposable source copy:
+  RL A0/S0 577/577 valid each, mRLFE A0Like/S0Like 120/120 each, AE 35/35.
+  The RL analytical-approximation invocation in the API documentation also
+  executed successfully. Generated example files stayed outside this worktree.
 
-The repository is validated against the ownership and naming contracts in
-`repository_structure.md`, `naming_strategy.md`, `maintained_entrypoints.md`,
-`test_suite_final_architecture.md`, and `test_runner_ownership.md`.
+The initial final-validation attempts exposed a missing README profile
+description and stale paths in sessions opened before empty-directory cleanup.
+Both were corrected; the final run uses a fresh session and stable filesystem.
+No scientific assertion or tolerance was relaxed to address those issues.
 
-The generated inventory is the source of truth for exact test and runner
-counts:
+## Established input/file compatibility
 
-```text
-analysis/test_inventory/test_inventory.csv
-analysis/test_inventory/runner_edges.csv
-analysis/test_inventory/test_runner_ownership.csv
-```
+These are bounded input/persistence contracts, not alternate model APIs or
+scientific-result aliases.
 
-Current generated state: 121 tests, 43 canonical runner implementations, 5
-public convenience wrappers, 3 test helpers, 239 graph edges, and 121
-canonical owners. Validation reports 0 manual-only tests, 0 unowned tests, 0
-multiple canonical owners, 0 sibling direct overlaps, and 0 runner cycles.
+| Contract | Owner | Reason and removal condition |
+| --- | --- | --- |
+| robustness input alias | app profile normalization | Existing callers are supported; remove only after producers/external requests migrate to executionProfile. |
+| AE prior result-file locations | aeResolveResultFile | Read-only discovery of previously generated workspaces; remove after required external inputs migrate. |
 
-Current static reach is 21 tests from quick contracts, 60 from quick smoke, 17
-from numerical regression, 47 from extended integration, and 70 from the broad
-all-smoke aggregate.
-
-AE configuration, result, tracking/policy, workflow-route, final-architecture,
-and result-file compatibility contracts are assigned to the maintained focused
-runners; the deterministic inventory CSVs include their canonical ownership
-edges.
-
-## Compatibility debt
-
-| Exception | Owner | Current consumer | Reason retained | Removal condition |
-| --- | --- | --- | --- | --- |
-| Five public test wrappers | `tests/README.md`; `runRepositoryTestRunner` | Users and automation invoking the broad established smoke commands | Keeps the small convenience surface stable while canonical implementations live under `tests/runners/` | Remove only through an explicit public deprecation after external callers migrate. |
-| `robustness` request/control alias | `guiNormalizeExecutionProfile`; `guiNormalizeControlExecutionProfile` | Existing GUI controls, adapters, request builders, tests, and external request structs | Preserves the established profile field while `executionProfile` is canonical | Remove after all maintained and external producers emit only `executionProfile` and a release deprecation is complete. |
-| `result.diagnostics.rawInternalResult` | `mrlfeBuildResult` | No maintained production or numerical-test consumer; the public result-schema contract test verifies temporary alias availability and parity | Keeps the pre-debug-path diagnostic schema while `result.debug.rawInternalResult` is canonical | Remove only through an explicit schema-versioned compatibility change after external callers are considered. |
-| `aeResolveResultFile` legacy-result fallback | AE analysis layer | Five maintained diagnostic scripts at eight call sites reading previously generated workspaces | Resolves the canonical task/file first while preserving repeatability from explicitly supplied legacy result roots | Remove after required diagnostic fixtures are regenerated in canonical result roots, external legacy inputs have migrated, and focused plus manual loading checks pass. |
-
-No new compatibility alias is authorized by this table.
+No new aliases are introduced. Current model-result arrays have canonical
+names and no compatibility copies.

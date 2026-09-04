@@ -1,6 +1,6 @@
 %TEST_FIT_PARAMETER_EXECUTION_CONTRACT Trace edited physical parameters.
 
-registry = guiGetFitRegistry();
+registry = guiGetFitModelConfiguration();
 for iFamily = 1:numel(registry.modelFamilies)
     family = registry.modelFamilies(iFamily);
     fitIds = string({family.parameters([family.parameters.canFit]).id});

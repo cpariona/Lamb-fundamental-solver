@@ -1,6 +1,6 @@
 clear; clc;
 if isempty(which('mrlfeSolve'))
-    startup
+    configureTestPath;
 end
 
 % Test conservative official-output policy for fallback-selected atlasA0 branches.
@@ -22,31 +22,30 @@ params.frequency = logspace(log10(1000), log10(15e3), 35);
 options = defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
 options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 options.invalidateAtlasFallbackOutput = true;
 options.useInternalAtlasTrackingGrid = false;
 
-result = solveAcoustoelasticIOPHGOAtlasBranch(params, options);
+result = solveAcoustoelasticIOPHGOBranch(params, options);
 
 assert(isstruct(result), 'Result must be a struct.');
-assert(isfield(result, 'reliability'), 'Result must include reliability.');
-assert(result.reliability.SelectionFallbackUsed == true, ...
+assert(isfield(result, 'quality'), 'Result must include quality.');
+assert(result.quality.SelectionFallbackUsed == true, ...
     'This fixture should exercise an unfiltered fallback selection.');
-assert(result.reliability.A0StartFilterPassed == false, ...
+assert(result.quality.A0StartFilterPassed == false, ...
     'Fallback fixture should fail the A0-like start filter.');
 assert(isfield(result, 'fallbackCandidateCp'), ...
     'Fallback candidate Cp must be preserved for diagnostics.');
 assert(any(isfinite(result.fallbackCandidateCp)), ...
     'Fallback candidate should preserve the finite diagnostic curve.');
-assert(all(~result.validCp), ...
-    'Official validCp must be false when fallback output is invalidated.');
-assert(all(~isfinite(result.Cp)), ...
+assert(all(~result.validMask), ...
+    'Official validMask must be false when fallback output is invalidated.');
+assert(all(~isfinite(result.phaseVelocity_mps)), ...
     'Official Cp must be NaN when fallback output is invalidated.');
-assert(result.reliability.ValidFraction == 0, ...
-    'Official reliability must report zero valid fraction after fallback invalidation.');
+assert(result.quality.ValidFraction == 0, ...
+    'Official quality must report zero valid fraction after fallback invalidation.');
 assert(all(result.pointStatus == "fallbackRejectedA0StartFilter"), ...
     'Point status must identify fallback rejection.');
 

@@ -12,6 +12,7 @@ Implemented helpers:
 rlBuildFitProblem
 rlEvaluateFitModel
 rlFitDispersionData
+solveDispersionFitProblem
 ```
 
 The first maintained tested use case is:
@@ -22,7 +23,7 @@ free parameter: mu
 fixed parameters: thickness, rho, nu
 ```
 
-Additional synthetic fitting validation cases are covered by `run_fit_validation_tests`.
+Additional synthetic fitting validation cases are covered by `run_extended_integration_tests`.
 
 ## Data contract
 
@@ -77,13 +78,10 @@ The official fitting result uses `Cp_mps` sampled at `frequency_Hz`. Internal tr
 
 ## Optimizer policy
 
-`rlFitDispersionData` currently uses:
-
-```matlab
-fminsearch
-```
-
-with objective penalties for out-of-bound candidates. This avoids requiring Optimization Toolbox during the first implementation.
+`rlFitDispersionData` builds the model-specific problem and delegates optimizer
+orchestration to `solveDispersionFitProblem`. One finite-bounded free parameter
+uses `fminbnd`; multi-parameter or unbounded cases use `fminsearch` with bound
+penalties. No Optimization Toolbox dependency is required.
 
 Bounds are still declared in the fit configuration:
 
@@ -91,7 +89,8 @@ Bounds are still declared in the fit configuration:
 fitConfig.bounds.mu = [20e3, 200e3];
 ```
 
-The current optimizer policy is deliberately simple. If the `RMSE(mu)` landscape remains irregular after branch-coherent evaluation, the next step should be a shared coarse-global plus local-refine optimizer policy in `analysis/fitting`, not model-specific optimizer logic inside GUI code.
+The exact RL iteration limits and tolerances remain owned by
+`rlBuildFitProblem`; the shared owner does not replace model-specific defaults.
 
 ## Example
 
@@ -101,7 +100,7 @@ Run:
 clear functions
 rehash toolboxcache
 startup
-fit_default_A0
+run('examples/rayleigh_lamb/fitting/fit_default_A0.m')
 ```
 
 The example generates synthetic A0 data with a known shear modulus and fits `mu` while keeping thickness, density, and Poisson ratio fixed.
@@ -114,7 +113,7 @@ Core smoke validation runs:
 clear functions
 rehash toolboxcache
 startup
-run_core_smoke_tests
+run_quick_smoke_tests
 ```
 
 The core runner checks Rayleigh-Lamb API/helper path coverage and runs:
@@ -126,7 +125,7 @@ test_rl_fit_synthetic_A0
 Focused fitting validation runs:
 
 ```matlab
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
 Rayleigh-Lamb cases inside the focused validation suite include:
@@ -141,10 +140,9 @@ Use the focused suite after fitting-related changes. Use the core smoke suite af
 
 ## Current limitations
 
-This phase does not implement:
+The maintained workflow does not implement:
 
 ```text
-new optimizer policy
 fitting against multiple Rayleigh-Lamb branches simultaneously
 advanced uncertainty estimates for fitted parameters
 ```

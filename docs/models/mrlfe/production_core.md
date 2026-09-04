@@ -1,6 +1,6 @@
 # mRLFE production core
 
-Last reviewed: 2026-07-07
+Last reviewed: 2026-09-03
 
 ## Scope
 
@@ -14,23 +14,23 @@ mrlfeSolve
        -> mrlfeSolveElasticBranch
        -> mrlfeSolveViscoelasticBranch
        -> mrlfeBuildSeed
+            -> rlComputeFundamentalLambModes
        -> mrlfeTrackBranchAdaptive
        -> mrlfeApplyTerminationPolicy
   -> mrlfeBuildResult
 ```
 
-The core preserves the audited FitTool atlas-first numerical behavior without
-calling `mrlfeEvaluateAtlasFitModel`, `mrlfeEvaluateFitModel`, or GUI adapters.
-Main GUI forward solving reaches this core through the public API:
+The core owns model physics and tracking without calling analysis evaluators
+or application adapters. Main GUI forward solving reaches this core through the public API:
 
 ```text
 guiRunMRLFEModel
-  -> mrlfeBuildGuiSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
 The Main GUI adapter translates app input and adapts the public result for
-plotting/export compatibility. It does not select low-level trackers, apply
+plotting/export presentation. It does not select low-level trackers, apply
 physical-tail cuts, or perform zero-viscosity fallback.
 
 FitTool fitting now reaches this core through the public API:
@@ -38,8 +38,9 @@ FitTool fitting now reaches this core through the public API:
 ```text
 guiFitMRLFESolver
   -> mrlfeFitDispersionData
+  -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildFitSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
@@ -51,7 +52,8 @@ SweepTool mRLFE forward sweeps also reach this core through the public API:
 
 ```text
 guiRunMRLFESweep
-  -> mrlfeBuildSweepSolveRequest
+  -> runParametricSweep
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve, once per sweep point
 ```
 
@@ -79,15 +81,16 @@ Numerical preset remains separate from branch policy, termination, and fallback.
 ```text
 requested frequency grid
 internal solve grid
-Rayleigh-Lamb seed result
 material
 geometry
 fluid properties
 branch name
 ```
 
-The Rayleigh-Lamb dependency is isolated in the model layer and is used only to
-build seed modes. It disables unrelated mRLFE routes when computing the seed.
+`mrlfeBuildSeed` is the sole owner of the intentional Rayleigh-Lamb dependency.
+It requests the matching fundamental RL branch, converts that result into the
+mRLFE seed mode, and preserves the raw seed result as diagnostic evidence. RL
+does not expose or disable any mRLFE route while producing this seed.
 
 ## Elastic Path
 
@@ -160,19 +163,13 @@ preserves diagnostic raw output. `mrlfeBuildResult` remains the public schema
 builder for units, vector orientation, invalid-value handling, execution
 metadata, termination metadata, fallback metadata, and quality metadata.
 
-FitTool fitting preserves the public `modelResult` in the compatibility-shaped
-fitting raw result. The compatibility fields still consumed by FitTool are the
-branch identity, requested frequencies, fitted Cp values, valid mask, route path
-metadata, preset metadata, and raw branch diagnostics used by full-curve
-diagnostics. New metadata comes from `mrlfeBuildResult`: requested/effective
+FitTool fitting preserves the final public evaluation under
+`fitResult.modelEvaluation`. Metadata comes from `mrlfeBuildResult`: requested/effective
 preset, neutral internal engine, termination policy, fallback policy/applied
 state, and quality summary.
 
-Main GUI preserves the public `modelResult` for each requested visible branch
-under normalized metadata. Its compatibility raw result keeps the existing
-`models.mRLFERealK.branches.<branch>` shape required by normalized plotting,
-workspace inspection, and compact exports, but the branch data is adapted from
-`mrlfeBuildResult` output. Partial-quality results remain visible and are
+Main GUI preserves the completed public `modelResult` and derives a shallow
+presentation view for plotting and export. Partial-quality results remain visible and are
 reported with neutral status metadata instead of being replaced by fallback.
 
 SweepTool stores the same public `modelResult` for each sweep point. Aggregate
@@ -182,23 +179,8 @@ instead of reporting one point's route as sweep-wide state. The maintained
 SweepTool route uses the public `fast` preset, adaptive selection, no fallback,
 `physicalTail` termination for A0Like, and `none` termination for S0Like.
 
-## Neutralized Helper Dependencies
+## Boundary
 
-The maintained production core no longer depends on the historically named
-seed, adaptive tracker, or A0 tail-cut helpers. Their maintained implementations
-now reside behind:
-
-```text
-mrlfeBuildSeed
-mrlfeTrackBranchAdaptive
-mrlfeApplyTerminationPolicy
-  -> mrlfeEvaluatePhysicalTail
-```
-
-The old historical helper files have been removed from the maintained
-production surface. Broad legacy routes such as `computeMRLFE`,
-`solveMRLFEAtlasUnified`, `solveMRLFEViscoBranchAtlas`,
-`solveMRLFEBranchModalAtlas`, `solveMRLFEBranchDP`, and
-`mrlfeEvaluateAtlasFitModel` have also been removed. Historical route-audit
-documents may still mention those names as pre-migration evidence, but they are
-not callable maintained entrypoints.
+Seed, tracking, termination, result construction, and quality are model-owned.
+Human consumers reach this core through mrlfeSolve. No production dependency
+points back to analysis, app, tests, or executable examples/diagnostics.

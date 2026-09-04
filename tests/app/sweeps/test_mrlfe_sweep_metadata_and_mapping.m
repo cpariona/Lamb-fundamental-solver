@@ -1,6 +1,5 @@
 clear; clc;
-startup
-
+configureTestPath;
 fprintf('\nRunning mRLFE SweepTool metadata and mapping test...\n');
 fprintf('---------------------------------------------------\n');
 
@@ -25,9 +24,9 @@ assert(etaOut.executionProfile.effectiveExecutionProfile == "Fast", ...
 assert(all(etaOut.metadata.effectiveNumericalPresets == "fast"), ...
     'Effective numerical preset metadata must be fast.');
 
-for i = 1:numel(etaOut.rawResults.points)
-    point = etaOut.rawResults.points{i};
-    assert(point.configuration.parameters.etaS_Pas == etaOut.sweepSpec.values(i), ...
+for i = 1:numel(etaOut.sweepResult.points)
+    point = etaOut.sweepResult.points{i};
+    assert(point.configuration.effective.parameters.etaS_Pas == etaOut.sweepSpec.values(i), ...
         'etaS sweep point was not mapped to public etaS_Pas.');
     assert(point.fallback.policy == "none" && point.fallback.applied == false, ...
         'Point fallback must remain disabled.');
@@ -44,9 +43,9 @@ end
 thicknessOut = runSweep("A0Like", "thickness", "thickness", [0.4, 0.5, 0.6], "mm", 1e-3, 0.05);
 assert(isequal(thicknessOut.sweepSpec.values(:), [0.4; 0.5; 0.6] * 1e-3), ...
     'thickness sweep values must convert mm to m.');
-for i = 1:numel(thicknessOut.rawResults.points)
-    point = thicknessOut.rawResults.points{i};
-    assert(abs(point.configuration.parameters.thickness_m - thicknessOut.sweepSpec.values(i)) <= ...
+for i = 1:numel(thicknessOut.sweepResult.points)
+    point = thicknessOut.sweepResult.points{i};
+    assert(abs(point.configuration.effective.parameters.thickness_m - thicknessOut.sweepSpec.values(i)) <= ...
         eps(max(1, thicknessOut.sweepSpec.values(i))), ...
         'thickness sweep point was not mapped to public thickness_m.');
 end
@@ -55,10 +54,10 @@ end
 s0Out = runSweep("S0Like", "mu", "mu", [60, 75], "kPa", 1e3, 0.05);
 assert(all(s0Out.metadata.terminationPolicies == "none"), ...
     'S0Like sweep aggregate metadata must report no additional termination.');
-for i = 1:numel(s0Out.rawResults.points)
-    point = s0Out.rawResults.points{i};
+for i = 1:numel(s0Out.sweepResult.points)
+    point = s0Out.sweepResult.points{i};
     assert(point.modelResult.branch == "S0Like", 'S0Like branch identity changed.');
-    assert(point.configuration.parameters.mu_Pa == s0Out.sweepSpec.values(i), ...
+    assert(point.configuration.effective.parameters.mu_Pa == s0Out.sweepSpec.values(i), ...
         'mu sweep point was not mapped to public mu_Pa.');
 end
 

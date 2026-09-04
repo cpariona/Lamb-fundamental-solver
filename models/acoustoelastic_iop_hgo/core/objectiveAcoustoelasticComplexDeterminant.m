@@ -9,7 +9,7 @@ function [objectiveValue, details] = objectiveAcoustoelasticComplexDeterminant(a
 % with safeguards for non-finite values.
 
 if nargin < 10 || isempty(options)
-    options = defaultAcoustoelasticIOPHGOOptions();
+    options = aeDefaultDiagnosticOptions();
 end
 
 [M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, cComplex, options);

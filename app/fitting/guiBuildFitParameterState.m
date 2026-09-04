@@ -52,7 +52,7 @@ state.parameters = rows;
 end
 
 function family = findFamily(modelFamily)
-registry = guiGetFitRegistry();
+registry = guiGetFitModelConfiguration();
 modelFamily = string(modelFamily);
 families = registry.modelFamilies;
 for i = 1:numel(families)

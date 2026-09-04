@@ -1,5 +1,6 @@
 clear; clc; close all;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %FIT_DEFAULT_A0 Example Rayleigh-Lamb A0 fit against synthetic data.
 %

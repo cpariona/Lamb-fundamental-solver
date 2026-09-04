@@ -23,8 +23,8 @@ The fitting layer is reusable from scripts, tests, and `FitTool_GUI`. GUI callba
 ## Design principles
 
 1. GUI code builds requests and renders normalized results.
-2. Optimizers and residual definitions remain in fitting backends.
-3. Model-specific adapters call maintained model APIs.
+2. `solveDispersionFitProblem` owns optimizer orchestration and result assembly.
+3. Model-specific builders and evaluators retain model physics and defaults.
 4. Example and diagnostic scripts are not production dependencies.
 5. Objective values and optional full-curve evaluations remain distinguishable.
 6. A complete fitted curve is evaluated only after an explicit user action.
@@ -46,9 +46,9 @@ FitTool_GUI
 Model-specific adapters:
 
 ```text
-app/adapters/guiFitRLSolver.m
-app/adapters/guiFitMRLFESolver.m
-app/adapters/guiFitAcoustoelasticIOPHGOSolver.m
+app/fitting/guiFitRLSolver.m
+app/fitting/guiFitMRLFESolver.m
+app/fitting/guiFitAcoustoelasticIOPHGOSolver.m
 ```
 
 Fitted-curve helpers:
@@ -117,7 +117,7 @@ fitResult.validMask
 fitResult.metrics
 fitResult.identifiability
 fitResult.optimizer
-fitResult.rawSolverResult
+fitResult.modelEvaluation
 ```
 
 The normalized GUI result may add:
@@ -141,16 +141,26 @@ The visible parameter summary shows only the fitted parameter. Fixed parameters 
 
 ```text
 rlFitDispersionData
+  -> rlBuildFitProblem
+  -> solveDispersionFitProblem
   -> rlEvaluateFitModel
-  -> maintained Rayleigh-Lamb solver
+  -> rlSolveFundamentalBranch
 ```
+
+The RL evaluator shares the canonical model-layer continuation owner with
+`rlComputeFundamentalLambModes`. It preserves exact experimental frequencies
+in its own tracking grid and disables prediction fallback. It therefore does
+not call the public batch-grid API; there is no second physics or optimizer
+implementation. This distinction is deliberate and numerically protected.
 
 ### mRLFE
 
 ```text
 mrlfeFitDispersionData
+  -> mrlfeBuildFitProblem
+  -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildFitSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
@@ -177,30 +187,31 @@ and resolves Fast, Balanced, or Robust into the corresponding public numerical p
 
 ```text
 aeFitDispersionData
+  -> aeBuildFitProblem
+  -> solveDispersionFitProblem
   -> aeEvaluateFitModel
-  -> maintained AE IOP/HGO API
+  -> solveAcoustoelasticIOPHGOBranch
 ```
 
-AE may legitimately use atlas terminology. This is separate from the removed legacy mRLFE atlas production routes.
+Atlas construction and branch selection belong to the AE model, not the optimizer.
 
 ## Physical quality and identifiability
 
-Shared fitting helpers include residual calculation, fit metrics, constant-speed baseline comparison, physical-quality assessment, local sensitivity, and identifiability assessment. These checks are numerical diagnostics, not external experimental validation.
+Shared fitting helpers include optimizer orchestration, residual calculation, fit metrics, constant-speed baseline comparison, physical-quality assessment, local sensitivity, and identifiability assessment. `solveDispersionFitProblem` selects `fminbnd` or `fminsearch`, performs the final evaluation, and assembles the canonical fit result. Model builders still own their model-specific optimizer options, bounds, and evaluators. These checks are numerical diagnostics, not external experimental validation.
 
 ## Validation
 
 Broad fitting validation:
 
 ```matlab
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
 mRLFE-focused validation:
 
 ```matlab
-run_mrlfe_fit_public_solver_tests
-run_execution_profile_surface_tests
-run_gui_smoke_tests
+run_extended_integration_tests
+run_quick_smoke_tests
 ```
 
 The focused mRLFE suite checks public-solver routing, parameter regression, fit-grid behavior, absence of automatic solver reevaluation, and explicit full-curve evaluation.
