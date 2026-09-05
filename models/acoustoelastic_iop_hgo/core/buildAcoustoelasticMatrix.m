@@ -18,7 +18,6 @@ end
 s1 = cpState.s1;
 s2 = cpState.s2;
 xi = cpState.xi;
-rootInfo = cpState.rootInfo;
 
 k = 2*pi*f/c;
 kh = k*h;
@@ -62,14 +61,16 @@ if isfield(options, 'normalizeRows') && options.normalizeRows
     M = normalizeMatrixRows(M);
 end
 
-aux = struct();
-aux.k = k;
-aux.kh = kh;
-aux.s1 = s1;
-aux.s2 = s2;
-aux.xi = xi;
-aux.rootInfo = rootInfo;
-aux.M54_variant = variant;
+if nargout > 1
+    aux = struct();
+    aux.k = k;
+    aux.kh = kh;
+    aux.s1 = s1;
+    aux.s2 = s2;
+    aux.xi = xi;
+    aux.rootInfo = cpState.rootInfo;
+    aux.M54_variant = variant;
+end
 end
 
 function Mout = normalizeMatrixRows(Min)
