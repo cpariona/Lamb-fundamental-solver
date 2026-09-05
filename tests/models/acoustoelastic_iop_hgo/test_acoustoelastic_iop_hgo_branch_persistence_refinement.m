@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_acoustoelastic_iop_hgo_branch_persistence_refinement()
 %TEST_ACOUSTOELASTIC_IOP_HGO_BRANCH_PERSISTENCE_REFINEMENT
 % Lightweight synthetic test for diagnostic branch-persistence refinement.
 
@@ -43,6 +39,7 @@ assert(any(refinement.classification.DecisionClass == expectedClasses), ...
     'Unexpected branch-persistence classification.');
 
 fprintf('test_acoustoelastic_iop_hgo_branch_persistence_refinement passed.\n');
+end
 
 function rows = addMin(rows, f, cp, rank, obj)
 row = struct();
