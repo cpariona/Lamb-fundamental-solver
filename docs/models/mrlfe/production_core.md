@@ -76,6 +76,12 @@ Numerical preset remains separate from branch policy, termination, and fallback.
 Candidate refinement is not a public preset choice. All maintained presets use
 the same internal selected-candidate continuous refinement policy.
 
+Fast uses a two-stage Cp scan internally: 100 coarse points for ordinary local
+minimum tracking and a 260-point rescue scan only when the coarse pass returns a
+valley fallback or no valid candidate. Balanced, Robust, and Dense keep fixed
+scan densities of 420, 620, and 900 points respectively and therefore do not
+perform an additional rescue scan.
+
 ## Problem Construction
 
 `mrlfeBuildProblem` prepares:
@@ -134,15 +140,21 @@ tracking. The maintained candidate generation, prediction, residual scoring,
 candidate selection, validity decisions, and adaptive continuation diagnostics
 now live behind this neutral model-layer name.
 
-The production refinement lifecycle is:
+The production lifecycle is:
 
 ```text
-local Cp scan
+coarse local Cp scan
 -> strict local-minimum discovery
+-> optional dense rescue scan when coarse tracking is ambiguous
 -> discrete candidate scoring and selection
 -> bounded continuous refinement of the selected strict minimum
 -> validity and continuation checks
 ```
+
+The dense rescue repeats the same search window and scoring policy at higher Cp
+resolution. It does not change branch policy, prediction, continuation limits,
+or residual definition. The Fast rescue trigger is intentionally narrow:
+`valleyFallback` or no valid coarse candidate.
 
 The bounded refinement uses the true mRLFE residual through `fminbnd`; it is
 applied only after candidate identity is selected. This removes Cp scan
