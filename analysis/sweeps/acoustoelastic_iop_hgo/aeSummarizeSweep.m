@@ -1,67 +1,85 @@
 function summary = aeSummarizeSweep(sweepResult)
-%AESUMMARIZESWEEP Summarize an acoustoelastic IOP/HGO sweep result.
-%
-%   summary = aeSummarizeSweep(sweepResult) builds analysis tables from the
-%   structure returned by aeRunSweep.
-%
-%   This helper is intentionally analysis-only. It does not call the solver and
-%   does not encode a particular branch policy in the file name. Branch-policy
-%   details remain in the result.options and reliability fields.
-%
-%   Output fields
-%   -------------
-%   summary.conditionTable  : one row per sweep condition.
-%   summary.dispersionTable : long table with one row per frequency-condition.
-%   summary.branchTable     : selected branch points decorated by condition.
+%AESUMMARIZESWEEP Build AE analysis tables from the canonical 1-D sweep result.
 
-if nargin < 1 || isempty(sweepResult)
-    error('aeSummarizeSweep requires a sweepResult structure returned by aeRunSweep.');
+if nargin < 1 || isempty(sweepResult) || ~isfield(sweepResult, 'results')
+    error('aeSummarizeSweep requires canonical runParametricSweep output.');
 end
 
 summary = struct();
-summary.name = getStructField(sweepResult, 'name', "");
-summary.label = getStructField(sweepResult, 'label', "");
-summary.sweepField = getStructField(sweepResult, 'sweepField', "");
-summary.options = getStructField(sweepResult, 'options', struct());
-
-if isfield(sweepResult, 'summaryTable')
-    summary.conditionTable = sweepResult.summaryTable;
-else
-    summary.conditionTable = table();
-end
-
+summary.name = specField(sweepResult, 'name', "");
+summary.label = specField(sweepResult, 'label', string(sweepResult.parameter));
+summary.sweepField = string(sweepResult.parameter);
+summary.options = firstCellValue(sweepResult, 'options', struct());
+summary.conditionTable = buildConditionTable(sweepResult);
 summary.dispersionTable = buildDispersionTable(sweepResult);
 summary.branchTable = buildSelectedBranchTable(sweepResult);
 end
 
-function dispersionTable = buildDispersionTable(sweepResult)
+function T = buildConditionTable(sweepResult)
 rows = [];
-if ~isfield(sweepResult, 'conditions') || isempty(sweepResult.conditions)
-    dispersionTable = table();
-    return;
-end
-
-for i = 1:numel(sweepResult.conditions)
-    condition = sweepResult.conditions(i);
-    if ~isfield(condition, 'result') || isempty(condition.result)
+for i = 1:numel(sweepResult.results)
+    result = sweepResult.results{i};
+    if isempty(result) || ~isstruct(result)
         continue;
     end
-    result = condition.result;
+    quality = resultField(result, 'quality', struct());
+    value = sweepResult.values(i);
+
+    row = struct();
+    row.ConditionIndex = i;
+    row.SweepName = specField(sweepResult, 'name', "");
+    row.SweepLabel = specField(sweepResult, 'label', string(sweepResult.parameter));
+    row.SweepField = string(sweepResult.parameter);
+    row.SweepValue = value;
+    row.SweepValueScaled = sweepResult.displayValues(i);
+    row.SweepUnit = specField(sweepResult, 'units', "");
+    row.SweepValueDisplay = formatDisplayValue(sweepResult, i);
+    row.PolicyName = qualityField(quality, 'policyName', string(missing));
+    row.ValidFraction = qualityField(quality, 'validFraction', nan);
+    row.ValidPoints = qualityField(quality, 'validCount', nan);
+    row.MissingPoints = qualityField(quality, 'missingCount', nan);
+    row.TotalPoints = qualityField(quality, 'pointCount', nan);
+    row.FirstValidFrequency_kHz = qualityField(quality, 'firstValidFrequency_kHz', nan);
+    row.LastValidFrequency_kHz = qualityField(quality, 'lastValidFrequency_kHz', nan);
+    row.FirstMissingFrequency_kHz = qualityField(quality, 'firstMissingFrequency_kHz', nan);
+    row.A0StartFilterPassed = qualityField(quality, 'a0StartFilterPassed', false);
+    row.SelectionFallbackUsed = qualityField(quality, 'selectionFallbackUsed', false);
+    row.YStart = qualityField(quality, 'yStart', nan);
+    row.StartRank = qualityField(quality, 'startRank', nan);
+    row.CpStart_mps = qualityField(quality, 'cpStart_mps', nan);
+    row.MaxBranchRelativeCpDrop = qualityField(quality, 'maxBranchRelativeCpDrop', nan);
+    rows = [rows; row]; %#ok<AGROW>
+end
+
+if isempty(rows)
+    T = table();
+else
+    T = struct2table(rows);
+end
+end
+
+function T = buildDispersionTable(sweepResult)
+rows = [];
+for i = 1:numel(sweepResult.results)
+    result = sweepResult.results{i};
+    if isempty(result) || ~isstruct(result) || ~isfield(result, 'frequency_Hz')
+        continue;
+    end
     frequency = result.frequency_Hz(:);
-    Cp = result.phaseVelocity_mps(:);
-    validCp = result.validMask(:);
+    cp = result.phaseVelocity_mps(:);
+    valid = logical(result.validMask(:));
 
     for k = 1:numel(frequency)
         row = struct();
-        row.ConditionIndex = condition.index;
-        row.SweepName = string(getStructField(sweepResult, 'name', ""));
-        row.SweepField = string(condition.sweepField);
-        row.SweepValue = condition.sweepValue;
-        row.SweepValueDisplay = string(condition.sweepValueDisplay);
+        row.ConditionIndex = i;
+        row.SweepName = specField(sweepResult, 'name', "");
+        row.SweepField = string(sweepResult.parameter);
+        row.SweepValue = sweepResult.values(i);
+        row.SweepValueDisplay = formatDisplayValue(sweepResult, i);
         row.Frequency_Hz = frequency(k);
         row.Frequency_kHz = frequency(k) / 1e3;
-        row.Cp_mps = Cp(k);
-        row.validCp = validCp(k);
+        row.Cp_mps = cp(k);
+        row.validCp = valid(k);
         row.pointStatus = getVectorValue(result, 'pointStatus', k, "");
         row.objective = getVectorValue(result, 'objective', k, nan);
         row.nearestRank = getVectorValue(result, 'nearestRank', k, nan);
@@ -71,54 +89,77 @@ for i = 1:numel(sweepResult.conditions)
 end
 
 if isempty(rows)
-    dispersionTable = table();
+    T = table();
 else
-    dispersionTable = struct2table(rows);
+    T = struct2table(rows);
 end
 end
 
-function branchTable = buildSelectedBranchTable(sweepResult)
-branchTable = table();
-if ~isfield(sweepResult, 'conditions') || isempty(sweepResult.conditions)
-    return;
-end
-
-for i = 1:numel(sweepResult.conditions)
-    condition = sweepResult.conditions(i);
-    if ~isfield(condition, 'result') || isempty(condition.result)
-        continue;
-    end
-    result = condition.result;
-    if ~isfield(result, 'selectedBranchPoints') || isempty(result.selectedBranchPoints)
+function T = buildSelectedBranchTable(sweepResult)
+T = table();
+for i = 1:numel(sweepResult.results)
+    result = sweepResult.results{i};
+    if isempty(result) || ~isstruct(result) || ...
+            ~isfield(result, 'selectedBranchPoints') || isempty(result.selectedBranchPoints)
         continue;
     end
 
-    T = result.selectedBranchPoints;
-    T.ConditionIndex = repmat(condition.index, height(T), 1);
-    T.SweepName = repmat(string(getStructField(sweepResult, 'name', "")), height(T), 1);
-    T.SweepField = repmat(string(condition.sweepField), height(T), 1);
-    T.SweepValue = repmat(condition.sweepValue, height(T), 1);
-    T.SweepValueDisplay = repmat(string(condition.sweepValueDisplay), height(T), 1);
-    T = movevars(T, {'ConditionIndex','SweepName','SweepField','SweepValue','SweepValueDisplay'}, 'Before', 1);
-    branchTable = [branchTable; T]; %#ok<AGROW>
+    B = result.selectedBranchPoints;
+    B.ConditionIndex = repmat(i, height(B), 1);
+    B.SweepName = repmat(specField(sweepResult, 'name', ""), height(B), 1);
+    B.SweepField = repmat(string(sweepResult.parameter), height(B), 1);
+    B.SweepValue = repmat(sweepResult.values(i), height(B), 1);
+    B.SweepValueDisplay = repmat(formatDisplayValue(sweepResult, i), height(B), 1);
+    B = movevars(B, {'ConditionIndex','SweepName','SweepField','SweepValue','SweepValueDisplay'}, 'Before', 1);
+    T = [T; B]; %#ok<AGROW>
+end
+end
+
+function text = formatDisplayValue(sweepResult, index)
+value = sweepResult.displayValues(index);
+formatSpec = specField(sweepResult, 'valueFormatter', "%.6g");
+text = string(sprintf(char(formatSpec), value));
+units = specField(sweepResult, 'units', "");
+if strlength(units) > 0
+    text = text + " " + units;
 end
 end
 
 function value = getVectorValue(s, fieldName, index, defaultValue)
+value = defaultValue;
 if isstruct(s) && isfield(s, fieldName)
-    v = s.(fieldName);
-    if numel(v) >= index
-        value = v(index);
-        return;
+    vector = s.(fieldName);
+    if numel(vector) >= index
+        value = vector(index);
     end
 end
-value = defaultValue;
 end
 
-function value = getStructField(s, fieldName, defaultValue)
-if isstruct(s) && isfield(s, fieldName)
-    value = s.(fieldName);
-else
-    value = defaultValue;
+function value = qualityField(quality, fieldName, defaultValue)
+value = defaultValue;
+if isstruct(quality) && isfield(quality, fieldName)
+    value = quality.(fieldName);
+end
+end
+
+function value = resultField(result, fieldName, defaultValue)
+value = defaultValue;
+if isstruct(result) && isfield(result, fieldName)
+    value = result.(fieldName);
+end
+end
+
+function value = specField(sweepResult, fieldName, defaultValue)
+value = defaultValue;
+if isfield(sweepResult, 'spec') && isstruct(sweepResult.spec) && ...
+        isfield(sweepResult.spec, fieldName) && ~isempty(sweepResult.spec.(fieldName))
+    value = string(sweepResult.spec.(fieldName));
+end
+end
+
+function value = firstCellValue(s, fieldName, defaultValue)
+value = defaultValue;
+if isfield(s, fieldName) && iscell(s.(fieldName)) && ~isempty(s.(fieldName))
+    value = s.(fieldName){1};
 end
 end
