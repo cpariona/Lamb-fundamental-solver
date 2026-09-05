@@ -8,7 +8,7 @@ cGrid = yGrid(:) * cShear;
 
 cpState = cell(numel(cGrid), 1);
 for j = 1:numel(cGrid)
-    cpState{j} = computeAcoustoelasticCpState(params.alpha, params.beta, params.gamma, ...
+    cpState{j} = aeComputeAcoustoelasticCpState(params.alpha, params.beta, params.gamma, ...
         params.rho, params.rhoF, params.fluidBulkModulus, cGrid(j));
 end
 
