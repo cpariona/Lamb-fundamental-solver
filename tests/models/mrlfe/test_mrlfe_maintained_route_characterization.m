@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_maintained_route_characterization()
+%TEST_MRLFE_MAINTAINED_ROUTE_CHARACTERIZATION Compare maintained consumers with the public route.
+
 fprintf('\nRunning mRLFE maintained-route characterization test...\n');
 fprintf('----------------------------------------------------\n');
 
@@ -31,6 +32,7 @@ end
 % solver evaluations and grid-policy coupling.
 
 fprintf('mRLFE maintained-route characterization test passed.\n');
+end
 
 function params = localParams()
 params = rlDefaultParams();
