@@ -1,43 +1,27 @@
 function test_maintained_test_structure_contract()
-%TEST_MAINTAINED_TEST_STRUCTURE_CONTRACT Enforce canonical direct-test structure.
+%TEST_MAINTAINED_TEST_STRUCTURE_CONTRACT Enforce canonical maintained-test structure.
 
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
-runnerRoot = fullfile(repoRoot, 'tests', 'runners');
-runnerNames = [ ...
-    "run_repository_hygiene_tests"; ...
-    "run_quick_contract_tests"; ...
-    "run_quick_smoke_tests"; ...
-    "run_numerical_regression_tests"; ...
-    "run_extended_integration_tests"; ...
-    "run_performance_and_benchmark_tests"];
-
-testNames = strings(0, 1);
-for i = 1:numel(runnerNames)
-    runnerPath = fullfile(runnerRoot, runnerNames(i) + ".m");
-    assert(isfile(runnerPath), 'Missing canonical runner: %s.', runnerNames(i));
-    text = fileread(runnerPath);
-    tokens = regexp(text, '(?m)^\s*(test_[A-Za-z]\w*)\s*;\s*(?:%.*)?$', 'tokens');
-    for j = 1:numel(tokens)
-        testNames(end + 1, 1) = string(tokens{j}{1}); %#ok<AGROW>
-    end
-end
-
-testNames = unique(testNames, 'stable');
-assert(~isempty(testNames), 'No maintained direct tests were discovered from canonical runners.');
+testPaths = trackedTestFiles(repoRoot);
+assert(~isempty(testPaths), 'No maintained test_*.m files were discovered.');
 
 violations = strings(0, 1);
-for i = 1:numel(testNames)
-    testName = testNames(i);
-    testPath = string(which(testName));
-    if strlength(testPath) == 0
-        violations(end + 1, 1) = testName + ": does not resolve on the configured test path"; %#ok<AGROW>
-        continue;
-    end
+for i = 1:numel(testPaths)
+    relativePath = testPaths(i);
+    absolutePath = fullfile(repoRoot, strrep(relativePath, '/', filesep));
+    [~, testName] = fileparts(relativePath);
+    testName = string(testName);
+    text = string(fileread(absolutePath));
 
-    text = string(fileread(testPath));
-    expectedHeader = "^\s*function\s+" + testName + "\s*\(\s*\)";
-    if isempty(regexp(text, expectedHeader, 'once'))
-        violations(end + 1, 1) = testName + ": must begin with function " + testName + "()"; %#ok<AGROW>
+    directHeader = "^\s*function\s+" + testName + "\s*\(\s*\)";
+    suiteHeader = "^\s*function\s+tests\s*=\s*" + testName + "(?:\s*\(\s*\))?";
+    isDirect = ~isempty(regexp(text, directHeader, 'once'));
+    isFunctionTestSuite = ~isempty(regexp(text, suiteHeader, 'once')) && ...
+        contains(text, 'functiontests(localfunctions)');
+
+    if ~(isDirect || isFunctionTestSuite)
+        violations(end + 1, 1) = relativePath + ...
+            ": must begin with function " + testName + "() or a native functiontests suite"; %#ok<AGROW>
     end
 
     forbidden = [ ...
@@ -47,20 +31,32 @@ for i = 1:numel(testNames)
         struct('pattern', "(?m)^\s*assignin\s*\(\s*'base'", 'label', "assignin('base', ...)" )];
     for j = 1:numel(forbidden)
         if ~isempty(regexp(text, forbidden(j).pattern, 'once'))
-            violations(end + 1, 1) = testName + ": contains forbidden " + forbidden(j).label; %#ok<AGROW>
+            violations(end + 1, 1) = relativePath + ": contains forbidden " + forbidden(j).label; %#ok<AGROW>
         end
     end
 
-    % test_startup_path_policy intentionally exercises startup itself and
-    % restores the caller path with onCleanup. Other maintained tests must
-    % leave production/test path setup to their canonical runner.
+    % This test intentionally exercises startup itself and restores caller path.
     if testName ~= "test_startup_path_policy" && ...
             ~isempty(regexp(text, "(?m)^\s*startup\s*(?:\(|;|$)", 'once'))
-        violations(end + 1, 1) = testName + ": contains forbidden startup"; %#ok<AGROW>
+        violations(end + 1, 1) = relativePath + ": contains forbidden startup"; %#ok<AGROW>
     end
 end
 
 assert(isempty(violations), 'Maintained test structure violations:\n%s', strjoin(violations, newline));
 
-fprintf('Maintained test structure contract passed for %d direct tests.\n', numel(testNames));
+fprintf('Maintained test structure contract passed for %d tracked tests.\n', numel(testPaths));
+end
+
+function paths = trackedTestFiles(repoRoot)
+[status, output] = system(sprintf('git -C "%s" ls-files "tests/**/*.m"', repoRoot));
+assert(status == 0, 'Could not enumerate tracked MATLAB tests.');
+paths = replace(splitlines(string(strtrim(output))), "\", "/");
+paths(paths == "") = [];
+[~, names] = arrayfun(@(p) fileparts(p), paths, 'UniformOutput', false); %#ok<ASGLU>
+names = strings(size(paths));
+for i = 1:numel(paths)
+    [~, name] = fileparts(paths(i));
+    names(i) = string(name);
+end
+paths = paths(startsWith(names, "test_"));
 end
