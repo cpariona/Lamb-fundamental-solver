@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_fit_physical_qc_flat_rl()
+%TEST_FIT_PHYSICAL_QC_FLAT_RL Validate physical QC for a flat RL A0-like fit.
+
 fprintf('\nRunning physical QC test for flat Rayleigh-Lamb A0-like fit...\n');
 fprintf('-------------------------------------------------------------\n');
 
@@ -48,3 +49,4 @@ fprintf('Fit RMSE: %.6g m/s\n', fitResult.metrics.RMSE);
 fprintf('Constant RMSE: %.6g m/s\n', qc.ConstantRMSE_mps);
 fprintf('Physical QC: %s | %s\n', qc.classification, strjoin(qc.reasons, '; '));
 fprintf('\nPhysical QC flat RL A0-like test passed.\n');
+end
