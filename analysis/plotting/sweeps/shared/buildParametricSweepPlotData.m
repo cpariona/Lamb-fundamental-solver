@@ -23,7 +23,7 @@ for i = 1:numel(sweepResults.results)
         curves(i).Cp_mps = branch.phaseVelocity_mps(:);
         curves(i).valid = getBranchValidityMask(branch);
     end
-    curves(i).legendLabel = makeLegendLabel(sweepResults, i);
+    curves(i).legendLabel = makeLegendLabel(sweepResults, modelName, i);
 end
 
 plotData = struct();
@@ -58,10 +58,10 @@ function valid = getBranchValidityMask(branch)
 valid = logical(branch.validMask(:)) & isfinite(branch.phaseVelocity_mps(:));
 end
 
-function txt = makeLegendLabel(sweepResults, idx)
+function txt = makeLegendLabel(sweepResults, modelName, idx)
 spec = sweepResults.spec;
 value = sweepResults.displayValues(idx);
-label = compactLabel(string(sweepResults.parameter));
+label = compactLabel(string(sweepResults.parameter), modelName);
 if isfield(spec, 'units') && strlength(string(spec.units)) > 0
     txt = sprintf('%s = %.4g %s', label, value, string(spec.units));
 else
@@ -94,10 +94,14 @@ switch string(branchName)
 end
 end
 
-function label = compactLabel(parameter)
+function label = compactLabel(parameter, modelName)
 switch string(parameter)
     case "thickness"
-        label = "h";
+        if string(modelName) == "AcoustoelasticIOPHGO"
+            label = "h";
+        else
+            label = "2h";
+        end
     otherwise
         label = string(parameter);
 end
