@@ -16,6 +16,7 @@ test_model_output_folder_helpers;
 test_fitting_helpers_smoke;
 test_shared_fit_optimizer_contract;
 test_parametric_sweep_workflow;
+test_model_structural_symmetry_contract;
 test_rl_result_contract;
 test_gui_execution_profile_normalization;
 test_model_execution_profile_resolvers;
