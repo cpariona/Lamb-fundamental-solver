@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_ae_fit_synthetic_atlasA0()
+%TEST_AE_FIT_SYNTHETIC_ATLASA0 Validate synthetic AE atlasA0 fitting.
 
 fprintf('\nRunning AE IOP/HGO synthetic atlasA0 fitting test...\n');
 fprintf('-------------------------------------------------\n');
@@ -30,7 +28,7 @@ solverOptions.atlasInitializationNumFrequencyPoints = 50;
 assert(any(syntheticRaw.validMask), 'Synthetic AE atlasA0 output must contain at least one valid point.');
 assert(all(isfinite(CpSynthetic_mps(syntheticRaw.validMask)) & CpSynthetic_mps(syntheticRaw.validMask) > 0), ...
     'Synthetic AE atlasA0 valid Cp must be finite and positive.');
-assert(syntheticRaw.solverResult.quality.SelectionFallbackUsed == false, ...
+assert(syntheticRaw.solverResult.quality.selectionFallbackUsed == false, ...
     'Synthetic AE atlasA0 fitting test should not rely on fallback branch selection.');
 
 experimental = struct();
@@ -63,3 +61,4 @@ fprintf('True mu: %.3f kPa\n', trueParams.mu / 1e3);
 fprintf('Fit  mu: %.3f kPa\n', fitResult.bestParams.mu / 1e3);
 fprintf('Relative mu error: %.6g\n', relativeMuError);
 fprintf('\nAE IOP/HGO synthetic atlasA0 fitting test passed.\n');
+end
