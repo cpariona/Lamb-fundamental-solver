@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_gui_fit_model_configuration_contract()
+%TEST_GUI_FIT_MODEL_CONFIGURATION_CONTRACT Validate fitting backend configuration.
 
 fprintf('\nRunning GUI fitting backend contract test...\n');
 fprintf('------------------------------------------\n');
@@ -126,3 +124,4 @@ assert(any(string(mrlfeSummary.Parameter) == "Shear modulus" & string(mrlfeSumma
 fprintf('mRLFE recovered mu: %.3f kPa\n', mrlfeFitOutput.fitResult.bestParams.mu / 1e3);
 
 fprintf('\nGUI fitting backend contract test passed.\n');
+end
