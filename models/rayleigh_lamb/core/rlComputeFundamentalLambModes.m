@@ -1,6 +1,7 @@
 function results = rlComputeFundamentalLambModes(params, options)
 % Compute fundamental A0/S0 branches using independent continuation solves.
 
+timerStart = tic;
 rlValidateParams(params);
 rlValidateOptions(options);
 
@@ -37,7 +38,8 @@ if options.computeS0
 
     modes.S0 = packModeResults("S0", branchSpecS.family, frequency, omega, CpS0, kS0, geometry.thickness, residualS0);
 end
-results = rlBuildResult(params, options, material, geometry, frequency, modes, approximations);
+elapsedSeconds = toc(timerStart);
+results = rlBuildResult(params, options, material, geometry, frequency, modes, approximations, elapsedSeconds);
 end
 
 function solverOptions = buildSolverOptions(options, material)
