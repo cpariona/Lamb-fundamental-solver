@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_mrlfe_smoke()
 % Smoke test for both maintained public mRLFE branches.
 params = rlDefaultParams();
 frequency_Hz = linspace(500, 4000, 18).';
@@ -24,6 +20,7 @@ end
 
 fprintf('test_mrlfe_smoke passed. A0Like valid: %d/%d. S0Like valid: %d/%d.\n', ...
     nnz(a0.validMask), numel(a0.validMask), nnz(s0.validMask), numel(s0.validMask));
+end
 
 function result = solveBranch(params, frequency_Hz, branchName)
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
