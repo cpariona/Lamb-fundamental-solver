@@ -83,5 +83,6 @@ assert(configuration.requested.options.branch == request.branch);
 assert(isequal(configuration.requested.options.frequency_Hz, request.frequency_Hz));
 assert(configuration.effective.parameters.etaS_Pas == request.material.etaS_Pas);
 assert(configuration.effective.options.branch == request.branch);
+assert(configuration.effective.options.materialRegime == "viscoelastic");
 assert(configuration.effective.options.numericalPreset.name == request.numerics.preset);
 end
