@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_production_dependency_contract()
+%TEST_MRLFE_PRODUCTION_DEPENDENCY_CONTRACT Verify retired mRLFE owners are absent from production.
+
 fprintf('\nRunning mRLFE production dependency contract...\n');
 fprintf('---------------------------------------------\n');
 
@@ -37,3 +38,4 @@ assert(isempty(which('mrlfeApplyPhysicalCorridorCut')), ...
     'Retired physical-tail helper should not resolve on the MATLAB path.');
 
 fprintf('mRLFE production dependency contract passed.\n');
+end
