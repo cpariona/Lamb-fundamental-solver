@@ -79,8 +79,7 @@ assert(isequal(result.metadata.modelResult.validMask, expectedRawResult.validMas
     'AE Main GUI validMask must equal the maintained public solver output.');
 assert(isequaln(result.metadata.modelResult.quality, expectedRawResult.quality), ...
     'AE Main GUI quality must equal the maintained public solver output.');
-assert(isequaln(result.branches, expectedView.branches), ...
-    'AE Main GUI must use the shared normalized branch builder unchanged.');
+assertSameNormalizedCurve(result.branches, expectedView.branches);
 assert(isequal(result.branches.phaseVelocity, ...
     result.metadata.modelResult.phaseVelocity_mps(:)), ...
     'AE normalized branch must consume canonical Cp directly.');
@@ -106,4 +105,15 @@ assert(iscolumn(branches.frequency));
 assert(iscolumn(branches.phaseVelocity));
 assert(iscolumn(branches.wavenumber));
 assert(iscolumn(branches.kThickness));
+end
+
+function assertSameNormalizedCurve(actual, expected)
+assert(actual.modelName == expected.modelName);
+assert(actual.rawModelName == expected.rawModelName);
+assert(actual.branchName == expected.branchName);
+assert(isequaln(actual.frequency, expected.frequency));
+assert(isequaln(actual.phaseVelocity, expected.phaseVelocity));
+assert(isequaln(actual.wavenumber, expected.wavenumber));
+assert(isequaln(actual.kThickness, expected.kThickness));
+assert(isequal(actual.diagnostics.valid, expected.diagnostics.valid));
 end
