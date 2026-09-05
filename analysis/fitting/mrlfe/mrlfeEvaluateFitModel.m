@@ -82,7 +82,7 @@ end
 end
 
 function summary = localBuildPublicFitPerformanceSummary(modelResult, fitGridMetadata)
-preset = modelResult.configuration.effective.numericalPreset;
+preset = modelResult.configuration.effective.options.numericalPreset;
 summary = struct();
 summary.routeFamily = "public_solver";
 summary.useFitAtlasPreset = logical(preset.useFitAtlasPreset);
