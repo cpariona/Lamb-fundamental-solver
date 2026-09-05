@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_canonical_route_contract()
+%TEST_MRLFE_CANONICAL_ROUTE_CONTRACT Verify removal of legacy mRLFE routes.
+
 fprintf('\nRunning mRLFE canonical route contract...\n');
 fprintf('--------------------------------------\n');
 
@@ -54,3 +55,4 @@ for i = 1:numel(consumerFiles)
 end
 
 fprintf('mRLFE canonical route contract passed.\n');
+end
