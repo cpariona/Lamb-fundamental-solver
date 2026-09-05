@@ -138,5 +138,7 @@ assert(contains(text, fragment), 'Missing expected production call: %s', fragmen
 end
 
 function tf = samePath(actual, expected)
-tf = strcmpi(strrep(string(actual), '/', '\\'), strrep(string(expected), '/', '\\'));
+actualPath = replace(string(actual), filesep, "/");
+expectedPath = replace(string(expected), filesep, "/");
+tf = strcmpi(actualPath, expectedPath);
 end
