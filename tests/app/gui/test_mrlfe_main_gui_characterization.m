@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_main_gui_characterization()
+%TEST_MRLFE_MAIN_GUI_CHARACTERIZATION Characterize Main GUI/public solver equivalence.
+
 fprintf('\nRunning mRLFE Main GUI public-solver characterization test...\n');
 fprintf('----------------------------------------------------------------\n');
 
@@ -52,6 +53,7 @@ fprintf('Maximum Cp absolute difference: %.12g m/s\n', maxAbsDiff);
 fprintf('Maximum Cp relative difference: %.12g\n', maxRelDiff);
 fprintf('Valid-mask differences: %d\n', validMaskDiffs);
 fprintf('\nmRLFE Main GUI public-solver characterization test passed.\n');
+end
 
 function [out, request] = runMainCase(branchName, etaS, mu)
 params = rlDefaultParams();
