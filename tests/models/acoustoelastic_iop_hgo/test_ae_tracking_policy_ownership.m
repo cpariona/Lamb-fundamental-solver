@@ -110,16 +110,16 @@ end
 function assertFallbackContract()
 result = struct();
 result.options = struct('invalidateAtlasFallbackOutput', true);
-result.quality = struct('SelectionFallbackUsed', true);
-result.phaseVelocity_mps = [100, nan];
-result.validMask = [true, false];
-result.wavenumber_radpm = [1, nan];
-result.branchExistsAtFrequency = [true, false];
-result.interpolatedCp = [false, false];
-result.objective = [0.1, nan];
-result.nearestRank = [1, nan];
-result.nearestBranchID = [2, nan];
-result.pointStatus = ["explicitBranchPoint", "missingSelectedBranch"];
+result.quality = struct('selectionFallbackUsed', true);
+result.phaseVelocity_mps = [100; nan];
+result.validMask = [true; false];
+result.wavenumber_radpm = [1; nan];
+result.branchExistsAtFrequency = [true; false];
+result.interpolatedCp = [false; false];
+result.objective = [0.1; nan];
+result.nearestRank = [1; nan];
+result.nearestBranchID = [2; nan];
+result.pointStatus = ["explicitBranchPoint"; "missingSelectedBranch"];
 [decided, applied] = aeApplyAtlasA0FallbackPolicy(result);
 assert(applied == true);
 assert(isequaln(decided.fallbackCandidateCp, result.phaseVelocity_mps));
