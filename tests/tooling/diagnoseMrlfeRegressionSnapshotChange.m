@@ -35,12 +35,15 @@ summary = table( ...
 summary.RelativeDelta = abs(summary.DeltaCp_mps) ./ max(abs(summary.OldCp_mps), eps);
 
 disp(summary);
+fprintf('\nExact snapshot values\n');
+fprintf('A0 = [%.15g; %.15g; %.15g]\n', a0Cp(1), a0Cp(2), a0Cp(3));
+fprintf('S0 = [%.15g; %.15g; %.15g]\n', s0Cp(1), s0Cp(2), s0Cp(3));
 fprintf('\nA0 valid: %d/%d | S0 valid: %d/%d\n', ...
     nnz(a0.validMask), numel(a0.validMask), nnz(s0.validMask), numel(s0.validMask));
 fprintf('A0 quality accepted: %d | S0 quality accepted: %d\n', ...
     a0.quality.accepted, s0.quality.accepted);
-fprintf('A0 max |Delta Cp|: %.12g m/s\n', max(abs(a0Cp-oldA0)));
-fprintf('S0 max |Delta Cp|: %.12g m/s\n', max(abs(s0Cp-oldS0)));
+fprintf('A0 max |Delta Cp|: %.15g m/s\n', max(abs(a0Cp-oldA0)));
+fprintf('S0 max |Delta Cp|: %.15g m/s\n', max(abs(s0Cp-oldS0)));
 end
 
 function result = solveBranch(params, frequency_Hz, branchName)
