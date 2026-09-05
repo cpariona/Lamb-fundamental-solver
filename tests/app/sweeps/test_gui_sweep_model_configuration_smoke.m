@@ -1,3 +1,4 @@
+function test_gui_sweep_model_configuration_smoke()
 %TEST_GUI_SWEEP_MODEL_CONFIGURATION_SMOKE Smoke test for declarative sweep configuration.
 %
 % This validates that SweepTool metadata is available without instantiating the
@@ -115,3 +116,4 @@ assert(numel(rlOutput.normalized.curves) == 2, ...
     'RL registry-backed GUI sweep must produce one curve per requested value.');
 
 fprintf('GUI sweep model-configuration smoke test passed.\n');
+end
