@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_mrlfe_solve_frequency_override()
 %TEST_MRLFE_SOLVE_FREQUENCY_OVERRIDE Contract test for diagnostic solve grids.
 
 requestedFrequency_Hz = [100 1000 4000].';
@@ -59,3 +55,4 @@ assert(failedAsExpected, ...
 
 fprintf(['test_mrlfe_solve_frequency_override passed. Exact internal grids are ' ...
     'supported without changing the public output grid.\n']);
+end
