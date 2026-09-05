@@ -50,8 +50,8 @@ fallbackOptions.useInternalAtlasTrackingGrid = false;
 fallbackOptions.invalidateAtlasFallbackOutput = true;
 fallbackResult = solveAcoustoelasticIOPHGOBranch(fallbackParams, fallbackOptions);
 assertDiscreteMinima(fallbackResult);
-assert(fallbackResult.quality.SelectionFallbackUsed == true);
-assert(fallbackResult.quality.A0StartFilterPassed == false);
+assert(fallbackResult.quality.selectionFallbackUsed == true);
+assert(fallbackResult.quality.a0StartFilterPassed == false);
 assert(any(isfinite(fallbackResult.fallbackCandidateCp)));
 assert(all(isnan(fallbackResult.phaseVelocity_mps)));
 assert(all(~fallbackResult.validMask));
@@ -75,7 +75,7 @@ options.atlasBranchPolicy = "atlasA0";
 refined = solveAcoustoelasticIOPHGOBranch(params, options);
 options.refineLocalMinima = false;
 discrete = solveAcoustoelasticIOPHGOBranch(params, options);
-assert(all(refined.validMask) && ~refined.quality.SelectionFallbackUsed);
+assert(all(refined.validMask) && ~refined.quality.selectionFallbackUsed);
 assert(isequal(refined.validMask, discrete.validMask));
 assert(isequaln(refined.minimaTable, discrete.minimaTable));
 assert(isequaln(refined.nearestRank, discrete.nearestRank));
@@ -162,8 +162,9 @@ assert(nnz(selectedRow) == 1);
 assert(result.branchTable.SelectionScore(selectedRow) == ...
     min(result.branchTable.SelectionScore));
 assert(all(isfinite(result.minimaTable.BranchID) | isnan(result.minimaTable.BranchID)));
-assert(all(result.validMask == (isfinite(result.phaseVelocity_mps) & ...
-    (result.branchExistsAtFrequency | result.interpolatedCp))));
+expectedValid = isfinite(result.phaseVelocity_mps(:)) & ...
+    (result.branchExistsAtFrequency(:) | result.interpolatedCp(:));
+assert(isequal(result.validMask(:), expectedValid));
 end
 
 function assertSelectedBranchConsistency(result)
