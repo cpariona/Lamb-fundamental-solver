@@ -16,11 +16,12 @@ switch string(modelResult.model)
     case "rayleigh_lamb"
         branches = normalizeRLBranches(modelResult);
         modelName = "RayleighLamb";
-        frequency = firstBranchFrequency(branches);
     case "mrlfe"
         branches = normalizeBranch(modelResult, "mRLFERealK", modelResult.branch);
         modelName = "mRLFE";
-        frequency = modelResult.frequency_Hz(:);
+    case "acoustoelastic_iop_hgo"
+        branches = normalizeBranch(modelResult, "AcoustoelasticIOPHGO", modelResult.branch);
+        modelName = "AcoustoelasticIOPHGO";
     otherwise
         error('guiBuildModelResultView:UnsupportedModel', ...
             'Unsupported canonical model result "%s".', string(modelResult.model));
@@ -28,11 +29,19 @@ end
 
 guiResult = struct();
 guiResult.modelName = modelName;
-guiResult.branchName = "";
-guiResult.frequency = frequency;
-guiResult.phaseVelocity = [];
-guiResult.wavenumber = [];
-guiResult.kThickness = [];
+if numel(branches) == 1
+    guiResult.branchName = branches.branchName;
+    guiResult.frequency = branches.frequency;
+    guiResult.phaseVelocity = branches.phaseVelocity;
+    guiResult.wavenumber = branches.wavenumber;
+    guiResult.kThickness = branches.kThickness;
+else
+    guiResult.branchName = "";
+    guiResult.frequency = firstBranchFrequency(branches);
+    guiResult.phaseVelocity = [];
+    guiResult.wavenumber = [];
+    guiResult.kThickness = [];
+end
 guiResult.branches = branches;
 guiResult.metadata = struct('modelResult', modelResult, 'adapter', string(adapterName));
 guiResult.diagnostics = struct('branchCount', numel(branches));
@@ -59,13 +68,29 @@ branch.wavenumber = source.wavenumber_radpm(:);
 if isfield(source, 'wavenumberThickness')
     branch.kThickness = source.wavenumberThickness(:);
 else
-    thickness = source.configuration.effective.parameters.thickness_m;
-    branch.kThickness = branch.wavenumber * thickness;
+    branch.kThickness = branch.wavenumber * resolveThickness(source);
 end
 branch.metadata = struct('modelResult', source, 'units', defaultUnits());
 branch.diagnostics = struct('valid', logical(source.validMask(:)));
 if isfield(source, 'diagnostics')
     branch.diagnostics.model = source.diagnostics;
+end
+end
+
+function thickness = resolveThickness(source)
+thickness = nan;
+if ~isfield(source, 'configuration') || ~isstruct(source.configuration) || ...
+        ~isfield(source.configuration, 'effective') || ...
+        ~isstruct(source.configuration.effective) || ...
+        ~isfield(source.configuration.effective, 'parameters') || ...
+        ~isstruct(source.configuration.effective.parameters)
+    return;
+end
+parameters = source.configuration.effective.parameters;
+if isfield(parameters, 'thickness_m') && ~isempty(parameters.thickness_m)
+    thickness = parameters.thickness_m;
+elseif isfield(parameters, 'thickness') && ~isempty(parameters.thickness)
+    thickness = parameters.thickness;
 end
 end
 
