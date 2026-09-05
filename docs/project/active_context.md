@@ -1,12 +1,14 @@
 # Active project context
 
-Last reviewed: 2026-09-03
+Last reviewed: 2026-09-05
 
 Repository: `cpariona/Lamb-fundamental-solver`
-Integration branch: `restructure/phase-07-final-integration`
-Base: Phase 6 HEAD `5183565`.
+Integration branch: `planning/full-repository-restructure`
+Working branch: `numerical-solver-alignment/ae-performance-optimization`
+Planning base: `60dad1ff17a19eaeca7eb9efaf949cb37b2463c5`.
+`main` remains untouched by the numerical-alignment work.
 
-## Final architecture
+## Architecture
 
 Models own physics, tracking, numerical configuration, quality, and scientific
 results. Analysis owns fitting, sweeps, plotting, IO, and diagnostic
@@ -16,28 +18,45 @@ mRLFE. Human interfaces consume the same maintained scientific owners.
 
 Production startup loads root/models/analysis/app plus only the six test
 launchers. Test bodies and tooling load explicitly and runners restore the
-caller path. Examples/diagnostics are opt-in files.
+caller path. Examples and maintained scientific diagnostics are opt-in.
 
-There are 114 tests, exactly six runners, and 16 representative executable
-examples (including six diagnostics). Authoritative ownership is in
-`tests/README.md`; architecture is in
+There are 113 maintained tests and exactly six runners. Authoritative ownership
+is in `tests/README.md`; architecture is in
 `docs/repository/repository_structure.md`.
 
-## Scientific baseline
+## Numerical alignment status
 
-AE retains discrete atlas selection followed by bounded fminbnd refinement on
-the true SVD objective. Causal replay proves that its earlier snapshot predates
-that approved algorithm. Commit `6911727` updates only three golden values;
-the 1e-12 tolerance and all production science are unchanged.
-Evidence: `docs/validation/ae_atlasA0_baseline.md`.
+mRLFE Fast optimization was merged into planning through PR #131. Fast uses a
+100-point coarse Cp scan with 260-point rescue only when candidate discovery
+requires it, followed by the maintained selected-candidate continuous
+refinement. The six validation runners passed before merge.
 
-## Integration
+AE retains the protected lifecycle:
 
-Integration is BLOCKED by a historical mRLFE configuration delta, independently
-of the six ordinary tiers, all of which passed. The edge guard migrated from an
-effective 4 to 8 in Phase 2; restoring 4 in memory reproduces all 24 Fast
-reference cases exactly. A production correction requires explicit approval.
-See `docs/validation/mrlfe_restructure_baseline.md` and
-`docs/repository/validation_status.md`.
-No push or merge is authorized. Review and integration are separate actions;
-there is no subsequent restructuring phase.
+```text
+full discrete atlas -> minima -> branch linking -> atlasA0 selection
+-> bounded continuous refinement of the selected branch on the true SVD objective
+```
+
+The AE working branch only optimizes repeated computation inside atlas
+construction. Cp-dependent root/fluid state and algebraic coefficients are
+reused across frequencies, repeated hyperbolic evaluations are avoided, and
+unused diagnostic outputs are skipped when callers request only the objective.
+The matrix, SVD definition, `atlasA0` policy, Fast 300-point atlas, and protected
+continuous refinement are unchanged.
+
+A coarse/rescue AE atlas-density strategy was investigated and rejected: a
+33-case matrix produced 10 false negatives with the proposed validity trigger.
+No adaptive-density behavior was promoted to production.
+
+## Cleanup and validation
+
+All temporary AE investigation scripts and ad hoc numerical benchmarks have
+been removed. `tests/tooling` now contains only path configuration, runtime
+measurement, and the maintained cross-surface execution-profile validator.
+The benchmark-specific mRLFE test was removed because its functional contract
+is already covered by `validateExecutionProfileMatrix`.
+
+Numerical regression and extended integration passed after the exact AE
+optimizations. A final run of all six canonical runners is required after this
+cleanup before opening the integration PR.
