@@ -14,7 +14,6 @@ switch name
         preset.frequencyStep_Hz = 50;
         preset.scanPoints = 260;
         preset.candidateCount = 5;
-        preset.refineCandidates = false;
         preset.adaptiveWindows = [0.20 0.40 0.80];
         preset.internalFitAtlasPreset = "fast";
         preset.useFitAtlasPreset = true;
@@ -26,7 +25,6 @@ switch name
         preset.frequencyStep_Hz = 25;
         preset.scanPoints = 420;
         preset.candidateCount = 6;
-        preset.refineCandidates = true;
         preset.adaptiveWindows = [0.20 0.35 0.50 0.80];
         preset.internalFitAtlasPreset = "fast";
         preset.useFitAtlasPreset = true;
@@ -38,7 +36,6 @@ switch name
         preset.frequencyStep_Hz = 20;
         preset.scanPoints = 620;
         preset.candidateCount = 8;
-        preset.refineCandidates = true;
         preset.adaptiveWindows = [0.20 0.35 0.50 0.80 1.20];
         preset.internalFitAtlasPreset = "dense";
         preset.useFitAtlasPreset = false;
@@ -50,7 +47,6 @@ switch name
         preset.frequencyStep_Hz = 10;
         preset.scanPoints = 900;
         preset.candidateCount = 8;
-        preset.refineCandidates = true;
         preset.adaptiveWindows = [0.20 0.35 0.50 0.80 1.20];
         preset.internalFitAtlasPreset = "dense";
         preset.useFitAtlasPreset = false;
