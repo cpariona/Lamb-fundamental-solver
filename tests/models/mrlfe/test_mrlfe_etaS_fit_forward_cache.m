@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_mrlfe_etaS_fit_forward_cache()
+%TEST_MRLFE_ETAS_FIT_FORWARD_CACHE Validate etaS fitting forward-cache behavior.
 
 fprintf('\nRunning mRLFE etaS fitting forward-cache test...\n');
 fprintf('------------------------------------------------\n');
@@ -64,3 +62,4 @@ fprintf('Forward cache: enabled=%d | kind=%s | reason=%s\n', ...
     fitResult.problem.forwardCache.kind, ...
     fitResult.problem.forwardCache.reason);
 fprintf('\nmRLFE etaS fitting forward-cache test passed.\n');
+end
