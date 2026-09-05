@@ -1,4 +1,4 @@
-function [M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options)
+function [M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options, cpState)
 %BUILDACOUSTOELASTICMATRIX Build the 5x5 acoustoelastic matrix.
 %
 % This implements Appendix Eq. A17 of Li et al. 2024, with an explicit
@@ -11,11 +11,16 @@ function [M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, 
 if nargin < 10 || isempty(options)
     options = defaultAcoustoelasticIOPHGOOptions();
 end
+if nargin < 11 || isempty(cpState)
+    cpState = computeAcoustoelasticCpState(alpha, beta, gamma, rho, rhoF, fluidBulkModulus, c);
+end
+
+s1 = cpState.s1;
+s2 = cpState.s2;
+xi = cpState.xi;
+rootInfo = cpState.rootInfo;
 
 k = 2*pi*f/c;
-[s1, s2, rootInfo] = computeAcoustoelasticSRoots(alpha, beta, gamma, rho, c);
-xi = sqrt(complex(1 - (c^2*rhoF/fluidBulkModulus)));
-
 kh = k*h;
 iUnit = 1i;
 
