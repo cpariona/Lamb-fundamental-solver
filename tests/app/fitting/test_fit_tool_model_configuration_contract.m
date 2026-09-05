@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_fit_tool_model_configuration_contract()
 fprintf('\nRunning FitTool model configuration contract test...\n');
 fprintf('--------------------------------------------\n');
 
@@ -46,6 +42,7 @@ assert(any(strcmp(controls.model.Items, 'AE IOP/HGO')), 'Model dropdown must inc
 
 fprintf('Available fitting models: %s\n', strjoin(cellstr(labels), ', '));
 fprintf('\nFitTool model configuration contract test passed.\n');
+end
 
 function assertFamilyParameters(registry, familyId, requiredParams)
 family = [];
