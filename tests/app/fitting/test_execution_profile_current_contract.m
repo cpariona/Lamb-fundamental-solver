@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_execution_profile_current_contract()
+%TEST_EXECUTION_PROFILE_CURRENT_CONTRACT Validate current execution-profile behavior.
+
 fprintf('\nRunning execution profile current-behavior contract test...\n');
 fprintf('----------------------------------------------------------\n');
 
@@ -70,3 +71,4 @@ assert(legacyOptions.atlasNumYPoints == 300 && legacyOptions.atlasTopNMinima == 
     'Legacy AE Fit atlas-density controls should remain able to override profile density.');
 
 fprintf('Execution profile current-behavior contract test passed.\n');
+end
