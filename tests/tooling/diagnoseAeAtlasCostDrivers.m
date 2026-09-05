@@ -1,6 +1,6 @@
 % TEMPORARY_DIAGNOSTIC
 function summary = diagnoseAeAtlasCostDrivers(varargin)
-%DIAGNOSEAEATLASCOSTDRIVERS Measure AE atlas performance bottlenecks.
+%DIAGNOSEAEATLASCOSTDRIVERS Compare legacy and cached AE atlas construction.
 
 parser = inputParser;
 parser.addParameter('Repeats', 2, @(x)isnumeric(x) && isscalar(x) && x >= 1 && fix(x) == x);
@@ -9,18 +9,17 @@ parser.parse(varargin{:});
 opt = parser.Results;
 
 [params, options] = benchmarkCase();
-methods = ["current", "scalarSvd", "cachedFullSvd", "cachedState"];
+methods = ["legacy", "productionCached"];
+reference = runMethod("legacy", params, options, opt.Repeats);
+rows = repmat(emptyRow(), 0, 1);
 
-fprintf('\nAE atlas cost-driver diagnostic\n');
-fprintf('===============================\n');
+fprintf('\nAE cached-state production validation\n');
+fprintf('=====================================\n');
 fprintf('Tracking frequencies: %d\n', numel(params.frequency));
 fprintf('Atlas Cp points:       %d\n\n', options.atlasNumYPoints);
 
-reference = runMethod(methods(1), params, options, opt.Repeats);
-rows = repmat(emptyRow(), 0, 1);
-
 for method = methods
-    if method == "current"
+    if method == "legacy"
         out = reference;
     else
         out = runMethod(method, params, options, opt.Repeats);
@@ -31,7 +30,7 @@ for method = methods
     row = emptyRow();
     row.Method = method;
     row.MedianSeconds = out.medianSeconds;
-    row.SpeedupVsCurrent = reference.medianSeconds / out.medianSeconds;
+    row.SpeedupVsLegacy = reference.medianSeconds / out.medianSeconds;
     row.MaxAbsObjectiveDiff = cmp.maxAbs;
     row.MaxRelativeObjectiveDiff = cmp.maxRel;
     row.SelectedBranchPointMismatchCount = branchCmp.pointMismatch;
@@ -39,8 +38,8 @@ for method = methods
     row.SelectedCpMaxAbsDiff_mps = branchCmp.maxAbsCp;
     rows(end+1,1) = row; %#ok<AGROW>
 
-    fprintf('%-14s | %.4f s | %5.2fx | max dObj %.3g | branch mismatches %d\n', ...
-        method, row.MedianSeconds, row.SpeedupVsCurrent, ...
+    fprintf('%-16s | %.4f s | %5.2fx | max dObj %.3g | branch mismatches %d\n', ...
+        method, row.MedianSeconds, row.SpeedupVsLegacy, ...
         row.MaxAbsObjectiveDiff, row.SelectedBranchPointMismatchCount);
 end
 
@@ -58,137 +57,41 @@ end
 end
 
 function out = runMethod(method, params, options, repeats)
-builder = @(m) buildAtlasByMethod(m, params, options);
-[objectiveMap, cGrid, cShear] = builder(method); %#ok<ASGLU>
+if method == "legacy"
+    builder = @() buildLegacyAtlas(params, options);
+else
+    builder = @() buildProductionAtlas(params, options);
+end
 
+[objectiveMap, cGrid, cShear] = builder();
 times = nan(repeats,1);
 for r = 1:repeats
     t = tic;
-    [objectiveMap, cGrid, cShear] = builder(method);
+    [objectiveMap, cGrid, cShear] = builder();
     times(r) = toc(t);
 end
-
 branch = selectDiscreteBranch(params.frequency, objectiveMap, cGrid, cShear, options);
 out = struct('objectiveMap', objectiveMap, 'branch', branch, ...
     'medianSeconds', median(times));
 end
 
-function [objectiveMap, cGrid, cShear] = buildAtlasByMethod(method, params, options)
-switch method
-    case "current"
-        [objectiveMap, ~, cGrid, cShear] = aeBuildAtlas(params, options);
-    case "scalarSvd"
-        [objectiveMap, cGrid, cShear] = buildScalarSvdAtlas(params, options);
-    case "cachedFullSvd"
-        [objectiveMap, cGrid, cShear] = buildCachedAtlas(params, options, false);
-    case "cachedState"
-        [objectiveMap, cGrid, cShear] = buildCachedAtlas(params, options, true);
-    otherwise
-        error('Unknown diagnostic method: %s', method);
-end
+function [objectiveMap, cGrid, cShear] = buildProductionAtlas(params, options)
+[objectiveMap, ~, cGrid, cShear] = aeBuildAtlas(params, options);
 end
 
-function [objectiveMap, cGrid, cShear] = buildScalarSvdAtlas(params, options)
+function [objectiveMap, cGrid, cShear] = buildLegacyAtlas(params, options)
 frequency = params.frequency(:).';
 cShear = sqrt(params.alpha / params.rho);
 yGrid = logspace(log10(options.atlasYMin), log10(options.atlasYMax), options.atlasNumYPoints);
 cGrid = yGrid(:) * cShear;
 objectiveMap = nan(numel(cGrid), numel(frequency));
-
 for k = 1:numel(frequency)
     f = frequency(k);
     for j = 1:numel(cGrid)
-        M = buildAcoustoelasticMatrix(params.alpha, params.beta, params.gamma, ...
+        objectiveMap(j,k) = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, ...
             f, cGrid(j), options);
-        s = svd(M);
-        objectiveMap(j,k) = objectiveFromSigma(min(s));
     end
-end
-end
-
-function [objectiveMap, cGrid, cShear] = buildCachedAtlas(params, options, scalarSvd)
-frequency = params.frequency(:).';
-cShear = sqrt(params.alpha / params.rho);
-yGrid = logspace(log10(options.atlasYMin), log10(options.atlasYMax), options.atlasNumYPoints);
-cGrid = yGrid(:) * cShear;
-objectiveMap = nan(numel(cGrid), numel(frequency));
-state = precomputeCpState(cGrid, params);
-
-for k = 1:numel(frequency)
-    f = frequency(k);
-    for j = 1:numel(cGrid)
-        M = buildMatrixFromState(state(j), params, f, options);
-        if scalarSvd
-            singularValues = svd(M);
-        else
-            [~, S, ~] = svd(M);
-            singularValues = diag(S);
-        end
-        objectiveMap(j,k) = objectiveFromSigma(min(singularValues));
-    end
-end
-end
-
-function state = precomputeCpState(cGrid, params)
-template = struct('c',NaN,'s1',NaN,'s2',NaN,'xi',NaN);
-state = repmat(template, numel(cGrid), 1);
-for j = 1:numel(cGrid)
-    c = cGrid(j);
-    [s1, s2] = computeAcoustoelasticSRoots(params.alpha, params.beta, params.gamma, params.rho, c);
-    state(j).c = c;
-    state(j).s1 = s1;
-    state(j).s2 = s2;
-    state(j).xi = sqrt(complex(1 - (c^2 * params.rhoF / params.fluidBulkModulus)));
-end
-end
-
-function M = buildMatrixFromState(state, params, f, options)
-c = state.c;
-s1 = state.s1;
-s2 = state.s2;
-xi = state.xi;
-k = 2*pi*f/c;
-kh = k * params.thickness;
-
-M = complex(zeros(5,5));
-M(1,1) = s1^2 + 1;
-M(1,3) = s2^2 + 1;
-M(2,2) = params.gamma*s1*(s2^2 + 1);
-M(2,4) = params.gamma*s2*(s1^2 + 1);
-M(2,5) = 1i*params.rhoF*c^2;
-M(3,1) = 1;
-M(3,3) = 1;
-M(3,5) = -1i*xi;
-M(4,1) = (s1^2 + 1)*cosh(s1*kh);
-M(4,2) = (s1^2 + 1)*sinh(s1*kh);
-M(4,3) = (s2^2 + 1)*cosh(s2*kh);
-M(4,4) = (s2^2 + 1)*sinh(s2*kh);
-M(5,1) = s1*(s2^2 + 1)*sinh(s1*kh);
-M(5,2) = s1*(s2^2 + 1)*cosh(s1*kh);
-M(5,3) = s2*(s1^2 + 1)*sinh(s2*kh);
-
-if string(options.M54_variant) == "paper"
-    M(5,4) = s2*(s1^2 + 1)*cosh(s1*kh);
-else
-    M(5,4) = s2*(s1^2 + 1)*cosh(s2*kh);
-end
-
-if isfield(options, 'normalizeRows') && options.normalizeRows
-    for r = 1:size(M,1)
-        scale = norm(M(r,:));
-        if isfinite(scale) && scale > 0
-            M(r,:) = M(r,:) ./ scale;
-        end
-    end
-end
-end
-
-function value = objectiveFromSigma(sigmaMin)
-if sigmaMin <= 0 || ~isfinite(sigmaMin)
-    value = inf;
-else
-    value = log10(sigmaMin);
 end
 end
 
@@ -260,7 +163,7 @@ params.frequency = aeBuildInternalTrackingGrid(physical.frequency, options);
 end
 
 function row = emptyRow()
-row = struct('Method',"", 'MedianSeconds',NaN, 'SpeedupVsCurrent',NaN, ...
+row = struct('Method',"", 'MedianSeconds',NaN, 'SpeedupVsLegacy',NaN, ...
     'MaxAbsObjectiveDiff',NaN, 'MaxRelativeObjectiveDiff',NaN, ...
     'SelectedBranchPointMismatchCount',0, 'SelectedRankMismatchCount',0, ...
     'SelectedCpMaxAbsDiff_mps',NaN);
