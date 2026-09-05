@@ -52,7 +52,6 @@ function paths = trackedTestFiles(repoRoot)
 assert(status == 0, 'Could not enumerate tracked MATLAB tests.');
 paths = replace(splitlines(string(strtrim(output))), "\", "/");
 paths(paths == "") = [];
-[~, names] = arrayfun(@(p) fileparts(p), paths, 'UniformOutput', false); %#ok<ASGLU>
 names = strings(size(paths));
 for i = 1:numel(paths)
     [~, name] = fileparts(paths(i));
