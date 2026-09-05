@@ -12,7 +12,6 @@ models/
 analysis/
   fitting/                shared optimizer and model-specific evaluators
   sweeps/                 shared 1D iteration and model workflows; explicit AE 2D
-  requests/               mRLFE SI request translation
   plotting/               render completed sweep results
   io/                     output paths and persistence
   diagnostics/            reusable inspection of scientific evidence
@@ -30,6 +29,11 @@ docs/                     current contracts and operating handoff
 ```
 
 The common model-family spine is `api/configuration/core/solvers/tracking/quality/results` where the responsibility exists. Scientific directories such as RL `equations/` and `approximations/`, AE `constitutive/`, and model-specific `policies/` remain where justified; empty directories are not created for appearance.
+
+Model-specific request construction is model-owned configuration. In particular,
+`mrlfeBuildSolveRequest` translates maintained workflow/app aliases into the
+canonical mRLFE request under `models/mrlfe/configuration/`. Generic workflow
+orchestration remains under analysis/app; model request semantics do not.
 
 ## Dependency contract
 
@@ -58,6 +62,7 @@ lives under tests, not analysis.
 | RL public API | `rlComputeFundamentalLambModes` and RL public defaults under `api/` |
 | RL configuration | RL frequency wrapper and validation under `configuration/` |
 | RL physics/tracking | RL residuals, model solver, and `rlSolveFundamentalBranch` |
+| mRLFE request/configuration | `mrlfeBuildSolveRequest`, `mrlfeResolveConfiguration`, and numerical presets under `configuration/` |
 | mRLFE physics/tracking | mRLFE matrix/residual and adaptive tracking |
 | AE public API | `solveAcoustoelasticIOPHGOBranch` under `api/` |
 | AE physics/tracking | constitutive/SVD objective, discrete atlas linking, selected-branch `fminbnd` refinement |
