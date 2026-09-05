@@ -150,6 +150,7 @@ options.mrlfeParams.etaL = 0;
 options.mrlfeParams.useComplexLambda = false;
 options.mrlfeParams.solveComplexK = false;
 options.trackerCpScanPoints = preset.scanPoints;
+options.trackerRescueCpScanPoints = preset.rescueScanPoints;
 options.trackerCandidateCount = preset.candidateCount;
 options.trackerRefineCandidates = false;
 options.trackerWindows = preset.adaptiveWindows;
