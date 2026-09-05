@@ -1,5 +1,5 @@
-function results = rlComputeFundamentalLambModes(params, options)
-% Compute fundamental A0/S0 branches using independent continuation solves.
+function results = rlSolveFundamentalModes(params, options)
+%RLSOLVEFUNDAMENTALMODES Solve fundamental A0/S0 branches.
 
 timerStart = tic;
 rlValidateParams(params);
