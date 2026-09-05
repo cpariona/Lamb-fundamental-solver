@@ -60,8 +60,9 @@ assert(any(isfinite(fallbackResult.fallbackCandidateCp)));
 
 physicalSweep = aeRunSweep(params, "IOP", params.IOP, options, ...
     struct('Name', "iop", 'Label', "IOP"));
-assert(isequaln(physicalSweep.conditions.result.quality, physicalSweep.conditions.quality));
-assert(~isfield(physicalSweep.conditions, 'reliability'));
+assertCanonicalSweep(physicalSweep);
+assert(isequaln(physicalSweep.results{1}.quality, physicalSweep.points{1}.quality));
+assert(~isfield(physicalSweep, 'conditions'));
 
 axisSpec = struct('Field', "IOP", 'Values', params.IOP, 'Name', "IOP", ...
     'Label', "IOP", 'Unit', "Pa", 'ValueScale', 1, 'ValueFormatter', "%.6g");
@@ -100,6 +101,14 @@ assert(iscolumn(result.validMask));
 assert(isequaln(result.frequency_Hz, requestedFrequency(:)));
 assert(isa(result.validMask, 'logical'));
 assert(all(isnan(result.phaseVelocity_mps(~result.validMask))));
+end
+
+function assertCanonicalSweep(sweep)
+required = {'spec','parameter','values','displayValues','results','params', ...
+    'options','elapsedSeconds','points','requests'};
+assert(all(isfield(sweep, required)), 'Canonical 1-D sweep contract is incomplete.');
+assert(numel(sweep.results) == numel(sweep.values));
+assert(numel(sweep.points) == numel(sweep.values));
 end
 
 function assertQualityParity(result)
