@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_fit_uses_public_solver()
+%TEST_MRLFE_FIT_USES_PUBLIC_SOLVER Guard the maintained FitTool mRLFE route.
+
 fprintf('\nRunning mRLFE FitTool public-solver route guard test...\n');
 fprintf('------------------------------------------------------\n');
 
@@ -42,3 +43,4 @@ fprintf('Route: %s | public preset: %s | engine: %s\n', ...
     raw.evaluationPath.path, raw.modelResult.execution.effectivePreset, ...
     raw.modelResult.execution.internalEngine);
 fprintf('\nmRLFE FitTool public-solver route guard test passed.\n');
+end
