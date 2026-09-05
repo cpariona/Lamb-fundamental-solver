@@ -12,16 +12,15 @@ if nargin < 11
     cpState = [];
 end
 
-[M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options, cpState);
-
 if nargout < 2
+    M = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options, cpState);
     [~, S, ~] = svd(M);
-    singularValues = diag(S);
-    sigmaMin = min(singularValues);
+    sigmaMin = min(diag(S));
     objectiveValue = objectiveFromSigma(sigmaMin);
     return;
 end
 
+[M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options, cpState);
 [U, S, V] = svd(M);
 singularValues = diag(S);
 [sigmaMin, idxMin] = min(singularValues);
