@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_fit_validation_ae_iop_hgo_hidden_params()
+%TEST_FIT_VALIDATION_AE_IOP_HGO_HIDDEN_PARAMS Validate hidden-parameter AE fitting.
+
 fprintf('\nRunning AE IOP/HGO hidden-parameter fitting validation tests...\n');
 fprintf('-----------------------------------------------------------\n');
 
@@ -28,7 +29,7 @@ solverOptions.atlasInitializationNumFrequencyPoints = 50;
 
 [CpSynthetic_mps, syntheticRaw] = aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
 assert(any(syntheticRaw.validMask), 'AE hidden-parameter validation synthetic atlasA0 output must contain valid points.');
-assert(syntheticRaw.solverResult.quality.SelectionFallbackUsed == false, ...
+assert(syntheticRaw.solverResult.quality.selectionFallbackUsed == false, ...
     'AE hidden-parameter validation must not rely on fallback branch selection.');
 
 experimental = struct();
@@ -64,6 +65,6 @@ fitResult = aeFitDispersionData(experimental, fitConfig);
 assert(string(fitResult.branchName) == "atlasA0", 'AE IOP validation branch must remain atlasA0.');
 summaryRows = [summaryRows; assertFitRecovery("AE_atlasA0_IOP_exact", trueParams.IOP, fitResult.bestParams.IOP, 0.25, fitResult, 0.75, 1)]; %#ok<AGROW>
 
-assignin('base', 'AEIOPHGOHiddenParamFitValidationSummary', summaryRows);
 disp(summaryRows);
 fprintf('\nAE IOP/HGO hidden-parameter fitting validation tests passed.\n');
+end
