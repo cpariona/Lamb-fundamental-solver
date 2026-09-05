@@ -2,9 +2,8 @@ function [objectiveValue, details] = objectiveAcoustoelasticResidual(alpha, beta
 %OBJECTIVEACOUSTOELASTICRESIDUAL Objective for Li 2024 secular equation.
 %
 % The objective is log10 of the smallest singular value of the row-normalized
-% characteristic matrix. This is more robust than using det(M) directly.
-% The right singular vector associated with sigma_min is also returned so it
-% can be used as a modal signature for MAC-based tracking.
+% characteristic matrix. Modal signatures and matrix details are built only
+% when explicitly requested by the caller.
 
 if nargin < 10 || isempty(options)
     options = defaultAcoustoelasticIOPHGOOptions();
@@ -14,15 +13,19 @@ if nargin < 11
 end
 
 [M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options, cpState);
+
+if nargout < 2
+    [~, S, ~] = svd(M);
+    singularValues = diag(S);
+    sigmaMin = min(singularValues);
+    objectiveValue = objectiveFromSigma(sigmaMin);
+    return;
+end
+
 [U, S, V] = svd(M);
 singularValues = diag(S);
 [sigmaMin, idxMin] = min(singularValues);
-
-if sigmaMin <= 0 || ~isfinite(sigmaMin)
-    objectiveValue = inf;
-else
-    objectiveValue = log10(sigmaMin);
-end
+objectiveValue = objectiveFromSigma(sigmaMin);
 
 rightVector = V(:, idxMin);
 leftVector = U(:, idxMin);
@@ -42,4 +45,12 @@ details.singularVectorRight = rightVector;
 details.singularVectorLeft = leftVector;
 details.matrix = M;
 details.aux = aux;
+end
+
+function value = objectiveFromSigma(sigmaMin)
+if sigmaMin <= 0 || ~isfinite(sigmaMin)
+    value = inf;
+else
+    value = log10(sigmaMin);
+end
 end
