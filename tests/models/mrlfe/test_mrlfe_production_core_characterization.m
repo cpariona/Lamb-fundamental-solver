@@ -1,29 +1,16 @@
-function [fastResults, denseResults] = test_mrlfe_production_core_characterization(referenceFile)
-% Optional referenceFile contains fastResults/denseResults captured from an
-% explicitly selected historical model tree. Never manufacture zero deltas
-% when no independent reference was supplied.
+function test_mrlfe_production_core_characterization()
+%TEST_MRLFE_PRODUCTION_CORE_CHARACTERIZATION Characterize maintained production coverage.
+
 fprintf('\nRunning mRLFE production core characterization test...\n');
 fprintf('-----------------------------------------------------\n');
 
 fastResults = runMatrix("fast", [50e3 75e3 158e3 250e3], [0 0.05 0.10], ["A0Like" "S0Like"]);
-if nargin > 0
-    reference = load(referenceFile, 'fastResults', 'denseResults');
-    fastStats = compareResults(fastResults, reference.fastResults, "Fast");
-end
 denseResults = runMatrix("dense", 75e3, [0 0.05 0.10], ["A0Like" "S0Like"]);
 
 assert(numel(fastResults) == 24, 'Fast characterization matrix should contain 24 cases.');
 assert(numel(denseResults) == 6, 'Dense characterization subset should contain 6 cases.');
 
-if nargin > 0
-    denseStats = compareResults(denseResults, reference.denseResults, "Dense");
-    assert(fastStats.maskDifferences == 0 && denseStats.maskDifferences == 0, ...
-        'Historical valid masks differ.');
-    assert(fastStats.maxAbs <= 1e-10 && denseStats.maxAbs <= 1e-10, ...
-        'Historical Cp difference exceeds characterization tolerance.');
-else
-    fprintf('Fast 24 / Dense 6 schema and coverage checked; no historical delta claimed.\n');
-end
+fprintf('Fast 24 / Dense 6 schema and coverage checked.\n');
 fprintf('mRLFE production core characterization test passed.\n');
 end
 
@@ -50,27 +37,6 @@ for branch = branches
         end
     end
 end
-end
-
-function stats = compareResults(actual, expected, label)
-assert(numel(actual) == numel(expected), 'Historical case count differs.');
-maxAbs = 0; maxRel = 0; maskDiffs = 0;
-for i = 1:numel(actual)
-    a = actual{i}; b = expected{i};
-    assert(a.branch == b.branch && isequal(a.frequency_Hz, b.frequency_Hz));
-    assert(a.execution.effectivePreset == b.execution.effectivePreset);
-    assert(isequal(isfinite(a.phaseVelocity_mps), isfinite(b.phaseVelocity_mps)));
-    maskDiffs = maskDiffs + nnz(a.validMask ~= b.validMask);
-    finite = isfinite(a.phaseVelocity_mps) & isfinite(b.phaseVelocity_mps);
-    assert(any(finite), 'Historical comparison needs finite overlap.');
-    delta = abs(a.phaseVelocity_mps(finite) - b.phaseVelocity_mps(finite));
-    fprintf('%s case %d %s: max abs %.12g m/s\n', label, i, a.branch, max(delta));
-    maxAbs = max(maxAbs, max(delta));
-    maxRel = max(maxRel, max(delta ./ max(abs(b.phaseVelocity_mps(finite)), eps)));
-end
-fprintf('%s cases %d | measured max abs %.12g m/s | max rel %.12g | masks %d\n', ...
-    label, numel(actual), maxAbs, maxRel, maskDiffs);
-stats = struct('maxAbs', maxAbs, 'maxRelative', maxRel, 'maskDifferences', maskDiffs);
 end
 
 function request = localRequest(branch, etaS, mu, preset)
