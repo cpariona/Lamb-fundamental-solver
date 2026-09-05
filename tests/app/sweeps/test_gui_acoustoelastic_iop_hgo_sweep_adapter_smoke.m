@@ -48,12 +48,12 @@ assert(isfield(sweepOutput, 'summaryTable'));
 assert(isfield(sweepOutput, 'normalized'));
 assert(isequal(sweepOutput.sweepSpec.values, [10 15] * 133.322));
 assert(string(sweepOutput.sweepSpec.units) == "mmHg");
-assert(numel(sweepOutput.sweepResult.conditions) == 2);
+assertCanonicalSweep(sweepOutput.sweepResult, 2);
 assert(height(sweepOutput.summaryTable) == 2);
 assert(numel(sweepOutput.normalized.curves) == 2);
 assert(~isempty(sweepOutput.normalized.dispersionTable));
-assert(sweepOutput.sweepResult.options.atlasNumYPoints == 180);
-assert(sweepOutput.sweepResult.options.atlasTopNMinima == 8);
+assert(sweepOutput.sweepResult.options{1}.atlasNumYPoints == 180);
+assert(sweepOutput.sweepResult.options{1}.atlasTopNMinima == 8);
 assert(string(sweepOutput.executionProfile.requestedExecutionProfile) == "Fast");
 assert(string(sweepOutput.executionProfile.surfaceDefaultExecutionProfile) == "Fast");
 assert(isfield(sweepOutput, 'elapsedSeconds') && isfinite(sweepOutput.elapsedSeconds));
@@ -62,7 +62,7 @@ fallbackInvalidationObserved = false;
 officialValidPointObserved = false;
 for i = 1:numel(sweepOutput.normalized.curves)
     curve = sweepOutput.normalized.curves(i);
-    modelResult = sweepOutput.sweepResult.conditions(i).result;
+    modelResult = sweepOutput.sweepResult.results{i};
 
     required = {'label','sweepValue','sweepValueDisplay','frequency_Hz', ...
         'Cp_mps','validMask','lastValidFrequency_Hz','rawBranch'};
@@ -82,15 +82,25 @@ for i = 1:numel(sweepOutput.normalized.curves)
     end
 end
 
-firstCondition = sweepOutput.sweepResult.conditions(1);
-expectedFirstResult = solveAcoustoelasticIOPHGOBranch( ...
-    firstCondition.params, sweepOutput.sweepResult.options);
-assert(isequaln(firstCondition.result.phaseVelocity_mps, expectedFirstResult.phaseVelocity_mps));
-assert(isequal(firstCondition.result.validMask, expectedFirstResult.validMask));
-assert(isequaln(firstCondition.quality, expectedFirstResult.quality));
-assert(isequaln(firstCondition.diagnostics, expectedFirstResult.diagnostics));
+firstParams = sweepOutput.sweepResult.params{1};
+firstOptions = sweepOutput.sweepResult.options{1};
+firstResult = sweepOutput.sweepResult.results{1};
+expectedFirstResult = solveAcoustoelasticIOPHGOBranch(firstParams, firstOptions);
+assert(isequaln(firstResult.phaseVelocity_mps, expectedFirstResult.phaseVelocity_mps));
+assert(isequal(firstResult.validMask, expectedFirstResult.validMask));
+assert(isequaln(firstResult.quality, expectedFirstResult.quality));
+assert(isequaln(firstResult.diagnostics, expectedFirstResult.diagnostics));
 assert(fallbackInvalidationObserved || officialValidPointObserved, ...
     'AE sweep adapter must expose valid official points or preserved fallback diagnostics.');
 
 fprintf('Acoustoelastic IOP/HGO GUI sweep adapter smoke test passed.\n');
+end
+
+function assertCanonicalSweep(sweep, expectedCount)
+required = {'spec','parameter','values','displayValues','results','params', ...
+    'options','elapsedSeconds','points','requests'};
+assert(all(isfield(sweep, required)), 'Canonical 1-D sweep contract is incomplete.');
+assert(numel(sweep.results) == expectedCount);
+assert(numel(sweep.points) == expectedCount);
+assert(~isfield(sweep, 'conditions'));
 end
