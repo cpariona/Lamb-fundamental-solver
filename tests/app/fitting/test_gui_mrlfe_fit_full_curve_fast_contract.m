@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_gui_mrlfe_fit_full_curve_fast_contract()
+%TEST_GUI_MRLFE_FIT_FULL_CURVE_FAST_CONTRACT Validate on-demand mRLFE full-curve behavior.
+
 fprintf('\nRunning GUI mRLFE on-demand full-curve test...\n');
 fprintf('---------------------------------------------\n');
 
@@ -68,3 +69,4 @@ fprintf('Fit funcCount:  %d\n', fitResult.optimizer.output.funcCount);
 fprintf('Display source: %s\n', normalized.fullCurve.source);
 fprintf('Full curve:     %s\n', normalized.fullCurve.extension.errorMessage);
 fprintf('\nGUI mRLFE on-demand full-curve test passed.\n');
+end
