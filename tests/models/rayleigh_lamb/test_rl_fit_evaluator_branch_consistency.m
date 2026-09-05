@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_rl_fit_evaluator_branch_consistency()
+%TEST_RL_FIT_EVALUATOR_BRANCH_CONSISTENCY Validate branch-coherent fitting evaluation.
 
 fprintf('\nRunning Rayleigh-Lamb fitting evaluator branch-consistency test...\n');
 fprintf('---------------------------------------------------------------\n');
@@ -57,3 +55,4 @@ else
     fprintf('Internal branch max relative jump: %.6g\n', max(relativeJump));
 end
 fprintf('\nRayleigh-Lamb fitting evaluator branch-consistency test passed.\n');
+end
