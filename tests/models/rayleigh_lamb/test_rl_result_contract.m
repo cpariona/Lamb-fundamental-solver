@@ -18,6 +18,8 @@ assert(~isfield(result, 'models') && ~isfield(result, 'grid'));
 assert(isfield(result.configuration, 'requested') && isfield(result.configuration, 'effective'));
 assert(isequaln(result.configuration.requested.parameters, params));
 assert(isequaln(result.configuration.requested.options, options));
+assert(isfield(result.execution, 'engine') && result.execution.engine == "independent_continuation");
+assert(isfield(result.execution, 'elapsedSeconds') && isfinite(result.execution.elapsedSeconds));
 
 for name = ["A0", "S0"]
     branch = result.modes.(char(name));
@@ -26,11 +28,15 @@ for name = ["A0", "S0"]
     assert(all(isfield(branch, required)));
     assert(~any(isfield(branch, {'frequency', 'Cp', 'k', 'valid'})));
     assert(isequal(branch.frequency_Hz, result.configuration.effective.frequency_Hz));
+    assert(iscolumn(branch.frequency_Hz) && iscolumn(branch.phaseVelocity_mps) && ...
+        iscolumn(branch.wavenumber_radpm) && iscolumn(branch.validMask));
     assert(isequal(size(branch.frequency_Hz), size(branch.phaseVelocity_mps)));
     assert(isequal(size(branch.frequency_Hz), size(branch.validMask)));
     assert(isfield(branch.diagnostics, 'residual') && ~isfield(branch, 'residual'));
     assert(isequal(size(branch.frequency_Hz), size(branch.diagnostics.residual)));
-    assert(result.quality.(char(name)).validCount == nnz(branch.validMask));
+    quality = result.quality.(char(name));
+    assert(all(isfield(quality, {'pointCount','validCount','validFraction','accepted','reason'})));
+    assert(quality.validCount == nnz(branch.validMask));
 end
 
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
