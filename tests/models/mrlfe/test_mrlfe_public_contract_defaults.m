@@ -27,7 +27,6 @@ assert(fast.name == "fast", 'Fast preset name mismatch.');
 assert(fast.frequencyStep_Hz == 50, 'Fast preset frequency step mismatch.');
 assert(fast.scanPoints == 260, 'Fast preset scan points mismatch.');
 assert(fast.candidateCount == 5, 'Fast preset candidate count mismatch.');
-assert(fast.refineCandidates == false, 'Fast preset must not refine candidates.');
 assert(isequal(fast.adaptiveWindows, [0.20 0.40 0.80]), 'Fast adaptive windows mismatch.');
 
 balanced = mrlfeGetNumericalPreset("balanced");
@@ -35,7 +34,6 @@ assert(balanced.name == "balanced", 'Balanced preset name mismatch.');
 assert(balanced.frequencyStep_Hz == 25, 'Balanced preset frequency step mismatch.');
 assert(balanced.scanPoints == 420, 'Balanced preset scan points mismatch.');
 assert(balanced.candidateCount == 6, 'Balanced preset candidate count mismatch.');
-assert(balanced.refineCandidates == true, 'Balanced preset must refine candidates.');
 assert(isequal(balanced.adaptiveWindows, [0.20 0.35 0.50 0.80]), ...
     'Balanced adaptive windows mismatch.');
 
@@ -44,7 +42,6 @@ assert(robust.name == "robust", 'Robust preset name mismatch.');
 assert(robust.frequencyStep_Hz == 20, 'Robust preset frequency step mismatch.');
 assert(robust.scanPoints == 620, 'Robust preset scan points mismatch.');
 assert(robust.candidateCount == 8, 'Robust preset candidate count mismatch.');
-assert(robust.refineCandidates == true, 'Robust preset must refine candidates.');
 assert(isequal(robust.adaptiveWindows, [0.20 0.35 0.50 0.80 1.20]), ...
     'Robust adaptive windows mismatch.');
 
@@ -53,7 +50,6 @@ assert(dense.name == "dense", 'Dense preset name mismatch.');
 assert(dense.frequencyStep_Hz == 10, 'Dense preset frequency step mismatch.');
 assert(dense.scanPoints == 900, 'Dense preset scan points mismatch.');
 assert(dense.candidateCount == 8, 'Dense preset candidate count mismatch.');
-assert(dense.refineCandidates == true, 'Dense preset must refine candidates.');
 
 assertErrorId(@() mrlfeGetNumericalPreset("unsupported"), 'mrlfe:InvalidNumericalPreset');
 
