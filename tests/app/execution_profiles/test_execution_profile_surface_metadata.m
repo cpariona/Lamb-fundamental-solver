@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_execution_profile_surface_metadata()
 fprintf('\nRunning execution profile surface metadata tests...\n');
 fprintf('--------------------------------------------------\n');
 
@@ -162,6 +158,7 @@ assertThrows(@()guiBuildFitRequest("rayleigh_lamb", 'branchName', "A0", 'experim
     'guiNormalizeExecutionProfile:ConflictingProfiles');
 
 fprintf('Execution profile surface metadata tests passed.\n');
+end
 
 function assertThrows(fcn, expectedId)
 threw = false;
