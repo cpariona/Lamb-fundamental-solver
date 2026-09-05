@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_fit_tool_requested_curve_models()
+%TEST_FIT_TOOL_REQUESTED_CURVE_MODELS Validate requested-curve model coverage.
+
 fprintf('\nRunning FitTool requested-curve model coverage test...\n');
 fprintf('-----------------------------------------------------\n');
 
@@ -80,6 +81,7 @@ assert(isfield(aeOutput, 'fitElapsedSeconds') && isfinite(aeOutput.fitElapsedSec
     'AE FitTool elapsed time placement changed.');
 
 fprintf('\nFitTool requested-curve model coverage test passed.\n');
+end
 
 function fitOutput = runCase(modelFamily, branchName, frequency_Hz, Cp_mps, fixedParams, freeParam, initialGuess, bounds, controls, fitOptions)
 experimental = struct('frequency_Hz', frequency_Hz(:), ...
