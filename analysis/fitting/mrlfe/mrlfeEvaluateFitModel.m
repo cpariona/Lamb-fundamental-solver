@@ -90,6 +90,7 @@ summary.preset = string(modelResult.execution.effectivePreset);
 summary.publicPreset = string(modelResult.execution.effectivePreset);
 summary.internalFitAtlasPreset = string(modelResult.execution.effectivePreset);
 summary.atlasCpScanPoints = preset.scanPoints;
+summary.rescueCpScanPoints = preset.rescueScanPoints;
 summary.a0DpCandidates = preset.candidateCount;
 summary.adaptiveWindows = preset.adaptiveWindows;
 summary.requestedPreset = string(modelResult.execution.requestedPreset);
