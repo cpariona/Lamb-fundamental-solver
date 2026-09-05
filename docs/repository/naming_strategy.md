@@ -29,8 +29,31 @@ not exceed `namelengthmax`.
 
 ## Parameters and outputs
 
-The request field `thickness_m` means total thickness `2h`; use `mu`, `nu`, and
-`rho` for soft-material elastic inputs. Generated results use:
+Parameter naming follows each maintained public contract; cross-family symmetry
+does not require identical field spellings when the APIs intentionally differ.
+
+The canonical mRLFE request uses unit-qualified fields:
+
+```text
+mu_Pa
+etaS_Pas
+rho_kgm3
+thickness_m
+fluid density_kgm3
+fluid soundSpeed_mps
+```
+
+Rayleigh-Lamb and AE workflow/public parameter structs retain established SI
+names such as `mu`, `rho`, and `thickness`. In every family, `thickness` or
+`thickness_m` means the full physical plate thickness `2h`, not half-thickness.
+Half-thickness is internal model state only.
+
+Workflow/app aliases are translated at the model boundary rather than becoming
+parallel public schemas. For mRLFE, `mrlfeBuildSolveRequest` owns translation
+from maintained aliases such as `mu`, `rho`, and `thickness` to the canonical
+unit-qualified request.
+
+Generated results use:
 
 ```text
 Results/rayleigh_lamb/<task>
