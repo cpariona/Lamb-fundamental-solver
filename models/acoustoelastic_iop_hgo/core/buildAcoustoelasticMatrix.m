@@ -12,7 +12,7 @@ if nargin < 10 || isempty(options)
     options = defaultAcoustoelasticIOPHGOOptions();
 end
 if nargin < 11 || isempty(cpState)
-    cpState = computeAcoustoelasticCpState(alpha, beta, gamma, rho, rhoF, fluidBulkModulus, c);
+    cpState = aeComputeAcoustoelasticCpState(alpha, beta, gamma, rho, rhoF, fluidBulkModulus, c);
 end
 
 s1 = cpState.s1;
