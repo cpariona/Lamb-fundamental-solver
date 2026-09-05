@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_main_gui_consumer_equivalence()
+%TEST_MRLFE_MAIN_GUI_CONSUMER_EQUIVALENCE Compare Main GUI, SweepTool, and FitTool consumers.
+
 fprintf('\nRunning mRLFE Main GUI consumer-equivalence test...\n');
 fprintf('---------------------------------------------------\n');
 
@@ -59,6 +60,7 @@ assert(isequal(mainResult.validMask(:), fitRaw.validMask(:)), ...
 fprintf('Main GUI vs SweepTool max Cp diff: %.12g\n', max(abs(mainResult.phaseVelocity_mps - sweepResult.phaseVelocity_mps), [], 'omitnan'));
 fprintf('Main GUI vs FitTool max Cp diff: %.12g\n', max(abs(mainResult.phaseVelocity_mps - fitCp), [], 'omitnan'));
 fprintf('\nmRLFE Main GUI consumer-equivalence test passed.\n');
+end
 
 function [out, params, options] = runMainCase(branchName, etaS, mu)
 params = rlDefaultParams();
