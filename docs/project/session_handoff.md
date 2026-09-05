@@ -1,31 +1,48 @@
 # Integration handoff
 
-Last reviewed: 2026-09-03
+Last reviewed: 2026-09-05
 
-Branch: `restructure/phase-07-final-integration`
-Base: `5183565`, the final Phase 6 commit. No merge or push performed.
+Integration branch: `planning/full-repository-restructure`
+Working branch: `numerical-solver-alignment/ae-performance-optimization`
+Planning base: `60dad1ff17a19eaeca7eb9efaf949cb37b2463c5`.
+`main` has not been modified by this campaign.
 
-## Review scope
+## Completed numerical work
 
-- Production/test/example path ownership is explicit.
-- Cross-surface benchmark tooling is test-owned, not analysis-owned.
-- Active architecture/model/workflow docs supersede historical campaign plans.
-- Repository checks enforce unique MATLAB names and one runner per test.
-- AE independent SVD, branch-identity, convergence, and synthetic-recovery
-  evidence justifies the isolated golden update `6911727` (1e-12 unchanged).
-- mRLFE historical comparisons must measure a real reference, not report
-  initialized zero statistics. The Phase 1 reference is `1b6b3a1`.
+mRLFE optimization is already integrated into planning through PR #131.
+Its maintained Fast route uses coarse scanning plus targeted dense rescue and
+selected-candidate continuous refinement.
 
-## Integration gate
+The current branch optimizes AE atlas construction without altering scientific
+selection behavior. Production changes are limited to reuse of Cp-dependent
+state/algebraic coefficients and avoidance of unused/repeated computation.
+The following remain unchanged:
 
-BLOCKED: the historical mRLFE comparison detected a Phase 2 edge-guard mapping
-regression (effective 4 became 8), maximum Fast delta 0.0120684309767 m/s.
-An in-memory guard of 4 restores all 24 Fast cases exactly; the production
-configuration has not been changed pending explicit approval. Evidence is in
-`docs/validation/mrlfe_restructure_baseline.md`. All six ordinary tiers and
-targeted presentation reruns passed; measured status and performance are in
-`docs/repository/validation_status.md`.
+- Fast/Balanced/Robust AE atlas densities, including Fast = 300 points;
+- discrete local-minimum discovery;
+- branch linking/splitting;
+- official `atlasA0` selection;
+- bounded continuous refinement on the true SVD objective;
+- fallback and requested-grid policies.
 
-After a successful gate, review the branch diff and the separate AE scientific
-baseline commit. Push/merge only after explicit authorization. Keep generated
-results and disposable historical reference files out of Git.
+Temporary diagnostics verified zero objective-map, branch-rank, and discrete-Cp
+difference for the exact optimization path. Numerical regression and extended
+integration passed after the production changes.
+
+A proposed AE coarse/rescue density scheme was rejected. In the 33-case
+validation matrix, 19 coarse cases differed from the 300-point reference and a
+`ValidFraction < 1` trigger missed 10 of them. No density adaptation entered
+production.
+
+## Repository cleanup
+
+Temporary AE diagnostics and ad hoc numerical benchmarks have been removed.
+The obsolete mRLFE benchmark-specific contract was also removed because the
+maintained cross-surface validator already covers execution-profile behavior.
+There are now 113 maintained tests across the same six canonical runners.
+
+## Next gate
+
+Run all six canonical runners on the current branch. If they pass, review the
+branch diff and open a PR into `planning/full-repository-restructure`.
+Do not merge into `main` without explicit authorization.
