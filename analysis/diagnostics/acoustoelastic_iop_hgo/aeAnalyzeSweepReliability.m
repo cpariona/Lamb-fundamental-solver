@@ -1,18 +1,5 @@
 function analysis = aeAnalyzeSweepReliability(inputData, varargin)
-%AEANALYZESWEEPRELIABILITY Analyze reliability and monotonicity of acoustoelastic sweeps.
-%
-%   analysis = aeAnalyzeSweepReliability(sweepResult)
-%   analysis = aeAnalyzeSweepReliability(summary)
-%
-%   The input can be either the structure returned by aeRunSweep or the summary
-%   structure returned by aeSummarizeSweep.
-%
-%   Name-value options
-%   ------------------
-%   'ExpectedDirection'              : "increasing" or "decreasing". Default: "increasing".
-%   'Tolerance'                      : allowed Cp tolerance for monotonicity. Default: 1e-9.
-%   'MinFrequencyForMonotonicity_kHz': lower frequency bound for the reported monotonicity table. Default: -Inf.
-%   'Label'                          : optional label stored in analysis.label.
+%AEANALYZESWEEPRELIABILITY Analyze reliability and monotonicity of AE sweeps.
 
 opts = parseOptions(varargin{:});
 [summary, sweepResult] = normalizeInput(inputData);
@@ -68,13 +55,13 @@ end
 
 function [summary, sweepResult] = normalizeInput(inputData)
 sweepResult = struct();
-if isstruct(inputData) && isfield(inputData, 'conditions')
+if isstruct(inputData) && isfield(inputData, 'results') && isfield(inputData, 'spec')
     sweepResult = inputData;
     summary = aeSummarizeSweep(inputData);
 elseif isstruct(inputData) && isfield(inputData, 'dispersionTable')
     summary = inputData;
 else
-    error('Input must be a sweepResult returned by aeRunSweep or a summary returned by aeSummarizeSweep.');
+    error('Input must be canonical aeRunSweep output or an aeSummarizeSweep summary.');
 end
 end
 
@@ -293,10 +280,18 @@ else
     S.MinValidFraction = nan; S.MaxValidFraction = nan;
     S.MinLastValidFrequency_kHz = nan; S.MaxLastValidFrequency_kHz = nan;
 end
-if isstruct(sweepResult) && isfield(sweepResult, 'options') && isfield(sweepResult.options, 'atlasBranchPolicy')
-    S.PolicyName = string(sweepResult.options.atlasBranchPolicy);
-else
-    S.PolicyName = "";
+S.PolicyName = sweepPolicy(sweepResult);
+end
+
+function value = sweepPolicy(sweepResult)
+value = "";
+if ~isstruct(sweepResult) || ~isfield(sweepResult, 'options') || ...
+        ~iscell(sweepResult.options) || isempty(sweepResult.options)
+    return;
+end
+options = sweepResult.options{1};
+if isstruct(options) && isfield(options, 'atlasBranchPolicy')
+    value = string(options.atlasBranchPolicy);
 end
 end
 
