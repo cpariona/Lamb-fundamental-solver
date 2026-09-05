@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_main_gui_uses_public_solver()
+%TEST_MRLFE_MAIN_GUI_USES_PUBLIC_SOLVER Guard the maintained Main GUI mRLFE route.
+
 fprintf('\nRunning mRLFE Main GUI public-solver route guard test...\n');
 fprintf('-------------------------------------------------------\n');
 
@@ -40,6 +41,7 @@ for i = 1:numel(cases)
 end
 
 fprintf('\nmRLFE Main GUI public-solver route guard test passed.\n');
+end
 
 function out = runMainCase(branchName, etaS, mu, fmin, fmax, nPoints)
 params = rlDefaultParams();
