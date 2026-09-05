@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_execution_profile_state_transition_contract()
 fprintf('\nRunning execution profile state transition contract test...\n');
 fprintf('---------------------------------------------------------\n');
 
@@ -95,6 +91,7 @@ assertThrows(@()guiBuildFitRequest("rayleigh_lamb", ...
     'guiNormalizeExecutionProfile:ConflictingProfiles');
 
 fprintf('Execution profile state transition contract test passed.\n');
+end
 
 function family = findFitFamily(registry, id)
 for i = 1:numel(registry.modelFamilies)
