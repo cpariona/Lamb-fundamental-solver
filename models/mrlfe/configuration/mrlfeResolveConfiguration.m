@@ -151,7 +151,7 @@ options.mrlfeParams.useComplexLambda = false;
 options.mrlfeParams.solveComplexK = false;
 options.trackerCpScanPoints = preset.scanPoints;
 options.trackerCandidateCount = preset.candidateCount;
-options.trackerRefineCandidates = preset.refineCandidates;
+options.trackerRefineCandidates = false;
 options.trackerWindows = preset.adaptiveWindows;
 options.robustStartEnabled = branch == "A0Like";
 options.robustStartCandidateFrequencies_Hz = [75 100 150 200 300 500 750 1000];
