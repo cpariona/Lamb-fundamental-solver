@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_sweep_point_characterization()
+%TEST_MRLFE_SWEEP_POINT_CHARACTERIZATION Compare sweep points with direct public solves.
+
 fprintf('\nRunning mRLFE SweepTool point characterization test...\n');
 fprintf('-----------------------------------------------------\n');
 
@@ -58,6 +59,7 @@ fprintf('Maximum Cp absolute difference: %.15g m/s\n', maxAbsDiff_mps);
 fprintf('Maximum Cp relative difference: %.15g\n', maxRelDiff);
 fprintf('Valid-mask differences: %d\n', validMaskDifferences);
 fprintf('\nmRLFE SweepTool point characterization test passed.\n');
+end
 
 function out = runMuSweep(branchName, etaS, muValues_kPa)
 params = rlDefaultParams();
