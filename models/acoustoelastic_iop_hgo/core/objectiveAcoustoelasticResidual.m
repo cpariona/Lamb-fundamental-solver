@@ -1,4 +1,4 @@
-function [objectiveValue, details] = objectiveAcoustoelasticResidual(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options)
+function [objectiveValue, details] = objectiveAcoustoelasticResidual(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options, cpState)
 %OBJECTIVEACOUSTOELASTICRESIDUAL Objective for Li 2024 secular equation.
 %
 % The objective is log10 of the smallest singular value of the row-normalized
@@ -9,8 +9,11 @@ function [objectiveValue, details] = objectiveAcoustoelasticResidual(alpha, beta
 if nargin < 10 || isempty(options)
     options = defaultAcoustoelasticIOPHGOOptions();
 end
+if nargin < 11
+    cpState = [];
+end
 
-[M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options);
+[M, aux] = buildAcoustoelasticMatrix(alpha, beta, gamma, h, rho, rhoF, fluidBulkModulus, f, c, options, cpState);
 [U, S, V] = svd(M);
 singularValues = diag(S);
 [sigmaMin, idxMin] = min(singularValues);
