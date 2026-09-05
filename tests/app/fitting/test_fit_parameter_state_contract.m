@@ -1,3 +1,4 @@
+function test_fit_parameter_state_contract()
 %TEST_FIT_PARAMETER_STATE_CONTRACT Registry-driven one-parameter state contract.
 
 registry = guiGetFitModelConfiguration();
@@ -89,6 +90,7 @@ assertErrorIdentifier(@() guiValidateFitParameterState(invalidFixed), ...
     'guiValidateFitParameterState:InvalidNumericValue');
 
 fprintf('test_fit_parameter_state_contract passed. FitTool state, routing, and validation contracts are preserved.\n');
+end
 
 function assertErrorIdentifier(action, expectedIdentifier)
 didThrow = false;
