@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_execution_profile_surface_integration()
+%TEST_EXECUTION_PROFILE_SURFACE_INTEGRATION Validate execution-profile surfaces.
+
 fprintf('\nRunning execution profile surface integration tests...\n');
 fprintf('----------------------------------------------------\n');
 
@@ -130,3 +131,4 @@ for i = 1:numel(profiles)
 end
 
 fprintf('Execution profile surface integration tests passed.\n');
+end
