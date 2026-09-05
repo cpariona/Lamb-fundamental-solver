@@ -9,7 +9,7 @@ parser.parse(varargin{:});
 opt = parser.Results;
 
 [params, options] = benchmarkCase();
-methods = ["current", "scalarSvd", "cachedState"];
+methods = ["current", "scalarSvd", "cachedFullSvd", "cachedState"];
 
 fprintf('\nAE atlas cost-driver diagnostic\n');
 fprintf('===============================\n');
@@ -39,7 +39,7 @@ for method = methods
     row.SelectedCpMaxAbsDiff_mps = branchCmp.maxAbsCp;
     rows(end+1,1) = row; %#ok<AGROW>
 
-    fprintf('%-12s | %.4f s | %5.2fx | max dObj %.3g | branch mismatches %d\n', ...
+    fprintf('%-14s | %.4f s | %5.2fx | max dObj %.3g | branch mismatches %d\n', ...
         method, row.MedianSeconds, row.SpeedupVsCurrent, ...
         row.MaxAbsObjectiveDiff, row.SelectedBranchPointMismatchCount);
 end
@@ -79,8 +79,10 @@ switch method
         [objectiveMap, ~, cGrid, cShear] = aeBuildAtlas(params, options);
     case "scalarSvd"
         [objectiveMap, cGrid, cShear] = buildScalarSvdAtlas(params, options);
+    case "cachedFullSvd"
+        [objectiveMap, cGrid, cShear] = buildCachedAtlas(params, options, false);
     case "cachedState"
-        [objectiveMap, cGrid, cShear] = buildCachedStateAtlas(params, options);
+        [objectiveMap, cGrid, cShear] = buildCachedAtlas(params, options, true);
     otherwise
         error('Unknown diagnostic method: %s', method);
 end
@@ -100,13 +102,12 @@ for k = 1:numel(frequency)
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, ...
             f, cGrid(j), options);
         s = svd(M);
-        sigmaMin = min(s);
-        objectiveMap(j,k) = objectiveFromSigma(sigmaMin);
+        objectiveMap(j,k) = objectiveFromSigma(min(s));
     end
 end
 end
 
-function [objectiveMap, cGrid, cShear] = buildCachedStateAtlas(params, options)
+function [objectiveMap, cGrid, cShear] = buildCachedAtlas(params, options, scalarSvd)
 frequency = params.frequency(:).';
 cShear = sqrt(params.alpha / params.rho);
 yGrid = logspace(log10(options.atlasYMin), log10(options.atlasYMax), options.atlasNumYPoints);
@@ -118,9 +119,13 @@ for k = 1:numel(frequency)
     f = frequency(k);
     for j = 1:numel(cGrid)
         M = buildMatrixFromState(state(j), params, f, options);
-        s = svd(M);
-        sigmaMin = min(s);
-        objectiveMap(j,k) = objectiveFromSigma(sigmaMin);
+        if scalarSvd
+            singularValues = svd(M);
+        else
+            [~, S, ~] = svd(M);
+            singularValues = diag(S);
+        end
+        objectiveMap(j,k) = objectiveFromSigma(min(singularValues));
     end
 end
 end
@@ -266,7 +271,7 @@ folder = fileparts(anchorFile);
 while true
     if isfile(fullfile(folder, 'startup.m'))
         root = folder;
-        return;
+        return
     end
     parent = fileparts(folder);
     if strcmp(parent, folder)
