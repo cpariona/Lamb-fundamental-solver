@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_execution_profile_diagnostics_format()
+%TEST_EXECUTION_PROFILE_DIAGNOSTICS_FORMAT Validate diagnostic text contracts.
+
 fprintf('\nRunning execution profile diagnostics format test...\n');
 fprintf('-------------------------------------------------\n');
 
@@ -65,6 +66,7 @@ assertContains(mrlfeLines, "actual route: elastic_adaptive");
 assertContains(mrlfeLines, "A0 policy: physicalTail");
 
 fprintf('Execution profile diagnostics format test passed.\n');
+end
 
 function assertContains(lines, expected)
 assert(any(contains(string(lines), expected)), ...
