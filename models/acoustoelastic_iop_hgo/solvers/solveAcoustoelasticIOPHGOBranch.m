@@ -140,6 +140,6 @@ function spec = rebuildSpec(result)
 spec = struct();
 spec.baseResult = result;
 spec.qualityBase = result.quality;
-spec.qualityNote = result.quality.ValidityNote;
+spec.qualityNote = result.quality.validityNote;
 spec.diagnosticBase = result.diagnostics;
 end
