@@ -128,7 +128,7 @@ end
 end
 
 function row = makeSummaryRow(index, axesSpec, axisValues, axisDisplays, result)
-rel = result.quality;
+quality = result.quality;
 row = struct();
 row.ConditionIndex = index;
 for a = 1:numel(axesSpec)
@@ -137,19 +137,19 @@ for a = 1:numel(axesSpec)
     row.([name 'Scaled']) = axisValues.(name) ./ axesSpec(a).ValueScale;
     row.([name 'Display']) = axisDisplays.(name);
 end
-row.PolicyName = getStructField(rel, 'PolicyName', string(missing));
-row.ValidFraction = getStructField(rel, 'ValidFraction', nan);
-row.ValidPoints = getStructField(rel, 'ValidPoints', nan);
-row.MissingPoints = getStructField(rel, 'MissingPoints', nan);
-row.TotalPoints = getStructField(rel, 'TotalPoints', nan);
-row.FirstValidFrequency_kHz = getStructField(rel, 'FirstValidFrequency_kHz', nan);
-row.LastValidFrequency_kHz = getStructField(rel, 'LastValidFrequency_kHz', nan);
-row.A0StartFilterPassed = getStructField(rel, 'A0StartFilterPassed', false);
-row.SelectionFallbackUsed = getStructField(rel, 'SelectionFallbackUsed', false);
-row.YStart = getStructField(rel, 'YStart', nan);
-row.StartRank = getStructField(rel, 'StartRank', nan);
-row.CpStart_mps = getStructField(rel, 'CpStart_mps', nan);
-row.MaxBranchRelativeCpDrop = getStructField(rel, 'MaxBranchRelativeCpDrop', nan);
+row.PolicyName = getStructField(quality, 'policyName', string(missing));
+row.ValidFraction = getStructField(quality, 'validFraction', nan);
+row.ValidPoints = getStructField(quality, 'validCount', nan);
+row.MissingPoints = getStructField(quality, 'missingCount', nan);
+row.TotalPoints = getStructField(quality, 'pointCount', nan);
+row.FirstValidFrequency_kHz = getStructField(quality, 'firstValidFrequency_kHz', nan);
+row.LastValidFrequency_kHz = getStructField(quality, 'lastValidFrequency_kHz', nan);
+row.A0StartFilterPassed = getStructField(quality, 'a0StartFilterPassed', false);
+row.SelectionFallbackUsed = getStructField(quality, 'selectionFallbackUsed', false);
+row.YStart = getStructField(quality, 'yStart', nan);
+row.StartRank = getStructField(quality, 'startRank', nan);
+row.CpStart_mps = getStructField(quality, 'cpStart_mps', nan);
+row.MaxBranchRelativeCpDrop = getStructField(quality, 'maxBranchRelativeCpDrop', nan);
 end
 
 function text = joinDisplayValues(axisDisplayStruct)
