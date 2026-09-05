@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_mrlfe_termination_policy()
+%TEST_MRLFE_TERMINATION_POLICY Validate maintained termination behavior.
 
 fprintf('\nRunning mRLFE termination policy test...\n');
 fprintf('---------------------------------------\n');
@@ -20,6 +18,7 @@ assert(none.termination.policy == "none", 'Termination metadata should preserve 
 assert(none.fallback.applied == false, 'Termination policy must not apply fallback.');
 
 fprintf('mRLFE termination policy test passed.\n');
+end
 
 function request = localRequest(branch, etaS, terminationPolicy)
 request = struct();
