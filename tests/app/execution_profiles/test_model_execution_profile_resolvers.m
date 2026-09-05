@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_model_execution_profile_resolvers()
 fprintf('\nRunning model execution profile resolver tests...\n');
 fprintf('------------------------------------------------\n');
 
@@ -68,3 +64,4 @@ for i = 1:numel(profiles)
 end
 
 fprintf('Model execution profile resolver tests passed.\n');
+end
