@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_sweep_uses_public_solver()
+%TEST_MRLFE_SWEEP_USES_PUBLIC_SOLVER Guard the maintained SweepTool mRLFE route.
+
 fprintf('\nRunning mRLFE SweepTool public-solver route guard test...\n');
 fprintf('--------------------------------------------------------\n');
 
@@ -49,6 +50,7 @@ for iBranch = 1:numel(branches)
 end
 
 fprintf('\nmRLFE SweepTool public-solver route guard test passed.\n');
+end
 
 function out = runSmallSweep(branchName, etaS)
 params = rlDefaultParams();
