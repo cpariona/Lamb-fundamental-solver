@@ -12,14 +12,16 @@ use `configureTestPath` rather than the production startup.
 | `run_quick_smoke_tests` | 29 | representative model and application execution |
 | `run_numerical_regression_tests` | 17 | scientific snapshots, synthetic recovery, tracking |
 | `run_extended_integration_tests` | 40 | fitting, sweeps, GUI consumers, characterization |
-| `run_performance_and_benchmark_tests` | 5 | descriptive performance and benchmark contracts |
+| `run_performance_and_benchmark_tests` | 4 | descriptive performance contracts |
 
-There are 114 maintained tests, each owned directly by exactly one runner.
+There are 113 maintained tests, each owned directly by exactly one runner.
 There are no wrappers, aggregate runner graphs, or generated ownership CSVs.
 The hygiene contract checks unique ownership and globally unique filenames.
 
 Test code lives under app, models, and shared subfolders. Tooling owns path
-setup, runtime measurement, cross-surface profile matrices, and benchmarks.
+setup, runtime measurement, and cross-surface profile matrices. Ad hoc
+benchmarks and temporary numerical diagnostics are not maintained repository
+artifacts.
 For an individual test, explicitly opt in from the repository root:
 
 ```matlab
