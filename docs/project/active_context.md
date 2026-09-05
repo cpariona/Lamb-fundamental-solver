@@ -4,9 +4,8 @@ Last reviewed: 2026-09-05
 
 Repository: `cpariona/Lamb-fundamental-solver`
 Integration branch: `planning/full-repository-restructure`
-Working branch: `numerical-solver-alignment/ae-performance-optimization`
-Planning base: `60dad1ff17a19eaeca7eb9efaf949cb37b2463c5`.
-`main` remains untouched by the numerical-alignment work.
+Integrated numerical-alignment HEAD: `9386901d857148e546401a3ba2830023d61e7ea9`.
+`main` remains untouched.
 
 ## Architecture
 
@@ -26,53 +25,43 @@ is in `tests/README.md`; architecture is in
 
 ## Numerical alignment status
 
+Issue #130 is complete at the implementation/integration level.
+
 ### mRLFE
 
-mRLFE Fast optimization was merged into planning through PR #131. Fast uses a
-100-point coarse Cp scan with 260-point rescue only when candidate discovery
-requires it, followed by maintained selected-candidate continuous refinement.
-Temporary optimization diagnostics/benchmarks created during that campaign
-have been removed.
+PR #131 is integrated into planning. Fast uses a 100-point coarse Cp scan with
+a 260-point rescue only when candidate discovery requires it, followed by
+selected-candidate continuous refinement. The former Fast Cp waviness was
+identified as scan-grid quantization and corrected without plotting-side
+smoothing.
 
 ### AE
 
-AE retains the protected lifecycle:
+PR #132 is integrated into planning. AE retains the protected lifecycle:
 
 ```text
 full discrete atlas -> minima -> branch linking -> atlasA0 selection
 -> bounded continuous refinement of the selected branch on the true SVD objective
 ```
 
-The AE working branch only optimizes repeated computation inside atlas
-construction. Cp-dependent root/fluid state and algebraic coefficients are
-reused across frequencies, repeated hyperbolic evaluations are avoided, and
-unused diagnostic outputs are skipped when callers request only the objective.
+Cp-dependent root/fluid state and algebraic coefficients are reused across
+frequencies, repeated hyperbolic evaluations are avoided, and unused diagnostic
+outputs are skipped when callers request only the objective.
 The internal state helper is `aeComputeAcoustoelasticCpState`.
 
-The matrix, three-output SVD definition, `atlasA0` policy, Fast 300-point atlas,
-and protected continuous refinement are unchanged.
+The characteristic matrix, three-output SVD definition, `atlasA0` policy, Fast
+300-point atlas, fallback behavior, and protected continuous refinement are
+unchanged. The investigated coarse/rescue atlas-density scheme was rejected
+after 10 false negatives in the 33-case screening; it did not enter production.
 
-A coarse/rescue AE atlas-density strategy was investigated and rejected: a
-33-case matrix produced 10 false negatives with the proposed validity trigger.
-No adaptive-density behavior was promoted to production.
+## Cleanup and validation
 
-## Cleanup
-
-All temporary AE investigation scripts and ad hoc numerical benchmarks have
-been removed. The obsolete mRLFE benchmark-specific test was removed because
-its functional execution-profile contract is already covered by
-`validateExecutionProfileMatrix`.
-
-`tests/tooling` contains only:
+Temporary AE/mRLFE investigation scripts and ad hoc numerical benchmarks have
+been removed. `tests/tooling` contains only:
 
 - `configureTestPath.m`;
 - `measureTestRuntime.m`;
 - `validateExecutionProfileMatrix.m`.
-
-Maintained scientific diagnostics are retained only where they have a distinct
-supported responsibility.
-
-## Validation
 
 The complete post-cleanup gate passed on 2026-09-05:
 
@@ -87,7 +76,7 @@ No tolerance or scientific golden was changed for this gate.
 
 ## Immediate next step
 
-Review the working-branch diff against `planning/full-repository-restructure`
-and open an integration PR targeting that planning branch. Do not merge into
-`main` without explicit authorization. Keep Issue #130 open until AE integration
-and numerical-alignment closeout are complete.
+There is no remaining numerical-alignment implementation task under Issue #130.
+`planning/full-repository-restructure` is the current integrated repository
+state. A final planning-versus-`main` review/integration is a separate action and
+must not be performed without explicit user authorization.
