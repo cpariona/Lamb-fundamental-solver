@@ -2,86 +2,86 @@
 
 Last reviewed: 2026-09-05.
 
-## Current integrated state
+## Current working state
 
-Integration branch: `planning/full-repository-restructure`.
-Numerical-alignment integration HEAD: `9386901d857148e546401a3ba2830023d61e7ea9`.
-`main` remains untouched.
+Working branch: `structural-symmetry/final-alignment`.
+Base integration branch: `planning/full-repository-restructure` at
+`75c562bc8674974febb3c5e4e6959854575798b5`.
+`main` remains untouched at the start of this campaign and must not be modified
+without explicit user authorization.
 
-The final post-cleanup numerical-alignment gate passed on 2026-09-05 before PR
-#132 integration. The merge preserved the validated production tree.
+Issue #134 is the active repository-level campaign. It is structural only:
+model-family ownership, public/result/configuration contracts, one-dimensional
+sweep shape, GUI normalization, maintained-test architecture, and documentation.
+No physics, numerical strategy, scientific golden, or tolerance is being changed.
 
-| Tier | Direct tests | Current status |
+## Maintained validation surface
+
+| Tier | Direct tests | Final campaign status |
 | --- | ---: | --- |
-| run_repository_hygiene_tests | 7 | PASS |
-| run_quick_contract_tests | 16 | PASS |
-| run_quick_smoke_tests | 29 | PASS |
-| run_numerical_regression_tests | 17 | PASS |
-| run_extended_integration_tests | 40 | PASS |
-| run_performance_and_benchmark_tests | 4 | PASS |
+| `run_repository_hygiene_tests` | 8 | RE-RUN REQUIRED after final structural edits |
+| `run_quick_contract_tests` | 17 | RE-RUN REQUIRED after final structural edits |
+| `run_quick_smoke_tests` | 29 | RE-RUN REQUIRED after final structural edits |
+| `run_numerical_regression_tests` | 17 | previously PASS; final re-run required |
+| `run_extended_integration_tests` | 40 | pending final run |
+| `run_performance_and_benchmark_tests` | 4 | pending final run |
 
-There are 113 maintained tests and six flat runners. Every maintained test is
-owned directly by exactly one runner; `tests/README.md` is authoritative.
+There are 115 maintained tests and six flat runners. Every maintained test is
+owned directly by exactly one runner. `tests/README.md` is authoritative.
+Repository hygiene also scans every tracked `test_*.m` file and enforces the
+maintained function-test contract, with native `functiontests(localfunctions)`
+suites retained only where the MATLAB unit-test API is the actual surface.
 
-## mRLFE numerical alignment
+## Structural alignment completed on the working branch
 
-PR #131 is integrated into planning. Fast uses a 100-point coarse Cp scan and a
-260-point rescue scan only when candidate discovery requires it, followed by
-selected-candidate continuous refinement. The Fast waviness source was
-scan-grid quantization; the correction preserves branch identity without
-plotting-side smoothing.
+- RL, mRLFE, and AE use the common responsibility spine
+  `api/configuration/core/solvers/tracking/quality/results` where applicable.
+- The public RL and AE entry points are under `api/`.
+- Generic frequency construction is model-neutral under
+  `models/shared/configuration/buildFrequencyVector.m`.
+- The only intentional cross-family scientific dependency remains
+  `mrlfeBuildSeed -> rlComputeFundamentalLambModes`.
+- mRLFE request translation is model-owned by
+  `models/mrlfe/configuration/mrlfeBuildSolveRequest.m`; the old
+  `analysis/requests/mrlfe/` owner is removed.
+- Official model curves use column-oriented `frequency_Hz`,
+  `phaseVelocity_mps`, `wavenumber_radpm`, and `validMask`.
+- Quality uses the common lower-camel core fields.
+- Public configuration uses `requested/effective`, each split into
+  `parameters/options`.
+- AE one-dimensional sweep output is aligned with `runParametricSweep`; AE 2-D
+  grid sweeps remain intentionally specialized.
+- Main GUI model normalization uses one shared result-view spine.
+- Maintained direct tests are no-output functions without local path bootstrap,
+  `clear`, `clc`, or base-workspace scientific exports.
+- The mRLFE production characterization test no longer doubles as a historical
+  reference-capture tool.
 
-Temporary optimization diagnostics and ad hoc benchmarks are not tracked.
+## Numerical alignment retained
 
-## AE numerical alignment
+Issue #130 remains complete. mRLFE Fast uses a 100-point coarse Cp scan, a
+260-point rescue scan only when candidate discovery requires it, and bounded
+continuous refinement of the selected candidate. The correction removes
+scan-grid quantization without plotting-side smoothing.
 
-PR #132 is integrated into planning. AE preserves the maintained lifecycle:
+AE retains the protected lifecycle:
 
 ```text
 SVD atlas -> discrete minima -> branch linking -> atlasA0 selection
 -> bounded continuous refinement of the selected branch on the true SVD objective
 ```
 
-Accepted performance changes only remove repeated exact computation during atlas
-construction:
+The rejected AE coarse/rescue density experiment did not enter production.
+The earlier mRLFE edge-guard regression is recorded as resolved historical
+evidence in `../validation/mrlfe_restructure_baseline.md`.
 
-- Cp-dependent acoustoelastic roots and fluid state are computed once per atlas
-  Cp sample and reused across frequencies;
-- Cp-dependent algebraic coefficients are cached;
-- repeated `sinh`/`cosh` evaluations within one matrix construction are reused;
-- diagnostic/modal outputs are not assembled when only the scalar objective is
-  requested.
+## Final acceptance
 
-The internal state owner is `aeComputeAcoustoelasticCpState`.
+Before opening/integrating the structural PR into planning:
 
-The characteristic matrix, three-output SVD definition, objective definition,
-`atlasA0` selection, Fast 300-point atlas, fallback policies, and protected
-continuous refinement are unchanged. Temporary validation measured zero
-objective-map difference and zero selected branch/rank/discrete-Cp difference
-between the legacy and optimized exact paths.
-
-The proposed AE coarse/rescue density route was rejected. In the 33-case matrix,
-19 coarse cases differed from the 300-point reference and the proposed rescue
-trigger missed 10 of them. No adaptive-density behavior entered production.
-
-## Cleanup
-
-All temporary AE/mRLFE numerical-alignment diagnostics and ad hoc performance
-benchmarks have been removed. The redundant mRLFE benchmark-specific contract
-was removed because `validateExecutionProfileMatrix` already owns that
-cross-surface execution-profile contract.
-
-`tests/tooling` contains only:
-
-- `configureTestPath.m`;
-- `measureTestRuntime.m`;
-- `validateExecutionProfileMatrix.m`.
-
-Maintained scientific diagnostics remain only where they have a distinct
-supported responsibility. Generated result files remain outside tracked source.
-
-## Integration status
-
-Numerical solver alignment is complete in `planning/full-repository-restructure`.
-No numerical golden or tolerance was weakened. Further integration into `main`
-is a separate repository-level decision and requires explicit user authorization.
+1. run all six canonical tiers on the current working branch;
+2. require all six to pass without changing scientific goldens/tolerances;
+3. review the final diff against `planning/full-repository-restructure`;
+4. open the PR from `structural-symmetry/final-alignment` to planning;
+5. keep `main` unchanged until explicit user authorization for any final
+   planning-to-main integration.
