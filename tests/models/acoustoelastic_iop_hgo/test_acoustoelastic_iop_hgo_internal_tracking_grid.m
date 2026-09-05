@@ -1,12 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
-% Test that the IOP/HGO wrapper decouples atlas branch identification from
-% the requested output-frequency grid. This test does not assume that the
-% internal grid always resolves the A0-like branch; it verifies the structural
-% contract and the conservative fallback behavior.
+function test_acoustoelastic_iop_hgo_internal_tracking_grid()
+%TEST_ACOUSTOELASTIC_IOP_HGO_INTERNAL_TRACKING_GRID Validate internal tracking.
 
 params = struct();
 params.R = 7.8e-3;
@@ -43,15 +36,16 @@ assert(numel(result.trackingFrequency) > numel(params.frequency), 'Tracking grid
 assert(min(result.trackingFrequency) <= options.atlasInitializationMinFrequency_Hz * (1 + 1e-12), ...
     'Tracking frequency should include the internal initialization range.');
 
-if result.quality.SelectionFallbackUsed
+if result.quality.selectionFallbackUsed
     assert(isfield(result, 'fallbackCandidateCp'), 'Fallback candidate must be preserved when fallback is used.');
     assert(all(~result.validMask), 'Fallback-selected official output must be invalidated.');
-    assert(result.quality.ValidFraction == 0, 'Fallback-invalidated official output must report zero valid fraction.');
+    assert(result.quality.validFraction == 0, 'Fallback-invalidated official output must report zero valid fraction.');
 else
-    assert(result.quality.A0StartFilterPassed == true, 'Non-fallback branch should pass the A0-like start filter.');
+    assert(result.quality.a0StartFilterPassed == true, 'Non-fallback branch should pass the A0-like start filter.');
     assert(any(result.validMask), 'Non-fallback internal tracking output should produce official valid Cp points.');
     assert(~isfield(result, 'fallbackCandidateCp'), 'Non-fallback output should not create fallback candidate fields.');
 end
 
-fprintf('test_acoustoelastic_iop_hgo_internal_tracking_grid passed. Fallback=%d, valid points: %d/%d.\n', ...
-    result.quality.SelectionFallbackUsed, nnz(result.validMask), numel(result.validMask));
+fprintf('AE internal tracking grid passed. Fallback=%d, valid points: %d/%d.\n', ...
+    result.quality.selectionFallbackUsed, nnz(result.validMask), numel(result.validMask));
+end
