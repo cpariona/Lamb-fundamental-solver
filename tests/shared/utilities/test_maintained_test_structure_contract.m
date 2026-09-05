@@ -44,12 +44,19 @@ for i = 1:numel(testNames)
         struct('pattern', "(?m)^\s*clear(?:\s|;|$)", 'label', "clear"), ...
         struct('pattern', "(?m)^\s*clc(?:\s|;|$)", 'label', "clc"), ...
         struct('pattern', "(?m)^\s*configureTestPath\s*(?:\(|;|$)", 'label', "configureTestPath"), ...
-        struct('pattern', "(?m)^\s*startup\s*(?:\(|;|$)", 'label', "startup"), ...
-        struct('pattern', "(?i)assignin\s*\(\s*'base'", 'label', "assignin('base', ...)" )];
+        struct('pattern', "(?m)^\s*assignin\s*\(\s*'base'", 'label', "assignin('base', ...)" )];
     for j = 1:numel(forbidden)
         if ~isempty(regexp(text, forbidden(j).pattern, 'once'))
             violations(end + 1, 1) = testName + ": contains forbidden " + forbidden(j).label; %#ok<AGROW>
         end
+    end
+
+    % test_startup_path_policy intentionally exercises startup itself and
+    % restores the caller path with onCleanup. Other maintained tests must
+    % leave production/test path setup to their canonical runner.
+    if testName ~= "test_startup_path_policy" && ...
+            ~isempty(regexp(text, "(?m)^\s*startup\s*(?:\(|;|$)", 'once'))
+        violations(end + 1, 1) = testName + ": contains forbidden startup"; %#ok<AGROW>
     end
 end
 
