@@ -27,7 +27,7 @@ for oldLocal = ["function minima = localMinima", "function [minimaTable, branchT
     assert(~contains(solverText, oldLocal), 'Old local production owner remains: %s', oldLocal);
 end
 
-publicOwnerText = fileread(fullfile(modelRoot, 'solvers', 'solveAcoustoelasticIOPHGOBranch.m'));
+publicOwnerText = fileread(fullfile(modelRoot, 'api', 'solveAcoustoelasticIOPHGOBranch.m'));
 assertContains(publicOwnerText, 'aeValidateRequest(params');
 assertContains(publicOwnerText, 'aeResolveConfiguration(options)');
 assertContains(publicOwnerText, 'computeAcoustoelasticABGFromIOPHGO(');
@@ -138,5 +138,5 @@ assert(contains(text, fragment), 'Missing expected production call: %s', fragmen
 end
 
 function tf = samePath(actual, expected)
-tf = strcmpi(strrep(string(actual), '/', '\'), strrep(string(expected), '/', '\'));
+tf = strcmpi(strrep(string(actual), '/', '\\'), strrep(string(expected), '/', '\\'));
 end
