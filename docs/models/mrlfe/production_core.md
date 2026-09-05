@@ -1,6 +1,6 @@
 # mRLFE production core
 
-Last reviewed: 2026-09-03
+Last reviewed: 2026-09-04
 
 ## Scope
 
@@ -73,6 +73,14 @@ viscoelastic_adaptive
 ```
 
 Numerical preset remains separate from branch policy, termination, and fallback.
+Candidate refinement is not a public preset choice. All maintained presets use
+the same internal selected-candidate continuous refinement policy.
+
+Fast uses a two-stage Cp scan internally: 100 coarse points for ordinary local
+minimum tracking and a 260-point rescue scan only when the coarse pass returns a
+valley fallback or no valid candidate. Balanced, Robust, and Dense keep fixed
+scan densities of 420, 620, and 900 points respectively and therefore do not
+perform an additional rescue scan.
 
 ## Problem Construction
 
@@ -121,9 +129,9 @@ S0 continuation behavior
 resampling to the requested frequency grid
 ```
 
-`fast` maps to 260 scan points, 5 candidates, no refinement, and reduced
-adaptive windows. `dense` maps to 900 scan points, 8 candidates, refinement, and
-maintained dense adaptive windows.
+The public numerical presets differ in internal frequency step, Cp scan density,
+candidate budget, and adaptive windows. They do not select different candidate
+refinement algorithms.
 
 ## Tracking
 
@@ -131,6 +139,32 @@ maintained dense adaptive windows.
 tracking. The maintained candidate generation, prediction, residual scoring,
 candidate selection, validity decisions, and adaptive continuation diagnostics
 now live behind this neutral model-layer name.
+
+The production lifecycle is:
+
+```text
+coarse local Cp scan
+-> strict local-minimum discovery
+-> optional dense rescue scan when coarse tracking is ambiguous
+-> discrete candidate scoring and selection
+-> bounded continuous refinement of the selected strict minimum
+-> validity and continuation checks
+```
+
+The dense rescue repeats the same search window and scoring policy at higher Cp
+resolution. It does not change branch policy, prediction, continuation limits,
+or residual definition. The Fast rescue trigger is intentionally narrow:
+`valleyFallback` or no valid coarse candidate.
+
+The bounded refinement uses the true mRLFE residual through `fminbnd`; it is
+applied only after candidate identity is selected. This removes Cp scan
+quantization without allowing the continuous refinement step to choose a
+different branch candidate.
+
+For established A0Like branches, the optional valley fallback is reserved for
+shallow shoulders that are not already represented by a strict local minimum.
+A fallback candidate is not added when the same trust region already contains a
+strict minimum, preventing duplicate representations of the same residual valley.
 
 For A0Like, `mrlfeTrackBranchRobustStart` first attempts ordinary forward
 tracking and then probes the configured candidate start frequencies only when
