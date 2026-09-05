@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_mrlfe_tracking_quality_summary()
 % The maintained quality summary consumes canonical public model results.
 params = rlDefaultParams();
 frequency_Hz = linspace(500, 4000, 10).';
@@ -26,6 +22,7 @@ assert(all(summaryTable.ValidFraction >= 0 & summaryTable.ValidFraction <= 1), .
 assert(all(isfinite(summaryTable.QualityScore)), 'QualityScore values must be finite.');
 
 fprintf('test_mrlfe_tracking_quality_summary passed. Public results are summarized.\n');
+end
 
 function result = solveCase(params, frequency_Hz, etaS)
 options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', etaS);
