@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_mrlfe_public_contract_defaults()
 fprintf('\nRunning mRLFE public defaults contract test...\n');
 fprintf('---------------------------------------------\n');
 
@@ -58,6 +54,7 @@ assert(dense.candidateCount == 8, 'Dense preset candidate count mismatch.');
 assertErrorId(@() mrlfeGetNumericalPreset("unsupported"), 'mrlfe:InvalidNumericalPreset');
 
 fprintf('mRLFE public defaults contract test passed.\n');
+end
 
 function assertHasFields(s, names)
 for i = 1:numel(names)
