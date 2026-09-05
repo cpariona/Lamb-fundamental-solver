@@ -3,36 +3,6 @@ function sweepResult = aeRunSweep(baseParams, sweepField, sweepValues, options, 
 %
 %   sweepResult = aeRunSweep(baseParams, sweepField, sweepValues, options)
 %   runs solveAcoustoelasticIOPHGOBranch once per value in sweepValues.
-%
-%   This is a thin sweep adapter around the current public solver. It is kept
-%   separate from the numerical tracking implementation so the solver can be
-%   made more robust, renamed, or replaced later without changing the sweep
-%   scripts that define physical campaigns.
-%
-%   Inputs
-%   ------
-%   baseParams  : structure with the usual acoustoelastic IOP/HGO fields.
-%   sweepField  : parameter field to modify, for example "IOP" or "mu".
-%                 Dot paths such as "material.mu" are also supported.
-%   sweepValues : numeric or string-compatible vector of values.
-%   options     : solver options. If empty, defaultAcoustoelasticIOPHGOOptions
-%                 is used. The branch policy is intentionally an option, not
-%                 part of the function or script name.
-%   sweepConfig : optional structure with fields:
-%                 Name, Label, Unit, ValueScale, ValueFormatter.
-%
-%   Output
-%   ------
-%   sweepResult.conditions(i).params
-%   sweepResult.conditions(i).result
-%   sweepResult.conditions(i).quality
-%   sweepResult.summaryTable
-%
-%   Current solver call
-%   -------------------
-%   The current implementation calls solveAcoustoelasticIOPHGOBranch. If the
-%   acoustoelastic solver is later refactored into a shorter ae* API, only this
-%   adapter should need to change.
 
 if nargin < 4 || isempty(options)
     options = defaultAcoustoelasticIOPHGOOptions();
@@ -43,7 +13,6 @@ end
 
 sweepField = string(sweepField);
 sweepValues = sweepValues(:).';
-
 sweepConfig = fillSweepConfigDefaults(sweepConfig, sweepField);
 
 conditions = repmat(struct( ...
@@ -129,7 +98,7 @@ end
 end
 
 function row = makeSummaryRow(index, sweepField, sweepValue, sweepConfig, result)
-rel = result.quality;
+quality = result.quality;
 row = struct();
 row.ConditionIndex = index;
 row.SweepName = string(sweepConfig.Name);
@@ -139,20 +108,20 @@ row.SweepValue = sweepValue;
 row.SweepValueScaled = sweepValue ./ sweepConfig.ValueScale;
 row.SweepUnit = string(sweepConfig.Unit);
 row.SweepValueDisplay = formatSweepValue(sweepValue, sweepConfig);
-row.PolicyName = getStructField(rel, 'PolicyName', missingString());
-row.ValidFraction = getStructField(rel, 'ValidFraction', nan);
-row.ValidPoints = getStructField(rel, 'ValidPoints', nan);
-row.MissingPoints = getStructField(rel, 'MissingPoints', nan);
-row.TotalPoints = getStructField(rel, 'TotalPoints', nan);
-row.FirstValidFrequency_kHz = getStructField(rel, 'FirstValidFrequency_kHz', nan);
-row.LastValidFrequency_kHz = getStructField(rel, 'LastValidFrequency_kHz', nan);
-row.FirstMissingFrequency_kHz = getStructField(rel, 'FirstMissingFrequency_kHz', nan);
-row.A0StartFilterPassed = getStructField(rel, 'A0StartFilterPassed', false);
-row.SelectionFallbackUsed = getStructField(rel, 'SelectionFallbackUsed', false);
-row.YStart = getStructField(rel, 'YStart', nan);
-row.StartRank = getStructField(rel, 'StartRank', nan);
-row.CpStart_mps = getStructField(rel, 'CpStart_mps', nan);
-row.MaxBranchRelativeCpDrop = getStructField(rel, 'MaxBranchRelativeCpDrop', nan);
+row.PolicyName = getStructField(quality, 'policyName', missingString());
+row.ValidFraction = getStructField(quality, 'validFraction', nan);
+row.ValidPoints = getStructField(quality, 'validCount', nan);
+row.MissingPoints = getStructField(quality, 'missingCount', nan);
+row.TotalPoints = getStructField(quality, 'pointCount', nan);
+row.FirstValidFrequency_kHz = getStructField(quality, 'firstValidFrequency_kHz', nan);
+row.LastValidFrequency_kHz = getStructField(quality, 'lastValidFrequency_kHz', nan);
+row.FirstMissingFrequency_kHz = getStructField(quality, 'firstMissingFrequency_kHz', nan);
+row.A0StartFilterPassed = getStructField(quality, 'a0StartFilterPassed', false);
+row.SelectionFallbackUsed = getStructField(quality, 'selectionFallbackUsed', false);
+row.YStart = getStructField(quality, 'yStart', nan);
+row.StartRank = getStructField(quality, 'startRank', nan);
+row.CpStart_mps = getStructField(quality, 'cpStart_mps', nan);
+row.MaxBranchRelativeCpDrop = getStructField(quality, 'maxBranchRelativeCpDrop', nan);
 end
 
 function value = getStructField(s, fieldName, defaultValue)
