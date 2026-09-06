@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
+function test_mrlfe_etaS_fit_forward_cache()
+%TEST_MRLFE_ETAS_FIT_FORWARD_CACHE Validate etaS fitting forward-cache behavior.
 
 fprintf('\nRunning mRLFE etaS fitting forward-cache test...\n');
 fprintf('------------------------------------------------\n');
@@ -51,7 +49,7 @@ assert(isfield(fitResult.problem.solverOptions, 'mrlfeElasticReferenceResult'), 
     'Cached etaS solver options must include mrlfeElasticReferenceResult.');
 assert(isstruct(fitResult.problem.solverOptions.mrlfeElasticReferenceResult), ...
     'mrlfeElasticReferenceResult must be a structure.');
-assert(isfield(fitResult.rawSolverResult.options, 'mrlfeElasticReferenceResult'), ...
+assert(isfield(fitResult.modelEvaluation.options, 'mrlfeElasticReferenceResult'), ...
     'Final raw solver options should include the cached elastic reference.');
 assert(all(isfinite(fitResult.Cp_fit_mps(fitResult.validMask))), 'Cached etaS fitted Cp contains invalid values.');
 
@@ -64,3 +62,4 @@ fprintf('Forward cache: enabled=%d | kind=%s | reason=%s\n', ...
     fitResult.problem.forwardCache.kind, ...
     fitResult.problem.forwardCache.reason);
 fprintf('\nmRLFE etaS fitting forward-cache test passed.\n');
+end

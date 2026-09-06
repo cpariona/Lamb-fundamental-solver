@@ -9,18 +9,25 @@ sharedSweepFunctions = [ ...
     "plotSweepCpFigure"; ...
     "setSweepPlotLimits"; ...
     "summarizeParametricSweepBranch"];
+sharedSweepFolders = [ ...
+    string(fullfile('analysis', 'sweeps', 'shared')); ...
+    string(fullfile('analysis', 'plotting', 'sweeps', 'shared')); ...
+    string(fullfile('analysis', 'plotting', 'sweeps', 'shared')); ...
+    string(fullfile('analysis', 'plotting', 'sweeps', 'shared')); ...
+    string(fullfile('analysis', 'plotting', 'sweeps', 'shared')); ...
+    string(fullfile('analysis', 'sweeps', 'shared'))];
 for i = 1:numel(sharedSweepFunctions)
     fileName = sharedSweepFunctions(i) + ".m";
-    expectedPath = fullfile(repoRoot, 'analysis', 'sweeps', fileName);
-    oldPath = fullfile(repoRoot, 'analysis', fileName);
-    assert(isfile(expectedPath), '%s must live in analysis/sweeps.', sharedSweepFunctions(i));
-    assert(~isfile(oldPath), 'The former analysis-root path must be absent for %s.', sharedSweepFunctions(i));
+    expectedPath = fullfile(repoRoot, sharedSweepFolders(i), fileName);
+    oldPath = fullfile(repoRoot, 'analysis', 'sweeps', fileName);
+    assert(isfile(expectedPath), '%s must live in its workflow-owned analysis folder.', sharedSweepFunctions(i));
+    assert(~isfile(oldPath), 'The former flat analysis/sweeps path must be absent for %s.', sharedSweepFunctions(i));
     assert(strcmp(which(sharedSweepFunctions(i)), expectedPath), ...
-        '%s must resolve uniquely from analysis/sweeps.', sharedSweepFunctions(i));
+        '%s must resolve uniquely from its workflow-owned analysis folder.', sharedSweepFunctions(i));
 end
 
 oldVisibility = get(groot, 'DefaultFigureVisible');
-cleanup = onCleanup(@()set(groot, 'DefaultFigureVisible', oldVisibility));
+cleanup = onCleanup(@()set(groot, 'DefaultFigureVisible', oldVisibility)); %#ok<NASGU>
 set(groot, 'DefaultFigureVisible', 'off');
 
 frequency = [1000; 2000; 3000];
@@ -106,15 +113,18 @@ assert(~any(contains(mrlfeData.fixedParameterLines, "etaS =")), ...
 assert(string(mrlfeData.curves(2).legendLabel) == "etaS = 0.1 Pa*s", ...
     'mRLFE adapter should use a compact etaS sweep label.');
 
-%% AE adapter and wrapper
-aeSweep = struct();
-aeSweep.label = "Thickness";
-aeSweep.sweepField = "thickness";
-aeSweep.baseParams = struct('IOP', 15 * 133.322, 'R', 7.8e-3, ...
+%% AE adapter and wrapper using the canonical workflow schema
+aeBase = struct('IOP', 15 * 133.322, 'R', 7.8e-3, ...
     'thickness', 550e-6, 'mu', 64e3, 'k1', 50e3, 'k2', 200);
-aeSweep.conditions = [ ...
-    makeAeCondition(frequency, [4; 5; 6], "400 um"); ...
-    makeAeCondition(frequency, [5; 6; 7], "700 um")];
+aeSweep = struct();
+aeSweep.spec = struct('label', "Thickness", 'units', "um");
+aeSweep.parameter = "thickness";
+aeSweep.displayValues = [400, 700];
+aeParams1 = aeBase; aeParams1.thickness = 400e-6;
+aeParams2 = aeBase; aeParams2.thickness = 700e-6;
+aeSweep.params = {aeParams1, aeParams2};
+aeSweep.options = {struct(), struct()};
+aeSweep.results = {makeAeResult(frequency, [4; 5; 6]), makeAeResult(frequency, [5; 6; 7])};
 
 aeData = aeBuildSweepPlotData(aeSweep);
 assert(numel(aeData.curves) == 2, 'AE adapter returned the wrong curve count.');
@@ -134,7 +144,8 @@ assert(any(string(lgd.String) == "h = 400 um"), ...
 close(fig);
 
 %% AE unitless k2 formatting
-aeSweep.sweepField = "k1";
+aeSweep.parameter = "k1";
+aeSweep.spec = struct('label', "k1", 'units', "kPa");
 aeData = aeBuildSweepPlotData(aeSweep);
 k2Line = aeData.fixedParameterLines(contains(aeData.fixedParameterLines, "k2 ="));
 assert(isscalar(k2Line) && string(k2Line) == "k2 = 200", ...
@@ -149,19 +160,21 @@ curve = struct('frequency_Hz', frequency, 'Cp_mps', Cp, ...
 end
 
 function result = makeRlResult(frequency, Cp)
-branch = struct('frequency', frequency, 'Cp', Cp, 'validCp', true(size(Cp)));
+branch = struct('frequency_Hz', frequency, 'phaseVelocity_mps', Cp, ...
+    'validMask', true(size(Cp)));
 result = struct('modes', struct('A0', branch));
 end
 
 function result = makeMrlfeResult(frequency, Cp)
-branch = struct('frequency', frequency, 'Cp', Cp, 'validCp', true(size(Cp)));
-result = struct('models', struct('mRLFEViscoRealK', struct('branches', struct('A0Like', branch))));
+result = struct('model', "mrlfe", 'branch', "A0Like", ...
+    'frequency_Hz', frequency, 'phaseVelocity_mps', Cp, ...
+    'validMask', true(size(Cp)));
 end
 
-function condition = makeAeCondition(frequency, Cp, displayValue)
-result = struct('frequency', frequency, 'Cp', Cp, ...
-    'validCp', true(size(Cp)));
-condition = struct('result', result, 'sweepValueDisplay', string(displayValue));
+function result = makeAeResult(frequency, Cp)
+result = struct('model', "acoustoelastic_iop_hgo", 'branch', "atlasA0", ...
+    'frequency_Hz', frequency, 'phaseVelocity_mps', Cp, ...
+    'validMask', true(size(Cp)));
 end
 
 function ax = findSingleDataAxes(fig)

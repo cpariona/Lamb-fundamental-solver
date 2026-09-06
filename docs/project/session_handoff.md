@@ -1,98 +1,123 @@
-# Session handoff
+# Integration handoff
 
-Updated: 2026-07-18
+Last reviewed: 2026-09-05
 
-## Repository state
+Repository: `cpariona/Lamb-fundamental-solver`
+Current integration branch: `planning/full-repository-restructure`
+Final audit branch: `audit/planning-main-readiness`
+Planning HEAD at audit start: `b925cfc2ad6d1c29b75812141c84f16ee705baa2`
+Main HEAD: `026994f86a2d1dfe5a740034d7a5fd81d4f08235`
 
-- Repository: `cpariona/Lamb-fundamental-solver`
-- Default branch: `main`
-- Last merged architecture change: PR #127, merge commit
-  `13b00c4e6142988c0ac0d3e3b4c0fc76ddfae586`
-- AE architecture status: complete
-- AE final contract:
-  `docs/models/acoustoelastic_iop_hgo/active/architecture.md`
-- Repository-simplification final-state contract:
-  `docs/repository/repository_simplification.md`
+`main` has not been modified during Issue #134 or the final audit. Do not modify
+or merge into `main` without explicit user authorization.
 
-The multi-phase AE architecture alignment and the bounded repository
-simplification are closed. Do not reopen migration phases or create a Phase 7.
-New work must start from updated `origin/main` on a separate branch.
+## Completed campaign
 
-## Stable production ownership
+Issue #134 — Final structural symmetry and contract alignment before main.
+
+PR #135 (`structural-symmetry/final-alignment` ->
+`planning/full-repository-restructure`) was merged on 2026-09-05. The validated
+structural tree is therefore integrated into planning.
+
+The numerical-science campaign (#130) remains complete. #134 was structural
+only and did not change equations, numerical strategy, branch-selection policy,
+scientific goldens, or accepted tolerances.
+
+### Integrated structural alignment
+
+- Common model responsibility spine across RL, mRLFE, and AE:
+  `api/configuration/core/solvers/tracking/quality/results` where applicable.
+- RL public compute/default owners are under `api/`; solver/configuration/quality
+  responsibilities are separated from core/result construction.
+- AE public solver is under `api/`; generic option ownership is under
+  `configuration/`.
+- Generic frequency-vector construction is under
+  `models/shared/configuration/buildFrequencyVector.m`.
+- mRLFE workflow defaults and request translation are model-owned; the old
+  `analysis/requests/mrlfe/` request owner is removed.
+- Official result curves are column-oriented and use the common
+  `frequency_Hz/phaseVelocity_mps/wavenumber_radpm/validMask` contract.
+- Quality core fields use lower camel case.
+- Public configuration uses `requested/effective`, each with
+  `parameters/options`.
+- Main GUI normalization routes all three model families through the shared
+  result-view spine.
+- AE 1-D sweep output retains the canonical `runParametricSweep` structure; AE
+  2-D grid sweep remains specialized.
+- Maintained direct tests are no-output functions without local path bootstrap,
+  `clear`, `clc`, or base-workspace scientific exports.
+- Repository hygiene scans every tracked `test_*.m`; native
+  `functiontests(localfunctions)` suites remain supported where appropriate.
+- mRLFE production characterization no longer returns/captures historical
+  reference collections.
+
+### Numerical behavior retained
+
+mRLFE Fast remains:
 
 ```text
-aeValidateRequest             maintained flat-request checks
-aeResolveConfiguration        complete effective options and precedence
-aeGetNumericalPreset          numerical presets and Main GUI bundle
-aeBuildInternalTrackingGrid   requested/internal grid algorithm
-aeBuildAtlas                  configured atlas and objective landscape
-aeFindAtlasLocalMinima        production atlas minima
-aeLinkAtlasBranches           production branch linking
-aeSplitAtlasBranches          production branch splitting
-aeSelectAtlasA0Branch         official atlasA0 selection
-aeApplyAtlasA0FallbackPolicy  fallback invalidation decision
-aeEvaluateAtlasA0Quality      requested-grid quality/reliability
-aeBuildResult                 characterized atlas result schema
+100-point coarse Cp scan
+260-point rescue only when needed
+selected-candidate bounded continuous refinement
 ```
 
-Maintained production routes use:
+AE retains:
 
 ```text
-Main GUI -> guiRunAcoustoelasticIOPHGOModel
-         -> solveAcoustoelasticIOPHGOBranch
-SweepTool -> guiRunAcoustoelasticIOPHGOSweep
-          -> aeRunSweep -> solveAcoustoelasticIOPHGOBranch per point
-FitTool -> guiFitAcoustoelasticIOPHGOSolver
-        -> aeFitDispersionData -> aeEvaluateFitModel
-        -> solveAcoustoelasticIOPHGOBranch
-basic example -> solveAcoustoelasticIOPHGOBranch
+full discrete atlas -> minima -> linking -> atlasA0 selection
+-> bounded continuous refinement on the true SVD objective
 ```
 
-The longer solver entrypoints remain advanced supported scientific APIs.
-Production consumers do not call tracking or policy internals.
+The rejected AE adaptive coarse/rescue density route is not production code.
+The intentional cross-family dependency remains only
+`mrlfeBuildSeed -> rlComputeFundamentalLambModes`.
 
-## Implemented repository simplification
+## Validation state
 
-- `analysis/acoustoelastic_iop_hgo/` is organized into `diagnostics/`,
-  `fitting/`, `io/`, and `sweeps/`.
-- Identity-A0 model diagnostics are owned by
-  `models/acoustoelastic_iop_hgo/diagnostics/`.
-- `models/acoustoelastic_iop_hgo/results/` owns result construction only.
-- `tests/fitting/` and its structural exception are absent.
-- Five public wrappers remain; specialized commands resolve from canonical
-  implementations under `tests/runners/`.
-- Runtime measurement output is local ignored evidence under
-  `Results/test_runtime/` and is not imported into deterministic inventories.
-- Rayleigh-Lamb and mRLFE analysis remain flat based on their small cohesive
-  call graphs.
+There are 115 maintained tests across six canonical runners:
 
-The final structure and enforcement rules are recorded in
-`docs/repository/repository_simplification.md`,
-`docs/repository/repository_structure.md`, and the test-runner contracts.
+1. `run_repository_hygiene_tests` — 8 — PASS
+2. `run_quick_contract_tests` — 17 — PASS
+3. `run_quick_smoke_tests` — 29 — PASS
+4. `run_numerical_regression_tests` — 17 — PASS
+5. `run_extended_integration_tests` — 40 — PASS
+6. `run_performance_and_benchmark_tests` — 4 — PASS
 
-## Preserved contracts
+The final validation exposed only stale test architecture/contract assumptions.
+They were corrected without changing production physics, numerical policy,
+scientific goldens, or tolerances. After the final SweepTool characterization
+test correction, extended integration and performance/benchmark were rerun and
+passed; no production source changed after the earlier hygiene/quick/numerical
+passes. PR #135 merged this validated state into planning without additional
+source changes.
 
-- Official AE production output remains conservative `atlasA0`.
-- Physics, constitutive equations, matrices, roots, objectives, presets, grids,
-  thresholds, tracking, policy, fitting, sweeps, GUI behavior, and result
-  schemas must remain unchanged.
-- Fast/Balanced/Robust and the separate Main GUI numerical bundle retain their
-  characterized values and precedence.
-- `result.diagnostics` remains the stable summary; characterized internal
-  evidence remains in place for schema compatibility.
-- Identity-A0, raw branch 1, modal atlases, and branch families remain
-  diagnostic-only.
-- `aeResolveResultFile` retains canonical-first legacy read fallback unless a
-  separate task proves all external and scientific workspace consumers migrated.
-- Local ignored `Results/` workspaces and example figures are outside the
-  simplification task.
+## Final planning-versus-main audit
 
-## Work remaining after repository simplification
+At audit start:
 
-1. AE high-frequency `Cp(f)` numerical refinement, governed by
-   `docs/models/acoustoelastic_iop_hgo/active/solver_pending_work.md`.
-2. Controlled mRLFE runtime characterization using locally generated evidence.
-3. Explicitly authorized compatibility-debt retirement after complete consumer
-   and fixture evidence.
+```text
+planning HEAD = b925cfc2ad6d1c29b75812141c84f16ee705baa2
+main HEAD     = 026994f86a2d1dfe5a740034d7a5fd81d4f08235
+planning      = 286 commits ahead, 0 behind main
+merge base    = current main HEAD
+```
 
-None of these is part of the repository simplification task.
+No open PRs remain. The static review of repository root, startup/path policy,
+maintained entrypoints, public APIs, and validation architecture found no
+functional blocker. The only post-merge issue was stale campaign-status text,
+which is corrected on `audit/planning-main-readiness`.
+
+GitHub reports no CI/status checks on the planning merge commit; the MATLAB
+six-runner gate executed locally remains the authoritative validation evidence.
+
+See `../repository/planning_main_audit.md` for the audit record.
+
+## Next action
+
+1. merge the docs-only closeout PR from `audit/planning-main-readiness` into
+   `planning/full-repository-restructure`;
+2. optionally rerun `run_repository_hygiene_tests` because the closeout changes
+   documentation only;
+3. review/open the final planning-to-main PR only with explicit user
+   authorization;
+4. never merge into `main` without that authorization.

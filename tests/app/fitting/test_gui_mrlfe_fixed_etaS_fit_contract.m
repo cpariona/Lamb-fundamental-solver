@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_gui_mrlfe_fixed_etaS_fit_contract()
+%TEST_GUI_MRLFE_FIXED_ETAS_FIT_CONTRACT Validate fixed-viscosity mRLFE fitting.
 
 fprintf('\nRunning GUI mRLFE fixed etaS fit contract test...\n');
 fprintf('------------------------------------------------\n');
@@ -55,3 +55,4 @@ fprintf('Fixed etaS:   %.6g Pa*s\n', fitResult.fixedParams.etaS);
 fprintf('Route:        %s\n', fitOutput.routePolicy.actualPath);
 fprintf('RMSE:         %.6g m/s\n', fitResult.metrics.RMSE);
 fprintf('\nGUI mRLFE fixed etaS fit contract test passed.\n');
+end

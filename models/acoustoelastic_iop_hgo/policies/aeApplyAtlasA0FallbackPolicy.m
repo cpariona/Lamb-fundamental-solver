@@ -11,20 +11,21 @@ if ~isfield(result, 'options') || ~isfield(result.options, 'invalidateAtlasFallb
     return;
 end
 
-if ~isfield(result, 'reliability') || ~isfield(result.reliability, 'SelectionFallbackUsed') || ...
-        ~logical(result.reliability.SelectionFallbackUsed)
+if ~isfield(result, 'quality') || ~isfield(result.quality, 'selectionFallbackUsed') || ...
+        ~logical(result.quality.selectionFallbackUsed)
     return;
 end
 
 applied = true;
-result.fallbackCandidateCp = result.Cp;
-result.fallbackCandidateValidCp = result.validCp;
+result.fallbackCandidateCp = result.phaseVelocity_mps;
+result.fallbackCandidateValidCp = result.validMask;
 result.fallbackCandidateBranchExistsAtFrequency = result.branchExistsAtFrequency;
 result.fallbackCandidateInterpolatedCp = result.interpolatedCp;
 result.fallbackCandidatePointStatus = result.pointStatus;
 
-result.Cp(:) = nan;
-result.validCp(:) = false;
+result.phaseVelocity_mps(:) = nan;
+result.validMask(:) = false;
+result.wavenumber_radpm(:) = nan;
 result.branchExistsAtFrequency(:) = false;
 result.interpolatedCp(:) = false;
 result.objective(:) = nan;

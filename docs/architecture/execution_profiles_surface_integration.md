@@ -49,8 +49,8 @@ The maintained dependency path is:
 
 ```text
 surface profile resolver
-  -> thin surface request wrapper
-  -> mrlfeBuildPublicSolveRequest
+  -> surface-local physical request translation
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
@@ -59,8 +59,8 @@ the selected numerical preset, adaptive selection, branch termination, and
 disabled fallback. Adapters do not overwrite the preset after construction.
 
 The model-specific profile resolvers and mRLFE surface metadata builder live in
-`app/adapters/`. Cross-surface normalization, accepted profile values, and
-diagnostic formatting remain at the root of `app/`.
+`app/shared/`. Cross-surface normalization, accepted profile values, and
+diagnostic formatting also live in `app/shared/`.
 
 ## Metadata
 
@@ -151,7 +151,7 @@ FitTool:
 Surface integration coverage is grouped in:
 
 ```matlab
-run_execution_profile_surface_tests
+run_extended_integration_tests
 ```
 
 It covers:
@@ -163,38 +163,26 @@ It covers:
 - mRLFE public numerical preset mapping;
 - legacy AE Fit atlas-density override metadata.
 
-`run_gui_smoke_tests` includes lightweight surface contracts without turning the
-smoke suite into a benchmark.
+`run_quick_smoke_tests` includes lightweight surface contracts without turning the
+smoke suite into a performance suite.
 
-Performance benchmarks and full validation matrices remain separate diagnostic
-entrypoints because they execute many numerical cases and are not appropriate as
-routine smoke tests.
-
-The reproducible cross-surface matrix is:
+Performance checks and the full validation matrix remain separate entrypoints
+because they execute numerical cases that are not appropriate as routine smoke
+tests. The maintained reproducible cross-surface contract is:
 
 ```matlab
 matrix = validateExecutionProfileMatrix('WriteCsv', false);
-run_execution_profile_integration_tests
+run_extended_integration_tests
 ```
 
-The bounded mRLFE profile contract is:
-
-```matlab
-[rows, summary] = benchmarkMRLFEExecutionProfiles( ...
-    'Mode', "contract", 'RepeatCount', 1, 'WriteCsv', false);
-```
-
-Full benchmark mode is descriptive and manual. It has no hardware timing
-threshold and writes CSV only when explicitly requested.
+Ad hoc timing benchmarks are not maintained repository artifacts. Runtime tests
+remain descriptive and use no hardware-specific correctness threshold.
 
 ## Remaining Work
 
-- Keep the full mRLFE descriptive benchmark outside routine smoke validation;
-  the bounded structural contract is owned by execution-profile diagnostics.
 - Add richer per-curve execution-profile metadata for multi-case sweep exports if
   downstream consumers need point-level auditability.
 - Keep `robustness` as a compatibility alias until all external request
   producers use `executionProfile`.
 - Complete manual GUI review using the checklist above when a release requires
-  interactive evidence; automated surface and benchmark contracts remain the
-  routine gates.
+  interactive evidence; automated surface contracts remain the routine gates.

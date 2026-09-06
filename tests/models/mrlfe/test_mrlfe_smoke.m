@@ -1,47 +1,29 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
+function test_mrlfe_smoke()
+% Smoke test for both maintained public mRLFE branches.
+params = rlDefaultParams();
+frequency_Hz = linspace(500, 4000, 18).';
+
+a0 = solveBranch(params, frequency_Hz, "A0Like");
+s0 = solveBranch(params, frequency_Hz, "S0Like");
+
+for result = {a0, s0}
+    current = result{1};
+    assert(current.model == "mrlfe", 'Public result must identify mRLFE.');
+    assert(numel(current.frequency_Hz) == numel(frequency_Hz), ...
+        'Public frequency length mismatch.');
+    assert(any(current.validMask), 'Branch must contain at least one valid point.');
+    assert(all(current.phaseVelocity_mps(current.validMask) > 0), ...
+        'Valid phase velocities must be positive.');
+    assert(current.fallback.policy == "none" && ~current.fallback.applied, ...
+        'Public mRLFE smoke route must not use fallback.');
 end
 
-% Smoke test for the maintained mRLFE real-k elastic path.
-% This verifies that the refactored mRLFE folders are on the path and that a
-% small fundamental-mode computation returns finite A0-like/S0-like branches.
-
-params = rlDefaultParams();
-params.fmin = 500;
-params.fmax = 4000;
-params.numFrequencyPoints = 18;
-params.frequencySpacing = "linspace";
-
-options = rlDefaultOptions("Fast");
-options.computeA0 = true;
-options.computeS0 = true;
-options.computeMRLFE = true;
-options.computeMRLFERealK = false;
-
-mrlfeParams = mrlfeDefaultInternalParameters();
-options.mrlfeParams = mrlfeParams;
-
-results = rlComputeFundamentalLambModes(params, options);
-
-assert(isstruct(results), 'Results must be a struct.');
-assert(isfield(results, 'models'), 'Results must contain models.');
-assert(isfield(results.models, 'mRLFE'), 'Results must contain models.mRLFE.');
-assert(isfield(results.models.mRLFE, 'branches'), 'mRLFE result must contain branches.');
-assert(isfield(results.models.mRLFE.branches, 'A0Like'), 'mRLFE branches must contain A0Like.');
-assert(isfield(results.models.mRLFE.branches, 'S0Like'), 'mRLFE branches must contain S0Like.');
-
-A0Like = results.models.mRLFE.branches.A0Like;
-S0Like = results.models.mRLFE.branches.S0Like;
-
-assert(numel(A0Like.frequency) == params.numFrequencyPoints, 'A0Like frequency length mismatch.');
-assert(numel(S0Like.frequency) == params.numFrequencyPoints, 'S0Like frequency length mismatch.');
-assert(any(A0Like.valid), 'A0Like branch must contain at least one valid point.');
-assert(any(S0Like.valid), 'S0Like branch must contain at least one valid point.');
-assert(any(isfinite(A0Like.Cp(A0Like.valid))), 'A0Like must contain finite valid Cp values.');
-assert(any(isfinite(S0Like.Cp(S0Like.valid))), 'S0Like must contain finite valid Cp values.');
-assert(all(A0Like.Cp(A0Like.valid) > 0), 'A0Like valid Cp values must be positive.');
-assert(all(S0Like.Cp(S0Like.valid) > 0), 'S0Like valid Cp values must be positive.');
-
 fprintf('test_mrlfe_smoke passed. A0Like valid: %d/%d. S0Like valid: %d/%d.\n', ...
-    nnz(A0Like.valid), numel(A0Like.valid), nnz(S0Like.valid), numel(S0Like.valid));
+    nnz(a0.validMask), numel(a0.validMask), nnz(s0.validMask), numel(s0.validMask));
+end
+
+function result = solveBranch(params, frequency_Hz, branchName)
+options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
+request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
+result = mrlfeSolve(request);
+end

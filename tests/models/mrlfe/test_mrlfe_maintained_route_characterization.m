@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_mrlfe_maintained_route_characterization()
+%TEST_MRLFE_MAINTAINED_ROUTE_CHARACTERIZATION Compare maintained consumers with the public route.
 
 fprintf('\nRunning mRLFE maintained-route characterization test...\n');
 fprintf('----------------------------------------------------\n');
@@ -27,11 +27,12 @@ for i = 1:numel(cases)
     assertSameResult(guiResult, direct, 'Main GUI');
 end
 
-% FitTool route and optimized-grid equivalence are covered by the dedicated
-% run_mrlfe_fit_public_solver_tests runner. Keeping that work out of this
-% route-integrity runner avoids duplicate solver evaluations and grid-policy coupling.
+% FitTool route and optimized-grid equivalence are covered by dedicated tests in
+% the same extended tier. Keeping that work out of this test avoids duplicate
+% solver evaluations and grid-policy coupling.
 
 fprintf('mRLFE maintained-route characterization test passed.\n');
+end
 
 function params = localParams()
 params = rlDefaultParams();
@@ -47,17 +48,12 @@ end
 
 function request = localRequest(branch, etaS)
 params = localParams();
-request = mrlfeBuildGuiSolveRequest(params, rlBuildFrequencyVector(params), branch, localGuiOptions(branch, etaS));
+request = mrlfeBuildSolveRequest(params, rlBuildFrequencyVector(params), branch, localGuiOptions(branch, etaS));
 end
 
 function options = localGuiOptions(branch, etaS)
-options = rlDefaultOptions("Fast");
-options.computeA0 = branch == "A0Like";
-options.computeS0 = branch == "S0Like";
-options.computeMRLFERealK = true;
-options.mrlfeComputeA0Like = branch == "A0Like";
-options.mrlfeComputeS0Like = branch == "S0Like";
-options.mrlfeA0Policy = "physicalTail";
+options = mrlfeDefaultSweepOptions(branch, 'EtaS', etaS);
+options.branchNames = branch;
 options.mrlfeParams = localMrlfeParams(etaS);
 end
 

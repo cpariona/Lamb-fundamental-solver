@@ -1,21 +1,15 @@
 function identity = aeBuildIdentityA0DiagnosticBranch(result, varargin)
 %AEBUILDIDENTITYA0DIAGNOSTICBRANCH Build a separate identity-scored A0 candidate branch.
 %
-%   identity = aeBuildIdentityA0DiagnosticBranch(result) returns a diagnostic
-%   branch in separate fields. It never modifies result.Cp or result.validCp.
-%
-%   The candidate branch starts from the official atlasA0 output and fills only
-%   missing frequencies where aeScoreBranchIdentityCandidates finds a strong or
-%   caution candidate.
-%
-% This model-adjacent helper remains a diagnostic-only extension. It does not
-% participate in atlasA0 selection or alter official result fields.
+% The candidate branch starts from the official atlasA0 output and fills only
+% missing frequencies where aeScoreBranchIdentityCandidates finds a strong or
+% caution candidate. It never modifies the official result.
 
 score = aeScoreBranchIdentityCandidates(result, varargin{:});
 
-f = result.frequency(:).';
-officialCp = result.Cp(:).';
-officialValid = logical(result.validCp(:).');
+f = result.frequency_Hz(:);
+officialCp = result.phaseVelocity_mps(:);
+officialValid = logical(result.validMask(:));
 
 CpCandidate = officialCp;
 validCandidate = officialValid;
@@ -53,7 +47,7 @@ end
 identity = struct();
 identity.policyName = "identityA0Diagnostic";
 identity.officialPolicyEquivalent = "atlasA0";
-identity.note = "Diagnostic only. result.Cp and result.validCp remain the official atlasA0 output.";
+identity.note = "Diagnostic only. Canonical phaseVelocity_mps and validMask remain the official atlasA0 output.";
 identity.frequency = f;
 identity.CpCandidate = CpCandidate;
 identity.validCandidate = validCandidate;
@@ -89,7 +83,7 @@ value = nan;
 if isempty(firstValid)
     return;
 end
-idx = find(~valid & (1:numel(valid)) >= firstValid, 1, 'first');
+idx = find(~valid & (1:numel(valid)).' >= firstValid, 1, 'first');
 if ~isempty(idx)
     value = f(idx) / 1e3;
 end

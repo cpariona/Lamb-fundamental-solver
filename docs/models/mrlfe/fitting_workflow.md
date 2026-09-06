@@ -8,13 +8,14 @@ This document records the maintained mRLFE dispersion fitting workflow after all
 FitTool_GUI
   -> guiFitMRLFESolver
   -> mrlfeFitDispersionData
+  -> mrlfeBuildFitProblem
+  -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildFitSolveRequest
-  -> mrlfeBuildPublicSolveRequest
+  -> mrlfeBuildSolveRequest
   -> mrlfeSolve
 ```
 
-There is one maintained physical evaluation route. `mrlfeEvaluateFitModel` builds a public request and calls `mrlfeSolve`; it does not contain a legacy opt-out route. `mrlfeEvaluateAtlasFitModel` has been removed.
+There is one maintained physical evaluation route. `mrlfeEvaluateFitModel` builds a public request and calls `mrlfeSolve`.
 
 ## Supported fitting cases
 
@@ -39,7 +40,7 @@ Only `frequency_Hz` and `Cp_mps` are required.
 
 ## Public request mapping
 
-`mrlfeBuildFitSolveRequest` maps fitting parameters to the public SI request contract:
+`mrlfeBuildSolveRequest` maps fitting parameters and model-owned options to the public SI request contract:
 
 ```matlab
 request.branch
@@ -102,13 +103,10 @@ This explicit curve evaluation does not call the optimizer. It also records cons
 
 ## Metadata
 
-The fitting raw result retains the public model result under:
-
-```matlab
-rawResult.modelResult
-```
-
-Compatibility metadata includes branch identity, requested frequencies, Cp values, valid mask, route path, numerical preset, fit-grid policy, and performance diagnostics. Effective engine names are neutral:
+The canonical fit result retains the final public model evaluation under
+`fitResult.modelEvaluation`. It also reports branch identity, requested
+frequencies, fitted Cp values, valid mask, numerical preset, fit-grid policy,
+and performance diagnostics. Effective engine names are neutral:
 
 ```text
 etaS = 0  -> elastic_adaptive
@@ -132,9 +130,8 @@ fit-consistent, while explicit requested-curve evaluation uses
 Run:
 
 ```matlab
-run_mrlfe_fit_public_solver_tests
-run_execution_profile_surface_tests
-run_gui_smoke_tests
+run_extended_integration_tests
+run_quick_smoke_tests
 ```
 
 The focused suite checks public-solver routing, parameter regression, fit-grid policy, no automatic solver reevaluation during normalization, and explicit full-curve evaluation behavior.

@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
-
+function test_model_execution_profile_resolvers()
 fprintf('\nRunning model execution profile resolver tests...\n');
 fprintf('------------------------------------------------\n');
 
@@ -17,7 +13,8 @@ for i = 1:numel(profiles)
     assert(options.gridPointsInitial == reference.gridPointsInitial, 'RL gridPointsInitial changed.');
     assert(options.gridPointsTracking == reference.gridPointsTracking, 'RL gridPointsTracking changed.');
     assert(options.jumpTol == reference.jumpTol, 'RL jumpTol changed.');
-    assert(options.mrlfeGridPoints == reference.mrlfeGridPoints, 'RL mrlfeGridPoints changed.');
+    assert(~any(startsWith(string(fieldnames(options)), "mrlfe", 'IgnoreCase', true)), ...
+        'RL options must not contain mRLFE configuration.');
     assert(metadata.requestedExecutionProfile == profile, 'RL metadata requested profile mismatch.');
     assert(metadata.effectiveExecutionProfile == profile, 'RL metadata effective profile mismatch.');
     assert(metadata.profileOverrideApplied == false, 'RL resolver should not report overrides.');
@@ -67,3 +64,4 @@ for i = 1:numel(profiles)
 end
 
 fprintf('Model execution profile resolver tests passed.\n');
+end

@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_rl_fit_rejects_prediction_fallback()
+%TEST_RL_FIT_REJECTS_PREDICTION_FALLBACK Validate strict-root fitting rejection behavior.
 
 fprintf('\nRunning RL fitting prediction-fallback rejection test...\n');
 fprintf('----------------------------------------------------\n');
@@ -50,3 +50,4 @@ catch ME
 end
 
 fprintf('\nRL fitting prediction-fallback rejection test passed.\n');
+end

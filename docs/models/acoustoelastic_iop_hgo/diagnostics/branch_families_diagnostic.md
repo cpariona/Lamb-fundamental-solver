@@ -10,14 +10,13 @@ k2 = 100;
 thickness_um = 550;
 ```
 
-The purpose is to inspect competing raw-atlas branch families instead of forcing a single `raw_branch1` selection. This is diagnostic only. It does not modify `result.Cp`, `result.validCp`, `atlasA0`, or `identityA0Diagnostic`.
+The purpose is to inspect competing raw-atlas branch families instead of forcing a single `raw_branch1` selection. This is diagnostic only. It does not modify `result.phaseVelocity_mps`, `result.validMask`, `atlasA0`, or `identityA0Diagnostic`.
 
 ### Runnable script
 
 ```matlab
-cd('E:\')
 startup
-diagnose_branch_families
+run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_branch_families.m')
 AcoustoelasticIOPHGOBranchFamiliesSummary
 AcoustoelasticIOPHGOBranchFamiliesAggregate
 ```
@@ -48,13 +47,13 @@ The first run used five configurations:
 | `fine_top24` | 1400 | 24 | 0.075 |
 | `fine_loose` | 1400 | 24 | 0.110 |
 
-### Aggregate result
+### Historical aggregate result
 
 | Configurations | Families reported | Best-family median coverage | Best-family min coverage | Best-family max coverage | Best-family median rank | Families with coverage >= 0.80 | Families with median rank <= 4 | Families with coverage >= 0.80 and median rank <= 4 |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 5 | 25 | 0.85625 | 0.73125 | 0.92500 | 6 | 4 | 2 | 0 |
 
-### Best family per configuration
+### Historical best family per configuration
 
 | Config | Best-family coverage | Best-family median rank | Best-family roughness | Cp range [m/s] | Frequency range [kHz] |
 |---|---:|---:|---:|---|---|
@@ -81,7 +80,7 @@ The current evidence supports keeping `atlasA0` as the conservative official out
 
 Do not promote `raw_branch1` or `identityA0Diagnostic` to production output in this corner. The solver policy should treat this regime as an explicit ambiguity region until a stronger branch-identity criterion is available, such as modal-shape information, branch-family continuity across material parameters, or an independent physical plausibility constraint.
 
-### Current optimization status
+### Scope of the historical evidence
 
 For the tested regimes outside the low-stiffness/high-IOP corner, the solver appears close to optimized for the current modeling assumptions:
 

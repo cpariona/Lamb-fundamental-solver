@@ -1,242 +1,80 @@
 # Lamb Fundamental Solver
 
-MATLAB project for computing and plotting fundamental Lamb-wave phase velocity curves for soft, nearly incompressible materials.
+MATLAB tools for fundamental Lamb-wave dispersion, fitting, and parameter
+sweeps in soft materials. Models: Rayleigh-Lamb A0/S0, fluid-loaded mRLFE
+A0Like/S0Like, and prestressed AE IOP/HGO atlasA0. S0 and difficult
+low-stiffness/high-pressure regimes require careful scientific interpretation.
 
-## Current scope
+## Start
 
-* Rayleigh-Lamb A0 phase velocity using the antisymmetric residual.
-* Experimental Rayleigh-Lamb S0 phase velocity using the symmetric residual.
-* Low-frequency analytical approximations for A0 thin-plate flexure and S0 extensional motion.
-* mRLFE real-k dispersion and fitting for fluid-loaded layers.
-* Acoustoelastic IOP/HGO atlas-branch solver for prestress studies.
-* GUI plotting and fitting of phase velocity Cp versus frequency, angular frequency, wavenumber, or `kThickness`.
-
-## Repository structure
-
-```text
-app/                                  GUI surfaces, adapters, fitting/sweep UI, and export.
-analysis/                             Reusable analysis, fitting, sweep, and summary helpers.
-docs/                                 Active repository, API, validation, and workflow documentation.
-examples/rayleigh_lamb/               Maintained Rayleigh-Lamb examples and validation scripts.
-examples/mrlfe/                       Maintained mRLFE examples, sweeps, diagnostics, and stress tests.
-examples/acoustoelastic_iop_hgo/      Maintained acoustoelastic IOP/HGO examples, sweeps, and diagnostics.
-models/rayleigh_lamb/                 Clean Rayleigh-Lamb implementation using `rl*` functions.
-models/mrlfe/                         Modified Rayleigh-Lamb fluid-loaded model.
-models/acoustoelastic_iop_hgo/        Acoustoelastic model using IOP prestress and HGO constitutive response.
-tests/                                Lightweight smoke and consistency tests.
-```
-
-Cross-model sweep infrastructure is grouped under `analysis/sweeps/`.
-Model-specific request/result translation lives under `app/adapters/`, while
-FitTool and SweepTool UI workflows live under `app/fitting/` and `app/sweep/`.
-There is no root-level `shared/` source layer; `analysis/` owns reusable
-workflow infrastructure.
-
-A more detailed structure map is available in:
-
-```text
-docs/repository/repository_structure.md
-```
-
-Maintained solver, example, diagnostic, and test entrypoints are listed in:
-
-```text
-docs/repository/maintained_entrypoints.md
-```
-
-Repository structure, documentation, naming, tracked-artifact, dependency,
-path, and test-ownership hygiene is validated by:
-
-```matlab
-run_repository_hygiene_tests
-```
-
-The repository naming strategy is documented in:
-
-```text
-docs/repository/naming_strategy.md
-```
-
-The maintained GUI adapter architecture is documented in:
-
-```text
-docs/workflows/gui/adapter_architecture.md
-```
-
-## Launching the GUI
-
-From the repository root, run:
-
-```matlab
-runApp
-```
-
-Alternatively:
+From the repository root in MATLAB:
 
 ```matlab
 startup
-LambFundamental_GUI
+runApp
+% Other human surfaces:
+FitTool_GUI
+SweepTool_GUI
 ```
 
-## Path behavior
+The production path contains the repository root, `models/`, `analysis/`,
+`app/`, and only the six validation launchers under `tests/runners/`.
+It does not load test bodies, examples, or executable diagnostics.
 
-`startup.m` adds only the active solver, GUI, model, analysis, test, and maintained example folders to the MATLAB path:
+GUI requests use `executionProfile` (Fast, Balanced, Robust). The established
+`robustness` input compatibility alias is restricted to app normalization;
+new callers use `executionProfile`. See the
+[profile contract](docs/architecture/execution_profiles_surface_integration.md).
 
-```text
-app/
-analysis/
-models/rayleigh_lamb/
-models/mrlfe/
-models/acoustoelastic_iop_hgo/
-examples/rayleigh_lamb/
-examples/mrlfe/
-examples/acoustoelastic_iop_hgo/
-tests/
-```
+## Programmatic APIs
 
-Historical archived examples have been removed; `startup.m` adds only maintained example folders.
-
-## Naming convention
-
-This project uses explicit thickness naming to avoid ambiguity with classical Rayleigh-Lamb notation:
-
-* `thickness`: total plate thickness.
-* `halfThickness`: `thickness / 2`, used internally by Rayleigh-Lamb equations.
-* `kThickness`: dimensionless wavenumber, computed as `k * thickness`.
-
-Public GUI labels, exported tables, and result structures should use `thickness` and `kThickness`, not `h`, `kh`, or `kH`.
-
-## Defaults and execution profiles
-
-Default physical and frequency parameters are provided by the Rayleigh-Lamb API function:
-
-```matlab
-rlDefaultParams
-```
-
-Current file: `models/rayleigh_lamb/core/rlDefaultParams.m`.
-
-Default Rayleigh-Lamb numerical options are provided by:
-
-```matlab
-rlDefaultOptions
-```
-
-Current file: `models/rayleigh_lamb/core/rlDefaultOptions.m`.
-
-The canonical app-level field is:
-
-```matlab
-executionProfile
-```
-
-The historical field remains supported as a compatibility alias:
-
-```matlab
-robustness
-```
-
-Available execution profiles:
-
-* `Fast`: fewer scan points and faster calculations.
-* `Balanced`: default setting for routine exploration.
-* `Robust`: more scan points and wider search windows for difficult cases.
-
-Visible GUI defaults are:
-
-| Surface | Default |
+| Family | Public operations |
 | --- | --- |
-| `LambFundamental_GUI` | `Balanced` |
-| `SweepTool_GUI` | `Fast` |
-| `FitTool_GUI` | `Fast` |
+| RL | `rlDefaultParams`, `rlDefaultOptions`, `rlComputeFundamentalLambModes`, `rlComputeAnalyticalApproximations` |
+| mRLFE | `mrlfeDefaultParameters`, `mrlfeDefaultOptions`, `mrlfeSolve` |
+| AE | `defaultAcoustoelasticIOPHGOOptions`, `solveAcoustoelasticIOPHGOBranch` |
+| Fitting | `rlFitDispersionData`, `mrlfeFitDispersionData`, `aeFitDispersionData` |
+| Sweeps | `rlRunSweep`, `mrlfeRunSweep`, `aeRunSweep`, `aeRunGridSweep` |
 
-Model-specific adapters report requested and effective profile metadata. mRLFE
-keeps maintained fast atlas presets for GUI and fitting routes; inspect
-`requestedExecutionProfile`, `effectiveExecutionProfile`, and
-`profileOverrideReason` when comparing requested versus effective behavior.
+See [maintained entrypoints](docs/repository/maintained_entrypoints.md) for
+scope and [model documentation](docs/README.md) for requests and limitations.
 
-## mRLFE solver workflow
+## Examples
 
-The maintained mRLFE GUI surface exposes a single real-k model family:
-
-```text
-mRLFERealK
-```
-
-Viscous real-k sweep and diagnostic outputs use the normalized model name `mRLFEViscoRealK` where model-specific result containers need to distinguish etaS > 0 cases.
-
-The forward solver, Main GUI, SweepTool, and FitTool workflows now use the public mRLFE production API:
-
-```text
-Main GUI  -+
-SweepTool -+-> mrlfeSolve
-FitTool   -+
-```
-
-For A0Like production solving, the maintained termination policy is:
+Examples are opt-in files, not global production commands:
 
 ```matlab
-termination.policy = "physicalTail";
+run('examples/rayleigh_lamb/basic/run_default_A0_S0.m')
 ```
 
-S0Like production solving uses `termination.policy = "none"`. No legacy route fallback is applied.
+Each example bootstraps the project from its own location. Navigate to its
+folder or pass its absolute path to `run`. Generated figures and results are
+untracked; scripts may write relative to their execution folder.
 
-Main mRLFE folders:
+## Validation
 
-```text
-models/mrlfe/core/
-models/mrlfe/solvers/
-models/mrlfe/options/
-analysis/mrlfe/
-examples/mrlfe/
-```
-
-The high-level mRLFE function is:
+After `startup`, invoke any of the six commands directly:
 
 ```matlab
-mrlfeSolve
+run_repository_hygiene_tests
+run_quick_contract_tests
+run_quick_smoke_tests
+run_numerical_regression_tests
+run_extended_integration_tests
+run_performance_and_benchmark_tests
 ```
 
-Maintained mRLFE analysis helpers:
+Each runner loads its test path explicitly and restores the caller path on
+success or failure. See [tests](tests/README.md) and
+[validation status](docs/repository/validation_status.md).
 
-```matlab
-summarizeMRLFETrackingQuality
-compareMRLFETrackingStrategies
-```
+## Architecture
 
-Internal mRLFE model defaults and residual evaluation use
-`mrlfeDefaultInternalParameters` and `mrlfeObjectiveResidual`.
+- `models/` owns physics, tracking, quality, and scientific results.
+- `analysis/` owns fitting, sweeps, plotting, IO, and diagnostic interpretation.
+- `app/` owns Main GUI, FitTool, SweepTool, and their request/view translation.
+- `examples/` contains representative scripts and optional diagnostics.
+- `tests/` owns validation and benchmark tooling.
 
-Maintained mRLFE sweeps:
-
-```matlab
-mrlfe_sweep_mu_A0Like
-mrlfe_sweep_mu_S0Like
-mrlfe_sweep_etaS_A0Like
-mrlfe_sweep_etaS_S0Like
-mrlfe_sweep_thickness_A0Like
-mrlfe_sweep_thickness_S0Like
-```
-
-Maintained mRLFE fitting and comparison examples:
-
-```matlab
-run_default_mrlfe
-fit_mrlfe_A0Like
-compare_mrlfe_elastic_vs_visco_cp
-```
-
-Focused mRLFE diagnostics:
-
-```matlab
-diagnose_mrlfe_fit_performance
-validate_mrlfe_targeted_grid
-validate_grid_presets
-validate_grid_presets_full
-```
-
-The complete active mRLFE diagnostic inventory is documented in:
-
-```text
-examples/mrlfe/diagnostics/README.md
-```
+Start with [repository structure](docs/repository/repository_structure.md)
+and the [GUI routes](docs/workflows/gui/adapter_architecture.md).

@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_mrlfe_main_gui_uses_public_solver()
+%TEST_MRLFE_MAIN_GUI_USES_PUBLIC_SOLVER Guard the maintained Main GUI mRLFE route.
 
 fprintf('\nRunning mRLFE Main GUI public-solver route guard test...\n');
 fprintf('-------------------------------------------------------\n');
@@ -9,8 +9,8 @@ adapterText = string(fileread(adapterPath));
 
 assert(contains(adapterText, "mrlfeSolve"), ...
     'Main GUI mRLFE adapter must call mrlfeSolve.');
-assert(contains(adapterText, "mrlfeBuildGuiSolveRequest"), ...
-    'Main GUI mRLFE adapter must use the GUI public request mapper.');
+assert(contains(adapterText, "mrlfeBuildSolveRequest"), ...
+    'Main GUI mRLFE adapter must use the reusable request translator.');
 forbidden = ["computeMRLFE", "solveMRLFEAtlasUnified", ...
     "solveMRLFEBranchAdaptiveAtlas", "mrlfeApplyPhysicalCorridorCut", ...
     "mrlfeTrackBranchAdaptive"];
@@ -41,6 +41,7 @@ for i = 1:numel(cases)
 end
 
 fprintf('\nmRLFE Main GUI public-solver route guard test passed.\n');
+end
 
 function out = runMainCase(branchName, etaS, mu, fmin, fmax, nPoints)
 params = rlDefaultParams();
@@ -53,12 +54,8 @@ params.thickness = 0.5e-3;
 params.rho = 1070;
 params.nu = 0.4999;
 
-options = rlDefaultOptions("Fast");
-options.computeA0 = branchName == "A0Like";
-options.computeS0 = branchName == "S0Like";
-options.computeMRLFERealK = true;
-options.mrlfeComputeA0Like = branchName == "A0Like";
-options.mrlfeComputeS0Like = branchName == "S0Like";
+options = mrlfeDefaultSweepOptions(branchName);
+options.branchNames = branchName;
 options.mrlfeA0Policy = "physicalTail";
 options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = etaS;

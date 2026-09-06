@@ -10,9 +10,9 @@ function score = aeScoreBranchIdentityCandidates(result, varargin)
 %   diagnostic is not limited by the production atlasTopNMinima value.
 
 opts = parseOptions(varargin{:});
-f = result.frequency(:);
-cp = result.Cp(:);
-valid = logical(result.validCp(:)) & isfinite(cp);
+f = result.frequency_Hz(:);
+cp = result.phaseVelocity_mps(:);
+valid = logical(result.validMask(:)) & isfinite(cp);
 
 [firstTerminalMissing, lastValid, firstInternalGap] = findTerminalBreak(valid);
 center = firstTerminalMissing;
@@ -233,8 +233,8 @@ keep = 1:min(topN, numel(idx));
 idx = idx(keep);
 objective = objective(keep);
 minima = table();
-minima.Frequency_Hz = repmat(result.frequency(k), numel(idx), 1);
-minima.Frequency_kHz = repmat(result.frequency(k) / 1e3, numel(idx), 1);
+minima.Frequency_Hz = repmat(result.frequency_Hz(k), numel(idx), 1);
+minima.Frequency_kHz = repmat(result.frequency_Hz(k) / 1e3, numel(idx), 1);
 minima.MinRank = (1:numel(idx)).';
 minima.Cp_mps = cGrid(idx);
 minima.y = yGrid(idx);

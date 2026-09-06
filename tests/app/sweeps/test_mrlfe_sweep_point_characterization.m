@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_mrlfe_sweep_point_characterization()
+%TEST_MRLFE_SWEEP_POINT_CHARACTERIZATION Compare sweep points with direct public solves.
 
 fprintf('\nRunning mRLFE SweepTool point characterization test...\n');
 fprintf('-----------------------------------------------------\n');
@@ -18,17 +18,27 @@ for iBranch = 1:numel(branches)
     for iEta = 1:numel(etaSValues)
         etaS = etaSValues(iEta);
         out = runMuSweep(branchName, etaS, muValues_kPa);
-        assert(numel(out.rawResults.points) == numel(muValues_kPa), ...
+        assert(numel(out.sweepResult.points) == numel(muValues_kPa), ...
             'SweepTool must preserve point count.');
         assert(isequal(out.sweepSpec.values(:), muValues_kPa(:) * 1e3), ...
             'SweepTool must preserve mu point ordering and units.');
 
         for iPoint = 1:numel(muValues_kPa)
-            point = out.rawResults.points{iPoint};
-            direct = mrlfeSolve(out.rawResults.requests{iPoint});
+            point = out.sweepResult.points{iPoint};
+            storedRequest = out.sweepResult.requests{iPoint};
+            assert(isstruct(storedRequest) && isfield(storedRequest, 'parameters') && ...
+                isfield(storedRequest, 'options'), ...
+                'Canonical sweep requests must preserve configuration.requested.');
+
+            pointParams = out.sweepResult.params{iPoint};
+            pointOptions = out.sweepResult.options{iPoint};
+            directRequest = mrlfeBuildSolveRequest( ...
+                pointParams, buildFrequencyVector(pointParams), branchName, pointOptions);
+            direct = mrlfeSolve(directRequest);
+            modelResult = point.modelResult;
 
             assert(point.status == "ok", 'Sweep point unexpectedly failed.');
-            assert(isequal(point.frequency_Hz(:), direct.frequency_Hz(:)), ...
+            assert(isequal(modelResult.frequency_Hz(:), direct.frequency_Hz(:)), ...
                 'Sweep point frequency grid changed.');
             assert(point.modelResult.branch == direct.branch, 'Sweep point branch changed.');
             assert(point.modelResult.execution.effectivePreset == "fast", ...
@@ -36,11 +46,11 @@ for iBranch = 1:numel(branches)
             assert(point.modelResult.fallback.applied == false, ...
                 'Sweep point must not apply fallback.');
 
-            validMaskDifferences = validMaskDifferences + nnz(point.validMask(:) ~= direct.validMask(:));
-            comparable = point.validMask(:) & direct.validMask(:) & ...
-                isfinite(point.phaseVelocity_mps(:)) & isfinite(direct.phaseVelocity_mps(:));
+            validMaskDifferences = validMaskDifferences + nnz(modelResult.validMask(:) ~= direct.validMask(:));
+            comparable = modelResult.validMask(:) & direct.validMask(:) & ...
+                isfinite(modelResult.phaseVelocity_mps(:)) & isfinite(direct.phaseVelocity_mps(:));
             if any(comparable)
-                diff_mps = abs(point.phaseVelocity_mps(comparable) - direct.phaseVelocity_mps(comparable));
+                diff_mps = abs(modelResult.phaseVelocity_mps(comparable) - direct.phaseVelocity_mps(comparable));
                 maxAbsDiff_mps = max(maxAbsDiff_mps, max(diff_mps));
                 maxRelDiff = max(maxRelDiff, max(diff_mps ./ max(abs(direct.phaseVelocity_mps(comparable)), eps)));
             end
@@ -58,6 +68,7 @@ fprintf('Maximum Cp absolute difference: %.15g m/s\n', maxAbsDiff_mps);
 fprintf('Maximum Cp relative difference: %.15g\n', maxRelDiff);
 fprintf('Valid-mask differences: %d\n', validMaskDifferences);
 fprintf('\nmRLFE SweepTool point characterization test passed.\n');
+end
 
 function out = runMuSweep(branchName, etaS, muValues_kPa)
 params = rlDefaultParams();

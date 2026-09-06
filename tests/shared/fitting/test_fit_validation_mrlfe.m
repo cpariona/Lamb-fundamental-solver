@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_fit_validation_mrlfe()
+%TEST_FIT_VALIDATION_MRLFE Validate maintained mRLFE fitting behavior.
 
 fprintf('\nRunning mRLFE fitting validation tests...\n');
 fprintf('--------------------------------------\n');
@@ -52,6 +52,6 @@ request = guiBuildFitRequest("mrlfe", ...
 fitOutput = guiRunFit(request);
 summaryRows = [summaryRows; assertFitRecovery("mRLFE_A0Like_mu_app_adapter", trueParams.mu, fitOutput.fitResult.bestParams.mu, 0.05, fitOutput.fitResult, 0.10, 8)]; %#ok<AGROW>
 
-assignin('base', 'MRLFEFitValidationSummary', summaryRows);
 disp(summaryRows);
 fprintf('\nmRLFE fitting validation tests passed.\n');
+end

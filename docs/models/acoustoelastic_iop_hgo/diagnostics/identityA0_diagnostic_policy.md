@@ -6,14 +6,14 @@ It does not replace the official maintained output.
 
 The following fields remain the conservative atlas output:
 
-- `result.Cp`
-- `result.validCp`
+- `result.phaseVelocity_mps`
+- `result.validMask`
 - `result.selectedBranch`
 - `result.selectedBranchPoints`
 
 The policy only adds a separate diagnostic branch under:
 
-`result.identityA0`
+`result.diagnostics.identityA0`
 
 ### How to enable
 
@@ -34,24 +34,24 @@ options.atlasBranchPolicy = "atlasA0";
 When `identityA0Diagnostic` is active, the solver adds:
 
 ```matlab
-result.identityA0.policyName
-result.identityA0.officialPolicyEquivalent
-result.identityA0.note
-result.identityA0.frequency
-result.identityA0.CpCandidate
-result.identityA0.validCandidate
-result.identityA0.addedFromIdentityScore
-result.identityA0.branchIdentityScore
-result.identityA0.candidateRank
-result.identityA0.candidateClass
-result.identityA0.candidateSource
-result.identityA0.score
-result.identityA0.summary
+result.diagnostics.identityA0.policyName
+result.diagnostics.identityA0.officialPolicyEquivalent
+result.diagnostics.identityA0.note
+result.diagnostics.identityA0.frequency
+result.diagnostics.identityA0.CpCandidate
+result.diagnostics.identityA0.validCandidate
+result.diagnostics.identityA0.addedFromIdentityScore
+result.diagnostics.identityA0.branchIdentityScore
+result.diagnostics.identityA0.candidateRank
+result.diagnostics.identityA0.candidateClass
+result.diagnostics.identityA0.candidateSource
+result.diagnostics.identityA0.score
+result.diagnostics.identityA0.summary
 ```
 
 ### Meaning of the fields
 
-`CpCandidate` starts from the official `result.Cp` values and fills only missing frequencies where the branch-identity score finds a strong or caution candidate.
+`CpCandidate` starts from the official `result.phaseVelocity_mps` values and fills only missing frequencies where the branch-identity score finds a strong or caution candidate.
 
 `validCandidate` is true where either the official branch is valid or a diagnostic candidate was added.
 
@@ -71,13 +71,13 @@ Only strong and caution candidates are allowed to fill `CpCandidate` at missing 
 
 ### Safety rule
 
-Do not use `result.identityA0.CpCandidate` as the official dispersion curve unless it has been explicitly validated for the parameter regime.
+Do not use `result.diagnostics.identityA0.CpCandidate` as the official dispersion curve unless it has been explicitly validated for the parameter regime.
 
 The official branch remains:
 
 ```matlab
-result.Cp
-result.validCp
+result.phaseVelocity_mps
+result.validMask
 ```
 
 ### Validation test
@@ -91,8 +91,8 @@ test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy
 The test compares:
 
 ```matlab
-resultAtlas.Cp
-resultAtlas.validCp
+resultAtlas.phaseVelocity_mps
+resultAtlas.validMask
 ```
 
 against the official fields returned when:
@@ -101,7 +101,7 @@ against the official fields returned when:
 options.atlasBranchPolicy = "identityA0Diagnostic";
 ```
 
-and verifies that only `result.identityA0` is added.
+and verifies that only `result.diagnostics.identityA0` is added.
 
 ### Recommended use
 

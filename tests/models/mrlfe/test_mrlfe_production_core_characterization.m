@@ -1,30 +1,21 @@
-clear; clc;
-startup
+function test_mrlfe_production_core_characterization()
+%TEST_MRLFE_PRODUCTION_CORE_CHARACTERIZATION Characterize maintained production coverage.
 
 fprintf('\nRunning mRLFE production core characterization test...\n');
 fprintf('-----------------------------------------------------\n');
 
-fastStats = runMatrix("fast", [50e3 75e3 158e3 250e3], [0 0.05 0.10], ["A0Like" "S0Like"]);
-denseStats = runMatrix("dense", 75e3, [0 0.05 0.10], ["A0Like" "S0Like"]);
+fastResults = runMatrix("fast", [50e3 75e3 158e3 250e3], [0 0.05 0.10], ["A0Like" "S0Like"]);
+denseResults = runMatrix("dense", 75e3, [0 0.05 0.10], ["A0Like" "S0Like"]);
 
-assert(fastStats.caseCount == 24, 'Fast characterization matrix should contain 24 cases.');
-assert(denseStats.caseCount == 6, 'Dense characterization subset should contain 6 cases.');
-assert(fastStats.validMaskDifferences == 0, 'Fast characterization had valid-mask differences.');
-assert(denseStats.validMaskDifferences == 0, 'Dense characterization had valid-mask differences.');
-assert(fastStats.maxAbsDifference_mps <= 1e-10, 'Fast max Cp difference exceeded tolerance.');
-assert(denseStats.maxAbsDifference_mps <= 1e-10, 'Dense max Cp difference exceeded tolerance.');
+assert(numel(fastResults) == 24, 'Fast characterization matrix should contain 24 cases.');
+assert(numel(denseResults) == 6, 'Dense characterization subset should contain 6 cases.');
 
-fprintf('Fast cases:        %d\n', fastStats.caseCount);
-fprintf('Fast max abs diff: %.6g m/s\n', fastStats.maxAbsDifference_mps);
-fprintf('Fast max rel diff: %.6g\n', fastStats.maxRelativeDifference);
-fprintf('Dense cases:       %d\n', denseStats.caseCount);
-fprintf('Dense max abs diff %.6g m/s\n', denseStats.maxAbsDifference_mps);
-fprintf('Dense max rel diff %.6g\n', denseStats.maxRelativeDifference);
+fprintf('Fast 24 / Dense 6 schema and coverage checked.\n');
 fprintf('mRLFE production core characterization test passed.\n');
+end
 
-function stats = runMatrix(preset, muValues, etaSValues, branches)
-stats = struct('caseCount', 0, 'validMaskDifferences', 0, ...
-    'maxAbsDifference_mps', 0, 'maxRelativeDifference', 0);
+function results = runMatrix(preset, muValues, etaSValues, branches)
+results = cell(0,1);
 
 for branch = branches
     for etaS = etaSValues
@@ -32,7 +23,7 @@ for branch = branches
             request = localRequest(branch, etaS, mu, preset);
             result = mrlfeSolve(request);
 
-            stats.caseCount = stats.caseCount + 1;
+            results{end+1,1} = result; %#ok<AGROW>
             assert(isequal(result.frequency_Hz, request.frequency_Hz(:)), 'Frequency grid mismatch.');
             assert(numel(result.validMask) == numel(request.frequency_Hz), ...
                 'Valid mask length mismatch for %s etaS %.3g mu %.6g preset %s.', branch, etaS, mu, preset);

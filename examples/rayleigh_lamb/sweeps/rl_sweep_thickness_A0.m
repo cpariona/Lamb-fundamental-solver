@@ -1,7 +1,8 @@
 clear; clc; close all;
 launchFolder = pwd;
 scriptFile = mfilename('fullpath');
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %RL_SWEEP_THICKNESS_A0 Maintained full-thickness sweep for Rayleigh-Lamb A0.
 %
@@ -11,7 +12,7 @@ startup
 % Figures are written next to this script under:
 %   figures/thickness_sweep
 
-[sweepResults, sweepSummary, fig, outputFolder, figureFolder] = rlRunSweepExample( ...
+[sweepResults, sweepSummary, fig, outputFolder, figureFolder] = rlRunSweep( ...
     'thickness', 'A0', ...
     'AssignToBase', true, ...
     'WriteOutputs', true, ...

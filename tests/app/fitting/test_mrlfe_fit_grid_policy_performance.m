@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_mrlfe_fit_grid_policy_performance()
+%TEST_MRLFE_FIT_GRID_POLICY_PERFORMANCE Characterize fit-grid performance.
 
 fprintf('\nRunning lightweight mRLFE fit-grid characterization...\n');
 fprintf('---------------------------------------------------\n');
@@ -87,3 +87,4 @@ end
 fprintf('Worst relative Cp difference: %.6g\n', max([results.maxRelativeError]));
 fprintf('Minimum measured speedup: %.3fx\n', min([results.speedup]));
 fprintf('Lightweight mRLFE fit-grid characterization passed.\n');
+end

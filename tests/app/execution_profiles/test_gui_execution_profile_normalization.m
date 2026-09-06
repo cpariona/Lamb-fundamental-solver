@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
-
+function test_gui_execution_profile_normalization()
 fprintf('\nRunning execution profile normalization tests...\n');
 fprintf('-----------------------------------------------\n');
 
@@ -45,6 +41,7 @@ assertThrows(@()guiNormalizeExecutionProfile(struct('executionProfile', "Fast", 
     'guiNormalizeExecutionProfile:ConflictingProfiles');
 
 fprintf('Execution profile normalization tests passed.\n');
+end
 
 function assertThrows(fcn, expectedId)
 threw = false;

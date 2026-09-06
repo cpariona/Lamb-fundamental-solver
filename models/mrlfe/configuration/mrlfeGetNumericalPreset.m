@@ -10,11 +10,11 @@ switch name
     case "fast"
         preset = basePreset();
         preset.name = "fast";
-        preset.description = "Reduced adaptive preset matching the maintained fast production route.";
+        preset.description = "Reduced adaptive preset with coarse Cp scanning and dense rescue.";
         preset.frequencyStep_Hz = 50;
-        preset.scanPoints = 260;
+        preset.scanPoints = 100;
+        preset.rescueScanPoints = 260;
         preset.candidateCount = 5;
-        preset.refineCandidates = false;
         preset.adaptiveWindows = [0.20 0.40 0.80];
         preset.internalFitAtlasPreset = "fast";
         preset.useFitAtlasPreset = true;
@@ -25,8 +25,8 @@ switch name
         preset.description = "Balanced production preset with intermediate frequency-grid resolution.";
         preset.frequencyStep_Hz = 25;
         preset.scanPoints = 420;
+        preset.rescueScanPoints = 420;
         preset.candidateCount = 6;
-        preset.refineCandidates = true;
         preset.adaptiveWindows = [0.20 0.35 0.50 0.80];
         preset.internalFitAtlasPreset = "fast";
         preset.useFitAtlasPreset = true;
@@ -37,8 +37,8 @@ switch name
         preset.description = "Robust production preset with fine frequency-grid resolution.";
         preset.frequencyStep_Hz = 20;
         preset.scanPoints = 620;
+        preset.rescueScanPoints = 620;
         preset.candidateCount = 8;
-        preset.refineCandidates = true;
         preset.adaptiveWindows = [0.20 0.35 0.50 0.80 1.20];
         preset.internalFitAtlasPreset = "dense";
         preset.useFitAtlasPreset = false;
@@ -49,8 +49,8 @@ switch name
         preset.description = "Maintained dense/reference atlas configuration.";
         preset.frequencyStep_Hz = 10;
         preset.scanPoints = 900;
+        preset.rescueScanPoints = 900;
         preset.candidateCount = 8;
-        preset.refineCandidates = true;
         preset.adaptiveWindows = [0.20 0.35 0.50 0.80 1.20];
         preset.internalFitAtlasPreset = "dense";
         preset.useFitAtlasPreset = false;

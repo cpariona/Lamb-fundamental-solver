@@ -1,188 +1,59 @@
 # Naming strategy
 
-This document is the authoritative naming contract for maintained MATLAB code,
-examples, diagnostics, tests, runners, parameters, and result folders.
+Maintained MATLAB responsibilities have one canonical command name. Git
+history, not forwarding aliases, preserves removed names.
 
-## Scope
+## Families
 
-The contract applies to tracked MATLAB files under `models/`, `analysis/`,
-`app/`, `examples/`, and `tests/`, plus active documentation that names those
-entrypoints. A maintained responsibility has one canonical command name. Git
-history, not a forwarding alias, preserves an old name.
+Model internals use `rl*`, `mrlfe*`, and `ae*`. Established explicit AE
+scientific functions may retain their descriptive `Acoustoelastic` names.
+Application translation and shared UI helpers use `gui*`; component builders
+use `create*`.
 
-## Global MATLAB path implications
-
-Folders provide useful model context, but MATLAB command resolution is global
-across the configured recursive path. Use the shortest name that remains
-globally unambiguous. A short diagnostic may omit the model prefix when no
-other maintained command has the same responsibility; a generic name that is
-likely to collide should retain its model prefix.
-
-`diagnose_mrlfe_fit_performance` keeps the model prefix because fit-performance
-diagnostics can exist for every model family. `validate_grid_presets` and
-`validate_grid_presets_full` remain unprefixed because they are the only
-maintained preset-grid validators. The former is the bounded routine matrix;
-the latter runs the full descriptive matrix through the same maintained logic.
-
-## Model prefixes
-
-Model-layer functions use these families:
-
-```text
-Rayleigh-Lamb internal and supported helpers: rl*
-mRLFE model functions:                        mrlfe*
-AE IOP/HGO new internal helpers:              ae*
-```
-
-Existing explicit AE scientific/programmatic APIs may retain their established
-`Acoustoelastic` names when shortening would hide the physical responsibility.
-The retained set is documented under **Internal helper naming**.
-
-## Public API naming
-
-Public solver APIs make the model and responsibility visible:
+Public solver APIs are:
 
 ```matlab
 rlComputeFundamentalLambModes
 mrlfeSolve
 solveAcoustoelasticIOPHGOBranch
-solveAcoustoelasticIOPHGOAtlasBranch
-solveAcoustoelasticIOPHGODispersion
-defaultAcoustoelasticIOPHGOOptions
 ```
 
-Long AE public solver names are intentional because they distinguish the
-IOP/HGO contract from generic acoustoelastic calculations. Public APIs are not
-renamed solely to shorten them.
+Examples use `run_*`, `fit_*`, or `<model>_sweep_*`. Diagnostics use
+`diagnose_*`, `validate_*`, or `summarize*`. Tests use `test_*`. The only
+maintained runners are the six `run_*` validation tiers documented in
+`../../tests/README.md`.
 
-## Internal helper naming
+Every function filename must match its top-level function exactly, including
+case. Names must be globally unambiguous across tracked MATLAB files and must
+not exceed `namelengthmax`.
 
-mRLFE model internals use the lowercase `mrlfe*` prefix. The internal defaults
-and objective are `mrlfeDefaultInternalParameters` and
-`mrlfeObjectiveResidual`; the public defaults remain
-`mrlfeDefaultParameters` and `mrlfeDefaultOptions`.
+## Parameters and outputs
 
-New AE model internals use `ae*`. These established explicit scientific
-functions remain canonical programmatic APIs because their names identify the
-matrix, characteristic roots, residual form, constitutive quantities, stress,
-or stretch without relying on folder context:
+Parameter naming follows each maintained public contract; cross-family symmetry
+does not require identical field spellings when the APIs intentionally differ.
 
-```matlab
-buildAcoustoelasticMatrix
-computeAcoustoelasticSRoots
-objectiveAcoustoelasticResidual
-objectiveAcoustoelasticComplexDeterminant
-computeAcoustoelasticABGFromIOPHGO
-computeAcoustoelasticAlphaBetaGamma
-computeAcoustoelasticPrestressSigma
-solveAcoustoelasticHGOStretch
-```
-
-They are explicit retained exceptions to the prefix rule, not aliases.
-
-## App naming
-
-Cross-surface UI, normalization, and adapter helpers use `gui*`. Existing
-component constructors use `create*`. Model-specific translators under
-`app/adapters/` may use `ae*`, `mrlfe*`, or `rl*` so model ownership remains
-visible.
-
-The following names already distinguish their responsibilities and remain
-canonical:
-
-```matlab
-aeResolveExecutionProfile
-mrlfeResolveExecutionProfile
-rlResolveExecutionProfile
-mrlfeBuildSurfaceExecutionMetadata
-guiExecutionProfileValues
-guiNormalizeExecutionProfile
-guiNormalizeControlExecutionProfile
-guiFormatExecutionProfileDiagnostics
-```
-
-Generic names such as `resolveProfile` or `buildMetadata` are not acceptable on
-the global MATLAB path.
-
-## Example and diagnostic verbs
-
-Maintained examples and diagnostics use a responsibility verb:
+The canonical mRLFE request uses unit-qualified fields:
 
 ```text
-run_*       basic executable example
-fit_*       fitting example
-<model>_sweep_*  maintained sweep
-diagnose_*  diagnostic
-validate_*  validation or bounded regression-style diagnostic
-compare_*   comparative diagnostic
-track_*     branch-tracking diagnostic
+mu_Pa
+etaS_Pas
+rho_kgm3
+thickness_m
+fluid density_kgm3
+fluid soundSpeed_mps
 ```
 
-Canonical examples and diagnostics include:
+Rayleigh-Lamb and AE workflow/public parameter structs retain established SI
+names such as `mu`, `rho`, and `thickness`. In every family, `thickness` or
+`thickness_m` means the full physical plate thickness `2h`, not half-thickness.
+Half-thickness is internal model state only.
 
-```matlab
-run_default_mrlfe
-validate_mrlfe_targeted_grid
-diagnose_mrlfe_fit_performance
-validate_grid_presets
-validate_grid_presets_full
-diagnose_modal_atlas
-validate_idA0_score_grid
-validate_idA0_grid
-diagnose_idA0_plausibility
-```
+Workflow/app aliases are translated at the model boundary rather than becoming
+parallel public schemas. For mRLFE, `mrlfeBuildSolveRequest` owns translation
+from maintained aliases such as `mu`, `rho`, and `thickness` to the canonical
+unit-qualified request.
 
-`diagnose_idA0_plausibility` requires the workspace generated by
-`validate_idA0_grid`. `diagnose_modal_atlas` starts at low frequency by design.
-
-## Test and runner naming
-
-Individual tests use `test_*`; runners use `run_*`. Names express a continuing
-invariant rather than a completed migration task. Current route guardrails use:
-
-```matlab
-test_mrlfe_maintained_route_characterization
-test_mrlfe_removed_routes_absent
-test_mrlfe_removed_route_flags_absent
-run_mrlfe_route_integrity_tests
-```
-
-The five public runner wrappers documented in `tests/README.md` intentionally
-share names with implementations under `tests/runners/`. They are the only
-allowed filename-level duplicates for maintained documented commands.
-
-## Filename/function matching
-
-Every function file must have a filename that exactly matches its top-level
-function name, including case. Scripts follow the same canonical command name
-through their filename. Local functions inside scripts do not define separate
-global entrypoints.
-
-## Length limits
-
-Prefer executable names below approximately 45 characters and never exceed
-`namelengthmax`. Do not repeat a complete model-family name when an established
-short prefix or globally unambiguous task name is sufficient.
-
-## Parameter naming
-
-Thickness terminology is deliberately separated by surface:
-
-```text
-Mathematical notation: 2h
-MATLAB request field: thickness_m
-User-facing shorthand: thickness
-Display label: 2h
-```
-
-For soft-material workflows, use `mu`, `nu`, and `rho` as the user-facing
-elastic inputs. Use `lambda_Lame` in prose or display code when needed to avoid
-confusion with stretch. Valid implemented MATLAB fields are not renamed solely
-to mirror mathematical notation.
-
-## Result-folder identifiers
-
-Generated results use these canonical roots relative to the launch folder:
+Generated results use:
 
 ```text
 Results/rayleigh_lamb/<task>
@@ -190,26 +61,6 @@ Results/mrlfe/<task>
 Results/ae_iop_hgo/<task>
 ```
 
-Use the exact code identifiers `rayleigh_lamb`, `mrlfe`, and `ae_iop_hgo` for
-paths. In prose use Rayleigh-Lamb, mRLFE, and AE IOP/HGO consistently.
-
-## Rename policy
-
-A direct rename must update executable callers, dynamic references,
-registries, callbacks, tests, runners, documentation, and inventories in the
-same branch. After the rename, the old command must not resolve and the new
-command must resolve at its canonical definition. Numerical behavior, public
-schemas, defaults, policies, and tolerances remain unchanged unless a separate
-task explicitly authorizes such changes.
-
-## Forbidden compatibility aliases
-
-Do not add a forwarding file solely to preserve an old name. An exception
-requires a documented external public command, concrete external-use evidence,
-a significant user-facing break, and a removal plan. Repository-internal use is
-not evidence. Intentional public test wrappers follow the separate maintained
-runner architecture and must be listed in `tests/README.md`.
-
-The general executable owner is `test_repository_naming_contract`, reached
-through `run_repository_hygiene_tests`. Model-specific naming tests retain only
-their model API, removed-name, and scientific-exception assertions.
+A rename must update callers, callbacks, tests, runners, and documentation in
+the same branch. Compatibility aliases require a separately documented public
+contract and removal plan.

@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_mrlfe_neutral_seed_contract()
+%TEST_MRLFE_NEUTRAL_SEED_CONTRACT Validate the neutral seed contract.
 
 fprintf('\nRunning mRLFE neutral seed contract test...\n');
 fprintf('------------------------------------------\n');
@@ -23,6 +23,7 @@ for branch = ["A0Like" "S0Like"]
 end
 
 fprintf('mRLFE neutral seed contract test passed.\n');
+end
 
 function request = localRequest(branch, etaS, preset)
 request = struct();

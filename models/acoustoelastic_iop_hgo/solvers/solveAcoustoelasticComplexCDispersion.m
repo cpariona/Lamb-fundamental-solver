@@ -13,9 +13,10 @@ function result = solveAcoustoelasticComplexCDispersion(params, options, seedRes
 %   seedResult : output from solveAcoustoelasticDispersion. If given,
 %                its real Cp values are used as initial seeds.
 
-if nargin < 2 || isempty(options)
-    options = defaultAcoustoelasticIOPHGOOptions();
+if nargin < 2
+    options = [];
 end
+options = aeDefaultDiagnosticOptions(options);
 if nargin < 3
     seedResult = [];
 end

@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_execution_profile_surface_integration()
+%TEST_EXECUTION_PROFILE_SURFACE_INTEGRATION Validate execution-profile surfaces.
 
 fprintf('\nRunning execution profile surface integration tests...\n');
 fprintf('----------------------------------------------------\n');
@@ -15,7 +15,7 @@ assert(mainOptions.robustness == "Balanced", 'Main GUI visible default should re
 assert(mainMetadata.surfaceDefaultExecutionProfile == "Balanced", ...
     'Main GUI metadata should record Balanced surface default.');
 
-sweepRegistry = guiGetSweepRegistry();
+sweepRegistry = guiGetSweepModelConfiguration();
 for i = 1:numel(sweepRegistry.modelFamilies)
     family = sweepRegistry.modelFamilies(i);
     assert(string(family.defaultExecutionProfile) == "Fast", ...
@@ -27,7 +27,7 @@ mrlfeSweepFamily = guiGetSweepFamilyConfig(sweepRegistry, "mrlfe");
 assert(mrlfeSweepFamily.profileSupportMode == "direct", ...
     'mRLFE SweepTool should advertise direct profile support.');
 
-fitRegistry = guiGetFitRegistry();
+fitRegistry = guiGetFitModelConfiguration();
 for i = 1:numel(fitRegistry.modelFamilies)
     family = fitRegistry.modelFamilies(i);
     assert(string(family.defaultExecutionProfile) == "Fast", ...
@@ -131,3 +131,4 @@ for i = 1:numel(profiles)
 end
 
 fprintf('Execution profile surface integration tests passed.\n');
+end

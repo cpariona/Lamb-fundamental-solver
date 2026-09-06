@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_fit_physical_qc_synthetic_pass()
+%TEST_FIT_PHYSICAL_QC_SYNTHETIC_PASS Validate physical QC on a clearly dispersive exact fit.
 
 fprintf('\nRunning physical QC pass test for a clearly dispersive synthetic fit...\n');
 fprintf('---------------------------------------------------------------\n');
@@ -33,7 +33,7 @@ fitResult.metrics = computeDispersionFitMetrics(CpSynthetic_mps, experimental);
 fitResult.sensitivityMatrix = 0.5 * ones(size(frequency_Hz));
 fitResult.identifiability = struct('classification', "locally_identifiable");
 fitResult.optimizer = struct('name', "constructed", 'objective', 0, 'exitFlag', 1, 'output', struct());
-fitResult.rawSolverResult = struct();
+fitResult.modelEvaluation = struct();
 
 qc = assessFitPhysicalQuality(fitResult);
 
@@ -50,3 +50,4 @@ fprintf('Fit RMSE: %.6g m/s\n', fitResult.metrics.RMSE);
 fprintf('Constant RMSE: %.6g m/s\n', qc.ConstantRMSE_mps);
 fprintf('Physical QC: %s | %s\n', qc.classification, strjoin(qc.reasons, '; '));
 fprintf('\nPhysical QC synthetic pass test passed.\n');
+end

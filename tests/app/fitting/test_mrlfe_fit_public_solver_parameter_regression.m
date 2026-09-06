@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_mrlfe_fit_public_solver_parameter_regression()
+%TEST_MRLFE_FIT_PUBLIC_SOLVER_PARAMETER_REGRESSION Validate synthetic parameter fits through the public solver.
 
 fprintf('\nRunning mRLFE public-solver fit parameter regression test...\n');
 fprintf('----------------------------------------------------------\n');
@@ -59,15 +59,15 @@ for iCase = 1:numel(cases)
 
     fitOutput = guiFitMRLFESolver(request);
     fitResult = fitOutput.fitResult;
-    raw = fitResult.rawSolverResult;
+    evaluation = fitResult.modelEvaluation;
 
-    assert(isfield(raw, 'modelResult'), 'Fit result must preserve public model result.');
-    assert(raw.evaluationPath.usedPublicSolver == true, 'Objective evaluation must use public solver.');
-    assert(raw.evaluationPath.gridPolicy == "fitOptimized", ...
+    assert(isfield(evaluation, 'modelResult'), 'Fit result must preserve public model result.');
+    assert(evaluation.evaluationPath.usedPublicSolver == true, 'Objective evaluation must use public solver.');
+    assert(evaluation.evaluationPath.gridPolicy == "fitOptimized", ...
         'Fit objective must use the fitOptimized grid policy.');
-    assert(raw.modelResult.execution.effectivePreset == "fast", 'Fit objective must use fast preset metadata.');
-    assert(raw.modelResult.fallback.applied == false, 'Fit objective must not apply fallback.');
-    assert(any(raw.modelResult.execution.internalEngine == ["elastic_adaptive", "viscoelastic_adaptive"]), ...
+    assert(evaluation.modelResult.execution.effectivePreset == "fast", 'Fit objective must use fast preset metadata.');
+    assert(evaluation.modelResult.fallback.applied == false, 'Fit objective must not apply fallback.');
+    assert(any(evaluation.modelResult.execution.internalEngine == ["elastic_adaptive", "viscoelastic_adaptive"]), ...
         'Fit objective must expose neutral engine metadata.');
     assert(fitResult.optimizer.output.funcCount > 0, 'Optimizer diagnostics must report evaluations.');
     assert(isfinite(fitResult.optimizer.objective), 'Objective value must be finite.');
@@ -104,24 +104,25 @@ for iCase = 1:numel(cases)
         'Requested fitted curve must use public solver.');
     assert(requestedCurve.rawResult.evaluationPath.gridPolicy == "numericalPreset", ...
         'Requested fitted curve must use the numericalPreset grid policy.');
-    assert(requestedCurve.rawResult.modelResult.execution.effectivePreset == raw.modelResult.execution.effectivePreset, ...
+    assert(requestedCurve.rawResult.modelResult.execution.effectivePreset == evaluation.modelResult.execution.effectivePreset, ...
         'Requested fitted curve must use the same effective preset as objective evaluation.');
     assert(requestedCurve.rawResult.modelResult.fallback.applied == false, ...
         'Requested fitted curve must not apply fallback.');
     if c.freeParam == "mu"
-        assert(abs(requestedCurve.rawResult.modelResult.configuration.parameters.mu_Pa - fitResult.bestParams.mu) <= ...
+        assert(abs(requestedCurve.rawResult.modelResult.configuration.effective.parameters.mu_Pa - fitResult.bestParams.mu) <= ...
             eps(max(1, fitResult.bestParams.mu)), ...
             'Requested fitted curve must use final fitted mu.');
     else
-        assert(abs(requestedCurve.rawResult.modelResult.configuration.parameters.etaS_Pas - fitResult.bestParams.etaS) <= ...
+        assert(abs(requestedCurve.rawResult.modelResult.configuration.effective.parameters.etaS_Pas - fitResult.bestParams.etaS) <= ...
             eps(max(1, fitResult.bestParams.etaS)), ...
             'Requested fitted curve must use final fitted etaS.');
     end
 
     fprintf('%s fit %s | objective %.6g | evaluations %d | route %s | engine %s\n', ...
         c.branchName, c.freeParam, fitResult.optimizer.objective, ...
-        fitResult.optimizer.output.funcCount, raw.evaluationPath.path, ...
-        raw.modelResult.execution.internalEngine);
+        fitResult.optimizer.output.funcCount, evaluation.evaluationPath.path, ...
+        evaluation.modelResult.execution.internalEngine);
 end
 
 fprintf('\nmRLFE public-solver fit parameter regression test passed.\n');
+end

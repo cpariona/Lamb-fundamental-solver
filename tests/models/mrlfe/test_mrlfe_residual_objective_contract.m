@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
-
+function test_mrlfe_residual_objective_contract()
 %TEST_MRLFE_RESIDUAL_OBJECTIVE_CONTRACT Contract test for mRLFE residual objective.
 %
 % The maintained mRLFE tracker objective is sigma_min(M)/sigma_max(M). The
@@ -44,3 +40,4 @@ assert(abs(defaultResidual - explicitDefault) <= 10*eps(max(1, abs(explicitDefau
     'mrlfeResidual wrapper must preserve the minSingularValueRatio default.');
 
 fprintf('test_mrlfe_residual_objective_contract passed. Default objective is singular-value ratio.\n');
+end

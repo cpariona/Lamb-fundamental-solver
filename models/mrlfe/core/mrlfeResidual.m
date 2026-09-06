@@ -7,13 +7,13 @@ function residual = mrlfeResidual(k, omega, material, geometry, mrlfeParams, opt
 %   sigma_min(M) / sigma_max(M)
 %
 % residual = mrlfeResidual(..., options) can select the objective through
-% options.mrlfeResidualMethod. The maintained default is
+% options.residualMethod. The maintained default is
 % "minSingularValueRatio".
 
 if nargin < 6 || isempty(options)
     options = struct();
 end
-method = getFieldOrDefault(options, 'mrlfeResidualMethod', "minSingularValueRatio");
+method = getFieldOrDefault(options, 'residualMethod', "minSingularValueRatio");
 residual = mrlfeObjectiveResidual(k, omega, material, geometry, mrlfeParams, 'Method', method);
 end
 

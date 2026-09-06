@@ -1,7 +1,8 @@
 clear; clc; close all;
 launchFolder = pwd;
 scriptFile = mfilename('fullpath');
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %AE_SWEEP_MU_IOP_A0LIKE Combined mu and IOP case-study sweep for the AE IOP/HGO A0-like branch.
 %

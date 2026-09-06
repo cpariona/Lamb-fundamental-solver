@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_gui_mrlfe_fit_route_policy_contract()
+%TEST_GUI_MRLFE_FIT_ROUTE_POLICY_CONTRACT Validate public-solver route policy across fit cases.
 
 fprintf('\nRunning GUI mRLFE fit route policy contract test...\n');
 fprintf('------------------------------------------------\n');
@@ -100,3 +100,4 @@ fprintf('A0Like etaS route: expected %s | actual %s\n', etaSOutput.routePolicy.e
 fprintf('A0Like mu route:   expected %s | actual %s\n', muOutput.routePolicy.expectedPath, muOutput.routePolicy.actualPath);
 fprintf('S0Like etaS route: expected %s | actual %s\n', s0Output.routePolicy.expectedPath, s0Output.routePolicy.actualPath);
 fprintf('\nGUI mRLFE fit route policy contract test passed.\n');
+end

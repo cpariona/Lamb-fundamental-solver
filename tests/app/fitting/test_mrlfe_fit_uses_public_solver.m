@@ -1,13 +1,13 @@
-clear; clc;
-startup
+function test_mrlfe_fit_uses_public_solver()
+%TEST_MRLFE_FIT_USES_PUBLIC_SOLVER Guard the maintained FitTool mRLFE route.
 
 fprintf('\nRunning mRLFE FitTool public-solver route guard test...\n');
 fprintf('------------------------------------------------------\n');
 
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
-evaluatorPath = fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeEvaluateFitModel.m');
-adapterPath = fullfile(repoRoot, 'app', 'adapters', 'guiFitMRLFESolver.m');
-fitWorkflowPath = fullfile(repoRoot, 'analysis', 'mrlfe', 'mrlfeFitDispersionData.m');
+evaluatorPath = fullfile(repoRoot, 'analysis', 'fitting', 'mrlfe', 'mrlfeEvaluateFitModel.m');
+adapterPath = fullfile(repoRoot, 'app', 'fitting', 'guiFitMRLFESolver.m');
+fitWorkflowPath = fullfile(repoRoot, 'analysis', 'fitting', 'mrlfe', 'mrlfeFitDispersionData.m');
 
 evaluatorText = string(fileread(evaluatorPath));
 adapterText = string(fileread(adapterPath));
@@ -43,3 +43,4 @@ fprintf('Route: %s | public preset: %s | engine: %s\n', ...
     raw.evaluationPath.path, raw.modelResult.execution.effectivePreset, ...
     raw.modelResult.execution.internalEngine);
 fprintf('\nmRLFE FitTool public-solver route guard test passed.\n');
+end

@@ -1,65 +1,68 @@
-# Tests
+# Validation
 
-The maintained test implementation layout is:
+`startup` exposes exactly six launchers, not all tests. Every runner explicitly
+loads `tests/tooling/configureTestPath.m`, executes its own flat test list, and
+restores the caller path on success or failure. Maintained direct tests do not
+configure their own repository/test path.
 
-```text
-tests/app/       application and GUI surfaces
-tests/models/    model-family contracts and numerical tests
-tests/runners/   canonical runner implementations
-tests/shared/    shared fitting, sweep, regression, and repository contracts
-```
+| Command | Direct tests | Purpose |
+| --- | ---: | --- |
+| `run_repository_hygiene_tests` | 8 | structure, docs, naming, artifacts, dependencies, paths, test architecture |
+| `run_quick_contract_tests` | 17 | bounded APIs, schemas, request/import and structural-symmetry contracts |
+| `run_quick_smoke_tests` | 29 | representative model and application execution |
+| `run_numerical_regression_tests` | 17 | scientific snapshots, synthetic recovery, tracking |
+| `run_extended_integration_tests` | 40 | fitting, sweeps, GUI consumers, characterization |
+| `run_performance_and_benchmark_tests` | 4 | descriptive performance contracts |
 
-`startup` adds `tests/` recursively, so canonical runner implementations are
-public MATLAB commands without requiring root-level wrappers.
+There are 115 maintained tests, each owned directly by exactly one runner.
+There are no wrappers, aggregate runner graphs, or generated ownership CSVs.
+The hygiene contracts check unique runner ownership, globally unique filenames,
+and maintained test structure across every tracked `test_*.m` file.
 
-## Public convenience wrappers
-
-Five established public commands retain thin wrappers that delegate through
-`runRepositoryTestRunner` to same-named implementations under `tests/runners/`:
-
-```text
-tests/run_acoustoelastic_smoke_tests.m
-tests/run_all_smoke_tests.m
-tests/run_core_smoke_tests.m
-tests/run_gui_smoke_tests.m
-tests/run_mrlfe_smoke_tests.m
-```
-
-Every wrapper contains no validation logic and delegates to exactly one
-same-named canonical runner. No additional test implementation or wrapper may
-be placed at the root.
-
-Specialized commands resolve directly from `tests/runners/`, including:
+The canonical maintained direct-test form is:
 
 ```matlab
-run_fit_validation_tests
-run_main_gui_export_tests
-run_mrlfe_production_core_tests
-run_mrlfe_public_contract_tests
-run_mrlfe_route_integrity_tests
+function test_name()
+%TEST_NAME ...
+...
+end
 ```
 
-The recursive test path keeps these command names stable without duplicate
-definitions or physical-path exceptions.
+Direct tests do not call `clear`, `clc`, `configureTestPath`, or `startup`, and
+do not publish scientific outputs to the base workspace. The one explicit
+`startup` exception is `test_startup_path_policy`, whose purpose is to exercise
+production startup and which restores the caller path with `onCleanup`.
+Native MATLAB `functiontests(localfunctions)` suites are retained where the
+`matlab.unittest` API is the test surface.
 
-## Maintained commands
+Test code lives under app, models, and shared subfolders. Tooling owns path
+setup, runtime measurement, and cross-surface profile matrices. Ad hoc
+benchmarks and temporary numerical diagnostics are not maintained repository
+artifacts.
+
+For an individual direct test, explicitly opt in from the repository root:
 
 ```matlab
-run_repository_hygiene_tests
-run_quick_contract_tests
-run_quick_smoke_tests
-run_numerical_regression_tests
-run_extended_integration_tests
-run_performance_and_benchmark_tests
+startup
+addpath(fullfile(pwd, 'tests', 'tooling'))
+configureTestPath
+test_rl_result_contract
+startup % remove test bodies/tooling again
 ```
 
-`run_quick_smoke_tests` is the routine developer command.
-`run_all_smoke_tests` is the maintained historical broad aggregate.
-Performance commands have no hardware-dependent pass/fail threshold.
+Runtime is descriptive, not a hardware-specific correctness threshold.
+Exported measurements belong under `Results/validation/` or the caller's
+explicit output path, never under production source.
 
-## Ownership
+## Historical characterization
 
-Every maintained test has one direct canonical owner. The generated evidence
-and regeneration command are documented in
-`docs/repository/test_runner_ownership.md`. New tests must be added to the
-stable layout and exactly one focused owner.
+The maintained mRLFE production-core characterization checks 24 Fast and 6
+Dense cases for schema, requested-frequency coverage, valid output, preset
+identity, neutral engine names, and no fallback. It is a no-output maintained
+test and is not a reference-capture tool.
+
+The earlier Phase-1 historical comparison and the evidence that identified the
+edge-guard configuration regression are retained as an audit record in
+`../docs/validation/mrlfe_restructure_baseline.md`. Historical reference MAT
+files remain disposable external evidence and are not tracked or regenerated by
+the maintained test suite.

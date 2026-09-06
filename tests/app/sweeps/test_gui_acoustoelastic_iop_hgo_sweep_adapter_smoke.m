@@ -1,4 +1,5 @@
-%TEST_GUI_ACOUSTOELASTIC_IOP_HGO_SWEEP_ADAPTER_SMOKE Smoke test for AE GUI sweep adapter.
+function test_gui_acoustoelastic_iop_hgo_sweep_adapter_smoke()
+%TEST_GUI_ACOUSTOELASTIC_IOP_HGO_SWEEP_ADAPTER_SMOKE Validate AE SweepTool adapter.
 
 fprintf('Running Acoustoelastic IOP/HGO GUI sweep adapter smoke test...\n');
 
@@ -37,84 +38,69 @@ request = guiBuildSweepRequest("acoustoelastic_iop_hgo", ...
 
 sweepOutput = guiRunSweep(request);
 
-assert(isequal(fieldnames(sweepOutput), {'request'; 'modelFamily'; 'modelName'; ...
-    'branchName'; 'sweepSpec'; 'rawResults'; 'summary'; 'summaryTable'; ...
-    'normalized'; 'executionProfile'; 'elapsedSeconds'}), ...
-    'AE SweepTool aggregate schema changed.');
-assert(isequal(fieldnames(sweepOutput.rawResults), {'name'; 'label'; ...
-    'sweepField'; 'sweepValues'; 'options'; 'baseParams'; 'conditions'; ...
-    'summaryTable'}), 'AE SweepTool raw aggregate schema changed.');
-assert(isequal(fieldnames(sweepOutput.rawResults.conditions), {'index'; ...
-    'sweepField'; 'sweepValue'; 'sweepValueDisplay'; 'params'; 'result'; ...
-    'reliability'; 'diagnostics'}), 'AE SweepTool point schema changed.');
-assert(isequal(fieldnames(sweepOutput.normalized), {'modelFamily'; 'modelName'; ...
-    'branchName'; 'sweepField'; 'sweepLabel'; 'sweepUnit'; 'displayScale'; ...
-    'curves'; 'summaryTable'; 'dispersionTable'; 'branchTable'; 'metadata'}), ...
-    'AE SweepTool normalized aggregate schema changed.');
-assert(isstruct(sweepOutput), 'AE GUI sweep adapter must return a struct.');
-assert(string(sweepOutput.modelFamily) == "acoustoelastic_iop_hgo", 'Unexpected model family.');
-assert(string(sweepOutput.modelName) == "AcoustoelasticIOPHGO", 'Unexpected model name.');
-assert(string(sweepOutput.branchName) == "atlasA0", 'Unexpected branch name.');
-assert(isfield(sweepOutput, 'rawResults'), 'AE sweep output must include rawResults.');
-assert(isfield(sweepOutput, 'summary'), 'AE sweep output must include summary.');
-assert(isfield(sweepOutput, 'summaryTable'), 'AE sweep output must include summaryTable.');
-assert(isfield(sweepOutput, 'normalized'), 'AE sweep output must include normalized output.');
-assert(isequal(sweepOutput.sweepSpec.values, [10 15] * 133.322), 'IOP display values must be converted from mmHg to Pa.');
-assert(string(sweepOutput.sweepSpec.units) == "mmHg", 'IOP display unit must propagate to sweepSpec units.');
-assert(numel(sweepOutput.rawResults.conditions) == 2, 'AE sweep must run one condition per requested value.');
-assert(height(sweepOutput.summaryTable) == 2, 'AE summary table must have one row per requested value.');
-assert(numel(sweepOutput.normalized.curves) == 2, 'AE normalized output must have one curve per requested value.');
-assert(~isempty(sweepOutput.normalized.dispersionTable), 'AE normalized output must expose the dispersion table.');
-assert(sweepOutput.rawResults.options.atlasNumYPoints == 180, ...
-    'AE SweepTool atlas density override changed.');
-assert(sweepOutput.rawResults.options.atlasTopNMinima == 8, ...
-    'AE SweepTool candidate-count override changed.');
-assert(string(sweepOutput.executionProfile.requestedExecutionProfile) == "Fast", ...
-    'AE SweepTool requested execution-profile metadata changed.');
-assert(string(sweepOutput.executionProfile.surfaceDefaultExecutionProfile) == "Fast", ...
-    'AE SweepTool surface-default metadata changed.');
-assert(isfield(sweepOutput, 'elapsedSeconds') && isfinite(sweepOutput.elapsedSeconds), ...
-    'AE SweepTool elapsed time placement changed.');
+assert(isstruct(sweepOutput));
+assert(string(sweepOutput.modelFamily) == "acoustoelastic_iop_hgo");
+assert(string(sweepOutput.modelName) == "AcoustoelasticIOPHGO");
+assert(string(sweepOutput.branchName) == "atlasA0");
+assert(isfield(sweepOutput, 'sweepResult'));
+assert(isfield(sweepOutput, 'summary'));
+assert(isfield(sweepOutput, 'summaryTable'));
+assert(isfield(sweepOutput, 'normalized'));
+assert(isequal(sweepOutput.sweepSpec.values, [10 15] * 133.322));
+assert(string(sweepOutput.sweepSpec.units) == "mmHg");
+assertCanonicalSweep(sweepOutput.sweepResult, 2);
+assert(height(sweepOutput.summaryTable) == 2);
+assert(numel(sweepOutput.normalized.curves) == 2);
+assert(~isempty(sweepOutput.normalized.dispersionTable));
+assert(sweepOutput.sweepResult.options{1}.atlasNumYPoints == 180);
+assert(sweepOutput.sweepResult.options{1}.atlasTopNMinima == 8);
+assert(string(sweepOutput.executionProfile.requestedExecutionProfile) == "Fast");
+assert(string(sweepOutput.executionProfile.surfaceDefaultExecutionProfile) == "Fast");
+assert(isfield(sweepOutput, 'elapsedSeconds') && isfinite(sweepOutput.elapsedSeconds));
 
 fallbackInvalidationObserved = false;
 officialValidPointObserved = false;
 for i = 1:numel(sweepOutput.normalized.curves)
     curve = sweepOutput.normalized.curves(i);
-    rawResult = sweepOutput.rawResults.conditions(i).result;
+    modelResult = sweepOutput.sweepResult.results{i};
 
-    assert(isequal(fieldnames(curve), {'label'; 'sweepValue'; ...
-        'sweepValueDisplay'; 'frequency_Hz'; 'Cp_mps'; 'validMask'; ...
-        'lastValidFrequency_Hz'; 'rawBranch'}), ...
-        'AE SweepTool normalized point schema changed.');
-    assert(~isempty(curve.frequency_Hz), 'AE normalized curve must include frequency_Hz.');
-    assert(~isempty(curve.Cp_mps), 'AE normalized curve must include Cp_mps.');
-    assert(~isempty(curve.validMask), 'AE normalized curve must include validMask.');
-    assert(isequal(size(curve.frequency_Hz), size(curve.Cp_mps)), 'AE normalized frequency and Cp vectors must match.');
-    assert(isequal(size(curve.Cp_mps), size(curve.validMask)), 'AE normalized Cp and validity vectors must match.');
-    assert(isequal(curve.validMask(:), rawResult.validCp(:)), 'AE normalized validMask must mirror raw validCp.');
+    required = {'label','sweepValue','sweepValueDisplay','frequency_Hz', ...
+        'Cp_mps','validMask','lastValidFrequency_Hz','rawBranch'};
+    assert(all(isfield(curve, required)), 'AE normalized curve schema is incomplete.');
+    assert(~isempty(curve.frequency_Hz));
+    assert(~isempty(curve.Cp_mps));
+    assert(~isempty(curve.validMask));
+    assert(isequal(size(curve.frequency_Hz), size(curve.Cp_mps)));
+    assert(isequal(size(curve.Cp_mps), size(curve.validMask)));
+    assert(isequal(curve.validMask(:), modelResult.validMask(:)));
 
     officialValidPointObserved = officialValidPointObserved || any(curve.validMask(:));
-
-    if isfield(rawResult, 'fallbackCandidateCp')
+    if isfield(modelResult, 'fallbackCandidateCp')
         fallbackInvalidationObserved = true;
-        assert(all(~rawResult.validCp), 'Fallback-invalidated raw result must not expose official validCp points.');
-        assert(any(isfinite(rawResult.fallbackCandidateCp)), 'Fallback-invalidated raw result must preserve diagnostic candidate Cp.');
+        assert(all(~modelResult.validMask));
+        assert(any(isfinite(modelResult.fallbackCandidateCp)));
     end
 end
 
-firstCondition = sweepOutput.rawResults.conditions(1);
-expectedFirstResult = solveAcoustoelasticIOPHGOBranch( ...
-    firstCondition.params, sweepOutput.rawResults.options);
-assert(isequaln(firstCondition.result.Cp, expectedFirstResult.Cp), ...
-    'AE SweepTool point Cp must equal one maintained public solver call.');
-assert(isequal(firstCondition.result.validCp, expectedFirstResult.validCp), ...
-    'AE SweepTool point validCp must equal one maintained public solver call.');
-assert(isequaln(firstCondition.reliability, expectedFirstResult.reliability), ...
-    'AE SweepTool point reliability must remain the canonical model value.');
-assert(isequaln(firstCondition.diagnostics, expectedFirstResult.diagnostics), ...
-    'AE SweepTool point diagnostics must remain the canonical model value.');
-
+firstParams = sweepOutput.sweepResult.params{1};
+firstOptions = sweepOutput.sweepResult.options{1};
+firstResult = sweepOutput.sweepResult.results{1};
+expectedFirstResult = solveAcoustoelasticIOPHGOBranch(firstParams, firstOptions);
+assert(isequaln(firstResult.phaseVelocity_mps, expectedFirstResult.phaseVelocity_mps));
+assert(isequal(firstResult.validMask, expectedFirstResult.validMask));
+assert(isequaln(firstResult.quality, expectedFirstResult.quality));
+assert(isequaln(firstResult.diagnostics, expectedFirstResult.diagnostics));
 assert(fallbackInvalidationObserved || officialValidPointObserved, ...
-    'AE sweep adapter must either expose valid official points or preserved fallback diagnostics.');
+    'AE sweep adapter must expose valid official points or preserved fallback diagnostics.');
 
 fprintf('Acoustoelastic IOP/HGO GUI sweep adapter smoke test passed.\n');
+end
+
+function assertCanonicalSweep(sweep, expectedCount)
+required = {'spec','parameter','values','displayValues','results','params', ...
+    'options','elapsedSeconds','points','requests'};
+assert(all(isfield(sweep, required)), 'Canonical 1-D sweep contract is incomplete.');
+assert(numel(sweep.results) == expectedCount);
+assert(numel(sweep.points) == expectedCount);
+assert(~isfield(sweep, 'conditions'));
+end

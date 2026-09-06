@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
-
+function test_acoustoelastic_iop_hgo_branch_policy_validation()
 %TEST_ACOUSTOELASTIC_IOP_HGO_BRANCH_POLICY_VALIDATION Verify maintained branch-policy names.
 %
 % The maintained production policy is atlasA0. Diagnostic extension remains
@@ -28,6 +24,7 @@ assertUnsupportedPolicyFails("smallGapInterpolation");
 assertUnsupportedPolicyFails("raw_branch1");
 
 fprintf('test_acoustoelastic_iop_hgo_branch_policy_validation passed. atlasA0 is the only production policy.\n');
+end
 
 function assertUnsupportedPolicyFails(policy)
 policyText = char(string(policy));

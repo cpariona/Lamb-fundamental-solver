@@ -12,6 +12,7 @@ Implemented helpers:
 aeBuildFitProblem
 aeEvaluateFitModel
 aeFitDispersionData
+solveDispersionFitProblem
 ```
 
 The first maintained tested use case is:
@@ -35,8 +36,8 @@ atlasA0
 The fitting evaluator uses only:
 
 ```matlab
-result.Cp
-result.validCp
+result.phaseVelocity_mps
+result.validMask
 ```
 
 from:
@@ -51,7 +52,7 @@ Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, and branch-fa
 physical inputs, requests official `atlasA0`, and delegates every production
 evaluation to the maintained public solver. FitTool and explicit requested
 curve evaluation use this same route; neither app code nor analysis fitting
-code calls the advanced atlas wrapper directly.
+code calls the internal atlas solver directly.
 
 ## Data contract
 
@@ -66,7 +67,7 @@ experimental.validMask
 
 Only `frequency_Hz` and `Cp_mps` are required.
 
-`validMask` is intersected with `result.validCp` through the shared residual helper because invalid atlas points return nonfinite or invalid model output.
+`validMask` is intersected with `result.validMask` through the shared residual helper because invalid atlas points return nonfinite or invalid model output.
 
 ## Solver options
 
@@ -86,7 +87,8 @@ The synthetic fitting tests use reduced atlas configurations for speed. These ar
 
 ## Optimizer policy
 
-`aeFitDispersionData` uses no Optimization Toolbox dependency.
+`aeFitDispersionData` builds the AE-specific problem and delegates optimizer
+orchestration to `solveDispersionFitProblem`. It uses no Optimization Toolbox dependency.
 
 Current behavior:
 
@@ -103,7 +105,7 @@ Run:
 clear functions
 rehash toolboxcache
 startup
-fit_ae_atlasA0
+run('examples/acoustoelastic_iop_hgo/fitting/fit_ae_atlasA0.m')
 ```
 
 The example generates synthetic atlasA0 data with a known shear modulus and fits `mu` while keeping IOP, thickness, curvature, HGO fiber parameters, density, and fluid parameters fixed.
@@ -122,7 +124,7 @@ AE smoke validation runs:
 clear functions
 rehash toolboxcache
 startup
-run_acoustoelastic_smoke_tests
+run_quick_smoke_tests
 ```
 
 The AE smoke runner checks the AE fitting helper path and runs:
@@ -134,7 +136,7 @@ test_ae_fit_synthetic_atlasA0
 Focused fitting validation runs:
 
 ```matlab
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
 AE cases inside the focused validation suite include:
@@ -166,21 +168,19 @@ The AE fitting adapter is:
 guiFitAcoustoelasticIOPHGOSolver
 ```
 
-The fitting registry exposes AE IOP/HGO through:
+The declarative fitting configuration exposes AE IOP/HGO through:
 
 ```matlab
-guiGetFitRegistry
+guiGetFitModelConfiguration
 FitTool_GUI
 ```
 
 ## Current limitations
 
-This phase does not implement:
+The maintained validation does not establish:
 
 ```text
 fitting against diagnostic branches
-AE IOP fitting validation
-AE thickness fitting validation
 AE multiparameter fitting validation
 parameter covariance/uncertainty estimates
 ```

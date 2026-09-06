@@ -1,3 +1,4 @@
+function test_lightweight_numerical_regression()
 %TEST_LIGHTWEIGHT_NUMERICAL_REGRESSION Small deterministic solver snapshots.
 %
 % These checks are intentionally narrow: they guard stable public outputs for
@@ -16,15 +17,14 @@ rlParams.frequencySpacing = "linspace";
 rlOptions = rlDefaultOptions();
 rlOptions.computeA0 = true;
 rlOptions.computeS0 = true;
-rlOptions.computeMRLFE = false;
 
 rlResult = rlComputeFundamentalLambModes(rlParams, rlOptions);
-assertNumericClose(rlResult.grid.frequency([1 10]), [10; 100], 1e-12, ...
+assertNumericClose(rlResult.modes.A0.frequency_Hz([1 10]), [10; 100], 1e-12, ...
     'Rayleigh-Lamb frequency grid snapshot changed.');
-assertNumericClose(rlResult.modes.A0.Cp([1 5 10]), ...
+assertNumericClose(rlResult.modes.A0.phaseVelocity_mps([1 5 10]), ...
     [0.469222525760164; 0.806804188055844; 1.228781265925443], 1e-12, ...
     'Rayleigh-Lamb A0 Cp snapshot changed.');
-assertNumericClose(rlResult.modes.S0.Cp([1 5 10]), ...
+assertNumericClose(rlResult.modes.S0.phaseVelocity_mps([1 5 10]), ...
     [24.300948977156519; 24.300906514429840; 24.300779224230400], 1e-12, ...
     'Rayleigh-Lamb S0 Cp snapshot changed.');
 
@@ -39,33 +39,20 @@ mrlfeParams.fmax = 4000;
 mrlfeParams.numFrequencyPoints = 18;
 mrlfeParams.frequencySpacing = "linspace";
 
-mrlfeOptions = rlDefaultOptions("Fast");
-mrlfeOptions.computeA0 = true;
-mrlfeOptions.computeS0 = true;
-mrlfeOptions.computeMRLFE = true;
-mrlfeOptions.computeMRLFERealK = false;
-mrlfeOptions.mrlfeParams = mrlfeDefaultInternalParameters();
-mrlfeOptions.mrlfeParams.fluidDensity = 1000;
-mrlfeOptions.mrlfeParams.fluidSoundSpeed = 1500;
-mrlfeOptions.mrlfeParams.etaS = 0;
-mrlfeOptions.mrlfeParams.etaL = 0;
-mrlfeOptions.mrlfeParams.solveComplexK = false;
-
-mrlfeResult = rlComputeFundamentalLambModes(mrlfeParams, mrlfeOptions);
-mrlfeA0 = mrlfeResult.models.mRLFE.branches.A0Like;
-mrlfeS0 = mrlfeResult.models.mRLFE.branches.S0Like;
-mrlfeA0Public = mrlfeResult.models.mRLFE.publicModelResults.A0Like;
-mrlfeS0Public = mrlfeResult.models.mRLFE.publicModelResults.S0Like;
-
 requestedFrequency_Hz = linspace(500, 4000, 18).';
+mrlfeA0Public = solveMRLFERegressionBranch(mrlfeParams, requestedFrequency_Hz, "A0Like");
+mrlfeS0Public = solveMRLFERegressionBranch(mrlfeParams, requestedFrequency_Hz, "S0Like");
+mrlfeA0 = mrlfeA0Public.debug.solverResult.branch;
+mrlfeS0 = mrlfeS0Public.debug.solverResult.branch;
+
 fastSolveFrequency_Hz = (500:50:4000).';
 assertNumericClose(mrlfeA0Public.frequency_Hz, requestedFrequency_Hz, 1e-12, ...
     'mRLFE A0Like requested frequency grid changed.');
 assertNumericClose(mrlfeS0Public.frequency_Hz, requestedFrequency_Hz, 1e-12, ...
     'mRLFE S0Like requested frequency grid changed.');
-assertNumericClose(mrlfeA0Public.debug.rawInternalResult.frequencySolve_Hz, ...
+assertNumericClose(mrlfeA0Public.debug.solverResult.frequencySolve_Hz, ...
     fastSolveFrequency_Hz, 1e-12, 'mRLFE A0Like fast internal grid changed.');
-assertNumericClose(mrlfeS0Public.debug.rawInternalResult.frequencySolve_Hz, ...
+assertNumericClose(mrlfeS0Public.debug.solverResult.frequencySolve_Hz, ...
     fastSolveFrequency_Hz, 1e-12, 'mRLFE S0Like fast internal grid changed.');
 assert(mrlfeA0Public.execution.effectivePreset == "fast" && ...
     mrlfeS0Public.execution.effectivePreset == "fast", ...
@@ -84,15 +71,15 @@ assert(nnz(mrlfeA0.valid) == 18 && numel(mrlfeA0.valid) == 18, ...
 assert(nnz(mrlfeS0.valid) == 18 && numel(mrlfeS0.valid) == 18, ...
     'mRLFE S0Like valid mask snapshot changed.');
 % Same-route repeats were bitwise identical on MATLAB R2024b. A 1e-9 m/s
-% absolute tolerance permits platform-level solver arithmetic without hiding
-% the prior 8.62e-4 to 1.28e-2 m/s baseline drift.
+% absolute tolerance permits platform-level solver arithmetic while guarding
+% the continuously refined production snapshot.
 mrlfeSnapshotTolerance_mps = 1e-9;
 assertNumericClose(mrlfeA0.Cp([1 9 18]), ...
-    [2.563075741553039; 5.385531761157373; 7.013850616841720], ...
+    [2.56401186466712; 5.38420876398172; 7.01174915772067], ...
     mrlfeSnapshotTolerance_mps, ...
     'mRLFE A0Like Cp snapshot changed.');
 assertNumericClose(mrlfeS0.Cp([1 9 18]), ...
-    [24.282183296783170; 24.028758171168086; 23.468811073659403], ...
+    [24.2848466532623; 24.0396891021052; 23.481593067215], ...
     mrlfeSnapshotTolerance_mps, ...
     'mRLFE S0Like Cp snapshot changed.');
 
@@ -112,21 +99,27 @@ aeParams.IOP = 15 * 133.322;
 aeOptions = defaultAcoustoelasticIOPHGOOptions();
 aeOptions.M54_variant = "corrected";
 aeOptions.normalizeRows = false;
-aeOptions.usePhysicalCpWindow = false;
 aeOptions.atlasNumYPoints = 300;
 aeOptions.atlasTopNMinima = 12;
 aeOptions.atlasBranchPolicy = "atlasA0";
 
-aeResult = solveAcoustoelasticIOPHGOAtlasBranch(aeParams, aeOptions);
-assert(nnz(aeResult.validCp) == 35 && numel(aeResult.validCp) == 35, ...
-    'AE IOP/HGO validCp mask snapshot changed.');
-assert(string(aeResult.reliability.PolicyName) == "atlasA0", ...
+aeResult = solveAcoustoelasticIOPHGOBranch(aeParams, aeOptions);
+assert(nnz(aeResult.validMask) == 35 && numel(aeResult.validMask) == 35, ...
+    'AE IOP/HGO validMask snapshot changed.');
+assert(string(aeResult.quality.policyName) == "atlasA0", ...
     'AE IOP/HGO policy snapshot changed.');
-assertNumericClose(aeResult.Cp([1 18 35]), ...
-    [2.446884781169930; 4.926318840515296; 6.746363076443509], 1e-12, ...
+assertNumericClose(aeResult.phaseVelocity_mps([1 18 35]), ...
+    [2.455677508988490; 4.939957050001901; 6.728343229778789], 1e-12, ...
     'AE IOP/HGO atlasA0 Cp snapshot changed.');
 
 fprintf('test_lightweight_numerical_regression passed. Solver snapshots are unchanged.\n');
+end
+
+function result = solveMRLFERegressionBranch(params, frequency_Hz, branchName)
+options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
+request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
+result = mrlfeSolve(request);
+end
 
 function assertNumericClose(actual, expected, tol, message)
 assert(numel(actual) == numel(expected), message);

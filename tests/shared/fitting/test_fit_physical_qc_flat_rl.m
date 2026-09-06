@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_fit_physical_qc_flat_rl()
+%TEST_FIT_PHYSICAL_QC_FLAT_RL Validate physical QC for a flat RL A0-like fit.
 
 fprintf('\nRunning physical QC test for flat Rayleigh-Lamb A0-like fit...\n');
 fprintf('-------------------------------------------------------------\n');
@@ -32,7 +32,7 @@ fitResult.metrics = computeDispersionFitMetrics(Cp_mps, experimental);
 fitResult.sensitivityMatrix = 0.1 * ones(size(frequency_Hz));
 fitResult.identifiability = struct('classification', "locally_identifiable");
 fitResult.optimizer = struct('name', "constructed", 'objective', 0, 'exitFlag', 1, 'output', struct());
-fitResult.rawSolverResult = struct();
+fitResult.modelEvaluation = struct();
 
 qc = assessFitPhysicalQuality(fitResult);
 
@@ -49,3 +49,4 @@ fprintf('Fit RMSE: %.6g m/s\n', fitResult.metrics.RMSE);
 fprintf('Constant RMSE: %.6g m/s\n', qc.ConstantRMSE_mps);
 fprintf('Physical QC: %s | %s\n', qc.classification, strjoin(qc.reasons, '; '));
 fprintf('\nPhysical QC flat RL A0-like test passed.\n');
+end

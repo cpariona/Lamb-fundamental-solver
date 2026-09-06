@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_mrlfe_public_contract_characterization()
+%TEST_MRLFE_PUBLIC_CONTRACT_CHARACTERIZATION Characterize maintained public mRLFE routes.
 
 fprintf('\nRunning mRLFE public route characterization test...\n');
 fprintf('--------------------------------------------------\n');
@@ -36,6 +36,7 @@ for branch = ["A0Like", "S0Like"]
 end
 
 fprintf('mRLFE public route characterization test passed.\n');
+end
 
 function request = localRequest(branch, etaS, preset)
 request = struct();

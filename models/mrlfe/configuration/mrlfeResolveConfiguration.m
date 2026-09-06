@@ -31,6 +31,13 @@ configuration.parameters = publicParametersFromRequest(resolvedRequest);
 configuration.solverParams = buildSolverParams(resolvedRequest);
 configuration.internalOptions = buildInternalOptions(resolvedRequest, preset);
 configuration.qualityOptions = defaultOptions.quality;
+configuration.public = struct( ...
+    'requested', struct( ...
+        'parameters', requestedParametersFromRequest(request), ...
+        'options', requestedOptionsFromRequest(request)), ...
+    'effective', struct( ...
+        'parameters', configuration.parameters, ...
+        'options', effectiveOptionsFromRequest(resolvedRequest, configuration, preset)));
 end
 
 function requestOut = mergeRequestWithDefaults(requestIn)
@@ -107,6 +114,62 @@ params.fluidDensity_kgm3 = request.fluid.density_kgm3;
 params.fluidSoundSpeed_mps = request.fluid.soundSpeed_mps;
 end
 
+function params = requestedParametersFromRequest(request)
+params = struct( ...
+    'mu_Pa', nestedField(request, 'material', 'mu_Pa'), ...
+    'etaS_Pas', nestedField(request, 'material', 'etaS_Pas'), ...
+    'rho_kgm3', nestedField(request, 'material', 'rho_kgm3'), ...
+    'nu', nestedField(request, 'material', 'nu'), ...
+    'thickness_m', nestedField(request, 'geometry', 'thickness_m'), ...
+    'fluidDensity_kgm3', nestedField(request, 'fluid', 'density_kgm3'), ...
+    'fluidSoundSpeed_mps', nestedField(request, 'fluid', 'soundSpeed_mps'));
+end
+
+function options = requestedOptionsFromRequest(request)
+options = struct( ...
+    'branch', directField(request, 'branch'), ...
+    'frequency_Hz', directField(request, 'frequency_Hz'), ...
+    'numerics', directStructField(request, 'numerics'), ...
+    'selection', directStructField(request, 'selection'), ...
+    'termination', directStructField(request, 'termination'), ...
+    'fallback', directStructField(request, 'fallback'));
+end
+
+function options = effectiveOptionsFromRequest(request, configuration, preset)
+options = struct( ...
+    'branch', configuration.branch, ...
+    'materialRegime', configuration.materialRegime, ...
+    'frequency_Hz', request.frequency_Hz(:), ...
+    'numerics', request.numerics, ...
+    'selection', request.selection, ...
+    'termination', request.termination, ...
+    'fallback', request.fallback, ...
+    'numericalPreset', preset, ...
+    'internalEngine', configuration.internalEngine);
+end
+
+function value = nestedField(s, parentName, fieldName)
+value = [];
+if isstruct(s) && isfield(s, parentName) && isstruct(s.(parentName)) && ...
+        isfield(s.(parentName), fieldName)
+    value = s.(parentName).(fieldName);
+end
+end
+
+function value = directField(s, fieldName)
+value = [];
+if isstruct(s) && isfield(s, fieldName)
+    value = s.(fieldName);
+end
+end
+
+function value = directStructField(s, fieldName)
+value = struct();
+if isstruct(s) && isfield(s, fieldName) && isstruct(s.(fieldName))
+    value = s.(fieldName);
+end
+end
+
 function params = buildSolverParams(request)
 params = struct( ...
     'modelType', "ShearPoisson", ...
@@ -125,15 +188,10 @@ function options = buildInternalOptions(request, preset)
 branch = string(request.branch);
 etaS = request.material.etaS_Pas;
 options = struct( ...
-    'mrlfeResidualTolerance', 1e-4, ...
-    'mrlfeResidualMethod', "minSingularValueRatio", ...
-    'mrlfeRealKResidualFloor', 1e-14, ...
-    'mrlfeA0DPEdgeGuardPoints', 8);
-options.computeMRLFERealK = true;
-options.computeMRLFEElasticRealK = false;
-options.computeMRLFEViscoRealK = false;
-options.computeMRLFEComplexK = false;
-options.mrlfeA0Policy = "physicalTail";
+    'residualTolerance', 1e-4, ...
+    'residualMethod', "minSingularValueRatio", ...
+    'residualFloor', 1e-14, ...
+    'trackerEdgeGuardPoints', 4);
 options.mrlfeParams = mrlfeDefaultInternalParameters();
 options.mrlfeParams.fluidDensity = request.fluid.density_kgm3;
 options.mrlfeParams.fluidSoundSpeed = request.fluid.soundSpeed_mps;
@@ -141,34 +199,15 @@ options.mrlfeParams.etaS = etaS;
 options.mrlfeParams.etaL = 0;
 options.mrlfeParams.useComplexLambda = false;
 options.mrlfeParams.solveComplexK = false;
-options.mrlfeFitAtlasCpScanPoints = preset.scanPoints;
-options.mrlfeFitAtlasCandidates = preset.candidateCount;
-options.mrlfeFitAtlasRefineCandidates = preset.refineCandidates;
-options.mrlfeA0DPCpScanPoints = preset.scanPoints;
-options.mrlfeViscoAtlasCpScanPoints = preset.scanPoints;
-options.mrlfeAdaptiveCpScanPoints = preset.scanPoints;
-options.mrlfeA0DPCandidates = preset.candidateCount;
-options.mrlfeA0DPRefineCandidates = preset.refineCandidates;
-options.mrlfeAdaptiveRefineCandidates = preset.refineCandidates;
-options.mrlfeAdaptiveWindows = preset.adaptiveWindows;
-options.mrlfeUseA0PhysicalTailCut = string(request.termination.policy) == "physicalTail";
-options.mrlfeRobustStartEnabled = branch == "A0Like";
-options.mrlfeRobustStartCandidateFrequencies_Hz = [75 100 150 200 300 500 750 1000];
-options.mrlfeRobustStartMinValidRun = 8;
-options.mrlfeRobustStartMaxCandidates = 8;
-
-switch branch
-    case "A0Like"
-        options.computeA0 = true;
-        options.computeS0 = false;
-        options.mrlfeComputeA0Like = true;
-        options.mrlfeComputeS0Like = false;
-    case "S0Like"
-        options.computeA0 = false;
-        options.computeS0 = true;
-        options.mrlfeComputeA0Like = false;
-        options.mrlfeComputeS0Like = true;
-end
+options.trackerCpScanPoints = preset.scanPoints;
+options.trackerRescueCpScanPoints = preset.rescueScanPoints;
+options.trackerCandidateCount = preset.candidateCount;
+options.trackerRefineCandidates = false;
+options.trackerWindows = preset.adaptiveWindows;
+options.robustStartEnabled = branch == "A0Like";
+options.robustStartCandidateFrequencies_Hz = [75 100 150 200 300 500 750 1000];
+options.robustStartMinValidRun = 8;
+options.robustStartMaxCandidates = 8;
 end
 
 function out = ternary(condition, a, b)

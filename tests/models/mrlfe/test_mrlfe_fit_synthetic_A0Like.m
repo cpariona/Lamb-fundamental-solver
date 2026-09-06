@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
+function test_mrlfe_fit_synthetic_A0Like()
+%TEST_MRLFE_FIT_SYNTHETIC_A0LIKE Validate synthetic mRLFE A0-like fitting.
 
 fprintf('\nRunning mRLFE synthetic A0-like fitting test...\n');
 fprintf('---------------------------------------------\n');
@@ -49,3 +47,4 @@ fprintf('True mu: %.3f kPa\n', trueParams.mu / 1e3);
 fprintf('Fit  mu: %.3f kPa\n', fitResult.bestParams.mu / 1e3);
 fprintf('Relative mu error: %.6g\n', relativeMuError);
 fprintf('\nmRLFE synthetic A0-like fitting test passed.\n');
+end

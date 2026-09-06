@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
+function test_rl_fit_evaluator_branch_consistency()
+%TEST_RL_FIT_EVALUATOR_BRANCH_CONSISTENCY Validate branch-coherent fitting evaluation.
 
 fprintf('\nRunning Rayleigh-Lamb fitting evaluator branch-consistency test...\n');
 fprintf('---------------------------------------------------------------\n');
@@ -37,7 +35,7 @@ referenceOptions.computeA0 = true;
 referenceOptions.computeS0 = false;
 
 reference = rlComputeFundamentalLambModes(referenceParams, referenceOptions);
-CpReference_mps = interp1(reference.modes.A0.frequency, reference.modes.A0.Cp, frequency_Hz, 'linear', NaN);
+CpReference_mps = interp1(reference.modes.A0.frequency_Hz, reference.modes.A0.phaseVelocity_mps, frequency_Hz, 'linear', NaN);
 
 relativeDifference = abs(CpFit_mps - CpReference_mps) ./ max(CpReference_mps, eps);
 assert(all(isfinite(relativeDifference)), 'Reference comparison produced invalid relative differences.');
@@ -57,3 +55,4 @@ else
     fprintf('Internal branch max relative jump: %.6g\n', max(relativeJump));
 end
 fprintf('\nRayleigh-Lamb fitting evaluator branch-consistency test passed.\n');
+end

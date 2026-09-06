@@ -1,13 +1,14 @@
 clear; clc; close all;
 launchFolder = pwd;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %DIAGNOSE_ATLAS_TRUNCATION AtlasA0 truncation-cause diagnostic.
 %
 % Outputs are written to:
 %   Results/ae_iop_hgo/atlas_truncation
 
-outputFolder = aeOutputFolder(launchFolder, 'atlas_truncation');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'atlas_truncation');
 
 cases = makeCaseSpecs(launchFolder);
 summaryRows = [];
@@ -33,7 +34,7 @@ for i = 1:numel(cases)
         continue;
     end
 
-    result = data.sweepResult.conditions(idx).result;
+    result = data.sweepResult.results{idx};
     diagnosis = aeDiagnoseAtlasA0TruncationCause(result, 'Label', spec.caseName);
 
     key = matlab.lang.makeValidName(spec.caseName);
@@ -99,8 +100,8 @@ end
 
 function idx = findConditionIndex(sweepResult, sweepField, targetValue, tol)
 idx = [];
-for i = 1:numel(sweepResult.conditions)
-    params = sweepResult.conditions(i).params;
+for i = 1:numel(sweepResult.params)
+    params = sweepResult.params{i};
     if isfield(params, char(sweepField))
         value = params.(char(sweepField));
         if abs(value - targetValue) <= tol * max(abs(targetValue), 1)
@@ -117,9 +118,9 @@ if ~exist(plotFolder, 'dir')
     mkdir(plotFolder);
 end
 
-f = result.frequency(:) / 1e3;
-cp = result.Cp(:);
-valid = logical(result.validCp(:)) & isfinite(cp);
+f = result.frequency_Hz(:) / 1e3;
+cp = result.phaseVelocity_mps(:);
+valid = logical(result.validMask(:)) & isfinite(cp);
 T = diagnosis.localCauseTable;
 
 fig = figure('Visible', 'off');

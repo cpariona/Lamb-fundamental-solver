@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
+function test_mrlfe_production_core_contract()
+%TEST_MRLFE_PRODUCTION_CORE_CONTRACT Validate production-core ownership and metadata.
 
 fprintf('\nRunning mRLFE production core contract test...\n');
 fprintf('---------------------------------------------\n');
@@ -21,6 +19,21 @@ assert(~contains(solveText, 'mrlfeEvaluateAtlasFitModel'), ...
     'mrlfeSolve must not call mrlfeEvaluateAtlasFitModel.');
 assert(~contains(solveText, 'mrlfeEvaluateFitModel'), ...
     'mrlfeSolve must not call mrlfeEvaluateFitModel.');
+
+problemText = fileread(fullfile(root, 'models', 'mrlfe', 'core', 'mrlfeBuildProblem.m'));
+seedText = fileread(fullfile(root, 'models', 'mrlfe', 'tracking', 'mrlfeBuildSeed.m'));
+assert(~contains(problemText, 'rlComputeFundamentalLambModes'), ...
+    'mrlfeBuildProblem must not own Rayleigh-Lamb seed generation.');
+assert(contains(seedText, 'rlComputeFundamentalLambModes'), ...
+    'mrlfeBuildSeed must own the explicit mRLFE -> Rayleigh-Lamb seed dependency.');
+
+rlRoot = fullfile(root, 'models', 'rayleigh_lamb');
+rlFiles = dir(fullfile(rlRoot, '**', '*.m'));
+for i = 1:numel(rlFiles)
+    text = lower(string(fileread(fullfile(rlFiles(i).folder, rlFiles(i).name))));
+    assert(~contains(text, 'mrlfe'), ...
+        'Rayleigh-Lamb must not depend on mRLFE: %s.', fullfile(rlFiles(i).folder, rlFiles(i).name));
+end
 
 productionFiles = [ ...
     string(fullfile(root, 'models', 'mrlfe', 'core', 'mrlfeBuildProblem.m')); ...
@@ -58,6 +71,7 @@ assert(elastic.execution.internalEngine == "elastic_adaptive", ...
     'Effective engine name must be neutral for zero-viscosity cases.');
 
 fprintf('mRLFE production core contract test passed.\n');
+end
 
 function assertFunctionsOnPath(functionNames)
 for i = 1:numel(functionNames)

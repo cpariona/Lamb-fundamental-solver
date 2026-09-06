@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_execution_profile_validation_matrix()
+%TEST_EXECUTION_PROFILE_VALIDATION_MATRIX Validate cross-surface profile matrix.
 
 fprintf('\nRunning execution profile validation matrix test...\n');
 fprintf('------------------------------------------------\n');
@@ -64,3 +64,4 @@ assert(all(matrix.SyntheticFittingApplicability(fitRows) == "synthetic_fit_and_f
     'FitTool rows should report synthetic/fitting/fitted-curve applicability.');
 
 fprintf('Execution profile validation matrix test passed.\n');
+end

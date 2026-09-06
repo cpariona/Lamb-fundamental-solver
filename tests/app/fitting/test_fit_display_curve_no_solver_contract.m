@@ -1,5 +1,5 @@
-clear; clc;
-startup
+function test_fit_display_curve_no_solver_contract()
+%TEST_FIT_DISPLAY_CURVE_NO_SOLVER_CONTRACT Validate interpolation-only display curve.
 
 fprintf('\nRunning fit display-curve no-solver contract test...\n');
 fprintf('--------------------------------------------------\n');
@@ -27,3 +27,4 @@ assert(contains(curve.extension.errorMessage, "explicit user request"), ...
     'Display curve must state that full evaluation is user-triggered.');
 
 fprintf('Fit display-curve no-solver contract test passed.\n');
+end

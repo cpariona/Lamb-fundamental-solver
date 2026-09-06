@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
-
+function test_fit_tool_interaction_helpers()
 fprintf('\nRunning FitTool interaction helper test...\n');
 fprintf('-----------------------------------------\n');
 
@@ -118,7 +114,7 @@ assert(contains(requestedCurve.note, "optimizer not rerun"), ...
 
 %% Fitting tab exposes new controls.
 fig = uifigure('Visible', 'off');
-cleanup = onCleanup(@()delete(fig));
+cleanup = onCleanup(@()delete(fig)); %#ok<NASGU>
 tabs = uitabgroup(fig);
 controls = createFittingTab(tabs, rlDefaultParams(), struct());
 requiredControls = ["addRowButton", "deleteRowButton", "evaluateCurveButton", ...
@@ -141,6 +137,7 @@ assert(guiFitDisplayLabel("policy", "physicalTail") == "Physical tail", ...
     'mRLFE A0 policy display label should be readable.');
 
 fprintf('\nFitTool interaction helper test passed.\n');
+end
 
 function assertThrows(fcn, expectedId)
 try

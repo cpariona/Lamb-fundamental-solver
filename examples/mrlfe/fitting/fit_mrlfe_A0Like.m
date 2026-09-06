@@ -1,5 +1,6 @@
 clear; clc; close all;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %FIT_MRLFE_A0LIKE Example mRLFE A0-like fit against synthetic data.
 %

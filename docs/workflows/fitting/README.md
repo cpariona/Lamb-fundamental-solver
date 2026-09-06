@@ -32,7 +32,7 @@ Treat this document as the high-level architecture reference, not as a phase log
 `docs/workflows/fitting/validation_suite.md` describes the focused synthetic parameter-recovery suite:
 
 ```matlab
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
 This suite is separate from smoke tests and should be run after fitting-related changes.

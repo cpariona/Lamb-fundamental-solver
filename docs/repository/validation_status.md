@@ -1,104 +1,104 @@
 # Validation status
 
-This document owns the current validation commands, repository architecture
-status, test counts, and bounded compatibility debt. Detailed run logs belong
-in Git and pull-request history.
+Last reviewed: 2026-09-05.
 
-## Maintained commands
+## Current integrated state
 
-Repository structure and documentation:
+Integration branch: `planning/full-repository-restructure` at
+`b925cfc2ad6d1c29b75812141c84f16ee705baa2` after merge of PR #135.
+Final audit branch: `audit/planning-main-readiness`.
+`main` remains untouched at `026994f86a2d1dfe5a740034d7a5fd81d4f08235`.
 
-```matlab
-run_repository_hygiene_tests
-```
+Issue #134 completed the final structural-symmetry campaign. The implementation
+is now integrated into planning. The remaining work is repository closeout and
+a separate planning-versus-main integration decision; `main` must not be
+modified without explicit user authorization.
 
-Routine validation:
+## Maintained validation surface
 
-```matlab
-run_quick_contract_tests
-run_quick_smoke_tests
-run_numerical_regression_tests
-```
+| Tier | Direct tests | Final campaign status |
+| --- | ---: | --- |
+| `run_repository_hygiene_tests` | 8 | PASS |
+| `run_quick_contract_tests` | 17 | PASS |
+| `run_quick_smoke_tests` | 29 | PASS |
+| `run_numerical_regression_tests` | 17 | PASS |
+| `run_extended_integration_tests` | 40 | PASS |
+| `run_performance_and_benchmark_tests` | 4 | PASS |
 
-Focused model and application validation:
+There are 115 maintained tests and six flat runners. Every maintained test is
+owned directly by exactly one runner. Repository hygiene scans every tracked
+`test_*.m` file and enforces the maintained function-test contract, with native
+`functiontests(localfunctions)` suites retained only where the MATLAB unit-test
+API is the actual surface.
 
-```matlab
-run_mrlfe_public_contract_tests
-run_mrlfe_production_core_tests
-run_mrlfe_smoke_tests
-run_ae_quick_tests
-run_acoustoelastic_smoke_tests
-run_gui_quick_tests
-run_gui_smoke_tests
-run_fit_validation_tests
-run_execution_profile_contract_tests
-run_execution_profile_integration_tests
-```
+The final validation exposed structural-only test debt and stale test
+assumptions. Those were corrected without modifying production physics,
+numerical policy, scientific goldens, or tolerances. After the final
+SweepTool characterization-test correction, `run_extended_integration_tests`
+and `run_performance_and_benchmark_tests` were rerun and passed. No production
+source changed after the earlier hygiene/quick/numerical passes. PR #135 then
+merged the validated tree into planning without additional source changes.
 
-Final aggregates:
+## Structural alignment completed
 
-```matlab
-run_all_smoke_tests
-run_extended_integration_tests
-```
+- RL, mRLFE, and AE use the common responsibility spine
+  `api/configuration/core/solvers/tracking/quality/results` where applicable.
+- The public RL and AE entry points are under `api/`.
+- Generic frequency construction is model-neutral under
+  `models/shared/configuration/buildFrequencyVector.m`.
+- The only intentional cross-family scientific dependency remains
+  `mrlfeBuildSeed -> rlComputeFundamentalLambModes`.
+- mRLFE request translation is model-owned by
+  `models/mrlfe/configuration/mrlfeBuildSolveRequest.m`; the old
+  `analysis/requests/mrlfe/` owner is removed.
+- Official model curves use column-oriented `frequency_Hz`,
+  `phaseVelocity_mps`, `wavenumber_radpm`, and `validMask`.
+- Quality uses the common lower-camel core fields.
+- Public configuration uses `requested/effective`, each split into
+  `parameters/options`.
+- AE one-dimensional sweep output is aligned with `runParametricSweep`; AE 2-D
+  grid sweeps remain intentionally specialized.
+- Main GUI model normalization uses one shared result-view spine.
+- Maintained direct tests are no-output functions without local path bootstrap,
+  `clear`, `clc`, or base-workspace scientific exports.
+- The mRLFE production characterization test no longer doubles as a historical
+  reference-capture tool.
 
-Performance and full benchmark commands are descriptive and run only for
-explicit performance work.
+## Numerical alignment retained
 
-## Repository hygiene contract
+Issue #130 remains complete. mRLFE Fast uses a 100-point coarse Cp scan, a
+260-point rescue scan only when candidate discovery requires it, and bounded
+continuous refinement of the selected candidate. The correction removes
+scan-grid quantization without plotting-side smoothing.
 
-`run_repository_hygiene_tests` owns the structure, documentation, naming,
-tracked-artifact, dependency-boundary, startup-path, repository-root, and test
-ownership checks. The maintained final state requires:
-
-- only `analysis/`, `app/`, `docs/`, `examples/`, `models/`, and `tests/` as
-  tracked top-level content directories;
-- no root `shared/` directory and no archive directories in source trees;
-- no production or analysis dependency on examples or tests;
-- no model dependency on analysis or app code;
-- no broken relative Markdown links or missing exact documented files;
-- one tracked definition for each documented MATLAB identifier, except the
-  five intentional public-wrapper pairs;
-- no tracked generated figures, images, MAT files, or result folders;
-- only approved test inventories or fixtures as tracked CSV files;
-- one canonical owner for every maintained test and no runner cycles.
-
-## Current architecture and inventory
-
-The repository is validated against the ownership and naming contracts in
-`repository_structure.md`, `naming_strategy.md`, `maintained_entrypoints.md`,
-`test_suite_final_architecture.md`, and `test_runner_ownership.md`.
-
-The generated inventory is the source of truth for exact test and runner
-counts:
+AE retains the protected lifecycle:
 
 ```text
-analysis/test_inventory/test_inventory.csv
-analysis/test_inventory/runner_edges.csv
-analysis/test_inventory/test_runner_ownership.csv
+SVD atlas -> discrete minima -> branch linking -> atlasA0 selection
+-> bounded continuous refinement of the selected branch on the true SVD objective
 ```
 
-Current generated state: 121 tests, 43 canonical runner implementations, 5
-public convenience wrappers, 3 test helpers, 239 graph edges, and 121
-canonical owners. Validation reports 0 manual-only tests, 0 unowned tests, 0
-multiple canonical owners, 0 sibling direct overlaps, and 0 runner cycles.
+The rejected AE coarse/rescue density experiment did not enter production. The
+earlier mRLFE edge-guard regression remains recorded as resolved historical
+evidence in `../validation/mrlfe_restructure_baseline.md`.
 
-Current static reach is 21 tests from quick contracts, 60 from quick smoke, 17
-from numerical regression, 47 from extended integration, and 70 from the broad
-all-smoke aggregate.
+## Planning-versus-main audit
 
-AE configuration, result, tracking/policy, workflow-route, final-architecture,
-and result-file compatibility contracts are assigned to the maintained focused
-runners; the deterministic inventory CSVs include their canonical ownership
-edges.
+At the start of the final audit:
 
-## Compatibility debt
+- planning HEAD: `b925cfc2ad6d1c29b75812141c84f16ee705baa2`;
+- main HEAD: `026994f86a2d1dfe5a740034d7a5fd81d4f08235`;
+- planning is 286 commits ahead and 0 commits behind main;
+- the merge base is exactly the current main HEAD;
+- no open pull requests remain after PR #135;
+- GitHub reports no CI/status checks on the planning merge commit, so the
+  authoritative validation evidence is the local MATLAB six-runner gate.
 
-| Exception | Owner | Current consumer | Reason retained | Removal condition |
-| --- | --- | --- | --- | --- |
-| Five public test wrappers | `tests/README.md`; `runRepositoryTestRunner` | Users and automation invoking the broad established smoke commands | Keeps the small convenience surface stable while canonical implementations live under `tests/runners/` | Remove only through an explicit public deprecation after external callers migrate. |
-| `robustness` request/control alias | `guiNormalizeExecutionProfile`; `guiNormalizeControlExecutionProfile` | Existing GUI controls, adapters, request builders, tests, and external request structs | Preserves the established profile field while `executionProfile` is canonical | Remove after all maintained and external producers emit only `executionProfile` and a release deprecation is complete. |
-| `result.diagnostics.rawInternalResult` | `mrlfeBuildResult` | No maintained production or numerical-test consumer; the public result-schema contract test verifies temporary alias availability and parity | Keeps the pre-debug-path diagnostic schema while `result.debug.rawInternalResult` is canonical | Remove only through an explicit schema-versioned compatibility change after external callers are considered. |
-| `aeResolveResultFile` legacy-result fallback | AE analysis layer | Five maintained diagnostic scripts at eight call sites reading previously generated workspaces | Resolves the canonical task/file first while preserving repeatability from explicitly supplied legacy result roots | Remove after required diagnostic fixtures are regenerated in canonical result roots, external legacy inputs have migrated, and focused plus manual loading checks pass. |
+The detailed audit record is `planning_main_audit.md`.
 
-No new compatibility alias is authorized by this table.
+## Integration status
+
+No functional blocker was found in the final static review. After the
+closeout-documentation PR is merged into planning, the repository is ready for
+a final PR review from planning into `main`. Opening or merging into `main`
+requires explicit user authorization; this audit does not grant it.

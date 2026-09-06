@@ -8,10 +8,10 @@ Smoke tests check that maintained APIs, adapters, and minimal synthetic cases ru
 
 The focused fitting validation suite is different. It checks whether implemented fitting backends can recover known synthetic parameters within explicit tolerances.
 
-The suite is intentionally separate from:
+Routine fitting smoke coverage belongs to:
 
 ```matlab
-run_all_smoke_tests
+run_quick_smoke_tests
 ```
 
 because fitting validation may be slower, especially for atlas-based model families.
@@ -24,7 +24,7 @@ Run:
 clear functions
 rehash toolboxcache
 startup
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
 This executes:
@@ -37,11 +37,10 @@ test_fit_validation_ae_iop_hgo
 test_fit_validation_ae_iop_hgo_hidden_params
 ```
 
-The combined summary is assigned to the MATLAB base workspace as:
-
-```matlab
-FitValidationSummary
-```
+Each test publishes its own summary: `RayleighLambFitValidationSummary`,
+`MRLFEFitValidationSummary`, `MRLFEHiddenParamFitValidationSummary`,
+`AEIOPHGOFitValidationSummary`, and `AEIOPHGOHiddenParamFitValidationSummary`.
+There is no aggregate runner-generated summary object.
 
 ## Shared assertion helper
 
@@ -108,10 +107,15 @@ etaS: 0 Pa*s
 
 `test_fit_validation_mrlfe_hidden_params` currently validates A0Like thickness recovery with hidden/fixed material parameters in the stable zero-viscosity fitting path. It does not validate `etaS` recovery.
 
+The separate `test_mrlfe_etaS_fit_forward_cache` covers a bounded synthetic
+etaS-only recovery case and cache ownership, with a 35% relative-parameter
+guard and RMSE below 0.20 m/s. This is not a general viscosity-identifiability
+or experimental-accuracy guarantee.
+
 mRLFE FitTool route-specific contracts are validated separately by:
 
 ```matlab
-run_mrlfe_fit_public_solver_tests
+run_extended_integration_tests
 ```
 
 ## AE IOP/HGO validation cases
@@ -123,19 +127,20 @@ AE_atlasA0_mu_exact
 AE_atlasA0_mu_app_adapter
 ```
 
-`test_fit_validation_ae_iop_hgo_hidden_params` validates hidden/fixed parameter handling for the AE fitting path.
+`test_fit_validation_ae_iop_hgo_hidden_params` validates thickness and IOP single-parameter recovery with the other physical
+parameters fixed, as well as hidden/fixed parameter handling.
 
 The AE validation uses only the official atlas output:
 
 ```matlab
-result.Cp
-result.validCp
+result.phaseVelocity_mps
+result.validMask
 ```
 
 from:
 
 ```matlab
-solveAcoustoelasticIOPHGOAtlasBranch
+solveAcoustoelasticIOPHGOBranch
 ```
 
 It explicitly checks that the synthetic validation case does not rely on fallback branch selection and that the branch policy remains:
@@ -148,13 +153,11 @@ Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, or branch-fam
 
 ## Current limitations
 
-This validation phase does not yet validate:
+The maintained suite does not establish:
 
 ```text
-mRLFE etaS fitting as a parameter-recovery case
+broad mRLFE etaS identifiability across parameter regimes
 mRLFE thickness fitting outside the stable zero-viscosity hidden-parameter case
-AE IOP fitting
-AE thickness fitting
 AE multiparameter fitting
 weighted fitting using standardError_Cp_mps
 real experimental data fitting
@@ -170,21 +173,21 @@ After fitting-related changes, run:
 ```matlab
 clear; clc; close all;
 startup
-run_all_smoke_tests
-run_fit_validation_tests
+run_extended_integration_tests
 ```
 
-For mRLFE FitTool route or plotting behavior, also run:
+For mRLFE FitTool route or plotting behavior, the same extended tier plus its
+bounded contracts cover:
 
 ```matlab
-run_mrlfe_fit_public_solver_tests
-run_mrlfe_route_integrity_tests
+run_extended_integration_tests
+run_quick_contract_tests
 ```
 
 For FitTool interaction changes that do not alter solvers, run:
 
 ```matlab
-run_fit_tool_interaction_tests
+run_extended_integration_tests
 ```
 
 This focal runner checks:
@@ -197,7 +200,8 @@ explicit requested fitted-curve evaluation
 presence of the new FitTool controls
 ```
 
-If the focused suite fails, run individual groups:
+For individual tests, first opt into the test path with
+`addpath('tests/tooling'); configureTestPath;`, then run a focused group:
 
 ```matlab
 test_fit_validation_rayleigh_lamb

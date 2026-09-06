@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    startup
-end
-
+function test_acoustoelastic_iop_hgo_constitutive_identity()
 % Consistency test for the Acoustoelastic IOP/HGO constitutive block.
 % The acoustoelastic parameters should satisfy alpha - gamma = sigma for the
 % current equibiaxial prestress implementation.
@@ -26,3 +22,4 @@ assert(relativeError < 1e-8, 'Constitutive identity alpha - gamma = sigma failed
 
 fprintf('test_acoustoelastic_iop_hgo_constitutive_identity passed. sigma = %.6g Pa, alpha-gamma = %.6g Pa, rel. error = %.3e.\n', ...
     state.sigma, sigmaFromABG, relativeError);
+end

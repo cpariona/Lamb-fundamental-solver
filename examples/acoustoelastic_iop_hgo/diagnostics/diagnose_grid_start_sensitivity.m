@@ -1,16 +1,17 @@
 clear; clc; close all;
 launchFolder = pwd;
-startup
+addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
+startup;
 
 %DIAGNOSE_GRID_START_SENSITIVITY Diagnose AE atlasA0 sensitivity to output grid start/density.
 %
-% This diagnostic is intentionally not part of run_all_smoke_tests. It is a
+% This diagnostic is intentionally not part of the automated validation tiers. It is a
 % solver-interface diagnostic for the AE IOP/HGO branch-selection issue.
 %
 % Outputs are written to:
 %   Results/ae_iop_hgo/grid_start_sensitivity
 
-outputFolder = aeOutputFolder(launchFolder, 'grid_start_sensitivity');
+outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'grid_start_sensitivity');
 
 fprintf('\nAE IOP/HGO grid/start-frequency sensitivity diagnostic\n');
 fprintf('Output folder:\n%s\n', outputFolder);
@@ -130,8 +131,8 @@ options.atlasTopNMinima = spec.atlasTopNMinima;
 end
 
 function row = makeSummaryRow(spec, result)
-valid = result.validCp & isfinite(result.Cp);
-cpValid = result.Cp(valid);
+valid = result.validMask & isfinite(result.phaseVelocity_mps);
+cpValid = result.phaseVelocity_mps(valid);
 row = struct();
 row.CaseLabel = string(spec.label);
 row.Fmin_Hz = spec.fmin_Hz;
@@ -141,15 +142,15 @@ row.AtlasNumYPoints = spec.atlasNumYPoints;
 row.AtlasTopNMinima = spec.atlasTopNMinima;
 row.SelectedBranchID = result.selectedBranchID;
 row.ValidPoints = nnz(valid);
-row.TotalPoints = numel(result.Cp);
-row.ValidFraction = nnz(valid) / max(numel(result.Cp), 1);
-row.FirstValidFrequency_Hz = result.reliability.FirstValidFrequency_Hz;
-row.LastValidFrequency_Hz = result.reliability.LastValidFrequency_Hz;
-row.FirstMissingFrequency_Hz = result.reliability.FirstMissingFrequency_Hz;
-row.SelectionFallbackUsed = result.reliability.SelectionFallbackUsed;
-row.A0StartFilterPassed = result.reliability.A0StartFilterPassed;
-row.YStart = result.reliability.YStart;
-row.StartRank = result.reliability.StartRank;
+row.TotalPoints = numel(result.phaseVelocity_mps);
+row.ValidFraction = nnz(valid) / max(numel(result.phaseVelocity_mps), 1);
+row.FirstValidFrequency_Hz = result.quality.FirstValidFrequency_Hz;
+row.LastValidFrequency_Hz = result.quality.LastValidFrequency_Hz;
+row.FirstMissingFrequency_Hz = result.quality.FirstMissingFrequency_Hz;
+row.SelectionFallbackUsed = result.quality.SelectionFallbackUsed;
+row.A0StartFilterPassed = result.quality.A0StartFilterPassed;
+row.YStart = result.quality.YStart;
+row.StartRank = result.quality.StartRank;
 if numel(cpValid) >= 2
     row.CpRange_mps = max(cpValid) - min(cpValid);
     row.RelativeCpRange = row.CpRange_mps / max(median(abs(cpValid), 'omitnan'), eps);
@@ -163,13 +164,13 @@ row.PossibleConstantBranch = isfinite(row.RelativeCpRange) && row.RelativeCpRang
 end
 
 function T = makeCurveTable(spec, result)
-n = numel(result.frequency);
+n = numel(result.frequency_Hz);
 T = table();
 T.CaseLabel = repmat(string(spec.label), n, 1);
-T.Frequency_Hz = result.frequency(:);
-T.Frequency_kHz = result.frequency(:) / 1e3;
-T.Cp_mps = result.Cp(:);
-T.ValidCp = result.validCp(:);
+T.Frequency_Hz = result.frequency_Hz(:);
+T.Frequency_kHz = result.frequency_Hz(:) / 1e3;
+T.Cp_mps = result.phaseVelocity_mps(:);
+T.ValidCp = result.validMask(:);
 T.PointStatus = string(result.pointStatus(:));
 T.NearestRank = result.nearestRank(:);
 T.NearestBranchID = result.nearestBranchID(:);
