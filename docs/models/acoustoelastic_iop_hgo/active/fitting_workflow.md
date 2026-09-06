@@ -9,10 +9,10 @@ The current AE IOP/HGO fitting layer supports fitting experimental phase-speed d
 Implemented helpers:
 
 ```matlab
-aeBuildFitProblem
-aeEvaluateFitModel
-aeFitDispersionData
-solveDispersionFitProblem
+lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem
+lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel
+lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData
+lamb.fitting.solveDispersionFitProblem
 ```
 
 The first maintained tested use case is:
@@ -48,7 +48,7 @@ lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
 
 Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, and branch-family candidates are not used as fitting outputs.
 
-`aeEvaluateFitModel` is the fitting-grid adapter. It validates the flat
+`lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel` is the fitting-grid adapter. It validates the flat
 physical inputs, requests official `atlasA0`, and delegates every production
 evaluation to the maintained public solver. FitTool and explicit requested
 curve evaluation use this same route; neither app code nor analysis fitting
@@ -87,8 +87,8 @@ The synthetic fitting tests use reduced atlas configurations for speed. These ar
 
 ## Optimizer policy
 
-`aeFitDispersionData` builds the AE-specific problem and delegates optimizer
-orchestration to `solveDispersionFitProblem`. It uses no Optimization Toolbox dependency.
+`lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` builds the AE-specific problem and delegates optimizer
+orchestration to `lamb.fitting.solveDispersionFitProblem`. It uses no Optimization Toolbox dependency.
 
 Current behavior:
 

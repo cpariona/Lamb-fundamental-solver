@@ -1,7 +1,7 @@
 function qc = assessFitPhysicalQuality(fitResult)
 %ASSESSFITPHYSICALQUALITY Assess physical/numerical quality of a fit.
 %
-% qc = assessFitPhysicalQuality(fitResult)
+% qc = lamb.fitting.assessFitPhysicalQuality(fitResult)
 %
 % This helper does not reject a fit. It classifies warning conditions that are
 % not captured by RMSE alone, such as nearly-flat experimental data, physical
@@ -12,7 +12,7 @@ experimental = struct();
 experimental.frequency_Hz = fitResult.frequency_Hz(:);
 experimental.Cp_mps = fitResult.Cp_exp_mps(:);
 experimental.validMask = fitResult.validMask(:) & isfinite(fitResult.Cp_exp_mps(:));
-baseline = computeConstantSpeedBaseline(experimental);
+baseline = lamb.fitting.computeConstantSpeedBaseline(experimental);
 
 valid = fitResult.validMask(:) & isfinite(fitResult.Cp_exp_mps(:)) & isfinite(fitResult.Cp_fit_mps(:));
 CpExp = fitResult.Cp_exp_mps(:);

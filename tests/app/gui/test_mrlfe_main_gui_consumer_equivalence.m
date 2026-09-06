@@ -29,12 +29,12 @@ sweepResult = sweepOut.sweepResult.points{1}.modelResult;
 %% FitTool requested-curve evaluator on the same numerical preset grid.
 fitParams = params;
 fitParams.etaS = etaS;
-fitOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS, ...
+fitOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', etaS, ...
     'A0Policy', "physicalTail");
 fitOptions.mrlfeParams.fluidDensity = 1000;
 fitOptions.mrlfeParams.fluidSoundSpeed = 1500;
 fitOptions.forwardModel = struct('gridPolicy', "numericalPreset");
-[fitCp, fitRaw] = mrlfeEvaluateFitModel(fitParams, mainResult.frequency_Hz, branchName, fitOptions);
+[fitCp, fitRaw] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(fitParams, mainResult.frequency_Hz, branchName, fitOptions);
 
 assertVectorEqual(mainResult.phaseVelocity_mps, sweepResult.phaseVelocity_mps, ...
     'Main GUI and SweepTool Cp differ.');

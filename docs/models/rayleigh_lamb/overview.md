@@ -34,7 +34,7 @@ seed construction.
 RL solver. Plot-data extraction owns branch selection and units; renderers
 only display the already-computed curves.
 
-`rlFitDispersionData` delegates optimization to the shared fitting owner.
+`lamb.fitting.rayleigh_lamb.rlFitDispersionData` delegates optimization to the shared fitting owner.
 Its evaluator uses the same model-layer `lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch`, with
 an internal continuation grid retaining exact experimental frequencies and
 prediction fallback disabled. It does not call the batch-grid public compute

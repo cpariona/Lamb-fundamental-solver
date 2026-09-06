@@ -10,7 +10,7 @@ assert(numel(names) == numel(unique(lower(names))), ...
 assertFilenameFunctionAgreement(repoRoot, trackedPaths);
 assertExampleTerms(trackedPaths);
 assertPrefixContracts(repoRoot, trackedPaths);
-assertDocumentedEntrypoints(repoRoot, names);
+assertDocumentedEntrypoints(repoRoot, trackedPaths, names);
 assertPermanentValidationNames(trackedPaths, names);
 
 fprintf('Repository naming contract test passed.\n');
@@ -116,14 +116,27 @@ for i = 1:numel(paths)
 end
 end
 
-function assertDocumentedEntrypoints(repoRoot, trackedNames)
+function assertDocumentedEntrypoints(repoRoot, trackedPaths, trackedNames)
 docPath = fullfile(repoRoot, 'docs', 'repository', 'maintained_entrypoints.md');
 documented = matlabFenceIdentifiers(fileread(docPath));
+assert(~isempty(documented), ...
+    'maintained_entrypoints.md must document at least one MATLAB entrypoint.');
 for i = 1:numel(documented)
-    count = nnz(trackedNames == documented(i));
-    assert(count == 1, ...
-        'Documented entrypoint %s must have one tracked definition; found %d.', ...
-        documented(i), count);
+    identifier = documented(i);
+    if contains(identifier, ".")
+        resolved = string(which(identifier));
+        assert(strlength(resolved) > 0, ...
+            'Documented package entrypoint %s does not resolve.', identifier);
+        relative = erase(replace(resolved, "\", "/"), ...
+            replace(string(repoRoot), "\", "/") + "/");
+        assert(any(string({trackedPaths.relative}) == relative), ...
+            'Documented package entrypoint %s does not resolve to a tracked file.', identifier);
+    else
+        count = nnz(trackedNames == identifier);
+        assert(count == 1, ...
+            'Documented entrypoint %s must have one tracked definition; found %d.', ...
+            identifier, count);
+    end
 end
 end
 
@@ -140,7 +153,8 @@ for i = 1:numel(lines)
         inMatlab = false;
         continue;
     end
-    if inMatlab && ~isempty(regexp(line, '^[A-Za-z]\w*$', 'once'))
+    if inMatlab && ~isempty(regexp(line, ...
+            '^[A-Za-z]\w*(?:\.[A-Za-z]\w*)*$', 'once'))
         names(end + 1, 1) = line; %#ok<AGROW>
     end
 end

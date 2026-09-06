@@ -5,9 +5,9 @@ fprintf('\nRunning mRLFE FitTool public-solver route guard test...\n');
 fprintf('------------------------------------------------------\n');
 
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
-evaluatorPath = fullfile(repoRoot, 'analysis', 'fitting', 'mrlfe', 'mrlfeEvaluateFitModel.m');
+evaluatorPath = fullfile(repoRoot, 'src', '+lamb', '+fitting', '+mrlfe', 'mrlfeEvaluateFitModel.m');
 adapterPath = fullfile(repoRoot, 'app', 'fitting', 'guiFitMRLFESolver.m');
-fitWorkflowPath = fullfile(repoRoot, 'analysis', 'fitting', 'mrlfe', 'mrlfeFitDispersionData.m');
+fitWorkflowPath = fullfile(repoRoot, 'src', '+lamb', '+fitting', '+mrlfe', 'mrlfeFitDispersionData.m');
 
 evaluatorText = string(fileread(evaluatorPath));
 adapterText = string(fileread(adapterPath));
@@ -23,14 +23,14 @@ assert(~contains(adapterText, "solveMRLFE") && ~contains(adapterText, "computeMR
     ~contains(adapterText, "lamb.models.mrlfe.tracking.mrlfeTrackBranchAdaptive"), ...
     'FitTool adapter must not contain low-level mRLFE solver logic.');
 
-params = mrlfeDefaultSweepParams();
+params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 params.mu = 75e3;
 params.etaS = 0.05;
 frequency_Hz = linspace(1000, 5000, 8).';
-options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', params.etaS, ...
+options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', params.etaS, ...
     'A0Policy', "physicalTail");
 
-[Cp_mps, raw] = mrlfeEvaluateFitModel(params, frequency_Hz, "A0Like", options);
+[Cp_mps, raw] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, "A0Like", options);
 assert(any(isfinite(Cp_mps)), 'Public-solver fitting evaluation must return finite Cp values.');
 assert(isfield(raw, 'modelResult'), 'Compatibility raw result must preserve the public model result.');
 assert(raw.evaluationPath.usedPublicSolver == true, 'Fitting evaluator must report public-solver use.');

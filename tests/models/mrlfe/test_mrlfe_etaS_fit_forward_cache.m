@@ -6,7 +6,7 @@ fprintf('------------------------------------------------\n');
 
 branchName = "A0Like";
 trueEtaS = 0.12;
-trueParams = mrlfeDefaultSweepParams();
+trueParams = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 trueParams.mu = 75e3;
 trueParams.thickness = 0.50e-3;
 trueParams.rho = 1070;
@@ -14,8 +14,8 @@ trueParams.nu = 0.4999;
 trueParams.etaS = trueEtaS;
 frequency_Hz = linspace(1000, 8000, 10).';
 
-solverOptionsSynthetic = mrlfeDefaultSweepOptions(branchName, 'EtaS', trueEtaS);
-CpSynthetic_mps = mrlfeEvaluateFitModel(trueParams, frequency_Hz, branchName, solverOptionsSynthetic);
+solverOptionsSynthetic = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', trueEtaS);
+CpSynthetic_mps = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(trueParams, frequency_Hz, branchName, solverOptionsSynthetic);
 assert(any(isfinite(CpSynthetic_mps)), 'Synthetic viscous mRLFE data must contain finite Cp points.');
 
 experimental = struct();
@@ -33,11 +33,11 @@ fitConfig.fixedParams = struct( ...
     'nu', trueParams.nu);
 fitConfig.initialGuess = struct('etaS', 0.04);
 fitConfig.bounds = struct('etaS', [0.0, 0.30]);
-fitConfig.solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', fitConfig.initialGuess.etaS);
+fitConfig.solverOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', fitConfig.initialGuess.etaS);
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-5));
 
-fitResult = mrlfeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.mrlfe.mrlfeFitDispersionData(experimental, fitConfig);
 
 relativeEtaSError = abs(fitResult.bestParams.etaS - trueEtaS) / max(trueEtaS, eps);
 assert(relativeEtaSError < 0.35, 'Cached etaS fit did not recover etaS within tolerance.');

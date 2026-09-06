@@ -8,14 +8,14 @@ branchName = "A0Like";
 etaS = 0.12;
 frequency_Hz = linspace(1000, 6000, 10).';
 
-params = mrlfeDefaultSweepParams();
+params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 params.mu = 75e3;
 params.etaS = etaS;
 
-solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS, ...
+solverOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', etaS, ...
     'A0Policy', "physicalTail");
 
-[CpSynthetic, rawSynthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions);
+[CpSynthetic, rawSynthetic] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, branchName, solverOptions);
 assert(rawSynthetic.evaluationPath.routeFamily == "public_solver", 'Synthetic setup should use public solver route family.');
 assert(rawSynthetic.evaluationPath.path == "viscoelastic_adaptive", 'Synthetic setup should use viscoelastic adaptive engine.');
 assert(any(isfinite(CpSynthetic)), 'Synthetic data must contain at least one finite Cp value.');
@@ -35,7 +35,7 @@ fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-5));
 
-fitResult = mrlfeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.mrlfe.mrlfeFitDispersionData(experimental, fitConfig);
 request = guiBuildFitRequest("mrlfe", ...
     'branchName', branchName, ...
     'experimental', experimental, ...

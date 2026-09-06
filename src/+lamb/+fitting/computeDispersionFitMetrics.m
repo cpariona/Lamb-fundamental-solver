@@ -4,10 +4,10 @@ function metrics = computeDispersionFitMetrics(CpModel_mps, experimental)
 % Metrics are computed on points that are valid in the experimental data and
 % finite in the model output.
 
-[~, residualInfo] = computeDispersionFitResiduals(CpModel_mps, experimental, struct('useStandardErrorWeights', false));
+[~, residualInfo] = lamb.fitting.computeDispersionFitResiduals(CpModel_mps, experimental, struct('useStandardErrorWeights', false));
 
 rawResiduals = residualInfo.rawResiduals_mps;
-experimental = normalizeExperimentalDispersionData(experimental);
+experimental = lamb.fitting.normalizeExperimentalDispersionData(experimental);
 CpExpValid = experimental.Cp_mps(residualInfo.validMask);
 
 metrics = struct();

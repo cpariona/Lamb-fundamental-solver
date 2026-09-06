@@ -29,13 +29,13 @@ fitResult.frequency_Hz = frequency_Hz;
 fitResult.Cp_exp_mps = CpSynthetic_mps;
 fitResult.Cp_fit_mps = CpSynthetic_mps;
 fitResult.validMask = true(size(frequency_Hz));
-fitResult.metrics = computeDispersionFitMetrics(CpSynthetic_mps, experimental);
+fitResult.metrics = lamb.fitting.computeDispersionFitMetrics(CpSynthetic_mps, experimental);
 fitResult.sensitivityMatrix = 0.5 * ones(size(frequency_Hz));
 fitResult.identifiability = struct('classification', "locally_identifiable");
 fitResult.optimizer = struct('name', "constructed", 'objective', 0, 'exitFlag', 1, 'output', struct());
 fitResult.modelEvaluation = struct();
 
-qc = assessFitPhysicalQuality(fitResult);
+qc = lamb.fitting.assessFitPhysicalQuality(fitResult);
 
 assert(~any(qc.reasons == "constant-speed baseline is competitive"), ...
     'Clearly dispersive exact fit should improve over constant-speed baseline.');

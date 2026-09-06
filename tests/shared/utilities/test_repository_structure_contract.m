@@ -30,6 +30,7 @@ assert(~any(startsWith(paths, "docs/") & endsWith(paths, ".m")), ...
 
 assertTestLocations(paths);
 assertTestOwnership(repoRoot, paths);
+assertFittingOwnership(repoRoot, paths);
 assertAeAnalysisOwnership(paths);
 assertAppSurfaceOwnership(paths);
 assertAeModelDiagnosticOwnership(paths);
@@ -88,7 +89,6 @@ assert(isequal(sort(testNames),sort(mentions)), 'Every maintained test needs exa
 end
 
 function assertAeAnalysisOwnership(paths)
-fittingRoot = "analysis/fitting/acoustoelastic_iop_hgo/";
 sweepRoot = "analysis/sweeps/acoustoelastic_iop_hgo/";
 plotRoot = "analysis/plotting/sweeps/acoustoelastic_iop_hgo/";
 diagnosticRoot = "analysis/diagnostics/acoustoelastic_iop_hgo/";
@@ -97,7 +97,6 @@ aePaths = paths(contains(paths, "/acoustoelastic_iop_hgo/") & ...
     startsWith(paths, "analysis/") & endsWith(paths, ".m"));
 
 expected = [ ...
-    fittingRoot + ["aeBuildFitProblem.m"; "aeEvaluateFitModel.m"; "aeFitDispersionData.m"]
     sweepRoot + [ ...
         "aeDefaultSweepOptions.m"; "aeDefaultSweepParams.m"; ...
         "aeRunSweep.m"; "aeRunGridSweep.m"; ...
@@ -121,6 +120,62 @@ expected = [ ...
 assert(isequal(sort(aePaths), sort(expected)), ...
     'AE analysis responsibility placement changed: %s', ...
     strjoin(setxor(aePaths, expected), ', '));
+end
+
+function assertFittingOwnership(repoRoot, paths)
+fittingRoot = "src/+lamb/+fitting/";
+expected = fittingRoot + [ ...
+    "assessFitIdentifiability.m"
+    "assessFitPhysicalQuality.m"
+    "applyParameterOverrides.m"
+    "buildParameterVector.m"
+    "buildParameterBounds.m"
+    "computeConstantSpeedBaseline.m"
+    "computeDispersionFitMetrics.m"
+    "computeDispersionFitResiduals.m"
+    "estimateLocalSensitivity.m"
+    "evaluateBoundedObjective.m"
+    "getFitConfigValue.m"
+    "normalizeExperimentalDispersionData.m"
+    "solveDispersionFitProblem.m"
+    "unpackParameterVector.m"
+    "validateExperimentalDispersionData.m"
+    "+rayleigh_lamb/rlBuildFitProblem.m"
+    "+rayleigh_lamb/rlEvaluateFitModel.m"
+    "+rayleigh_lamb/rlFitDispersionData.m"
+    "+mrlfe/mrlfeBuildFitFrequencyGrid.m"
+    "+mrlfe/mrlfeBuildFitProblem.m"
+    "+mrlfe/mrlfeDefaultFitOptions.m"
+    "+mrlfe/mrlfeDefaultFitParameters.m"
+    "+mrlfe/mrlfeEvaluateFitModel.m"
+    "+mrlfe/mrlfeFitDispersionData.m"
+    "+acoustoelastic_iop_hgo/aeBuildFitProblem.m"
+    "+acoustoelastic_iop_hgo/aeDefaultFitOptions.m"
+    "+acoustoelastic_iop_hgo/aeDefaultFitParameters.m"
+    "+acoustoelastic_iop_hgo/aeEvaluateFitModel.m"
+    "+acoustoelastic_iop_hgo/aeFitDispersionData.m"];
+actual = paths(startsWith(paths, fittingRoot) & endsWith(paths, ".m"));
+assert(isequal(sort(actual), sort(expected)), ...
+    'Canonical fitting ownership changed: %s', strjoin(setxor(actual, expected), ', '));
+assert(~isfolder(fullfile(repoRoot, 'analysis', 'fitting')), ...
+    'analysis/fitting must be retired after canonical fitting migration.');
+
+oldNames = [ ...
+    "rlBuildFitProblem", "rlEvaluateFitModel", "rlFitDispersionData", ...
+    "mrlfeBuildFitFrequencyGrid", "mrlfeBuildFitProblem", ...
+    "mrlfeEvaluateFitModel", "mrlfeFitDispersionData", ...
+    "aeBuildFitProblem", "aeEvaluateFitModel", "aeFitDispersionData", ...
+    "assessFitIdentifiability", "assessFitPhysicalQuality", ...
+    "applyParameterOverrides", "buildParameterBounds", "buildParameterVector", ...
+    "computeConstantSpeedBaseline", "computeDispersionFitMetrics", ...
+    "computeDispersionFitResiduals", "estimateLocalSensitivity", ...
+    "evaluateBoundedObjective", "getFitConfigValue", ...
+    "normalizeExperimentalDispersionData", "solveDispersionFitProblem", ...
+    "unpackParameterVector", "validateExperimentalDispersionData"];
+for i = 1:numel(oldNames)
+    assert(isempty(which(oldNames(i))), ...
+        'Retired unqualified fitting name must not resolve: %s', oldNames(i));
+end
 end
 
 function assertAppSurfaceOwnership(paths)

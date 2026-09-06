@@ -3,14 +3,18 @@
 ## Ownership
 
 ```text
-models/
-  materials/
-  shared/                  neutral cross-family infrastructure
-  rayleigh_lamb/           api, configuration, core, solvers, tracking, quality, results
-  mrlfe/                   api, configuration, core, solvers, tracking, policies, quality, results
-  acoustoelastic_iop_hgo/ api, configuration, constitutive, core, solvers, tracking, policies, quality, results
+src/+lamb/
+  +models/
+    +rayleigh_lamb/         configuration, core, equations, solvers, tracking, quality, results
+    +mrlfe/                 configuration, core, solvers, tracking, policies, quality, results
+    +acoustoelastic_iop_hgo/ configuration, constitutive, core, solvers, tracking, policies, quality, results
+  +fitting/                 model-neutral optimizer, residual, metric, sensitivity, and data primitives
+    +rayleigh_lamb/         family fit API, problem construction, evaluator
+    +mrlfe/                 family defaults, fit API, problem construction, evaluator and fit grid
+    +acoustoelastic_iop_hgo/ family defaults, fit API, problem construction, evaluator
+  +elasticity/              neutral elastic conversions
+  +grids/                   neutral grid construction
 analysis/
-  fitting/                shared optimizer and model-specific evaluators
   sweeps/                 shared 1D iteration and model workflows; explicit AE 2D
   plotting/               render completed sweep results
   io/                     output paths and persistence
@@ -39,9 +43,10 @@ orchestration remains under analysis/app; model request semantics do not.
 
 | Caller | Allowed scientific/workflow dependencies | Forbidden |
 | --- | --- | --- |
-| models | own internals, shared materials/infrastructure; mRLFE seed may call RL | app, analysis, examples, tests |
-| analysis | analysis and models | app, examples, tests |
-| app | app, analysis, models | examples, tests |
+| models | own internals and neutral infrastructure; mRLFE seed may call RL | fitting, app, analysis, examples, tests |
+| fitting | model APIs plus neutral fitting primitives | analysis, app, examples, tests |
+| analysis | analysis, fitting, and models | app, examples, tests |
+| app | app, fitting, analysis, and models | examples, tests |
 | examples/diagnostics | maintained APIs and scientific inspection | ownership of production calculations |
 | tests | all maintained layers | becoming a production dependency |
 
@@ -68,7 +73,7 @@ lives under tests, not analysis.
 | AE physics/tracking | constitutive/SVD objective, discrete atlas linking, selected-branch `fminbnd` refinement |
 | Public scientific results | `lamb.models.rayleigh_lamb.results.rlBuildResult`, `lamb.models.mrlfe.results.mrlfeBuildResult`, `lamb.models.acoustoelastic_iop_hgo.results.aeBuildResult` |
 | Quality | `lamb.models.rayleigh_lamb.quality.rlEvaluateModeQuality`, `lamb.models.mrlfe.quality.mrlfeEvaluateBranchQuality`, `lamb.models.acoustoelastic_iop_hgo.quality.aeEvaluateAtlasA0Quality` |
-| Fitting optimizer | `solveDispersionFitProblem` |
+| Fitting optimizer | `lamb.fitting.solveDispersionFitProblem` |
 | 1D sweep iteration | `runParametricSweep` |
 | AE 2D sweep | `aeRunGridSweep` |
 | Execution profiles | app/shared model-specific resolvers |
@@ -86,7 +91,7 @@ results.
 
 ## Paths and invocation
 
-`startup` resets repository-owned paths, adds root plus maintained models,
+`startup` resets repository-owned paths, adds root plus `src`, remaining
 analysis, and app trees, and exposes only `tests/runners/` as a narrow
 validation-launcher exception. Test bodies/tooling and examples are not
 globally loaded. Source `results/` directories contain result builders and

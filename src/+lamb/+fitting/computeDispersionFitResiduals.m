@@ -14,7 +14,7 @@ if ~isfield(options, 'useStandardErrorWeights') || isempty(options.useStandardEr
     options.useStandardErrorWeights = false;
 end
 
-experimental = validateExperimentalDispersionData(experimental, 1);
+experimental = lamb.fitting.validateExperimentalDispersionData(experimental, 1);
 CpModel_mps = CpModel_mps(:);
 
 if numel(CpModel_mps) ~= experimental.numPoints

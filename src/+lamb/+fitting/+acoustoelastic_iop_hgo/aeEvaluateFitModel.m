@@ -1,7 +1,7 @@
 function [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, branchName, options)
 %AEEVALUATEFITMODEL Evaluate AE IOP/HGO atlasA0 Cp on a fitting grid.
 %
-% [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, branchName, options)
+% [Cp_mps, rawResult] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(params, frequency_Hz, branchName, options)
 %
 % This helper uses the maintained official AE/IOP/HGO atlas output:
 %   result.phaseVelocity_mps
@@ -13,7 +13,7 @@ if nargin < 3 || isempty(branchName)
     branchName = "atlasA0";
 end
 if nargin < 4 || isempty(options)
-    options = aeDefaultSweepOptions("Fast");
+    options = lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitOptions("Fast");
 else
     options.atlasBranchPolicy = "atlasA0";
     options = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(options);

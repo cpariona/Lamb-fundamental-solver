@@ -19,14 +19,14 @@ for iBranch = 1:numel(branches)
     for iEta = 1:numel(etaSValues)
         etaS = etaSValues(iEta);
         for iMu = 1:numel(muValues_Pa)
-            params = mrlfeDefaultSweepParams();
+            params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
             params.mu = muValues_Pa(iMu);
             params.etaS = etaS;
             params.thickness = 0.5e-3;
             params.rho = 1070;
             params.nu = 0.4999;
 
-            options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS, ...
+            options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', etaS, ...
                 'A0Policy', "physicalTail");
             options.forwardModel = struct( ...
                 'gridPolicy', "fitOptimized", ...
@@ -34,11 +34,11 @@ for iBranch = 1:numel(branches)
                 'maximumPointCount', 40, ...
                 'maximumStep_Hz', 250);
 
-            [CpPublic_mps, rawPublic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
+            [CpPublic_mps, rawPublic] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
 
             request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
             request.numerics.preset = "fast";
-            [frequencySolve_Hz, ~] = mrlfeBuildFitFrequencyGrid(frequency_Hz, options.forwardModel);
+            [frequencySolve_Hz, ~] = lamb.fitting.mrlfe.mrlfeBuildFitFrequencyGrid(frequency_Hz, options.forwardModel);
             request.numerics.frequencySolveOverride_Hz = frequencySolve_Hz;
             direct = lamb.models.mrlfe.mrlfeSolve(request);
 

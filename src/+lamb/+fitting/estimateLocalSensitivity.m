@@ -21,7 +21,7 @@ if ~isstruct(baseParams) || ~isscalar(baseParams)
     error('baseParams must be a scalar structure.');
 end
 
-experimental = validateExperimentalDispersionData(experimental, 1);
+experimental = lamb.fitting.validateExperimentalDispersionData(experimental, 1);
 freeParams = string(freeParams(:));
 if isempty(freeParams)
     error('freeParams must contain at least one parameter name.');

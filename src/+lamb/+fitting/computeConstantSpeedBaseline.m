@@ -1,13 +1,13 @@
 function baseline = computeConstantSpeedBaseline(experimental)
 %COMPUTECONSTANTSPEEDBASELINE Compute a constant-Cp baseline for fit QC.
 %
-% baseline = computeConstantSpeedBaseline(experimental)
+% baseline = lamb.fitting.computeConstantSpeedBaseline(experimental)
 %
 % The baseline uses the mean experimental phase speed over valid points. It is
 % intended as a null model: if a physical dispersion model does not improve on
 % this baseline, the fit may be numerically good but physically uninformative.
 
-experimental = validateExperimentalDispersionData(experimental, 1);
+experimental = lamb.fitting.validateExperimentalDispersionData(experimental, 1);
 valid = experimental.validMask(:) & isfinite(experimental.Cp_mps(:));
 CpExp = experimental.Cp_mps(:);
 CpValid = CpExp(valid);

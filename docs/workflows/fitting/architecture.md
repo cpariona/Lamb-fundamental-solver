@@ -23,8 +23,9 @@ The fitting layer is reusable from scripts, tests, and `FitTool_GUI`. GUI callba
 ## Design principles
 
 1. GUI code builds requests and renders normalized results.
-2. `solveDispersionFitProblem` owns optimizer orchestration and result assembly.
-3. Model-specific builders and evaluators retain model physics and defaults.
+2. `lamb.fitting.solveDispersionFitProblem` owns optimizer orchestration and result assembly.
+3. Model-specific builders own fitting configuration and optimizer defaults;
+   evaluators call canonical model owners without duplicating physics.
 4. Example and diagnostic scripts are not production dependencies.
 5. Objective values and optional full-curve evaluations remain distinguishable.
 6. A complete fitted curve is evaluated only after an explicit user action.
@@ -140,10 +141,10 @@ The visible parameter summary shows only the fitted parameter. Fixed parameters 
 ### Rayleigh-Lamb
 
 ```text
-rlFitDispersionData
-  -> rlBuildFitProblem
-  -> solveDispersionFitProblem
-  -> rlEvaluateFitModel
+lamb.fitting.rayleigh_lamb.rlFitDispersionData
+  -> lamb.fitting.rayleigh_lamb.rlBuildFitProblem
+  -> lamb.fitting.solveDispersionFitProblem
+  -> lamb.fitting.rayleigh_lamb.rlEvaluateFitModel
   -> lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch
 ```
 
@@ -156,10 +157,10 @@ implementation. This distinction is deliberate and numerically protected.
 ### mRLFE
 
 ```text
-mrlfeFitDispersionData
-  -> mrlfeBuildFitProblem
-  -> solveDispersionFitProblem
-  -> mrlfeEvaluateFitModel
+lamb.fitting.mrlfe.mrlfeFitDispersionData
+  -> lamb.fitting.mrlfe.mrlfeBuildFitProblem
+  -> lamb.fitting.solveDispersionFitProblem
+  -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve
 ```
@@ -186,18 +187,23 @@ and resolves Fast, Balanced, or Robust into the corresponding public numerical p
 ### Acoustoelastic IOP/HGO
 
 ```text
-aeFitDispersionData
-  -> aeBuildFitProblem
-  -> solveDispersionFitProblem
-  -> aeEvaluateFitModel
+lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData
+  -> lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem
+  -> lamb.fitting.solveDispersionFitProblem
+  -> lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel
   -> lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
 ```
 
 Atlas construction and branch selection belong to the AE model, not the optimizer.
 
+The fitting package does not call sweep defaults or sweep orchestration. AE and
+mRLFE fitting defaults are constructed by their family fitting owners from
+canonical model configuration, while sweep-specific defaults remain under the
+separate sweep workflows.
+
 ## Physical quality and identifiability
 
-Shared fitting helpers include optimizer orchestration, residual calculation, fit metrics, constant-speed baseline comparison, physical-quality assessment, local sensitivity, and identifiability assessment. `solveDispersionFitProblem` selects `fminbnd` or `fminsearch`, performs the final evaluation, and assembles the canonical fit result. Model builders still own their model-specific optimizer options, bounds, and evaluators. These checks are numerical diagnostics, not external experimental validation.
+Shared fitting helpers include optimizer orchestration, residual calculation, fit metrics, constant-speed baseline comparison, physical-quality assessment, local sensitivity, and identifiability assessment. `lamb.fitting.solveDispersionFitProblem` selects `fminbnd` or `fminsearch`, performs the final evaluation, and assembles the canonical fit result. Model builders still own their model-specific optimizer options, bounds, and evaluators. These checks are numerical diagnostics, not external experimental validation.
 
 ## Validation
 

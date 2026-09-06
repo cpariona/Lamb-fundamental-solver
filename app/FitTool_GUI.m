@@ -483,23 +483,23 @@ onFitModelChanged();
                 [params, ~] = guiResolveFitModelSetup(modelFamily, lamb.models.rayleigh_lamb.rlDefaultParams(), parts);
                 frequency_Hz = linspace(1000, 8000, 12).';
                 options = lamb.models.rayleigh_lamb.rlDefaultOptions(string(fitControls.robustness.Value));
-                Cp_mps = rlEvaluateFitModel(params, frequency_Hz, branchName, options);
+                Cp_mps = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(params, frequency_Hz, branchName, options);
                 validMask = isfinite(Cp_mps(:));
             case "mrlfe"
-                [params, resolvedControls] = guiResolveFitModelSetup(modelFamily, mrlfeDefaultSweepParams(), parts);
+                [params, resolvedControls] = guiResolveFitModelSetup(modelFamily, lamb.fitting.mrlfe.mrlfeDefaultFitParameters(), parts);
                 frequency_Hz = linspace(1000, 8000, 10).';
-                options = mrlfeDefaultSweepOptions(branchName, ...
+                options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, ...
                     'EtaS', resolvedControls.etaS, ...
                     'A0Policy', normalizeMrlfeA0Policy(string(fitControls.a0Policy.Value)));
                 options.mrlfeParams.fluidDensity = resolvedControls.fluidDensity;
                 options.mrlfeParams.fluidSoundSpeed = resolvedControls.fluidSoundSpeed;
-                Cp_mps = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
+                Cp_mps = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
                 validMask = isfinite(Cp_mps(:));
             case "acoustoelastic_iop_hgo"
                 [params, ~] = guiResolveFitModelSetup(modelFamily, defaultAEParams(), parts);
                 frequency_Hz = params.frequency(:);
                 options = defaultAEOptions(parts.controls.executionProfile);
-                [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, "atlasA0", options);
+                [Cp_mps, rawResult] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(params, frequency_Hz, "atlasA0", options);
                 validMask = rawResult.validMask(:);
                 if ~any(validMask)
                     error('AE atlasA0 produced zero valid points for the current synthetic setup.');

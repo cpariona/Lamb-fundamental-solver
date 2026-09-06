@@ -9,7 +9,7 @@ if nargin < 3 || isempty(branchName)
     branchName = "A0Like";
 end
 if nargin < 4 || isempty(solverOptions)
-    solverOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0.05, ...
+    solverOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', 0.05, ...
         'A0Policy', "physicalTail");
 end
 
@@ -36,7 +36,7 @@ metadata = struct('gridPolicy', policy);
 
 switch policy
     case "fitOptimized"
-        [frequencySolve_Hz, metadata] = mrlfeBuildFitFrequencyGrid(frequencyInput, forwardModel);
+        [frequencySolve_Hz, metadata] = lamb.fitting.mrlfe.mrlfeBuildFitFrequencyGrid(frequencyInput, forwardModel);
         request.numerics.frequencySolveOverride_Hz = frequencySolve_Hz;
     case "numericalPreset"
         % No override: the production solver resolves the selected preset.

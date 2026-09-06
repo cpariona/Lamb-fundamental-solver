@@ -27,7 +27,7 @@ solverOptions.atlasTopNMinima = 12;
 solverOptions.atlasBranchPolicy = "atlasA0";
 solverOptions.atlasInitializationNumFrequencyPoints = 50;
 
-[CpSynthetic_mps, syntheticRaw] = aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
+[CpSynthetic_mps, syntheticRaw] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
 assert(any(syntheticRaw.validMask), 'AE validation synthetic atlasA0 output must contain valid points.');
 assert(syntheticRaw.solverResult.quality.selectionFallbackUsed == false, ...
     'AE validation must not rely on fallback branch selection.');
@@ -48,7 +48,7 @@ fitConfig.bounds = struct('mu', [45e3, 55e3]);
 fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3));
-fitResult = aeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(experimental, fitConfig);
 assert(string(fitResult.branchName) == "atlasA0", 'AE validation fit branch must remain atlasA0.');
 assert(~isfield(fitResult.modelEvaluation.solverResult, 'identityA0'), ...
     'AE validation fitting output must not contain identityA0 diagnostic branch.');

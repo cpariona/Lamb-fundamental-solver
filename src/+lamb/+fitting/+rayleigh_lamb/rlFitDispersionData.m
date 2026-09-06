@@ -5,6 +5,6 @@ function fitResult = rlFitDispersionData(experimental, fitConfig)
 % fminsearch with objective penalties for bounds. This avoids an Optimization
 % Toolbox dependency in the first fitting implementation.
 
-problem = rlBuildFitProblem(experimental, fitConfig);
-fitResult = solveDispersionFitProblem(problem);
+problem = lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental, fitConfig);
+fitResult = lamb.fitting.solveDispersionFitProblem(problem);
 end

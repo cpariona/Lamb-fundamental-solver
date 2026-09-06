@@ -20,7 +20,7 @@ All maintained mRLFE consumers call the public production API:
 ```text
 Main GUI  -> guiRunMRLFEModel      -> lamb.models.mrlfe.mrlfeSolve
 SweepTool -> guiRunMRLFESweep      -> lamb.models.mrlfe.mrlfeSolve per point
-FitTool   -> mrlfeEvaluateFitModel -> lamb.models.mrlfe.mrlfeSolve
+FitTool   -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel -> lamb.models.mrlfe.mrlfeSolve
 ```
 
 Fast, Balanced, and Robust execution profiles resolve to the public `fast`, `balanced`, and `robust` numerical presets. The `dense` preset remains the maintained 10 Hz reference/diagnostic configuration.

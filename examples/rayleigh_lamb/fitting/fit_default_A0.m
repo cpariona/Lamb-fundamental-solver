@@ -15,7 +15,7 @@ trueParams.nu = 0.4999;
 frequency_Hz = linspace(1000, 8000, 12).';
 solverOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 
-CpSynthetic_mps = rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
+CpSynthetic_mps = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
 
 experimental = struct();
 experimental.frequency_Hz = frequency_Hz;
@@ -33,7 +33,7 @@ fitConfig.initialGuess = struct('mu', 50e3);
 fitConfig.bounds = struct('mu', [20e3, 200e3]);
 fitConfig.solverOptions = solverOptions;
 
-fitResult = rlFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.rayleigh_lamb.rlFitDispersionData(experimental, fitConfig);
 relativeRMSE = fitResult.metrics.RMSE / mean(abs(experimental.Cp_mps));
 
 fprintf('\nRayleigh-Lamb A0 synthetic fit complete.\n');

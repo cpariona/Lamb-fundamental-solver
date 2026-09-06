@@ -148,7 +148,7 @@ The maintained fitting structure is already the reference pattern:
 ```text
 <family>FitDispersionData
   -> <family>BuildFitProblem
-  -> solveDispersionFitProblem
+  -> lamb.fitting.solveDispersionFitProblem
   -> <family>EvaluateFitModel
   -> canonical model API
 ```

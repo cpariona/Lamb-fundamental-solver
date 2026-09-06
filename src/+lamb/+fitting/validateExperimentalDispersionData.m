@@ -1,8 +1,8 @@
 function experimental = validateExperimentalDispersionData(experimental, minValidPoints)
 %VALIDATEEXPERIMENTALDISPERSIONDATA Validate normalized experimental dispersion data.
 %
-% experimental = validateExperimentalDispersionData(experimental)
-% experimental = validateExperimentalDispersionData(experimental, minValidPoints)
+% experimental = lamb.fitting.validateExperimentalDispersionData(experimental)
+% experimental = lamb.fitting.validateExperimentalDispersionData(experimental, minValidPoints)
 %
 % The function returns the normalized structure so callers can use validation
 % and normalization as a single step.
@@ -15,7 +15,7 @@ if ~isscalar(minValidPoints) || ~isfinite(minValidPoints) || minValidPoints < 1
     error('minValidPoints must be a positive finite scalar.');
 end
 
-experimental = normalizeExperimentalDispersionData(experimental);
+experimental = lamb.fitting.normalizeExperimentalDispersionData(experimental);
 
 if experimental.numValidPoints < minValidPoints
     error('Experimental data has %d valid point(s), but at least %d are required.', ...

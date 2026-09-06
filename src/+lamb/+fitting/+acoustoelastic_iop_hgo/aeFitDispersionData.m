@@ -5,6 +5,6 @@ function fitResult = aeFitDispersionData(experimental, fitConfig)
 % fminsearch with objective penalties for bounds. Diagnostic branches are not
 % used for fitting.
 
-problem = aeBuildFitProblem(experimental, fitConfig);
-fitResult = solveDispersionFitProblem(problem);
+problem = lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem(experimental, fitConfig);
+fitResult = lamb.fitting.solveDispersionFitProblem(problem);
 end

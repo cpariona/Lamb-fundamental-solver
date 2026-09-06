@@ -13,7 +13,7 @@ trueParams.nu = 0.4999;
 frequency_Hz = linspace(1000, 8000, 10).';
 solverOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 
-CpSynthetic_mps = rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
+CpSynthetic_mps = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
 assert(all(isfinite(CpSynthetic_mps) & CpSynthetic_mps > 0), 'Synthetic A0 Cp must be finite and positive.');
 
 experimental = struct();
@@ -34,7 +34,7 @@ fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 70, 'MaxFunEvals', 180, 'TolX', 1e-5, 'TolFun', 1e-8));
 
-fitResult = rlFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.rayleigh_lamb.rlFitDispersionData(experimental, fitConfig);
 
 relativeMuError = abs(fitResult.bestParams.mu - trueParams.mu) / trueParams.mu;
 assert(relativeMuError < 0.03, 'Synthetic Rayleigh-Lamb A0 fit did not recover mu within 3%%.');

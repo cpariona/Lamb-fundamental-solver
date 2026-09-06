@@ -17,8 +17,8 @@ FitTool_GUI
 SweepTool_GUI
 ```
 
-The production path contains the repository root, `models/`, `analysis/`,
-`app/`, and only the six validation launchers under `tests/runners/`.
+The production path contains the repository root, `src/`, the remaining
+`analysis/` workflows, `app/`, and only the six validation launchers under `tests/runners/`.
 It does not load test bodies, examples, or executable diagnostics.
 
 GUI requests use `executionProfile` (Fast, Balanced, Robust). The established
@@ -33,7 +33,7 @@ new callers use `executionProfile`. See the
 | RL | `lamb.models.rayleigh_lamb.rlDefaultParams`, `lamb.models.rayleigh_lamb.rlDefaultOptions`, `lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes`, `lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations` |
 | mRLFE | `lamb.models.mrlfe.mrlfeDefaultParameters`, `lamb.models.mrlfe.mrlfeDefaultOptions`, `lamb.models.mrlfe.mrlfeSolve` |
 | AE | `lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions`, `lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch` |
-| Fitting | `rlFitDispersionData`, `mrlfeFitDispersionData`, `aeFitDispersionData` |
+| Fitting | `lamb.fitting.rayleigh_lamb.rlFitDispersionData`, `lamb.fitting.mrlfe.mrlfeFitDispersionData`, `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` |
 | Sweeps | `rlRunSweep`, `mrlfeRunSweep`, `aeRunSweep`, `aeRunGridSweep` |
 
 See [maintained entrypoints](docs/repository/maintained_entrypoints.md) for
@@ -70,8 +70,9 @@ success or failure. See [tests](tests/README.md) and
 
 ## Architecture
 
-- `models/` owns physics, tracking, quality, and scientific results.
-- `analysis/` owns fitting, sweeps, plotting, IO, and diagnostic interpretation.
+- `src/+lamb/+models/` owns physics, tracking, quality, and scientific results.
+- `src/+lamb/+fitting/` owns inverse fitting and model-neutral fitting primitives.
+- `analysis/` temporarily retains sweeps, plotting, IO, and diagnostic interpretation.
 - `app/` owns Main GUI, FitTool, SweepTool, and their request/view translation.
 - `examples/` contains representative scripts and optional diagnostics.
 - `tests/` owns validation and benchmark tooling.
