@@ -8,7 +8,7 @@ fprintf('GUI sweep adapters smoke test passed.\n');
 end
 
 function testMRLFEAdapter()
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 100;
 params.fmax = 300;
 params.numFrequencyPoints = 10;
@@ -49,7 +49,7 @@ assertNormalizedCurves(sweepOutput.normalized.curves);
 end
 
 function testRLAdapter()
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 100;
 params.fmax = 300;
 params.numFrequencyPoints = 10;

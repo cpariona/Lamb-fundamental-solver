@@ -23,9 +23,9 @@ fastOptions.forwardModel = struct( ...
     'maximumStep_Hz', 250);
 
 [CpFast_mps, rawFast] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, fastOptions);
-request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, fastOptions);
+request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, fastOptions);
 request.numerics.frequencySolveOverride_Hz = rawFast.frequencySolve_Hz;
-directSameFitGrid = mrlfeSolve(request);
+directSameFitGrid = lamb.models.mrlfe.mrlfeSolve(request);
 
 validSameFitGrid = rawFast.validMask(:) & directSameFitGrid.validMask(:) & ...
     isfinite(CpFast_mps(:)) & isfinite(directSameFitGrid.phaseVelocity_mps(:));
@@ -43,9 +43,9 @@ numericalPresetOptions = fastOptions;
 numericalPresetOptions.forwardModel = struct('gridPolicy', "numericalPreset");
 [CpNumericalPreset_mps, rawNumericalPreset] = mrlfeEvaluateFitModel( ...
     params, frequency_Hz, branchName, numericalPresetOptions);
-directNumericalPresetRequest = mrlfeBuildSolveRequest( ...
+directNumericalPresetRequest = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest( ...
     params, frequency_Hz, branchName, numericalPresetOptions);
-directNumericalPreset = mrlfeSolve(directNumericalPresetRequest);
+directNumericalPreset = lamb.models.mrlfe.mrlfeSolve(directNumericalPresetRequest);
 validNumericalPreset = rawNumericalPreset.validMask(:) & ...
     directNumericalPreset.validMask(:) & isfinite(CpNumericalPreset_mps(:)) & ...
     isfinite(directNumericalPreset.phaseVelocity_mps(:));

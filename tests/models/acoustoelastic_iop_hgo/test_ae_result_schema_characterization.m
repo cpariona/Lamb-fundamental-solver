@@ -5,7 +5,7 @@ params = representativeParams(logspace(log10(300), log10(15e3), 12));
 options = representativeOptions();
 options.useInternalAtlasTrackingGrid = false;
 
-result = solveAcoustoelasticIOPHGOBranch(params, options);
+result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 assertCanonicalResult(result, params.frequency);
 assert(result.model == "acoustoelastic_iop_hgo" && result.branch == "atlasA0");
 assert(~isfield(result, 'Cp') && ~isfield(result, 'validCp') && ...
@@ -20,7 +20,7 @@ assert(isfield(result.execution, 'elapsedSeconds') && isfinite(result.execution.
 assertQualityParity(result);
 assertDiagnosticParity(result);
 
-directResult = solveAcoustoelasticAtlasBranch(result.directParams, options);
+directResult = lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticAtlasBranch(result.directParams, options);
 assertCanonicalResult(directResult, params.frequency);
 assert(isfield(directResult.configuration, 'requested') && ...
     isfield(directResult.configuration, 'effective'));
@@ -29,7 +29,7 @@ internalOptions = options;
 internalOptions.useInternalAtlasTrackingGrid = true;
 internalOptions.atlasInitializationMinFrequency_Hz = 200;
 internalOptions.atlasInitializationNumFrequencyPoints = 20;
-internalResult = solveAcoustoelasticIOPHGOBranch(params, internalOptions);
+internalResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, internalOptions);
 assertCanonicalResult(internalResult, params.frequency);
 assert(isempty(internalResult.objectiveMap));
 assert(size(internalResult.trackingObjectiveMap, 2) == numel(internalResult.trackingFrequency));
@@ -37,7 +37,7 @@ assert(internalResult.diagnostics.internalAtlasTrackingUsed == true);
 
 identityOptions = options;
 identityOptions.atlasBranchPolicy = "identityA0Diagnostic";
-identityResult = solveAcoustoelasticIOPHGOBranch(params, identityOptions);
+identityResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, identityOptions);
 assertCanonicalResult(identityResult, params.frequency);
 assert(isfield(identityResult.diagnostics, 'identityA0'), ...
     'identityA0 must remain diagnostic-only.');
@@ -51,7 +51,7 @@ fallbackOptions.atlasNumYPoints = 300;
 fallbackOptions.atlasTopNMinima = 12;
 fallbackOptions.invalidateAtlasFallbackOutput = true;
 fallbackOptions.useInternalAtlasTrackingGrid = false;
-fallbackResult = solveAcoustoelasticIOPHGOBranch(fallbackParams, fallbackOptions);
+fallbackResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(fallbackParams, fallbackOptions);
 assert(fallbackResult.quality.selectionFallbackUsed == true);
 assert(fallbackResult.quality.accepted == false);
 assert(fallbackResult.quality.reason == "no_valid_points");
@@ -80,7 +80,7 @@ params = struct('R', 7.8e-3, 'thickness', 550e-6, 'mu', 50e3, ...
 end
 
 function options = representativeOptions()
-options = defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.atlasBranchPolicy = "atlasA0";

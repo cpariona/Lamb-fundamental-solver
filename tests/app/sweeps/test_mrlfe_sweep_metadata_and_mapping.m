@@ -67,7 +67,7 @@ fprintf('\nmRLFE SweepTool metadata and mapping test passed.\n');
 end
 
 function out = runSweep(branchName, sweepField, sweepLabel, valuesDisplay, displayUnit, displayScale, etaS)
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 6000;
 params.numFrequencyPoints = 10;

@@ -7,13 +7,13 @@ fprintf('-------------------------------------------------------\n');
 adapterPath = which('guiRunMRLFEModel');
 adapterText = string(fileread(adapterPath));
 
-assert(contains(adapterText, "mrlfeSolve"), ...
-    'Main GUI mRLFE adapter must call mrlfeSolve.');
-assert(contains(adapterText, "mrlfeBuildSolveRequest"), ...
+assert(contains(adapterText, "lamb.models.mrlfe.mrlfeSolve"), ...
+    'Main GUI mRLFE adapter must call lamb.models.mrlfe.mrlfeSolve.');
+assert(contains(adapterText, "lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest"), ...
     'Main GUI mRLFE adapter must use the reusable request translator.');
 forbidden = ["computeMRLFE", "solveMRLFEAtlasUnified", ...
     "solveMRLFEBranchAdaptiveAtlas", "mrlfeApplyPhysicalCorridorCut", ...
-    "mrlfeTrackBranchAdaptive"];
+    "lamb.models.mrlfe.tracking.mrlfeTrackBranchAdaptive"];
 for i = 1:numel(forbidden)
     assert(~contains(adapterText, forbidden(i)), ...
         'Main GUI mRLFE adapter must not contain %s.', forbidden(i));
@@ -44,7 +44,7 @@ fprintf('\nmRLFE Main GUI public-solver route guard test passed.\n');
 end
 
 function out = runMainCase(branchName, etaS, mu, fmin, fmax, nPoints)
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = fmin;
 params.fmax = fmax;
 params.numFrequencyPoints = nPoints;
@@ -57,7 +57,7 @@ params.nu = 0.4999;
 options = mrlfeDefaultSweepOptions(branchName);
 options.branchNames = branchName;
 options.mrlfeA0Policy = "physicalTail";
-options.mrlfeParams = mrlfeDefaultInternalParameters();
+options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = etaS;
 options.mrlfeParams.fluidDensity = 1000;
 options.mrlfeParams.fluidSoundSpeed = 1500;

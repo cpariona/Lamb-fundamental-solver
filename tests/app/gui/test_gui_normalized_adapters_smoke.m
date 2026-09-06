@@ -4,13 +4,13 @@ function test_gui_normalized_adapters_smoke()
 fprintf('Running GUI normalized adapters smoke test...\n');
 
 %% Rayleigh-Lamb normalized adapter
-rlParams = rlDefaultParams();
+rlParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 rlParams.fmin = 50;
 rlParams.fmax = 250;
 rlParams.numFrequencyPoints = 10;
 rlParams.frequencySpacing = "linspace";
 
-rlOptions = rlDefaultOptions();
+rlOptions = lamb.models.rayleigh_lamb.rlDefaultOptions();
 rlOptions.computeA0 = true;
 rlOptions.computeS0 = true;
 
@@ -45,7 +45,7 @@ assertBranchTablesAreValid(rlBranchTables, 'Rayleigh-Lamb normalized branch tabl
 %% mRLFE normalized adapter, etaS = 0 elastic limit
 mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
 mrlfeOptions.branchNames = "A0Like";
-mrlfeOptions.mrlfeParams = mrlfeDefaultInternalParameters();
+mrlfeOptions.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 mrlfeOptions.mrlfeParams.solveComplexK = false;
 mrlfeOptions.mrlfeParams.etaS = 0;
 mrlfeOptions.mrlfeParams.etaL = 0;

@@ -8,7 +8,7 @@ profiles = ["Fast", "Balanced", "Robust"];
 presets = ["fast", "balanced", "robust"];
 
 %% Surface defaults are explicit.
-mainOptions = rlDefaultOptions("Balanced");
+mainOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Balanced");
 [~, mainMetadata] = rlResolveExecutionProfile("Balanced", ...
     'DefaultProfile', "Balanced", 'DefaultSource', "Main GUI default");
 assert(mainOptions.robustness == "Balanced", 'Main GUI visible default should remain Balanced.');
@@ -44,7 +44,7 @@ assert(isequal(string(aeSweepFamily.executionProfiles), profiles), ...
     'AE SweepTool should expose Fast/Balanced/Robust.');
 
 %% RL resolver and SweepTool adapter use the requested profile exactly.
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 3000;
 params.numFrequencyPoints = 10;
@@ -52,7 +52,7 @@ params.frequencySpacing = "linspace";
 for i = 1:numel(profiles)
     profile = profiles(i);
     [options, metadata] = rlResolveExecutionProfile(profile);
-    reference = rlDefaultOptions(profile);
+    reference = lamb.models.rayleigh_lamb.rlDefaultOptions(profile);
     assert(options.gridPointsInitial == reference.gridPointsInitial, ...
         'RL resolver changed gridPointsInitial for %s.', profile);
     assert(metadata.requestedExecutionProfile == profile && metadata.effectiveExecutionProfile == profile, ...

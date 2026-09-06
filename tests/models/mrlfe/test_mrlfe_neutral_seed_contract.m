@@ -5,9 +5,9 @@ fprintf('\nRunning mRLFE neutral seed contract test...\n');
 fprintf('------------------------------------------\n');
 
 for branch = ["A0Like" "S0Like"]
-    configuration = mrlfeResolveConfiguration(localRequest(branch, 0.05, "fast"));
-    problem = mrlfeBuildProblem(configuration);
-    seed = mrlfeBuildSeed(problem, configuration);
+    configuration = lamb.models.mrlfe.configuration.mrlfeResolveConfiguration(localRequest(branch, 0.05, "fast"));
+    problem = lamb.models.mrlfe.core.mrlfeBuildProblem(configuration);
+    seed = lamb.models.mrlfe.tracking.mrlfeBuildSeed(problem, configuration);
 
     assert(isfield(seed, 'frequency'), 'Seed must expose frequency.');
     assert(isfield(seed, 'Cp'), 'Seed must expose Cp.');

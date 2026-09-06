@@ -2,58 +2,58 @@ function test_ae_production_architecture_contract()
 %TEST_AE_PRODUCTION_ARCHITECTURE_CONTRACT Guard canonical AE ownership.
 
 repoRoot = testRepositoryRoot();
-modelRoot = fullfile(repoRoot, 'models', 'acoustoelastic_iop_hgo');
+modelRoot = fullfile(repoRoot, 'src', '+lamb', '+models', '+acoustoelastic_iop_hgo');
 
 canonicalOwners = [ ...
-    "api/solveAcoustoelasticIOPHGOBranch.m"
-    "configuration/aeValidateRequest.m"
-    "configuration/aeResolveConfiguration.m"
-    "configuration/aeGetNumericalPreset.m"
-    "configuration/aeBuildInternalTrackingGrid.m"
-    "configuration/defaultAcoustoelasticIOPHGOOptions.m"
-    "configuration/aeDefaultDiagnosticOptions.m"
-    "configuration/aeNormalizeBranchPolicy.m"
-    "solvers/solveAcoustoelasticAtlasBranch.m"
-    "solvers/aeBuildAtlas.m"
-    "tracking/aeFindAtlasLocalMinima.m"
-    "tracking/aeLinkAtlasBranches.m"
-    "tracking/aeSplitAtlasBranches.m"
-    "tracking/aeRefineSelectedAtlasBranch.m"
-    "policies/aeSelectAtlasA0Branch.m"
-    "policies/aeApplyAtlasA0FallbackPolicy.m"
-    "quality/aeEvaluateAtlasA0Quality.m"
-    "results/aeBuildResult.m"];
+    "solveAcoustoelasticIOPHGOBranch.m"
+    "defaultAcoustoelasticIOPHGOOptions.m"
+    "+configuration/aeValidateRequest.m"
+    "+configuration/aeResolveConfiguration.m"
+    "+configuration/aeGetNumericalPreset.m"
+    "+configuration/aeBuildInternalTrackingGrid.m"
+    "+configuration/aeDefaultDiagnosticOptions.m"
+    "+configuration/aeNormalizeBranchPolicy.m"
+    "+solvers/solveAcoustoelasticAtlasBranch.m"
+    "+solvers/aeBuildAtlas.m"
+    "+tracking/aeFindAtlasLocalMinima.m"
+    "+tracking/aeLinkAtlasBranches.m"
+    "+tracking/aeSplitAtlasBranches.m"
+    "+tracking/aeRefineSelectedAtlasBranch.m"
+    "+policies/aeSelectAtlasA0Branch.m"
+    "+policies/aeApplyAtlasA0FallbackPolicy.m"
+    "+quality/aeEvaluateAtlasA0Quality.m"
+    "+results/aeBuildResult.m"];
 for i = 1:numel(canonicalOwners)
     assert(isfile(fullfile(modelRoot, canonicalOwners(i))), ...
         'Missing canonical AE owner: %s', canonicalOwners(i));
 end
-assert(~isfolder(fullfile(modelRoot, 'options')), ...
+assert(~isfolder(fullfile(modelRoot, '+options')), ...
     'Generic AE options must be owned by configuration/.');
-assert(~isfile(fullfile(modelRoot, 'solvers', ...
+assert(~isfile(fullfile(modelRoot, '+solvers', ...
     'solveAcoustoelasticIOPHGOAtlasBranch.m')), ...
     'The obsolete AE forwarding API must remain removed.');
 
-publicOwnerText = string(fileread(fullfile(modelRoot, 'api', ...
+publicOwnerText = string(fileread(fullfile(modelRoot, ...
     'solveAcoustoelasticIOPHGOBranch.m')));
-for productionCall = ["aeValidateRequest"; "aeResolveConfiguration"; ...
-        "computeAcoustoelasticABGFromIOPHGO"; "solveAcoustoelasticAtlasBranch"; ...
-        "aeApplyAtlasA0FallbackPolicy"; "aeBuildResult"]
+for productionCall = ["lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest"; "lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration"; ...
+        "lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO"; "lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticAtlasBranch"; ...
+        "lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy"; "lamb.models.acoustoelastic_iop_hgo.results.aeBuildResult"]
     assert(contains(publicOwnerText, productionCall), ...
         'Public AE owner is missing responsibility %s.', productionCall);
 end
 
-atlasSolverText = string(fileread(fullfile(modelRoot, 'solvers', ...
+atlasSolverText = string(fileread(fullfile(modelRoot, '+solvers', ...
     'solveAcoustoelasticAtlasBranch.m')));
-selectionPosition = strfind(atlasSolverText, 'aeSelectAtlasA0Branch');
-refinementPosition = strfind(atlasSolverText, 'aeRefineSelectedAtlasBranch');
+selectionPosition = strfind(atlasSolverText, 'lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch');
+refinementPosition = strfind(atlasSolverText, 'lamb.models.acoustoelastic_iop_hgo.tracking.aeRefineSelectedAtlasBranch');
 assert(isscalar(selectionPosition) && isscalar(refinementPosition) && ...
     refinementPosition > selectionPosition, ...
     'AE refinement must remain after discrete atlasA0 selection.');
 
-refinementText = string(fileread(fullfile(modelRoot, 'tracking', ...
+refinementText = string(fileread(fullfile(modelRoot, '+tracking', ...
     'aeRefineSelectedAtlasBranch.m')));
 assert(contains(refinementText, 'fminbnd') && ...
-    contains(refinementText, 'objectiveAcoustoelasticResidual'), ...
+    contains(refinementText, 'lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticResidual'), ...
     'AE refinement must minimize the true SVD objective with fminbnd.');
 assert(~contains(lower(refinementText), 'parabolic') && ...
     ~contains(lower(atlasSolverText), 'parabolic'), ...
@@ -68,12 +68,12 @@ for surfaceToken = ["MainGUI", "FitTool", "SweepTool", "physicalSweep"]
         'AE model code must not own app surface token %s.', surfaceToken);
 end
 
-internalSolvers = ["solveAcoustoelasticAtlasBranch"; ...
-    "solveAcoustoelasticIOPHGODispersion"; "solveAcoustoelasticDispersion"; ...
-    "solveAcoustoelasticComplexCDispersion"];
+internalSolvers = ["lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticAtlasBranch"; ...
+    "lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticIOPHGODispersion"; "lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticDispersion"; ...
+    "lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticComplexCDispersion"];
 for i = 1:numel(internalSolvers)
-    definitions = dir(fullfile(repoRoot, '**', internalSolvers(i) + ".m"));
-    assert(isscalar(definitions), ...
+    definitions = which(char(internalSolvers(i)), '-all');
+    assert(numel(definitions) == 1, ...
         'Expected one definition for internal AE solver %s.', internalSolvers(i));
 end
 
@@ -81,7 +81,9 @@ architecturePath = fullfile(repoRoot, 'docs', 'models', ...
     'acoustoelastic_iop_hgo', 'active', 'architecture.md');
 assert(isfile(architecturePath), 'Missing maintained AE architecture contract.');
 architectureText = string(fileread(architecturePath));
-for identifier = ["solveAcoustoelasticIOPHGOBranch"; internalSolvers]
+documentedOwners = ["lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch"; internalSolvers];
+for i = 1:numel(documentedOwners)
+    identifier = documentedOwners(i);
     assert(contains(architectureText, identifier), ...
         'Architecture contract does not classify %s.', identifier);
 end

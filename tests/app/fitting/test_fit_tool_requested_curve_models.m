@@ -5,9 +5,9 @@ fprintf('\nRunning FitTool requested-curve model coverage test...\n');
 fprintf('-----------------------------------------------------\n');
 
 %% Rayleigh-Lamb requested curve.
-rlParams = rlDefaultParams();
+rlParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 rlFrequency_Hz = linspace(1000, 7000, 6).';
-rlCp_mps = rlEvaluateFitModel(rlParams, rlFrequency_Hz, "A0", rlDefaultOptions("Fast"));
+rlCp_mps = rlEvaluateFitModel(rlParams, rlFrequency_Hz, "A0", lamb.models.rayleigh_lamb.rlDefaultOptions("Fast"));
 rlOutput = runCase("rayleigh_lamb", "A0", rlFrequency_Hz, rlCp_mps, ...
     struct('thickness', rlParams.thickness, 'rho', rlParams.rho, 'nu', rlParams.nu), ...
     "mu", struct('mu', rlParams.mu), struct('mu', [40e3, 140e3]), ...
@@ -49,7 +49,7 @@ assert(isequal(fieldnames(aeRaw), {'modelFamily'; 'modelName'; 'branchName'; ...
     'options'}), 'AE fitting evaluator raw-result schema changed.');
 expectedAeParams = aeParams;
 expectedAeParams.frequency = aeFrequency_Hz(:).';
-expectedAeResult = solveAcoustoelasticIOPHGOBranch(expectedAeParams, aeRaw.options);
+expectedAeResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(expectedAeParams, aeRaw.options);
 assert(isequaln(aeRaw.solverResult.phaseVelocity_mps, expectedAeResult.phaseVelocity_mps), ...
     'AE fitting Cp must equal the maintained public solver output.');
 assert(isequal(aeRaw.solverResult.validMask, expectedAeResult.validMask), ...

@@ -5,10 +5,10 @@ fprintf('\nRunning execution profile fit curve metadata test...\n');
 fprintf('--------------------------------------------------\n');
 
 %% Rayleigh-Lamb fitted curve keeps profile metadata.
-rlParams = rlDefaultParams();
+rlParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 rlParams.mu = 85e3;
 rlFrequency = linspace(1000, 3000, 4).';
-rlOptions = rlDefaultOptions("Robust");
+rlOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Robust");
 rlCp = rlEvaluateFitModel(rlParams, rlFrequency, "A0", rlOptions);
 rlRequest = guiBuildFitRequest("rayleigh_lamb", ...
     'branchName', "A0", ...

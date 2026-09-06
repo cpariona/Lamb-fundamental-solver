@@ -36,11 +36,11 @@ for iBranch = 1:numel(branches)
 
             [CpPublic_mps, rawPublic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
 
-            request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
+            request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
             request.numerics.preset = "fast";
             [frequencySolve_Hz, ~] = mrlfeBuildFitFrequencyGrid(frequency_Hz, options.forwardModel);
             request.numerics.frequencySolveOverride_Hz = frequencySolve_Hz;
-            direct = mrlfeSolve(request);
+            direct = lamb.models.mrlfe.mrlfeSolve(request);
 
             assert(isequal(rawPublic.frequency_Hz(:), direct.frequency_Hz(:)), ...
                 'Frequency grid changed during public-solver migration.');

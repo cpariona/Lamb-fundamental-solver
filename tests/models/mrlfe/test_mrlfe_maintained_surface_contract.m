@@ -4,7 +4,7 @@ function test_mrlfe_maintained_surface_contract()
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 entrypointsText = string(fileread(fullfile(repoRoot, 'docs', 'repository', ...
     'maintained_entrypoints.md')));
-for name = ["mrlfeSolve", "mrlfeDefaultParameters", "mrlfeDefaultOptions"]
+for name = ["lamb.models.mrlfe.mrlfeSolve", "lamb.models.mrlfe.mrlfeDefaultParameters", "lamb.models.mrlfe.mrlfeDefaultOptions"]
     assert(contains(entrypointsText, name), ...
         'Maintained entrypoint documentation is missing %s.', name);
 end
@@ -33,7 +33,7 @@ for i = 1:numel(expected)
     assert(isempty(which(name)), 'Examples must not be globally on the path: %s.', name);
 end
 
-modelFiles = dir(fullfile(repoRoot, 'models', 'mrlfe', '**', '*.m'));
+modelFiles = dir(fullfile(repoRoot, 'src', '+lamb', '+models', '+mrlfe', '**', '*.m'));
 for i = 1:numel(modelFiles)
     assert(startsWith(string(erase(modelFiles(i).name, '.m')), "mrlfe"), ...
         'mRLFE model function lacks its ownership prefix: %s.', modelFiles(i).name);

@@ -37,10 +37,10 @@ assertThrows(@()guiValidateFitAxisLimits([1 8], [900 100]), 'guiValidateFitAxisL
 assertThrows(@()guiValidateFitAxisLimits([1 nan], [100 900]), 'guiValidateFitAxisLimits:NonFinite');
 
 %% Separated fit summary tables and requested solver curve.
-trueParams = rlDefaultParams();
+trueParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 trueParams.mu = 85e3;
 frequency_Hz = linspace(1000, 8000, 7).';
-options = rlDefaultOptions("Fast");
+options = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 CpSynthetic_mps = rlEvaluateFitModel(trueParams, frequency_Hz, "A0", options);
 
 experimental = struct('frequency_Hz', frequency_Hz, ...
@@ -116,7 +116,7 @@ assert(contains(requestedCurve.note, "optimizer not rerun"), ...
 fig = uifigure('Visible', 'off');
 cleanup = onCleanup(@()delete(fig)); %#ok<NASGU>
 tabs = uitabgroup(fig);
-controls = createFittingTab(tabs, rlDefaultParams(), struct());
+controls = createFittingTab(tabs, lamb.models.rayleigh_lamb.rlDefaultParams(), struct());
 requiredControls = ["addRowButton", "deleteRowButton", "evaluateCurveButton", ...
     "curveMinKHz", "curveMaxKHz", "curvePoints", ...
     "axisXMinKHz", "axisXMaxKHz", "axisYMinMps", "axisYMaxMps", ...

@@ -7,13 +7,13 @@ fprintf('------------------------------------------------\n');
 summaryRows = table();
 
 %% Case 1: A0 mu recovery, exact synthetic data
-trueParams = rlDefaultParams();
+trueParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 trueParams.mu = 85e3;
 trueParams.thickness = 0.50e-3;
 trueParams.rho = 1070;
 trueParams.nu = 0.4999;
 frequency_Hz = linspace(1000, 8000, 12).';
-solverOptions = rlDefaultOptions("Fast");
+solverOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 CpSynthetic_mps = rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
 
 experimental = struct('frequency_Hz', frequency_Hz, 'Cp_mps', CpSynthetic_mps, 'validMask', true(size(frequency_Hz)));

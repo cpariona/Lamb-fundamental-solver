@@ -3,7 +3,7 @@ fprintf('\nRunning mRLFE public validation contract test...\n');
 fprintf('-----------------------------------------------\n');
 
 request = localValidRequest("A0Like", 0.05);
-mrlfeValidateRequest(mrlfeResolveConfiguration(request).request);
+lamb.models.mrlfe.configuration.mrlfeValidateRequest(lamb.models.mrlfe.configuration.mrlfeResolveConfiguration(request).request);
 
 bad = request;
 bad.frequency_Hz = [];
@@ -83,7 +83,7 @@ end
 
 function assertInvalid(request, expectedId)
 try
-    mrlfeResolveConfiguration(request);
+    lamb.models.mrlfe.configuration.mrlfeResolveConfiguration(request);
 catch err
     assert(strcmp(err.identifier, expectedId), ...
         'Expected error "%s", got "%s".', expectedId, err.identifier);

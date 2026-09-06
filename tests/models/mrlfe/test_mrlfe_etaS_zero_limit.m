@@ -1,13 +1,13 @@
 function test_mrlfe_etaS_zero_limit()
 %TEST_MRLFE_ETAS_ZERO_LIMIT Validate the elastic limit of the public mRLFE API.
 
-params = mrlfeDefaultWorkflowParams();
+params = lamb.models.mrlfe.configuration.mrlfeDefaultWorkflowParams();
 frequency_Hz = linspace(500, 4000, 14).';
 
 for branchName = ["A0Like", "S0Like"]
     options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
-    request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
-    result = mrlfeSolve(request);
+    request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
+    result = lamb.models.mrlfe.mrlfeSolve(request);
 
     assert(result.model == "mrlfe" && result.branch == branchName, ...
         'etaS = 0 must remain on the canonical public mRLFE branch contract.');

@@ -18,7 +18,7 @@ for branchName = branches
         for mu = muValues
             [out, request] = runMainCase(branchName, etaS, mu);
             guiResult = out.metadata.modelResults.(char(branchName));
-            directResult = mrlfeSolve(request);
+            directResult = lamb.models.mrlfe.mrlfeSolve(request);
 
             assert(isequal(guiResult.frequency_Hz(:), directResult.frequency_Hz(:)), ...
                 'Frequency grid changed.');
@@ -44,9 +44,9 @@ for branchName = branches
     end
 end
 
-assert(maxAbsDiff == 0, 'Main GUI Cp must equal direct mrlfeSolve.');
+assert(maxAbsDiff == 0, 'Main GUI Cp must equal direct lamb.models.mrlfe.mrlfeSolve.');
 assert(maxRelDiff == 0, 'Main GUI relative Cp difference must be zero.');
-assert(validMaskDiffs == 0, 'Main GUI valid mask must equal direct mrlfeSolve.');
+assert(validMaskDiffs == 0, 'Main GUI valid mask must equal direct lamb.models.mrlfe.mrlfeSolve.');
 
 fprintf('Characterization cases: %d\n', caseCount);
 fprintf('Maximum Cp absolute difference: %.12g m/s\n', maxAbsDiff);
@@ -56,7 +56,7 @@ fprintf('\nmRLFE Main GUI public-solver characterization test passed.\n');
 end
 
 function [out, request] = runMainCase(branchName, etaS, mu)
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 12000;
 params.numFrequencyPoints = 20;
@@ -69,12 +69,12 @@ params.nu = 0.4999;
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
 options.branchNames = branchName;
 options.mrlfeA0Policy = "physicalTail";
-options.mrlfeParams = mrlfeDefaultInternalParameters();
+options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = etaS;
 options.mrlfeParams.fluidDensity = 1000;
 options.mrlfeParams.fluidSoundSpeed = 1500;
 
 out = guiRunMRLFEModel(struct('params', params, 'options', options, ...
     'mrlfeParams', options.mrlfeParams, 'computeVisco', etaS > 0));
-request = mrlfeBuildSolveRequest(params, rlBuildFrequencyVector(params), branchName, options);
+request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, lamb.grids.buildFrequencyVector(params), branchName, options);
 end

@@ -63,7 +63,7 @@ fprintf('\nmRLFE Main GUI consumer-equivalence test passed.\n');
 end
 
 function [out, params, options] = runMainCase(branchName, etaS, mu)
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 6000;
 params.numFrequencyPoints = "auto";
@@ -76,7 +76,7 @@ params.nu = 0.4999;
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
 options.branchNames = branchName;
 options.mrlfeA0Policy = "physicalTail";
-options.mrlfeParams = mrlfeDefaultInternalParameters();
+options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = etaS;
 options.mrlfeParams.fluidDensity = 1000;
 options.mrlfeParams.fluidSoundSpeed = 1500;

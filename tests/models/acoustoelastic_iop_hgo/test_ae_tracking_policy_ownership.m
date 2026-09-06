@@ -2,37 +2,39 @@ function test_ae_tracking_policy_ownership()
 %TEST_AE_TRACKING_POLICY_OWNERSHIP Verify canonical model-layer ownership.
 
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
-modelRoot = fullfile(repoRoot, 'models', 'acoustoelastic_iop_hgo');
+modelRoot = fullfile(repoRoot, 'src', '+lamb', '+models', '+acoustoelastic_iop_hgo');
 owners = {
-    'solvers', 'aeBuildAtlas';
-    'tracking', 'aeFindAtlasLocalMinima';
-    'tracking', 'aeLinkAtlasBranches';
-    'tracking', 'aeSplitAtlasBranches';
-    'policies', 'aeSelectAtlasA0Branch';
-    'policies', 'aeApplyAtlasA0FallbackPolicy'};
+    'solvers', 'lamb.models.acoustoelastic_iop_hgo.solvers.aeBuildAtlas';
+    'tracking', 'lamb.models.acoustoelastic_iop_hgo.tracking.aeFindAtlasLocalMinima';
+    'tracking', 'lamb.models.acoustoelastic_iop_hgo.tracking.aeLinkAtlasBranches';
+    'tracking', 'lamb.models.acoustoelastic_iop_hgo.tracking.aeSplitAtlasBranches';
+    'policies', 'lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch';
+    'policies', 'lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy'};
 for i = 1:size(owners, 1)
-    expected = fullfile(modelRoot, owners{i,1}, owners{i,2} + ".m");
+    qualifiedName = string(owners{i,2});
+    parts = split(qualifiedName, ".");
+    expected = fullfile(modelRoot, '+' + string(owners{i,1}), parts(end) + ".m");
     assert(isfile(expected), 'Missing Phase-4 owner: %s', expected);
-    assert(samePath(which(owners{i,2}), expected), ...
-        '%s must resolve to its canonical model owner.', owners{i,2});
+    assert(samePath(which(char(qualifiedName)), expected), ...
+        '%s must resolve to its canonical model owner.', qualifiedName);
 end
 
-solverText = fileread(fullfile(modelRoot, 'solvers', 'solveAcoustoelasticAtlasBranch.m'));
-assertContains(solverText, 'aeBuildAtlas(params, options)');
-assertContains(solverText, 'aeFindAtlasLocalMinima(');
-assertContains(solverText, 'aeLinkAtlasBranches(');
-assertContains(solverText, 'aeSelectAtlasA0Branch(');
+solverText = fileread(fullfile(modelRoot, '+solvers', 'solveAcoustoelasticAtlasBranch.m'));
+assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.solvers.aeBuildAtlas(params, options)');
+assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.tracking.aeFindAtlasLocalMinima(');
+assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.tracking.aeLinkAtlasBranches(');
+assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch(');
 for oldLocal = ["function minima = localMinima", "function [minimaTable, branchTable] = linkBranches", ...
         "function minimaTable = splitBranchesOnLargeCpJump", "function [branch, id, branchTable] = selectBranch"]
     assert(~contains(solverText, oldLocal), 'Old local production owner remains: %s', oldLocal);
 end
 
-publicOwnerText = fileread(fullfile(modelRoot, 'api', 'solveAcoustoelasticIOPHGOBranch.m'));
-assertContains(publicOwnerText, 'aeValidateRequest(params');
-assertContains(publicOwnerText, 'aeResolveConfiguration(options)');
-assertContains(publicOwnerText, 'computeAcoustoelasticABGFromIOPHGO(');
-assertContains(publicOwnerText, 'solveAcoustoelasticAtlasBranch(');
-assertContains(publicOwnerText, 'aeApplyAtlasA0FallbackPolicy(result)');
+publicOwnerText = fileread(fullfile(modelRoot, 'solveAcoustoelasticIOPHGOBranch.m'));
+assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest(params');
+assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(options)');
+assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO(');
+assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticAtlasBranch(');
+assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy(result)');
 assert(~contains(publicOwnerText, 'solveAcoustoelasticIOPHGOAtlasBranch'), ...
     'The public AE owner must not be a forwarding wrapper.');
 
@@ -49,7 +51,7 @@ function assertLocalMinimaContract()
 cGrid = [10; 20; 30; 40; 50];
 objective = [5; 1; 5; 2; 6];
 options = struct('refineLocalMinima', false);
-minima = aeFindAtlasLocalMinima(cGrid, objective, 10, 4, options);
+minima = lamb.models.acoustoelastic_iop_hgo.tracking.aeFindAtlasLocalMinima(cGrid, objective, 10, 4, options);
 assert(isequal(minima.Cp_mps, [20; 40]));
 assert(isequal(minima.y, [2; 4]));
 assert(isequal(minima.Objective, [1; 2]));
@@ -69,7 +71,7 @@ T = table(frequency, frequency ./ 1e3, rank, cp, y, logY, ...
     'SpacingToNearestLogY', 'BranchID'});
 options = struct('atlasMaxLogYJump', 0.10, 'atlasSplitOnLargeCpJump', false, ...
     'atlasMaxRelativeCpJump', 0.05, 'atlasMinBranchPoints', 2);
-[linked, branches] = aeLinkAtlasBranches(T, options);
+[linked, branches] = lamb.models.acoustoelastic_iop_hgo.tracking.aeLinkAtlasBranches(T, options);
 assert(isequal(linked.BranchID, [1; 2; 1; 2; 1; 2]));
 assert(isequal(branches.BranchID, [1; 2]));
 assert(isequal(branches.NumPoints, [3; 3]));
@@ -81,9 +83,9 @@ function assertSplitContract()
 T = table([1; 2; 3; 4; 5; 6], [100; 200; 300; 400; 500; 600], ...
     [100; 101; 102; 150; 151; 152], ones(6,1), ...
     'VariableNames', {'Index', 'Frequency_Hz', 'Cp_mps', 'BranchID'});
-split = aeSplitAtlasBranches(T, 0.10, 3);
+split = lamb.models.acoustoelastic_iop_hgo.tracking.aeSplitAtlasBranches(T, 0.10, 3);
 assert(isequal(split.BranchID, [2; 2; 2; 3; 3; 3]));
-discarded = aeSplitAtlasBranches(T, 0.10, 4);
+discarded = lamb.models.acoustoelastic_iop_hgo.tracking.aeSplitAtlasBranches(T, 0.10, 4);
 assert(all(isnan(discarded.BranchID)));
 end
 
@@ -99,8 +101,8 @@ T = table([1; 2], [16; 16], [300; 300], [12000; 12000], [0.3; 0.3], ...
     'MedianCp_mps','MedianY','MedianRank','MedianObjective', ...
     'MedianSpacingToNearestLogY','NetCpIncrease_mps','NumCpDrops','MaxCpDrop_mps', ...
     'MaxRelativeCpDrop','Roughness'});
-options = aeResolveConfiguration(struct());
-[selected, id, scored] = aeSelectAtlasA0Branch(T, options);
+options = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(struct());
+[selected, id, scored] = lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch(T, options);
 assert(id == 1 && selected.BranchID == 1);
 assert(isequal(scored.A0StartFilterPassed, [true; false]));
 assert(isfinite(scored.SelectionScore(1)) && isinf(scored.SelectionScore(2)));
@@ -120,7 +122,7 @@ result.objective = [0.1; nan];
 result.nearestRank = [1; nan];
 result.nearestBranchID = [2; nan];
 result.pointStatus = ["explicitBranchPoint"; "missingSelectedBranch"];
-[decided, applied] = aeApplyAtlasA0FallbackPolicy(result);
+[decided, applied] = lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy(result);
 assert(applied == true);
 assert(isequaln(decided.fallbackCandidateCp, result.phaseVelocity_mps));
 assert(isequal(decided.fallbackCandidateValidCp, result.validMask));
@@ -129,7 +131,7 @@ assert(all(decided.pointStatus == "fallbackRejectedA0StartFilter"));
 assert(isequaln(decided.quality, result.quality), ...
     'Fallback policy must not rebuild quality.');
 result.options.invalidateAtlasFallbackOutput = false;
-[unchanged, applied] = aeApplyAtlasA0FallbackPolicy(result);
+[unchanged, applied] = lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy(result);
 assert(applied == false && isequaln(unchanged, result));
 end
 

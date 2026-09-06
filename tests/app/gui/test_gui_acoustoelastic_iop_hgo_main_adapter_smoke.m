@@ -3,12 +3,12 @@ function test_gui_acoustoelastic_iop_hgo_main_adapter_smoke()
 
 fprintf('Running Acoustoelastic IOP/HGO main GUI adapter smoke test...\n');
 
-baseGridParams = rlDefaultParams();
+baseGridParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 baseGridParams.fmin = 300;
 baseGridParams.fmax = 15e3;
 baseGridParams.numFrequencyPoints = "auto";
 baseGridParams.frequencySpacing = "hybrid";
-requestedFrequency = rlBuildFrequencyVector(baseGridParams);
+requestedFrequency = lamb.grids.buildFrequencyVector(baseGridParams);
 
 aeControls = struct();
 aeControls.R = struct('Value', 7.8);
@@ -48,7 +48,7 @@ params.rhoF = 1000;
 params.fluidBulkModulus = 2.2e9;
 params.frequency = requestedFrequency;
 
-options = defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.atlasBranchPolicy = "atlasA0";
@@ -57,7 +57,7 @@ options.atlasTopNMinima = 12;
 
 guiRequest = struct('params', params, 'options', options);
 result = guiRunAcoustoelasticIOPHGOModel(guiRequest);
-expectedRawResult = solveAcoustoelasticIOPHGOBranch(params, result.metadata.options);
+expectedRawResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, result.metadata.options);
 expectedView = guiBuildModelResultView(expectedRawResult, "expectedAEView");
 
 assertCommonView(result);

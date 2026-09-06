@@ -4,7 +4,9 @@ function test_repository_dependency_boundaries_contract()
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 paths = gitTrackedMatlab(repoRoot);
 
-assertLayer(repoRoot, paths, "models/", ["analysis/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+models/", ["analysis/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+elasticity/", ["analysis/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+grids/", ["analysis/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "analysis/", ["app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "app/", ["examples/", "tests/"]);
 assertAeInternalBoundaries(repoRoot, paths);
@@ -14,8 +16,8 @@ end
 
 function assertAeInternalBoundaries(repoRoot, paths)
 productionInternalNames = [ ...
-    "aeFindAtlasLocalMinima"; "aeLinkAtlasBranches"; "aeSplitAtlasBranches"; ...
-    "aeSelectAtlasA0Branch"; "aeApplyAtlasA0FallbackPolicy"];
+    "lamb.models.acoustoelastic_iop_hgo.tracking.aeFindAtlasLocalMinima"; "lamb.models.acoustoelastic_iop_hgo.tracking.aeLinkAtlasBranches"; "lamb.models.acoustoelastic_iop_hgo.tracking.aeSplitAtlasBranches"; ...
+    "lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch"; "lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy"];
 workflowPaths = paths( ...
     startsWith(paths, ["app/", "examples/"]) | ...
     startsWith(paths, [ ...
@@ -28,12 +30,12 @@ diagnosticAnalysisPaths = paths(startsWith(paths, ...
     "analysis/diagnostics/acoustoelastic_iop_hgo/") & endsWith(paths, ".m"));
 diagnosticAnalysisNames = matlabNames(diagnosticAnalysisPaths);
 solverPaths = paths(startsWith(paths, ...
-    "models/acoustoelastic_iop_hgo/solvers/") & endsWith(paths, ".m"));
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+solvers/") & endsWith(paths, ".m"));
 assertNoCalls(repoRoot, solverPaths, diagnosticAnalysisNames, ...
     'AE solver calls an analysis-layer diagnostic');
 
 modelDiagnosticPaths = paths(startsWith(paths, ...
-    "models/acoustoelastic_iop_hgo/diagnostics/") & endsWith(paths, ".m"));
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/") & endsWith(paths, ".m"));
 assertNoCalls(repoRoot, modelDiagnosticPaths, productionInternalNames, ...
     'AE model diagnostic owns production tracking or branch policy');
 end

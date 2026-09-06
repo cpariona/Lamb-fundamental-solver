@@ -5,11 +5,11 @@ fprintf('------------------------------------------------\n');
 profiles = ["Fast", "Balanced", "Robust"];
 presets = ["fast", "balanced", "robust"];
 
-%% Rayleigh-Lamb resolver delegates to rlDefaultOptions without changing values.
+%% Rayleigh-Lamb resolver delegates to lamb.models.rayleigh_lamb.rlDefaultOptions without changing values.
 for i = 1:numel(profiles)
     profile = profiles(i);
     [options, metadata] = rlResolveExecutionProfile(profile);
-    reference = rlDefaultOptions(profile);
+    reference = lamb.models.rayleigh_lamb.rlDefaultOptions(profile);
     assert(options.gridPointsInitial == reference.gridPointsInitial, 'RL gridPointsInitial changed.');
     assert(options.gridPointsTracking == reference.gridPointsTracking, 'RL gridPointsTracking changed.');
     assert(options.jumpTol == reference.jumpTol, 'RL jumpTol changed.');

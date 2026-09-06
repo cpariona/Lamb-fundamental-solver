@@ -4,14 +4,14 @@ function test_rl_fit_synthetic_A0()
 fprintf('\nRunning Rayleigh-Lamb synthetic A0 fitting test...\n');
 fprintf('------------------------------------------------\n');
 
-trueParams = rlDefaultParams();
+trueParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 trueParams.mu = 85e3;
 trueParams.thickness = 0.50e-3;
 trueParams.rho = 1070;
 trueParams.nu = 0.4999;
 
 frequency_Hz = linspace(1000, 8000, 10).';
-solverOptions = rlDefaultOptions("Fast");
+solverOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 
 CpSynthetic_mps = rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
 assert(all(isfinite(CpSynthetic_mps) & CpSynthetic_mps > 0), 'Synthetic A0 Cp must be finite and positive.');

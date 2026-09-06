@@ -59,7 +59,7 @@ assert(string(rlMu.displayUnit) == "kPa", 'RL mu display unit must be kPa.');
 assert(strcmp(guiFormatSweepValues([50, 100, 300]), '50, 100, 300'), ...
     'guiFormatSweepValues must return comma-separated numeric text.');
 
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 100;
 params.fmax = 300;
 params.numFrequencyPoints = 10;
