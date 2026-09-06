@@ -7,7 +7,7 @@ fprintf('-------------------------------------------------\n');
 frequencyRequested_Hz = [1000; 1800; 3100; 5000; 8000];
 forwardModel = struct('gridPolicy', "fitOptimized", ...
     'minimumPointCount', 12, 'maximumPointCount', 40, 'maximumStep_Hz', 250);
-[frequencySolve_Hz, metadata] = mrlfeBuildFitFrequencyGrid(frequencyRequested_Hz, forwardModel);
+[frequencySolve_Hz, metadata] = lamb.fitting.mrlfe.mrlfeBuildFitFrequencyGrid(frequencyRequested_Hz, forwardModel);
 
 assert(all(ismember(frequencyRequested_Hz, frequencySolve_Hz)), ...
     'Optimized fit grid must preserve every requested frequency.');
@@ -23,7 +23,7 @@ assert(metadata.preservedRequestedFrequencies, ...
     'Optimized fit-grid metadata must confirm requested-frequency preservation.');
 
 manyRequested_Hz = linspace(1000, 8000, 55).';
-[manySolve_Hz, manyMetadata] = mrlfeBuildFitFrequencyGrid(manyRequested_Hz, forwardModel);
+[manySolve_Hz, manyMetadata] = lamb.fitting.mrlfe.mrlfeBuildFitFrequencyGrid(manyRequested_Hz, forwardModel);
 assert(all(ismember(manyRequested_Hz, manySolve_Hz)), ...
     'Requested frequencies may not be discarded when their count exceeds maximumPointCount.');
 assert(numel(manySolve_Hz) >= numel(manyRequested_Hz), ...

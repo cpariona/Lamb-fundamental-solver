@@ -7,7 +7,7 @@ fprintf('-----------------------------------------------------\n');
 %% Rayleigh-Lamb requested curve.
 rlParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 rlFrequency_Hz = linspace(1000, 7000, 6).';
-rlCp_mps = rlEvaluateFitModel(rlParams, rlFrequency_Hz, "A0", lamb.models.rayleigh_lamb.rlDefaultOptions("Fast"));
+rlCp_mps = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(rlParams, rlFrequency_Hz, "A0", lamb.models.rayleigh_lamb.rlDefaultOptions("Fast"));
 rlOutput = runCase("rayleigh_lamb", "A0", rlFrequency_Hz, rlCp_mps, ...
     struct('thickness', rlParams.thickness, 'rho', rlParams.rho, 'nu', rlParams.nu), ...
     "mu", struct('mu', rlParams.mu), struct('mu', [40e3, 140e3]), ...
@@ -17,10 +17,10 @@ rlOutput = runCase("rayleigh_lamb", "A0", rlFrequency_Hz, rlCp_mps, ...
 assertRequestedCurve(rlOutput, "rayleigh_lamb", "A0");
 
 %% mRLFE requested curve.
-mrlfeParams = mrlfeDefaultSweepParams();
+mrlfeParams = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 mrlfeFrequency_Hz = linspace(1000, 7000, 5).';
-mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0.0);
-mrlfeCp_mps = mrlfeEvaluateFitModel(mrlfeParams, mrlfeFrequency_Hz, "A0Like", mrlfeOptions);
+mrlfeOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', 0.0);
+mrlfeCp_mps = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(mrlfeParams, mrlfeFrequency_Hz, "A0Like", mrlfeOptions);
 mrlfeControls = struct('executionProfile', "Fast", ...
     'etaS', 0.0, ...
     'fluidDensity', 1000, ...
@@ -43,7 +43,7 @@ aeOptions.normalizeRows = false;
 aeOptions.usePhysicalCpWindow = false;
 aeOptions.atlasBranchPolicy = "atlasA0";
 aeOptions.atlasInitializationNumFrequencyPoints = 50;
-[aeCp_mps, aeRaw] = aeEvaluateFitModel(aeParams, aeFrequency_Hz, "atlasA0", aeOptions);
+[aeCp_mps, aeRaw] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(aeParams, aeFrequency_Hz, "atlasA0", aeOptions);
 assert(isequal(fieldnames(aeRaw), {'modelFamily'; 'modelName'; 'branchName'; ...
     'frequency_Hz'; 'Cp_mps'; 'validMask'; 'solverResult'; 'params'; ...
     'options'}), 'AE fitting evaluator raw-result schema changed.');

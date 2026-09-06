@@ -13,7 +13,7 @@ params.nu = 0.4999;
 frequency_Hz = [9000; 10000; 11000; 12000];
 options = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 
-[CpFit_mps, rawFit] = rlEvaluateFitModel(params, frequency_Hz, "A0", options);
+[CpFit_mps, rawFit] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(params, frequency_Hz, "A0", options);
 assert(all(isfinite(CpFit_mps) & CpFit_mps > 0), 'Branch-coherent fit evaluator returned invalid requested Cp values.');
 assert(rawFit.trackingMode == "branch_coherent_internal_grid", 'Unexpected RL fitting tracking mode.');
 assert(isfield(rawFit, 'internalFrequency_Hz') && numel(rawFit.internalFrequency_Hz) >= numel(frequency_Hz), ...

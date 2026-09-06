@@ -37,9 +37,9 @@ FitTool fitting now reaches this core through the public API:
 
 ```text
 guiFitMRLFESolver
-  -> mrlfeFitDispersionData
-  -> solveDispersionFitProblem
-  -> mrlfeEvaluateFitModel
+  -> lamb.fitting.mrlfe.mrlfeFitDispersionData
+  -> lamb.fitting.solveDispersionFitProblem
+  -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve
 ```

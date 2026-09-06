@@ -5,6 +5,6 @@ function fitResult = mrlfeFitDispersionData(experimental, fitConfig)
 % fminsearch with objective penalties for bounds. This keeps the first mRLFE
 % fitting implementation free of Optimization Toolbox dependency.
 
-problem = mrlfeBuildFitProblem(experimental, fitConfig);
-fitResult = solveDispersionFitProblem(problem);
+problem = lamb.fitting.mrlfe.mrlfeBuildFitProblem(experimental, fitConfig);
+fitResult = lamb.fitting.solveDispersionFitProblem(problem);
 end

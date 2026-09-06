@@ -9,10 +9,10 @@ The current Rayleigh-Lamb fitting layer supports fitting experimental phase-spee
 Implemented helpers:
 
 ```matlab
-rlBuildFitProblem
-rlEvaluateFitModel
-rlFitDispersionData
-solveDispersionFitProblem
+lamb.fitting.rayleigh_lamb.rlBuildFitProblem
+lamb.fitting.rayleigh_lamb.rlEvaluateFitModel
+lamb.fitting.rayleigh_lamb.rlFitDispersionData
+lamb.fitting.solveDispersionFitProblem
 ```
 
 The first maintained tested use case is:
@@ -40,7 +40,7 @@ Only `frequency_Hz` and `Cp_mps` are required.
 
 ## Branch-coherent fitting evaluation
 
-`rlEvaluateFitModel` evaluates Rayleigh-Lamb fitting data using a branch-coherent internal tracking grid.
+`lamb.fitting.rayleigh_lamb.rlEvaluateFitModel` evaluates Rayleigh-Lamb fitting data using a branch-coherent internal tracking grid.
 
 The evaluator:
 
@@ -59,7 +59,7 @@ This replaces the previous independent per-frequency search. The previous strate
 The maintained fitting output remains:
 
 ```matlab
-[Cp_mps, rawResult] = rlEvaluateFitModel(params, frequency_Hz, branchName, options)
+[Cp_mps, rawResult] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(params, frequency_Hz, branchName, options)
 ```
 
 Important `rawResult` fields:
@@ -78,8 +78,8 @@ The official fitting result uses `Cp_mps` sampled at `frequency_Hz`. Internal tr
 
 ## Optimizer policy
 
-`rlFitDispersionData` builds the model-specific problem and delegates optimizer
-orchestration to `solveDispersionFitProblem`. One finite-bounded free parameter
+`lamb.fitting.rayleigh_lamb.rlFitDispersionData` builds the model-specific problem and delegates optimizer
+orchestration to `lamb.fitting.solveDispersionFitProblem`. One finite-bounded free parameter
 uses `fminbnd`; multi-parameter or unbounded cases use `fminsearch` with bound
 penalties. No Optimization Toolbox dependency is required.
 
@@ -90,7 +90,7 @@ fitConfig.bounds.mu = [20e3, 200e3];
 ```
 
 The exact RL iteration limits and tolerances remain owned by
-`rlBuildFitProblem`; the shared owner does not replace model-specific defaults.
+`lamb.fitting.rayleigh_lamb.rlBuildFitProblem`; the shared owner does not replace model-specific defaults.
 
 ## Example
 

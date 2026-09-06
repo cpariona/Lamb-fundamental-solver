@@ -45,7 +45,7 @@ fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = request.fitOptions;
 
 tFit = tic;
-fitResult = aeFitDispersionData(request.experimental, fitConfig);
+fitResult = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(request.experimental, fitConfig);
 fitElapsedSeconds = toc(tFit);
 normalized = guiNormalizeFitResult(fitResult, request);
 normalized.executionProfile = profileMetadata;

@@ -24,7 +24,7 @@ run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m')
 run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_sweep_reliability.m')
 ```
 
-Fitting is owned by `aeFitDispersionData`; 1D and 2D sweeps are owned by
+Fitting is owned by `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData`; 1D and 2D sweeps are owned by
 `aeRunSweep` and `aeRunGridSweep`. Diagnostic algorithms do not select or
 rebuild the official production result.
 

@@ -24,7 +24,7 @@ solverOptions.atlasTopNMinima = 12;
 solverOptions.atlasBranchPolicy = "atlasA0";
 solverOptions.atlasInitializationNumFrequencyPoints = 50;
 
-[CpSynthetic_mps, syntheticRaw] = aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
+[CpSynthetic_mps, syntheticRaw] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
 assert(any(syntheticRaw.validMask), 'Synthetic AE atlasA0 output must contain at least one valid point.');
 assert(all(isfinite(CpSynthetic_mps(syntheticRaw.validMask)) & CpSynthetic_mps(syntheticRaw.validMask) > 0), ...
     'Synthetic AE atlasA0 valid Cp must be finite and positive.');
@@ -46,7 +46,7 @@ fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3));
 
-fitResult = aeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(experimental, fitConfig);
 
 relativeMuError = abs(fitResult.bestParams.mu - trueParams.mu) / trueParams.mu;
 assert(relativeMuError < 0.15, 'Synthetic AE atlasA0 fit did not recover mu within 15%%.');

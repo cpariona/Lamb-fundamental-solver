@@ -1,7 +1,7 @@
 function [Cp_mps, rawResult] = rlEvaluateFitModel(params, frequency_Hz, branchName, options)
 %RLEVALUATEFITMODEL Evaluate Rayleigh-Lamb Cp on a fitting frequency grid.
 %
-% [Cp_mps, rawResult] = rlEvaluateFitModel(params, frequency_Hz, branchName, options)
+% [Cp_mps, rawResult] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(params, frequency_Hz, branchName, options)
 %
 % This helper is intended for fitting. It builds an internal tracking grid,
 % explicitly includes the requested experimental frequencies, and evaluates the

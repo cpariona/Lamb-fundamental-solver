@@ -9,14 +9,14 @@ function fitResult = solveDispersionFitProblem(problem)
 xBest = xBest(:);
 xBest = min(max(xBest, problem.lowerBounds), problem.upperBounds);
 
-bestParams = unpackParameterVector(xBest, problem.baseParams, problem.freeParams);
+bestParams = lamb.fitting.unpackParameterVector(xBest, problem.baseParams, problem.freeParams);
 [CpFit_mps, modelEvaluation] = problem.evaluateModel(bestParams);
-[residuals, residualInfo] = computeDispersionFitResiduals( ...
+[residuals, residualInfo] = lamb.fitting.computeDispersionFitResiduals( ...
     CpFit_mps, problem.experimental, problem.fitOptions);
-metrics = computeDispersionFitMetrics(CpFit_mps, problem.experimental);
-[S, sensitivityInfo] = estimateLocalSensitivity( ...
+metrics = lamb.fitting.computeDispersionFitMetrics(CpFit_mps, problem.experimental);
+[S, sensitivityInfo] = lamb.fitting.estimateLocalSensitivity( ...
     problem.evaluateModel, bestParams, problem.freeParams, problem.experimental);
-identifiability = assessFitIdentifiability(S, problem.freeParams);
+identifiability = lamb.fitting.assessFitIdentifiability(S, problem.freeParams);
 
 fitResult = struct();
 fitResult.modelFamily = problem.modelFamily;

@@ -38,7 +38,7 @@ fitConfig = struct('branchName', branchName, 'freeParams', request.freeParams, .
     'fitOptions', request.fitOptions);
 
 timerStart = tic;
-fitResult = mrlfeFitDispersionData(request.experimental, fitConfig);
+fitResult = lamb.fitting.mrlfe.mrlfeFitDispersionData(request.experimental, fitConfig);
 fitElapsedSeconds = toc(timerStart);
 evaluation = fitResult.modelEvaluation.evaluationPath;
 modelResult = fitResult.modelEvaluation.modelResult;

@@ -14,16 +14,16 @@ cases = [
 for iCase = 1:numel(cases)
     c = cases(iCase);
     frequency_Hz = linspace(1000, 7000, 10).';
-    params = mrlfeDefaultSweepParams();
+    params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
     params.mu = c.trueMu;
     params.etaS = c.etaS;
     params.thickness = 0.5e-3;
     params.rho = 1070;
     params.nu = 0.4999;
 
-    solverOptions = mrlfeDefaultSweepOptions(c.branchName, 'EtaS', c.etaS, ...
+    solverOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(c.branchName, 'EtaS', c.etaS, ...
         'A0Policy', "physicalTail");
-    [CpSynthetic_mps, rawSynthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, c.branchName, solverOptions);
+    [CpSynthetic_mps, rawSynthetic] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, c.branchName, solverOptions);
     assert(rawSynthetic.evaluationPath.usedPublicSolver == true, 'Synthetic setup must use public solver.');
 
     experimental = struct();

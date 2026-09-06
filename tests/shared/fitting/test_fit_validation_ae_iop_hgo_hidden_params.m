@@ -27,7 +27,7 @@ solverOptions.atlasTopNMinima = 12;
 solverOptions.atlasBranchPolicy = "atlasA0";
 solverOptions.atlasInitializationNumFrequencyPoints = 50;
 
-[CpSynthetic_mps, syntheticRaw] = aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
+[CpSynthetic_mps, syntheticRaw] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
 assert(any(syntheticRaw.validMask), 'AE hidden-parameter validation synthetic atlasA0 output must contain valid points.');
 assert(syntheticRaw.solverResult.quality.selectionFallbackUsed == false, ...
     'AE hidden-parameter validation must not rely on fallback branch selection.');
@@ -47,7 +47,7 @@ fitConfig.bounds = struct('thickness', [480e-6, 620e-6]);
 fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-8));
-fitResult = aeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(experimental, fitConfig);
 assert(string(fitResult.branchName) == "atlasA0", 'AE thickness validation branch must remain atlasA0.');
 summaryRows = [summaryRows; assertFitRecovery("AE_atlasA0_thickness_exact", trueParams.thickness, fitResult.bestParams.thickness, 0.20, fitResult, 0.75, 1)]; %#ok<AGROW>
 
@@ -61,7 +61,7 @@ fitConfig.bounds = struct('IOP', [10, 20] * 133.322);
 fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3));
-fitResult = aeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(experimental, fitConfig);
 assert(string(fitResult.branchName) == "atlasA0", 'AE IOP validation branch must remain atlasA0.');
 summaryRows = [summaryRows; assertFitRecovery("AE_atlasA0_IOP_exact", trueParams.IOP, fitResult.bestParams.IOP, 0.25, fitResult, 0.75, 1)]; %#ok<AGROW>
 

@@ -28,18 +28,38 @@ lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
 The supported AE production policy is `atlasA0`. Diagnostic branch algorithms
 are not alternative production APIs.
 
-## Analysis APIs
+## Fitting APIs
 
-The generic 1D workflow is `runParametricSweep`. Model workflow APIs are:
+The primary family fit APIs and explicit forward evaluators are:
+
+```matlab
+lamb.fitting.rayleigh_lamb.rlFitDispersionData
+lamb.fitting.rayleigh_lamb.rlEvaluateFitModel
+lamb.fitting.mrlfe.mrlfeFitDispersionData
+lamb.fitting.mrlfe.mrlfeEvaluateFitModel
+lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData
+lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel
+```
+
+Family-specific fitting defaults are available where the model defaults alone
+do not reproduce the established fitting setup:
+
+```matlab
+lamb.fitting.mrlfe.mrlfeDefaultFitParameters
+lamb.fitting.mrlfe.mrlfeDefaultFitOptions
+lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitParameters
+lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitOptions
+```
+
+## Sweep analysis APIs
+
+The generic 1D workflow is `runParametricSweep`. Model sweep APIs are:
 
 ```matlab
 rlRunSweep
-rlFitDispersionData
 mrlfeRunSweep
-mrlfeFitDispersionData
 aeRunSweep
 aeRunGridSweep
-aeFitDispersionData
 ```
 
 Main GUI, SweepTool, and FitTool reach mRLFE only through `lamb.models.mrlfe.mrlfeSolve`.

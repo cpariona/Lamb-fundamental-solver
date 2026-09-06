@@ -28,13 +28,13 @@ fitResult.frequency_Hz = frequency_Hz;
 fitResult.Cp_exp_mps = Cp_mps;
 fitResult.Cp_fit_mps = Cp_mps;
 fitResult.validMask = true(size(frequency_Hz));
-fitResult.metrics = computeDispersionFitMetrics(Cp_mps, experimental);
+fitResult.metrics = lamb.fitting.computeDispersionFitMetrics(Cp_mps, experimental);
 fitResult.sensitivityMatrix = 0.1 * ones(size(frequency_Hz));
 fitResult.identifiability = struct('classification', "locally_identifiable");
 fitResult.optimizer = struct('name', "constructed", 'objective', 0, 'exitFlag', 1, 'output', struct());
 fitResult.modelEvaluation = struct();
 
-qc = assessFitPhysicalQuality(fitResult);
+qc = lamb.fitting.assessFitPhysicalQuality(fitResult);
 
 assert(qc.classification == "warning" || qc.classification == "caution", ...
     'Flat RL A0-like fit should produce physical QC warning/caution.');

@@ -227,9 +227,9 @@ The maintained FitTool mRLFE fitting chain is:
 ```text
 FitTool_GUI
   -> guiFitMRLFESolver
-  -> mrlfeFitDispersionData
-  -> solveDispersionFitProblem
-  -> mrlfeEvaluateFitModel
+  -> lamb.fitting.mrlfe.mrlfeFitDispersionData
+  -> lamb.fitting.solveDispersionFitProblem
+  -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve
 ```

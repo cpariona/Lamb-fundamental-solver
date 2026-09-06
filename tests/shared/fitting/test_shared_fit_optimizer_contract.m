@@ -5,7 +5,7 @@ frequency_Hz = [1; 2; 3; 4];
 
 single = buildProblem(struct('a', 1), "a", 0, 4, ...
     2 .* frequency_Hz, frequency_Hz);
-singleResult = solveDispersionFitProblem(single);
+singleResult = lamb.fitting.solveDispersionFitProblem(single);
 assert(singleResult.optimizer.name == "fminbnd");
 assert(abs(singleResult.bestParams.a - 2) < 1e-5);
 assert(all(singleResult.xBest >= singleResult.lowerBounds) && ...
@@ -14,7 +14,7 @@ assert(isfield(singleResult, 'modelEvaluation'));
 
 multiple = buildProblem(struct('a', 1, 'b', 1), ["a"; "b"], ...
     [0; 0], [4; 6], 2 .* frequency_Hz + 3, frequency_Hz);
-multipleResult = solveDispersionFitProblem(multiple);
+multipleResult = lamb.fitting.solveDispersionFitProblem(multiple);
 assert(multipleResult.optimizer.name == "fminsearch");
 assert(abs(multipleResult.bestParams.a - 2) < 1e-3);
 assert(abs(multipleResult.bestParams.b - 3) < 1e-3);
@@ -27,7 +27,7 @@ fprintf('Shared dispersion-fit optimizer contract passed.\n');
 end
 
 function problem = buildProblem(baseParams, freeParams, lowerBounds, upperBounds, CpTarget, frequency_Hz)
-experimental = validateExperimentalDispersionData(struct( ...
+experimental = lamb.fitting.validateExperimentalDispersionData(struct( ...
     'frequency_Hz', frequency_Hz, 'Cp_mps', CpTarget), 1);
 problem = struct();
 problem.modelFamily = "synthetic";
@@ -35,7 +35,7 @@ problem.branchName = "linear";
 problem.experimental = experimental;
 problem.baseParams = baseParams;
 problem.freeParams = string(freeParams(:));
-problem.x0 = buildParameterVector(baseParams, problem.freeParams);
+problem.x0 = lamb.fitting.buildParameterVector(baseParams, problem.freeParams);
 problem.lowerBounds = lowerBounds(:);
 problem.upperBounds = upperBounds(:);
 problem.fitOptions = struct('useStandardErrorWeights', false);
@@ -59,9 +59,9 @@ evaluation = struct('model', "synthetic", 'parameters', params);
 end
 
 function residuals = residualForVector(x, problem)
-params = unpackParameterVector(x, problem.baseParams, problem.freeParams);
+params = lamb.fitting.unpackParameterVector(x, problem.baseParams, problem.freeParams);
 Cp_mps = problem.evaluateModel(params);
-residuals = computeDispersionFitResiduals( ...
+residuals = lamb.fitting.computeDispersionFitResiduals( ...
     Cp_mps, problem.experimental, problem.fitOptions);
 end
 

@@ -7,15 +7,15 @@ This document records the maintained mRLFE dispersion fitting workflow after all
 ```text
 FitTool_GUI
   -> guiFitMRLFESolver
-  -> mrlfeFitDispersionData
-  -> mrlfeBuildFitProblem
-  -> solveDispersionFitProblem
-  -> mrlfeEvaluateFitModel
+  -> lamb.fitting.mrlfe.mrlfeFitDispersionData
+  -> lamb.fitting.mrlfe.mrlfeBuildFitProblem
+  -> lamb.fitting.solveDispersionFitProblem
+  -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve
 ```
 
-There is one maintained physical evaluation route. `mrlfeEvaluateFitModel` builds a public request and calls `lamb.models.mrlfe.mrlfeSolve`.
+There is one maintained physical evaluation route. `lamb.fitting.mrlfe.mrlfeEvaluateFitModel` builds a public request and calls `lamb.models.mrlfe.mrlfeSolve`.
 
 ## Supported fitting cases
 

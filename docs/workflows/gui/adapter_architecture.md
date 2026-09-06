@@ -335,16 +335,16 @@ These are implementation traces, not an expansion of the public API.
 | Main / RL | LambFundamental_GUI -> guiRunRayleighLambModel -> lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes -> lamb.models.rayleigh_lamb.results.rlBuildResult -> guiBuildModelResultView |
 | Main / mRLFE | LambFundamental_GUI -> guiRunMRLFEModel -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest -> lamb.models.mrlfe.mrlfeSolve -> lamb.models.mrlfe.results.mrlfeBuildResult -> guiBuildModelResultView |
 | Main / AE | LambFundamental_GUI -> guiRunAcoustoelasticIOPHGOModel -> lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch -> lamb.models.acoustoelastic_iop_hgo.results.aeBuildResult -> adapter view |
-| Fit / RL | FitTool_GUI -> guiRunFit -> guiFitRLSolver -> rlFitDispersionData -> solveDispersionFitProblem -> rlEvaluateFitModel -> lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch |
-| Fit / mRLFE | FitTool_GUI -> guiRunFit -> guiFitMRLFESolver -> mrlfeFitDispersionData -> solveDispersionFitProblem -> mrlfeEvaluateFitModel -> lamb.models.mrlfe.mrlfeSolve |
-| Fit / AE | FitTool_GUI -> guiRunFit -> guiFitAcoustoelasticIOPHGOSolver -> aeFitDispersionData -> solveDispersionFitProblem -> aeEvaluateFitModel -> lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch |
+| Fit / RL | FitTool_GUI -> guiRunFit -> guiFitRLSolver -> lamb.fitting.rayleigh_lamb.rlFitDispersionData -> lamb.fitting.solveDispersionFitProblem -> lamb.fitting.rayleigh_lamb.rlEvaluateFitModel -> lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch |
+| Fit / mRLFE | FitTool_GUI -> guiRunFit -> guiFitMRLFESolver -> lamb.fitting.mrlfe.mrlfeFitDispersionData -> lamb.fitting.solveDispersionFitProblem -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel -> lamb.models.mrlfe.mrlfeSolve |
+| Fit / AE | FitTool_GUI -> guiRunFit -> guiFitAcoustoelasticIOPHGOSolver -> lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData -> lamb.fitting.solveDispersionFitProblem -> lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel -> lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch |
 | Sweep / RL | SweepTool_GUI -> guiRunSweep -> guiRunRLSweep -> runParametricSweep -> lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes |
 | Sweep / mRLFE | SweepTool_GUI -> guiRunSweep -> guiRunMRLFESweep -> runParametricSweep -> lamb.models.mrlfe.mrlfeSolve |
 | Sweep / AE | SweepTool_GUI -> guiRunSweep -> guiRunAcoustoelasticIOPHGOSweep -> aeRunSweep -> runParametricSweep -> lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch |
 
 The GUI entrypoints are in `app/`; model adapters are under `app/main/`,
 `app/fitting/`, and `app/sweep/`. Model-specific fit/sweep workflows are
-under `analysis/fitting/` and `analysis/sweeps/`.
+under `src/+lamb/+fitting/` and `analysis/sweeps/`.
 RL fitting intentionally uses the shared model-layer continuator rather than
 the batch-grid API: see `docs/workflows/fitting/architecture.md`.
 

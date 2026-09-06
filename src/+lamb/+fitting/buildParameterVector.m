@@ -1,7 +1,7 @@
 function [x, parameterInfo] = buildParameterVector(params, freeParams)
 %BUILDPARAMETERVECTOR Build an optimizer vector from named free parameters.
 %
-% [x, parameterInfo] = buildParameterVector(params, freeParams)
+% [x, parameterInfo] = lamb.fitting.buildParameterVector(params, freeParams)
 %
 % params is a scalar structure containing parameter fields. freeParams is a
 % string array or cell array of parameter names. Each free parameter must be a

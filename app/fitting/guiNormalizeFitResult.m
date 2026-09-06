@@ -4,7 +4,7 @@ function normalized = guiNormalizeFitResult(fitResult, request)
 validMask = fitResult.validMask(:) & isfinite(fitResult.frequency_Hz(:)) & ...
     isfinite(fitResult.Cp_exp_mps(:)) & isfinite(fitResult.Cp_fit_mps(:));
 
-qc = assessFitPhysicalQuality(fitResult);
+qc = lamb.fitting.assessFitPhysicalQuality(fitResult);
 fullCurve = guiBuildFitDisplayCurve(fitResult);
 
 normalized = struct();

@@ -1,7 +1,7 @@
 function params = unpackParameterVector(x, params, freeParams)
 %UNPACKPARAMETERVECTOR Write optimizer vector values into a parameter struct.
 %
-% params = unpackParameterVector(x, params, freeParams)
+% params = lamb.fitting.unpackParameterVector(x, params, freeParams)
 
 if nargin < 3
     error('x, params, and freeParams are required.');

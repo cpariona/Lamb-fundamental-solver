@@ -41,7 +41,7 @@ trueParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 trueParams.mu = 85e3;
 frequency_Hz = linspace(1000, 8000, 7).';
 options = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
-CpSynthetic_mps = rlEvaluateFitModel(trueParams, frequency_Hz, "A0", options);
+CpSynthetic_mps = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(trueParams, frequency_Hz, "A0", options);
 
 experimental = struct('frequency_Hz', frequency_Hz, ...
     'Cp_mps', CpSynthetic_mps, ...

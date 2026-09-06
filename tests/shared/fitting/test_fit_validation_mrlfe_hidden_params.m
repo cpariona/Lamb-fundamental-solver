@@ -7,7 +7,7 @@ fprintf('--------------------------------------------------------\n');
 summaryRows = table();
 
 %% Shared synthetic setup
-trueParams = mrlfeDefaultSweepParams();
+trueParams = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 trueParams.mu = 75e3;
 trueParams.thickness = 0.50e-3;
 trueParams.rho = 1070;
@@ -20,8 +20,8 @@ frequency_Hz = linspace(1000, 8000, 10).';
 % not part of this maintained synthetic validation case because the current
 % real-k A0Like etaS synthetic setup can produce no valid fitting points in
 % this frequency band.
-solverOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0.0);
-CpSynthetic_mps = mrlfeEvaluateFitModel(trueParams, frequency_Hz, "A0Like", solverOptions);
+solverOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', 0.0);
+CpSynthetic_mps = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(trueParams, frequency_Hz, "A0Like", solverOptions);
 experimental = struct('frequency_Hz', frequency_Hz, 'Cp_mps', CpSynthetic_mps, 'validMask', true(size(frequency_Hz)));
 
 fitConfig = struct();
@@ -33,7 +33,7 @@ fitConfig.bounds = struct('thickness', [0.25e-3, 1.00e-3]);
 fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-7));
-fitResult = mrlfeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.mrlfe.mrlfeFitDispersionData(experimental, fitConfig);
 summaryRows = [summaryRows; assertFitRecovery("mRLFE_A0Like_thickness_exact", trueParams.thickness, fitResult.bestParams.thickness, 0.08, fitResult, 0.15, 8)]; %#ok<AGROW>
 
 disp(summaryRows);

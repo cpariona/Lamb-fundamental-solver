@@ -7,14 +7,14 @@ fprintf('--------------------------------------\n');
 summaryRows = table();
 
 %% Case 1: A0Like mu recovery, exact synthetic data, etaS = 0
-trueParams = mrlfeDefaultSweepParams();
+trueParams = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 trueParams.mu = 75e3;
 trueParams.thickness = 0.50e-3;
 trueParams.rho = 1070;
 trueParams.nu = 0.4999;
 frequency_Hz = linspace(1000, 8000, 10).';
-solverOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0.0);
-CpSynthetic_mps = mrlfeEvaluateFitModel(trueParams, frequency_Hz, "A0Like", solverOptions);
+solverOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', 0.0);
+CpSynthetic_mps = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(trueParams, frequency_Hz, "A0Like", solverOptions);
 
 experimental = struct('frequency_Hz', frequency_Hz, 'Cp_mps', CpSynthetic_mps, 'validMask', true(size(frequency_Hz)));
 fitConfig = struct();
@@ -26,7 +26,7 @@ fitConfig.bounds = struct('mu', [20e3, 160e3]);
 fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 70, 'TolX', 1e-4));
-fitResult = mrlfeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.mrlfe.mrlfeFitDispersionData(experimental, fitConfig);
 summaryRows = [summaryRows; assertFitRecovery("mRLFE_A0Like_mu_exact", trueParams.mu, fitResult.bestParams.mu, 0.05, fitResult, 0.10, 8)]; %#ok<AGROW>
 
 %% Case 2: A0Like mu recovery with deterministic small perturbation
@@ -34,7 +34,7 @@ perturbation = 0.0025 * mean(CpSynthetic_mps, 'omitnan') * sin(linspace(0, 2*pi,
 experimentalPerturbed = experimental;
 experimentalPerturbed.Cp_mps = CpSynthetic_mps + perturbation;
 fitConfig.initialGuess = struct('mu', 50e3);
-fitResult = mrlfeFitDispersionData(experimentalPerturbed, fitConfig);
+fitResult = lamb.fitting.mrlfe.mrlfeFitDispersionData(experimentalPerturbed, fitConfig);
 summaryRows = [summaryRows; assertFitRecovery("mRLFE_A0Like_mu_perturbed", trueParams.mu, fitResult.bestParams.mu, 0.10, fitResult, 0.30, 8)]; %#ok<AGROW>
 
 %% Case 3: App-level mRLFE adapter contract for the same exact dataset

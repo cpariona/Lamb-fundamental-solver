@@ -22,8 +22,8 @@ fitConfig.solverOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, 'minValidFraction', 0.80);
 
 try
-    fitResult = rlFitDispersionData(experimental, fitConfig);
-    qc = assessFitPhysicalQuality(fitResult);
+    fitResult = lamb.fitting.rayleigh_lamb.rlFitDispersionData(experimental, fitConfig);
+    qc = lamb.fitting.assessFitPhysicalQuality(fitResult);
 
     validPairs = nnz(fitResult.validMask);
     requiredPairs = ceil(fitConfig.fitOptions.minValidFraction * nnz(experimental.validMask));

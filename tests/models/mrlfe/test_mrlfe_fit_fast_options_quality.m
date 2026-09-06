@@ -6,7 +6,7 @@ fprintf('------------------------------------------------\n');
 
 branchName = "A0Like";
 etaS = 0.0;
-params = mrlfeDefaultSweepParams();
+params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 params.mu = 75e3;
 params.thickness = 0.50e-3;
 params.rho = 1070;
@@ -14,7 +14,7 @@ params.nu = 0.4999;
 params.etaS = etaS;
 frequency_Hz = linspace(1000, 8000, 10).';
 
-fastOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
+fastOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', etaS);
 fastOptions.mrlfeNumericalPreset = "fast";
 fastOptions.forwardModel = struct( ...
     'gridPolicy', "fitOptimized", ...
@@ -22,7 +22,7 @@ fastOptions.forwardModel = struct( ...
     'maximumPointCount', 40, ...
     'maximumStep_Hz', 250);
 
-[CpFast_mps, rawFast] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, fastOptions);
+[CpFast_mps, rawFast] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, branchName, fastOptions);
 request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, fastOptions);
 request.numerics.frequencySolveOverride_Hz = rawFast.frequencySolve_Hz;
 directSameFitGrid = lamb.models.mrlfe.mrlfeSolve(request);
@@ -41,7 +41,7 @@ sameFitGridMaxRel = max(abs(sameFitGridDiff_mps) ./ ...
 
 numericalPresetOptions = fastOptions;
 numericalPresetOptions.forwardModel = struct('gridPolicy', "numericalPreset");
-[CpNumericalPreset_mps, rawNumericalPreset] = mrlfeEvaluateFitModel( ...
+[CpNumericalPreset_mps, rawNumericalPreset] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel( ...
     params, frequency_Hz, branchName, numericalPresetOptions);
 directNumericalPresetRequest = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest( ...
     params, frequency_Hz, branchName, numericalPresetOptions);
@@ -119,10 +119,10 @@ assert(max(abs(numericalPresetDiff_mps)) <= sameGridTolerance_mps, ...
 % against an intentionally different numerical-preset grid.
 viscoParams = params;
 viscoParams.etaS = 0.12;
-viscoOptions = mrlfeDefaultSweepOptions(branchName, 'EtaS', viscoParams.etaS);
+viscoOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', viscoParams.etaS);
 viscoOptions.mrlfeNumericalPreset = "fast";
 viscoOptions.forwardModel = fastOptions.forwardModel;
-[CpVisco_mps, rawVisco] = mrlfeEvaluateFitModel(viscoParams, frequency_Hz, branchName, viscoOptions);
+[CpVisco_mps, rawVisco] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(viscoParams, frequency_Hz, branchName, viscoOptions);
 assert(any(isfinite(CpVisco_mps)), 'Viscous mRLFE fitting evaluation produced no finite Cp points.');
 assert(rawVisco.evaluationPath.usedPublicSolver == true, ...
     'Viscous mRLFE fitting evaluation should use the public solver route.');

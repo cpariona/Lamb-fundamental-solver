@@ -39,7 +39,7 @@ not another accepted production branch. See
 
 ## Workflows and limitations
 
-Reusable operations are `aeFitDispersionData`, `aeRunSweep` (1D), and
+Reusable operations are `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData`, `aeRunSweep` (1D), and
 `aeRunGridSweep` (2D). Application adapters only translate inputs and views.
 Examples are opt-in, e.g.:
 

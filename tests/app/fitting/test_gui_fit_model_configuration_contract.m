@@ -33,7 +33,7 @@ trueParams.nu = 0.4999;
 
 frequency_Hz = linspace(1000, 8000, 8).';
 solverOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
-CpSynthetic_mps = rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
+CpSynthetic_mps = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
 
 experimental = struct();
 experimental.frequency_Hz = frequency_Hz;
@@ -74,15 +74,15 @@ assert(any(string(rlSummary.Parameter) == "Shear modulus" & string(rlSummary.Rol
 fprintf('Rayleigh-Lamb recovered mu: %.3f kPa\n', fitOutput.fitResult.bestParams.mu / 1e3);
 
 %% mRLFE app-level fit
-mrlfeParams = mrlfeDefaultSweepParams();
+mrlfeParams = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 mrlfeParams.mu = 75e3;
 mrlfeParams.thickness = 0.50e-3;
 mrlfeParams.rho = 1070;
 mrlfeParams.nu = 0.4999;
 
 mrlfeFrequency_Hz = linspace(1000, 8000, 6).';
-mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0.0);
-mrlfeCpSynthetic_mps = mrlfeEvaluateFitModel(mrlfeParams, mrlfeFrequency_Hz, "A0Like", mrlfeOptions);
+mrlfeOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', 0.0);
+mrlfeCpSynthetic_mps = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(mrlfeParams, mrlfeFrequency_Hz, "A0Like", mrlfeOptions);
 
 mrlfeExperimental = struct();
 mrlfeExperimental.frequency_Hz = mrlfeFrequency_Hz;

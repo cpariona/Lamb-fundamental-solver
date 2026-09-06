@@ -6,10 +6,10 @@ function problem = mrlfeBuildFitProblem(experimental, fitConfig)
 %
 % Optional fitConfig fields:
 %   branchName      default "A0Like"
-%   fixedParams     fields overriding mrlfeDefaultSweepParams
+%   fixedParams     fields overriding mrlfeDefaultFitParameters
 %   initialGuess    fields for free-parameter initial guesses
 %   bounds          fields with [lower upper] bounds
-%   solverOptions   mrlfeDefaultSweepOptions-compatible options
+%   solverOptions   mrlfeDefaultFitOptions-compatible options
 %   fitOptions      residual options
 %
 % The viscosity parameter etaS is stored in solverOptions.mrlfeParams by the
@@ -24,27 +24,30 @@ if ~isfield(fitConfig, 'freeParams') || isempty(fitConfig.freeParams)
     error('fitConfig.freeParams is required.');
 end
 
-experimental = validateExperimentalDispersionData(experimental, 1);
+experimental = lamb.fitting.validateExperimentalDispersionData(experimental, 1);
 if any(diff(experimental.frequency_Hz(experimental.validMask)) < 0)
     error('mRLFE fitting requires valid frequency_Hz values to be sorted ascending.');
 end
 
-branchName = getConfigValue(fitConfig, 'branchName', "A0Like");
+branchName = lamb.fitting.getFitConfigValue(fitConfig, 'branchName', "A0Like");
 branchName = string(branchName);
-solverOptions = getConfigValue(fitConfig, 'solverOptions', mrlfeDefaultSweepOptions(branchName, 'EtaS', 0.05));
+solverOptions = lamb.fitting.getFitConfigValue(fitConfig, 'solverOptions', ...
+    lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', 0.05));
 
-baseParams = mrlfeDefaultSweepParams();
+baseParams = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 baseParams.etaS = localEtaSFromOptions(solverOptions);
-baseParams = applyStructOverrides(baseParams, getConfigValue(fitConfig, 'fixedParams', struct()));
-baseParams = applyStructOverrides(baseParams, getConfigValue(fitConfig, 'initialGuess', struct()));
+baseParams = lamb.fitting.applyParameterOverrides(baseParams, ...
+    lamb.fitting.getFitConfigValue(fitConfig, 'fixedParams', struct()));
+baseParams = lamb.fitting.applyParameterOverrides(baseParams, ...
+    lamb.fitting.getFitConfigValue(fitConfig, 'initialGuess', struct()));
 
 freeParams = string(fitConfig.freeParams(:));
-[x0, parameterInfo] = buildParameterVector(baseParams, freeParams);
+[x0, parameterInfo] = lamb.fitting.buildParameterVector(baseParams, freeParams);
 
-bounds = getConfigValue(fitConfig, 'bounds', struct());
-[lowerBounds, upperBounds] = localBuildBounds(bounds, freeParams);
+bounds = lamb.fitting.getFitConfigValue(fitConfig, 'bounds', struct());
+[lowerBounds, upperBounds] = lamb.fitting.buildParameterBounds(bounds, freeParams);
 
-fitOptions = getConfigValue(fitConfig, 'fitOptions', struct());
+fitOptions = lamb.fitting.getFitConfigValue(fitConfig, 'fitOptions', struct());
 if ~isfield(fitOptions, 'useStandardErrorWeights')
     fitOptions.useStandardErrorWeights = false;
 end
@@ -69,54 +72,15 @@ problem.optimizerOptions = struct( ...
         'MaxFunEvals', 90, 'TolX', 1e-5), ...
     'fminsearch', optimset('Display', 'off', 'MaxIter', 60, ...
         'MaxFunEvals', 160, 'TolX', 1e-5, 'TolFun', 1e-7));
-problem.evaluateModel = @(params) mrlfeEvaluateFitModel(params, experimental.frequency_Hz, branchName, solverOptions);
+problem.evaluateModel = @(params) lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, experimental.frequency_Hz, branchName, solverOptions);
 problem.residualFunction = @(x) localResidualFunction(x, problem);
-problem.objectiveFunction = @(x) localObjectiveFunction(x, problem);
+problem.objectiveFunction = @(x) lamb.fitting.evaluateBoundedObjective(x, problem);
 end
 
 function residuals = localResidualFunction(x, problem)
-params = unpackParameterVector(x, problem.baseParams, problem.freeParams);
+params = lamb.fitting.unpackParameterVector(x, problem.baseParams, problem.freeParams);
 CpModel_mps = problem.evaluateModel(params);
-residuals = computeDispersionFitResiduals(CpModel_mps, problem.experimental, problem.fitOptions);
-end
-
-function value = localObjectiveFunction(x, problem)
-if any(x(:) < problem.lowerBounds(:)) || any(x(:) > problem.upperBounds(:))
-    value = localPenaltyValue(x, problem);
-    return;
-end
-try
-    residuals = problem.residualFunction(x);
-    value = sum(residuals(:).^2);
-    if ~isfinite(value)
-        value = realmax('double') / 1e6;
-    end
-catch
-    value = realmax('double') / 1e6;
-end
-end
-
-function value = localPenaltyValue(x, problem)
-lowerViolation = max(problem.lowerBounds(:) - x(:), 0);
-upperViolation = max(x(:) - problem.upperBounds(:), 0);
-scale = max(abs(problem.x0(:)), 1);
-value = 1e12 * (1 + sum(((lowerViolation + upperViolation) ./ scale).^2));
-end
-
-function [lowerBounds, upperBounds] = localBuildBounds(bounds, freeParams)
-lowerBounds = -inf(numel(freeParams), 1);
-upperBounds = inf(numel(freeParams), 1);
-for i = 1:numel(freeParams)
-    name = char(freeParams(i));
-    if isstruct(bounds) && isfield(bounds, name) && ~isempty(bounds.(name))
-        value = bounds.(name);
-        if ~isnumeric(value) || numel(value) ~= 2 || value(1) >= value(2)
-            error('bounds.%s must be a numeric [lower upper] pair.', name);
-        end
-        lowerBounds(i) = value(1);
-        upperBounds(i) = value(2);
-    end
-end
+residuals = lamb.fitting.computeDispersionFitResiduals(CpModel_mps, problem.experimental, problem.fitOptions);
 end
 
 function [solverOptions, forwardCache] = localAttachForwardCacheIfUseful(solverOptions, baseParams, freeParams, branchName, experimental)
@@ -160,7 +124,7 @@ referenceParams = baseParams;
 referenceParams.etaS = 0;
 
 try
-    [~, rawReference] = mrlfeEvaluateFitModel(referenceParams, experimental.frequency_Hz, branchName, referenceOptions);
+    [~, rawReference] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(referenceParams, experimental.frequency_Hz, branchName, referenceOptions);
     if isfield(rawReference, 'elasticReferenceResult') && isstruct(rawReference.elasticReferenceResult)
         solverOptions.mrlfeElasticReferenceResult = rawReference.elasticReferenceResult;
         forwardCache.enabled = true;
@@ -195,27 +159,6 @@ function etaS = localEtaSFromOptions(options)
 etaS = 0;
 if isstruct(options) && isfield(options, 'mrlfeParams') && isfield(options.mrlfeParams, 'etaS')
     etaS = options.mrlfeParams.etaS;
-end
-end
-
-function s = applyStructOverrides(s, overrides)
-if isempty(overrides)
-    return;
-end
-if ~isstruct(overrides) || ~isscalar(overrides)
-    error('Parameter overrides must be scalar structures.');
-end
-names = fieldnames(overrides);
-for i = 1:numel(names)
-    s.(names{i}) = overrides.(names{i});
-end
-end
-
-function value = getConfigValue(config, fieldName, defaultValue)
-if isstruct(config) && isfield(config, fieldName) && ~isempty(config.(fieldName))
-    value = config.(fieldName);
-else
-    value = defaultValue;
 end
 end
 
