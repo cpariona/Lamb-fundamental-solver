@@ -1,9 +1,5 @@
 function sweepOutput = guiRunAcoustoelasticIOPHGOSweep(request)
 %GUIRUNACOUSTOELASTICIOPHGOSWEEP Run an Acoustoelastic IOP/HGO sweep from a GUI request.
-%
-% This adapter is the GUI-facing layer around aeRunSweep. It is intentionally
-% separate from SweepTool_GUI so the GUI does not depend on solver policy,
-% tracker details, or raw Acoustoelastic IOP/HGO result layout.
 
 params = buildAcoustoelasticBaseParams(request);
 options = buildAcoustoelasticOptions(request);
@@ -31,12 +27,7 @@ sweepOutput.request = request;
 sweepOutput.modelFamily = "acoustoelastic_iop_hgo";
 sweepOutput.modelName = "AcoustoelasticIOPHGO";
 sweepOutput.branchName = string(getRequestField(request, 'branchName', "atlasA0"));
-sweepOutput.sweepSpec = struct();
-sweepOutput.sweepSpec.parameter = string(request.sweepField);
-sweepOutput.sweepSpec.values = valuesSolver;
-sweepOutput.sweepSpec.label = string(getRequestField(request, 'sweepLabel', request.sweepField));
-sweepOutput.sweepSpec.units = units;
-sweepOutput.sweepSpec.displayScale = displayScale;
+sweepOutput.sweepSpec = sweepResult.spec;
 sweepOutput.sweepResult = sweepResult;
 sweepOutput.summary = summary;
 sweepOutput.summaryTable = summary.conditionTable;

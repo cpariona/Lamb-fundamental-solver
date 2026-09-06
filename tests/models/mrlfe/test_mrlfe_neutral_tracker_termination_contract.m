@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_neutral_tracker_termination_contract()
+%TEST_MRLFE_NEUTRAL_TRACKER_TERMINATION_CONTRACT Validate neutral engine and termination metadata.
+
 fprintf('\nRunning mRLFE neutral tracker/termination contract test...\n');
 fprintf('---------------------------------------------------------\n');
 
@@ -42,6 +43,7 @@ for i = 1:numel(cases)
 end
 
 fprintf('mRLFE neutral tracker/termination contract test passed.\n');
+end
 
 function request = localRequest(branch, etaS, preset)
 request = struct();

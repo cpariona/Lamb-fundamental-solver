@@ -1,10 +1,7 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_mrlfe_etaS_zero_limit()
+%TEST_MRLFE_ETAS_ZERO_LIMIT Validate the elastic limit of the public mRLFE API.
 
-% etaS = 0 is the elastic material regime of the same public mRLFE API.
-params = rlDefaultParams();
+params = mrlfeDefaultWorkflowParams();
 frequency_Hz = linspace(500, 4000, 14).';
 
 for branchName = ["A0Like", "S0Like"]
@@ -16,7 +13,7 @@ for branchName = ["A0Like", "S0Like"]
         'etaS = 0 must remain on the canonical public mRLFE branch contract.');
     assert(result.execution.internalEngine == "elastic_adaptive", ...
         'etaS = 0 must select the elastic mRLFE engine.');
-    assert(result.configuration.effective.materialRegime == "elasticZeroViscosity", ...
+    assert(result.configuration.effective.options.materialRegime == "elasticZeroViscosity", ...
         'etaS = 0 material regime metadata changed.');
     assert(result.configuration.effective.parameters.etaS_Pas == 0, ...
         'etaS = 0 must remain explicit in public configuration.');
@@ -25,3 +22,4 @@ for branchName = ["A0Like", "S0Like"]
 end
 
 fprintf('test_mrlfe_etaS_zero_limit passed. etaS = 0 uses the public elastic engine.\n');
+end

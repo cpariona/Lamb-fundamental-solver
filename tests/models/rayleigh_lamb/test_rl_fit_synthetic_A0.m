@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_rl_fit_synthetic_A0()
+%TEST_RL_FIT_SYNTHETIC_A0 Validate synthetic Rayleigh-Lamb A0 fitting.
 
 fprintf('\nRunning Rayleigh-Lamb synthetic A0 fitting test...\n');
 fprintf('------------------------------------------------\n');
@@ -49,3 +47,4 @@ fprintf('True mu: %.3f kPa\n', trueParams.mu / 1e3);
 fprintf('Fit  mu: %.3f kPa\n', fitResult.bestParams.mu / 1e3);
 fprintf('Relative mu error: %.6g\n', relativeMuError);
 fprintf('\nRayleigh-Lamb synthetic A0 fitting test passed.\n');
+end

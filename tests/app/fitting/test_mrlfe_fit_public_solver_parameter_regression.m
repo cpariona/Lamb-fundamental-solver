@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_fit_public_solver_parameter_regression()
+%TEST_MRLFE_FIT_PUBLIC_SOLVER_PARAMETER_REGRESSION Validate synthetic parameter fits through the public solver.
+
 fprintf('\nRunning mRLFE public-solver fit parameter regression test...\n');
 fprintf('----------------------------------------------------------\n');
 
@@ -124,3 +125,4 @@ for iCase = 1:numel(cases)
 end
 
 fprintf('\nmRLFE public-solver fit parameter regression test passed.\n');
+end

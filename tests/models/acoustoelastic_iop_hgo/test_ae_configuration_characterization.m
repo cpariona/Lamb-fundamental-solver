@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_ae_configuration_characterization()
 production = defaultAcoustoelasticIOPHGOOptions();
 assert(production.atlasNumYPoints == 1000);
 assert(production.atlasTopNMinima == 18);
@@ -83,3 +79,4 @@ end
 assert(didReject, 'The maintained solver must reject a request missing R.');
 
 fprintf('test_ae_configuration_characterization passed.\n');
+end

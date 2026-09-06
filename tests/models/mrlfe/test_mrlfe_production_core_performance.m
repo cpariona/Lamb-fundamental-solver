@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_production_core_performance()
+%TEST_MRLFE_PRODUCTION_CORE_PERFORMANCE Measure maintained production runtime.
+
 fprintf('\nRunning mRLFE production core performance check...\n');
 fprintf('-------------------------------------------------\n');
 
@@ -25,6 +26,7 @@ for i = 1:numel(cases)
 end
 
 fprintf('mRLFE production core performance check passed.\n');
+end
 
 function request = localRequest(branch, etaS)
 request = struct();

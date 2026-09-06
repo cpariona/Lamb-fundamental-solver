@@ -27,7 +27,7 @@ for oldLocal = ["function minima = localMinima", "function [minimaTable, branchT
     assert(~contains(solverText, oldLocal), 'Old local production owner remains: %s', oldLocal);
 end
 
-publicOwnerText = fileread(fullfile(modelRoot, 'solvers', 'solveAcoustoelasticIOPHGOBranch.m'));
+publicOwnerText = fileread(fullfile(modelRoot, 'api', 'solveAcoustoelasticIOPHGOBranch.m'));
 assertContains(publicOwnerText, 'aeValidateRequest(params');
 assertContains(publicOwnerText, 'aeResolveConfiguration(options)');
 assertContains(publicOwnerText, 'computeAcoustoelasticABGFromIOPHGO(');
@@ -110,16 +110,16 @@ end
 function assertFallbackContract()
 result = struct();
 result.options = struct('invalidateAtlasFallbackOutput', true);
-result.quality = struct('SelectionFallbackUsed', true);
-result.phaseVelocity_mps = [100, nan];
-result.validMask = [true, false];
-result.wavenumber_radpm = [1, nan];
-result.branchExistsAtFrequency = [true, false];
-result.interpolatedCp = [false, false];
-result.objective = [0.1, nan];
-result.nearestRank = [1, nan];
-result.nearestBranchID = [2, nan];
-result.pointStatus = ["explicitBranchPoint", "missingSelectedBranch"];
+result.quality = struct('selectionFallbackUsed', true);
+result.phaseVelocity_mps = [100; nan];
+result.validMask = [true; false];
+result.wavenumber_radpm = [1; nan];
+result.branchExistsAtFrequency = [true; false];
+result.interpolatedCp = [false; false];
+result.objective = [0.1; nan];
+result.nearestRank = [1; nan];
+result.nearestBranchID = [2; nan];
+result.pointStatus = ["explicitBranchPoint"; "missingSelectedBranch"];
 [decided, applied] = aeApplyAtlasA0FallbackPolicy(result);
 assert(applied == true);
 assert(isequaln(decided.fallbackCandidateCp, result.phaseVelocity_mps));
@@ -138,5 +138,7 @@ assert(contains(text, fragment), 'Missing expected production call: %s', fragmen
 end
 
 function tf = samePath(actual, expected)
-tf = strcmpi(strrep(string(actual), '/', '\'), strrep(string(expected), '/', '\'));
+actualPath = replace(string(actual), filesep, "/");
+expectedPath = replace(string(expected), filesep, "/");
+tf = strcmpi(actualPath, expectedPath);
 end

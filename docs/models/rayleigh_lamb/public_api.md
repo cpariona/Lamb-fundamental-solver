@@ -6,7 +6,7 @@ opts = rlDefaultOptions("Balanced");
 opts.computeS0 = true;
 result = rlComputeFundamentalLambModes(params, opts);
 approx = rlComputeAnalyticalApproximations( ...
-    result.configuration.effective.frequency_Hz, result.material, result.geometry);
+    result.configuration.effective.parameters.frequency_Hz, result.material, result.geometry);
 ```
 
 Physical inputs use SI: shear modulus `mu` (Pa), Poisson ratio `nu`,
@@ -17,18 +17,29 @@ formulation checks. Frequency controls are `fmin`, `fmax` (Hz),
 
 `rlDefaultOptions` accepts Fast, Balanced, or Robust. It owns branch toggles,
 search grids, continuation, residual and jump tolerances. Defaults compute A0
-only; enable S0 explicitly. The exact defaults live in
-`models/rayleigh_lamb/core/rlDefaultParams.m` and
-`models/rayleigh_lamb/core/rlDefaultOptions.m`.
+only; enable S0 explicitly. Public defaults live in
+`models/rayleigh_lamb/api/rlDefaultParams.m` and
+`models/rayleigh_lamb/api/rlDefaultOptions.m`. Frequency construction and
+validation live under `models/rayleigh_lamb/configuration/`.
 
 ## Result and limitations
 
 `result.modes.A0` / `result.modes.S0` contain enabled branches with
 `frequency_Hz`, `phaseVelocity_mps`, `wavenumber_radpm`, and
-`validMask`. Quality is owned by `rlBuildResult` under `result.quality`.
-The result also contains material, geometry, analytical approximations,
-diagnostics, operational execution metadata, and requested/effective
-configuration. There is no top-level frequency alias.
+`validMask`. Quality is evaluated by `rlEvaluateModeQuality` and exposed under
+`result.quality` by the result builder. The result also contains material,
+geometry, analytical approximations, diagnostics, operational execution
+metadata, and requested/effective configuration. There is no top-level
+frequency alias.
+
+Requested and effective configuration use the common envelope:
+
+```matlab
+result.configuration.requested.parameters
+result.configuration.requested.options
+result.configuration.effective.parameters
+result.configuration.effective.options
+```
 
 This is an isotropic elastic plate solver for fundamental A0/S0, not a
 higher-mode, viscous, or fluid-loaded solver. Low-frequency analytical

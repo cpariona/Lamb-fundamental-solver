@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_mrlfe_fit_fast_options_quality()
+%TEST_MRLFE_FIT_FAST_OPTIONS_QUALITY Validate fast fitting options and public-solver quality metadata.
 
 fprintf('\nRunning mRLFE fast fitting option quality test...\n');
 fprintf('------------------------------------------------\n');
@@ -152,3 +150,4 @@ fprintf('Same fit grid:    RMSE=%.6g m/s | max abs=%.6g m/s | max rel=%.6g\n', .
 fprintf('Cross-grid diagnostic (no equality contract): RMSE=%.6g m/s | max abs=%.6g m/s | max rel=%.6g\n', ...
     crossPolicyRmse_mps, crossPolicyMaxAbs_mps, crossPolicyMaxRel);
 fprintf('\nmRLFE fast fitting option quality test passed.\n');
+end

@@ -15,32 +15,56 @@ assert(result.model == "rayleigh_lamb");
 assert(isfield(result, 'modes') && all(isfield(result.modes, {'A0', 'S0'})));
 assert(isfield(result, 'approximations'));
 assert(~isfield(result, 'models') && ~isfield(result, 'grid'));
-assert(isfield(result.configuration, 'requested') && isfield(result.configuration, 'effective'));
-assert(isequaln(result.configuration.requested.parameters, params));
-assert(isequaln(result.configuration.requested.options, options));
+assertConfigurationEnvelope(result.configuration, params, options);
+assert(isfield(result.execution, 'engine') && result.execution.engine == "independent_continuation");
+assert(isfield(result.execution, 'elapsedSeconds') && isfinite(result.execution.elapsedSeconds));
 
+frequency_Hz = result.configuration.effective.parameters.frequency_Hz;
 for name = ["A0", "S0"]
     branch = result.modes.(char(name));
     required = {'frequency_Hz', 'phaseVelocity_mps', 'wavenumber_radpm', ...
         'validMask', 'angularFrequency_radps', 'wavenumberThickness', 'diagnostics'};
     assert(all(isfield(branch, required)));
     assert(~any(isfield(branch, {'frequency', 'Cp', 'k', 'valid'})));
-    assert(isequal(branch.frequency_Hz, result.configuration.effective.frequency_Hz));
+    assert(isequal(branch.frequency_Hz, frequency_Hz));
+    assert(iscolumn(branch.frequency_Hz) && iscolumn(branch.phaseVelocity_mps) && ...
+        iscolumn(branch.wavenumber_radpm) && iscolumn(branch.validMask));
     assert(isequal(size(branch.frequency_Hz), size(branch.phaseVelocity_mps)));
     assert(isequal(size(branch.frequency_Hz), size(branch.validMask)));
     assert(isfield(branch.diagnostics, 'residual') && ~isfield(branch, 'residual'));
     assert(isequal(size(branch.frequency_Hz), size(branch.diagnostics.residual)));
-    assert(result.quality.(char(name)).validCount == nnz(branch.validMask));
+    quality = result.quality.(char(name));
+    assert(all(isfield(quality, {'pointCount','validCount','validFraction','accepted','reason'})));
+    assert(quality.validCount == nnz(branch.validMask));
 end
 
-repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+repoRoot = testRepositoryRoot();
+assert(strcmp(which('rlComputeFundamentalLambModes'), fullfile(repoRoot, 'models', ...
+    'rayleigh_lamb', 'api', 'rlComputeFundamentalLambModes.m')));
+assert(strcmp(which('rlSolveFundamentalModes'), fullfile(repoRoot, 'models', ...
+    'rayleigh_lamb', 'solvers', 'rlSolveFundamentalModes.m')));
+assert(strcmp(which('rlEvaluateModeQuality'), fullfile(repoRoot, 'models', ...
+    'rayleigh_lamb', 'quality', 'rlEvaluateModeQuality.m')));
+
 exampleSource = fileread(fullfile(repoRoot, 'examples', 'rayleigh_lamb', ...
     'basic', 'run_default_A0_S0.m'));
 assert(contains(exampleSource, 'mode.diagnostics.residual'));
 assert(~contains(exampleSource, 'mode.residual'), 'Example uses a retired residual field.');
-approximations = rlComputeAnalyticalApproximations( ...
-    result.configuration.effective.frequency_Hz, result.material, result.geometry);
+approximations = rlComputeAnalyticalApproximations(frequency_Hz, result.material, result.geometry);
 assert(isequaln(approximations, result.approximations));
 
 fprintf('Rayleigh-Lamb result contract passed.\n');
+end
+
+function assertConfigurationEnvelope(configuration, params, options)
+assert(isfield(configuration, 'requested') && isfield(configuration, 'effective'));
+assert(all(isfield(configuration.requested, {'parameters','options'})));
+assert(all(isfield(configuration.effective, {'parameters','options'})));
+assert(isequaln(configuration.requested.parameters, params));
+assert(isequaln(configuration.requested.options, options));
+assert(configuration.effective.parameters.thickness == params.thickness);
+assert(iscolumn(configuration.effective.parameters.frequency_Hz));
+assert(isequaln(configuration.effective.options, options));
+assert(~any(isfield(configuration.effective, {'material','geometry','frequency_Hz'})), ...
+    'Effective configuration must use only the parameters/options envelope.');
 end

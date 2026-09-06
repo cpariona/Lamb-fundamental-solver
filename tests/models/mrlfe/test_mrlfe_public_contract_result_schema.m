@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_mrlfe_public_contract_result_schema()
+%TEST_MRLFE_PUBLIC_CONTRACT_RESULT_SCHEMA Validate canonical mRLFE result schema.
 
 fprintf('\nRunning mRLFE public result schema contract test...\n');
 fprintf('--------------------------------------------------\n');
@@ -13,6 +11,7 @@ for branch = ["A0Like", "S0Like"]
 end
 
 fprintf('mRLFE public result schema contract test passed.\n');
+end
 
 function request = localRequest(branch, etaS, preset)
 request = struct();
@@ -63,15 +62,27 @@ assert(isfield(result, 'debug') && isfield(result.debug, 'solverResult'), ...
     'Explicit debug boundary must expose the internal solver result.');
 assert(isfield(result, 'diagnostics') && isfield(result.diagnostics, 'solvePointCount'), ...
     'Public diagnostics must expose a stable summary.');
-assert(result.diagnostics.solvePointCount == ...
-    numel(result.debug.solverResult.frequencySolve_Hz), ...
+assert(result.diagnostics.solvePointCount == numel(result.debug.solverResult.frequencySolve_Hz), ...
     'Stable solve-point summary must match debug evidence.');
 assert(~isfield(result.diagnostics, 'rawInternalResult'), ...
     'Internal solver evidence must not be duplicated under diagnostics.');
-assert(isfield(result.configuration, 'requested') && isfield(result.configuration, 'effective'), ...
+assertConfigurationEnvelope(result.configuration, request);
+end
+
+function assertConfigurationEnvelope(configuration, request)
+assert(isfield(configuration, 'requested') && isfield(configuration, 'effective'), ...
     'Configuration must distinguish requested and effective values.');
-assert(isequaln(result.configuration.requested, request), ...
-    'Requested configuration must preserve the caller request.');
-assert(result.configuration.effective.parameters.etaS_Pas == request.material.etaS_Pas, ...
-    'Effective material configuration mismatch.');
+assert(all(isfield(configuration.requested, {'parameters','options'})), ...
+    'Requested configuration must use parameters/options envelope.');
+assert(all(isfield(configuration.effective, {'parameters','options'})), ...
+    'Effective configuration must use parameters/options envelope.');
+assert(configuration.requested.parameters.mu_Pa == request.material.mu_Pa);
+assert(configuration.requested.parameters.etaS_Pas == request.material.etaS_Pas);
+assert(configuration.requested.parameters.thickness_m == request.geometry.thickness_m);
+assert(configuration.requested.options.branch == request.branch);
+assert(isequal(configuration.requested.options.frequency_Hz, request.frequency_Hz));
+assert(configuration.effective.parameters.etaS_Pas == request.material.etaS_Pas);
+assert(configuration.effective.options.branch == request.branch);
+assert(configuration.effective.options.materialRegime == "viscoelastic");
+assert(configuration.effective.options.numericalPreset.name == request.numerics.preset);
 end

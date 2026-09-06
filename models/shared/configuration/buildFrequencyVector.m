@@ -1,9 +1,7 @@
-function frequency = rlBuildFrequencyVector(params)
-% Build frequency vector according to selected spacing.
+function frequency = buildFrequencyVector(params)
+%BUILDFREQUENCYVECTOR Build a canonical frequency vector from grid parameters.
 %
-% The GUI uses automatic hybrid spacing internally. linspace and logspace
-% remain available for scripts and development comparisons. The explicit
-% mode is reserved for callers that provide a validated frequencyVector_Hz.
+% Supported spacing modes: hybrid, logspace, linspace, explicit.
 
 if isfield(params, 'frequencySpacing')
     spacing = lower(string(params.frequencySpacing));
@@ -71,8 +69,6 @@ nPoints = round(nPoints);
 end
 
 function nPoints = estimateAutomaticPointCount(fmin, fmax)
-% Choose a denser internal grid for broad frequency ranges.
-
 rangeRatio = fmax / fmin;
 decades = log10(rangeRatio);
 spanKHz = (fmax - fmin) / 1000;
@@ -85,8 +81,6 @@ nPoints = min(max(nPoints, 250), 2500);
 end
 
 function frequency = buildHybridFrequencyVector(fmin, fmax, nPoints)
-% Use logarithmic sampling at low frequencies and linear sampling afterward.
-
 if nPoints < 3 || fmax <= fmin
     frequency = linspace(fmin, fmax, nPoints);
     return;

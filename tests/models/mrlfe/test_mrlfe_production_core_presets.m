@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_mrlfe_production_core_presets()
+%TEST_MRLFE_PRODUCTION_CORE_PRESETS Validate maintained production presets.
 
 fprintf('\nRunning mRLFE production core preset test...\n');
 fprintf('-------------------------------------------\n');
@@ -17,6 +15,7 @@ for preset = ["fast", "balanced", "robust", "dense"]
 end
 
 fprintf('mRLFE production core preset test passed.\n');
+end
 
 function request = localRequest(branch, etaS, preset, terminationPolicy)
 request = struct();

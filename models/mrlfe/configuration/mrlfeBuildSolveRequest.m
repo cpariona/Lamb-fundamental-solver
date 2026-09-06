@@ -1,5 +1,5 @@
 function request = mrlfeBuildSolveRequest(source, frequency_Hz, branchName, options)
-%MRLFEBUILDSOLVEREQUEST Translate analysis parameters to one mRLFE request.
+%MRLFEBUILDSOLVEREQUEST Translate workflow parameters to one mRLFE request.
 %
 % source contains physical parameters using maintained public/app aliases.
 % options may contain mrlfeParams and numerical-preset input.

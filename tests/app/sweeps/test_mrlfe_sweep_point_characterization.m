@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_sweep_point_characterization()
+%TEST_MRLFE_SWEEP_POINT_CHARACTERIZATION Compare sweep points with direct public solves.
+
 fprintf('\nRunning mRLFE SweepTool point characterization test...\n');
 fprintf('-----------------------------------------------------\n');
 
@@ -24,7 +25,16 @@ for iBranch = 1:numel(branches)
 
         for iPoint = 1:numel(muValues_kPa)
             point = out.sweepResult.points{iPoint};
-            direct = mrlfeSolve(out.sweepResult.requests{iPoint});
+            storedRequest = out.sweepResult.requests{iPoint};
+            assert(isstruct(storedRequest) && isfield(storedRequest, 'parameters') && ...
+                isfield(storedRequest, 'options'), ...
+                'Canonical sweep requests must preserve configuration.requested.');
+
+            pointParams = out.sweepResult.params{iPoint};
+            pointOptions = out.sweepResult.options{iPoint};
+            directRequest = mrlfeBuildSolveRequest( ...
+                pointParams, buildFrequencyVector(pointParams), branchName, pointOptions);
+            direct = mrlfeSolve(directRequest);
             modelResult = point.modelResult;
 
             assert(point.status == "ok", 'Sweep point unexpectedly failed.');
@@ -58,6 +68,7 @@ fprintf('Maximum Cp absolute difference: %.15g m/s\n', maxAbsDiff_mps);
 fprintf('Maximum Cp relative difference: %.15g\n', maxRelDiff);
 fprintf('Valid-mask differences: %d\n', validMaskDifferences);
 fprintf('\nmRLFE SweepTool point characterization test passed.\n');
+end
 
 function out = runMuSweep(branchName, etaS, muValues_kPa)
 params = rlDefaultParams();

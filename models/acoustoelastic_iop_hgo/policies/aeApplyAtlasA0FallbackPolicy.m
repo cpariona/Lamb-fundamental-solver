@@ -11,8 +11,8 @@ if ~isfield(result, 'options') || ~isfield(result.options, 'invalidateAtlasFallb
     return;
 end
 
-if ~isfield(result, 'quality') || ~isfield(result.quality, 'SelectionFallbackUsed') || ...
-        ~logical(result.quality.SelectionFallbackUsed)
+if ~isfield(result, 'quality') || ~isfield(result.quality, 'selectionFallbackUsed') || ...
+        ~logical(result.quality.selectionFallbackUsed)
     return;
 end
 

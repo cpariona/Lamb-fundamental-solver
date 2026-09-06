@@ -1,3 +1,4 @@
+function test_fit_parameter_execution_contract()
 %TEST_FIT_PARAMETER_EXECUTION_CONTRACT Trace edited physical parameters.
 
 registry = guiGetFitModelConfiguration();
@@ -55,3 +56,4 @@ assert(aeState.parameters(ids == "k1").valueDisplay == 50);
 assert(aeState.parameters(ids == "k2").valueDisplay == 200);
 
 fprintf('test_fit_parameter_execution_contract passed. Synthetic and fitting paths share the same edited configuration.\n');
+end

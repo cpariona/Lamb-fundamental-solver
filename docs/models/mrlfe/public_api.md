@@ -1,6 +1,6 @@
 # mRLFE public API
 
-Last reviewed: 2026-09-03
+Last reviewed: 2026-09-05
 
 ## Scope
 
@@ -11,7 +11,9 @@ result = mrlfeSolve(request);
 ```
 
 Main GUI, FitTool, and SweepTool consume this model-owned API. Application
-adapters translate units and policies but do not own tracking or physics.
+adapters own surface state and presentation, but canonical mRLFE request
+translation is model-owned by `mrlfeBuildSolveRequest` under
+`models/mrlfe/configuration/`.
 
 ## Request
 
@@ -49,6 +51,11 @@ S0Like
 Unsupported branches, presets, physical inputs, policies, and nonascending or
 invalid frequency grids fail with stable `mrlfe:*` error identifiers.
 
+`mrlfeBuildSolveRequest` is the reusable translation owner for maintained
+workflow/app aliases such as `mu`, `rho`, `thickness`, `etaS`, fluid density,
+fluid sound speed, execution profile, and branch name. It produces the canonical
+request above and is independent of GUI handles, fitting, sweeps, and plotting.
+
 ## Defaults
 
 Use:
@@ -78,32 +85,38 @@ The API never substitutes another branch as fallback.
 
 Public requests select `request.numerics.preset` as `"fast"`, `"balanced"`,
 `"robust"`, or `"dense"`.
-`mrlfeGetNumericalPreset` is the internal configuration owner that resolves
-those names; it is not an additional public API.
+`mrlfeGetNumericalPreset` is the model configuration owner that resolves those
+names; it is not an additional public API.
 
-`fast` maps to the maintained FitTool fast-atlas settings:
+The maintained presets are:
+
+| Preset | High-frequency step | Coarse Cp scan | Rescue Cp scan | Candidate count |
+| --- | ---: | ---: | ---: | ---: |
+| `fast` | 50 Hz | 100 | 260 | 5 |
+| `balanced` | 25 Hz | 420 | 420 | 6 |
+| `robust` | 20 Hz | 620 | 620 | 8 |
+| `dense` | 10 Hz | 900 | 900 | 8 |
+
+Fast therefore uses the optimized policy introduced by the numerical-alignment
+campaign: a 100-point coarse scan is used for normal candidate discovery and a
+260-point dense scan is used only as rescue when needed. Candidate discovery is
+discrete; after one candidate is selected, the selected candidate is refined
+continuously with bounded refinement. This does not smooth or post-process the
+reported dispersion curve.
+
+The adaptive windows are:
 
 ```text
-scan points       260
-candidate count   5
-candidate refine  false
-adaptive windows  [0.20 0.40 0.80]
+fast      [0.20 0.40 0.80]
+balanced  [0.20 0.35 0.50 0.80]
+robust    [0.20 0.35 0.50 0.80 1.20]
+dense     [0.20 0.35 0.50 0.80 1.20]
 ```
 
-`balanced` uses 420 scan points and 6 refined candidates; `robust` uses
-620 scan points and 8 refined candidates. Their high-frequency grid steps are
-25 and 20 Hz respectively (Fast 50 Hz, Dense 10 Hz).
-
-`dense` maps to the maintained dense atlas settings:
-
-```text
-scan points       900
-candidate count   8
-candidate refine  true
-adaptive windows  maintained dense adaptive windows
-```
-
-Preset resolution does not change branch policy or fallback policy.
+All presets retain the maintained hybrid frequency-grid policy with fixed
+low-frequency anchors up to 500 Hz and the preset-specific constant step above
+that transition. Preset resolution does not change branch policy or fallback
+policy.
 
 ## Result
 
@@ -126,9 +139,10 @@ result.configuration
 Vectors are column vectors on the requested frequency grid. Invalid points are
 represented by `NaN` phase velocity and `validMask = false`.
 
-Quality metadata includes valid count, point count, valid fraction, last valid
-frequency, maximum relative jump, accepted flag, reason, and thresholds. A
-partial branch is still returned when `quality.accepted` is false.
+Quality metadata includes the common lower-camel core fields
+`pointCount`, `validCount`, `validFraction`, `accepted`, and `reason`, plus
+model-specific branch-quality evidence. A partial branch is still returned when
+`quality.accepted` is false.
 
 Termination metadata reports whether a physical-tail or continuity cut was
 observed from the underlying branch. Neutral defaults are used when no cut was
@@ -141,18 +155,24 @@ result.fallback.policy = "none";
 result.fallback.applied = false;
 ```
 
-Execution metadata reports requested preset, effective preset, internal engine,
-and elapsed seconds as distinct fields.
+Execution metadata includes the common fields `engine` and `elapsedSeconds`,
+plus mRLFE preset/engine evidence required by maintained consumers.
 
-Configuration is explicitly split:
+Configuration follows the shared requested/effective envelope:
 
 ```matlab
-result.configuration.requested
-result.configuration.effective
+result.configuration.requested.parameters
+result.configuration.requested.options
+result.configuration.effective.parameters
+result.configuration.effective.options
 ```
 
-The first preserves the caller request. The second records resolved physical
-parameters, output frequency grid, numerical preset, policies, and engine.
+`requested` records the canonical values explicitly supplied by the caller in
+parameter/option form; omitted requested values remain absent/empty in that
+requested view. `effective` records the resolved physical parameters, output
+frequency grid, numerical preset, policies, material regime, and internal engine
+after defaults and validation are applied. The raw caller struct is not exposed
+as a parallel public alias.
 
 The production implementation path is neutral:
 
@@ -171,6 +191,9 @@ mrlfeSolve
   -> mrlfeBuildResult
 ```
 
+The only intentional cross-family dependency is `mrlfeBuildSeed ->
+rlComputeFundamentalLambModes` for the scientific seed.
+
 ## Main GUI Use
 
 The maintained Main GUI mRLFE chain is:
@@ -183,14 +206,13 @@ LambFundamental_GUI
   -> GUI result adapter
 ```
 
-The GUI request mapper translates the current Main GUI SI parameters (`mu`,
+The request builder translates the current Main GUI SI parameters (`mu`,
 `etaS`, `rho`, `nu`, `thickness`, fluid density, fluid sound speed, frequency
 grid, and branch toggles) to the public material, geometry, and fluid fields.
 The Main GUI defaults to `Balanced`, which maps directly to public preset
 `balanced`; explicit Fast and Robust selections map to `fast` and `robust`.
-A0Like uses adaptive
-selection with `physicalTail` termination and no fallback. S0Like uses adaptive
-selection with no additional termination and no fallback.
+A0Like uses adaptive selection with `physicalTail` termination and no fallback.
+S0Like uses adaptive selection with no additional termination and no fallback.
 
 Main GUI no longer contains mRLFE seed construction, low-level tracker
 selection, atlas candidate inspection, physical-tail cutting, or zero-viscosity
@@ -212,16 +234,17 @@ FitTool_GUI
   -> mrlfeSolve
 ```
 
-The fitting request mapper translates the existing SI fitting parameters
-(`mu`, `etaS`, `rho`, `nu`, `thickness`, fluid density, and fluid sound speed)
-to public material, geometry, and fluid fields. FitTool defaults to Fast while
-preserving direct Fast/Balanced/Robust preset mapping. A0Like fitting uses adaptive selection with
-`physicalTail` termination and no fallback. S0Like fitting uses adaptive
-selection with no additional termination and no fallback.
+The fitting workflow translates the existing SI fitting parameters (`mu`,
+`etaS`, `rho`, `nu`, `thickness`, fluid density, and fluid sound speed) through
+the same model-owned request builder. FitTool defaults to Fast while preserving
+direct Fast/Balanced/Robust preset mapping. A0Like fitting uses adaptive
+selection with `physicalTail` termination and no fallback. S0Like fitting uses
+adaptive selection with no additional termination and no fallback.
 
 Objective evaluations, automatic full-curve diagnostics, and explicit requested
 fitted-curve evaluations use the same public solver route with the final fitted
-parameters. Characterization compares maintained consumers directly against `mrlfeSolve`.
+parameters. Characterization compares maintained consumers directly against
+`mrlfeSolve`.
 
 ## SweepTool Use
 
@@ -237,23 +260,22 @@ SweepTool_GUI
   -> mrlfeSolve, once per sweep point
 ```
 
-The sweep request mapper translates current SweepTool SI parameters (`mu`,
-`etaS`, `rho`, `nu`, `thickness`, fluid density, and fluid sound speed) to the
-public material, geometry, and fluid fields. The maintained SweepTool preset is
-public `fast`. A0Like sweeps use adaptive selection with `physicalTail`
-termination and no fallback. S0Like sweeps use adaptive selection with no
-additional termination and no fallback.
+The sweep workflow translates current SweepTool SI parameters (`mu`, `etaS`,
+`rho`, `nu`, `thickness`, fluid density, and fluid sound speed) through the same
+model-owned request builder. The maintained SweepTool default is public `fast`.
+A0Like sweeps use adaptive selection with `physicalTail` termination and no
+fallback. S0Like sweeps use adaptive selection with no additional termination
+and no fallback.
 
-SweepTool no longer delegates mRLFE solving to `guiRunMRLFEModel` and no longer
-inherits Main GUI zero-viscosity fallback. Each point stores the full public
-model result under `sweepResult.points{i}.modelResult`; aggregate sweep metadata
-reports all unique effective engines, presets, termination policies, and
-fallback policies represented by the points.
+SweepTool no longer delegates mRLFE solving to `guiRunMRLFEModel`. Each point
+stores the full public model result under `sweepResult.points{i}.modelResult`;
+aggregate sweep metadata reports the effective engines, presets, termination
+policies, and fallback policies represented by the points.
 
 ## Diagnostics and debug boundary
 
-Stable diagnostic summary fields live directly under `result.diagnostics`.
-Complete internal solver state is explicitly unstable and has one owner under
+Stable diagnostic summary fields live under `result.diagnostics`. Complete
+internal solver state is explicitly unstable and has one owner under
 `result.debug.solverResult`. It is not duplicated under diagnostics, and
 application adapters do not inspect it.
 
@@ -262,5 +284,5 @@ application adapters do not inspect it.
 See `production_core.md` for model-layer algorithm ownership. The engines are
 `elastic_adaptive` for etaS=0 and `viscoelastic_adaptive` for etaS>0.
 The real-k approximation does not solve a complex-wavenumber attenuation
-problem. Branches may be partial or quality-rejected; validMask and quality
+problem. Branches may be partial or quality-rejected; `validMask` and quality
 must be honored. Do not infer physical absence solely from a numerical cut.

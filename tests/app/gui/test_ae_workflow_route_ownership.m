@@ -1,3 +1,4 @@
+function test_ae_workflow_route_ownership()
 %TEST_AE_WORKFLOW_ROUTE_OWNERSHIP Guard maintained AE production routes.
 
 fprintf('Running AE workflow route-ownership test...\n');
@@ -66,6 +67,7 @@ for i = 1:numel(lowLevelOwners)
 end
 
 fprintf('AE workflow route-ownership test passed.\n');
+end
 
 function text = readRepoFile(repoRoot, varargin)
 text = string(fileread(fullfile(repoRoot, varargin{:})));

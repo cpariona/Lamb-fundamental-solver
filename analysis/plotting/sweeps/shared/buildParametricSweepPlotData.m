@@ -1,5 +1,5 @@
 function plotData = buildParametricSweepPlotData(sweepResults, modelName, branchName)
-%BUILDPARAMETRICSWEEPPLOTDATA Normalize RL/mRLFE sweep results for plotting.
+%BUILDPARAMETRICSWEEPPLOTDATA Normalize canonical sweep results for plotting.
 
 if ~isstruct(sweepResults) || ~isfield(sweepResults, 'results') || ...
         ~isfield(sweepResults, 'spec') || ~isfield(sweepResults, 'displayValues')
@@ -23,7 +23,7 @@ for i = 1:numel(sweepResults.results)
         curves(i).Cp_mps = branch.phaseVelocity_mps(:);
         curves(i).valid = getBranchValidityMask(branch);
     end
-    curves(i).legendLabel = makeLegendLabel(sweepResults, i);
+    curves(i).legendLabel = makeLegendLabel(sweepResults, modelName, i);
 end
 
 plotData = struct();
@@ -48,16 +48,20 @@ if isfield(result, 'model') && string(result.model) == "mrlfe" && ...
     return;
 end
 
+if isfield(result, 'model') && string(result.model) == "acoustoelastic_iop_hgo" && ...
+        string(result.branch) == branchName
+    branch = result;
+end
 end
 
 function valid = getBranchValidityMask(branch)
 valid = logical(branch.validMask(:)) & isfinite(branch.phaseVelocity_mps(:));
 end
 
-function txt = makeLegendLabel(sweepResults, idx)
+function txt = makeLegendLabel(sweepResults, modelName, idx)
 spec = sweepResults.spec;
 value = sweepResults.displayValues(idx);
-label = compactLabel(string(sweepResults.parameter));
+label = compactLabel(string(sweepResults.parameter), modelName);
 if isfield(spec, 'units') && strlength(string(spec.units)) > 0
     txt = sprintf('%s = %.4g %s', label, value, string(spec.units));
 else
@@ -69,6 +73,8 @@ function titleText = makeTitle(modelName, branchName, spec)
 modelLabel = modelName;
 if modelName == "mRLFERealK" || modelName == "mRLFEViscoRealK"
     modelLabel = "mRLFE";
+elseif modelName == "AcoustoelasticIOPHGO"
+    modelLabel = "AE IOP/HGO";
 end
 branchLabel = formatBranch(branchName);
 sweepLabel = string(spec.label);
@@ -81,15 +87,21 @@ switch string(branchName)
         label = "A0-like";
     case "S0Like"
         label = "S0-like";
+    case "atlasA0"
+        label = "A0-like";
     otherwise
         label = string(branchName);
 end
 end
 
-function label = compactLabel(parameter)
+function label = compactLabel(parameter, modelName)
 switch string(parameter)
     case "thickness"
-        label = "2h";
+        if string(modelName) == "AcoustoelasticIOPHGO"
+            label = "h";
+        else
+            label = "2h";
+        end
     otherwise
         label = string(parameter);
 end
@@ -120,6 +132,16 @@ if modelName == "mRLFERealK" || modelName == "mRLFEViscoRealK"
             lines(end+1, 1) = "etaS = " + sprintf('%.3g Pa*s', options.mrlfeParams.etaS);
         end
     end
+    return;
+end
+
+if modelName == "AcoustoelasticIOPHGO"
+    lines = addIfFixed(lines, sweptParameter, "IOP", "IOP = " + formatValue(params, 'IOP', 133.322, '%.1f', 'mmHg'));
+    lines = addIfFixed(lines, sweptParameter, "mu", "mu = " + formatValue(params, 'mu', 1e3, '%.1f', 'kPa'));
+    lines = addIfFixed(lines, sweptParameter, "k1", "k1 = " + formatValue(params, 'k1', 1e3, '%.1f', 'kPa'));
+    lines = addIfFixed(lines, sweptParameter, "k2", "k2 = " + formatValue(params, 'k2', 1, '%.0f', ''));
+    lines = addIfFixed(lines, sweptParameter, "thickness", "h = " + formatValue(params, 'thickness', 1e-6, '%.0f', 'um'));
+    lines = addIfFixed(lines, sweptParameter, "R", "R = " + formatValue(params, 'R', 1e-3, '%.1f', 'mm'));
 end
 end
 

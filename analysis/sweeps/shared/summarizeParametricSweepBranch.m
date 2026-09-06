@@ -8,10 +8,6 @@ function summaryTable = summarizeParametricSweepBranch(sweepResults, modelName, 
 % points, the frequency range reached by the branch, Cp range, and elapsed
 % solver time.
 %
-% Examples:
-%   T = summarizeParametricSweepBranch(S, "mRLFERealK", "A0Like");
-%   T = summarizeParametricSweepBranch(S, "RayleighLamb", "A0");
-%
 % Optional name-value arguments:
 %   'Print'              true/false, display table in command window.
 %   'ReachedToleranceHz' tolerance used to decide whether fmax was reached.
@@ -106,7 +102,6 @@ summaryTable = table(caseIndex, parameterValue, displayValue, ...
 
 summaryTable.Properties.Description = sprintf('%s / %s parametric sweep summary', ...
     modelName, branchName);
-
 summaryTable.Properties.UserData = struct( ...
     'modelName', modelName, ...
     'branchName', branchName, ...
@@ -138,6 +133,10 @@ if isfield(result, 'model') && string(result.model) == "mrlfe" && ...
     return;
 end
 
+if isfield(result, 'model') && string(result.model) == "acoustoelastic_iop_hgo" && ...
+        string(result.branch) == branchName
+    branch = result;
+end
 end
 
 function valid = getBranchValidityMask(branch)

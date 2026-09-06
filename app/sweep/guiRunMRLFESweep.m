@@ -59,7 +59,7 @@ end
 end
 
 function result = evaluateMRLFE(params, options, branchName)
-frequency_Hz = rlBuildFrequencyVector(params).';
+frequency_Hz = buildFrequencyVector(params).';
 request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
 result = mrlfeSolve(request);
 end

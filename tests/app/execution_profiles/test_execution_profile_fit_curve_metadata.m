@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_execution_profile_fit_curve_metadata()
+%TEST_EXECUTION_PROFILE_FIT_CURVE_METADATA Validate fitted-curve profile metadata.
+
 fprintf('\nRunning execution profile fit curve metadata test...\n');
 fprintf('--------------------------------------------------\n');
 
@@ -75,6 +76,7 @@ assert(mrlfeFit.normalized.fullCurve.executionProfile.profileSupportMode == "dir
     'mRLFE fitted curve should report direct profile support without override.');
 
 fprintf('Execution profile fit curve metadata test passed.\n');
+end
 
 function fitOptions = shortFitOptions(maxIter, maxFunEvals, tolX)
 fitOptions = struct('useStandardErrorWeights', false, ...

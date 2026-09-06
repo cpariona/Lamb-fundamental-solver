@@ -1,11 +1,7 @@
 function normalized = guiNormalizeAcoustoelasticIOPHGOSweep(sweepResult, summary, request)
-%GUINORMALIZEACOUSTOELASTICIOPHGOSWEEP Normalize Acoustoelastic IOP/HGO sweep output.
-%
-% The normalized curve schema matches guiPlotSweepResult and keeps official
-% atlasA0 outputs separate from diagnostic branch information.
+%GUINORMALIZEACOUSTOELASTICIOPHGOSWEEP Normalize canonical AE sweep output.
 
-conditions = sweepResult.conditions;
-n = numel(conditions);
+n = numel(sweepResult.results);
 curves = repmat(struct( ...
     'label', "", ...
     'sweepValue', nan, ...
@@ -17,26 +13,28 @@ curves = repmat(struct( ...
     'rawBranch', []), 1, n);
 
 for i = 1:n
-    condition = conditions(i);
-    result = condition.result;
-
-    curves(i).label = string(condition.sweepValueDisplay);
-    curves(i).sweepValue = condition.sweepValue;
-    curves(i).sweepValueDisplay = condition.sweepValueDisplay;
+    result = sweepResult.results{i};
+    curves(i).label = formatDisplayValue(sweepResult, i);
+    curves(i).sweepValue = sweepResult.values(i);
+    curves(i).sweepValueDisplay = sweepResult.displayValues(i);
     curves(i).rawBranch = result;
+
+    if isempty(result) || ~isstruct(result) || ~isfield(result, 'frequency_Hz')
+        curves(i).frequency_Hz = nan;
+        curves(i).Cp_mps = nan;
+        curves(i).validMask = false;
+        continue;
+    end
 
     frequency = result.frequency_Hz(:);
     cp = result.phaseVelocity_mps(:);
-    valid = result.validMask(:);
-    valid = valid & isfinite(frequency) & isfinite(cp);
+    valid = logical(result.validMask(:)) & isfinite(frequency) & isfinite(cp);
 
     curves(i).frequency_Hz = frequency;
     curves(i).Cp_mps = cp;
     curves(i).validMask = valid;
-
     if any(valid)
-        lastIdx = find(valid, 1, 'last');
-        curves(i).lastValidFrequency_Hz = frequency(lastIdx);
+        curves(i).lastValidFrequency_Hz = frequency(find(valid, 1, 'last'));
     end
 end
 
@@ -52,9 +50,25 @@ normalized.curves = curves;
 normalized.summaryTable = summary.conditionTable;
 normalized.dispersionTable = summary.dispersionTable;
 normalized.branchTable = summary.branchTable;
-normalized.metadata = struct();
-normalized.metadata.request = request;
-normalized.metadata.policy = "atlasA0";
+normalized.metadata = struct('request', request, 'policy', "atlasA0");
+end
+
+function text = formatDisplayValue(sweepResult, index)
+value = sweepResult.displayValues(index);
+formatSpec = "%.6g";
+units = "";
+if isfield(sweepResult, 'spec')
+    if isfield(sweepResult.spec, 'valueFormatter')
+        formatSpec = string(sweepResult.spec.valueFormatter);
+    end
+    if isfield(sweepResult.spec, 'units')
+        units = string(sweepResult.spec.units);
+    end
+end
+text = string(sprintf(char(formatSpec), value));
+if strlength(units) > 0
+    text = text + " " + units;
+end
 end
 
 function value = getRequestField(request, fieldName, defaultValue)

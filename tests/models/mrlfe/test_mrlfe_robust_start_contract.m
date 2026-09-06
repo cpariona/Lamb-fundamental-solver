@@ -1,12 +1,6 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_mrlfe_robust_start_contract()
 %TEST_MRLFE_ROBUST_START_CONTRACT Verify forward-only A0Like recovery.
 
-% Reproduce the observed failure pattern: a very low first frequency followed
-% by a jump that prevents the original forward tracker from establishing A0Like.
 solveFrequency_Hz = unique([10; (184:150:4000).'; 4000]);
 requestedFrequency_Hz = [10 184 500 1000 2000 4000].';
 
@@ -99,6 +93,7 @@ assert(~result.fallback.applied, ...
 
 fprintf(['test_mrlfe_robust_start_contract passed. A0Like recovers forward from a ' ...
     'stable start while preserving invalid lower frequencies.\n']);
+end
 
 function runLength = countInitialValidRun(validMask)
 validMask = logical(validMask(:));

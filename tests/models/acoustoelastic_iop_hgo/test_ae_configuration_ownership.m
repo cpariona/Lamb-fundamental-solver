@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_ae_configuration_ownership()
 profiles = ["Fast", "Balanced", "Robust"];
 expectedY = [300, 600, 900];
 expectedTopN = [12, 16, 20];
@@ -72,6 +68,7 @@ assertGrid([200, 75, 200, NaN, -10], boundaryOptions, ...
 assert(isempty(aeBuildInternalTrackingGrid([NaN, -1, 0], gridOptions)));
 
 fprintf('test_ae_configuration_ownership passed.\n');
+end
 
 function text = readMatlabTree(root)
 files = dir(fullfile(root, '**', '*.m'));

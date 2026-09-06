@@ -1,7 +1,5 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
+function test_mrlfe_production_core_contract()
+%TEST_MRLFE_PRODUCTION_CORE_CONTRACT Validate production-core ownership and metadata.
 
 fprintf('\nRunning mRLFE production core contract test...\n');
 fprintf('---------------------------------------------\n');
@@ -73,6 +71,7 @@ assert(elastic.execution.internalEngine == "elastic_adaptive", ...
     'Effective engine name must be neutral for zero-viscosity cases.');
 
 fprintf('mRLFE production core contract test passed.\n');
+end
 
 function assertFunctionsOnPath(functionNames)
 for i = 1:numel(functionNames)

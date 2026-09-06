@@ -4,7 +4,7 @@ function result = aeBuildResult(spec)
 % spec.baseResult may contain an already-built tracking-grid result.
 % spec.fields are assigned before quality/diagnostic summaries.
 % spec.postSummaryFields are assigned after those summaries to preserve the
-% established field order for diagnostic extensions and wrapper metadata.
+% established diagnostic extensions and wrapper metadata.
 
 if isfield(spec, 'baseResult') && ~isempty(spec.baseResult)
     result = spec.baseResult;
@@ -67,6 +67,11 @@ if isfield(result, 'validCp')
     result.validMask = logical(result.validCp);
     result = rmfield(result, 'validCp');
 end
+
+result.frequency_Hz = result.frequency_Hz(:);
+result.phaseVelocity_mps = result.phaseVelocity_mps(:);
+result.validMask = logical(result.validMask(:));
+result.phaseVelocity_mps(~result.validMask) = nan;
 result.wavenumber_radpm = nan(size(result.phaseVelocity_mps));
 valid = result.validMask & isfinite(result.frequency_Hz) & ...
     isfinite(result.phaseVelocity_mps) & result.phaseVelocity_mps > 0;
@@ -88,8 +93,8 @@ diagnostics.interpolatedPoints = nnz(result.interpolatedCp);
 diagnostics.missingBranchPoints = nnz(~result.validMask);
 diagnostics.selectedBranchID = result.selectedBranchID;
 diagnostics.policyName = string(result.options.atlasBranchPolicy);
-diagnostics.lastValidFrequency_kHz = result.quality.LastValidFrequency_kHz;
-diagnostics.validFraction = result.quality.ValidFraction;
+diagnostics.lastValidFrequency_kHz = result.quality.lastValidFrequency_kHz;
+diagnostics.validFraction = result.quality.validFraction;
 if any(result.validMask)
     diagnostics.minCp = min(result.phaseVelocity_mps(result.validMask));
     diagnostics.maxCp = max(result.phaseVelocity_mps(result.validMask));

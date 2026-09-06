@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_fit_public_solver_characterization()
+%TEST_MRLFE_FIT_PUBLIC_SOLVER_CHARACTERIZATION Compare fitting evaluator with direct public solves.
+
 fprintf('\nRunning mRLFE fitting public-solver characterization test...\n');
 fprintf('------------------------------------------------------------\n');
 
@@ -84,3 +85,4 @@ fprintf('Maximum Cp absolute difference: %.15g m/s\n', maxAbsDiff_mps);
 fprintf('Maximum Cp relative difference: %.15g\n', maxRelDiff);
 fprintf('Valid-mask differences: %d\n', validMaskDifferences);
 fprintf('\nmRLFE fitting public-solver characterization test passed.\n');
+end

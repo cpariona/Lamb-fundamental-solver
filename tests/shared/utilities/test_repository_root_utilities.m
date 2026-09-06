@@ -1,3 +1,6 @@
+function test_repository_root_utilities()
+%TEST_REPOSITORY_ROOT_UTILITIES Validate repository-root resolution.
+
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 
 assert(isfile(fullfile(repoRoot, 'startup.m')), ...
@@ -10,3 +13,4 @@ assert(strcmp(testRepositoryRoot(fullfile(repoRoot, 'tests', 'runners', 'run_qui
     'testRepositoryRoot should resolve runner implementations.');
 
 fprintf('test_repository_root_utilities passed. Repository-root resolution is path independent.\n');
+end

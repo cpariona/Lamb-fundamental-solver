@@ -1,14 +1,11 @@
+function test_gui_sweep_adapters_smoke()
 %TEST_GUI_SWEEP_ADAPTERS_SMOKE Smoke test for GUI sweep adapter dispatch.
-%
-% This test validates the non-interactive SweepTool path:
-% guiBuildSweepRequest -> guiRunSweep -> model adapter -> normalized curves.
 
 fprintf('Running GUI sweep adapters smoke test...\n');
-
 testMRLFEAdapter();
 testRLAdapter();
-
 fprintf('GUI sweep adapters smoke test passed.\n');
+end
 
 function testMRLFEAdapter()
 params = rlDefaultParams();
@@ -37,21 +34,17 @@ request = guiBuildSweepRequest("mrlfe", ...
     'outputTaskName', "test_mrlfe_sweep");
 
 sweepOutput = guiRunSweep(request);
-
 assert(isstruct(sweepOutput), 'GUI sweep adapter must return a struct.');
-assert(isfield(sweepOutput, 'sweepResult'), 'GUI sweep output must include sweepResult.');
-assert(isfield(sweepOutput, 'summaryTable'), 'GUI sweep output must include summaryTable.');
-assert(isfield(sweepOutput, 'normalized'), 'GUI sweep output must include normalized output.');
-assert(string(sweepOutput.modelFamily) == "mrlfe", 'GUI sweep output modelFamily must be mrlfe.');
-assert(string(sweepOutput.modelName) == "mRLFERealK", 'Unified mRLFE sweep must use mRLFERealK.');
-assert(string(sweepOutput.branchName) == "A0Like", 'Sweep branch must be A0Like.');
-assert(isequal(sweepOutput.sweepSpec.values, [60 75] * 1e3), ...
-    'mRLFE mu displayScale must propagate to solver-unit sweep values.');
-
-assert(numel(sweepOutput.sweepResult.results) == 2, 'GUI sweep must run one result per sweep value.');
-assert(height(sweepOutput.summaryTable) == 2, 'GUI sweep summary must have one row per sweep value.');
-assert(numel(sweepOutput.normalized.curves) == 2, 'Normalized sweep must have one curve per requested value.');
-
+assert(isfield(sweepOutput, 'sweepResult'));
+assert(isfield(sweepOutput, 'summaryTable'));
+assert(isfield(sweepOutput, 'normalized'));
+assert(string(sweepOutput.modelFamily) == "mrlfe");
+assert(string(sweepOutput.modelName) == "mRLFERealK");
+assert(string(sweepOutput.branchName) == "A0Like");
+assert(isequal(sweepOutput.sweepSpec.values, [60 75] * 1e3));
+assert(numel(sweepOutput.sweepResult.results) == 2);
+assert(height(sweepOutput.summaryTable) == 2);
+assert(numel(sweepOutput.normalized.curves) == 2);
 assertNormalizedCurves(sweepOutput.normalized.curves);
 end
 
@@ -62,9 +55,7 @@ params.fmax = 300;
 params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
-controls = struct();
-controls.robustness = "Fast";
-
+controls = struct('robustness', "Fast");
 request = guiBuildSweepRequest("rayleigh_lamb", ...
     'modelLabel', "Rayleigh-Lamb", ...
     'branchName', "A0", ...
@@ -79,34 +70,29 @@ request = guiBuildSweepRequest("rayleigh_lamb", ...
     'outputTaskName', "test_rl_sweep");
 
 sweepOutput = guiRunSweep(request);
-
 assert(isstruct(sweepOutput), 'RL GUI sweep adapter must return a struct.');
-assert(isfield(sweepOutput, 'sweepResult'), 'RL GUI sweep output must include sweepResult.');
-assert(isfield(sweepOutput, 'summaryTable'), 'RL GUI sweep output must include summaryTable.');
-assert(isfield(sweepOutput, 'normalized'), 'RL GUI sweep output must include normalized output.');
-assert(string(sweepOutput.modelFamily) == "rayleigh_lamb", 'RL GUI sweep output modelFamily must be rayleigh_lamb.');
-assert(string(sweepOutput.modelName) == "RayleighLamb", 'RL sweep must use RayleighLamb modelName.');
-assert(string(sweepOutput.branchName) == "A0", 'RL sweep branch must be A0.');
-
-assert(isequal(sweepOutput.sweepSpec.values, [0.3 0.4] * 1e-3), ...
-    'RL displayScale must propagate to solver-unit sweep values.');
-assert(string(sweepOutput.sweepSpec.units) == "mm", ...
-    'RL displayUnit must propagate to sweepSpec units.');
-assert(numel(sweepOutput.sweepResult.results) == 2, 'RL GUI sweep must run one result per sweep value.');
-assert(height(sweepOutput.summaryTable) == 2, 'RL GUI sweep summary must have one row per sweep value.');
-assert(numel(sweepOutput.normalized.curves) == 2, 'RL normalized sweep must have one curve per requested value.');
-
+assert(isfield(sweepOutput, 'sweepResult'));
+assert(isfield(sweepOutput, 'summaryTable'));
+assert(isfield(sweepOutput, 'normalized'));
+assert(string(sweepOutput.modelFamily) == "rayleigh_lamb");
+assert(string(sweepOutput.modelName) == "RayleighLamb");
+assert(string(sweepOutput.branchName) == "A0");
+assert(isequal(sweepOutput.sweepSpec.values, [0.3 0.4] * 1e-3));
+assert(string(sweepOutput.sweepSpec.units) == "mm");
+assert(numel(sweepOutput.sweepResult.results) == 2);
+assert(height(sweepOutput.summaryTable) == 2);
+assert(numel(sweepOutput.normalized.curves) == 2);
 assertNormalizedCurves(sweepOutput.normalized.curves);
 end
 
 function assertNormalizedCurves(curves)
 for i = 1:numel(curves)
     curve = curves(i);
-    assert(isfield(curve, 'frequency_Hz') && ~isempty(curve.frequency_Hz), 'Normalized curve must include frequency_Hz.');
-    assert(isfield(curve, 'Cp_mps') && ~isempty(curve.Cp_mps), 'Normalized curve must include Cp_mps.');
-    assert(isfield(curve, 'validMask') && ~isempty(curve.validMask), 'Normalized curve must include validMask.');
-    assert(isequal(size(curve.frequency_Hz), size(curve.Cp_mps)), 'Normalized frequency and Cp vectors must match.');
-    assert(isequal(size(curve.Cp_mps), size(curve.validMask)), 'Normalized Cp and validity vectors must match.');
-    assert(any(isfinite(curve.Cp_mps(:))), 'Normalized curve must contain finite Cp values.');
+    assert(isfield(curve, 'frequency_Hz') && ~isempty(curve.frequency_Hz));
+    assert(isfield(curve, 'Cp_mps') && ~isempty(curve.Cp_mps));
+    assert(isfield(curve, 'validMask') && ~isempty(curve.validMask));
+    assert(isequal(size(curve.frequency_Hz), size(curve.Cp_mps)));
+    assert(isequal(size(curve.Cp_mps), size(curve.validMask)));
+    assert(any(isfinite(curve.Cp_mps(:))));
 end
 end

@@ -1,3 +1,4 @@
+function test_gui_struct_helpers_contract()
 %TEST_GUI_STRUCT_HELPERS_CONTRACT Contract tests for GUI struct helpers.
 
 base = struct('a', 1, 'b', 2);
@@ -32,3 +33,4 @@ assert(guiGetStructField([], 'missing', "fallback") == "fallback", ...
     'guiGetStructField should return defaults for non-struct inputs.');
 
 fprintf('test_gui_struct_helpers_contract passed. GUI struct helpers preserve adapter overlay semantics.\n');
+end

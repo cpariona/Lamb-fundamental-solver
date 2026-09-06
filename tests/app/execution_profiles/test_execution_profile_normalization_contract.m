@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_execution_profile_normalization_contract()
 fprintf('\nRunning execution profile normalization contract test...\n');
 fprintf('------------------------------------------------\n');
 
@@ -120,6 +116,7 @@ assertDocContains(fullfile('docs', 'workflows', 'sweeps', 'sweep_tool_usage.md')
     'Execution profile: Fast');
 
 fprintf('Execution profile normalization contract test passed.\n');
+end
 
 function assertRegistryProfiles(registry, label)
 profiles = guiExecutionProfileValues();

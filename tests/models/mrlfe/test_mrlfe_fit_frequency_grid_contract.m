@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_fit_frequency_grid_contract()
+%TEST_MRLFE_FIT_FREQUENCY_GRID_CONTRACT Validate optimized fitting grid construction.
+
 fprintf('\nRunning mRLFE optimized fit-grid contract test...\n');
 fprintf('-------------------------------------------------\n');
 
@@ -31,3 +32,4 @@ assert(manyMetadata.preservedRequestedFrequencies, ...
     'Large requested grid preservation metadata mismatch.');
 
 fprintf('mRLFE optimized fit-grid contract test passed.\n');
+end

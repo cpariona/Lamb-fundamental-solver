@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_mrlfe_numerical_preset_grids()
 %TEST_MRLFE_NUMERICAL_PRESET_GRIDS Verify production preset grid contracts.
 
 requestedFrequency_Hz = [10 500 1000 2000].';
@@ -43,7 +39,6 @@ for i = 1:numel(presetNames)
         'Production preset grids must use the validated constant step above 500 Hz.');
 end
 
-% Diagnostic override must remain exact and take precedence over the preset.
 override_Hz = [10 100 500 777 1200 2000].';
 request = makeRequest(requestedFrequency_Hz, "robust");
 request.numerics.frequencySolveOverride_Hz = override_Hz;
@@ -56,13 +51,11 @@ assert(problem.frequencyGrid.source == "diagnosticOverride", ...
 assert(isnan(problem.frequencyGrid.configuredStep_Hz), ...
     'Override metadata must not report a preset step as the active grid step.');
 
-% Public output frequency contract must remain unchanged.
 request = makeRequest(requestedFrequency_Hz, "fast");
 result = mrlfeSolve(request);
 assert(isequal(result.frequency_Hz(:), requestedFrequency_Hz), ...
     'Numerical preset grids must not change the public requested-frequency output grid.');
 
-% Unsupported names must be rejected by the maintained preset resolver.
 didReject = false;
 try
     mrlfeGetNumericalPreset("unsupported");
@@ -73,6 +66,7 @@ assert(didReject, 'Unsupported numerical preset names must be rejected.');
 
 fprintf(['test_mrlfe_numerical_preset_grids passed. Production presets use ' ...
     'validated hybrid solve grids while preserving override and public-output contracts.\n']);
+end
 
 function request = makeRequest(frequency_Hz, presetName)
 request = struct();

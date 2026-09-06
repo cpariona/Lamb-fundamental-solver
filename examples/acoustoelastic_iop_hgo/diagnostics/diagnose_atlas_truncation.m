@@ -34,7 +34,7 @@ for i = 1:numel(cases)
         continue;
     end
 
-    result = data.sweepResult.conditions(idx).result;
+    result = data.sweepResult.results{idx};
     diagnosis = aeDiagnoseAtlasA0TruncationCause(result, 'Label', spec.caseName);
 
     key = matlab.lang.makeValidName(spec.caseName);
@@ -100,8 +100,8 @@ end
 
 function idx = findConditionIndex(sweepResult, sweepField, targetValue, tol)
 idx = [];
-for i = 1:numel(sweepResult.conditions)
-    params = sweepResult.conditions(i).params;
+for i = 1:numel(sweepResult.params)
+    params = sweepResult.params{i};
     if isfield(params, char(sweepField))
         value = params.(char(sweepField));
         if abs(value - targetValue) <= tol * max(abs(targetValue), 1)

@@ -1,7 +1,7 @@
+function test_main_gui_export_contract()
 %TEST_MAIN_GUI_EXPORT_CONTRACT Validate compact normalized Main GUI exports.
 
 fprintf('Running Main GUI export contract test...\n');
-
 frequency = [1000; 2000; 3000];
 
 %% Rayleigh-Lamb
@@ -22,19 +22,19 @@ mrlfeParameters = struct('modelType', "ShearPoisson", 'rho_kg_m3', 1000, ...
     'fluidDensity_kg_m3', 1000, 'fluidSoundSpeed_m_s', 1500, 'etaS_Pa_s', 0.05);
 mrlfeExport = guiBuildMainResultExport(mrlfeResult, mrlfeParameters);
 assertExportContract(mrlfeExport, 1, mrlfeParameters);
-assert(isequal(mrlfeExport.curves(1).data.Valid, [true; false; true]), ...
+assert(isequal(mrlfeExport.curves.data.Valid, [true; false; true]), ...
     'Exported validity must preserve normalized branch validity.');
 
 %% AE IOP/HGO
- aeResult = struct();
- aeResult.branches = makeBranch("AcoustoelasticIOPHGO", "A0", frequency, ...
+aeResult = struct();
+aeResult.branches = makeBranch("AcoustoelasticIOPHGO", "atlasA0", frequency, ...
     [5.2; 5.8; 6.4], [true; true; true]);
- aeParameters = struct('modelType', "ShearPoisson", 'rho_kg_m3', 1050, ...
+aeParameters = struct('modelType', "ShearPoisson", 'rho_kg_m3', 1050, ...
     'mu_Pa', 80000, 'nu', 0.49, 'thickness_m', 5.5e-4, ...
     'IOP_mmHg', 15, 'radius_mm', 7.8, 'k1_Pa', 25000, 'k2', 100, ...
     'fluidDensity_kg_m3', 1000, 'fluidBulkModulus_Pa', 2.2e9);
- aeExport = guiBuildMainResultExport(aeResult, aeParameters);
- assertExportContract(aeExport, 1, aeParameters);
+aeExport = guiBuildMainResultExport(aeResult, aeParameters);
+assertExportContract(aeExport, 1, aeParameters);
 
 %% Save contract
 filePath = [tempname, '.mat'];
@@ -48,10 +48,12 @@ assert(isequal(saved.LambExport.parameters, aeParameters), ...
     'Saved physical parameters must match the captured GUI parameters.');
 
 fprintf('Main GUI export contract test passed.\n');
+end
 
 function branch = makeBranch(modelName, branchName, frequency, phaseVelocity, valid)
 branch = struct();
 branch.modelName = modelName;
+branch.rawModelName = modelName;
 branch.branchName = branchName;
 branch.frequency = frequency(:);
 branch.phaseVelocity = phaseVelocity(:);

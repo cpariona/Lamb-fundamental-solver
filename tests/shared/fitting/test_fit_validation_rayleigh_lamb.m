@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_fit_validation_rayleigh_lamb()
+%TEST_FIT_VALIDATION_RAYLEIGH_LAMB Validate Rayleigh-Lamb synthetic fitting recovery.
+
 fprintf('\nRunning Rayleigh-Lamb fitting validation tests...\n');
 fprintf('------------------------------------------------\n');
 
@@ -54,6 +55,6 @@ fitConfig.fitOptions = struct('useStandardErrorWeights', false);
 fitResult = rlFitDispersionData(experimentalNoisy, fitConfig);
 summaryRows = [summaryRows; assertFitRecovery("RL_A0_mu_perturbed", trueParams.mu, fitResult.bestParams.mu, 0.08, fitResult, 0.20, 10)]; %#ok<AGROW>
 
-assignin('base', 'RayleighLambFitValidationSummary', summaryRows);
 disp(summaryRows);
 fprintf('\nRayleigh-Lamb fitting validation tests passed.\n');
+end

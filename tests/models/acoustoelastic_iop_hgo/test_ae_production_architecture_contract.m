@@ -1,17 +1,18 @@
 function test_ae_production_architecture_contract()
 %TEST_AE_PRODUCTION_ARCHITECTURE_CONTRACT Guard canonical AE ownership.
 
-repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+repoRoot = testRepositoryRoot();
 modelRoot = fullfile(repoRoot, 'models', 'acoustoelastic_iop_hgo');
 
 canonicalOwners = [ ...
+    "api/solveAcoustoelasticIOPHGOBranch.m"
     "configuration/aeValidateRequest.m"
     "configuration/aeResolveConfiguration.m"
     "configuration/aeGetNumericalPreset.m"
     "configuration/aeBuildInternalTrackingGrid.m"
-    "options/defaultAcoustoelasticIOPHGOOptions.m"
-    "options/aeDefaultDiagnosticOptions.m"
-    "solvers/solveAcoustoelasticIOPHGOBranch.m"
+    "configuration/defaultAcoustoelasticIOPHGOOptions.m"
+    "configuration/aeDefaultDiagnosticOptions.m"
+    "configuration/aeNormalizeBranchPolicy.m"
     "solvers/solveAcoustoelasticAtlasBranch.m"
     "solvers/aeBuildAtlas.m"
     "tracking/aeFindAtlasLocalMinima.m"
@@ -26,11 +27,13 @@ for i = 1:numel(canonicalOwners)
     assert(isfile(fullfile(modelRoot, canonicalOwners(i))), ...
         'Missing canonical AE owner: %s', canonicalOwners(i));
 end
+assert(~isfolder(fullfile(modelRoot, 'options')), ...
+    'Generic AE options must be owned by configuration/.');
 assert(~isfile(fullfile(modelRoot, 'solvers', ...
     'solveAcoustoelasticIOPHGOAtlasBranch.m')), ...
     'The obsolete AE forwarding API must remain removed.');
 
-publicOwnerText = string(fileread(fullfile(modelRoot, 'solvers', ...
+publicOwnerText = string(fileread(fullfile(modelRoot, 'api', ...
     'solveAcoustoelasticIOPHGOBranch.m')));
 for productionCall = ["aeValidateRequest"; "aeResolveConfiguration"; ...
         "computeAcoustoelasticABGFromIOPHGO"; "solveAcoustoelasticAtlasBranch"; ...

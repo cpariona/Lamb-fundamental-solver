@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_fit_validation_mrlfe_hidden_params()
+%TEST_FIT_VALIDATION_MRLFE_HIDDEN_PARAMS Validate hidden-parameter mRLFE fitting.
+
 fprintf('\nRunning mRLFE hidden-parameter fitting validation tests...\n');
 fprintf('--------------------------------------------------------\n');
 
@@ -35,6 +36,6 @@ fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
 fitResult = mrlfeFitDispersionData(experimental, fitConfig);
 summaryRows = [summaryRows; assertFitRecovery("mRLFE_A0Like_thickness_exact", trueParams.thickness, fitResult.bestParams.thickness, 0.08, fitResult, 0.15, 8)]; %#ok<AGROW>
 
-assignin('base', 'MRLFEHiddenParamFitValidationSummary', summaryRows);
 disp(summaryRows);
 fprintf('\nmRLFE hidden-parameter fitting validation tests passed.\n');
+end

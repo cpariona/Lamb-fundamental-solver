@@ -1,3 +1,4 @@
+function test_lightweight_numerical_regression()
 %TEST_LIGHTWEIGHT_NUMERICAL_REGRESSION Small deterministic solver snapshots.
 %
 % These checks are intentionally narrow: they guard stable public outputs for
@@ -104,14 +105,15 @@ aeOptions.atlasBranchPolicy = "atlasA0";
 
 aeResult = solveAcoustoelasticIOPHGOBranch(aeParams, aeOptions);
 assert(nnz(aeResult.validMask) == 35 && numel(aeResult.validMask) == 35, ...
-    'AE IOP/HGO validCp mask snapshot changed.');
-assert(string(aeResult.quality.PolicyName) == "atlasA0", ...
+    'AE IOP/HGO validMask snapshot changed.');
+assert(string(aeResult.quality.policyName) == "atlasA0", ...
     'AE IOP/HGO policy snapshot changed.');
 assertNumericClose(aeResult.phaseVelocity_mps([1 18 35]), ...
     [2.455677508988490; 4.939957050001901; 6.728343229778789], 1e-12, ...
     'AE IOP/HGO atlasA0 Cp snapshot changed.');
 
 fprintf('test_lightweight_numerical_regression passed. Solver snapshots are unchanged.\n');
+end
 
 function result = solveMRLFERegressionBranch(params, frequency_Hz, branchName)
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);

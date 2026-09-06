@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_mrlfe_public_contract_validation()
 fprintf('\nRunning mRLFE public validation contract test...\n');
 fprintf('-----------------------------------------------\n');
 
@@ -70,6 +66,7 @@ bad.fallback.policy = "legacy";
 assertInvalid(bad, 'mrlfe:InvalidFallbackPolicy');
 
 fprintf('mRLFE public validation contract test passed.\n');
+end
 
 function request = localValidRequest(branch, etaS)
 request = struct();

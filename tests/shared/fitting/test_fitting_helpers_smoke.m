@@ -1,8 +1,4 @@
-clear; clc;
-if isempty(which('mrlfeSolve'))
-    configureTestPath;
-end
-
+function test_fitting_helpers_smoke()
 fprintf('\nRunning fitting helper smoke test...\n');
 fprintf('------------------------------------\n');
 
@@ -60,6 +56,7 @@ assert(identifiability.rank == 2, 'Sensitivity matrix should be full rank.');
 assert(identifiability.classification == "locally_identifiable", 'Expected locally identifiable synthetic case.');
 
 fprintf('\nFitting helper smoke test passed.\n');
+end
 
 function assertNumericClose(actual, expected, tol, message)
 actual = actual(:);

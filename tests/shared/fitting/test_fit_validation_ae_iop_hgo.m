@@ -1,11 +1,12 @@
-clear; clc;
-configureTestPath;
+function test_fit_validation_ae_iop_hgo()
+%TEST_FIT_VALIDATION_AE_IOP_HGO Validate AE fitting recovery and app routing.
+
 fprintf('\nRunning AE IOP/HGO fitting validation tests...\n');
 fprintf('-------------------------------------------\n');
 
 summaryRows = table();
 
-%% Case 1: atlasA0 mu recovery, exact synthetic data
+% Case 1: atlasA0 mu recovery, exact synthetic data.
 trueParams = struct();
 trueParams.R = 7.8e-3;
 trueParams.thickness = 550e-6;
@@ -28,7 +29,7 @@ solverOptions.atlasInitializationNumFrequencyPoints = 50;
 
 [CpSynthetic_mps, syntheticRaw] = aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
 assert(any(syntheticRaw.validMask), 'AE validation synthetic atlasA0 output must contain valid points.');
-assert(syntheticRaw.solverResult.quality.SelectionFallbackUsed == false, ...
+assert(syntheticRaw.solverResult.quality.selectionFallbackUsed == false, ...
     'AE validation must not rely on fallback branch selection.');
 assert(string(syntheticRaw.solverResult.options.atlasBranchPolicy) == "atlasA0", ...
     'AE validation must use atlasA0 policy.');
@@ -53,7 +54,7 @@ assert(~isfield(fitResult.modelEvaluation.solverResult, 'identityA0'), ...
     'AE validation fitting output must not contain identityA0 diagnostic branch.');
 summaryRows = [summaryRows; assertFitRecovery("AE_atlasA0_mu_exact", trueParams.mu, fitResult.bestParams.mu, 0.15, fitResult, 0.50, 1)]; %#ok<AGROW>
 
-%% Case 2: App-level adapter contract for atlasA0 mu recovery
+% Case 2: app-level adapter contract for atlasA0 mu recovery.
 request = guiBuildFitRequest("acoustoelastic_iop_hgo", ...
     'branchName', "atlasA0", ...
     'mode', "basic", ...
@@ -71,6 +72,6 @@ assert(fitOutput.modelFamily == "acoustoelastic_iop_hgo", 'Unexpected AE app-lev
 assert(fitOutput.branchName == "atlasA0", 'Unexpected AE app-level branchName.');
 summaryRows = [summaryRows; assertFitRecovery("AE_atlasA0_mu_app_adapter", trueParams.mu, fitOutput.fitResult.bestParams.mu, 0.15, fitOutput.fitResult, 0.50, 1)]; %#ok<AGROW>
 
-assignin('base', 'AEIOPHGOFitValidationSummary', summaryRows);
 disp(summaryRows);
 fprintf('\nAE IOP/HGO fitting validation tests passed.\n');
+end

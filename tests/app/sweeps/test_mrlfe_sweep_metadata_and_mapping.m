@@ -1,5 +1,6 @@
-clear; clc;
-configureTestPath;
+function test_mrlfe_sweep_metadata_and_mapping()
+%TEST_MRLFE_SWEEP_METADATA_AND_MAPPING Validate sweep metadata and parameter mapping.
+
 fprintf('\nRunning mRLFE SweepTool metadata and mapping test...\n');
 fprintf('---------------------------------------------------\n');
 
@@ -63,6 +64,7 @@ end
 
 fprintf('Mixed engines: %s\n', strjoin(etaOut.metadata.internalEngines, ', '));
 fprintf('\nmRLFE SweepTool metadata and mapping test passed.\n');
+end
 
 function out = runSweep(branchName, sweepField, sweepLabel, valuesDisplay, displayUnit, displayScale, etaS)
 params = rlDefaultParams();

@@ -5,7 +5,7 @@ if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
 end
 
-params = guiMergeStructs(rlDefaultParams(), guiGetStructField(guiRequest, 'params', struct()));
+params = guiMergeStructs(mrlfeDefaultWorkflowParams(), guiGetStructField(guiRequest, 'params', struct()));
 options = guiGetStructField(guiRequest, 'options', struct());
 [profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
     'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
@@ -18,7 +18,7 @@ options.mrlfeParams = resolveMRLFEParams(guiRequest, options);
 options.mrlfeA0Policy = normalizeA0Policy(guiGetStructField(options, 'mrlfeA0Policy', "physicalTail"));
 
 branchNames = selectedBranches(options);
-frequency_Hz = rlBuildFrequencyVector(params);
+frequency_Hz = buildFrequencyVector(params);
 [modelResults, requests, elapsedSeconds] = solveBranches(params, options, frequency_Hz, branchNames);
 
 result = normalizeModelResults(modelResults);
