@@ -25,7 +25,16 @@ for iBranch = 1:numel(branches)
 
         for iPoint = 1:numel(muValues_kPa)
             point = out.sweepResult.points{iPoint};
-            direct = mrlfeSolve(out.sweepResult.requests{iPoint});
+            storedRequest = out.sweepResult.requests{iPoint};
+            assert(isstruct(storedRequest) && isfield(storedRequest, 'parameters') && ...
+                isfield(storedRequest, 'options'), ...
+                'Canonical sweep requests must preserve configuration.requested.');
+
+            pointParams = out.sweepResult.params{iPoint};
+            pointOptions = out.sweepResult.options{iPoint};
+            directRequest = mrlfeBuildSolveRequest( ...
+                pointParams, buildFrequencyVector(pointParams), branchName, pointOptions);
+            direct = mrlfeSolve(directRequest);
             modelResult = point.modelResult;
 
             assert(point.status == "ok", 'Sweep point unexpectedly failed.');
