@@ -36,7 +36,7 @@ switch string(p.Results.Context)
             end
         end
     otherwise
-        error('lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest:InvalidContext', ...
+        error('aeValidateRequest:InvalidContext', ...
             'Unknown AE validation context "%s".', string(p.Results.Context));
 end
 end

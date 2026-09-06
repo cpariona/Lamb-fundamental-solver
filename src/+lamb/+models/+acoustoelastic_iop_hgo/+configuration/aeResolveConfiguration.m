@@ -5,7 +5,7 @@ if nargin < 1 || isempty(overrides)
     overrides = struct();
 end
 if ~isstruct(overrides) || ~isscalar(overrides)
-    error('lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration:InvalidOverrides', ...
+    error('aeResolveConfiguration:InvalidOverrides', ...
         'AE configuration overrides must be a scalar struct.');
 end
 

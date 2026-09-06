@@ -3,7 +3,7 @@ function [overrides, canonicalName] = aeGetNumericalPreset(presetName)
 
 name = lower(strtrim(string(presetName)));
 if numel(name) ~= 1 || strlength(name) == 0
-    error('lamb.models.acoustoelastic_iop_hgo.configuration.aeGetNumericalPreset:InvalidPreset', ...
+    error('aeGetNumericalPreset:InvalidPreset', ...
         'AE numerical preset must be Fast, Balanced, or Robust.');
 end
 
@@ -18,7 +18,7 @@ switch name
         canonicalName = "Robust";
         overrides = struct('atlasNumYPoints', 900, 'atlasTopNMinima', 20);
     otherwise
-        error('lamb.models.acoustoelastic_iop_hgo.configuration.aeGetNumericalPreset:InvalidPreset', ...
+        error('aeGetNumericalPreset:InvalidPreset', ...
             'Unknown AE numerical preset "%s".', string(presetName));
 end
 end

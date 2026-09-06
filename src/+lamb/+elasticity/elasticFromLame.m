@@ -7,7 +7,7 @@ function elastic = elasticFromLame(lambda, mu, rho)
 %   rho    : density [kg/m^3]
 
 if nargin < 3
-    error('lamb.elasticity.elasticFromLame requires lambda, mu, and rho.');
+    error('elasticFromLame requires lambda, mu, and rho.');
 end
 
 validateattributes(lambda, {'numeric'}, {'scalar', 'real', 'finite', 'nonnegative'}, mfilename, 'lambda');

@@ -28,7 +28,10 @@ assert(contains(seedText, 'lamb.models.rayleigh_lamb.rlComputeFundamentalLambMod
     'lamb.models.mrlfe.tracking.mrlfeBuildSeed must own the explicit mRLFE -> Rayleigh-Lamb seed dependency.');
 
 rlRoot = fullfile(root, 'src', '+lamb', '+models', '+rayleigh_lamb');
+assert(isfolder(rlRoot), 'Maintained Rayleigh-Lamb package root is missing.');
 rlFiles = dir(fullfile(rlRoot, '**', '*.m'));
+assert(~isempty(rlFiles), ...
+    'Rayleigh-Lamb reverse-dependency scan must include MATLAB files.');
 for i = 1:numel(rlFiles)
     text = lower(string(fileread(fullfile(rlFiles(i).folder, rlFiles(i).name))));
     assert(~contains(text, 'mrlfe'), ...

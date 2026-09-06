@@ -5,28 +5,38 @@ fprintf('\nRunning mRLFE production dependency contract...\n');
 fprintf('---------------------------------------------\n');
 
 root = testRepositoryRoot(mfilename('fullpath'));
-productionDirs = [ ...
-    string(fullfile(root, 'src', '+lamb', '+models', '+mrlfe', 'api')); ...
-    string(fullfile(root, 'src', '+lamb', '+models', '+mrlfe', 'core')); ...
-    string(fullfile(root, 'src', '+lamb', '+models', '+mrlfe', 'solvers')); ...
-    string(fullfile(root, 'src', '+lamb', '+models', '+mrlfe', 'tracking')); ...
-    string(fullfile(root, 'src', '+lamb', '+models', '+mrlfe', 'policies')); ...
-    string(fullfile(root, 'src', '+lamb', '+models', '+mrlfe', 'results'))];
+modelRoot = fullfile(root, 'src', '+lamb', '+models', '+mrlfe');
+assert(isfolder(modelRoot), 'Maintained mRLFE package root does not exist: %s', modelRoot);
+files = dir(fullfile(modelRoot, '**', '*.m'));
+assert(~isempty(files), 'Maintained mRLFE package scan must include MATLAB files.');
+
+filePaths = strings(numel(files), 1);
+for iFile = 1:numel(files)
+    filePaths(iFile) = string(fullfile(files(iFile).folder, files(iFile).name));
+end
+normalizedRoot = replace(string(modelRoot), "\", "/") + "/";
+relativePaths = erase(replace(filePaths, "\", "/"), normalizedRoot);
+assert(any(~contains(relativePaths, "/")), ...
+    'Maintained mRLFE scan must include public package-root functions.');
+requiredPackages = [ ...
+    "+configuration", "+core", "+solvers", "+tracking", ...
+    "+policies", "+quality", "+results"];
+for iPackage = 1:numel(requiredPackages)
+    assert(any(startsWith(relativePaths, requiredPackages(iPackage) + "/")), ...
+        'Maintained mRLFE scan missed package %s.', requiredPackages(iPackage));
+end
 
 retiredNames = [ ...
     "mrlfeMakePhysicalSeedMode", ...
     "solveMRLFEBranchAdaptiveAtlas", ...
     "mrlfeApplyPhysicalCorridorCut"];
 
-for iDir = 1:numel(productionDirs)
-    files = dir(fullfile(productionDirs(iDir), '**', '*.m'));
-    for iFile = 1:numel(files)
-        filePath = fullfile(files(iFile).folder, files(iFile).name);
-        text = string(fileread(filePath));
-        for iName = 1:numel(retiredNames)
-            assert(~contains(text, retiredNames(iName)), ...
-                'Production file still references retired owner %s: %s', retiredNames(iName), filePath);
-        end
+for iFile = 1:numel(filePaths)
+    text = string(fileread(filePaths(iFile)));
+    for iName = 1:numel(retiredNames)
+        assert(~contains(text, retiredNames(iName)), ...
+            'Production file still references retired owner %s: %s', ...
+            retiredNames(iName), filePaths(iFile));
     end
 end
 

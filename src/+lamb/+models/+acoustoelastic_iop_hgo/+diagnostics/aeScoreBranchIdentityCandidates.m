@@ -103,7 +103,7 @@ for i = 1:2:numel(varargin)
         case 'strongscorethreshold'
             opts.StrongScoreThreshold = value;
         otherwise
-            error('Unknown lamb.models.acoustoelastic_iop_hgo.diagnostics.aeScoreBranchIdentityCandidates option: %s', name);
+            error('Unknown aeScoreBranchIdentityCandidates option: %s', name);
     end
 end
 end

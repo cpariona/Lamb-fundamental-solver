@@ -34,6 +34,8 @@ for i = 1:numel(expected)
 end
 
 modelFiles = dir(fullfile(repoRoot, 'src', '+lamb', '+models', '+mrlfe', '**', '*.m'));
+assert(~isempty(modelFiles), ...
+    'Maintained mRLFE ownership-prefix scan must include MATLAB files.');
 for i = 1:numel(modelFiles)
     assert(startsWith(string(erase(modelFiles(i).name, '.m')), "mrlfe"), ...
         'mRLFE model function lacks its ownership prefix: %s.', modelFiles(i).name);

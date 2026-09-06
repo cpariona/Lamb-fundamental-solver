@@ -33,7 +33,7 @@ switch method
     case "determinant"
         residual = normalizedDeterminantObjective(M);
     otherwise
-        error('lamb.models.mrlfe.core.mrlfeObjectiveResidual:UnknownMethod', ...
+        error('mrlfeObjectiveResidual:UnknownMethod', ...
             'Unknown mRLFE residual method "%s". Use "minSingularValueRatio" or "determinant".', method);
 end
 end

@@ -10,7 +10,7 @@ function elastic = elasticFromMuNu(mu, nu, rho)
 % Rayleigh-Lamb and mRLFE workflows.
 
 if nargin < 3
-    error('lamb.elasticity.elasticFromMuNu requires mu, nu, and rho.');
+    error('elasticFromMuNu requires mu, nu, and rho.');
 end
 
 validateattributes(mu, {'numeric'}, {'scalar', 'real', 'finite', 'positive'}, mfilename, 'mu');

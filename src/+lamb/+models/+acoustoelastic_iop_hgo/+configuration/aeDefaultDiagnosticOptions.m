@@ -57,7 +57,7 @@ if nargin < 1 || isempty(overrides)
     return;
 end
 if ~isstruct(overrides) || ~isscalar(overrides)
-    error('lamb.models.acoustoelastic_iop_hgo.configuration.aeDefaultDiagnosticOptions:InvalidOverrides', ...
+    error('aeDefaultDiagnosticOptions:InvalidOverrides', ...
         'Diagnostic AE option overrides must be a scalar struct.');
 end
 names = fieldnames(overrides);

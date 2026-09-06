@@ -58,8 +58,11 @@ for i = 1:numel(advancedSolvers)
     assert(~contains(productionText, advancedSolvers(i)), ...
         'Maintained AE production consumers must not call %s.', advancedSolvers(i));
 end
-assert(~isfile(fullfile(repoRoot, 'src', '+lamb', '+models', '+acoustoelastic_iop_hgo', ...
-    'solvers', 'solveAcoustoelasticIOPHGOAtlasBranch.m')), ...
+solverPackage = fullfile(repoRoot, 'src', '+lamb', '+models', ...
+    '+acoustoelastic_iop_hgo', '+solvers');
+assert(isfile(fullfile(solverPackage, 'solveAcoustoelasticAtlasBranch.m')), ...
+    'AE retired-route guard must target the maintained +solvers package.');
+assert(~isfile(fullfile(solverPackage, 'solveAcoustoelasticIOPHGOAtlasBranch.m')), ...
     'The obsolete AE forwarding API must remain removed.');
 for i = 1:numel(lowLevelOwners)
     assert(~contains(productionText, lowLevelOwners(i)), ...
@@ -74,7 +77,9 @@ text = string(fileread(fullfile(repoRoot, varargin{:})));
 end
 
 function text = readMatlabTree(root)
+assert(isfolder(root), 'Maintained MATLAB tree does not exist: %s', root);
 files = dir(fullfile(root, '**', '*.m'));
+assert(~isempty(files), 'Maintained MATLAB tree contains no MATLAB files: %s', root);
 text = "";
 for i = 1:numel(files)
     text = text + newline + string(fileread(fullfile(files(i).folder, files(i).name)));
