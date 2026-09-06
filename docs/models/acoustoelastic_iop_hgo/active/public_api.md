@@ -39,8 +39,9 @@ not another accepted production branch. See
 
 ## Workflows and limitations
 
-Reusable operations are `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData`, `aeRunSweep` (1D), and
-`aeRunGridSweep` (2D). Application adapters only translate inputs and views.
+The reusable inverse operation is `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData`.
+One- and two-dimensional sensitivity campaigns are opt-in studies, not model
+APIs. Application adapters only translate inputs and views.
 Examples are opt-in, e.g.:
 
 ```matlab

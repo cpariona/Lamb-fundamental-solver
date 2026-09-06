@@ -6,9 +6,9 @@ fprintf('------------------------------------------------\n');
 
 matrix = validateExecutionProfileMatrix('WriteCsv', false);
 
-expectedRows = 3 * 4 * numel(guiExecutionProfileValues());
+expectedRows = 2 * 4 * numel(guiExecutionProfileValues());
 assert(height(matrix) == expectedRows, ...
-    'Validation matrix should contain Main/Sweep/Fit x 4 scenarios x 3 profiles.');
+    'Validation matrix should contain Main/Fit x 4 scenarios x 3 profiles.');
 assert(all(matrix.ResultValidity), 'All validation matrix rows should have complete valid metadata.');
 assert(all(matrix.NumericalOutputAvailable), 'All validation matrix rows should produce finite numerical output.');
 

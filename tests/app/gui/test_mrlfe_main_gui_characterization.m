@@ -66,7 +66,7 @@ params.thickness = 0.5e-3;
 params.rho = 1070;
 params.nu = 0.4999;
 
-options = mrlfeDefaultSweepOptions(branchName, 'EtaS', etaS);
+options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', etaS);
 options.branchNames = branchName;
 options.mrlfeA0Policy = "physicalTail";
 options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();

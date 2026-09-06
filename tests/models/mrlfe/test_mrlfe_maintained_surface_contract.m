@@ -12,9 +12,7 @@ end
 exampleRoot = fullfile(repoRoot, 'examples', 'mrlfe');
 expected = [ ...
     "basic/run_default_mrlfe.m"
-    "fitting/fit_mrlfe_A0Like.m"
-    "sweeps/mrlfe_sweep_etaS_A0Like.m"
-    "diagnostics/validate_grid_presets.m"];
+    "fitting/fit_mrlfe_A0Like.m"];
 files = dir(fullfile(exampleRoot, '**', '*.m'));
 actual = strings(numel(files), 1);
 for i = 1:numel(files)
@@ -23,7 +21,7 @@ for i = 1:numel(files)
     actual(i) = erase(fullPath, rootPrefix);
 end
 assert(isequal(sort(actual), sort(expected)), ...
-    'Maintained mRLFE examples/diagnostics changed: %s', ...
+    'Maintained short mRLFE examples changed: %s', ...
     strjoin(setxor(actual, expected), ', '));
 
 for i = 1:numel(expected)

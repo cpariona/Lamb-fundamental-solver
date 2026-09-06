@@ -5,15 +5,17 @@ repoRoot = testRepositoryRoot(mfilename('fullpath'));
 paths = gitTrackedMatlab(repoRoot);
 
 assertLayer(repoRoot, paths, "src/+lamb/+models/", ...
-    ["src/+lamb/+fitting/", "analysis/", "app/", "examples/", "tests/"]);
+    ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "src/+lamb/+fitting/", ...
-    ["analysis/", "app/", "examples/", "tests/"]);
+    ["studies/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "src/+lamb/+elasticity/", ...
-    ["src/+lamb/+fitting/", "analysis/", "app/", "examples/", "tests/"]);
+    ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "src/+lamb/+grids/", ...
-    ["src/+lamb/+fitting/", "analysis/", "app/", "examples/", "tests/"]);
-assertLayer(repoRoot, paths, "analysis/", ["app/", "examples/", "tests/"]);
-assertLayer(repoRoot, paths, "app/", ["examples/", "tests/"]);
+    ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+sweeps/", ...
+    ["src/+lamb/+models/", "src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "studies/", ["app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "app/", ["studies/", "examples/", "tests/"]);
 assertAeInternalBoundaries(repoRoot, paths);
 
 fprintf('Repository dependency-boundary contract test passed.\n');
@@ -28,17 +30,18 @@ workflowPaths = paths( ...
     startsWith(paths, ["app/", "examples/"]) | ...
     startsWith(paths, [ ...
         "src/+lamb/+fitting/+acoustoelastic_iop_hgo/", ...
-        "analysis/sweeps/acoustoelastic_iop_hgo/"]));
+        "studies/sensitivity/acoustoelastic_iop_hgo/"]));
 assertNoCalls(repoRoot, workflowPaths, productionInternalNames, ...
     'App, workflow, and example code calls AE tracking or policy internals');
 
-diagnosticAnalysisPaths = paths(startsWith(paths, ...
-    "analysis/diagnostics/acoustoelastic_iop_hgo/") & endsWith(paths, ".m"));
-diagnosticAnalysisNames = matlabNames(diagnosticAnalysisPaths);
+diagnosticStudyPaths = paths(startsWith(paths, ...
+    "studies/solver_diagnostics/acoustoelastic_iop_hgo/") & endsWith(paths, ".m"));
+assert(~isempty(diagnosticStudyPaths), 'AE solver-diagnostic scan must not be empty.');
+diagnosticStudyNames = matlabNames(diagnosticStudyPaths);
 solverPaths = paths(startsWith(paths, ...
     "src/+lamb/+models/+acoustoelastic_iop_hgo/+solvers/") & endsWith(paths, ".m"));
-assertNoCalls(repoRoot, solverPaths, diagnosticAnalysisNames, ...
-    'AE solver calls an analysis-layer diagnostic');
+assertNoCalls(repoRoot, solverPaths, diagnosticStudyNames, ...
+    'AE solver calls a study-layer diagnostic');
 
 modelDiagnosticPaths = paths(startsWith(paths, ...
     "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/") & endsWith(paths, ".m"));
@@ -66,6 +69,7 @@ end
 
 function assertLayer(repoRoot, paths, sourcePrefix, forbiddenPrefixes)
 sourcePaths = paths(startsWith(paths, sourcePrefix));
+assert(~isempty(sourcePaths), 'Dependency scan source is empty: %s', sourcePrefix);
 forbiddenPaths = paths(startsWith(paths, forbiddenPrefixes));
 forbiddenNames = matlabNames(forbiddenPaths);
 

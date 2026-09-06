@@ -43,7 +43,7 @@ rlBranchTables = guiNormalizedBranchesToTables(rlGuiResult);
 assertBranchTablesAreValid(rlBranchTables, 'Rayleigh-Lamb normalized branch tables are invalid.');
 
 %% mRLFE normalized adapter, etaS = 0 elastic limit
-mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
+mrlfeOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', 0);
 mrlfeOptions.branchNames = "A0Like";
 mrlfeOptions.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 mrlfeOptions.mrlfeParams.solveComplexK = false;

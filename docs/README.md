@@ -62,8 +62,8 @@ docs/validation/execution_profile_diagnostics_validation.md
 ```text
 docs/workflows/sweeps/parametric_sweeps.md
 docs/workflows/sweeps/sweep_tool_usage.md
-docs/models/mrlfe/current_sweeps.md
-docs/models/acoustoelastic_iop_hgo/active/sweep_workflow.md
+docs/models/mrlfe/sensitivity_studies.md
+docs/models/acoustoelastic_iop_hgo/active/sensitivity_studies.md
 ```
 
 ## Model-family documentation
@@ -74,7 +74,7 @@ docs/models/rayleigh_lamb/public_api.md
 docs/models/rayleigh_lamb/fitting_workflow.md
 docs/models/mrlfe/README.md
 docs/models/mrlfe/fitting_workflow.md
-docs/models/mrlfe/current_sweeps.md
+docs/models/mrlfe/sensitivity_studies.md
 docs/models/acoustoelastic_iop_hgo/README.md
 ```
 

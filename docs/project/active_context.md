@@ -1,5 +1,9 @@
 # Active project context
 
+> Historical pre-issue-#139 snapshot. Current maintained architecture and
+> entrypoints are defined under `docs/repository/`; do not use this file as
+> current branching or ownership guidance.
+
 Last reviewed: 2026-09-05
 
 Repository: `cpariona/Lamb-fundamental-solver`

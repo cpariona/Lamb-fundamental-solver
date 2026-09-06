@@ -1,5 +1,9 @@
 # Integration handoff
 
+> Historical handoff for the campaign that ended at PR #137. It predates the
+> issue #139 canonical-architecture phases and is not current branching or
+> ownership guidance.
+
 Last reviewed: 2026-09-05
 
 Repository: `cpariona/Lamb-fundamental-solver`

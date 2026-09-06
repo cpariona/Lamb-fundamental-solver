@@ -1,8 +1,7 @@
 # Maintained entrypoints
 
-Run `startup` from the repository root for production APIs. Examples and
-executable diagnostics are opt-in through the explicit paths shown below.
-The six runner launchers are available but load test internals only while running.
+Run `startup` from the repository root for production APIs. The maintained
+human surfaces are the solver GUI and FitTool.
 
 ## User and model APIs
 
@@ -10,7 +9,6 @@ The six runner launchers are available but load test internals only while runnin
 runApp
 LambFundamental_GUI
 FitTool_GUI
-SweepTool_GUI
 
 lamb.models.rayleigh_lamb.rlDefaultParams
 lamb.models.rayleigh_lamb.rlDefaultOptions
@@ -25,12 +23,7 @@ lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions
 lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
 ```
 
-The supported AE production policy is `atlasA0`. Diagnostic branch algorithms
-are not alternative production APIs.
-
 ## Fitting APIs
-
-The primary family fit APIs and explicit forward evaluators are:
 
 ```matlab
 lamb.fitting.rayleigh_lamb.rlFitDispersionData
@@ -39,70 +32,32 @@ lamb.fitting.mrlfe.mrlfeFitDispersionData
 lamb.fitting.mrlfe.mrlfeEvaluateFitModel
 lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData
 lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel
-```
 
-Family-specific fitting defaults are available where the model defaults alone
-do not reproduce the established fitting setup:
-
-```matlab
 lamb.fitting.mrlfe.mrlfeDefaultFitParameters
 lamb.fitting.mrlfe.mrlfeDefaultFitOptions
 lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitParameters
 lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitOptions
 ```
 
-## Sweep analysis APIs
-
-The generic 1D workflow is `runParametricSweep`. Model sweep APIs are:
+## Generic sweep infrastructure
 
 ```matlab
-rlRunSweep
-mrlfeRunSweep
-aeRunSweep
-aeRunGridSweep
+lamb.sweeps.runParametricSweep
 ```
 
-Main GUI, SweepTool, and FitTool reach mRLFE only through `lamb.models.mrlfe.mrlfeSolve`.
-Shared optimizers, data normalizers, plot-data builders, and renderers are
-implementation helpers, not additional public model APIs.
+This function is an iteration primitive, not a family-specific scientific
+surface. Maintained campaigns and diagnostics are opt-in scripts under
+`studies/sensitivity/` and `studies/solver_diagnostics/`.
 
-## Examples
+## Examples and studies
 
-Rayleigh-Lamb:
-
-```matlab
-run('examples/rayleigh_lamb/basic/run_default_A0_S0.m')
-run('examples/rayleigh_lamb/fitting/fit_default_A0.m')
-run('examples/rayleigh_lamb/sweeps/rl_sweep_thickness_A0.m')
-```
-
-mRLFE:
+Short solver/fitting examples remain under `examples/<family>/basic/` and
+`examples/<family>/fitting/`. Nontrivial campaigns and investigations run by
+explicit file path, for example:
 
 ```matlab
-run('examples/mrlfe/basic/run_default_mrlfe.m')
-run('examples/mrlfe/fitting/fit_mrlfe_A0Like.m')
-run('examples/mrlfe/sweeps/mrlfe_sweep_etaS_A0Like.m')
-```
-
-AE IOP/HGO:
-
-```matlab
-run('examples/acoustoelastic_iop_hgo/basic/run_atlas_branch.m')
-run('examples/acoustoelastic_iop_hgo/fitting/fit_ae_atlasA0.m')
-run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_iop_A0Like.m')
-run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_mu_iop_A0Like.m')
-```
-
-## Diagnostics
-
-```matlab
-run('examples/mrlfe/diagnostics/validate_grid_presets.m')
-
-run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_atlas_truncation.m')
-run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_branch_families.m')
-run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_grid_start_sensitivity.m')
-run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_modal_atlas.m')
-run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_sweep_reliability.m')
+run('studies/sensitivity/mrlfe/study_etaS_A0Like.m')
+run('studies/solver_diagnostics/mrlfe/investigate_mrlfe_grid_presets.m')
 ```
 
 ## Validation
@@ -116,5 +71,4 @@ run_extended_integration_tests
 run_performance_and_benchmark_tests
 ```
 
-These are the complete maintained runner surface. Detailed ownership is in
-`../../tests/README.md`.
+These are the complete maintained runner surface.

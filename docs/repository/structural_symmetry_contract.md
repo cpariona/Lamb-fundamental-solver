@@ -158,7 +158,8 @@ normalized fit-output spine and does not own model physics.
 
 ## One-dimensional sweep contract
 
-All maintained one-dimensional sweeps use `runParametricSweep` as the iteration
+All maintained one-dimensional sensitivity studies use
+`lamb.sweeps.runParametricSweep` as the iteration
 owner and retain its primary result structure:
 
 ```text
@@ -215,9 +216,8 @@ Model-specific evidence belongs below `metadata` or `diagnostics`; it must not
 change the normalized spine. `guiBuildModelResultView` or its maintained
 replacement is the single normalization owner.
 
-SweepTool normalized curves likewise use one common curve schema. Extra
-model-specific tables/evidence belong in aggregate metadata rather than changing
-the curve fields.
+Sensitivity-study plot adapters use one common curve schema. Extra model-specific
+tables/evidence belong in study metadata rather than changing curve fields.
 
 ## Test contract
 

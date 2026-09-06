@@ -1,188 +1,23 @@
-# Execution Profile Surface Integration
+# Execution-profile surface integration
 
-## Summary
+The solver GUI defaults to Balanced and FitTool defaults to Fast. Both expose
+Fast, Balanced, and Robust where supported. The field `executionProfile` is the
+canonical app request; `robustness` remains an app-normalization compatibility
+alias.
 
-The centralized `executionProfile` infrastructure is integrated across the three
-user-facing surfaces without changing equations, physical defaults, optimizer
-options, or branch policies.
+| Model | Solver GUI | FitTool |
+| --- | --- | --- |
+| Rayleigh-Lamb | direct Fast/Balanced/Robust solver options | same solver options through fitting |
+| mRLFE | direct public numerical preset | direct public numerical preset through fitting |
+| AE IOP/HGO | atlas preset plus explicit controls | atlas preset plus explicit controls |
 
-Visible surface defaults are:
+## execution-profile metadata contract
 
-| Surface | Default execution profile |
-| --- | --- |
-| `LambFundamental_GUI` | `Balanced` |
-| `SweepTool_GUI` | `Fast` |
-| `FitTool_GUI` | `Fast` |
+App results record requested/effective profile, source/default, internal solver
+or atlas preset, route policy, override status/reason, supported profiles, and
+surface default. A requested profile does not alter physical parameters or
+branch policy.
 
-The historical `robustness` field remains a compatibility alias. New GUI-facing
-code should prefer `executionProfile` in requests and metadata.
-
-## Support Matrix
-
-| Model | Main GUI | SweepTool | FitTool |
-| --- | --- | --- | --- |
-| Rayleigh-Lamb | `Fast`, `Balanced`, `Robust` supported through `lamb.models.rayleigh_lamb.rlDefaultOptions` | all three profiles supported; default `Fast` | all three profiles supported; default `Fast` |
-| AE IOP/HGO | all three profiles map to AE atlas density; default `Balanced` | all three profiles map to AE atlas density; default `Fast` | all three profiles map to AE atlas density; default `Fast` |
-| mRLFE | all three profiles map directly to the matching public numerical preset; default `Balanced` | all three profiles map directly to the matching public numerical preset; default `Fast` | all three profiles map directly to the matching public numerical preset; default `Fast` |
-
-AE profile mapping remains:
-
-| Profile | `atlasNumYPoints` | `atlasTopNMinima` |
-| --- | ---: | ---: |
-| `Fast` | 300 | 12 |
-| `Balanced` | 600 | 16 |
-| `Robust` | 900 | 20 |
-
-`src/+lamb/+models/+acoustoelastic_iop_hgo/+configuration/aeGetNumericalPreset.m` is the
-single owner of these values. AE app resolvers normalize the visible profile
-and delegate effective configuration to `lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration`.
-
-mRLFE profile mapping is:
-
-| Execution profile | Public numerical preset |
-| --- | --- |
-| `Fast` | `fast` |
-| `Balanced` | `balanced` |
-| `Robust` | `robust` |
-
-The maintained dependency path is:
-
-```text
-surface profile resolver
-  -> surface-local physical request translation
-  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
-  -> lamb.models.mrlfe.mrlfeSolve
-```
-
-The shared request builder owns physical aliases, scalar/frequency validation,
-the selected numerical preset, adaptive selection, branch termination, and
-disabled fallback. Adapters do not overwrite the preset after construction.
-
-The model-specific profile resolvers and mRLFE surface metadata builder live in
-`app/shared/`. Cross-surface normalization, accepted profile values, and
-diagnostic formatting also live in `app/shared/`.
-
-## Metadata
-
-Adapters and normalized outputs preserve the execution-profile metadata contract:
-
-```matlab
-requestedExecutionProfile
-effectiveExecutionProfile
-executionProfileSource
-internalSolverPreset
-internalAtlasPreset
-profileOverrideApplied
-profileOverrideReason
-routePolicy
-optimizerProfile
-supportedExecutionProfiles
-profileSupportMode
-surfaceDefaultExecutionProfile
-```
-
-For maintained RL, AE, and mRLFE profiles, `requestedExecutionProfile` and
-`effectiveExecutionProfile` match. mRLFE reports
-`profileSupportMode = "direct"`, the corresponding lowercase public numerical
-preset, and no profile override.
-
-Fields that are not applicable use the string scalar `""`. For example,
-Rayleigh-Lamb has `internalAtlasPreset = ""`, and AE has
-`internalSolverPreset = ""`. When `profileOverrideApplied = false`,
-`profileOverrideReason` is `""`.
-
-## Grid and Route Separation
-
-Execution profile remains separate from route policy and fitting grid policy.
-For mRLFE:
-
-- Main GUI and SweepTool evaluate the selected public numerical preset directly.
-- FitTool optimizer evaluations use `gridPolicy = "fitOptimized"` while retaining
-  the selected public preset in metadata.
-- Explicit requested fitted-curve evaluation uses
-  `gridPolicy = "numericalPreset"`.
-- A0Like uses `physicalTail`; S0Like uses `none`.
-- fallback remains disabled.
-
-Changing an execution profile must not silently change branch policy, optimizer
-options, or fallback behavior.
-
-## Overrides
-
-The normal AE Fit path no longer forces atlas density to 300/12 after the user
-selects `Balanced` or `Robust`. The selected profile controls atlas density in
-synthetic data generation, fitting evaluation, and normalized fit metadata.
-
-`atlasInitializationNumFrequencyPoints = 50` remains the model default used by
-FitTool and is not an execution-profile override.
-
-Legacy AE Fit requests that explicitly supply `atlasNumYPoints` and
-`atlasTopNMinima` can still override profile-derived density. Metadata must
-report the resulting override explicitly.
-
-## Manual GUI Checklist
-
-Main GUI:
-
-- selector starts at `Balanced`;
-- Rayleigh-Lamb reports requested/effective `Balanced`;
-- AE reports requested/effective `Balanced`;
-- mRLFE reports requested/effective `Balanced`, numerical preset `balanced`,
-  direct support, and no profile override.
-
-SweepTool:
-
-- selector starts at `Fast` for RL, mRLFE, and AE;
-- all three models expose `Fast`, `Balanced`, and `Robust`;
-- mRLFE resolves each selection to the matching lowercase numerical preset;
-- exported output preserves execution-profile metadata.
-
-FitTool:
-
-- selector starts at `Fast`;
-- changing model restores that model's `Fast` default;
-- AE `Balanced` and `Robust` use 600/16 and 900/20 atlas density;
-- mRLFE preserves the selected profile while optimizer evaluations use the
-  bounded `fitOptimized` grid;
-- explicit fitted-curve evaluation uses the selected numerical preset grid.
-
-## Tests
-
-Surface integration coverage is grouped in:
-
-```matlab
-run_extended_integration_tests
-```
-
-It covers:
-
-- defaults by surface;
-- alias compatibility;
-- direct profile metadata for RL, AE, and mRLFE;
-- AE atlas density mapping;
-- mRLFE public numerical preset mapping;
-- legacy AE Fit atlas-density override metadata.
-
-`run_quick_smoke_tests` includes lightweight surface contracts without turning the
-smoke suite into a performance suite.
-
-Performance checks and the full validation matrix remain separate entrypoints
-because they execute numerical cases that are not appropriate as routine smoke
-tests. The maintained reproducible cross-surface contract is:
-
-```matlab
-matrix = validateExecutionProfileMatrix('WriteCsv', false);
-run_extended_integration_tests
-```
-
-Ad hoc timing benchmarks are not maintained repository artifacts. Runtime tests
-remain descriptive and use no hardware-specific correctness threshold.
-
-## Remaining Work
-
-- Add richer per-curve execution-profile metadata for multi-case sweep exports if
-  downstream consumers need point-level auditability.
-- Keep `robustness` as a compatibility alias until all external request
-  producers use `executionProfile`.
-- Complete manual GUI review using the checklist above when a release requires
-  interactive evidence; automated surface contracts remain the routine gates.
+The retired sweep GUI is no longer an execution-profile surface. Sensitivity
+studies configure canonical model options explicitly and remain outside the app
+profile contract.

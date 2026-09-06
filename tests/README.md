@@ -9,12 +9,12 @@ configure their own repository/test path.
 | --- | ---: | --- |
 | `run_repository_hygiene_tests` | 8 | structure, docs, naming, artifacts, dependencies, paths, test architecture |
 | `run_quick_contract_tests` | 17 | bounded APIs, schemas, request/import and structural-symmetry contracts |
-| `run_quick_smoke_tests` | 29 | representative model and application execution |
+| `run_quick_smoke_tests` | 25 | representative model, application, and opt-in study execution |
 | `run_numerical_regression_tests` | 17 | scientific snapshots, synthetic recovery, tracking |
-| `run_extended_integration_tests` | 40 | fitting, sweeps, GUI consumers, characterization |
+| `run_extended_integration_tests` | 37 | fitting, GUI consumers, characterization |
 | `run_performance_and_benchmark_tests` | 4 | descriptive performance contracts |
 
-There are 115 maintained tests, each owned directly by exactly one runner.
+There are 108 maintained tests, each owned directly by exactly one runner.
 There are no wrappers, aggregate runner graphs, or generated ownership CSVs.
 The hygiene contracts check unique runner ownership, globally unique filenames,
 and maintained test structure across every tracked `test_*.m` file.
@@ -35,8 +35,8 @@ production startup and which restores the caller path with `onCleanup`.
 Native MATLAB `functiontests(localfunctions)` suites are retained where the
 `matlab.unittest` API is the test surface.
 
-Test code lives under app, models, and shared subfolders. Tooling owns path
-setup, runtime measurement, and cross-surface profile matrices. Ad hoc
+Test code lives under app, models, shared, studies, and sweeps subfolders.
+Tooling owns path setup, runtime measurement, and cross-surface profile matrices. Ad hoc
 benchmarks and temporary numerical diagnostics are not maintained repository
 artifacts.
 
