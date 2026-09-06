@@ -4,7 +4,9 @@ function test_repository_dependency_boundaries_contract()
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 paths = gitTrackedMatlab(repoRoot);
 
-assertLayer(repoRoot, paths, "models/", ["analysis/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+models/", ["analysis/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+elasticity/", ["analysis/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+grids/", ["analysis/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "analysis/", ["app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "app/", ["examples/", "tests/"]);
 assertAeInternalBoundaries(repoRoot, paths);
@@ -16,6 +18,7 @@ function assertAeInternalBoundaries(repoRoot, paths)
 productionInternalNames = [ ...
     "aeFindAtlasLocalMinima"; "aeLinkAtlasBranches"; "aeSplitAtlasBranches"; ...
     "aeSelectAtlasA0Branch"; "aeApplyAtlasA0FallbackPolicy"];
+assertQualifiedCallIsDetected(productionInternalNames);
 workflowPaths = paths( ...
     startsWith(paths, ["app/", "examples/"]) | ...
     startsWith(paths, [ ...
@@ -28,12 +31,12 @@ diagnosticAnalysisPaths = paths(startsWith(paths, ...
     "analysis/diagnostics/acoustoelastic_iop_hgo/") & endsWith(paths, ".m"));
 diagnosticAnalysisNames = matlabNames(diagnosticAnalysisPaths);
 solverPaths = paths(startsWith(paths, ...
-    "models/acoustoelastic_iop_hgo/solvers/") & endsWith(paths, ".m"));
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+solvers/") & endsWith(paths, ".m"));
 assertNoCalls(repoRoot, solverPaths, diagnosticAnalysisNames, ...
     'AE solver calls an analysis-layer diagnostic');
 
 modelDiagnosticPaths = paths(startsWith(paths, ...
-    "models/acoustoelastic_iop_hgo/diagnostics/") & endsWith(paths, ".m"));
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/") & endsWith(paths, ".m"));
 assertNoCalls(repoRoot, modelDiagnosticPaths, productionInternalNames, ...
     'AE model diagnostic owns production tracking or branch policy');
 end
@@ -41,25 +44,19 @@ end
 function assertNoCalls(repoRoot, sourcePaths, forbiddenNames, message)
 for i = 1:numel(sourcePaths)
     source = fileread(fullfile(repoRoot, sourcePaths(i)));
-    executable = executableMatlabText(source);
-    callTokens = string(regexp(executable, ...
-        '(?<![A-Za-z0-9_])([A-Za-z]\w*)\s*\(', 'tokens'));
-    if isempty(callTokens)
-        callTokens = strings(0, 1);
-    else
-        callTokens = string([callTokens{:}]);
-    end
-    dynamicTokens = regexp(source, ...
-        '(?:feval|str2func)\s*\(\s*[''"]([A-Za-z]\w*)[''"]', 'tokens');
-    if isempty(dynamicTokens)
-        dynamicTokens = strings(0, 1);
-    else
-        dynamicTokens = string([dynamicTokens{:}]);
-    end
-    offenders = intersect(unique([callTokens(:); dynamicTokens(:)]), forbiddenNames);
+    offenders = intersect(matlabCallNames(source), forbiddenNames);
     assert(isempty(offenders), '%s through %s: %s', ...
         message, sourcePaths(i), strjoin(offenders, ', '));
 end
+end
+
+function assertQualifiedCallIsDetected(forbiddenNames)
+qualifiedCall = [ ...
+    'lamb.models.acoustoelastic_iop_hgo.tracking.' ...
+    'aeFindAtlasLocalMinima(atlas);'];
+offenders = intersect(matlabCallNames(qualifiedCall), forbiddenNames);
+assert(ismember("aeFindAtlasLocalMinima", offenders), ...
+    'Qualified forbidden AE calls must be reduced to their bare semantic name.');
 end
 
 function assertLayer(repoRoot, paths, sourcePrefix, forbiddenPrefixes)
@@ -69,21 +66,30 @@ forbiddenNames = matlabNames(forbiddenPaths);
 
 for i = 1:numel(sourcePaths)
     source = fileread(fullfile(repoRoot, sourcePaths(i)));
-    executable = executableMatlabText(source);
-    callTokens = string(regexp(executable, '(?<![A-Za-z0-9_])([A-Za-z]\w*)\s*\(', 'tokens'));
-    if ~isempty(callTokens)
-        callTokens = string([callTokens{:}]);
-    end
-    dynamicTokens = regexp(source, '(?:feval|str2func)\s*\(\s*[''"]([A-Za-z]\w*)[''"]', 'tokens');
-    if isempty(dynamicTokens)
-        dynamicTokens = strings(0, 1);
-    else
-        dynamicTokens = string([dynamicTokens{:}]);
-    end
-    offenders = intersect(unique([callTokens(:); dynamicTokens(:)]), forbiddenNames);
+    offenders = intersect(matlabCallNames(source), forbiddenNames);
     assert(isempty(offenders), '%s depends on a forbidden layer through: %s', ...
         sourcePaths(i), strjoin(offenders, ', '));
 end
+end
+
+function names = matlabCallNames(source)
+executable = executableMatlabText(source);
+callTokens = regexp(executable, ...
+    '(?<![A-Za-z0-9_])([A-Za-z]\w*)\s*\(', 'tokens');
+if isempty(callTokens)
+    callTokens = strings(0, 1);
+else
+    callTokens = string([callTokens{:}]);
+end
+dynamicTokens = regexp(source, ...
+    '(?:feval|str2func)\s*\(\s*[''"](?:[A-Za-z]\w*\.)*([A-Za-z]\w*)[''"]', ...
+    'tokens');
+if isempty(dynamicTokens)
+    dynamicTokens = strings(0, 1);
+else
+    dynamicTokens = string([dynamicTokens{:}]);
+end
+names = unique([callTokens(:); dynamicTokens(:)]);
 end
 
 function names = matlabNames(paths)

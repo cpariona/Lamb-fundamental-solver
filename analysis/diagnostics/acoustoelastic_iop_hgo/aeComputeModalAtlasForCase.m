@@ -12,7 +12,7 @@ function atlas = aeComputeModalAtlasForCase(params, options, yGrid, topN, maxLog
 %
 % Inputs:
 %   params.alpha, beta, gamma, thickness, rho, rhoF, fluidBulkModulus, frequency
-%   options          options passed to objectiveAcoustoelasticResidual
+%   options          options passed to lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticResidual
 %   yGrid            dimensionless Cp grid
 %   topN             max local minima retained per frequency
 %   maxLogYJump      max log10(y) jump for branch linking
@@ -33,7 +33,7 @@ minimaRows = [];
 for k = 1:numel(freq)
     f = freq(k);
     for j = 1:numel(cGrid)
-        objectiveMap(j, k) = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
+        objectiveMap(j, k) = lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cGrid(j), options);
     end
 

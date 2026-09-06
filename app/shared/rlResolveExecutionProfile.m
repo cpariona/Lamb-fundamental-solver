@@ -10,7 +10,7 @@ parse(p, varargin{:});
     'DefaultProfile', p.Results.DefaultProfile, ...
     'DefaultSource', p.Results.DefaultSource);
 
-options = rlDefaultOptions(profile);
+options = lamb.models.rayleigh_lamb.rlDefaultOptions(profile);
 options.executionProfile = profile;
 options.robustness = profile;
 

@@ -8,12 +8,12 @@ repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 adapterPath = fullfile(repoRoot, 'app', 'sweep', 'guiRunMRLFESweep.m');
 adapterText = string(fileread(adapterPath));
 
-assert(contains(adapterText, "mrlfeSolve"), ...
-    'mRLFE SweepTool adapter must call public mrlfeSolve.');
+assert(contains(adapterText, "lamb.models.mrlfe.mrlfeSolve"), ...
+    'mRLFE SweepTool adapter must call public lamb.models.mrlfe.mrlfeSolve.');
 assert(~contains(adapterText, "guiRunMRLFEModel"), ...
     'mRLFE SweepTool adapter must not call the Main GUI mRLFE adapter.');
 assert(~contains(adapterText, "solveMRLFE") && ~contains(adapterText, "computeMRLFE") && ...
-    ~contains(adapterText, "mrlfeTrackBranchAdaptive"), ...
+    ~contains(adapterText, "lamb.models.mrlfe.tracking.mrlfeTrackBranchAdaptive"), ...
     'mRLFE SweepTool adapter must not contain low-level mRLFE solver logic.');
 assert(contains(adapterText, "runParametricSweep"), ...
     'mRLFE SweepTool adapter must delegate iteration to runParametricSweep.');
@@ -53,7 +53,7 @@ fprintf('\nmRLFE SweepTool public-solver route guard test passed.\n');
 end
 
 function out = runSmallSweep(branchName, etaS)
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 3000;
 params.numFrequencyPoints = 10;

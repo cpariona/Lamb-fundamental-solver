@@ -25,14 +25,14 @@ assert(any(aeFamily.branchNames == "atlasA0"), 'AE IOP/HGO fit registry must inc
 assert(any([aeFamily.parameters.canFit]), 'At least one AE IOP/HGO parameter must be fit-capable.');
 
 %% Rayleigh-Lamb app-level fit
-trueParams = rlDefaultParams();
+trueParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 trueParams.mu = 85e3;
 trueParams.thickness = 0.50e-3;
 trueParams.rho = 1070;
 trueParams.nu = 0.4999;
 
 frequency_Hz = linspace(1000, 8000, 8).';
-solverOptions = rlDefaultOptions("Fast");
+solverOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 CpSynthetic_mps = rlEvaluateFitModel(trueParams, frequency_Hz, "A0", solverOptions);
 
 experimental = struct();

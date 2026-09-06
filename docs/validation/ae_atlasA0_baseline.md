@@ -32,7 +32,7 @@ match the earlier snapshot would contradict the scientific contract.
 R=7.8e-3 m, thickness=550e-6 m, mu=50e3 Pa, k1=25e3 Pa, k2=100,
 rho=1060 and rhoF=1000 kg/m3, fluidBulkModulus=2.2e9 Pa, IOP=15*133.322 Pa.
 Frequency is logspace(log10(300),log10(15000),35) Hz.
-Use defaultAcoustoelasticIOPHGOOptions with corrected M54, normalizeRows=false,
+Use lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions with corrected M54, normalizeRows=false,
 usePhysicalCpWindow=false, atlasNumYPoints=300, atlasTopNMinima=12, atlasA0.
 The fixture is maintained in
 `tests/shared/regression/test_lightweight_numerical_regression.m`.

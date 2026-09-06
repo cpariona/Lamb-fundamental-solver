@@ -4,7 +4,7 @@ function test_repository_structure_contract()
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 paths = gitTrackedPaths(repoRoot);
 
-allowedTopLevel = ["analysis", "app", "docs", "examples", "models", "tests"];
+allowedTopLevel = ["analysis", "app", "docs", "examples", "src", "tests"];
 requiredTopLevel = allowedTopLevel;
 for i = 1:numel(requiredTopLevel)
     assert(isfolder(fullfile(repoRoot, requiredTopLevel(i))), ...
@@ -22,7 +22,7 @@ for i = 1:numel(paths)
     end
 end
 
-sourcePaths = paths(startsWith(paths, ["analysis/", "app/", "examples/", "models/", "tests/"]));
+sourcePaths = paths(startsWith(paths, ["analysis/", "app/", "examples/", "src/", "tests/"]));
 assert(~any(contains(lower(sourcePaths), "/archive/")), ...
     'Archive directories are forbidden under maintained source, example, and test trees.');
 assert(~any(startsWith(paths, "docs/") & endsWith(paths, ".m")), ...
@@ -135,22 +135,22 @@ end
 
 function assertAeModelDiagnosticOwnership(paths)
 diagnosticPaths = paths(startsWith(paths, ...
-    "models/acoustoelastic_iop_hgo/diagnostics/") & endsWith(paths, ".m"));
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/") & endsWith(paths, ".m"));
 expected = [ ...
-    "models/acoustoelastic_iop_hgo/diagnostics/aeBuildIdentityA0DiagnosticBranch.m"
-    "models/acoustoelastic_iop_hgo/diagnostics/aeScoreBranchIdentityCandidates.m"];
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/aeBuildIdentityA0DiagnosticBranch.m"
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/aeScoreBranchIdentityCandidates.m"];
 assert(isequal(sort(diagnosticPaths), sort(expected)), ...
     'AE model diagnostic ownership changed: %s', ...
     strjoin(setxor(diagnosticPaths, expected), ', '));
 resultPaths = paths(startsWith(paths, ...
-    "models/acoustoelastic_iop_hgo/results/") & endsWith(paths, ".m"));
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+results/") & endsWith(paths, ".m"));
 assert(isequal(resultPaths, ...
-    "models/acoustoelastic_iop_hgo/results/aeBuildResult.m"), ...
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+results/aeBuildResult.m"), ...
     'AE results/ must contain result construction only.');
 end
 
 function assertNoModelCampaigns(paths)
-modelFiles = paths(startsWith(paths, "models/") & endsWith(paths, ".m"));
+modelFiles = paths(startsWith(paths, "src/+lamb/+models/") & endsWith(paths, ".m"));
 [~, names] = cellfun(@fileparts, cellstr(modelFiles), 'UniformOutput', false);
 names = string(names);
 campaignNames = modelFiles(~cellfun(@isempty, regexp(cellstr(names), '(?i)(sweep|campaign)', 'once')));
@@ -159,7 +159,7 @@ assert(isempty(campaignNames), ...
 end
 
 function assertNoModelUiCode(repoRoot, paths)
-modelFiles = paths(startsWith(paths, "models/") & endsWith(paths, ".m"));
+modelFiles = paths(startsWith(paths, "src/+lamb/+models/") & endsWith(paths, ".m"));
 uiCalls = ["uifigure", "uicontrol", "uilabel", "uibutton", "uitable", ...
     "uiaxes", "FitTool_GUI", "SweepTool_GUI", "LambFundamental_GUI"];
 for i = 1:numel(modelFiles)

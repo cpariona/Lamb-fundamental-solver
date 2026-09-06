@@ -140,7 +140,7 @@ result.validMask
 from:
 
 ```matlab
-solveAcoustoelasticIOPHGOBranch
+lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
 ```
 
 It explicitly checks that the synthetic validation case does not rely on fallback branch selection and that the branch policy remains:

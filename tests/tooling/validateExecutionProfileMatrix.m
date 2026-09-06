@@ -91,7 +91,7 @@ notes = "";
 switch string(scenario.Model)
     case "Rayleigh-Lamb"
         params = shortRLParams();
-        options = rlDefaultOptions(profile);
+        options = lamb.models.rayleigh_lamb.rlDefaultOptions(profile);
         options.executionProfile = profile;
         options.computeA0 = true;
         options.computeS0 = false;
@@ -220,11 +220,11 @@ cp = extractMainCp(out, "mRLFERealK", "A0Like");
 end
 
 function [request, cp] = makeRLFitRequest(profile)
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.mu = 85e3;
 params.thickness = 0.5e-3;
 frequency = linspace(1000, 3000, 4).';
-options = rlDefaultOptions(profile);
+options = lamb.models.rayleigh_lamb.rlDefaultOptions(profile);
 options.computeA0 = true;
 options.computeS0 = false;
 cp = rlEvaluateFitModel(params, frequency, "A0", options);
@@ -286,7 +286,7 @@ fitOptions = struct('useStandardErrorWeights', false, ...
 end
 
 function params = shortRLParams()
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 3000;
 params.numFrequencyPoints = 10;

@@ -4,7 +4,7 @@ function test_mrlfe_main_gui_result_contract()
 fprintf('\nRunning mRLFE Main GUI result contract test...\n');
 fprintf('----------------------------------------------\n');
 
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 12000;
 params.numFrequencyPoints = 20;
@@ -20,7 +20,7 @@ options.effectiveExecutionProfile = "Balanced";
 options.robustness = "Balanced";
 options.branchNames = "A0Like";
 options.mrlfeA0Policy = "physicalTail";
-options.mrlfeParams = mrlfeDefaultInternalParameters();
+options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 options.mrlfeParams.etaS = 0;
 options.mrlfeParams.fluidDensity = 1000;
 options.mrlfeParams.fluidSoundSpeed = 1500;

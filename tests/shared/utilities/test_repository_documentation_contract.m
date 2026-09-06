@@ -37,7 +37,9 @@ for i = 1:numel(tokens)
     if contains(value, ["*", "<", ">", "|", " -> "]) || startsWith(value, "Results/")
         continue;
     end
-    if isempty(regexp(value, '^(?:analysis|app|docs|examples|models|tests)/.+\.(?:m|md)$', 'once'))
+    if value == "AGENTS.md"
+        resolved = fullfile(repoRoot, value);
+    elseif isempty(regexp(value, '^(?:analysis|app|docs|examples|src|tests)/.+\.(?:m|md)$', 'once'))
         if isempty(regexp(value, '^(?:\.\./|[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.md$', 'once'))
             continue;
         end

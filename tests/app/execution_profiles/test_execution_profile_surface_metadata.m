@@ -3,16 +3,16 @@ fprintf('\nRunning execution profile surface metadata tests...\n');
 fprintf('--------------------------------------------------\n');
 
 %% Main/API Rayleigh-Lamb accepts executionProfile metadata without changing Cp.
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 3000;
 params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
-legacyOptions = rlDefaultOptions("Fast");
+legacyOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 legacyOptions.computeA0 = true;
 legacyOptions.computeS0 = false;
-legacy = rlComputeFundamentalLambModes(params, legacyOptions);
+legacy = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(params, legacyOptions);
 
 profileOptions = legacyOptions;
 profileOptions.executionProfile = "Fast";
@@ -33,7 +33,7 @@ mrlfeOptions.effectiveExecutionProfile = "Balanced";
 mrlfeOptions.robustness = "Balanced";
 mrlfeOptions.branchNames = "A0Like";
 mrlfeOptions.mrlfeA0Policy = "physicalTail";
-mrlfeOptions.mrlfeParams = mrlfeDefaultInternalParameters();
+mrlfeOptions.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 mrlfeOptions.mrlfeParams.etaS = 0;
 mrlfeParams = params;
 mrlfeParams.fmax = 4000;
@@ -48,7 +48,7 @@ assert(mrlfeMain.metadata.executionProfile.profileOverrideApplied == false, ...
     'mRLFE main metadata should not report an override.');
 assert(strlength(mrlfeMain.metadata.executionProfile.profileOverrideReason) == 0, ...
     'mRLFE main override reason should be empty.');
-assert(mrlfeMain.metadata.executionProfile.routePolicy == "mrlfeSolve", ...
+assert(mrlfeMain.metadata.executionProfile.routePolicy == "lamb.models.mrlfe.mrlfeSolve", ...
     'mRLFE main route should use the public solver.');
 assert(mrlfeMain.metadata.executionProfile.effectiveNumericalPreset == "balanced", ...
     'mRLFE main GUI should apply the balanced public preset.');

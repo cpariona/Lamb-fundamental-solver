@@ -1,8 +1,8 @@
 function LambFundamental_GUI
 % Compact GUI for fundamental Lamb modes using the modular backend.
 
-params0 = rlDefaultParams();
-opts0 = rlDefaultOptions("Balanced");
+params0 = lamb.models.rayleigh_lamb.rlDefaultParams();
+opts0 = lamb.models.rayleigh_lamb.rlDefaultOptions("Balanced");
 lastResults = [];
 lastGuiResult = [];
 lastOptions = [];
@@ -106,10 +106,10 @@ updateAxisFieldState();
             rho = setup.rho.Value;
             mu = setup.mu.Value * 1e3;
             if string(setup.model.Value) == "ShearPoisson"
-                elastic = elasticFromMuNu(mu, setup.nu.Value, rho);
+                elastic = lamb.elasticity.elasticFromMuNu(mu, setup.nu.Value, rho);
                 setup.lambda.Value = elastic.lambda / 1e6;
             else
-                elastic = elasticFromLame(setup.lambda.Value * 1e6, mu, rho);
+                elastic = lamb.elasticity.elasticFromLame(setup.lambda.Value * 1e6, mu, rho);
                 setup.nu.Value = elastic.nu;
             end
             setup.E.Value = elastic.E / 1e3;
@@ -196,7 +196,7 @@ updateAxisFieldState();
     end
 
     function params = readParamsFromGui()
-        params = rlDefaultParams();
+        params = lamb.models.rayleigh_lamb.rlDefaultParams();
         params.modelType = string(setup.model.Value);
         params.rho = setup.rho.Value;
         params.mu = setup.mu.Value * 1e3;
@@ -208,7 +208,7 @@ updateAxisFieldState();
         params.numFrequencyPoints = "auto";
         params.frequencySpacing = "hybrid";
 
-        material = rlComputeMaterial(params);
+        material = lamb.models.rayleigh_lamb.core.rlComputeMaterial(params);
         params.E = material.E;
         params.K = material.K;
         params.CL = material.CL;
@@ -225,7 +225,7 @@ updateAxisFieldState();
     end
 
     function mrlfeParams = readMRLFEParamsFromGui()
-        mrlfeParams = mrlfeDefaultInternalParameters();
+        mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
         mrlfeParams.fluidDensity = modelControls.mrlfe.fluidDensity.Value;
         mrlfeParams.fluidSoundSpeed = modelControls.mrlfe.fluidSoundSpeed.Value;
         mrlfeParams.etaS = modelControls.mrlfe.etaS.Value;

@@ -11,14 +11,14 @@ experimental.frequency_Hz = frequency_Hz;
 experimental.Cp_mps = Cp_mps;
 experimental.validMask = true(size(frequency_Hz));
 
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 fitConfig = struct();
 fitConfig.branchName = "A0";
 fitConfig.freeParams = "mu";
 fitConfig.fixedParams = struct('thickness', params.thickness, 'rho', params.rho, 'nu', params.nu);
 fitConfig.initialGuess = struct('mu', 158e3);
 fitConfig.bounds = struct('mu', [31.6e3, 200e3]);
-fitConfig.solverOptions = rlDefaultOptions("Fast");
+fitConfig.solverOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, 'minValidFraction', 0.80);
 
 try

@@ -100,11 +100,11 @@ for i = 1:numel(paths)
     if ~startsWith(strtrim(firstCode), "function")
         continue;
     end
-    if startsWith(path, "models/mrlfe/")
+    if startsWith(path, "src/+lamb/+models/+mrlfe/")
         assert(startsWith(name, "mrlfe"), 'mRLFE model function lacks mrlfe prefix: %s', path);
-    elseif startsWith(path, "models/rayleigh_lamb/")
+    elseif startsWith(path, "src/+lamb/+models/+rayleigh_lamb/")
         assert(startsWith(name, "rl"), 'Rayleigh-Lamb model function lacks rl prefix: %s', path);
-    elseif startsWith(path, "models/acoustoelastic_iop_hgo/")
+    elseif startsWith(path, "src/+lamb/+models/+acoustoelastic_iop_hgo/")
         allowed = startsWith(name, "ae") || startsWith(name, "solveAcoustoelastic") || ...
             startsWith(name, "defaultAcoustoelastic") || any(name == aeExplicit);
         assert(allowed, 'AE model function violates the prefix/public-API contract: %s', path);

@@ -8,8 +8,8 @@ expectedLowAnchors_Hz = [10:10:100, 125:25:250, 300:50:500].';
 
 for i = 1:numel(presetNames)
     request = makeRequest(requestedFrequency_Hz, presetNames(i));
-    configuration = mrlfeResolveConfiguration(request);
-    problem = mrlfeBuildProblem(configuration);
+    configuration = lamb.models.mrlfe.configuration.mrlfeResolveConfiguration(request);
+    problem = lamb.models.mrlfe.core.mrlfeBuildProblem(configuration);
     grid = problem.frequencySolve_Hz(:);
     metadata = problem.frequencyGrid;
 
@@ -42,8 +42,8 @@ end
 override_Hz = [10 100 500 777 1200 2000].';
 request = makeRequest(requestedFrequency_Hz, "robust");
 request.numerics.frequencySolveOverride_Hz = override_Hz;
-configuration = mrlfeResolveConfiguration(request);
-problem = mrlfeBuildProblem(configuration);
+configuration = lamb.models.mrlfe.configuration.mrlfeResolveConfiguration(request);
+problem = lamb.models.mrlfe.core.mrlfeBuildProblem(configuration);
 assert(isequal(problem.frequencySolve_Hz(:), override_Hz), ...
     'frequencySolveOverride_Hz must take exact precedence over preset grids.');
 assert(problem.frequencyGrid.source == "diagnosticOverride", ...
@@ -52,13 +52,13 @@ assert(isnan(problem.frequencyGrid.configuredStep_Hz), ...
     'Override metadata must not report a preset step as the active grid step.');
 
 request = makeRequest(requestedFrequency_Hz, "fast");
-result = mrlfeSolve(request);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 assert(isequal(result.frequency_Hz(:), requestedFrequency_Hz), ...
     'Numerical preset grids must not change the public requested-frequency output grid.');
 
 didReject = false;
 try
-    mrlfeGetNumericalPreset("unsupported");
+    lamb.models.mrlfe.configuration.mrlfeGetNumericalPreset("unsupported");
 catch ME
     didReject = strcmp(ME.identifier, 'mrlfe:InvalidNumericalPreset');
 end

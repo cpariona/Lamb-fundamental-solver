@@ -35,11 +35,11 @@ checks.
 - RL, mRLFE, and AE use the common responsibility spine
   `api/configuration/core/solvers/tracking/quality/results` where applicable.
 - Generic frequency construction is model-neutral under
-  `models/shared/configuration/buildFrequencyVector.m`.
+  `src/+lamb/+grids/buildFrequencyVector.m`.
 - The only intentional cross-family scientific dependency remains
-  `mrlfeBuildSeed -> rlComputeFundamentalLambModes`.
+  `lamb.models.mrlfe.tracking.mrlfeBuildSeed -> lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes`.
 - mRLFE request translation is model-owned by
-  `models/mrlfe/configuration/mrlfeBuildSolveRequest.m`.
+  `src/+lamb/+models/+mrlfe/+configuration/mrlfeBuildSolveRequest.m`.
 - Official model curves use column-oriented `frequency_Hz`,
   `phaseVelocity_mps`, `wavenumber_radpm`, and `validMask`.
 - Quality uses the common lower-camel core fields.

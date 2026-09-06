@@ -13,7 +13,7 @@ if ~isfield(guiRequest, 'params') || ~isstruct(guiRequest.params)
 end
 
 params = guiRequest.params;
-options = guiMergeStructs(defaultAcoustoelasticIOPHGOOptions(), ...
+options = guiMergeStructs(lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions(), ...
     guiGetStructField(guiRequest, 'options', struct()));
 [options, profileMetadata] = aeResolveExecutionProfile(options, ...
     'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
@@ -23,7 +23,7 @@ options = guiMergeStructs(defaultAcoustoelasticIOPHGOOptions(), ...
     'ApplyNumericalPreset', false);
 
 timerStart = tic;
-modelResult = solveAcoustoelasticIOPHGOBranch(params, options);
+modelResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 elapsedSeconds = toc(timerStart);
 
 result = guiBuildModelResultView(modelResult, mfilename);

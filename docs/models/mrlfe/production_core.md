@@ -7,17 +7,17 @@ Last reviewed: 2026-09-04
 The real-k mRLFE public API now executes through a model-layer production core:
 
 ```text
-mrlfeSolve
-  -> mrlfeResolveConfiguration
-  -> mrlfeBuildProblem
-  -> mrlfeSolveBranch
-       -> mrlfeSolveElasticBranch
-       -> mrlfeSolveViscoelasticBranch
-       -> mrlfeBuildSeed
-            -> rlComputeFundamentalLambModes
-       -> mrlfeTrackBranchAdaptive
-       -> mrlfeApplyTerminationPolicy
-  -> mrlfeBuildResult
+lamb.models.mrlfe.mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeResolveConfiguration
+  -> lamb.models.mrlfe.core.mrlfeBuildProblem
+  -> lamb.models.mrlfe.solvers.mrlfeSolveBranch
+       -> lamb.models.mrlfe.solvers.mrlfeSolveElasticBranch
+       -> lamb.models.mrlfe.solvers.mrlfeSolveViscoelasticBranch
+       -> lamb.models.mrlfe.tracking.mrlfeBuildSeed
+            -> lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes
+       -> lamb.models.mrlfe.tracking.mrlfeTrackBranchAdaptive
+       -> lamb.models.mrlfe.policies.mrlfeApplyTerminationPolicy
+  -> lamb.models.mrlfe.results.mrlfeBuildResult
 ```
 
 The core owns model physics and tracking without calling analysis evaluators
@@ -25,8 +25,8 @@ or application adapters. Main GUI forward solving reaches this core through the 
 
 ```text
 guiRunMRLFEModel
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve
 ```
 
 The Main GUI adapter translates app input and adapts the public result for
@@ -40,8 +40,8 @@ guiFitMRLFESolver
   -> mrlfeFitDispersionData
   -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve
 ```
 
 The fitting adapter does not select low-level trackers, fallback, or quality
@@ -53,8 +53,8 @@ SweepTool mRLFE forward sweeps also reach this core through the public API:
 ```text
 guiRunMRLFESweep
   -> runParametricSweep
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve, once per sweep point
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve, once per sweep point
 ```
 
 The sweep adapter translates each point into a public model request and
@@ -63,7 +63,7 @@ select low-level trackers, or apply fallback.
 
 ## Configuration
 
-`mrlfeResolveConfiguration` merges the request with public defaults, validates
+`lamb.models.mrlfe.configuration.mrlfeResolveConfiguration` merges the request with public defaults, validates
 physical inputs and policies, resolves the numerical preset, and reports neutral
 effective engine names:
 
@@ -84,7 +84,7 @@ perform an additional rescue scan.
 
 ## Problem Construction
 
-`mrlfeBuildProblem` prepares:
+`lamb.models.mrlfe.core.mrlfeBuildProblem` prepares:
 
 ```text
 requested frequency grid
@@ -95,14 +95,14 @@ fluid properties
 branch name
 ```
 
-`mrlfeBuildSeed` is the sole owner of the intentional Rayleigh-Lamb dependency.
+`lamb.models.mrlfe.tracking.mrlfeBuildSeed` is the sole owner of the intentional Rayleigh-Lamb dependency.
 It requests the matching fundamental RL branch, converts that result into the
 mRLFE seed mode, and preserves the raw seed result as diagnostic evidence. RL
 does not expose or disable any mRLFE route while producing this seed.
 
 ## Elastic Path
 
-`mrlfeSolveElasticBranch` reproduces the zero-viscosity adaptive behavior used by
+`lamb.models.mrlfe.solvers.mrlfeSolveElasticBranch` reproduces the zero-viscosity adaptive behavior used by
 the maintained FitTool route:
 
 ```text
@@ -117,7 +117,7 @@ zero-viscosity baseline.
 
 ## Viscoelastic Path
 
-`mrlfeSolveViscoelasticBranch` reproduces the viscous adaptive behavior used by
+`lamb.models.mrlfe.solvers.mrlfeSolveViscoelasticBranch` reproduces the viscous adaptive behavior used by
 the maintained FitTool route:
 
 ```text
@@ -135,7 +135,7 @@ refinement algorithms.
 
 ## Tracking
 
-`mrlfeTrackBranchAdaptive` is the neutral production entry point for adaptive
+`lamb.models.mrlfe.tracking.mrlfeTrackBranchAdaptive` is the neutral production entry point for adaptive
 tracking. The maintained candidate generation, prediction, residual scoring,
 candidate selection, validity decisions, and adaptive continuation diagnostics
 now live behind this neutral model-layer name.
@@ -166,7 +166,7 @@ shallow shoulders that are not already represented by a strict local minimum.
 A fallback candidate is not added when the same trust region already contains a
 strict minimum, preventing duplicate representations of the same residual valley.
 
-For A0Like, `mrlfeTrackBranchRobustStart` first attempts ordinary forward
+For A0Like, `lamb.models.mrlfe.tracking.mrlfeTrackBranchRobustStart` first attempts ordinary forward
 tracking and then probes the configured candidate start frequencies only when
 the required valid run is not established. It tracks forward from the first
 stable candidate; earlier frequencies remain invalid and no backward tracking
@@ -175,7 +175,7 @@ contract is `test_mrlfe_robust_start_contract`.
 
 ## Termination
 
-`mrlfeApplyTerminationPolicy` centralizes initial production policies:
+`lamb.models.mrlfe.policies.mrlfeApplyTerminationPolicy` centralizes initial production policies:
 
 ```text
 physicalTail  applies the A0 physical-tail policy when requested
@@ -186,19 +186,19 @@ continuity    preserves existing adaptive-continuation semantics
 No fallback occurs in termination policy handling.
 
 The A0 physical-tail evaluation is implemented by
-`mrlfeEvaluatePhysicalTail`, a neutral production helper called only through
-`mrlfeApplyTerminationPolicy`. The policy name remains `physicalTail`; no
+`lamb.models.mrlfe.policies.mrlfeEvaluatePhysicalTail`, a neutral production helper called only through
+`lamb.models.mrlfe.policies.mrlfeApplyTerminationPolicy`. The policy name remains `physicalTail`; no
 `physicalCorridor` public policy is exposed.
 
 ## Result Construction
 
-`mrlfeBuildInternalBranchResult` normalizes the internal branch result and
-preserves diagnostic raw output. `mrlfeBuildResult` remains the public schema
+`lamb.models.mrlfe.results.mrlfeBuildInternalBranchResult` normalizes the internal branch result and
+preserves diagnostic raw output. `lamb.models.mrlfe.results.mrlfeBuildResult` remains the public schema
 builder for units, vector orientation, invalid-value handling, execution
 metadata, termination metadata, fallback metadata, and quality metadata.
 
 FitTool fitting preserves the final public evaluation under
-`fitResult.modelEvaluation`. Metadata comes from `mrlfeBuildResult`: requested/effective
+`fitResult.modelEvaluation`. Metadata comes from `lamb.models.mrlfe.results.mrlfeBuildResult`: requested/effective
 preset, neutral internal engine, termination policy, fallback policy/applied
 state, and quality summary.
 
@@ -216,5 +216,5 @@ SweepTool route uses the public `fast` preset, adaptive selection, no fallback,
 ## Boundary
 
 Seed, tracking, termination, result construction, and quality are model-owned.
-Human consumers reach this core through mrlfeSolve. No production dependency
+Human consumers reach this core through lamb.models.mrlfe.mrlfeSolve. No production dependency
 points back to analysis, app, tests, or executable examples/diagnostics.

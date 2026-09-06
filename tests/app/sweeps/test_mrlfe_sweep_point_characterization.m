@@ -32,9 +32,9 @@ for iBranch = 1:numel(branches)
 
             pointParams = out.sweepResult.params{iPoint};
             pointOptions = out.sweepResult.options{iPoint};
-            directRequest = mrlfeBuildSolveRequest( ...
-                pointParams, buildFrequencyVector(pointParams), branchName, pointOptions);
-            direct = mrlfeSolve(directRequest);
+            directRequest = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest( ...
+                pointParams, lamb.grids.buildFrequencyVector(pointParams), branchName, pointOptions);
+            direct = lamb.models.mrlfe.mrlfeSolve(directRequest);
             modelResult = point.modelResult;
 
             assert(point.status == "ok", 'Sweep point unexpectedly failed.');
@@ -59,9 +59,9 @@ for iBranch = 1:numel(branches)
     end
 end
 
-assert(validMaskDifferences == 0, 'SweepTool valid masks differ from direct mrlfeSolve.');
-assert(maxAbsDiff_mps == 0, 'SweepTool Cp values differ from direct mrlfeSolve.');
-assert(maxRelDiff == 0, 'SweepTool relative Cp values differ from direct mrlfeSolve.');
+assert(validMaskDifferences == 0, 'SweepTool valid masks differ from direct lamb.models.mrlfe.mrlfeSolve.');
+assert(maxAbsDiff_mps == 0, 'SweepTool Cp values differ from direct lamb.models.mrlfe.mrlfeSolve.');
+assert(maxRelDiff == 0, 'SweepTool relative Cp values differ from direct lamb.models.mrlfe.mrlfeSolve.');
 
 fprintf('Characterization cases: %d\n', caseCount);
 fprintf('Maximum Cp absolute difference: %.15g m/s\n', maxAbsDiff_mps);
@@ -71,7 +71,7 @@ fprintf('\nmRLFE SweepTool point characterization test passed.\n');
 end
 
 function out = runMuSweep(branchName, etaS, muValues_kPa)
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 12000;
 params.numFrequencyPoints = 20;

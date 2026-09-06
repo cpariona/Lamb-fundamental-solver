@@ -14,7 +14,7 @@ cases = [ ...
 
 for i = 1:numel(cases)
     request = localRequest(cases(i).branch, cases(i).etaS, cases(i).preset);
-    result = mrlfeSolve(request);
+    result = lamb.models.mrlfe.mrlfeSolve(request);
 
     assert(numel(result.phaseVelocity_mps) == numel(request.frequency_Hz), ...
         'Result Cp vector length changed.');

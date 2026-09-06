@@ -28,7 +28,7 @@ fprintf('Frequency range: %.3g Hz to %.3g kHz\n', baseParams.fmin, baseParams.fm
 fprintf('Branch: %s\n\n', char(branchName));
 
 sweepResults = runParametricSweep(baseParams, options, sweepSpec, ...
-    @(pointParams, pointOptions)rlComputeFundamentalLambModes(pointParams, pointOptions));
+    @(pointParams, pointOptions)lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(pointParams, pointOptions));
 sweepSummary = summarizeParametricSweepBranch(sweepResults, caseInfo.modelName, branchName);
 
 plotTitle = "Rayleigh-Lamb " + branchName + ...

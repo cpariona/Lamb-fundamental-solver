@@ -6,7 +6,7 @@ if nargin < 1 || strlength(string(branchName)) == 0
 end
 branchName = string(branchName);
 
-options = rlDefaultOptions("Balanced");
+options = lamb.models.rayleigh_lamb.rlDefaultOptions("Balanced");
 
 switch branchName
     case "A0"

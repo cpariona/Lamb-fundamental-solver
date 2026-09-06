@@ -144,7 +144,7 @@ end
 
 referenceOptions = solverOptions;
 if ~isfield(referenceOptions, 'mrlfeParams') || isempty(referenceOptions.mrlfeParams)
-    referenceOptions.mrlfeParams = mrlfeDefaultInternalParameters();
+    referenceOptions.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 end
 referenceOptions.mrlfeParams.etaS = 0;
 referenceOptions.mrlfeParams.etaL = 0;

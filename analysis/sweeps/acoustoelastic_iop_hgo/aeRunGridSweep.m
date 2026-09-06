@@ -39,7 +39,7 @@ for idx = 1:numConditions
         axisDisplayStruct.(axisName) = formatAxisValue(value, sweepAxes(a));
     end
 
-    result = solveAcoustoelasticIOPHGOBranch(params, options);
+    result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 
     conditions(idx).index = idx;
     conditions(idx).params = params;

@@ -15,7 +15,7 @@ SweepTool_GUI
 
 | Family | Parameters | Branches | Notes |
 | --- | --- | --- | --- |
-| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Routes each sweep point directly through `mrlfeSolve` using the public `fast` preset, adaptive selection, and no fallback. A0Like uses `physicalTail` termination; S0Like uses no additional termination. |
+| `mRLFE` | `etaS`, `mu`, `thickness` | `A0Like`, `S0Like` | Routes each sweep point directly through `lamb.models.mrlfe.mrlfeSolve` using the public `fast` preset, adaptive selection, and no fallback. A0Like uses `physicalTail` termination; S0Like uses no additional termination. |
 | `Rayleigh-Lamb` | `thickness`, `mu` | `A0`, `S0` | Uses the Rayleigh-Lamb sweep adapter and the maintained `rl*` API. |
 | `AE IOP/HGO` | `IOP`, `mu` | `atlasA0` | Uses the AE IOP/HGO sweep adapter and the maintained atlas branch policy. |
 
@@ -42,7 +42,7 @@ Expected outcome:
 - The values are interpreted in kPa and converted to solver units by the model-configuration scale.
 - The summary table has two rows.
 - The normalized model name is `mRLFERealK`.
-- `SweepToolOutput.atlasPolicy.guiRoutePolicy` is `mrlfeSolve`.
+- `SweepToolOutput.atlasPolicy.guiRoutePolicy` is `lamb.models.mrlfe.mrlfeSolve`.
 - `SweepToolOutput.atlasPolicy.effectiveA0Policy` is `physicalTail`.
 - `SweepToolOutput.metadata.effectiveNumericalPresets` contains `fast`.
 - `SweepToolOutput.metadata.fallbackPolicies` contains `none`.
@@ -191,7 +191,7 @@ guiRunAcoustoelasticIOPHGOSweep
 
 For mRLFE, `guiRunMRLFESweep` delegates one-dimensional iteration to
 `runParametricSweep`; its evaluator maps each point with
-`mrlfeBuildSolveRequest` and calls `mrlfeSolve` once per point. SweepTool
+`lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` and calls `lamb.models.mrlfe.mrlfeSolve` once per point. SweepTool
 does not call `guiRunMRLFEModel`, inherit Main GUI fallback, or choose
 historical GUI route names. Main GUI remains a separate surface over the same
 shared request-construction and public-solver contracts.
@@ -227,7 +227,7 @@ metadata.validPointCount
 Zero-viscosity A0Like SweepTool results may differ from the old Main GUI route
 when the old route would have used zero-viscosity fallback. That is an expected
 architectural correction; the production reference for SweepTool is now
-`mrlfeSolve` with `fallback.policy = "none"`.
+`lamb.models.mrlfe.mrlfeSolve` with `fallback.policy = "none"`.
 
 Current model normalizers:
 

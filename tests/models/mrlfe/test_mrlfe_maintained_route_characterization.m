@@ -12,7 +12,7 @@ cases = [ ...
 
 for i = 1:numel(cases)
     request = localRequest(cases(i).branch, cases(i).etaS);
-    direct = mrlfeSolve(request);
+    direct = lamb.models.mrlfe.mrlfeSolve(request);
     assert(direct.execution.effectivePreset == "fast", 'Direct solve effective preset must be fast.');
     assert(any(direct.execution.internalEngine == ["elastic_adaptive", "viscoelastic_adaptive"]), ...
         'Direct solve must expose neutral engine metadata.');
@@ -35,7 +35,7 @@ fprintf('mRLFE maintained-route characterization test passed.\n');
 end
 
 function params = localParams()
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 6000;
 params.numFrequencyPoints = 10;
@@ -48,7 +48,7 @@ end
 
 function request = localRequest(branch, etaS)
 params = localParams();
-request = mrlfeBuildSolveRequest(params, rlBuildFrequencyVector(params), branch, localGuiOptions(branch, etaS));
+request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, lamb.grids.buildFrequencyVector(params), branch, localGuiOptions(branch, etaS));
 end
 
 function options = localGuiOptions(branch, etaS)
@@ -58,7 +58,7 @@ options.mrlfeParams = localMrlfeParams(etaS);
 end
 
 function params = localMrlfeParams(etaS)
-params = mrlfeDefaultInternalParameters();
+params = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 params.etaS = etaS;
 params.fluidDensity = 1000;
 params.fluidSoundSpeed = 1500;

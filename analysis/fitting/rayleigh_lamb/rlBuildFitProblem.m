@@ -6,10 +6,10 @@ function problem = rlBuildFitProblem(experimental, fitConfig)
 %
 % Optional fitConfig fields:
 %   branchName      default "A0"
-%   fixedParams     fields overriding rlDefaultParams
+%   fixedParams     fields overriding lamb.models.rayleigh_lamb.rlDefaultParams
 %   initialGuess    fields for free-parameter initial guesses
 %   bounds          fields with [lower upper] bounds
-%   solverOptions   rlDefaultOptions-compatible options
+%   solverOptions   lamb.models.rayleigh_lamb.rlDefaultOptions-compatible options
 %   fitOptions      residual options
 
 if nargin < 2 || ~isstruct(fitConfig)
@@ -24,7 +24,7 @@ experimental = validateExperimentalDispersionData(experimental, 1);
 branchName = getConfigValue(fitConfig, 'branchName', "A0");
 branchName = string(branchName);
 
-baseParams = rlDefaultParams();
+baseParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 baseParams = applyStructOverrides(baseParams, getConfigValue(fitConfig, 'fixedParams', struct()));
 baseParams = applyStructOverrides(baseParams, getConfigValue(fitConfig, 'initialGuess', struct()));
 
@@ -34,7 +34,7 @@ freeParams = string(fitConfig.freeParams(:));
 bounds = getConfigValue(fitConfig, 'bounds', struct());
 [lowerBounds, upperBounds] = localBuildBounds(bounds, freeParams);
 
-solverOptions = getConfigValue(fitConfig, 'solverOptions', rlDefaultOptions("Fast"));
+solverOptions = getConfigValue(fitConfig, 'solverOptions', lamb.models.rayleigh_lamb.rlDefaultOptions("Fast"));
 fitOptions = getConfigValue(fitConfig, 'fitOptions', struct());
 if ~isfield(fitOptions, 'useStandardErrorWeights')
     fitOptions.useStandardErrorWeights = false;

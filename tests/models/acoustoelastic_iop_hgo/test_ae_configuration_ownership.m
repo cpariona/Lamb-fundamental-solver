@@ -3,13 +3,13 @@ profiles = ["Fast", "Balanced", "Robust"];
 expectedY = [300, 600, 900];
 expectedTopN = [12, 16, 20];
 for i = 1:numel(profiles)
-    [preset, name] = aeGetNumericalPreset(profiles(i));
+    [preset, name] = lamb.models.acoustoelastic_iop_hgo.configuration.aeGetNumericalPreset(profiles(i));
     assert(name == profiles(i));
     assert(preset.atlasNumYPoints == expectedY(i));
     assert(preset.atlasTopNMinima == expectedTopN(i));
 end
 
-[production, productionMetadata] = aeResolveConfiguration(struct());
+[production, productionMetadata] = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(struct());
 assert(production.atlasNumYPoints == 1000);
 assert(production.atlasTopNMinima == 18);
 assert(~isfield(production, 'trackingMethod'));
@@ -18,18 +18,18 @@ assert(~isfield(productionMetadata, 'surface'));
 
 overrides = struct('atlasNumYPoints', 777, 'atlasTopNMinima', 9, ...
     'atlasBranchPolicy', "ATLASA0");
-[effective, metadata] = aeResolveConfiguration(overrides, 'NumericalPreset', "Fast");
+[effective, metadata] = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(overrides, 'NumericalPreset', "Fast");
 assert(effective.atlasNumYPoints == 777);
 assert(effective.atlasTopNMinima == 9);
 assert(effective.atlasBranchPolicy == "atlasA0");
 assert(metadata.profileOverrideApplied == true);
 
-diagnostic = aeDefaultDiagnosticOptions(struct('numCpScanPoints', 555));
+diagnostic = lamb.models.acoustoelastic_iop_hgo.configuration.aeDefaultDiagnosticOptions(struct('numCpScanPoints', 555));
 assert(diagnostic.numCpScanPoints == 555);
 assert(diagnostic.trackingMethod == "globalScan");
 assert(diagnostic.complexCMaxIter == 250);
 
-modelRoot = fileparts(fileparts(which('aeResolveConfiguration')));
+modelRoot = fileparts(fileparts(which('lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration')));
 modelText = readMatlabTree(modelRoot);
 for surfaceToken = ["MainGUI", "FitTool", "SweepTool", "physicalSweep", ...
         "aeUseGuiFastAtlasPreset", "aeGuiAtlasPreset"]
@@ -43,10 +43,10 @@ assert(contains(appResolverText, 'MainGUI') && contains(appResolverText, 'FitToo
 
 accepted = struct('IOP', [], 'R', [], 'thickness', [], 'mu', [], 'k1', [], ...
     'k2', [], 'rho', [], 'rhoF', [], 'fluidBulkModulus', [], 'frequency', []);
-aeValidateRequest(accepted, 'Context', "iopSolver");
-assertErrorContains(@()aeValidateRequest(rmfield(accepted, 'R'), ...
+lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest(accepted, 'Context', "iopSolver");
+assertErrorContains(@()lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest(rmfield(accepted, 'R'), ...
     'Context', "iopSolver"), 'Missing required acoustoelastic IOP/HGO atlas parameter: R');
-assertErrorContains(@()aeValidateRequest(rmfield(accepted, 'frequency'), ...
+assertErrorContains(@()lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest(rmfield(accepted, 'frequency'), ...
     'Context', "fitting", 'Frequency', [1000, NaN]), ...
     'frequency_Hz must contain positive finite values.');
 
@@ -65,7 +65,7 @@ boundaryOptions = struct('atlasInitializationMinFrequency_Hz', -5, ...
     'atlasInitializationNumFrequencyPoints', 1);
 assertGrid([200, 75, 200, NaN, -10], boundaryOptions, ...
     unique([logspace(log10(eps), log10(200), 2), 75, 200], 'sorted'));
-assert(isempty(aeBuildInternalTrackingGrid([NaN, -1, 0], gridOptions)));
+assert(isempty(lamb.models.acoustoelastic_iop_hgo.configuration.aeBuildInternalTrackingGrid([NaN, -1, 0], gridOptions)));
 
 fprintf('test_ae_configuration_ownership passed.\n');
 end
@@ -79,7 +79,7 @@ end
 end
 
 function assertGrid(requested, options, expected)
-actual = aeBuildInternalTrackingGrid(requested, options);
+actual = lamb.models.acoustoelastic_iop_hgo.configuration.aeBuildInternalTrackingGrid(requested, options);
 assert(isequal(actual, expected), 'Internal tracking grid changed.');
 end
 

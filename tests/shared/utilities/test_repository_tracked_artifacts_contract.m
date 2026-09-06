@@ -15,7 +15,7 @@ pathParts = cellfun(@(p) split(string(p), "/"), cellstr(paths), 'UniformOutput',
 generatedFolder = false(size(paths));
 for i = 1:numel(paths)
     parts = pathParts{i};
-    modelResultSource = startsWith(paths(i), "models/") && contains(paths(i), "/results/");
+    modelResultSource = startsWith(paths(i), "src/+lamb/+models/") && contains(paths(i), "/+results/");
     generatedFolder(i) = any(parts == "Results") || any(parts == "figures") || ...
         (any(parts == "results") && ~modelResultSource);
 end

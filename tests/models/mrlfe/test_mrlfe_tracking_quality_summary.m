@@ -1,6 +1,6 @@
 function test_mrlfe_tracking_quality_summary()
 % The maintained quality summary consumes canonical public model results.
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 frequency_Hz = linspace(500, 4000, 10).';
 elastic = solveCase(params, frequency_Hz, 0);
 viscous = solveCase(params, frequency_Hz, 0.05);
@@ -26,6 +26,6 @@ end
 
 function result = solveCase(params, frequency_Hz, etaS)
 options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', etaS);
-request = mrlfeBuildSolveRequest(params, frequency_Hz, "A0Like", options);
-result = mrlfeSolve(request);
+request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, "A0Like", options);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 end

@@ -1,7 +1,7 @@
 function params = mrlfeDefaultSweepParams()
 %MRLFEDEFAULTSWEEPPARAMS Build the reference parameter set for mRLFE sweeps.
 
-params = mrlfeDefaultWorkflowParams();
+params = lamb.models.mrlfe.configuration.mrlfeDefaultWorkflowParams();
 params.rho = 1070;
 params.mu = 75e3;
 params.nu = 0.4999;

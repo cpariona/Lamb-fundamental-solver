@@ -111,7 +111,7 @@ summaryName = char(prefix + string(branchName) + "Summary");
 end
 
 function result = evaluateMRLFE(params, options, branchName)
-frequency_Hz = rlBuildFrequencyVector(params);
-request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
-result = mrlfeSolve(request);
+frequency_Hz = lamb.grids.buildFrequencyVector(params);
+request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 end

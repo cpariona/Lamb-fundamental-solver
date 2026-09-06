@@ -5,9 +5,9 @@ fprintf('\nRunning execution profile current-behavior contract test...\n');
 fprintf('----------------------------------------------------------\n');
 
 %% Rayleigh-Lamb presets are materially different.
-fast = rlDefaultOptions("Fast");
-balanced = rlDefaultOptions("Balanced");
-robust = rlDefaultOptions("Robust");
+fast = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
+balanced = lamb.models.rayleigh_lamb.rlDefaultOptions("Balanced");
+robust = lamb.models.rayleigh_lamb.rlDefaultOptions("Robust");
 
 assert(fast.gridPointsInitial < balanced.gridPointsInitial, ...
     'Fast RL gridPointsInitial should be lower than Balanced.');

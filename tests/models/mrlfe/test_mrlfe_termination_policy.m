@@ -4,9 +4,9 @@ function test_mrlfe_termination_policy()
 fprintf('\nRunning mRLFE termination policy test...\n');
 fprintf('---------------------------------------\n');
 
-physicalTail = mrlfeSolve(localRequest("A0Like", 0.05, "physicalTail"));
-none = mrlfeSolve(localRequest("A0Like", 0.05, "none"));
-s0PhysicalTail = mrlfeSolve(localRequest("S0Like", 0.05, "physicalTail"));
+physicalTail = lamb.models.mrlfe.mrlfeSolve(localRequest("A0Like", 0.05, "physicalTail"));
+none = lamb.models.mrlfe.mrlfeSolve(localRequest("A0Like", 0.05, "none"));
+s0PhysicalTail = lamb.models.mrlfe.mrlfeSolve(localRequest("S0Like", 0.05, "physicalTail"));
 
 assert(isfield(physicalTail.debug.solverResult.branchSolve, 'physicalCorridor'), ...
     'A0 physicalTail should evaluate the physical-tail policy.');

@@ -18,9 +18,9 @@ This folder contains the maintained mRLFE model, fitting, sweep, and diagnostic 
 All maintained mRLFE consumers call the public production API:
 
 ```text
-Main GUI  -> guiRunMRLFEModel      -> mrlfeSolve
-SweepTool -> guiRunMRLFESweep      -> mrlfeSolve per point
-FitTool   -> mrlfeEvaluateFitModel -> mrlfeSolve
+Main GUI  -> guiRunMRLFEModel      -> lamb.models.mrlfe.mrlfeSolve
+SweepTool -> guiRunMRLFESweep      -> lamb.models.mrlfe.mrlfeSolve per point
+FitTool   -> mrlfeEvaluateFitModel -> lamb.models.mrlfe.mrlfeSolve
 ```
 
 Fast, Balanced, and Robust execution profiles resolve to the public `fast`, `balanced`, and `robust` numerical presets. The `dense` preset remains the maintained 10 Hz reference/diagnostic configuration.

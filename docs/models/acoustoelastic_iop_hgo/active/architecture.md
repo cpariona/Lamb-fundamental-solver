@@ -1,27 +1,34 @@
 # AE IOP/HGO architecture
 
 The maintained public solver is
-`models/acoustoelastic_iop_hgo/api/solveAcoustoelasticIOPHGOBranch.m`.
+`lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch`, owned by
+`src/+lamb/+models/+acoustoelastic_iop_hgo/solveAcoustoelasticIOPHGOBranch.m`.
 It owns public request validation/orchestration and delegates scientific work to
-the model layer. `aeResolveConfiguration` and `aeGetNumericalPreset` own
+the model layer. `lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration` and `lamb.models.acoustoelastic_iop_hgo.configuration.aeGetNumericalPreset` own
 configuration; atlas construction, linking, selection, fallback, quality
 assessment, and result construction remain separate model responsibilities.
 
 The common model-family spine is explicit:
 
 ```text
-models/acoustoelastic_iop_hgo/
-  api/             public solver entry point
-  configuration/   defaults, validation, policy normalization, presets
-  core/            model problem/state construction
-  solvers/         maintained atlas solve orchestration
-  tracking/        atlas minima linking/splitting/refinement support
-  quality/         assessment of already-decided official output
-  results/         canonical result construction
+src/+lamb/+models/+acoustoelastic_iop_hgo/
+  public solver and defaults
+  +configuration/   validation, policy normalization, presets
+  +core/            model problem/state construction
+  +solvers/         maintained atlas solve orchestration
+  +tracking/        atlas minima linking/splitting/refinement support
+  +quality/         assessment of already-decided official output
+  +results/         canonical result construction
 ```
 
-Scientifically specific AE ownership remains under `constitutive/`,
-`diagnostics/`, and `policies/` where those stages are real model
+The maintained internal solver owners are
+`lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticAtlasBranch`,
+`lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticIOPHGODispersion`,
+`lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticDispersion`, and
+`lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticComplexCDispersion`.
+
+Scientifically specific AE ownership remains under `+constitutive/`,
+`+diagnostics/`, and `+policies/` where those stages are real model
 responsibilities.
 
 ```text

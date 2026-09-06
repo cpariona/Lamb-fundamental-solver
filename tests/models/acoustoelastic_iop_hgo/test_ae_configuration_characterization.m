@@ -1,5 +1,5 @@
 function test_ae_configuration_characterization()
-production = defaultAcoustoelasticIOPHGOOptions();
+production = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 assert(production.atlasNumYPoints == 1000);
 assert(production.atlasTopNMinima == 18);
 assert(production.refineLocalMinima == true);
@@ -11,7 +11,7 @@ for diagnosticField = ["trackingMethod", "numCpScanPoints", ...
     assert(~isfield(production, diagnosticField), ...
         'Public production defaults must not expose %s.', diagnosticField);
 end
-diagnostic = aeDefaultDiagnosticOptions();
+diagnostic = lamb.models.acoustoelastic_iop_hgo.configuration.aeDefaultDiagnosticOptions();
 assert(diagnostic.numCpScanPoints == 1400);
 assert(diagnostic.maxLocalCandidates == 12);
 assert(diagnostic.trackingMethod == "globalScan");
@@ -60,7 +60,7 @@ assert(fitTool.atlasNumYPoints == 300 && fitTool.atlasTopNMinima == 12);
 assert(sweepMetadata.surfaceDefaultExecutionProfile == "Fast");
 assert(fitMetadata.surfaceDefaultExecutionProfile == "Fast");
 
-explicit = defaultAcoustoelasticIOPHGOOptions( ...
+explicit = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions( ...
     'atlasNumYPoints', 321, ...
     'atlasTopNMinima', 7, ...
     'atlasBranchPolicy', "ATLASA0");
@@ -71,7 +71,7 @@ assert(explicit.atlasBranchPolicy == "atlasA0");
 missingParams = struct('IOP', 1);
 didReject = false;
 try
-    solveAcoustoelasticIOPHGOBranch(missingParams, production);
+    lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(missingParams, production);
 catch ME
     didReject = contains(ME.message, ...
         'Missing required acoustoelastic IOP/HGO atlas parameter: R');

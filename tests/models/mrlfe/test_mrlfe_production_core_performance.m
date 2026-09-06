@@ -12,11 +12,11 @@ cases = [ ...
 
 for i = 1:numel(cases)
     request = localRequest(cases(i).branch, cases(i).etaS);
-    mrlfeSolve(request);
+    lamb.models.mrlfe.mrlfeSolve(request);
     newTimes = zeros(3,1);
     for k = 1:3
         t = tic;
-        mrlfeSolve(request);
+        lamb.models.mrlfe.mrlfeSolve(request);
         newTimes(k) = toc(t);
     end
     newMedian = median(newTimes);

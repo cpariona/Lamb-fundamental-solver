@@ -21,7 +21,7 @@ for branch = branches
     for etaS = etaSValues
         for mu = muValues
             request = localRequest(branch, etaS, mu, preset);
-            result = mrlfeSolve(request);
+            result = lamb.models.mrlfe.mrlfeSolve(request);
 
             results{end+1,1} = result; %#ok<AGROW>
             assert(isequal(result.frequency_Hz, request.frequency_Hz(:)), 'Frequency grid mismatch.');

@@ -85,7 +85,7 @@ end
 firstParams = sweepOutput.sweepResult.params{1};
 firstOptions = sweepOutput.sweepResult.options{1};
 firstResult = sweepOutput.sweepResult.results{1};
-expectedFirstResult = solveAcoustoelasticIOPHGOBranch(firstParams, firstOptions);
+expectedFirstResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(firstParams, firstOptions);
 assert(isequaln(firstResult.phaseVelocity_mps, expectedFirstResult.phaseVelocity_mps));
 assert(isequal(firstResult.validMask, expectedFirstResult.validMask));
 assert(isequaln(firstResult.quality, expectedFirstResult.quality));

@@ -4,14 +4,14 @@ function test_rl_fit_evaluator_branch_consistency()
 fprintf('\nRunning Rayleigh-Lamb fitting evaluator branch-consistency test...\n');
 fprintf('---------------------------------------------------------------\n');
 
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.mu = 90e3;
 params.thickness = 0.50e-3;
 params.rho = 1070;
 params.nu = 0.4999;
 
 frequency_Hz = [9000; 10000; 11000; 12000];
-options = rlDefaultOptions("Fast");
+options = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 
 [CpFit_mps, rawFit] = rlEvaluateFitModel(params, frequency_Hz, "A0", options);
 assert(all(isfinite(CpFit_mps) & CpFit_mps > 0), 'Branch-coherent fit evaluator returned invalid requested Cp values.');
@@ -34,7 +34,7 @@ referenceOptions = options;
 referenceOptions.computeA0 = true;
 referenceOptions.computeS0 = false;
 
-reference = rlComputeFundamentalLambModes(referenceParams, referenceOptions);
+reference = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(referenceParams, referenceOptions);
 CpReference_mps = interp1(reference.modes.A0.frequency_Hz, reference.modes.A0.phaseVelocity_mps, frequency_Hz, 'linear', NaN);
 
 relativeDifference = abs(CpFit_mps - CpReference_mps) ./ max(CpReference_mps, eps);

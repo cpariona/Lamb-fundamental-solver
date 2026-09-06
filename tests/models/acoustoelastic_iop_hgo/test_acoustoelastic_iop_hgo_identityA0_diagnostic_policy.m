@@ -14,17 +14,17 @@ params.rhoF = 1000;
 params.fluidBulkModulus = 2.2e9;
 params.frequency = logspace(log10(100), log10(20e3), 40);
 
-options = defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 500;
 options.atlasTopNMinima = 18;
 
-resultAtlas = solveAcoustoelasticIOPHGOBranch(params, options);
+resultAtlas = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 
 options.atlasBranchPolicy = "identityA0Diagnostic";
-resultIdentity = solveAcoustoelasticIOPHGOBranch(params, options);
+resultIdentity = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 
 assert(isfield(resultIdentity.diagnostics, 'identityA0'), ...
     'identityA0Diagnostic must add diagnostics.identityA0.');

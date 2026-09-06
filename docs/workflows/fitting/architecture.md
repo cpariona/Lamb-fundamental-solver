@@ -144,11 +144,11 @@ rlFitDispersionData
   -> rlBuildFitProblem
   -> solveDispersionFitProblem
   -> rlEvaluateFitModel
-  -> rlSolveFundamentalBranch
+  -> lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch
 ```
 
 The RL evaluator shares the canonical model-layer continuation owner with
-`rlComputeFundamentalLambModes`. It preserves exact experimental frequencies
+`lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes`. It preserves exact experimental frequencies
 in its own tracking grid and disables prediction fallback. It therefore does
 not call the public batch-grid API; there is no second physics or optimizer
 implementation. This distinction is deliberate and numerically protected.
@@ -160,8 +160,8 @@ mrlfeFitDispersionData
   -> mrlfeBuildFitProblem
   -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve
 ```
 
 mRLFE objective evaluations use:
@@ -190,7 +190,7 @@ aeFitDispersionData
   -> aeBuildFitProblem
   -> solveDispersionFitProblem
   -> aeEvaluateFitModel
-  -> solveAcoustoelasticIOPHGOBranch
+  -> lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
 ```
 
 Atlas construction and branch selection belong to the AE model, not the optimizer.

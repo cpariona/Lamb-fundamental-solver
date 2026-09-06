@@ -8,17 +8,17 @@ function test_lightweight_numerical_regression()
 fprintf('Running lightweight numerical regression snapshots...\n');
 
 %% Rayleigh-Lamb A0/S0 snapshot
-rlParams = rlDefaultParams();
+rlParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 rlParams.fmin = 10;
 rlParams.fmax = 100;
 rlParams.numFrequencyPoints = 10;
 rlParams.frequencySpacing = "linspace";
 
-rlOptions = rlDefaultOptions();
+rlOptions = lamb.models.rayleigh_lamb.rlDefaultOptions();
 rlOptions.computeA0 = true;
 rlOptions.computeS0 = true;
 
-rlResult = rlComputeFundamentalLambModes(rlParams, rlOptions);
+rlResult = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(rlParams, rlOptions);
 assertNumericClose(rlResult.modes.A0.frequency_Hz([1 10]), [10; 100], 1e-12, ...
     'Rayleigh-Lamb frequency grid snapshot changed.');
 assertNumericClose(rlResult.modes.A0.phaseVelocity_mps([1 5 10]), ...
@@ -29,7 +29,7 @@ assertNumericClose(rlResult.modes.S0.phaseVelocity_mps([1 5 10]), ...
     'Rayleigh-Lamb S0 Cp snapshot changed.');
 
 %% mRLFE elastic real-k snapshot
-mrlfeParams = rlDefaultParams();
+mrlfeParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 mrlfeParams.mu = 158e3;
 mrlfeParams.rho = 1070;
 mrlfeParams.nu = 0.4999;
@@ -96,14 +96,14 @@ aeParams.fluidBulkModulus = 2.2e9;
 aeParams.frequency = logspace(log10(300), log10(15e3), 35);
 aeParams.IOP = 15 * 133.322;
 
-aeOptions = defaultAcoustoelasticIOPHGOOptions();
+aeOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 aeOptions.M54_variant = "corrected";
 aeOptions.normalizeRows = false;
 aeOptions.atlasNumYPoints = 300;
 aeOptions.atlasTopNMinima = 12;
 aeOptions.atlasBranchPolicy = "atlasA0";
 
-aeResult = solveAcoustoelasticIOPHGOBranch(aeParams, aeOptions);
+aeResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(aeParams, aeOptions);
 assert(nnz(aeResult.validMask) == 35 && numel(aeResult.validMask) == 35, ...
     'AE IOP/HGO validMask snapshot changed.');
 assert(string(aeResult.quality.policyName) == "atlasA0", ...
@@ -117,8 +117,8 @@ end
 
 function result = solveMRLFERegressionBranch(params, frequency_Hz, branchName)
 options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
-request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
-result = mrlfeSolve(request);
+request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 end
 
 function assertNumericClose(actual, expected, tol, message)
