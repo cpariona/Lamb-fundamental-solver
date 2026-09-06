@@ -30,9 +30,9 @@ new callers use `executionProfile`. See the
 
 | Family | Public operations |
 | --- | --- |
-| RL | `rlDefaultParams`, `rlDefaultOptions`, `rlComputeFundamentalLambModes`, `rlComputeAnalyticalApproximations` |
-| mRLFE | `mrlfeDefaultParameters`, `mrlfeDefaultOptions`, `mrlfeSolve` |
-| AE | `defaultAcoustoelasticIOPHGOOptions`, `solveAcoustoelasticIOPHGOBranch` |
+| RL | `lamb.models.rayleigh_lamb.rlDefaultParams`, `lamb.models.rayleigh_lamb.rlDefaultOptions`, `lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes`, `lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations` |
+| mRLFE | `lamb.models.mrlfe.mrlfeDefaultParameters`, `lamb.models.mrlfe.mrlfeDefaultOptions`, `lamb.models.mrlfe.mrlfeSolve` |
+| AE | `lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions`, `lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch` |
 | Fitting | `rlFitDispersionData`, `mrlfeFitDispersionData`, `aeFitDispersionData` |
 | Sweeps | `rlRunSweep`, `mrlfeRunSweep`, `aeRunSweep`, `aeRunGridSweep` |
 

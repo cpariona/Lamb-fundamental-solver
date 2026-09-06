@@ -22,7 +22,7 @@ end
 experimental = validateExperimentalDispersionData(experimental, 1);
 
 branchName = getConfigValue(fitConfig, 'branchName', "atlasA0");
-branchName = aeNormalizeBranchPolicy(branchName);
+branchName = lamb.models.acoustoelastic_iop_hgo.configuration.aeNormalizeBranchPolicy(branchName);
 if branchName ~= "atlasA0"
     error('AE IOP/HGO fitting supports only atlasA0.');
 end

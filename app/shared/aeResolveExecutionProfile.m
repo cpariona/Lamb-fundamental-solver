@@ -18,7 +18,7 @@ parse(p, varargin{:});
     profile, p.Results.ApplyNumericalPreset);
 surface = canonicalSurface(p.Results.Surface);
 surfaceOverrides = buildSurfaceOverrides(surface, p.Results.Overrides);
-[options, configurationMetadata] = aeResolveConfiguration(surfaceOverrides, ...
+[options, configurationMetadata] = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(surfaceOverrides, ...
     'NumericalPreset', numericalPreset);
 options.executionProfile = profile;
 options.robustness = profile;

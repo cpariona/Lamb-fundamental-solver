@@ -24,7 +24,7 @@ Reference MAT SHA-256:
 
 The then-current solver was checked again in a fresh session with
 `restoredefaultpath` and current `startup`; `which` resolved the then-current
-`mrlfeSolve` and RL seed API. Historical comparison failed the unchanged 1e-10
+`lamb.models.mrlfe.mrlfeSolve` and RL seed API. Historical comparison failed the unchanged 1e-10
 characterization tolerance before the configuration correction described below.
 
 The Fast matrix uses A0Like/S0Like, mu=[50,75,158,250] kPa, etaS=[0,0.05,0.10]
@@ -59,9 +59,9 @@ by the adaptive tracker. This changed the candidate exclusion near scan-window
 edges, rather than merely renaming an effective setting.
 
 Relevant owners are
-`models/mrlfe/configuration/mrlfeResolveConfiguration.m`,
-`models/mrlfe/solvers/mrlfeSolveViscoelasticBranch.m`, and
-`models/mrlfe/tracking/mrlfeTrackBranchAdaptive.m`.
+`src/+lamb/+models/+mrlfe/+configuration/mrlfeResolveConfiguration.m`,
+`src/+lamb/+models/+mrlfe/+solvers/mrlfeSolveViscoelasticBranch.m`, and
+`src/+lamb/+models/+mrlfe/+tracking/mrlfeTrackBranchAdaptive.m`.
 
 A read-only counterfactual resolved the configuration, changed only the
 in-memory `internalOptions.trackerEdgeGuardPoints` from 8 to 4, and executed the

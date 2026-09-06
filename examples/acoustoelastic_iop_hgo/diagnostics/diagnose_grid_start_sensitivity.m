@@ -33,7 +33,7 @@ for i = 1:numel(caseSpecs)
     fprintf('Running %s: fmin %.3g Hz, fmax %.3g Hz, N=%d, yN=%d, topN=%d\n', ...
         spec.label, spec.fmin_Hz, spec.fmax_Hz, spec.nFreq, options.atlasNumYPoints, options.atlasTopNMinima);
 
-    result = solveAcoustoelasticIOPHGOBranch(params, options);
+    result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
     key = matlab.lang.makeValidName(spec.label);
     resultByCase.(key) = result;
 
@@ -121,7 +121,7 @@ frequency = logspace(log10(fmin_Hz), log10(fmax_Hz), nFreq);
 end
 
 function options = makeOptions(spec)
-options = defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.usePhysicalCpWindow = false;

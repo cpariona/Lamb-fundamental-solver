@@ -36,7 +36,7 @@ callbacks.onFitDataCellEdited = @(~,~)onFitDataCellEdited();
 callbacks.onApplyFitAxes = @(~,~)onApplyFitAxes();
 callbacks.onAutoFitAxes = @(~,~)onAutoFitAxes();
 callbacks.onEvaluateFittedCurve = @(~,~)onEvaluateFittedCurve();
-fitControls = createFittingTab(tabs, rlDefaultParams(), callbacks);
+fitControls = createFittingTab(tabs, lamb.models.rayleigh_lamb.rlDefaultParams(), callbacks);
 
 rightGrid = uigridlayout(root, [3 1]);
 rightGrid.Layout.Column = 2;
@@ -480,9 +480,9 @@ onFitModelChanged();
     function [frequency_Hz, Cp_mps, validMask] = generateSyntheticData(modelFamily, branchName, parts)
         switch modelFamily
             case "rayleigh_lamb"
-                [params, ~] = guiResolveFitModelSetup(modelFamily, rlDefaultParams(), parts);
+                [params, ~] = guiResolveFitModelSetup(modelFamily, lamb.models.rayleigh_lamb.rlDefaultParams(), parts);
                 frequency_Hz = linspace(1000, 8000, 12).';
-                options = rlDefaultOptions(string(fitControls.robustness.Value));
+                options = lamb.models.rayleigh_lamb.rlDefaultOptions(string(fitControls.robustness.Value));
                 Cp_mps = rlEvaluateFitModel(params, frequency_Hz, branchName, options);
                 validMask = isfinite(Cp_mps(:));
             case "mrlfe"

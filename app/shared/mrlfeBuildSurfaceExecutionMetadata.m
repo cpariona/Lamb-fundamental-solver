@@ -3,7 +3,7 @@ function metadata = mrlfeBuildSurfaceExecutionMetadata(metadata, modelResults, v
 
 p = inputParser;
 addParameter(p, 'SurfaceDefault', "Fast", @(x)ischar(x) || isstring(x));
-addParameter(p, 'RoutePolicy', "mrlfeSolve", @(x)ischar(x) || isstring(x));
+addParameter(p, 'RoutePolicy', "lamb.models.mrlfe.mrlfeSolve", @(x)ischar(x) || isstring(x));
 addParameter(p, 'OptimizerProfile', "", @(x)ischar(x) || isstring(x));
 addParameter(p, 'GridPolicy', "", @(x)ischar(x) || isstring(x));
 addParameter(p, 'EtaS', [], @(x)isempty(x) || (isnumeric(x) && isscalar(x)));

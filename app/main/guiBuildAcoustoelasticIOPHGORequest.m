@@ -9,7 +9,7 @@ aeParams.k2 = aeControls.k2.Value;
 aeParams.rho = baseParams.rho;
 aeParams.rhoF = aeControls.rhoF.Value;
 aeParams.fluidBulkModulus = aeControls.fluidBulkModulus.Value * 1e9;
-aeParams.frequency = buildFrequencyVector(baseParams);
+aeParams.frequency = lamb.grids.buildFrequencyVector(baseParams);
 
 guiRequest = struct();
 guiRequest.params = aeParams;

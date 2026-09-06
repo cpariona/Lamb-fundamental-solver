@@ -11,11 +11,11 @@ FitTool_GUI
   -> mrlfeBuildFitProblem
   -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve
 ```
 
-There is one maintained physical evaluation route. `mrlfeEvaluateFitModel` builds a public request and calls `mrlfeSolve`.
+There is one maintained physical evaluation route. `mrlfeEvaluateFitModel` builds a public request and calls `lamb.models.mrlfe.mrlfeSolve`.
 
 ## Supported fitting cases
 
@@ -40,7 +40,7 @@ Only `frequency_Hz` and `Cp_mps` are required.
 
 ## Public request mapping
 
-`mrlfeBuildSolveRequest` maps fitting parameters and model-owned options to the public SI request contract:
+`lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` maps fitting parameters and model-owned options to the public SI request contract:
 
 ```matlab
 request.branch

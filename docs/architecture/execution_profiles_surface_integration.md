@@ -21,7 +21,7 @@ code should prefer `executionProfile` in requests and metadata.
 
 | Model | Main GUI | SweepTool | FitTool |
 | --- | --- | --- | --- |
-| Rayleigh-Lamb | `Fast`, `Balanced`, `Robust` supported through `rlDefaultOptions` | all three profiles supported; default `Fast` | all three profiles supported; default `Fast` |
+| Rayleigh-Lamb | `Fast`, `Balanced`, `Robust` supported through `lamb.models.rayleigh_lamb.rlDefaultOptions` | all three profiles supported; default `Fast` | all three profiles supported; default `Fast` |
 | AE IOP/HGO | all three profiles map to AE atlas density; default `Balanced` | all three profiles map to AE atlas density; default `Fast` | all three profiles map to AE atlas density; default `Fast` |
 | mRLFE | all three profiles map directly to the matching public numerical preset; default `Balanced` | all three profiles map directly to the matching public numerical preset; default `Fast` | all three profiles map directly to the matching public numerical preset; default `Fast` |
 
@@ -33,9 +33,9 @@ AE profile mapping remains:
 | `Balanced` | 600 | 16 |
 | `Robust` | 900 | 20 |
 
-`models/acoustoelastic_iop_hgo/configuration/aeGetNumericalPreset.m` is the
+`src/+lamb/+models/+acoustoelastic_iop_hgo/+configuration/aeGetNumericalPreset.m` is the
 single owner of these values. AE app resolvers normalize the visible profile
-and delegate effective configuration to `aeResolveConfiguration`.
+and delegate effective configuration to `lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration`.
 
 mRLFE profile mapping is:
 
@@ -50,8 +50,8 @@ The maintained dependency path is:
 ```text
 surface profile resolver
   -> surface-local physical request translation
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve
 ```
 
 The shared request builder owns physical aliases, scalar/frequency validation,

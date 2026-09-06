@@ -43,7 +43,7 @@ result.validMask
 from:
 
 ```matlab
-solveAcoustoelasticIOPHGOBranch
+lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
 ```
 
 Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, and branch-family candidates are not used as fitting outputs.

@@ -34,7 +34,7 @@ fixedLowAnchorsConstantHighStep
 
 ## Resolution precedence
 
-`mrlfeResolveSolveFrequencyGrid` applies:
+`lamb.models.mrlfe.core.mrlfeResolveSolveFrequencyGrid` applies:
 
 1. `numerics.frequencySolveOverride_Hz`, when explicitly supplied for diagnostics;
 2. the resolved numerical preset grid policy.

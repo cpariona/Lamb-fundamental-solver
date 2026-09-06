@@ -25,11 +25,11 @@ params.frequency = settings.frequency;
 
 atlasOptions = defaultSolverOptions(settings);
 atlasOptions.atlasBranchPolicy = "atlasA0";
-atlasResult = solveAcoustoelasticIOPHGOBranch(params, atlasOptions);
+atlasResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, atlasOptions);
 
 identityOptions = atlasOptions;
 identityOptions.atlasBranchPolicy = "identityA0Diagnostic";
-identityResult = solveAcoustoelasticIOPHGOBranch(params, identityOptions);
+identityResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, identityOptions);
 
 [directParams, state] = buildDirectParamsFromIOP(params);
 
@@ -135,7 +135,7 @@ end
 end
 
 function solverOptions = defaultSolverOptions(settings)
-solverOptions = defaultAcoustoelasticIOPHGOOptions();
+solverOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 solverOptions.M54_variant = "corrected";
 solverOptions.normalizeRows = false;
 solverOptions.usePhysicalCpWindow = false;
@@ -144,7 +144,7 @@ solverOptions.atlasTopNMinima = settings.AtlasTopNMinima;
 end
 
 function [directParams, state] = buildDirectParamsFromIOP(params)
-[alpha, beta, gamma, state] = computeAcoustoelasticABGFromIOPHGO( ...
+[alpha, beta, gamma, state] = lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO( ...
     params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
 directParams = struct();
 directParams.alpha = alpha;
@@ -158,7 +158,7 @@ directParams.frequency = params.frequency(:).';
 end
 
 function rawAtlas = computeRawAtlas(params, config)
-rawOptions = defaultAcoustoelasticIOPHGOOptions();
+rawOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 rawOptions.M54_variant = "corrected";
 rawOptions.normalizeRows = false;
 rawOptions.usePhysicalCpWindow = false;
@@ -173,7 +173,7 @@ rows = [];
 for k = 1:numel(freq)
     obj = nan(numel(cGrid), 1);
     for j = 1:numel(cGrid)
-        obj(j) = objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
+        obj(j) = lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, freq(k), cGrid(j), rawOptions);
     end
     minima = findMinima(cGrid, obj, cShear, config.TopNMinimaPerFrequency);

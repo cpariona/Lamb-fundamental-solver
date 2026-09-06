@@ -1,6 +1,6 @@
 # Rayleigh-Lamb solver
 
-The maintained elastic A0/S0 solver lives in `models/rayleigh_lamb/`.
+The maintained elastic A0/S0 solver lives in `src/+lamb/+models/+rayleigh_lamb/`.
 Its public contract is in `public_api.md`.
 
 ## Scientific ownership
@@ -10,14 +10,14 @@ Its public contract is in `public_api.md`.
 - `core/`: material/geometry construction and branch specification.
 - `solvers/`: model-level fundamental-mode solve orchestration.
 - `equations/`: antisymmetric and symmetric Rayleigh-Lamb residuals.
-- `tracking/`: `rlSolveFundamentalBranch`, the shared continuation owner.
-- `quality/`: post-solve quality assessment through `rlEvaluateModeQuality`.
+- `tracking/`: `lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch`, the shared continuation owner.
+- `quality/`: post-solve quality assessment through `lamb.models.rayleigh_lamb.quality.rlEvaluateModeQuality`.
 - `approximations/`: A0 thin-plate and S0 extensional approximations.
 - `results/`: canonical scientific result assembly.
-- `models/materials/`: shared isotropic elastic-material conversions.
+- `src/+lamb/+elasticity/`: shared isotropic elastic-material conversions.
 
 Soft-material inputs use `ShearPoisson`: mu, nu, and rho determine E,
-lambda_Lame, K, CT, and CL through `elasticFromMuNu`.
+lambda_Lame, K, CT, and CL through `lamb.elasticity.elasticFromMuNu`.
 `LameParameters` is available for explicit formulation checks. Full
 thickness is the public geometry input; half-thickness is internal.
 
@@ -35,7 +35,7 @@ RL solver. Plot-data extraction owns branch selection and units; renderers
 only display the already-computed curves.
 
 `rlFitDispersionData` delegates optimization to the shared fitting owner.
-Its evaluator uses the same model-layer `rlSolveFundamentalBranch`, with
+Its evaluator uses the same model-layer `lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch`, with
 an internal continuation grid retaining exact experimental frequencies and
 prediction fallback disabled. It does not call the batch-grid public compute
 API; replacing this route would change the established fitting semantics.

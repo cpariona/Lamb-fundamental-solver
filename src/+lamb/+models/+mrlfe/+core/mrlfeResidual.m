@@ -1,0 +1,26 @@
+function residual = mrlfeResidual(k, omega, material, geometry, mrlfeParams, options)
+%MRLFERESIDUAL Adapt tracker options to the maintained mRLFE objective.
+%
+% residual = lamb.models.mrlfe.core.mrlfeResidual(k, omega, material, geometry, mrlfeParams)
+% returns the maintained scale-normalized singular-value objective:
+%
+%   sigma_min(M) / sigma_max(M)
+%
+% residual = lamb.models.mrlfe.core.mrlfeResidual(..., options) can select the objective through
+% options.residualMethod. The maintained default is
+% "minSingularValueRatio".
+
+if nargin < 6 || isempty(options)
+    options = struct();
+end
+method = getFieldOrDefault(options, 'residualMethod', "minSingularValueRatio");
+residual = lamb.models.mrlfe.core.mrlfeObjectiveResidual(k, omega, material, geometry, mrlfeParams, 'Method', method);
+end
+
+function value = getFieldOrDefault(s, name, defaultValue)
+if isstruct(s) && isfield(s, name) && ~isempty(s.(name))
+    value = s.(name);
+else
+    value = defaultValue;
+end
+end

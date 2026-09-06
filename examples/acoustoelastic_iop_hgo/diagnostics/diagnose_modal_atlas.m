@@ -53,7 +53,7 @@ minBranchPoints = 10;
 % Existing tracker overlays. These are not used to define branches.
 trackerGridPoints = [900, 1800, 3600];
 
-baseOptions = defaultAcoustoelasticIOPHGOOptions();
+baseOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 baseOptions.branch = "A0";
 baseOptions.trackingDirection = "backward";
 baseOptions.trackingMethod = "globalScan";
@@ -183,7 +183,7 @@ conditionList(3).overlayTrackers = false;
 end
 
 function [directParams, state] = buildDirectParamsFromIOP(params)
-[alpha, beta, gamma, state] = computeAcoustoelasticABGFromIOPHGO( ...
+[alpha, beta, gamma, state] = lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO( ...
     params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
 directParams = struct();
 directParams.alpha = alpha;
@@ -275,7 +275,7 @@ trackerResultsForCase = cell(numel(gridList), 1);
 for g = 1:numel(gridList)
     opt = options;
     opt.numCpScanPoints = gridList(g);
-    result = solveAcoustoelasticIOPHGODispersion(params, opt);
+    result = lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticIOPHGODispersion(params, opt);
     trackerResultsForCase{g} = result;
 
     for k = 1:numel(result.frequency_Hz)

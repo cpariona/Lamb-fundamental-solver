@@ -31,8 +31,8 @@ docs/                     current contracts and operating handoff
 The common model-family spine is `api/configuration/core/solvers/tracking/quality/results` where the responsibility exists. Scientific directories such as RL `equations/` and `approximations/`, AE `constitutive/`, and model-specific `policies/` remain where justified; empty directories are not created for appearance.
 
 Model-specific request construction is model-owned configuration. In particular,
-`mrlfeBuildSolveRequest` translates maintained workflow/app aliases into the
-canonical mRLFE request under `models/mrlfe/configuration/`. Generic workflow
+`lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` translates maintained workflow/app aliases into the
+canonical mRLFE request under `src/+lamb/+models/+mrlfe/+configuration/`. Generic workflow
 orchestration remains under analysis/app; model request semantics do not.
 
 ## Dependency contract
@@ -46,7 +46,7 @@ orchestration remains under analysis/app; model request semantics do not.
 | tests | all maintained layers | becoming a production dependency |
 
 The only intentional cross-family seed edge is
-`mrlfeBuildSeed -> rlComputeFundamentalLambModes`. RL never calls mRLFE.
+`lamb.models.mrlfe.tracking.mrlfeBuildSeed -> lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes`. RL never calls mRLFE.
 Generic infrastructure is model-neutral; model-family code must not use another
 family merely as a utility owner.
 
@@ -59,15 +59,15 @@ lives under tests, not analysis.
 
 | Responsibility | Owner |
 | --- | --- |
-| RL public API | `rlComputeFundamentalLambModes` and RL public defaults under `api/` |
+| RL public API | `lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes` and RL public defaults under `api/` |
 | RL configuration | RL frequency wrapper and validation under `configuration/` |
-| RL physics/tracking | RL residuals, model solver, and `rlSolveFundamentalBranch` |
-| mRLFE request/configuration | `mrlfeBuildSolveRequest`, `mrlfeResolveConfiguration`, and numerical presets under `configuration/` |
+| RL physics/tracking | RL residuals, model solver, and `lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch` |
+| mRLFE request/configuration | `lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest`, `lamb.models.mrlfe.configuration.mrlfeResolveConfiguration`, and numerical presets under `configuration/` |
 | mRLFE physics/tracking | mRLFE matrix/residual and adaptive tracking |
-| AE public API | `solveAcoustoelasticIOPHGOBranch` under `api/` |
+| AE public API | `lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch` under `api/` |
 | AE physics/tracking | constitutive/SVD objective, discrete atlas linking, selected-branch `fminbnd` refinement |
-| Public scientific results | `rlBuildResult`, `mrlfeBuildResult`, `aeBuildResult` |
-| Quality | `rlEvaluateModeQuality`, `mrlfeEvaluateBranchQuality`, `aeEvaluateAtlasA0Quality` |
+| Public scientific results | `lamb.models.rayleigh_lamb.results.rlBuildResult`, `lamb.models.mrlfe.results.mrlfeBuildResult`, `lamb.models.acoustoelastic_iop_hgo.results.aeBuildResult` |
+| Quality | `lamb.models.rayleigh_lamb.quality.rlEvaluateModeQuality`, `lamb.models.mrlfe.quality.mrlfeEvaluateBranchQuality`, `lamb.models.acoustoelastic_iop_hgo.quality.aeEvaluateAtlasA0Quality` |
 | Fitting optimizer | `solveDispersionFitProblem` |
 | 1D sweep iteration | `runParametricSweep` |
 | AE 2D sweep | `aeRunGridSweep` |

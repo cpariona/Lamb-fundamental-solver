@@ -1,5 +1,5 @@
 function sweepOutput = guiRunMRLFESweep(request)
-%GUIRUNMRLFESWEEP Run an mRLFE one-parameter sweep through mrlfeSolve.
+%GUIRUNMRLFESWEEP Run an mRLFE one-parameter sweep through lamb.models.mrlfe.mrlfeSolve.
 
 params = request.baseParams;
 params.numFrequencyPoints = "auto";
@@ -40,7 +40,7 @@ sweepOutput = struct( ...
     'branchName', branchName, 'sweepSpec', sweepSpec, 'sweepResult', sweepResults, ...
     'summaryTable', summaryTable, 'normalized', normalized, ...
     'atlasPolicy', struct('mrlfeA0Policy', baseOptions.mrlfeA0Policy, ...
-        'effectiveA0Policy', "physicalTail", 'guiRoutePolicy', "mrlfeSolve"), ...
+        'effectiveA0Policy', "physicalTail", 'guiRoutePolicy', "lamb.models.mrlfe.mrlfeSolve"), ...
     'executionProfile', profileMetadata, 'metadata', aggregateMetadata, ...
     'elapsedSeconds', normalized.metadata.elapsedSeconds);
 sweepOutput.request.controls = controls;
@@ -59,9 +59,9 @@ end
 end
 
 function result = evaluateMRLFE(params, options, branchName)
-frequency_Hz = buildFrequencyVector(params).';
-request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
-result = mrlfeSolve(request);
+frequency_Hz = lamb.grids.buildFrequencyVector(params).';
+request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 end
 
 function metadata = buildSweepMetadata(sweepResults, profileMetadata)
@@ -78,7 +78,7 @@ for i = 1:numel(sweepResults.points)
     end
 end
 metadata = mrlfeBuildSurfaceExecutionMetadata(profileMetadata, successful, ...
-    'SurfaceDefault', "Fast", 'RoutePolicy', "mrlfeSolve", 'A0Policy', "physicalTail");
+    'SurfaceDefault', "Fast", 'RoutePolicy', "lamb.models.mrlfe.mrlfeSolve", 'A0Policy', "physicalTail");
 metadata.pointCount = numel(sweepResults.points);
 metadata.failedPointCount = failedPointCount;
 metadata.validPointCount = validPointCount;

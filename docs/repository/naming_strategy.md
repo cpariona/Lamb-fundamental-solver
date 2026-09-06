@@ -13,9 +13,9 @@ use `create*`.
 Public solver APIs are:
 
 ```matlab
-rlComputeFundamentalLambModes
-mrlfeSolve
-solveAcoustoelasticIOPHGOBranch
+lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes
+lamb.models.mrlfe.mrlfeSolve
+lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
 ```
 
 Examples use `run_*`, `fit_*`, or `<model>_sweep_*`. Diagnostics use
@@ -49,7 +49,7 @@ names such as `mu`, `rho`, and `thickness`. In every family, `thickness` or
 Half-thickness is internal model state only.
 
 Workflow/app aliases are translated at the model boundary rather than becoming
-parallel public schemas. For mRLFE, `mrlfeBuildSolveRequest` owns translation
+parallel public schemas. For mRLFE, `lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` owns translation
 from maintained aliases such as `mu`, `rho`, and `thickness` to the canonical
 unit-qualified request.
 

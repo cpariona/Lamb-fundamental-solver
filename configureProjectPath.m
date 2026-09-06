@@ -13,9 +13,9 @@ for i = 1:numel(currentEntries)
 end
 
 addpath(char(projectRoot));
+addpath(char(fullfile(projectRoot, "src")));
 roots = [ ...
     fullfile(projectRoot, "app"), ...
-    fullfile(projectRoot, "models"), ...
     fullfile(projectRoot, "analysis")];
 
 for i = 1:numel(roots)

@@ -32,7 +32,7 @@ sweepSpec.displayScale = request.displayScale;
 
 modelName = "RayleighLamb";
 sweepResults = runParametricSweep(params, options, sweepSpec, ...
-    @(pointParams, pointOptions)rlComputeFundamentalLambModes(pointParams, pointOptions));
+    @(pointParams, pointOptions)lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(pointParams, pointOptions));
 summaryTable = summarizeParametricSweepBranch(sweepResults, modelName, branchName, 'Print', false);
 normalized = guiNormalizeRLSweep(sweepResults, summaryTable, request, modelName, branchName);
 normalized.metadata.executionProfile = profileMetadata;

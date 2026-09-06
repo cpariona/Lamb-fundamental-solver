@@ -25,9 +25,9 @@ tree; it was the final integration boundary into `main`.
 - Common model responsibility spine across RL, mRLFE, and AE:
   `api/configuration/core/solvers/tracking/quality/results` where applicable.
 - Generic frequency construction is model-neutral under
-  `models/shared/configuration/buildFrequencyVector.m`.
+  `src/+lamb/+grids/buildFrequencyVector.m`.
 - The only intentional cross-family scientific dependency remains
-  `mrlfeBuildSeed -> rlComputeFundamentalLambModes`.
+  `lamb.models.mrlfe.tracking.mrlfeBuildSeed -> lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes`.
 - Official result curves use column-oriented
   `frequency_Hz/phaseVelocity_mps/wavenumber_radpm/validMask`.
 - Quality core fields use lower camel case.

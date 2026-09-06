@@ -5,8 +5,8 @@ params = struct('R',7.8e-3,'thickness',550e-6,'mu',50e3, ...
     'k1',25e3,'k2',100,'rho',1060,'rhoF',1000, ...
     'fluidBulkModulus',2.2e9,'IOP',15*133.322, ...
     'frequency',logspace(log10(300),log10(15e3),35));
-opts = defaultAcoustoelasticIOPHGOOptions;
-result = solveAcoustoelasticIOPHGOBranch(params, opts);
+opts = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions;
+result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, opts);
 ```
 
 ## Inputs and options

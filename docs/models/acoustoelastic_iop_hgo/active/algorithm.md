@@ -25,13 +25,13 @@ ranking or branch identity because it occurs only after A0 selection.
 The refinement implementation is owned by:
 
 ```text
-models/acoustoelastic_iop_hgo/tracking/aeRefineSelectedAtlasBranch.m
+src/+lamb/+models/+acoustoelastic_iop_hgo/+tracking/aeRefineSelectedAtlasBranch.m
 ```
 
 and is invoked from:
 
 ```text
-models/acoustoelastic_iop_hgo/solvers/solveAcoustoelasticAtlasBranch.m
+src/+lamb/+models/+acoustoelastic_iop_hgo/+solvers/solveAcoustoelasticAtlasBranch.m
 ```
 
 ## Configuration contract

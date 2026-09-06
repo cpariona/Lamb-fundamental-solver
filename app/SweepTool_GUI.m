@@ -10,13 +10,13 @@ function SweepTool_GUI(baseParams, baseOptions)
 % selectable metadata lives in guiGetSweepModelConfiguration.
 
 if nargin < 1 || isempty(baseParams)
-    baseParams = rlDefaultParams();
+    baseParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 end
 if nargin < 2 || isempty(baseOptions)
-    baseOptions = rlDefaultOptions("Fast");
+    baseOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 end
 if ~isfield(baseOptions, 'mrlfeParams') || isempty(baseOptions.mrlfeParams)
-    baseOptions.mrlfeParams = mrlfeDefaultInternalParameters();
+    baseOptions.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
 end
 
 registry = guiGetSweepModelConfiguration();

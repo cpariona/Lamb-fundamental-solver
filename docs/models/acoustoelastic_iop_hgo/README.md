@@ -1,7 +1,7 @@
 # AE IOP/HGO model
 
-The production entrypoint is `solveAcoustoelasticIOPHGOBranch`; defaults are
-created with `defaultAcoustoelasticIOPHGOOptions`. Production uses the
+The production entrypoint is `lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch`; defaults are
+created with `lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions`. Production uses the
 `atlasA0` policy and returns canonical frequency, phase-velocity, wavenumber,
 validity, and quality fields.
 

@@ -7,17 +7,17 @@ Last reviewed: 2026-09-05
 The maintained model-oriented entry point for real-k mRLFE solving is:
 
 ```matlab
-result = mrlfeSolve(request);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 ```
 
 Main GUI, FitTool, and SweepTool consume this model-owned API. Application
 adapters own surface state and presentation, but canonical mRLFE request
-translation is model-owned by `mrlfeBuildSolveRequest` under
-`models/mrlfe/configuration/`.
+translation is model-owned by `lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` under
+`src/+lamb/+models/+mrlfe/+configuration/`.
 
 ## Request
 
-`mrlfeSolve` accepts one struct. The public concepts are intentionally separate:
+`lamb.models.mrlfe.mrlfeSolve` accepts one struct. The public concepts are intentionally separate:
 
 ```matlab
 request.branch = "A0Like";
@@ -51,7 +51,7 @@ S0Like
 Unsupported branches, presets, physical inputs, policies, and nonascending or
 invalid frequency grids fail with stable `mrlfe:*` error identifiers.
 
-`mrlfeBuildSolveRequest` is the reusable translation owner for maintained
+`lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` is the reusable translation owner for maintained
 workflow/app aliases such as `mu`, `rho`, `thickness`, `etaS`, fluid density,
 fluid sound speed, execution profile, and branch name. It produces the canonical
 request above and is independent of GUI handles, fitting, sweeps, and plotting.
@@ -61,8 +61,8 @@ request above and is independent of GUI handles, fitting, sweeps, and plotting.
 Use:
 
 ```matlab
-params = mrlfeDefaultParameters();
-options = mrlfeDefaultOptions();
+params = lamb.models.mrlfe.mrlfeDefaultParameters();
+options = lamb.models.mrlfe.mrlfeDefaultOptions();
 ```
 
 The default physical values are `mu_Pa = 75e3`, `etaS_Pas = 0.05`,
@@ -85,7 +85,7 @@ The API never substitutes another branch as fallback.
 
 Public requests select `request.numerics.preset` as `"fast"`, `"balanced"`,
 `"robust"`, or `"dense"`.
-`mrlfeGetNumericalPreset` is the model configuration owner that resolves those
+`lamb.models.mrlfe.configuration.mrlfeGetNumericalPreset` is the model configuration owner that resolves those
 names; it is not an additional public API.
 
 The maintained presets are:
@@ -177,22 +177,22 @@ as a parallel public alias.
 The production implementation path is neutral:
 
 ```text
-mrlfeSolve
-  -> mrlfeResolveConfiguration
-  -> mrlfeBuildProblem
-  -> mrlfeSolveBranch
-       -> mrlfeSolveElasticBranch
-       -> mrlfeSolveViscoelasticBranch
-       -> mrlfeBuildSeed
-            -> rlComputeFundamentalLambModes
-       -> mrlfeTrackBranchAdaptive
-       -> mrlfeApplyTerminationPolicy
-            -> mrlfeEvaluatePhysicalTail
-  -> mrlfeBuildResult
+lamb.models.mrlfe.mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeResolveConfiguration
+  -> lamb.models.mrlfe.core.mrlfeBuildProblem
+  -> lamb.models.mrlfe.solvers.mrlfeSolveBranch
+       -> lamb.models.mrlfe.solvers.mrlfeSolveElasticBranch
+       -> lamb.models.mrlfe.solvers.mrlfeSolveViscoelasticBranch
+       -> lamb.models.mrlfe.tracking.mrlfeBuildSeed
+            -> lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes
+       -> lamb.models.mrlfe.tracking.mrlfeTrackBranchAdaptive
+       -> lamb.models.mrlfe.policies.mrlfeApplyTerminationPolicy
+            -> lamb.models.mrlfe.policies.mrlfeEvaluatePhysicalTail
+  -> lamb.models.mrlfe.results.mrlfeBuildResult
 ```
 
-The only intentional cross-family dependency is `mrlfeBuildSeed ->
-rlComputeFundamentalLambModes` for the scientific seed.
+The only intentional cross-family dependency is `lamb.models.mrlfe.tracking.mrlfeBuildSeed ->
+lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes` for the scientific seed.
 
 ## Main GUI Use
 
@@ -201,8 +201,8 @@ The maintained Main GUI mRLFE chain is:
 ```text
 LambFundamental_GUI
   -> guiRunMRLFEModel
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve
   -> GUI result adapter
 ```
 
@@ -230,8 +230,8 @@ FitTool_GUI
   -> mrlfeFitDispersionData
   -> solveDispersionFitProblem
   -> mrlfeEvaluateFitModel
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve
 ```
 
 The fitting workflow translates the existing SI fitting parameters (`mu`,
@@ -244,7 +244,7 @@ adaptive selection with no additional termination and no fallback.
 Objective evaluations, automatic full-curve diagnostics, and explicit requested
 fitted-curve evaluations use the same public solver route with the final fitted
 parameters. Characterization compares maintained consumers directly against
-`mrlfeSolve`.
+`lamb.models.mrlfe.mrlfeSolve`.
 
 ## SweepTool Use
 
@@ -256,8 +256,8 @@ SweepTool_GUI
   -> guiRunSweep
   -> guiRunMRLFESweep
   -> runParametricSweep
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve, once per sweep point
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve, once per sweep point
 ```
 
 The sweep workflow translates current SweepTool SI parameters (`mu`, `etaS`,

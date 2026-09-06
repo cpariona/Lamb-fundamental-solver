@@ -16,19 +16,19 @@ if nargin < 4 || isempty(options)
     options = aeDefaultSweepOptions("Fast");
 else
     options.atlasBranchPolicy = "atlasA0";
-    options = aeResolveConfiguration(options);
+    options = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(options);
 end
 
-branchName = aeNormalizeBranchPolicy(branchName);
+branchName = lamb.models.acoustoelastic_iop_hgo.configuration.aeNormalizeBranchPolicy(branchName);
 if branchName ~= "atlasA0"
     error('AE IOP/HGO fitting currently supports only official atlasA0 output.');
 end
 
 frequencyInput = frequency_Hz(:).';
-aeValidateRequest(params, 'Context', "fitting", 'Frequency', frequencyInput);
+lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest(params, 'Context', "fitting", 'Frequency', frequencyInput);
 params.frequency = frequencyInput;
 
-solverResult = solveAcoustoelasticIOPHGOBranch(params, options);
+solverResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 Cp_mps = solverResult.phaseVelocity_mps(:);
 validMask = solverResult.validMask(:) & isfinite(Cp_mps);
 

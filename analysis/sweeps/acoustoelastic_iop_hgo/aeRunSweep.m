@@ -5,7 +5,7 @@ function sweepResult = aeRunSweep(baseParams, sweepField, sweepValues, options, 
 % summaries and plotting are derived from this result by analysis helpers.
 
 if nargin < 4 || isempty(options)
-    options = defaultAcoustoelasticIOPHGOOptions();
+    options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 end
 if nargin < 5 || isempty(sweepConfig)
     sweepConfig = struct();
@@ -26,7 +26,7 @@ spec = struct( ...
     'valueFormatter', string(sweepConfig.ValueFormatter));
 
 sweepResult = runParametricSweep(baseParams, options, spec, ...
-    @(params, pointOptions)solveAcoustoelasticIOPHGOBranch(params, pointOptions));
+    @(params, pointOptions)lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, pointOptions));
 end
 
 function sweepConfig = fillSweepConfigDefaults(sweepConfig, sweepField)

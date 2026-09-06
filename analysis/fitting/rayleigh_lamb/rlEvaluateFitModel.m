@@ -13,7 +13,7 @@ if nargin < 3 || isempty(branchName)
     branchName = "A0";
 end
 if nargin < 4 || isempty(options)
-    options = rlDefaultOptions("Fast");
+    options = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 end
 
 branchName = string(branchName);
@@ -22,11 +22,11 @@ if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInp
     error('frequency_Hz must contain positive finite values.');
 end
 
-rlValidateParams(params);
-rlValidateOptions(options);
+lamb.models.rayleigh_lamb.configuration.rlValidateParams(params);
+lamb.models.rayleigh_lamb.configuration.rlValidateOptions(options);
 
-material = rlComputeMaterial(params);
-geometry = rlComputeGeometry(params);
+material = lamb.models.rayleigh_lamb.core.rlComputeMaterial(params);
+geometry = lamb.models.rayleigh_lamb.core.rlComputeGeometry(params);
 
 [frequencyTrack, requestIndexInTrack] = localBuildTrackingFrequencyGrid(frequencyInput, options);
 solverOptions = localBuildSolverOptions(options, material);
@@ -34,19 +34,19 @@ solverOptions.disallowPredictionFallback = true;
 
 geometryForSpec = geometry;
 geometryForSpec.frequency0 = frequencyTrack(1);
-branchSpec = rlMakeBranchSpec(branchName, material, geometryForSpec);
+branchSpec = lamb.models.rayleigh_lamb.core.rlMakeBranchSpec(branchName, material, geometryForSpec);
 solverOptions = localApplyBranchSpec(solverOptions, branchSpec);
 
 switch branchName
     case "A0"
-        residualFcn = @(Cp, f) rlAResidual(Cp, f, material.CL, material.CT, geometry.halfThickness);
+        residualFcn = @(Cp, f) lamb.models.rayleigh_lamb.equations.rlAResidual(Cp, f, material.CL, material.CT, geometry.halfThickness);
     case "S0"
-        residualFcn = @(Cp, f) rlSResidual(Cp, f, material.CL, material.CT, geometry.halfThickness);
+        residualFcn = @(Cp, f) lamb.models.rayleigh_lamb.equations.rlSResidual(Cp, f, material.CL, material.CT, geometry.halfThickness);
     otherwise
         error('Unsupported Rayleigh-Lamb fitting branch: %s.', branchName);
 end
 
-[CpTrack, residualTrack] = rlSolveFundamentalBranch(frequencyTrack, residualFcn, solverOptions);
+[CpTrack, residualTrack] = lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch(frequencyTrack, residualFcn, solverOptions);
 
 Cp_mps = CpTrack(requestIndexInTrack);
 residual = residualTrack(requestIndexInTrack);

@@ -1,11 +1,11 @@
 # Rayleigh-Lamb public API
 
 ```matlab
-params = rlDefaultParams;
-opts = rlDefaultOptions("Balanced");
+params = lamb.models.rayleigh_lamb.rlDefaultParams;
+opts = lamb.models.rayleigh_lamb.rlDefaultOptions("Balanced");
 opts.computeS0 = true;
-result = rlComputeFundamentalLambModes(params, opts);
-approx = rlComputeAnalyticalApproximations( ...
+result = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(params, opts);
+approx = lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations( ...
     result.configuration.effective.parameters.frequency_Hz, result.material, result.geometry);
 ```
 
@@ -15,18 +15,18 @@ formulation is `ShearPoisson`; `LameParameters` supports explicit Lame
 formulation checks. Frequency controls are `fmin`, `fmax` (Hz),
 `numFrequencyPoints`, and `frequencySpacing`.
 
-`rlDefaultOptions` accepts Fast, Balanced, or Robust. It owns branch toggles,
+`lamb.models.rayleigh_lamb.rlDefaultOptions` accepts Fast, Balanced, or Robust. It owns branch toggles,
 search grids, continuation, residual and jump tolerances. Defaults compute A0
 only; enable S0 explicitly. Public defaults live in
-`models/rayleigh_lamb/api/rlDefaultParams.m` and
-`models/rayleigh_lamb/api/rlDefaultOptions.m`. Frequency construction and
-validation live under `models/rayleigh_lamb/configuration/`.
+`src/+lamb/+models/+rayleigh_lamb/rlDefaultParams.m` and
+`src/+lamb/+models/+rayleigh_lamb/rlDefaultOptions.m`. Frequency construction and
+validation live under `src/+lamb/+models/+rayleigh_lamb/+configuration/`.
 
 ## Result and limitations
 
 `result.modes.A0` / `result.modes.S0` contain enabled branches with
 `frequency_Hz`, `phaseVelocity_mps`, `wavenumber_radpm`, and
-`validMask`. Quality is evaluated by `rlEvaluateModeQuality` and exposed under
+`validMask`. Quality is evaluated by `lamb.models.rayleigh_lamb.quality.rlEvaluateModeQuality` and exposed under
 `result.quality` by the result builder. The result also contains material,
 geometry, analytical approximations, diagnostics, operational execution
 metadata, and requested/effective configuration. There is no top-level

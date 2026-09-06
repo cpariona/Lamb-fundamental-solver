@@ -5,7 +5,7 @@ if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
 end
 
-params = guiMergeStructs(mrlfeDefaultWorkflowParams(), guiGetStructField(guiRequest, 'params', struct()));
+params = guiMergeStructs(lamb.models.mrlfe.configuration.mrlfeDefaultWorkflowParams(), guiGetStructField(guiRequest, 'params', struct()));
 options = guiGetStructField(guiRequest, 'options', struct());
 [profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
     'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
@@ -18,7 +18,7 @@ options.mrlfeParams = resolveMRLFEParams(guiRequest, options);
 options.mrlfeA0Policy = normalizeA0Policy(guiGetStructField(options, 'mrlfeA0Policy', "physicalTail"));
 
 branchNames = selectedBranches(options);
-frequency_Hz = buildFrequencyVector(params);
+frequency_Hz = lamb.grids.buildFrequencyVector(params);
 [modelResults, requests, elapsedSeconds] = solveBranches(params, options, frequency_Hz, branchNames);
 
 result = normalizeModelResults(modelResults);
@@ -29,7 +29,7 @@ result.requests = cellsByBranch(requests);
 profileMetadata.effectiveExecutionProfile = profile;
 profileMetadata.internalSolverPreset = profile;
 profileMetadata = mrlfeBuildSurfaceExecutionMetadata(profileMetadata, modelResults, ...
-    'SurfaceDefault', "Balanced", 'RoutePolicy', "mrlfeSolve", ...
+    'SurfaceDefault', "Balanced", 'RoutePolicy', "lamb.models.mrlfe.mrlfeSolve", ...
     'EtaS', modelResults{1}.configuration.effective.parameters.etaS_Pas, ...
     'A0Policy', "physicalTail");
 status = "success";
@@ -60,7 +60,7 @@ result.metadata = struct( ...
 end
 
 function mrlfeParams = resolveMRLFEParams(guiRequest, options)
-mrlfeParams = guiGetStructField(options, 'mrlfeParams', mrlfeDefaultInternalParameters());
+mrlfeParams = guiGetStructField(options, 'mrlfeParams', lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters());
 if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
     mrlfeParams = guiRequest.mrlfeParams;
 end
@@ -74,8 +74,8 @@ results = cell(1, numel(branchNames));
 requests = cell(1, numel(branchNames));
 timerStart = tic;
 for i = 1:numel(branchNames)
-    requests{i} = mrlfeBuildSolveRequest(params, frequency_Hz, branchNames(i), options);
-    results{i} = mrlfeSolve(requests{i});
+    requests{i} = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchNames(i), options);
+    results{i} = lamb.models.mrlfe.mrlfeSolve(requests{i});
 end
 elapsedSeconds = toc(timerStart);
 end

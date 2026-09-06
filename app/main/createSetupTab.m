@@ -1,7 +1,7 @@
 function h = createSetupTab(tabs, params0, callbacks)
 % Build general Setup tab controls shared by all models.
 
-elastic0 = elasticFromMuNu(params0.mu, params0.nu, params0.rho);
+elastic0 = lamb.elasticity.elasticFromMuNu(params0.mu, params0.nu, params0.rho);
 
 tab = uitab(tabs, 'Title', 'Setup');
 g = uigridlayout(tab, [11 4]);

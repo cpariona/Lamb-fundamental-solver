@@ -12,17 +12,17 @@ LambFundamental_GUI
 FitTool_GUI
 SweepTool_GUI
 
-rlDefaultParams
-rlDefaultOptions
-rlComputeFundamentalLambModes
-rlComputeAnalyticalApproximations
+lamb.models.rayleigh_lamb.rlDefaultParams
+lamb.models.rayleigh_lamb.rlDefaultOptions
+lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes
+lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations
 
-mrlfeDefaultParameters
-mrlfeDefaultOptions
-mrlfeSolve
+lamb.models.mrlfe.mrlfeDefaultParameters
+lamb.models.mrlfe.mrlfeDefaultOptions
+lamb.models.mrlfe.mrlfeSolve
 
-defaultAcoustoelasticIOPHGOOptions
-solveAcoustoelasticIOPHGOBranch
+lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions
+lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
 ```
 
 The supported AE production policy is `atlasA0`. Diagnostic branch algorithms
@@ -42,7 +42,7 @@ aeRunGridSweep
 aeFitDispersionData
 ```
 
-Main GUI, SweepTool, and FitTool reach mRLFE only through `mrlfeSolve`.
+Main GUI, SweepTool, and FitTool reach mRLFE only through `lamb.models.mrlfe.mrlfeSolve`.
 Shared optimizers, data normalizers, plot-data builders, and renderers are
 implementation helpers, not additional public model APIs.
 

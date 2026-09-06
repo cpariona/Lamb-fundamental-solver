@@ -6,8 +6,8 @@ function result = guiRunRayleighLambModel(guiRequest)
 % normalized branch results for later plotting/export layers.
 %
 % Expected optional guiRequest fields:
-%   params  - struct overlay for rlDefaultParams()
-%   options - struct overlay for rlDefaultOptions()
+%   params  - struct overlay for lamb.models.rayleigh_lamb.rlDefaultParams()
+%   options - struct overlay for lamb.models.rayleigh_lamb.rlDefaultOptions()
 %
 % This adapter does not change numerical solver behavior.
 
@@ -15,8 +15,8 @@ if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
 end
 
-params = guiMergeStructs(rlDefaultParams(), guiGetStructField(guiRequest, 'params', struct()));
-options = guiMergeStructs(rlDefaultOptions(), guiGetStructField(guiRequest, 'options', struct()));
+params = guiMergeStructs(lamb.models.rayleigh_lamb.rlDefaultParams(), guiGetStructField(guiRequest, 'params', struct()));
+options = guiMergeStructs(lamb.models.rayleigh_lamb.rlDefaultOptions(), guiGetStructField(guiRequest, 'options', struct()));
 [profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
     'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
     'DefaultSource', "model default");
@@ -37,7 +37,7 @@ profileMetadata.profileSupportMode = "fully_supported";
 profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
 
 elapsedTimer = tic;
-modelResult = rlComputeFundamentalLambModes(params, options);
+modelResult = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(params, options);
 elapsedSeconds = toc(elapsedTimer);
 
 result = guiBuildModelResultView(modelResult, mfilename);

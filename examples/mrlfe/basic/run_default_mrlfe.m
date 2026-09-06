@@ -3,18 +3,18 @@
 addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
 startup;
 
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 500;
 params.fmax = 8000;
 params.numFrequencyPoints = 120;
 params.frequencySpacing = "hybrid";
-frequency_Hz = rlBuildFrequencyVector(params);
+frequency_Hz = lamb.grids.buildFrequencyVector(params);
 
 results = struct();
 for branchName = ["A0Like", "S0Like"]
     options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
-    request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
-    results.(char(branchName)) = mrlfeSolve(request);
+    request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
+    results.(char(branchName)) = lamb.models.mrlfe.mrlfeSolve(request);
 end
 
 figure;

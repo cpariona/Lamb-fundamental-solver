@@ -151,7 +151,7 @@ request.termination = struct('policy', "physicalTail");
 request.fallback = struct('policy', "none");
 
 t = tic;
-result = mrlfeSolve(request);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 run.elapsed_s = toc(t);
 run.frequency_Hz = result.frequency_Hz(:);
 run.Cp_mps = result.phaseVelocity_mps(:);

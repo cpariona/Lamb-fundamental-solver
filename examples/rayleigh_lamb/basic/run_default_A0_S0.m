@@ -4,12 +4,12 @@
 addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
 startup;
 
-params = rlDefaultParams();
-options = rlDefaultOptions("Balanced");
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
+options = lamb.models.rayleigh_lamb.rlDefaultOptions("Balanced");
 options.computeA0 = true;
 options.computeS0 = true;
 
-results = rlComputeFundamentalLambModes(params, options);
+results = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(params, options);
 
 modeNames = fieldnames(results.modes);
 for i = 1:numel(modeNames)

@@ -17,7 +17,7 @@ branchName = string(request.branchName);
 if strlength(branchName) == 0
     branchName = "atlasA0";
 end
-branchName = aeNormalizeBranchPolicy(branchName);
+branchName = lamb.models.acoustoelastic_iop_hgo.configuration.aeNormalizeBranchPolicy(branchName);
 if branchName ~= "atlasA0"
     error('AE IOP/HGO fitting supports only atlasA0.');
 end
