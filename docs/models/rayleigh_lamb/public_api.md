@@ -51,7 +51,7 @@ Parameter campaigns are opt-in studies, not model APIs.
 Examples are executed by path, for example:
 
 ```matlab
-run('examples/rayleigh_lamb/basic/run_default_A0_S0.m')
+run('examples/rayleigh_lamb/basic/rlRunDefaultA0S0.m')
 ```
 
 See `overview.md` for algorithm ownership and `fitting.md` for
