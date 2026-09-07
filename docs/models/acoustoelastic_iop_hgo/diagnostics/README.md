@@ -3,11 +3,11 @@
 Maintained executable diagnostics are:
 
 ```matlab
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_atlas_truncation.m')
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_branch_families.m')
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_grid_start_sensitivity.m')
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_modal_atlas.m')
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_sweep_reliability.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseAtlasTruncation.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseBranchFamilies.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseGridStartSensitivity.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseModalAtlas.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseSweepReliability.m')
 ```
 
 They characterize production atlas behavior without changing branch policy or
