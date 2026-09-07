@@ -4,7 +4,7 @@ function test_mrlfe_main_gui_uses_public_solver()
 fprintf('\nRunning mRLFE Main GUI public-solver route guard test...\n');
 fprintf('-------------------------------------------------------\n');
 
-adapterPath = which('guiRunMRLFEModel');
+adapterPath = which('mrlfeGuiRunModel');
 adapterText = string(fileread(adapterPath));
 
 assert(contains(adapterText, "lamb.models.mrlfe.mrlfeSolve"), ...
@@ -58,6 +58,6 @@ params.nu = 0.4999;
     'Surface', "main", 'EtaS', etaS, 'A0Policy', "physicalTail");
 options.branchNames = branchName;
 
-out = guiRunMRLFEModel(struct('params', params, 'options', options, ...
+out = mrlfeGuiRunModel(struct('params', params, 'options', options, ...
     'mrlfeParams', options.mrlfeParams, 'computeVisco', etaS > 0));
 end
