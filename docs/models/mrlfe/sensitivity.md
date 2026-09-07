@@ -3,12 +3,12 @@
 The maintained representative sweep is:
 
 ```matlab
-run('studies/sensitivity/mrlfe/study_etaS_A0Like.m')
+run('studies/sensitivity/mrlfe/mrlfeStudyEtaSA0Like.m')
 ```
 
 It exercises the public `lamb.models.mrlfe.mrlfeSolve` route using shear viscosity as the swept
 parameter and retains the normalized `mRLFEViscoRealK` result model name for
-positive viscosity. Reusable orchestration is owned by `runMRLFESensitivity`; output
+positive viscosity. Reusable orchestration is owned by `mrlfeRunSensitivity`; output
 data are written below `Results/mrlfe/<task>` and figures are generated only as
 untracked run artifacts.
 
