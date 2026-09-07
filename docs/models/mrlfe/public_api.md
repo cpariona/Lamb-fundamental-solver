@@ -97,8 +97,7 @@ The maintained presets are:
 | `robust` | 20 Hz | 620 | 620 | 8 |
 | `dense` | 10 Hz | 900 | 900 | 8 |
 
-Fast therefore uses the optimized policy introduced by the numerical-alignment
-campaign: a 100-point coarse scan is used for normal candidate discovery and a
+Fast uses a 100-point coarse scan for normal candidate discovery and a
 260-point dense scan is used only as rescue when needed. Candidate discovery is
 discrete; after one candidate is selected, the selected candidate is refined
 continuously with bounded refinement. This does not smooth or post-process the
@@ -214,9 +213,9 @@ The Main GUI defaults to `Balanced`, which maps directly to public preset
 A0Like uses adaptive selection with `physicalTail` termination and no fallback.
 S0Like uses adaptive selection with no additional termination and no fallback.
 
-Main GUI no longer contains mRLFE seed construction, low-level tracker
-selection, atlas candidate inspection, physical-tail cutting, or zero-viscosity
-fallback logic. Partial-quality public results are returned and reported with
+The Solver GUI delegates mRLFE seed construction, low-level tracker selection,
+atlas candidate inspection, physical-tail cutting, and zero-viscosity fallback
+logic to canonical model owners. Partial-quality public results are returned and reported with
 their `quality.accepted` and `quality.reason` metadata; the GUI does not replace
 them with a separate branch implementation.
 

@@ -3,6 +3,21 @@ function test_repository_documentation_contract()
 
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 markdownPaths = gitTrackedMarkdown(repoRoot);
+assert(~isempty(markdownPaths), 'Documentation scan must include tracked Markdown files.');
+
+canonicalPaths = [
+    "README.md"
+    "AGENTS.md"
+    "docs/architecture.md"
+    "docs/conventions.md"
+    "docs/fitting.md"
+    "docs/validation.md"
+];
+modelPaths = markdownPaths(startsWith(markdownPaths, "docs/models/"));
+guardedPaths = unique([canonicalPaths; modelPaths], 'stable');
+assert(~isempty(modelPaths), 'Retired-owner documentation scan must include model documents.');
+assert(all(ismember(canonicalPaths, markdownPaths)), ...
+    'Retired-owner documentation scan is missing a canonical document.');
 
 for i = 1:numel(markdownPaths)
     path = markdownPaths(i);
@@ -11,7 +26,21 @@ for i = 1:numel(markdownPaths)
     assertCodeSpanPaths(repoRoot, path, text);
 end
 
+assertNoRetiredOwnerPaths(repoRoot, guardedPaths);
+
 fprintf('Repository documentation contract test passed.\n');
+end
+
+function assertNoRetiredOwnerPaths(repoRoot, documentPaths)
+retiredPaths = ["analysis/", "app/main/", "app/shared/"];
+for i = 1:numel(documentPaths)
+    documentPath = documentPaths(i);
+    text = string(fileread(fullfile(repoRoot, documentPath)));
+    for j = 1:numel(retiredPaths)
+        assert(~contains(text, retiredPaths(j)), ...
+            'Retired owner path remains in %s: %s', documentPath, retiredPaths(j));
+    end
+end
 end
 
 function assertRelativeLinks(repoRoot, documentPath, text)

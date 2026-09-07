@@ -3,9 +3,9 @@
 The public solver separates the internal atlas tracking grid from the requested
 output grid. The only official production branch is atlasA0.
 
-## Final numerical pipeline
+## Numerical pipeline
 
-The maintained atlas workflow is now:
+The maintained atlas workflow is:
 
 ```text
 1. Evaluate log10(sigma_min(M)) on the discrete atlas frequency-velocity grid.
@@ -36,7 +36,7 @@ src/+lamb/+models/+acoustoelastic_iop_hgo/+solvers/solveAcoustoelasticAtlasBranc
 
 ## Configuration contract
 
-The final continuous-refinement stage is controlled by:
+The continuous-refinement stage is controlled by:
 
 ```text
 refineLocalMinima
@@ -57,5 +57,5 @@ near degeneracy, and near crossings. Diagnostic modal-family candidates do
 not replace official output. Do not repair scientific truncation with plot
 smoothing. Numerical controls and fallback validity must remain explicit.
 
-The historical golden investigation and independent objective/convergence
-evidence are recorded in `validation.md`.
+Numerical regression and independent objective/convergence evidence are
+recorded in `validation.md`.

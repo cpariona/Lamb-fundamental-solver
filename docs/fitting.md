@@ -11,15 +11,29 @@ Fitting preserves residual definitions, weights, masks, free/fixed parameter
 semantics, bounds, optimizer controls, stopping criteria, quality thresholds,
 and family forward routes. It never duplicates equations or tracking.
 
-FitTool accepts `.csv`, `.txt`, `.dat`, and `.mat` experimental data. Its import
-adapter converts frequency to Hz and speed to m/s, removes non-finite or
-non-positive rows, sorts frequencies, combines duplicate frequencies, preserves
-the editable `Use` mask, and records provenance. The canonical input fields are
+FitTool accepts `.csv`, `.txt`, `.dat`, and `.mat` experimental data. Text files
+expose only numeric or logical columns for selection. A MAT file may contain a
+table, a numeric or logical matrix with at least two columns, or a scalar struct
+with at least two compatible numeric or logical vectors.
+
+The import adapter converts frequency to Hz and phase speed to m/s, removes
+non-finite or non-positive rows, requires at least two valid rows, sorts by
+ascending frequency, and collapses duplicate frequencies by their mean unless a
+different supported policy is explicitly selected. Logical `Use` values within
+a duplicate group are combined with `any`, and the normalized `validMask`
+preserves the resulting `Use` selection. The canonical input fields are
 `frequency_Hz`, `Cp_mps`, and `validMask`; `standardError_Cp_mps` is optional
 and weighting is disabled unless explicitly requested.
 
+Import provenance records file path and name, the MAT variable when applicable,
+selected columns and names, source units, duplicate policy, and counts for
+removed rows, collapsed duplicate rows, and output rows. Editing imported data
+sets `wasManuallyEdited = true` while retaining the original provenance.
+
 The editable table uses frequency in Hz, phase speed in m/s, and a `Use` column.
-Axis limits are presentation state and never enter the fit request. File parsing
+Axis limits are presentation state and never enter the fit request. Manual
+limits persist until Auto is selected; Auto leaves the corresponding fields
+blank, and zero is a valid explicit bound rather than a sentinel. File parsing
 and normalization belong to `app/fitting/guiReadExperimentalFitFile.m` and
 `app/fitting/guiPrepareExperimentalFitData.m`; `FitTool_GUI` owns interaction
 and orchestration only.

@@ -4,7 +4,7 @@ Last reviewed: 2026-09-04
 
 ## Scope
 
-The real-k mRLFE public API now executes through a model-layer production core:
+The real-k mRLFE public API executes through a model-layer production core:
 
 ```text
 lamb.models.mrlfe.mrlfeSolve
@@ -33,7 +33,7 @@ The Main GUI adapter translates app input and adapts the public result for
 plotting/export presentation. It does not select low-level trackers, apply
 physical-tail cuts, or perform zero-viscosity fallback.
 
-FitTool fitting now reaches this core through the public API:
+FitTool fitting reaches this core through the public API:
 
 ```text
 guiFitMRLFESolver
@@ -137,7 +137,7 @@ refinement algorithms.
 `lamb.models.mrlfe.tracking.mrlfeTrackBranchAdaptive` is the neutral production entry point for adaptive
 tracking. The maintained candidate generation, prediction, residual scoring,
 candidate selection, validity decisions, and adaptive continuation diagnostics
-now live behind this neutral model-layer name.
+live behind this neutral model-layer name.
 
 The production lifecycle is:
 
@@ -154,6 +154,13 @@ The dense rescue repeats the same search window and scoring policy at higher Cp
 resolution. It does not change branch policy, prediction, continuation limits,
 or residual definition. The Fast rescue trigger is intentionally narrow:
 `valleyFallback` or no valid coarse candidate.
+
+The production invariant `trackerEdgeGuardPoints = 4` protects adaptive-tracker
+candidate selection near scan-window edges. This value is part of the validated
+adaptive tracking behavior: changing it to 8 changes edge-candidate exclusion,
+and independent historical characterization measured approximately 0.113% Cp
+drift in the Fast profile without valid-mask changes. It is therefore a
+scientific numerical invariant, not cosmetic tuning.
 
 The bounded refinement uses the true mRLFE residual through `fminbnd`; it is
 applied only after candidate identity is selected. This removes Cp scan

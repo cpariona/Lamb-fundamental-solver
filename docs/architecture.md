@@ -52,6 +52,46 @@ accepted only at app normalization boundaries; `executionProfile` is the
 canonical surface field. Profiles control numerical effort, not physical
 meaning.
 
+The Solver GUI keeps a normalized result shape for each requested branch and a
+separate aggregate presentation view:
+
+```text
+canonical model result
+-> normalized branch result
+-> aggregate GUI result view
+-> plotting/export of the already-computed result
+```
+
+`guiBuildModelResultView` owns the aggregate GUI view. Plotting and export
+consume that computed view and never invoke model physics. Stable interpreted
+evidence belongs under result metadata or `diagnostics`; large or unstable
+internal state belongs under `debug`.
+
+Each normalized branch exposes `modelName`, `rawModelName`, `branchName`,
+`frequency`, `phaseVelocity`, `wavenumber`, `kThickness`, `metadata`, and
+`diagnostics`. The aggregate view exposes the shared single-branch projection
+when applicable, plus `branches`, `metadata`, and `diagnostics`; a multi-branch
+view leaves the single-branch-only arrays empty instead of inventing an
+aggregate scientific curve.
+
+The canonical sweep result has this primary spine:
+
+```text
+spec
+parameter
+values
+displayValues
+results
+params
+options
+elapsedSeconds
+points
+requests
+```
+
+The sweep engine only iterates requests and records execution evidence. It does
+not own physics, plotting, persistence, or interpretation.
+
 ## Maintained public surface
 
 Run `startup` before using these entrypoints:

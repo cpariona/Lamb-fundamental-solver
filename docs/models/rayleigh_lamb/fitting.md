@@ -54,7 +54,10 @@ The evaluator:
 7. returns diagnostics, reliability, and internal tracking arrays in `rawResult`.
 ```
 
-This replaces the previous independent per-frequency search. The previous strategy avoided predictor fallback but could select valid roots from different modal branches at adjacent frequencies. That made `RMSE(mu)` irregular and could create narrow local minima unrelated to a single continuous A0 branch.
+Branch-coherent continuation is required so adjacent experimental frequencies
+are not fitted against roots from different modal branches. Otherwise
+`RMSE(mu)` can become irregular and develop narrow local minima unrelated to a
+single continuous A0 branch.
 
 The maintained fitting output remains:
 
@@ -138,7 +141,7 @@ RL_A0_mu_perturbed
 
 Use the focused suite after fitting-related changes. Use the core smoke suite after path/API or Rayleigh-Lamb baseline changes.
 
-## Current limitations
+## Limitations
 
 The maintained workflow does not implement:
 

@@ -51,7 +51,12 @@ Use the maintained entrypoint:
 
 `diagnose_atlas_truncation`
 
-The script loads the maintained IOP and shear-modulus sweep workspaces from the launch-folder `Results` tree. It checks short sweep paths first and then legacy sweep paths.
+The script loads the maintained IOP and shear-modulus sweep workspaces from:
+
+```text
+Results/ae_iop_hgo/iop_sweep/
+Results/ae_iop_hgo/mu_sweep/
+```
 
 It analyzes:
 
@@ -90,9 +95,10 @@ The short-path script writes:
 - workspace: `atlas_truncation_workspace.mat`
 - local landscape plots under the `plots` subfolder.
 
-### Validation snapshot after terminal-break correction
+### Validation snapshot
 
-The corrected helper distinguishes terminal truncation from internal gaps. Historical numeric checks from the originally uploaded workspace were (not a current-regime guarantee):
+The helper distinguishes terminal truncation from internal gaps. Reference
+checks from the supplied workspace were (not a universal-regime guarantee):
 
 | Case | Last official valid [kHz] | First terminal missing [kHz] | First internal gap [kHz] | Has internal gap | Diagnostic accepted points | Diagnostic extension [kHz] |
 |---|---:|---:|---:|---:|---:|---:|

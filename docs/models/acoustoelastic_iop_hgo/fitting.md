@@ -51,8 +51,8 @@ Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, and branch-fa
 `lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel` is the fitting-grid adapter. It validates the flat
 physical inputs, requests official `atlasA0`, and delegates every production
 evaluation to the maintained public solver. FitTool and explicit requested
-curve evaluation use this same route; neither app code nor analysis fitting
-code calls the internal atlas solver directly.
+curve evaluation use this same route; neither application nor fitting code
+calls the internal atlas solver directly.
 
 ## Data contract
 
@@ -83,14 +83,15 @@ and force:
 options.atlasBranchPolicy = "atlasA0";
 ```
 
-The synthetic fitting tests use reduced atlas configurations for speed. These are contract tests, not final production-quality fitting configurations.
+The synthetic fitting tests use reduced atlas configurations for speed. These
+are bounded contract fixtures and do not define production fitting quality.
 
 ## Optimizer policy
 
 `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` builds the AE-specific problem and delegates optimizer
 orchestration to `lamb.fitting.solveDispersionFitProblem`. It uses no Optimization Toolbox dependency.
 
-Current behavior:
+Optimizer selection:
 
 ```text
 one free parameter with finite bounds -> fminbnd
@@ -175,7 +176,7 @@ guiGetFitModelConfiguration
 FitTool_GUI
 ```
 
-## Current limitations
+## Limitations
 
 The maintained validation does not establish:
 

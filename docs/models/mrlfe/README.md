@@ -2,7 +2,7 @@
 
 This folder contains the maintained mRLFE model, fitting, sweep, and diagnostic documentation.
 
-## Active references
+## References
 
 | Topic | Maintained reference |
 |---|---|

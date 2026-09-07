@@ -33,6 +33,16 @@ result schemas, and quality thresholds. Baselines or tolerances must never be
 changed to hide structural drift. Performance is part of solver behavior and is
 validated with representative, non-machine-brittle evidence.
 
+## Scientific baseline changes
+
+A justified scientific baseline change requires independent characterization
+of the old and new behavior, a documented cause, exact numerical deltas,
+independent scientific guardrails, and explicit scientific review. Commit the
+baseline update separately from the production change. Preserve tolerances
+unless an independent analysis justifies changing them, then rerun all six
+validation tiers. A structural refactor never updates a golden baseline to hide
+numerical drift.
+
 ## Implementation practice
 
 - Keep a clear abstraction level within each block and avoid forwarding chains.

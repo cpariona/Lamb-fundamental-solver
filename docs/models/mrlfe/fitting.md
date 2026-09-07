@@ -113,14 +113,15 @@ etaS = 0  -> elastic_adaptive
 etaS > 0  -> viscoelastic_adaptive
 ```
 
-Historical names such as `fast_fit_atlas` and old atlas route names are not maintained metadata.
+Only canonical route metadata is maintained; retired atlas route identifiers
+are not part of the result contract.
 
 ## Grid/path sensitivity
 
 Re-evaluating fitted parameters on the same requested grid reproduces the saved
 objective values. A solver evaluation on a different continuation grid can
-differ slightly near sensitive low-frequency A0Like regions; an earlier review
-observed approximately 0.14 m/s at one point near 1.78 kHz. This is a grid-path
+differ slightly near sensitive low-frequency A0Like regions; characterization
+measured approximately 0.14 m/s at one point near 1.78 kHz. This is a grid-path
 diagnostic, not a second fitting route. The primary fitted curve remains
 fit-consistent, while explicit requested-curve evaluation uses
 `numericalPreset` and records consistency metadata.

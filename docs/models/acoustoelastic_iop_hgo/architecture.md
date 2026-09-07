@@ -32,15 +32,18 @@ Scientifically specific AE ownership remains under `+constitutive/`,
 responsibilities.
 
 ```text
-app consumers -> public API -> atlasA0 solver -> tracking/policy -> quality -> canonical result
-analysis fit/sweep -----------------^
-diagnostics ------------------------- inspection only
+app -> canonical model/fitting APIs
+lamb.fitting -> canonical model API
+studies -> canonical model APIs and/or lamb.sweeps
+diagnostics -> canonical model API, inspection only
 ```
 
-The model layer does not depend on `analysis/`, `app/`, `examples/`, or
-`tests/`. Analysis owns fitting, sweep orchestration, plotting, persistence,
-and diagnostic interpretation. Application code owns surface translation and
-presentation. Examples only compose maintained APIs.
+The model layer does not depend on application, studies, examples, or tests.
+Production code does not depend on studies, examples, or tests. Fitting owns
+inverse-problem construction and optimization; the neutral sweep primitive owns
+only repeated evaluation. Application code owns surface translation and
+presentation, while studies own opt-in campaign orchestration and diagnostic
+interpretation. Examples only compose maintained APIs.
 
 The official public curve uses column-oriented
 `frequency_Hz`, `phaseVelocity_mps`, `wavenumber_radpm`, and `validMask`.
