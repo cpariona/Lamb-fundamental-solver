@@ -17,7 +17,6 @@ options.modelFamily = "mrlfe";
 options.branchName = branchName;
 options.executionProfile = "Fast";
 options.effectiveExecutionProfile = "Fast";
-options.robustness = "Fast";
 options.mrlfeNumericalPreset = "fast";
 options.mrlfeA0Policy = normalizeA0Policy(p.Results.A0Policy);
 options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
