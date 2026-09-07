@@ -69,6 +69,12 @@ else
     [minimaTable, branchTable] = ...
         lamb.models.acoustoelastic_iop_hgo.tracking.aeLinkAtlasBranches( ...
         minimaTable, trackingOptions);
+    if isempty(branchTable)
+        retainedIDs = [];
+    else
+        retainedIDs = branchTable.BranchID;
+    end
+    minimaTable.BranchID(~ismember(minimaTable.BranchID, retainedIDs)) = nan;
 end
 
 atlas = struct();

@@ -178,7 +178,8 @@ for k = 1:numel(freq)
         obj(j) = lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, freq(k), cGrid(j), rawOptions);
     end
-    minima = findMinima(cGrid, obj, cShear, config.TopNMinimaPerFrequency);
+    minima = lamb.models.acoustoelastic_iop_hgo.tracking.aeFindAtlasLocalMinima( ...
+        cGrid, obj, cShear, config.TopNMinimaPerFrequency);
     for m = 1:height(minima)
         row = struct();
         row.Frequency_Hz = freq(k);
@@ -188,6 +189,8 @@ for k = 1:numel(freq)
         row.y = minima.y(m);
         row.log10y = log10(minima.y(m));
         row.Objective = minima.Objective(m);
+        row.DepthRelativeToMedian = minima.DepthRelativeToMedian(m);
+        row.DepthRelativeToDeepest = minima.DepthRelativeToDeepest(m);
         row.SpacingToNearestLogY = minima.SpacingToNearestLogY(m);
         row.BranchID = nan;
         rows = [rows; row]; %#ok<AGROW>
@@ -199,120 +202,25 @@ if isempty(rows)
     branchTable = table();
 else
     minimaTable = struct2table(rows);
-    [minimaTable, branchTable] = linkBranches(minimaTable, config.MaxLogYJumpForRawBranch, config.MinBranchPoints);
+    trackingOptions = struct();
+    trackingOptions.atlasMaxLogYJump = config.MaxLogYJumpForRawBranch;
+    trackingOptions.atlasSplitOnLargeCpJump = false;
+    trackingOptions.atlasMaxRelativeCpJump = inf;
+    trackingOptions.atlasMinBranchPoints = config.MinBranchPoints;
+    [minimaTable, branchTable] = ...
+        lamb.models.acoustoelastic_iop_hgo.tracking.aeLinkAtlasBranches( ...
+        minimaTable, trackingOptions);
+    if isempty(branchTable)
+        retainedIDs = [];
+    else
+        retainedIDs = branchTable.BranchID;
+        frequencyCount = numel(unique(minimaTable.Frequency_Hz));
+        branchTable.FrequencyCoverageFraction = branchTable.NumPoints ./ frequencyCount;
+    end
+    minimaTable.BranchID(~ismember(minimaTable.BranchID, retainedIDs)) = nan;
 end
 rawAtlas = struct('frequency', freq, 'yGrid', yGrid(:), 'cGrid', cGrid(:), ...
     'minimaTable', minimaTable, 'branchTable', branchTable, 'options', rawOptions);
-end
-
-function minima = findMinima(cGrid, obj, cShear, topN)
-idx = [];
-for k = 2:numel(obj)-1
-    if isfinite(obj(k-1)) && isfinite(obj(k)) && isfinite(obj(k+1)) && obj(k) <= obj(k-1) && obj(k) <= obj(k+1)
-        idx(end+1) = k; %#ok<AGROW>
-    end
-end
-if isempty(idx)
-    minima = table([], [], [], [], 'VariableNames', {'Cp_mps','y','Objective','SpacingToNearestLogY'});
-    return;
-end
-cp = cGrid(idx(:));
-y = cp ./ cShear;
-objective = obj(idx(:));
-logY = log10(y);
-spacing = nan(size(logY));
-for i = 1:numel(logY)
-    other = logY;
-    other(i) = [];
-    spacing(i) = min(abs(logY(i) - other));
-end
-[objective, order] = sort(objective, 'ascend');
-cp = cp(order);
-y = y(order);
-spacing = spacing(order);
-keep = 1:min(topN, numel(cp));
-minima = table(cp(keep), y(keep), objective(keep), spacing(keep), ...
-    'VariableNames', {'Cp_mps','y','Objective','SpacingToNearestLogY'});
-end
-
-function [minimaTable, branchTable] = linkBranches(minimaTable, maxJump, minPoints)
-minimaTable = sortrows(minimaTable, {'Frequency_Hz','MinRank'});
-minimaTable.BranchID(:) = nan;
-lastLogY = [];
-lastFreq = [];
-branchID = 0;
-freqList = unique(minimaTable.Frequency_Hz, 'stable');
-for k = 1:numel(freqList)
-    f = freqList(k);
-    rows = find(minimaTable.Frequency_Hz == f);
-    used = false(1, max(branchID, 1));
-    for ii = 1:numel(rows)
-        r = rows(ii);
-        best = nan;
-        bestScore = inf;
-        for b = 1:branchID
-            if b <= numel(used) && used(b), continue; end
-            if lastFreq(b) >= f, continue; end
-            jump = abs(minimaTable.log10y(r) - lastLogY(b));
-            if jump > maxJump, continue; end
-            score = jump + 0.02 * minimaTable.MinRank(r);
-            if score < bestScore
-                bestScore = score;
-                best = b;
-            end
-        end
-        if isnan(best)
-            branchID = branchID + 1;
-            best = branchID;
-            used(best) = false;
-        end
-        minimaTable.BranchID(r) = best;
-        lastLogY(best) = minimaTable.log10y(r); %#ok<AGROW>
-        lastFreq(best) = f; %#ok<AGROW>
-        used(best) = true;
-    end
-end
-branchTable = buildBranchTable(minimaTable, minPoints);
-end
-
-function branchTable = buildBranchTable(minimaTable, minPoints)
-branchRows = [];
-freqCount = numel(unique(minimaTable.Frequency_Hz));
-ids = unique(minimaTable.BranchID(isfinite(minimaTable.BranchID)), 'stable');
-for i = 1:numel(ids)
-    T = sortrows(minimaTable(minimaTable.BranchID == ids(i), :), 'Frequency_Hz');
-    if height(T) < minPoints
-        continue;
-    end
-    row = struct();
-    row.BranchID = ids(i);
-    row.NumPoints = height(T);
-    row.FrequencyCoverageFraction = height(T) / freqCount;
-    row.FrequencyStart_kHz = min(T.Frequency_Hz) / 1e3;
-    row.FrequencyEnd_kHz = max(T.Frequency_Hz) / 1e3;
-    row.MedianRank = median(T.MinRank, 'omitnan');
-    row.MedianY = median(T.y, 'omitnan');
-    row.MedianCp_mps = median(T.Cp_mps, 'omitnan');
-    row.MinCp_mps = min(T.Cp_mps);
-    row.MaxCp_mps = max(T.Cp_mps);
-    row.Roughness = branchRoughness(T.Cp_mps);
-    row.MedianObjective = median(T.Objective, 'omitnan');
-    row.MedianSpacingToNearestLogY = median(T.SpacingToNearestLogY, 'omitnan');
-    branchRows = [branchRows; row]; %#ok<AGROW>
-end
-if isempty(branchRows)
-    branchTable = table();
-else
-    branchTable = struct2table(branchRows);
-end
-end
-
-function value = branchRoughness(cp)
-if numel(cp) < 3
-    value = nan;
-else
-    value = median(abs(diff(cp, 2)), 'omitnan') / max(median(abs(cp), 'omitnan'), eps);
-end
 end
 
 function families = rankFamilies(branchTable, minimaTable, config, params, state, settings) %#ok<INUSD>

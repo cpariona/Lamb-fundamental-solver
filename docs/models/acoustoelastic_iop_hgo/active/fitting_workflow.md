@@ -74,7 +74,7 @@ Only `frequency_Hz` and `Cp_mps` are required.
 The default fitting options are derived from:
 
 ```matlab
-acoustoelasticSensitivityOptions("Fast")
+lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitOptions("Fast")
 ```
 
 and force:

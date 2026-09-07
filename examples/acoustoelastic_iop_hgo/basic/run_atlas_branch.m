@@ -30,7 +30,10 @@ options.atlasBranchPolicy = "atlasA0";
 
 result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 
-outputFolder = resolveStudyOutputFolder(launchFolder, 'ae_iop_hgo', 'atlas_branch');
+outputFolder = fullfile(launchFolder, 'Results', 'ae_iop_hgo', 'atlas_branch');
+if ~isfolder(outputFolder)
+    mkdir(outputFolder);
+end
 save(fullfile(outputFolder, 'atlas_branch_workspace.mat'), 'params', 'options', 'result');
 
 validMask = result.validMask(:) & isfinite(result.phaseVelocity_mps(:));
