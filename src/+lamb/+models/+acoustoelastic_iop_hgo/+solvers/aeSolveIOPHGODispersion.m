@@ -1,12 +1,12 @@
-function result = solveAcoustoelasticIOPHGODispersion(params, options)
-%SOLVEACOUSTOELASTICIOPHGODISPERSION Solve direct dispersion from IOP/HGO parameters.
+function result = aeSolveIOPHGODispersion(params, options)
+%AESOLVEIOPHGODISPERSION Solve direct dispersion from IOP/HGO parameters.
 %
 % Required params fields, SI units:
 %   IOP, R, thickness, mu, k1, k2
 %   rho, rhoF, fluidBulkModulus, frequency
 %
 % This wrapper computes alpha, beta, gamma from the constitutive block and
-% then calls lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticDispersion. By default, it is intended
+% then calls lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveDispersion. By default, it is intended
 % for the A0 corrected/backward workflow while the direct solver is being
 % validated.
 
@@ -22,7 +22,7 @@ for i = 1:numel(requiredFields)
     end
 end
 
-[alpha, beta, gamma, state] = lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO( ...
+[alpha, beta, gamma, state] = lamb.models.acoustoelastic_iop_hgo.constitutive.aeComputeABGFromIOPHGO( ...
     params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
 
 directParams = struct();
@@ -39,7 +39,7 @@ if isfield(params, 'cGrid')
     directParams.cGrid = params.cGrid;
 end
 
-result = lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticDispersion(directParams, options);
+result = lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveDispersion(directParams, options);
 result.constitutiveState = state;
 result.directParams = directParams;
 end

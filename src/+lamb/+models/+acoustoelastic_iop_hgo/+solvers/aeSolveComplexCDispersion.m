@@ -1,5 +1,5 @@
-function result = solveAcoustoelasticComplexCDispersion(params, options, seedResult)
-%SOLVEACOUSTOELASTICCOMPLEXCDISPERSION Complex-C continuation solver.
+function result = aeSolveComplexCDispersion(params, options, seedResult)
+%AESOLVECOMPLEXCDISPERSION Complex-C continuation solver.
 %
 % This solver is a parallel strategy to the real-Cp sigma_min trackers. It
 % follows a complex phase velocity c = cr + i*ci by minimizing abs(det(M)) in
@@ -10,7 +10,7 @@ function result = solveAcoustoelasticComplexCDispersion(params, options, seedRes
 %   alpha, beta, gamma, thickness, rho, rhoF, fluidBulkModulus, frequency
 %
 % Optional input:
-%   seedResult : output from lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticDispersion. If given,
+%   seedResult : output from lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveDispersion. If given,
 %                its real Cp values are used as initial seeds.
 
 if nargin < 2
@@ -96,7 +96,7 @@ catch
 end
 
 cBest = scale .* (xBest(1) + 1i*xBest(2));
-[~, details] = lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticComplexDeterminant(params.alpha, params.beta, params.gamma, ...
+[~, details] = lamb.models.acoustoelastic_iop_hgo.core.aeObjectiveComplexDeterminant(params.alpha, params.beta, params.gamma, ...
     params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, cBest, options);
 absDetBest = details.absDet;
 sigmaMinBest = details.sigmaMin;
@@ -115,7 +115,7 @@ if abs(imag(c)) > imagLimit
     return;
 end
 
-[value, ~] = lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticComplexDeterminant(params.alpha, params.beta, params.gamma, ...
+[value, ~] = lamb.models.acoustoelastic_iop_hgo.core.aeObjectiveComplexDeterminant(params.alpha, params.beta, params.gamma, ...
     params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, f, c, options);
 
 if ~isfinite(value)
