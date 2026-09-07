@@ -6,7 +6,7 @@ This document defines the maintained mRLFE dispersion fitting workflow.
 
 ```text
 FitTool_GUI
-  -> guiFitMRLFESolver
+  -> mrlfeGuiFitSolver
   -> lamb.fitting.mrlfe.mrlfeFitDispersionData
   -> lamb.fitting.mrlfe.mrlfeBuildFitProblem
   -> lamb.fitting.solveDispersionFitProblem
