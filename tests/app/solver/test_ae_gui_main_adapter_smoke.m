@@ -1,7 +1,7 @@
-function test_gui_acoustoelastic_iop_hgo_main_adapter_smoke()
-%TEST_GUI_ACOUSTOELASTIC_IOP_HGO_MAIN_ADAPTER_SMOKE Validate AE Main GUI adapter.
+function test_ae_gui_main_adapter_smoke()
+%TEST_AE_GUI_MAIN_ADAPTER_SMOKE Validate AE Main GUI adapter.
 
-fprintf('Running Acoustoelastic IOP/HGO main GUI adapter smoke test...\n');
+fprintf('Running AE IOP/HGO main GUI adapter smoke test...\n');
 
 baseGridParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 baseGridParams.fmin = 300;
@@ -17,7 +17,7 @@ aeControls.k1 = struct('Value', 25);
 aeControls.k2 = struct('Value', 100);
 aeControls.rhoF = struct('Value', 1000);
 aeControls.fluidBulkModulus = struct('Value', 2.2);
-builtRequest = guiBuildAcoustoelasticIOPHGORequest(baseGridParams, aeControls, "Balanced");
+builtRequest = aeGuiBuildRequest(baseGridParams, aeControls, "Balanced");
 assert(all(isfield(builtRequest, {'params','options'})), ...
     'AE Main GUI request schema is incomplete.');
 assert(builtRequest.params.R == 7.8e-3, 'Main GUI radius conversion changed.');
@@ -48,7 +48,7 @@ params.rhoF = 1000;
 params.fluidBulkModulus = 2.2e9;
 params.frequency = requestedFrequency;
 
-options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.atlasBranchPolicy = "atlasA0";
@@ -56,8 +56,8 @@ options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 
 guiRequest = struct('params', params, 'options', options);
-result = guiRunAcoustoelasticIOPHGOModel(guiRequest);
-expectedRawResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, result.metadata.options);
+result = aeGuiRunModel(guiRequest);
+expectedRawResult = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, result.metadata.options);
 expectedView = guiBuildModelResultView(expectedRawResult, "expectedAEView");
 
 assertCommonView(result);
@@ -88,7 +88,7 @@ assert(isequal(result.branches.diagnostics.valid, ...
     'AE normalized branch must consume canonical validity directly.');
 assert(isfield(result.metadata, 'elapsedSeconds') && isfinite(result.metadata.elapsedSeconds));
 
-fprintf('Acoustoelastic IOP/HGO main GUI adapter smoke test passed.\n');
+fprintf('AE IOP/HGO main GUI adapter smoke test passed.\n');
 end
 
 function assertCommonView(result)
