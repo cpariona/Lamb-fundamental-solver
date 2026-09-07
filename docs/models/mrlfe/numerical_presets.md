@@ -47,13 +47,13 @@ An override must cover the complete requested interval and is reported as `diagn
 
 ## Validation basis
 
-The presets were initially selected from a quick matrix against the 10 Hz dense reference. The controlling accepted viscous cases supported:
+The presets were selected from a quick matrix against the 10 Hz dense reference. The controlling accepted viscous cases supported:
 
 - `fast = 50 Hz` under the quick-matrix 10% tail target;
 - `balanced = 25 Hz` under the 5% target;
 - `robust = 20 Hz` under the 3% target.
 
-The extended parameter matrix completed on 2026-07-14. Aggregate preset status was reported as failed because some dense-reference cases were already marginal and did not satisfy all matrix targets. Their reference quality included `low_valid_fraction` and `large_relative_jump`.
+The extended parameter matrix showed that some dense-reference cases were already marginal and did not satisfy all matrix targets. Their reference quality included `low_valid_fraction` and `large_relative_jump`.
 
 A targeted follow-up evaluated the cases responsible for those failures with 10 Hz references and 20/25 Hz candidates. It found:
 
@@ -102,7 +102,7 @@ run_performance_and_benchmark_tests
 For bounded manual diagnostic follow-up:
 
 ```matlab
-run('studies/solver_diagnostics/mrlfe/investigate_mrlfe_grid_presets.m')
+run('studies/solver_diagnostics/mrlfe/mrlfeInvestigateGridPresets.m')
 ```
 
 Do not add the extended full matrix to lightweight smoke runners.
