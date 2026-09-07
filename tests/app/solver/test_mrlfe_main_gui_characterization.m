@@ -70,7 +70,7 @@ params.nu = 0.4999;
     'Surface', "main", 'EtaS', etaS, 'A0Policy', "physicalTail");
 options.branchNames = branchName;
 
-out = guiRunMRLFEModel(struct('params', params, 'options', options, ...
+out = mrlfeGuiRunModel(struct('params', params, 'options', options, ...
     'mrlfeParams', options.mrlfeParams, 'computeVisco', etaS > 0));
 request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, lamb.grids.buildFrequencyVector(params), branchName, options);
 end
