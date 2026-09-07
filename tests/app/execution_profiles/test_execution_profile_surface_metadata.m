@@ -17,7 +17,7 @@ legacy = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(params, legacyO
 profileOptions = legacyOptions;
 profileOptions.executionProfile = "Fast";
 profileOptions.robustness = "Fast";
-profileResult = guiRunRayleighLambModel(struct('params', params, 'options', profileOptions));
+profileResult = rlGuiRunModel(struct('params', params, 'options', profileOptions));
 profileCp = profileResult.metadata.modelResult.modes.A0.phaseVelocity_mps(:);
 assert(max(abs(profileCp - legacy.modes.A0.phaseVelocity_mps(:))) < 10 * eps(max(abs(legacy.modes.A0.phaseVelocity_mps(:)))), ...
     'RL execution profile metadata changed deterministic Cp output.');
@@ -33,7 +33,7 @@ mrlfeOptions.branchNames = "A0Like";
 mrlfeParams = params;
 mrlfeParams.fmax = 4000;
 mrlfeParams.numFrequencyPoints = 10;
-mrlfeMain = guiRunMRLFEModel(struct('params', mrlfeParams, 'options', mrlfeOptions, ...
+mrlfeMain = mrlfeGuiRunModel(struct('params', mrlfeParams, 'options', mrlfeOptions, ...
     'mrlfeParams', mrlfeOptions.mrlfeParams, 'computeVisco', false));
 assert(mrlfeMain.metadata.executionProfile.requestedExecutionProfile == "Balanced", ...
     'mRLFE main metadata should preserve requested Balanced.');
