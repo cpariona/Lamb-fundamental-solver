@@ -15,7 +15,7 @@ lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData
 lamb.fitting.solveDispersionFitProblem
 ```
 
-The first maintained tested use case is:
+A maintained validated fitting case is:
 
 ```text
 branch: atlasA0

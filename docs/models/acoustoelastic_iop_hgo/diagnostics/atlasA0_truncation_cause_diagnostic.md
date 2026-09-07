@@ -43,7 +43,7 @@ The diagnostic separates two different failure patterns:
 
 The dominant causal diagnosis is centered on `FirstTerminalMissing*`, because the target is high-frequency truncation rather than isolated internal gaps.
 
-This distinction matters for `mu_25kPa`, where an internal gap appears before the last official valid point. The corrected diagnostic reports that internal gap separately and then analyzes the terminal break after the last official valid frequency.
+This distinction matters for `mu_25kPa`, where an internal gap appears before the last official valid point. The diagnostic reports that internal gap separately and then analyzes the terminal break after the last official valid frequency.
 
 ### Runnable causal diagnostic script
 
@@ -86,7 +86,7 @@ The dominant case label is selected from the missing-frequency rows in the local
 
 ### Output files for causal diagnostic
 
-The short-path script writes:
+The script writes:
 
 - per-case summary CSV files: `<case>_summary.csv`
 - per-case local-cause tables: `<case>_local_cause.csv`

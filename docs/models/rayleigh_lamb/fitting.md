@@ -15,7 +15,7 @@ lamb.fitting.rayleigh_lamb.rlFitDispersionData
 lamb.fitting.solveDispersionFitProblem
 ```
 
-The first maintained tested use case is:
+A maintained validated fitting case is:
 
 ```text
 branch: A0

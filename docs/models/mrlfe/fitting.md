@@ -1,6 +1,6 @@
 # mRLFE fitting workflow
 
-This document records the maintained mRLFE dispersion fitting workflow after all maintained consumers migrated to the public production API.
+This document defines the maintained mRLFE dispersion fitting workflow.
 
 ## Maintained chain
 

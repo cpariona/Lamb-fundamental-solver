@@ -20,8 +20,9 @@ lamb.models.mrlfe.mrlfeSolve
   -> lamb.models.mrlfe.results.mrlfeBuildResult
 ```
 
-The core owns model physics and tracking without calling analysis evaluators
-or application adapters. Main GUI forward solving reaches this core through the public API:
+The core owns model physics and tracking without depending on fitting,
+application, studies, examples, or tests. Main GUI forward solving reaches this
+core through the public API:
 
 ```text
 guiRunMRLFEModel
