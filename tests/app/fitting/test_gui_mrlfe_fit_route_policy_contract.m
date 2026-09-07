@@ -37,7 +37,7 @@ etaSRequest = guiBuildFitRequest("mrlfe", ...
     'fitOptions', struct('useStandardErrorWeights', false, ...
         'optimizerOptions', optimset('Display', 'off', 'MaxIter', 8, 'MaxFunEvals', 18, 'TolX', 1e-5)));
 
-etaSOutput = guiFitMRLFESolver(etaSRequest);
+etaSOutput = mrlfeGuiFitSolver(etaSRequest);
 assert(isfield(etaSOutput, 'routePolicy'), 'mRLFE fit output must expose routePolicy metadata.');
 assert(etaSOutput.routePolicy.routeFamily == "public_solver", 'A0Like etaS fitting should use public solver route.');
 assert(etaSOutput.routePolicy.expectedPath == "mrlfe_public_solver", 'Unexpected expected path family for A0Like etaS fitting.');
@@ -58,7 +58,7 @@ muRequest = guiBuildFitRequest("mrlfe", ...
     'fitOptions', struct('useStandardErrorWeights', false, ...
         'optimizerOptions', optimset('Display', 'off', 'MaxIter', 8, 'MaxFunEvals', 18, 'TolX', 1e-5)));
 
-muOutput = guiFitMRLFESolver(muRequest);
+muOutput = mrlfeGuiFitSolver(muRequest);
 assert(muOutput.routePolicy.routeFamily == "public_solver", 'A0Like mu fitting should use public solver route.');
 assert(muOutput.routePolicy.expectedPath == "mrlfe_public_solver", 'Unexpected expected path family for A0Like mu fitting.');
 assert(muOutput.routePolicy.actualPath == "viscoelastic_adaptive", 'A0Like mu fitting did not use the viscoelastic adaptive engine.');
@@ -91,7 +91,7 @@ s0Request = guiBuildFitRequest("mrlfe", ...
     'fitOptions', struct('useStandardErrorWeights', false, ...
         'optimizerOptions', optimset('Display', 'off', 'MaxIter', 4, 'MaxFunEvals', 8, 'TolX', 1e-5)));
 
-s0Output = guiFitMRLFESolver(s0Request);
+s0Output = mrlfeGuiFitSolver(s0Request);
 assert(s0Output.routePolicy.routeFamily == "public_solver", 'S0Like etaS fitting should use public solver route.');
 assert(s0Output.routePolicy.expectedPath == "mrlfe_public_solver", 'Unexpected expected path family for S0Like etaS fitting.');
 assert(s0Output.routePolicy.actualPath == "viscoelastic_adaptive", 'S0Like etaS fitting did not use the viscoelastic adaptive engine.');
