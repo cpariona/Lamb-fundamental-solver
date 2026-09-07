@@ -16,6 +16,7 @@ assertLayer(repoRoot, paths, "src/+lamb/+sweeps/", ...
     ["src/+lamb/+models/", "src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "studies/", ["app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "app/", ["studies/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "examples/", ["studies/", "app/", "tests/"]);
 assertAeInternalBoundaries(repoRoot, paths);
 
 fprintf('Repository dependency-boundary contract test passed.\n');
