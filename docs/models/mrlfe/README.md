@@ -18,7 +18,7 @@ This folder contains the maintained mRLFE model, fitting, sweep, and diagnostic 
 All maintained mRLFE consumers call the public production API:
 
 ```text
-Main GUI  -> guiRunMRLFEModel      -> lamb.models.mrlfe.mrlfeSolve
+Main GUI  -> mrlfeGuiRunModel       -> lamb.models.mrlfe.mrlfeSolve
 FitTool   -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel -> lamb.models.mrlfe.mrlfeSolve
 Study     -> lamb.sweeps.runParametricSweep -> lamb.models.mrlfe.mrlfeSolve per point
 ```
