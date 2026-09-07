@@ -2,7 +2,7 @@ clear; clc; close all;
 addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
 startup;
 
-%FIT_DEFAULT_A0 Example Rayleigh-Lamb A0 fit against synthetic data.
+% Rayleigh-Lamb A0 fit example against synthetic data.
 %
 % This example fits only mu while keeping thickness, rho, and nu fixed.
 
@@ -61,7 +61,7 @@ xlabel('Frequency [kHz]');
 ylabel('Residual [m/s]');
 title('Rayleigh-Lamb A0 synthetic fit residuals');
 
-assignin('base', 'RayleighLambA0FitResult', fitResult);
+assignin('base', 'rlA0FitResult', fitResult);
 
 function applyPhysicalYLimits(CpExp_mps, CpFit_mps)
 CpAll = [CpExp_mps(:); CpFit_mps(:)];

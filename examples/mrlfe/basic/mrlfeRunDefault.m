@@ -20,8 +20,8 @@ end
 
 figure;
 hold on;
-plotBranch(results.A0Like, 'mRLFE A0-like');
-plotBranch(results.S0Like, 'mRLFE S0-like');
+mrlfePlotBranch(results.A0Like, 'mRLFE A0-like');
+mrlfePlotBranch(results.S0Like, 'mRLFE S0-like');
 grid on;
 xlabel('frequency [Hz]');
 ylabel('Phase velocity Cp [m/s]');
@@ -41,9 +41,9 @@ for branchName = ["A0Like", "S0Like"]
     end
 end
 
-assignin('base', 'MRLFEDefaultResults', results);
+assignin('base', 'mrlfeDefaultResults', results);
 
-function plotBranch(result, labelText)
+function mrlfePlotBranch(result, labelText)
 cp = result.phaseVelocity_mps;
 cp(~result.validMask) = nan;
 plot(result.frequency_Hz, cp, ':', 'LineWidth', 2, 'DisplayName', labelText);

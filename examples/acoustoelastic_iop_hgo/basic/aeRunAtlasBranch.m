@@ -3,7 +3,7 @@ launchFolder = pwd;
 addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
 startup;
 
-%RUN_ATLAS_BRANCH Maintained AE IOP/HGO atlas-branch example.
+% AE maintained IOP/HGO atlas-branch example.
 %
 % This user-facing entrypoint calls the maintained solver directly and writes
 % outputs under Results/ae_iop_hgo/atlas_branch.
@@ -20,7 +20,7 @@ params.fluidBulkModulus = 2.2e9;
 params.frequency = logspace(log10(300), log10(15e3), 35);
 params.IOP = 15 * 133.322;
 
-options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.usePhysicalCpWindow = false;
@@ -28,7 +28,7 @@ options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 options.atlasBranchPolicy = "atlasA0";
 
-result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
+result = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
 
 outputFolder = fullfile(launchFolder, 'Results', 'ae_iop_hgo', 'atlas_branch');
 if ~isfolder(outputFolder)
@@ -38,7 +38,7 @@ save(fullfile(outputFolder, 'atlas_branch_workspace.mat'), 'params', 'options', 
 
 validMask = result.validMask(:) & isfinite(result.phaseVelocity_mps(:));
 
-fprintf('run_atlas_branch complete. Valid points: %d/%d. Output: %s\n', ...
+fprintf('aeRunAtlasBranch complete. Valid points: %d/%d. Output: %s\n', ...
     nnz(validMask), numel(result.phaseVelocity_mps), outputFolder);
 
 figure('Color', 'w');

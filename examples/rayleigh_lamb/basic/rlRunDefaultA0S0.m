@@ -1,5 +1,4 @@
-% Run the default A0/S0 fundamental Lamb-wave calculation.
-% S0 is currently experimental and should be benchmarked before use.
+% Run the default A0/S0 fundamental Rayleigh-Lamb calculation.
 
 addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
 startup;
@@ -30,7 +29,7 @@ if isfield(results.modes, 'A0')
     plot(results.modes.A0.frequency_Hz, results.modes.A0.phaseVelocity_mps, 'LineWidth', 2, 'DisplayName', 'A0');
 end
 if isfield(results.modes, 'S0') && any(isfinite(results.modes.S0.phaseVelocity_mps))
-    plot(results.modes.S0.frequency_Hz, results.modes.S0.phaseVelocity_mps, '--', 'LineWidth', 1.5, 'DisplayName', 'S0 experimental');
+    plot(results.modes.S0.frequency_Hz, results.modes.S0.phaseVelocity_mps, '--', 'LineWidth', 1.5, 'DisplayName', 'S0');
 end
 grid on;
 xlabel('frequency [Hz]');
@@ -38,3 +37,5 @@ ylabel('Phase velocity Cp [m/s]');
 title('Fundamental Lamb mode phase velocities');
 legend('Location', 'best');
 hold off;
+
+assignin('base', 'rlDefaultA0S0Results', results);

@@ -2,7 +2,7 @@ clear; clc; close all;
 addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
 startup;
 
-%FIT_AE_ATLASA0 Example AE IOP/HGO atlasA0 fit against synthetic data.
+% AE IOP/HGO atlasA0 fit example against synthetic data.
 %
 % This example fits only mu while keeping IOP, thickness, HGO fiber
 % parameters, curvature, density, and fluid parameters fixed.
@@ -19,7 +19,7 @@ trueParams.fluidBulkModulus = 2.2e9;
 trueParams.IOP = 15 * 133.322;
 trueParams.frequency = logspace(log10(300), log10(15e3), 35);
 
-solverOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+solverOptions = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 solverOptions.M54_variant = "corrected";
 solverOptions.normalizeRows = false;
 solverOptions.usePhysicalCpWindow = false;
@@ -79,7 +79,7 @@ xlabel('Frequency [kHz]');
 ylabel('Residual [m/s]');
 title('AE IOP/HGO atlasA0 synthetic fit residuals');
 
-assignin('base', 'AEAtlasA0FitResult', fitResult);
+assignin('base', 'aeAtlasA0FitResult', fitResult);
 
 function applyPhysicalYLimits(CpExp_mps, CpFit_mps)
 CpAll = [CpExp_mps(:); CpFit_mps(:)];

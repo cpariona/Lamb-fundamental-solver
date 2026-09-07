@@ -2,7 +2,7 @@ clear; clc; close all;
 addpath(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))));
 startup;
 
-%FIT_MRLFE_A0LIKE Example mRLFE A0-like fit against synthetic data.
+% mRLFE A0-like fit example against synthetic data.
 %
 % This example fits only mu while keeping thickness, rho, nu, and fluid
 % parameters fixed. etaS = 0 is used for the first stable fitting example.
@@ -62,7 +62,7 @@ xlabel('Frequency [kHz]');
 ylabel('Residual [m/s]');
 title('mRLFE A0-like synthetic fit residuals');
 
-assignin('base', 'MRLFEA0LikeFitResult', fitResult);
+assignin('base', 'mrlfeA0LikeFitResult', fitResult);
 
 function applyPhysicalYLimits(CpExp_mps, CpFit_mps)
 CpAll = [CpExp_mps(:); CpFit_mps(:)];
