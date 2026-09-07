@@ -112,7 +112,7 @@ assert(isfield(requestedCurve, 'elapsedSeconds') && isfinite(requestedCurve.elap
 assert(contains(requestedCurve.note, "optimizer not rerun"), ...
     'Requested curve note should state that the optimizer was not rerun.');
 
-%% Fitting tab exposes new controls.
+%% Fitting tab exposes maintained controls.
 fig = uifigure('Visible', 'off');
 cleanup = onCleanup(@()delete(fig)); %#ok<NASGU>
 tabs = uitabgroup(fig);

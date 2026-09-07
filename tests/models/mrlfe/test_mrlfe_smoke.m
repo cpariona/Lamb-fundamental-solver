@@ -23,7 +23,9 @@ fprintf('test_mrlfe_smoke passed. A0Like valid: %d/%d. S0Like valid: %d/%d.\n', 
 end
 
 function result = solveBranch(params, frequency_Hz, branchName)
-options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', 0);
+options = lamb.models.mrlfe.mrlfeDefaultOptions();
+options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
+options.mrlfeParams.etaS = 0;
 request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
 result = lamb.models.mrlfe.mrlfeSolve(request);
 end
