@@ -1,6 +1,6 @@
 function test_mrlfe_smoke()
 % Smoke test for both maintained public mRLFE branches.
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 frequency_Hz = linspace(500, 4000, 18).';
 
 a0 = solveBranch(params, frequency_Hz, "A0Like");
@@ -23,7 +23,9 @@ fprintf('test_mrlfe_smoke passed. A0Like valid: %d/%d. S0Like valid: %d/%d.\n', 
 end
 
 function result = solveBranch(params, frequency_Hz, branchName)
-options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
-request = mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
-result = mrlfeSolve(request);
+options = lamb.models.mrlfe.mrlfeDefaultOptions();
+options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
+options.mrlfeParams.etaS = 0;
+request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 end

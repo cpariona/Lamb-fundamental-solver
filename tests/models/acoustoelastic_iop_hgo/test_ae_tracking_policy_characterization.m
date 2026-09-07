@@ -13,7 +13,7 @@ for i = 1:numel(profiles)
     options = representativeOptions(profiles(i));
     options.useInternalAtlasTrackingGrid = false;
     options.refineLocalMinima = false;
-    result = solveAcoustoelasticIOPHGOBranch(params, options);
+    result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 
     assert(size(result.objectiveMap, 1) == expectedYPoints(i));
     assert(size(result.objectiveMap, 2) == numel(params.frequency));
@@ -32,7 +32,7 @@ overrideOptions.atlasTopNMinima = 7;
 overrideOptions.atlasMaxLogYJump = 0.031;
 overrideOptions.atlasMaxRelativeCpJump = 0.021;
 overrideOptions.useInternalAtlasTrackingGrid = false;
-overrideResult = solveAcoustoelasticIOPHGOBranch(params, overrideOptions);
+overrideResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, overrideOptions);
 assert(size(overrideResult.objectiveMap, 1) == 137);
 assert(overrideResult.options.atlasTopNMinima == 7);
 assert(overrideResult.options.atlasMaxLogYJump == 0.031);
@@ -48,7 +48,7 @@ fallbackOptions.atlasNumYPoints = 300;
 fallbackOptions.atlasTopNMinima = 12;
 fallbackOptions.useInternalAtlasTrackingGrid = false;
 fallbackOptions.invalidateAtlasFallbackOutput = true;
-fallbackResult = solveAcoustoelasticIOPHGOBranch(fallbackParams, fallbackOptions);
+fallbackResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(fallbackParams, fallbackOptions);
 assertDiscreteMinima(fallbackResult);
 assert(fallbackResult.quality.selectionFallbackUsed == true);
 assert(fallbackResult.quality.a0StartFilterPassed == false);
@@ -65,16 +65,16 @@ function assertContinuousRefinement()
 % Independent guards for the historical atlasA0 snapshot fixture. No golden
 % values enter these objective, identity, or convergence assertions.
 params = representativeParams(logspace(log10(300), log10(15e3), 35));
-options = defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.usePhysicalCpWindow = false;
 options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 options.atlasBranchPolicy = "atlasA0";
-refined = solveAcoustoelasticIOPHGOBranch(params, options);
+refined = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 options.refineLocalMinima = false;
-discrete = solveAcoustoelasticIOPHGOBranch(params, options);
+discrete = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 assert(all(refined.validMask) && ~refined.quality.selectionFallbackUsed);
 assert(isequal(refined.validMask, discrete.validMask));
 assert(isequaln(refined.minimaTable, discrete.minimaTable));
@@ -82,10 +82,10 @@ assert(isequaln(refined.nearestRank, discrete.nearestRank));
 assert(isequaln(refined.nearestBranchID, discrete.nearestBranchID));
 assert(all(ismember(refined.minimaTable.Cp_mps, refined.cGrid)), ...
     'Refinement must leave atlas candidates on the discrete grid.');
-[a,b,g] = computeAcoustoelasticABGFromIOPHGO(params.IOP, params.R, ...
+[a,b,g] = lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO(params.IOP, params.R, ...
     params.thickness, params.mu, params.k1, params.k2);
 for j = 1:numel(params.frequency)
-    objective = objectiveAcoustoelasticResidual(a,b,g,params.thickness, ...
+    objective = lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticResidual(a,b,g,params.thickness, ...
         params.rho,params.rhoF,params.fluidBulkModulus,params.frequency(j), ...
         refined.phaseVelocity_mps(j),options);
     assertNearlyEqual(objective, refined.objective(j));
@@ -96,7 +96,7 @@ options.refineLocalMinima = true;
 options.selectedBranchRefinementTolLogCp = 1e-10;
 options.selectedBranchRefinementMaxFunEvals = 100;
 options.selectedBranchRefinementMaxIter = 100;
-tight = solveAcoustoelasticIOPHGOBranch(params, options);
+tight = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 assert(isequal(refined.validMask, tight.validMask));
 delta = max(abs(refined.phaseVelocity_mps(:) - tight.phaseVelocity_mps(:)));
 % Measured 1.441e-6 m/s; 3e-6 is a convergence bound, not a relaxed golden.
@@ -202,7 +202,7 @@ params = struct('R', 7.8e-3, 'thickness', 550e-6, 'mu', 50e3, ...
 end
 
 function options = representativeOptions(profile)
-options = aeResolveConfiguration(struct(), 'NumericalPreset', profile);
+options = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(struct(), 'NumericalPreset', profile);
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.atlasBranchPolicy = "atlasA0";

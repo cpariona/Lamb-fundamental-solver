@@ -10,12 +10,13 @@ adapterFunctions = [ ...
     "mrlfeBuildSurfaceExecutionMetadata"];
 for i = 1:numel(adapterFunctions)
     fileName = adapterFunctions(i) + ".m";
-    expectedPath = fullfile(repoRoot, 'app', 'shared', fileName);
-    oldPath = fullfile(repoRoot, 'app', 'adapters', fileName);
-    assert(isfile(expectedPath), '%s must live in app/shared.', adapterFunctions(i));
-    assert(~isfile(oldPath), 'The former app/adapters path must be absent for %s.', adapterFunctions(i));
+    expectedPath = fullfile(repoRoot, 'app', 'execution_profiles', fileName);
+    oldPaths = [fullfile(repoRoot, 'app', 'shared', fileName); ...
+        fullfile(repoRoot, 'app', 'adapters', fileName)];
+    assert(isfile(expectedPath), '%s must live in app/execution_profiles.', adapterFunctions(i));
+    assert(~any(isfile(oldPaths)), 'Retired app owners must be absent for %s.', adapterFunctions(i));
     assert(strcmp(which(adapterFunctions(i)), expectedPath), ...
-        '%s must resolve uniquely from app/shared.', adapterFunctions(i));
+        '%s must resolve uniquely from app/execution_profiles.', adapterFunctions(i));
 end
 
 profiles = guiExecutionProfileValues();
@@ -57,22 +58,8 @@ assert(fitRequest.controls.executionProfile == "Fast", ...
 assert(fitRequest.controls.robustness == "Fast", ...
     'Fit builder should retain robustness compatibility alias.');
 
-sweepRequest = guiBuildSweepRequest("rayleigh_lamb", ...
-    'branchName', "A0", ...
-    'sweepField', "thickness", ...
-    'sweepValuesDisplay', 0.5, ...
-    'displayUnit', "mm", ...
-    'displayScale', 1e-3, ...
-    'controls', struct('executionProfile', "robust"));
-assert(sweepRequest.controls.executionProfile == "Robust", ...
-    'Sweep builder should canonicalize executionProfile.');
-assert(sweepRequest.controls.robustness == "Robust", ...
-    'Sweep builder should retain robustness compatibility alias.');
-
 %% Registries expose canonical supported profile metadata.
-sweepRegistry = guiGetSweepModelConfiguration();
 fitRegistry = guiGetFitModelConfiguration();
-assertRegistryProfiles(sweepRegistry, "SweepTool");
 assertRegistryProfiles(fitRegistry, "FitTool");
 
 %% Resolver metadata uses stable not-applicable conventions.
@@ -107,14 +94,11 @@ assert(mrlfeMetadata.profileOverrideApplied == false && mrlfeMetadata.profileOve
 assert(mrlfeMetadata.profileSupportMode == "direct", ...
     'mRLFE support mode should report direct profile support.');
 
-%% Active docs describe the canonical field and compatibility alias.
+%% Canonical docs describe the field and compatibility alias.
 assertDocContains('README.md', 'executionProfile');
 assertDocContains('README.md', 'compatibility alias');
-assertDocContains(fullfile('docs', 'architecture', 'execution_profiles_surface_integration.md'), ...
+assertDocContains(fullfile('docs', 'architecture.md'), ...
     'execution-profile metadata contract');
-assertDocContains(fullfile('docs', 'workflows', 'sweeps', 'sweep_tool_usage.md'), ...
-    'Execution profile: Fast');
-
 fprintf('Execution profile normalization contract test passed.\n');
 end
 

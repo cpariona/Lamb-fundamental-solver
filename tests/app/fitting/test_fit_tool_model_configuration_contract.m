@@ -31,7 +31,7 @@ callbacks.onPopulateFitData = @(~,~)[];
 callbacks.onResetDefaults = @(~,~)[];
 callbacks.onRunFit = @(~,~)[];
 
-controls = createFittingTab(tabs, rlDefaultParams(), callbacks);
+controls = createFittingTab(tabs, lamb.models.rayleigh_lamb.rlDefaultParams(), callbacks);
 assert(isfield(controls, 'model'), 'Fitting tab controls must include model dropdown.');
 assert(isfield(controls, 'branch'), 'Fitting tab controls must include branch dropdown.');
 assert(isfield(controls, 'freeParam'), 'Fitting tab controls must include freeParam dropdown.');

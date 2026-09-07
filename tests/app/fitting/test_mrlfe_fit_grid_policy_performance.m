@@ -19,14 +19,14 @@ maxAllowedRelativeError = 5e-3;
 for iCase = 1:numel(cases)
     c = cases(iCase);
 
-    params = mrlfeDefaultSweepParams();
+    params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
     params.mu = c.mu_Pa;
     params.etaS = c.etaS;
     params.thickness = 0.5e-3;
     params.rho = 1070;
     params.nu = 0.4999;
 
-    options = mrlfeDefaultSweepOptions(c.branchName, 'EtaS', c.etaS, 'A0Policy', "physicalTail");
+    options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(c.branchName, 'EtaS', c.etaS, 'A0Policy', "physicalTail");
     options.executionProfile = "Fast";
     options.effectiveExecutionProfile = "Fast";
     options.robustness = "Fast";
@@ -34,14 +34,14 @@ for iCase = 1:numel(cases)
         'minimumPointCount', 12, 'maximumPointCount', 40, 'maximumStep_Hz', 250);
 
     t = tic;
-    [CpOptimized_mps, rawOptimized] = mrlfeEvaluateFitModel( ...
+    [CpOptimized_mps, rawOptimized] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel( ...
         params, c.frequency_Hz, c.branchName, options);
     optimizedSeconds = toc(t);
 
     presetOptions = options;
     presetOptions.forwardModel.gridPolicy = "numericalPreset";
     t = tic;
-    [CpPreset_mps, rawPreset] = mrlfeEvaluateFitModel( ...
+    [CpPreset_mps, rawPreset] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel( ...
         params, c.frequency_Hz, c.branchName, presetOptions);
     presetSeconds = toc(t);
 

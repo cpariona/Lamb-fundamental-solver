@@ -1,8 +1,8 @@
 function matrix = validateExecutionProfileMatrix(varargin)
 %VALIDATEEXECUTIONPROFILEMATRIX Build an end-to-end execution profile matrix.
 %
-% The validator exercises maintained headless app entrypoints for Main GUI,
-% SweepTool, and FitTool. It does not open figures. CSV export is opt-in.
+% The validator exercises maintained headless app entrypoints for Main GUI
+% and FitTool. It does not open figures. CSV export is opt-in.
 
 p = inputParser;
 addParameter(p, 'WriteCsv', false, @(x)islogical(x) || isnumeric(x));
@@ -12,7 +12,7 @@ parse(p, varargin{:});
 
 configureTestPath;
 profiles = guiExecutionProfileValues();
-surfaces = ["Main GUI", "SweepTool", "FitTool"];
+surfaces = ["Main GUI", "FitTool"];
 scenarios = [
     struct('Model', "Rayleigh-Lamb", 'Scenario', "A0", 'EtaS', NaN)
     struct('Model', "mRLFE", 'Scenario', "A0Like etaS=0", 'EtaS', 0)
@@ -53,10 +53,6 @@ try
             [metadata, cp, notes] = validateMain(scenario, profile);
             exportMetadataAvailable = false;
             syntheticFit = "not_applicable";
-        case "SweepTool"
-            [metadata, cp, notes] = validateSweep(scenario, profile);
-            exportMetadataAvailable = true;
-            syntheticFit = "not_applicable";
         case "FitTool"
             [metadata, cp, notes] = validateFit(scenario, profile);
             exportMetadataAvailable = true;
@@ -91,7 +87,7 @@ notes = "";
 switch string(scenario.Model)
     case "Rayleigh-Lamb"
         params = shortRLParams();
-        options = rlDefaultOptions(profile);
+        options = lamb.models.rayleigh_lamb.rlDefaultOptions(profile);
         options.executionProfile = profile;
         options.computeA0 = true;
         options.computeS0 = false;
@@ -108,71 +104,6 @@ switch string(scenario.Model)
         [out, cp] = runMainMRLFE(profile, scenario.EtaS);
         metadata = out.metadata.executionProfile;
         notes = "mRLFE main route " + strjoin(out.metadata.executionProfile.internalEngines, ",");
-    otherwise
-        error('validateExecutionProfileMatrix:UnknownModel', ...
-            'Unknown model %s.', scenario.Model);
-end
-end
-
-function [metadata, cp, notes] = validateSweep(scenario, profile)
-notes = "";
-switch string(scenario.Model)
-    case "Rayleigh-Lamb"
-        params = shortRLParams();
-        request = guiBuildSweepRequest("rayleigh_lamb", ...
-            'modelLabel', "Rayleigh-Lamb", ...
-            'branchName', "A0", ...
-            'sweepField', "thickness", ...
-            'sweepLabel', "thickness", ...
-            'sweepValuesDisplay', 0.5, ...
-            'displayUnit', "mm", ...
-            'displayScale', 1e-3, ...
-            'baseParams', params, ...
-            'controls', struct('executionProfile', profile), ...
-            'outputMode', "workspace", ...
-            'outputTaskName', "execution_profile_matrix_rl");
-        out = guiRunSweep(request);
-        metadata = out.executionProfile;
-        cp = extractSweepCp(out);
-    case "AE IOP/HGO"
-        request = guiBuildSweepRequest("ae_iop_hgo", ...
-            'modelLabel', "AE IOP/HGO", ...
-            'branchName', "atlasA0", ...
-            'sweepField', "IOP", ...
-            'sweepLabel', "IOP", ...
-            'sweepValuesDisplay', 15, ...
-            'displayUnit', "mmHg", ...
-            'displayScale', 133.322, ...
-            'baseParams', shortAEParams(), ...
-            'controls', struct('executionProfile', profile), ...
-            'outputMode', "workspace", ...
-            'outputTaskName', "execution_profile_matrix_ae");
-        out = guiRunSweep(request);
-        metadata = out.executionProfile;
-        cp = extractAESweepCp(out);
-    case "mRLFE"
-        params = shortRLParams();
-        controls = struct('executionProfile', profile, ...
-            'etaS', scenario.EtaS, ...
-            'fluidDensity', 1000, ...
-            'fluidSoundSpeed', 1500, ...
-            'mrlfeA0Policy', "physicalTail");
-        request = guiBuildSweepRequest("mrlfe", ...
-            'modelLabel', "mRLFE real-k", ...
-            'branchName', "A0Like", ...
-            'sweepField', "mu", ...
-            'sweepLabel', "mu", ...
-            'sweepValuesDisplay', 75, ...
-            'displayUnit', "kPa", ...
-            'displayScale', 1e3, ...
-            'baseParams', params, ...
-            'controls', controls, ...
-            'outputMode', "workspace", ...
-            'outputTaskName', "execution_profile_matrix_mrlfe");
-        out = guiRunSweep(request);
-        metadata = out.executionProfile;
-        cp = extractSweepCp(out);
-        notes = "mRLFE sweep route " + string(out.atlasPolicy.guiRoutePolicy);
     otherwise
         error('validateExecutionProfileMatrix:UnknownModel', ...
             'Unknown model %s.', scenario.Model);
@@ -220,14 +151,14 @@ cp = extractMainCp(out, "mRLFERealK", "A0Like");
 end
 
 function [request, cp] = makeRLFitRequest(profile)
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.mu = 85e3;
 params.thickness = 0.5e-3;
 frequency = linspace(1000, 3000, 4).';
-options = rlDefaultOptions(profile);
+options = lamb.models.rayleigh_lamb.rlDefaultOptions(profile);
 options.computeA0 = true;
 options.computeS0 = false;
-cp = rlEvaluateFitModel(params, frequency, "A0", options);
+cp = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(params, frequency, "A0", options);
 request = guiBuildFitRequest("rayleigh_lamb", ...
     'branchName', "A0", ...
     'experimental', struct('frequency_Hz', frequency, 'Cp_mps', cp, 'validMask', isfinite(cp)), ...
@@ -243,8 +174,8 @@ function [request, cp] = makeAEFitRequest(profile)
 params = shortAEParams();
 frequency = params.frequency(:);
 params = rmfield(params, 'frequency');
-options = aeDefaultSweepOptions(profile);
-[cp, raw] = aeEvaluateFitModel(params, frequency, "atlasA0", options);
+options = lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitOptions(profile);
+[cp, raw] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(params, frequency, "atlasA0", options);
 request = guiBuildFitRequest("acoustoelastic_iop_hgo", ...
     'branchName', "atlasA0", ...
     'experimental', struct('frequency_Hz', frequency, 'Cp_mps', cp, 'validMask', raw.validMask), ...
@@ -257,13 +188,13 @@ request = guiBuildFitRequest("acoustoelastic_iop_hgo", ...
 end
 
 function [request, cp] = makeMRLFEFitRequest(profile, etaS)
-params = mrlfeDefaultSweepParams();
+params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 params.mu = 75e3;
 frequency = linspace(1000, 4000, 5).';
-options = mrlfeDefaultSweepOptions("A0Like", ...
+options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", ...
     'EtaS', etaS, ...
     'A0Policy', "physicalTail");
-cp = mrlfeEvaluateFitModel(params, frequency, "A0Like", options);
+cp = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency, "A0Like", options);
 request = guiBuildFitRequest("mrlfe", ...
     'branchName', "A0Like", ...
     'experimental', struct('frequency_Hz', frequency, 'Cp_mps', cp, 'validMask', isfinite(cp)), ...
@@ -286,7 +217,7 @@ fitOptions = struct('useStandardErrorWeights', false, ...
 end
 
 function params = shortRLParams()
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 3000;
 params.numFrequencyPoints = 10;
@@ -309,25 +240,6 @@ for i = 1:numel(out.branches)
     if string(out.branches(i).modelName) == modelName && string(out.branches(i).branchName) == branchName
         cp = out.branches(i).phaseVelocity(:);
         return;
-    end
-end
-end
-
-function cp = extractSweepCp(out)
-cp = nan;
-try
-    curve = out.normalized.curves(1);
-    cp = curve.Cp_mps(:);
-catch
-end
-end
-
-function cp = extractAESweepCp(out)
-cp = extractSweepCp(out);
-if all(~isfinite(cp))
-    try
-        cp = out.sweepResult.results{1}.phaseVelocity_mps(:);
-    catch
     end
 end
 end

@@ -1,0 +1,126 @@
+function test_repository_dependency_boundaries_contract()
+%TEST_REPOSITORY_DEPENDENCY_BOUNDARIES_CONTRACT Guard source-layer direction.
+
+repoRoot = testRepositoryRoot(mfilename('fullpath'));
+paths = gitTrackedMatlab(repoRoot);
+
+assertLayer(repoRoot, paths, "src/+lamb/+models/", ...
+    ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+fitting/", ...
+    ["studies/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+elasticity/", ...
+    ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+grids/", ...
+    ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "src/+lamb/+sweeps/", ...
+    ["src/+lamb/+models/", "src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "studies/", ["app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "app/", ["studies/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "examples/", ["studies/", "app/", "tests/"]);
+assertAeInternalBoundaries(repoRoot, paths);
+
+fprintf('Repository dependency-boundary contract test passed.\n');
+end
+
+function assertAeInternalBoundaries(repoRoot, paths)
+productionInternalNames = [ ...
+    "aeFindAtlasLocalMinima"; "aeLinkAtlasBranches"; "aeSplitAtlasBranches"; ...
+    "aeSelectAtlasA0Branch"; "aeApplyAtlasA0FallbackPolicy"];
+assertQualifiedCallIsDetected(productionInternalNames);
+workflowPaths = paths( ...
+    startsWith(paths, ["app/", "examples/"]) | ...
+    startsWith(paths, [ ...
+        "src/+lamb/+fitting/+acoustoelastic_iop_hgo/", ...
+        "studies/sensitivity/acoustoelastic_iop_hgo/"]));
+assertNoCalls(repoRoot, workflowPaths, productionInternalNames, ...
+    'App, workflow, and example code calls AE tracking or policy internals');
+
+diagnosticStudyPaths = paths(startsWith(paths, ...
+    "studies/solver_diagnostics/acoustoelastic_iop_hgo/") & endsWith(paths, ".m"));
+assert(~isempty(diagnosticStudyPaths), 'AE solver-diagnostic scan must not be empty.');
+diagnosticStudyNames = matlabNames(diagnosticStudyPaths);
+solverPaths = paths(startsWith(paths, ...
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+solvers/") & endsWith(paths, ".m"));
+assertNoCalls(repoRoot, solverPaths, diagnosticStudyNames, ...
+    'AE solver calls a study-layer diagnostic');
+
+modelDiagnosticPaths = paths(startsWith(paths, ...
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/") & endsWith(paths, ".m"));
+assertNoCalls(repoRoot, modelDiagnosticPaths, productionInternalNames, ...
+    'AE model diagnostic owns production tracking or branch policy');
+end
+
+function assertNoCalls(repoRoot, sourcePaths, forbiddenNames, message)
+for i = 1:numel(sourcePaths)
+    source = fileread(fullfile(repoRoot, sourcePaths(i)));
+    offenders = intersect(matlabCallNames(source), forbiddenNames);
+    assert(isempty(offenders), '%s through %s: %s', ...
+        message, sourcePaths(i), strjoin(offenders, ', '));
+end
+end
+
+function assertQualifiedCallIsDetected(forbiddenNames)
+qualifiedCall = [ ...
+    'lamb.models.acoustoelastic_iop_hgo.tracking.' ...
+    'aeFindAtlasLocalMinima(atlas);'];
+offenders = intersect(matlabCallNames(qualifiedCall), forbiddenNames);
+assert(ismember("aeFindAtlasLocalMinima", offenders), ...
+    'Qualified forbidden AE calls must be reduced to their bare semantic name.');
+end
+
+function assertLayer(repoRoot, paths, sourcePrefix, forbiddenPrefixes)
+sourcePaths = paths(startsWith(paths, sourcePrefix));
+assert(~isempty(sourcePaths), 'Dependency scan source is empty: %s', sourcePrefix);
+forbiddenPaths = paths(startsWith(paths, forbiddenPrefixes));
+forbiddenNames = matlabNames(forbiddenPaths);
+
+for i = 1:numel(sourcePaths)
+    source = fileread(fullfile(repoRoot, sourcePaths(i)));
+    offenders = intersect(matlabCallNames(source), forbiddenNames);
+    assert(isempty(offenders), '%s depends on a forbidden layer through: %s', ...
+        sourcePaths(i), strjoin(offenders, ', '));
+end
+end
+
+function names = matlabCallNames(source)
+executable = executableMatlabText(source);
+callTokens = regexp(executable, ...
+    '(?<![A-Za-z0-9_])([A-Za-z]\w*)\s*\(', 'tokens');
+if isempty(callTokens)
+    callTokens = strings(0, 1);
+else
+    callTokens = string([callTokens{:}]);
+end
+dynamicTokens = regexp(source, ...
+    '(?:feval|str2func)\s*\(\s*[''"](?:[A-Za-z]\w*\.)*([A-Za-z]\w*)[''"]', ...
+    'tokens');
+if isempty(dynamicTokens)
+    dynamicTokens = strings(0, 1);
+else
+    dynamicTokens = string([dynamicTokens{:}]);
+end
+names = unique([callTokens(:); dynamicTokens(:)]);
+end
+
+function names = matlabNames(paths)
+names = strings(numel(paths), 1);
+for i = 1:numel(paths)
+    [~, name] = fileparts(paths(i));
+    names(i) = string(name);
+end
+names = unique(names);
+end
+
+function paths = gitTrackedMatlab(repoRoot)
+[status, output] = system(sprintf('git -C "%s" ls-files "*.m"', repoRoot));
+assert(status == 0, 'Could not enumerate tracked MATLAB files.');
+paths = replace(splitlines(string(strtrim(output))), "\", "/");
+paths(paths == "") = [];
+end
+
+function text = executableMatlabText(text)
+text = regexprep(text, '%\{[\s\S]*?%\}', ' ');
+text = regexprep(text, '''(?:[^'']|'''')*''', '''''');
+text = regexprep(text, '"(?:[^"]|"")*"', '""');
+text = regexprep(text, '%[^\r\n]*', ' ');
+end

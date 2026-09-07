@@ -7,16 +7,16 @@ startup;
 % This example fits only mu while keeping thickness, rho, nu, and fluid
 % parameters fixed. etaS = 0 is used for the first stable fitting example.
 
-trueParams = mrlfeDefaultSweepParams();
+trueParams = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 trueParams.mu = 75e3;
 trueParams.thickness = 0.50e-3;
 trueParams.rho = 1070;
 trueParams.nu = 0.4999;
 
 frequency_Hz = linspace(1000, 8000, 8).';
-solverOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0.0);
+solverOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', 0.0);
 
-CpSynthetic_mps = mrlfeEvaluateFitModel(trueParams, frequency_Hz, "A0Like", solverOptions);
+CpSynthetic_mps = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(trueParams, frequency_Hz, "A0Like", solverOptions);
 
 experimental = struct();
 experimental.frequency_Hz = frequency_Hz;
@@ -34,7 +34,7 @@ fitConfig.initialGuess = struct('mu', 50e3);
 fitConfig.bounds = struct('mu', [20e3, 160e3]);
 fitConfig.solverOptions = solverOptions;
 
-fitResult = mrlfeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.mrlfe.mrlfeFitDispersionData(experimental, fitConfig);
 relativeRMSE = fitResult.metrics.RMSE / mean(abs(experimental.Cp_mps));
 
 fprintf('\nmRLFE A0-like synthetic fit complete.\n');

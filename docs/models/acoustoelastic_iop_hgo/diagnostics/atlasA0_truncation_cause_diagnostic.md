@@ -24,7 +24,7 @@ The repository only needs to be available through `startup`.
 
 The causal diagnostic helper is:
 
-`analysis/diagnostics/acoustoelastic_iop_hgo/aeDiagnoseAtlasA0TruncationCause.m`
+`studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseAtlasA0TruncationCause.m`
 
 It returns:
 
@@ -43,7 +43,7 @@ The diagnostic separates two different failure patterns:
 
 The dominant causal diagnosis is centered on `FirstTerminalMissing*`, because the target is high-frequency truncation rather than isolated internal gaps.
 
-This distinction matters for `mu_25kPa`, where an internal gap appears before the last official valid point. The corrected diagnostic reports that internal gap separately and then analyzes the terminal break after the last official valid frequency.
+This distinction matters for `mu_25kPa`, where an internal gap appears before the last official valid point. The diagnostic reports that internal gap separately and then analyzes the terminal break after the last official valid frequency.
 
 ### Runnable causal diagnostic script
 
@@ -51,7 +51,12 @@ Use the maintained entrypoint:
 
 `diagnose_atlas_truncation`
 
-The script loads the maintained IOP and shear-modulus sweep workspaces from the launch-folder `Results` tree. It checks short sweep paths first and then legacy sweep paths.
+The script loads the maintained IOP and shear-modulus sweep workspaces from:
+
+```text
+Results/ae_iop_hgo/iop_sweep/
+Results/ae_iop_hgo/mu_sweep/
+```
 
 It analyzes:
 
@@ -81,7 +86,7 @@ The dominant case label is selected from the missing-frequency rows in the local
 
 ### Output files for causal diagnostic
 
-The short-path script writes:
+The script writes:
 
 - per-case summary CSV files: `<case>_summary.csv`
 - per-case local-cause tables: `<case>_local_cause.csv`
@@ -90,9 +95,10 @@ The short-path script writes:
 - workspace: `atlas_truncation_workspace.mat`
 - local landscape plots under the `plots` subfolder.
 
-### Validation snapshot after terminal-break correction
+### Validation snapshot
 
-The corrected helper distinguishes terminal truncation from internal gaps. Historical numeric checks from the originally uploaded workspace were (not a current-regime guarantee):
+The helper distinguishes terminal truncation from internal gaps. Reference
+checks from the supplied workspace were (not a universal-regime guarantee):
 
 | Case | Last official valid [kHz] | First terminal missing [kHz] | First internal gap [kHz] | Has internal gap | Diagnostic accepted points | Diagnostic extension [kHz] |
 |---|---:|---:|---:|---:|---:|---:|

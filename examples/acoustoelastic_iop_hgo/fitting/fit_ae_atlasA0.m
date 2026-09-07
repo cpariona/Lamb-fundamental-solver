@@ -19,7 +19,7 @@ trueParams.fluidBulkModulus = 2.2e9;
 trueParams.IOP = 15 * 133.322;
 trueParams.frequency = logspace(log10(300), log10(15e3), 35);
 
-solverOptions = defaultAcoustoelasticIOPHGOOptions();
+solverOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 solverOptions.M54_variant = "corrected";
 solverOptions.normalizeRows = false;
 solverOptions.usePhysicalCpWindow = false;
@@ -28,7 +28,7 @@ solverOptions.atlasTopNMinima = 12;
 solverOptions.atlasBranchPolicy = "atlasA0";
 solverOptions.atlasInitializationNumFrequencyPoints = 50;
 
-[CpSynthetic_mps, syntheticRaw] = aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
+[CpSynthetic_mps, syntheticRaw] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(trueParams, trueParams.frequency, "atlasA0", solverOptions);
 validMask = syntheticRaw.validMask(:);
 
 if ~any(validMask)
@@ -51,7 +51,7 @@ fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = struct('useStandardErrorWeights', false, ...
     'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, 'MaxFunEvals', 24, 'TolX', 1e-3));
 
-fitResult = aeFitDispersionData(experimental, fitConfig);
+fitResult = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(experimental, fitConfig);
 relativeRMSE = fitResult.metrics.RMSE / mean(abs(experimental.Cp_mps(experimental.validMask)));
 
 fprintf('\nAE IOP/HGO atlasA0 synthetic fit complete.\n');

@@ -21,8 +21,8 @@ request.selection = struct('strategy', "adaptive");
 request.termination = struct('policy', "physicalTail");
 request.fallback = struct('policy', "none");
 
-configuration = mrlfeResolveConfiguration(request);
-problem = mrlfeBuildProblem(configuration);
+configuration = lamb.models.mrlfe.configuration.mrlfeResolveConfiguration(request);
+problem = lamb.models.mrlfe.core.mrlfeBuildProblem(configuration);
 
 assert(isequal(problem.frequencyRequested_Hz, requestedFrequency_Hz), ...
     'Requested frequencies must remain unchanged.');
@@ -34,11 +34,11 @@ assert(problem.params.frequencySpacing == "explicit", ...
     'Rayleigh-Lamb seed parameters must use explicit spacing.');
 assert(isequal(problem.params.frequencyVector_Hz(:), solveFrequency_Hz), ...
     'Seed frequency vector must equal the internal solve grid.');
-[~, rawSeedResult] = mrlfeBuildSeed(problem, configuration);
+[~, rawSeedResult] = lamb.models.mrlfe.tracking.mrlfeBuildSeed(problem, configuration);
 assert(isequal(rawSeedResult.modes.A0.frequency_Hz(:), solveFrequency_Hz), ...
     'Rayleigh-Lamb seed result must be evaluated on the exact solve grid.');
 
-result = mrlfeSolve(request);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 assert(isequal(result.frequency_Hz(:), requestedFrequency_Hz), ...
     'Public mRLFE output must remain on the requested frequency grid.');
 
@@ -46,7 +46,7 @@ badRequest = request;
 badRequest.numerics.frequencySolveOverride_Hz = [200 500 2000].';
 failedAsExpected = false;
 try
-    mrlfeBuildProblem(mrlfeResolveConfiguration(badRequest));
+    lamb.models.mrlfe.core.mrlfeBuildProblem(lamb.models.mrlfe.configuration.mrlfeResolveConfiguration(badRequest));
 catch ME
     failedAsExpected = strcmp(ME.identifier, 'mrlfe:InvalidSolveFrequencyCoverage');
 end

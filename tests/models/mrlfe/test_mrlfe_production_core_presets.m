@@ -6,7 +6,7 @@ fprintf('-------------------------------------------\n');
 
 for preset = ["fast", "balanced", "robust", "dense"]
     for branch = ["A0Like", "S0Like"]
-        result = mrlfeSolve(localRequest(branch, 0.05, preset, "physicalTail"));
+        result = lamb.models.mrlfe.mrlfeSolve(localRequest(branch, 0.05, preset, "physicalTail"));
         assert(result.execution.requestedPreset == preset, 'Requested preset mismatch.');
         assert(result.execution.effectivePreset == preset, 'Effective preset mismatch.');
         assert(any(result.validMask & isfinite(result.phaseVelocity_mps)), ...

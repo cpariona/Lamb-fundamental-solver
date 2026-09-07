@@ -1,16 +1,16 @@
 function test_rl_result_contract()
 %TEST_RL_RESULT_CONTRACT Protect canonical Rayleigh-Lamb result semantics.
 
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 50;
 params.fmax = 500;
 params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
-options = rlDefaultOptions("Fast");
+options = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 options.computeA0 = true;
 options.computeS0 = true;
 
-result = rlComputeFundamentalLambModes(params, options);
+result = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(params, options);
 assert(result.model == "rayleigh_lamb");
 assert(isfield(result, 'modes') && all(isfield(result.modes, {'A0', 'S0'})));
 assert(isfield(result, 'approximations'));
@@ -39,18 +39,18 @@ for name = ["A0", "S0"]
 end
 
 repoRoot = testRepositoryRoot();
-assert(strcmp(which('rlComputeFundamentalLambModes'), fullfile(repoRoot, 'models', ...
-    'rayleigh_lamb', 'api', 'rlComputeFundamentalLambModes.m')));
-assert(strcmp(which('rlSolveFundamentalModes'), fullfile(repoRoot, 'models', ...
-    'rayleigh_lamb', 'solvers', 'rlSolveFundamentalModes.m')));
-assert(strcmp(which('rlEvaluateModeQuality'), fullfile(repoRoot, 'models', ...
-    'rayleigh_lamb', 'quality', 'rlEvaluateModeQuality.m')));
+assert(strcmp(which('lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes'), fullfile(repoRoot, 'src', ...
+    '+lamb', '+models', '+rayleigh_lamb', 'rlComputeFundamentalLambModes.m')));
+assert(strcmp(which('lamb.models.rayleigh_lamb.solvers.rlSolveFundamentalModes'), fullfile(repoRoot, 'src', ...
+    '+lamb', '+models', '+rayleigh_lamb', '+solvers', 'rlSolveFundamentalModes.m')));
+assert(strcmp(which('lamb.models.rayleigh_lamb.quality.rlEvaluateModeQuality'), fullfile(repoRoot, 'src', ...
+    '+lamb', '+models', '+rayleigh_lamb', '+quality', 'rlEvaluateModeQuality.m')));
 
 exampleSource = fileread(fullfile(repoRoot, 'examples', 'rayleigh_lamb', ...
     'basic', 'run_default_A0_S0.m'));
 assert(contains(exampleSource, 'mode.diagnostics.residual'));
 assert(~contains(exampleSource, 'mode.residual'), 'Example uses a retired residual field.');
-approximations = rlComputeAnalyticalApproximations(frequency_Hz, result.material, result.geometry);
+approximations = lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations(frequency_Hz, result.material, result.geometry);
 assert(isequaln(approximations, result.approximations));
 
 fprintf('Rayleigh-Lamb result contract passed.\n');

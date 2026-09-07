@@ -34,7 +34,7 @@ if ~isfield(request.experimental, 'frequency_Hz') || ~isfield(request.experiment
     error('Fit request requires experimental.frequency_Hz and experimental.Cp_mps.');
 end
 
-request.experimental = normalizeExperimentalDispersionData(request.experimental);
+request.experimental = lamb.fitting.normalizeExperimentalDispersionData(request.experimental);
 request.freeParams = string(request.freeParams(:));
 if isempty(request.freeParams)
     error('Fit request requires at least one free parameter.');

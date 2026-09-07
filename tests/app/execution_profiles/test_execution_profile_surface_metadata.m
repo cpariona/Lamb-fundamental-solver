@@ -3,16 +3,16 @@ fprintf('\nRunning execution profile surface metadata tests...\n');
 fprintf('--------------------------------------------------\n');
 
 %% Main/API Rayleigh-Lamb accepts executionProfile metadata without changing Cp.
-params = rlDefaultParams();
+params = lamb.models.rayleigh_lamb.rlDefaultParams();
 params.fmin = 1000;
 params.fmax = 3000;
 params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
-legacyOptions = rlDefaultOptions("Fast");
+legacyOptions = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 legacyOptions.computeA0 = true;
 legacyOptions.computeS0 = false;
-legacy = rlComputeFundamentalLambModes(params, legacyOptions);
+legacy = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(params, legacyOptions);
 
 profileOptions = legacyOptions;
 profileOptions.executionProfile = "Fast";
@@ -27,14 +27,9 @@ assert(profileResult.metadata.executionProfile.effectiveExecutionProfile == "Fas
     'RL metadata should report effective Fast.');
 
 %% mRLFE main adapter applies the requested Balanced preset directly.
-mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
-mrlfeOptions.executionProfile = "Balanced";
-mrlfeOptions.effectiveExecutionProfile = "Balanced";
-mrlfeOptions.robustness = "Balanced";
+[mrlfeOptions, ~] = mrlfeResolveExecutionProfile("A0Like", "Balanced", ...
+    'Surface', "main", 'EtaS', 0, 'A0Policy', "physicalTail");
 mrlfeOptions.branchNames = "A0Like";
-mrlfeOptions.mrlfeA0Policy = "physicalTail";
-mrlfeOptions.mrlfeParams = mrlfeDefaultInternalParameters();
-mrlfeOptions.mrlfeParams.etaS = 0;
 mrlfeParams = params;
 mrlfeParams.fmax = 4000;
 mrlfeParams.numFrequencyPoints = 10;
@@ -48,7 +43,7 @@ assert(mrlfeMain.metadata.executionProfile.profileOverrideApplied == false, ...
     'mRLFE main metadata should not report an override.');
 assert(strlength(mrlfeMain.metadata.executionProfile.profileOverrideReason) == 0, ...
     'mRLFE main override reason should be empty.');
-assert(mrlfeMain.metadata.executionProfile.routePolicy == "mrlfeSolve", ...
+assert(mrlfeMain.metadata.executionProfile.routePolicy == "lamb.models.mrlfe.mrlfeSolve", ...
     'mRLFE main route should use the public solver.');
 assert(mrlfeMain.metadata.executionProfile.effectiveNumericalPreset == "balanced", ...
     'mRLFE main GUI should apply the balanced public preset.');
@@ -75,11 +70,11 @@ assert(aeOptions.atlasNumYPoints == 300 && aeOptions.atlasTopNMinima == 12, ...
     'AE Fit override values changed.');
 
 %% FitTool mRLFE applies requested Robust/robust directly.
-fitParams = mrlfeDefaultSweepParams();
+fitParams = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 fitParams.mu = 75e3;
 fitFrequency = linspace(1000, 4000, 5).';
-fitOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0.0);
-fitCp = mrlfeEvaluateFitModel(fitParams, fitFrequency, "A0Like", fitOptions);
+fitOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', 0.0);
+fitCp = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(fitParams, fitFrequency, "A0Like", fitOptions);
 mrlfeRequest = guiBuildFitRequest("mrlfe", ...
     'branchName', "A0Like", ...
     'experimental', struct('frequency_Hz', fitFrequency, 'Cp_mps', fitCp, 'validMask', isfinite(fitCp)), ...
@@ -109,8 +104,8 @@ aeParams = struct('R', 7.8e-3, 'thickness', 550e-6, 'IOP', 15 * 133.322, ...
     'mu', 64e3, 'k1', 50e3, 'k2', 200, 'rho', 1060, 'rhoF', 1000, ...
     'fluidBulkModulus', 2.2e9);
 aeFrequency = logspace(log10(300), log10(3000), 5).';
-aeRobustOptions = aeDefaultSweepOptions("Robust");
-[aeCp, aeRaw] = aeEvaluateFitModel(aeParams, aeFrequency, "atlasA0", aeRobustOptions);
+aeRobustOptions = lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitOptions("Robust");
+[aeCp, aeRaw] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(aeParams, aeFrequency, "atlasA0", aeRobustOptions);
 aeRequest = guiBuildFitRequest("acoustoelastic_iop_hgo", ...
     'branchName', "atlasA0", ...
     'experimental', struct('frequency_Hz', aeFrequency, 'Cp_mps', aeCp, 'validMask', aeRaw.validMask), ...

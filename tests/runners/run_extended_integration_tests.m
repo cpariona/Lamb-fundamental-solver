@@ -13,7 +13,7 @@ fprintf('\nRunning extended integration tests...\n');
 fprintf('-------------------------------------\n');
 
 % Execution profiles and fitted-curve integration.
-test_execution_profile_current_contract;
+test_execution_profile_contract;
 test_execution_profile_surface_integration;
 test_execution_profile_fit_curve_metadata;
 test_execution_profile_validation_matrix;
@@ -45,10 +45,7 @@ test_mrlfe_main_gui_characterization;
 test_mrlfe_main_gui_consumer_equivalence;
 test_mrlfe_main_gui_result_contract;
 
-% SweepTool and canonical mRLFE production routes.
-test_mrlfe_sweep_uses_public_solver;
-test_mrlfe_sweep_point_characterization;
-test_mrlfe_sweep_metadata_and_mapping;
+% Canonical mRLFE production routes.
 test_mrlfe_solve_request_builder;
 test_mrlfe_public_contract_characterization;
 test_mrlfe_canonical_route_contract;

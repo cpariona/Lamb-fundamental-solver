@@ -17,7 +17,7 @@ branchName = string(request.branchName);
 if strlength(branchName) == 0
     branchName = "atlasA0";
 end
-branchName = aeNormalizeBranchPolicy(branchName);
+branchName = lamb.models.acoustoelastic_iop_hgo.configuration.aeNormalizeBranchPolicy(branchName);
 if branchName ~= "atlasA0"
     error('AE IOP/HGO fitting supports only atlasA0.');
 end
@@ -45,7 +45,7 @@ fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = request.fitOptions;
 
 tFit = tic;
-fitResult = aeFitDispersionData(request.experimental, fitConfig);
+fitResult = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(request.experimental, fitConfig);
 fitElapsedSeconds = toc(tFit);
 normalized = guiNormalizeFitResult(fitResult, request);
 normalized.executionProfile = profileMetadata;

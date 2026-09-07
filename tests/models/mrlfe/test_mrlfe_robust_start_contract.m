@@ -21,7 +21,7 @@ request.selection = struct('strategy', "adaptive");
 request.termination = struct('policy', "physicalTail");
 request.fallback = struct('policy', "none");
 
-result = mrlfeSolve(request);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 branch = result.debug.solverResult.branchSolve;
 
 assert(isfield(branch, 'robustStart') && isstruct(branch.robustStart), ...
@@ -51,7 +51,7 @@ if ~branch.robustStart.Applied
         probeRequest.numerics.frequencySolveOverride_Hz = probeFrequency_Hz;
         probeRequest.termination.policy = "none";
 
-        probeResult = mrlfeSolve(probeRequest);
+        probeResult = lamb.models.mrlfe.mrlfeSolve(probeRequest);
         probeBranch = probeResult.debug.solverResult.branchSolve;
         initialRun = countInitialValidRun(probeBranch.validCp);
         firstValid = find(probeBranch.validCp, 1, 'first');

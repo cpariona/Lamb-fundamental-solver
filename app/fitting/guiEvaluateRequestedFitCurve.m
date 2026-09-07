@@ -28,15 +28,15 @@ options = fitResult.problem.solverOptions;
  tCurve = tic;
 switch modelFamily
     case "rayleigh_lamb"
-        [Cp_mps, rawResult] = rlEvaluateFitModel(params, frequency_Hz, branchName, options);
+        [Cp_mps, rawResult] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(params, frequency_Hz, branchName, options);
     case "mrlfe"
         if ~isfield(options, 'forwardModel') || ~isstruct(options.forwardModel)
             options.forwardModel = struct();
         end
         options.forwardModel.gridPolicy = "numericalPreset";
-        [Cp_mps, rawResult] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
+        [Cp_mps, rawResult] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
     case "acoustoelastic_iop_hgo"
-        [Cp_mps, rawResult] = aeEvaluateFitModel(params, frequency_Hz, "atlasA0", options);
+        [Cp_mps, rawResult] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(params, frequency_Hz, "atlasA0", options);
         branchName = "atlasA0";
     otherwise
         error('guiEvaluateRequestedFitCurve:UnsupportedModel', ...

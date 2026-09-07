@@ -10,7 +10,7 @@ mu = 50e3;
 k1 = 25e3;
 k2 = 100;
 
-[alpha, beta, gamma, state] = computeAcoustoelasticABGFromIOPHGO(IOP, R, h, mu, k1, k2);
+[alpha, beta, gamma, state] = lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO(IOP, R, h, mu, k1, k2);
 
 sigmaFromABG = alpha - gamma;
 relativeError = abs(sigmaFromABG - state.sigma) / max(abs(state.sigma), eps);

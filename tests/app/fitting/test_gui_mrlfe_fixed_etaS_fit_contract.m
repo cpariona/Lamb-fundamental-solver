@@ -9,13 +9,13 @@ trueMu = 75e3;
 fixedEtaS = 0.12;
 frequency_Hz = linspace(1000, 8000, 10).';
 
-params = mrlfeDefaultSweepParams();
+params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 params.mu = trueMu;
 params.etaS = fixedEtaS;
-options = mrlfeDefaultSweepOptions(branchName, 'EtaS', fixedEtaS, ...
+options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', fixedEtaS, ...
     'A0Policy', "physicalTail");
 
-[CpSynthetic, rawSynthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
+[CpSynthetic, rawSynthetic] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
 assert(rawSynthetic.evaluationPath.routeFamily == "public_solver", 'Synthetic A0Like etaS data should use the public solver route.');
 assert(rawSynthetic.evaluationPath.path == "viscoelastic_adaptive", 'Synthetic A0Like etaS data should use the viscoelastic adaptive engine.');
 

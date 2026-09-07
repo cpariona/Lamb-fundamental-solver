@@ -16,7 +16,7 @@ The purpose is to inspect competing raw-atlas branch families instead of forcing
 
 ```matlab
 startup
-run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_branch_families.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_branch_families.m')
 AcoustoelasticIOPHGOBranchFamiliesSummary
 AcoustoelasticIOPHGOBranchFamiliesAggregate
 ```
@@ -47,13 +47,13 @@ The first run used five configurations:
 | `fine_top24` | 1400 | 24 | 0.075 |
 | `fine_loose` | 1400 | 24 | 0.110 |
 
-### Historical aggregate result
+### Observed aggregate result
 
 | Configurations | Families reported | Best-family median coverage | Best-family min coverage | Best-family max coverage | Best-family median rank | Families with coverage >= 0.80 | Families with median rank <= 4 | Families with coverage >= 0.80 and median rank <= 4 |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 5 | 25 | 0.85625 | 0.73125 | 0.92500 | 6 | 4 | 2 | 0 |
 
-### Historical best family per configuration
+### Best family per evaluated configuration
 
 | Config | Best-family coverage | Best-family median rank | Best-family roughness | Cp range [m/s] | Frequency range [kHz] |
 |---|---:|---:|---:|---|---|
@@ -72,17 +72,17 @@ The diagnostic shows that the difficult corner is not resolved by simply retaini
 - No reported family simultaneously satisfies high coverage (`>= 0.80`) and low median rank (`<= 4`).
 - Several secondary branch families occupy shorter but non-negligible frequency intervals, especially in the `fine_loose` configuration.
 
-This supports the conclusion that the `IOP = 35 mmHg`, `mu = 25 kPa` corner has genuine modal-family ambiguity under the current residual-only raw-atlas tracking approach.
+This supports the conclusion that the `IOP = 35 mmHg`, `mu = 25 kPa` corner has genuine modal-family ambiguity under the residual-only raw-atlas tracking approach.
 
 ### Consequence for solver policy
 
-The current evidence supports keeping `atlasA0` as the conservative official output.
+The evidence supports keeping `atlasA0` as the conservative official output.
 
 Do not promote `raw_branch1` or `identityA0Diagnostic` to production output in this corner. The solver policy should treat this regime as an explicit ambiguity region until a stronger branch-identity criterion is available, such as modal-shape information, branch-family continuity across material parameters, or an independent physical plausibility constraint.
 
-### Scope of the historical evidence
+### Scope of evidence
 
-For the tested regimes outside the low-stiffness/high-IOP corner, the solver appears close to optimized for the current modeling assumptions:
+For the tested regimes outside the low-stiffness/high-IOP corner, the solver appears close to optimized under the documented modeling assumptions:
 
 - `atlasA0` is aligned with the persistent raw branch where both are valid.
 - Most failures are conservative truncations, not systematic branch switches.

@@ -13,7 +13,7 @@ cases = [ ...
 
 for i = 1:numel(cases)
     request = localRequest(cases(i).branch, cases(i).etaS, "fast");
-    result = mrlfeSolve(request);
+    result = lamb.models.mrlfe.mrlfeSolve(request);
 
     assert(isequal(result.frequency_Hz, request.frequency_Hz(:)), 'Frequency grid mismatch.');
     assert(numel(result.validMask) == numel(request.frequency_Hz), 'Valid mask length mismatch.');
@@ -26,8 +26,8 @@ for i = 1:numel(cases)
 end
 
 for branch = ["A0Like", "S0Like"]
-    fast = mrlfeSolve(localRequest(branch, 0.05, "fast"));
-    dense = mrlfeSolve(localRequest(branch, 0.05, "dense"));
+    fast = lamb.models.mrlfe.mrlfeSolve(localRequest(branch, 0.05, "fast"));
+    dense = lamb.models.mrlfe.mrlfeSolve(localRequest(branch, 0.05, "dense"));
     overlap = fast.validMask & dense.validMask & ...
         isfinite(fast.phaseVelocity_mps) & isfinite(dense.phaseVelocity_mps);
     assert(any(overlap), 'Fast and dense presets must have finite overlap for %s.', branch);

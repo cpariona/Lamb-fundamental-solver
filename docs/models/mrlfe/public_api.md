@@ -7,17 +7,17 @@ Last reviewed: 2026-09-05
 The maintained model-oriented entry point for real-k mRLFE solving is:
 
 ```matlab
-result = mrlfeSolve(request);
+result = lamb.models.mrlfe.mrlfeSolve(request);
 ```
 
-Main GUI, FitTool, and SweepTool consume this model-owned API. Application
+Main GUI, FitTool, and sensitivity studies consume this model-owned API. Application
 adapters own surface state and presentation, but canonical mRLFE request
-translation is model-owned by `mrlfeBuildSolveRequest` under
-`models/mrlfe/configuration/`.
+translation is model-owned by `lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` under
+`src/+lamb/+models/+mrlfe/+configuration/`.
 
 ## Request
 
-`mrlfeSolve` accepts one struct. The public concepts are intentionally separate:
+`lamb.models.mrlfe.mrlfeSolve` accepts one struct. The public concepts are intentionally separate:
 
 ```matlab
 request.branch = "A0Like";
@@ -51,7 +51,7 @@ S0Like
 Unsupported branches, presets, physical inputs, policies, and nonascending or
 invalid frequency grids fail with stable `mrlfe:*` error identifiers.
 
-`mrlfeBuildSolveRequest` is the reusable translation owner for maintained
+`lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` is the reusable translation owner for maintained
 workflow/app aliases such as `mu`, `rho`, `thickness`, `etaS`, fluid density,
 fluid sound speed, execution profile, and branch name. It produces the canonical
 request above and is independent of GUI handles, fitting, sweeps, and plotting.
@@ -61,8 +61,8 @@ request above and is independent of GUI handles, fitting, sweeps, and plotting.
 Use:
 
 ```matlab
-params = mrlfeDefaultParameters();
-options = mrlfeDefaultOptions();
+params = lamb.models.mrlfe.mrlfeDefaultParameters();
+options = lamb.models.mrlfe.mrlfeDefaultOptions();
 ```
 
 The default physical values are `mu_Pa = 75e3`, `etaS_Pas = 0.05`,
@@ -85,7 +85,7 @@ The API never substitutes another branch as fallback.
 
 Public requests select `request.numerics.preset` as `"fast"`, `"balanced"`,
 `"robust"`, or `"dense"`.
-`mrlfeGetNumericalPreset` is the model configuration owner that resolves those
+`lamb.models.mrlfe.configuration.mrlfeGetNumericalPreset` is the model configuration owner that resolves those
 names; it is not an additional public API.
 
 The maintained presets are:
@@ -97,8 +97,7 @@ The maintained presets are:
 | `robust` | 20 Hz | 620 | 620 | 8 |
 | `dense` | 10 Hz | 900 | 900 | 8 |
 
-Fast therefore uses the optimized policy introduced by the numerical-alignment
-campaign: a 100-point coarse scan is used for normal candidate discovery and a
+Fast uses a 100-point coarse scan for normal candidate discovery and a
 260-point dense scan is used only as rescue when needed. Candidate discovery is
 discrete; after one candidate is selected, the selected candidate is refined
 continuously with bounded refinement. This does not smooth or post-process the
@@ -177,22 +176,22 @@ as a parallel public alias.
 The production implementation path is neutral:
 
 ```text
-mrlfeSolve
-  -> mrlfeResolveConfiguration
-  -> mrlfeBuildProblem
-  -> mrlfeSolveBranch
-       -> mrlfeSolveElasticBranch
-       -> mrlfeSolveViscoelasticBranch
-       -> mrlfeBuildSeed
-            -> rlComputeFundamentalLambModes
-       -> mrlfeTrackBranchAdaptive
-       -> mrlfeApplyTerminationPolicy
-            -> mrlfeEvaluatePhysicalTail
-  -> mrlfeBuildResult
+lamb.models.mrlfe.mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeResolveConfiguration
+  -> lamb.models.mrlfe.core.mrlfeBuildProblem
+  -> lamb.models.mrlfe.solvers.mrlfeSolveBranch
+       -> lamb.models.mrlfe.solvers.mrlfeSolveElasticBranch
+       -> lamb.models.mrlfe.solvers.mrlfeSolveViscoelasticBranch
+       -> lamb.models.mrlfe.tracking.mrlfeBuildSeed
+            -> lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes
+       -> lamb.models.mrlfe.tracking.mrlfeTrackBranchAdaptive
+       -> lamb.models.mrlfe.policies.mrlfeApplyTerminationPolicy
+            -> lamb.models.mrlfe.policies.mrlfeEvaluatePhysicalTail
+  -> lamb.models.mrlfe.results.mrlfeBuildResult
 ```
 
-The only intentional cross-family dependency is `mrlfeBuildSeed ->
-rlComputeFundamentalLambModes` for the scientific seed.
+The only intentional cross-family dependency is `lamb.models.mrlfe.tracking.mrlfeBuildSeed ->
+lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes` for the scientific seed.
 
 ## Main GUI Use
 
@@ -201,12 +200,12 @@ The maintained Main GUI mRLFE chain is:
 ```text
 LambFundamental_GUI
   -> guiRunMRLFEModel
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve
   -> GUI result adapter
 ```
 
-The request builder translates the current Main GUI SI parameters (`mu`,
+The request builder translates the Solver GUI SI parameters (`mu`,
 `etaS`, `rho`, `nu`, `thickness`, fluid density, fluid sound speed, frequency
 grid, and branch toggles) to the public material, geometry, and fluid fields.
 The Main GUI defaults to `Balanced`, which maps directly to public preset
@@ -214,11 +213,11 @@ The Main GUI defaults to `Balanced`, which maps directly to public preset
 A0Like uses adaptive selection with `physicalTail` termination and no fallback.
 S0Like uses adaptive selection with no additional termination and no fallback.
 
-Main GUI no longer contains mRLFE seed construction, low-level tracker
-selection, atlas candidate inspection, physical-tail cutting, or zero-viscosity
-fallback logic. Partial-quality public results are returned and reported with
+The Solver GUI delegates mRLFE seed construction, low-level tracker selection,
+atlas candidate inspection, physical-tail cutting, and zero-viscosity fallback
+logic to canonical model owners. Partial-quality public results are returned and reported with
 their `quality.accepted` and `quality.reason` metadata; the GUI does not replace
-them with a legacy branch.
+them with a separate branch implementation.
 
 ## FitTool Fitting Use
 
@@ -227,11 +226,11 @@ The maintained FitTool mRLFE fitting chain is:
 ```text
 FitTool_GUI
   -> guiFitMRLFESolver
-  -> mrlfeFitDispersionData
-  -> solveDispersionFitProblem
-  -> mrlfeEvaluateFitModel
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve
+  -> lamb.fitting.mrlfe.mrlfeFitDispersionData
+  -> lamb.fitting.solveDispersionFitProblem
+  -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve
 ```
 
 The fitting workflow translates the existing SI fitting parameters (`mu`,
@@ -244,33 +243,32 @@ adaptive selection with no additional termination and no fallback.
 Objective evaluations, automatic full-curve diagnostics, and explicit requested
 fitted-curve evaluations use the same public solver route with the final fitted
 parameters. Characterization compares maintained consumers directly against
-`mrlfeSolve`.
+`lamb.models.mrlfe.mrlfeSolve`.
 
-## SweepTool Use
+## Sensitivity-study use
 
-The maintained SweepTool mRLFE chain is:
+The maintained mRLFE sensitivity chain is:
 
 ```text
-SweepTool_GUI
-  -> guiBuildSweepRequest
-  -> guiRunSweep
-  -> guiRunMRLFESweep
-  -> runParametricSweep
-  -> mrlfeBuildSolveRequest
-  -> mrlfeSolve, once per sweep point
+study_etaS_A0Like
+  -> runMRLFESensitivity
+  -> lamb.sweeps.runParametricSweep
+  -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
+  -> lamb.models.mrlfe.mrlfeSolve, once per sweep point
 ```
 
-The sweep workflow translates current SweepTool SI parameters (`mu`, `etaS`,
+The study workflow translates its SI parameters (`mu`, `etaS`,
 `rho`, `nu`, `thickness`, fluid density, and fluid sound speed) through the same
-model-owned request builder. The maintained SweepTool default is public `fast`.
+model-owned request builder. The representative study uses public `fast`.
 A0Like sweeps use adaptive selection with `physicalTail` termination and no
 fallback. S0Like sweeps use adaptive selection with no additional termination
 and no fallback.
 
-SweepTool no longer delegates mRLFE solving to `guiRunMRLFEModel`. Each point
+Each point
 stores the full public model result under `sweepResult.points{i}.modelResult`;
-aggregate sweep metadata reports the effective engines, presets, termination
-policies, and fallback policies represented by the points.
+aggregate study metadata reports the effective engines, presets, termination
+policies, and fallback policies represented by the points. This orchestration
+is opt-in and is not a production model API.
 
 ## Diagnostics and debug boundary
 
@@ -281,7 +279,7 @@ application adapters do not inspect it.
 
 ## Algorithm and limitations
 
-See `production_core.md` for model-layer algorithm ownership. The engines are
+See `solver.md` for model-layer algorithm ownership. The engines are
 `elastic_adaptive` for etaS=0 and `viscoelastic_adaptive` for etaS>0.
 The real-k approximation does not solve a complex-wavenumber attenuation
 problem. Branches may be partial or quality-rejected; `validMask` and quality

@@ -6,7 +6,7 @@ fprintf('--------------------------------------------------\n');
 
 for branch = ["A0Like", "S0Like"]
     request = localRequest(branch, 0.05, "fast");
-    result = mrlfeSolve(request);
+    result = lamb.models.mrlfe.mrlfeSolve(request);
     assertResultSchema(result, request);
 end
 

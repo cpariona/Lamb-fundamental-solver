@@ -20,7 +20,7 @@ params.fluidBulkModulus = 2.2e9;
 params.frequency = logspace(log10(300), log10(15e3), 35);
 params.IOP = 15 * 133.322;
 
-options = defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.usePhysicalCpWindow = false;
@@ -28,9 +28,12 @@ options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 options.atlasBranchPolicy = "atlasA0";
 
-result = solveAcoustoelasticIOPHGOBranch(params, options);
+result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
 
-outputFolder = resolveModelOutputFolder(launchFolder, 'ae_iop_hgo', 'atlas_branch');
+outputFolder = fullfile(launchFolder, 'Results', 'ae_iop_hgo', 'atlas_branch');
+if ~isfolder(outputFolder)
+    mkdir(outputFolder);
+end
 save(fullfile(outputFolder, 'atlas_branch_workspace.mat'), 'params', 'options', 'result');
 
 validMask = result.validMask(:) & isfinite(result.phaseVelocity_mps(:));

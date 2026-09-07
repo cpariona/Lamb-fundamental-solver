@@ -5,15 +5,15 @@ fprintf('\nRunning GUI mRLFE fit route policy contract test...\n');
 fprintf('------------------------------------------------\n');
 
 frequency_Hz = linspace(1000, 6000, 10).';
-params = mrlfeDefaultSweepParams();
+params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 params.mu = 75e3;
 params.etaS = 0.12;
 
 %% A0Like etaS fitting: public solver route, viscoelastic adaptive engine
 branchName = "A0Like";
-optionsA0 = mrlfeDefaultSweepOptions(branchName, 'EtaS', params.etaS, ...
+optionsA0 = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', params.etaS, ...
     'A0Policy', "physicalTail");
-[CpA0Synthetic, rawA0Synthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, optionsA0);
+[CpA0Synthetic, rawA0Synthetic] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, branchName, optionsA0);
 assert(rawA0Synthetic.evaluationPath.routeFamily == "public_solver", 'A0 synthetic data should use public solver route family.');
 assert(rawA0Synthetic.evaluationPath.path == "viscoelastic_adaptive", 'A0 viscous synthetic data should use viscoelastic adaptive engine.');
 
@@ -65,9 +65,9 @@ assert(muOutput.routePolicy.actualPath == "viscoelastic_adaptive", 'A0Like mu fi
 
 %% S0Like etaS fitting: atlas route applies to S0Like as well
 branchName = "S0Like";
-optionsS0 = mrlfeDefaultSweepOptions(branchName, 'EtaS', params.etaS, ...
+optionsS0 = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', params.etaS, ...
     'A0Policy', "physicalTail");
-[CpS0Synthetic, rawS0Synthetic] = mrlfeEvaluateFitModel(params, frequency_Hz, branchName, optionsS0);
+[CpS0Synthetic, rawS0Synthetic] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, branchName, optionsS0);
 assert(rawS0Synthetic.evaluationPath.routeFamily == "public_solver", 'S0 synthetic data should use public solver route family.');
 assert(rawS0Synthetic.evaluationPath.path == "viscoelastic_adaptive", 'S0 viscous synthetic data should use viscoelastic adaptive engine.');
 

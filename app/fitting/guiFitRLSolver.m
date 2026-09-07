@@ -39,7 +39,7 @@ fitConfig.solverOptions = solverOptions;
 fitConfig.fitOptions = request.fitOptions;
 
 tFit = tic;
-fitResult = rlFitDispersionData(request.experimental, fitConfig);
+fitResult = lamb.fitting.rayleigh_lamb.rlFitDispersionData(request.experimental, fitConfig);
 fitElapsedSeconds = toc(tFit);
 normalized = guiNormalizeFitResult(fitResult, request);
 normalized.executionProfile = profileMetadata;
