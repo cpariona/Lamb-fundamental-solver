@@ -15,7 +15,7 @@ rlOptions.computeA0 = true;
 rlOptions.computeS0 = true;
 
 rlRequest = struct('params', rlParams, 'options', rlOptions);
-rlGuiResult = guiRunRayleighLambModel(rlRequest);
+rlGuiResult = rlGuiRunModel(rlRequest);
 
 assert(isstruct(rlGuiResult), 'Rayleigh-Lamb GUI adapter must return a struct.');
 assert(isfield(rlGuiResult, 'branches') && ~isempty(rlGuiResult.branches), ...
@@ -57,7 +57,7 @@ mrlfeRequest.options = mrlfeOptions;
 mrlfeRequest.mrlfeParams = mrlfeOptions.mrlfeParams;
 mrlfeRequest.computeElastic = true;
 mrlfeRequest.computeVisco = false;
-mrlfeGuiResult = guiRunMRLFEModel(mrlfeRequest);
+mrlfeGuiResult = mrlfeGuiRunModel(mrlfeRequest);
 
 assert(isstruct(mrlfeGuiResult), 'mRLFE GUI adapter must return a struct.');
 assert(hasNormalizedBranch(mrlfeGuiResult, "mRLFERealK", "A0Like"), ...
@@ -87,7 +87,7 @@ viscoRequest.options.mrlfeParams.etaS = 0.05;
 viscoRequest.mrlfeParams = viscoRequest.options.mrlfeParams;
 viscoRequest.computeElastic = true;
 viscoRequest.computeVisco = true;
-viscoGuiResult = guiRunMRLFEModel(viscoRequest);
+viscoGuiResult = mrlfeGuiRunModel(viscoRequest);
 assert(hasNormalizedBranch(viscoGuiResult, "mRLFERealK", "A0Like"), ...
     'mRLFE GUI adapter must return the unified real-k branch for etaS > 0.');
 assert(~hasNormalizedBranch(viscoGuiResult, "RayleighLamb", "A0"), ...
