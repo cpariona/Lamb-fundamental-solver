@@ -148,22 +148,6 @@ normalized requested profile:
 control profile source:
 ```
 
-### SweepTool
-
-After each sweep, the status area reports:
-
-- number of sweep cases;
-- valid cases;
-- requested/effective profile;
-- support mode;
-- internal preset;
-- route policy or actual route where available;
-- elapsed time;
-- AE atlas settings;
-- mRLFE mapping/fallback details.
-
-The same metadata remains in `SweepToolOutput` and `SweepToolNormalized`.
-
 ### FitTool
 
 After synthetic generation, FitTool reports synthetic profile diagnostics.

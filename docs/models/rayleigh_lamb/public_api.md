@@ -46,7 +46,8 @@ higher-mode, viscous, or fluid-loaded solver. Low-frequency analytical
 approximations are separate estimates, not replacements for tracked roots.
 RL never calls mRLFE; mRLFE may request an RL seed.
 
-Reusable analysis APIs are `lamb.fitting.rayleigh_lamb.rlFitDispersionData` and `rlRunSweep`.
+The maintained inverse API is `lamb.fitting.rayleigh_lamb.rlFitDispersionData`.
+Parameter campaigns are opt-in studies, not model APIs.
 Examples are executed by path, for example:
 
 ```matlab

@@ -32,14 +32,14 @@ for i = 1:numel(profiles)
     assert(metadata.effectiveExecutionProfile == profiles(i), 'AE effective profile metadata mismatch.');
 end
 
-%% mRLFE GUI/Sweep applies each requested public numerical preset directly.
+%% mRLFE Main GUI applies each requested public numerical preset directly.
 for i = 1:numel(profiles)
     [guiOptions, guiMetadata] = mrlfeResolveExecutionProfile("A0Like", ...
-        struct('robustness', profiles(i)), 'Surface', "sweep", ...
+        struct('robustness', profiles(i)), 'Surface', "main", ...
         'EtaS', 0.05, 'A0Policy', "physicalTail");
-    assert(guiOptions.executionProfile == profiles(i), 'mRLFE GUI/Sweep requested profile mismatch.');
-    assert(guiOptions.effectiveExecutionProfile == profiles(i), 'mRLFE GUI/Sweep effective profile mismatch.');
-    assert(guiOptions.mrlfeNumericalPreset == presets(i), 'mRLFE GUI/Sweep numerical preset mismatch.');
+    assert(guiOptions.executionProfile == profiles(i), 'mRLFE Main GUI requested profile mismatch.');
+    assert(guiOptions.effectiveExecutionProfile == profiles(i), 'mRLFE Main GUI effective profile mismatch.');
+    assert(guiOptions.mrlfeNumericalPreset == presets(i), 'mRLFE Main GUI numerical preset mismatch.');
     assert(guiMetadata.requestedExecutionProfile == profiles(i), 'mRLFE GUI requested profile mismatch.');
     assert(guiMetadata.effectiveExecutionProfile == profiles(i), 'mRLFE GUI effective profile mismatch.');
     assert(guiMetadata.effectiveNumericalPreset == presets(i), 'mRLFE GUI numerical preset metadata mismatch.');

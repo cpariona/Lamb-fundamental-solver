@@ -4,7 +4,7 @@ function [options, metadata] = aeResolveExecutionProfile(profileInput, varargin)
 p = inputParser;
 addParameter(p, 'DefaultProfile', "Balanced", @(x)ischar(x) || isstring(x));
 addParameter(p, 'DefaultSource', "default", @(x)ischar(x) || isstring(x));
-addParameter(p, 'Surface', "physicalSweep", @(x)ischar(x) || isstring(x));
+addParameter(p, 'Surface', "direct", @(x)ischar(x) || isstring(x));
 addParameter(p, 'Overrides', struct(), @(x)isstruct(x) && isscalar(x));
 addParameter(p, 'OverrideReason', "", @(x)ischar(x) || isstring(x));
 addParameter(p, 'ApplyNumericalPreset', true, @(x)islogical(x) && isscalar(x));
@@ -48,7 +48,7 @@ end
 
 function overrides = buildSurfaceOverrides(surface, requestedOverrides)
 overrides = struct();
-if ismember(surface, ["MainGUI", "FitTool", "SweepTool", "physicalSweep"])
+if ismember(surface, ["MainGUI", "FitTool"])
     overrides = struct( ...
         'M54_variant', "corrected", ...
         'normalizeRows', false, ...
@@ -61,10 +61,6 @@ function surface = canonicalSurface(value)
 switch lower(strtrim(string(value)))
     case {"", "direct", "model"}
         surface = "direct";
-    case {"physicalsweep", "physical_sweep", "analysis"}
-        surface = "physicalSweep";
-    case {"sweeptool", "sweep"}
-        surface = "SweepTool";
     case {"fittool", "fit", "fittool requested curve", "fittool synthetic"}
         surface = "FitTool";
     case {"maingui", "main_gui", "main"}

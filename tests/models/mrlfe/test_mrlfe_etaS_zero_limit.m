@@ -5,7 +5,7 @@ params = lamb.models.mrlfe.configuration.mrlfeDefaultWorkflowParams();
 frequency_Hz = linspace(500, 4000, 14).';
 
 for branchName = ["A0Like", "S0Like"]
-    options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
+    options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, 'EtaS', 0);
     request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
     result = lamb.models.mrlfe.mrlfeSolve(request);
 

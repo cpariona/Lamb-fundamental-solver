@@ -23,10 +23,9 @@ effectiveProfile = requestedProfile;
 numericalPreset = profileToNumericalPreset(requestedProfile);
 
 switch surface
-    case {"gui", "main", "sweep", "api"}
-        options = mrlfeDefaultSweepOptions(branchName, ...
-            'EtaS', p.Results.EtaS, ...
-            'A0Policy', normalizeA0Policy(p.Results.A0Policy));
+    case {"gui", "main", "api"}
+        options = defaultAppSolveOptions(branchName, p.Results.EtaS, ...
+            normalizeA0Policy(p.Results.A0Policy));
     case "fit"
         options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, ...
             'EtaS', p.Results.EtaS, ...
@@ -57,6 +56,23 @@ metadata.etaS = p.Results.EtaS;
 metadata.supportedExecutionProfiles = guiExecutionProfileValues();
 metadata.profileSupportMode = "direct";
 metadata.surfaceDefaultExecutionProfile = string(p.Results.DefaultProfile);
+end
+
+function options = defaultAppSolveOptions(branchName, etaS, a0Policy)
+options = struct();
+options.modelFamily = "mrlfe";
+options.branchName = branchName;
+options.executionProfile = "Fast";
+options.effectiveExecutionProfile = "Fast";
+options.robustness = "Fast";
+options.mrlfeNumericalPreset = "fast";
+options.mrlfeA0Policy = a0Policy;
+options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
+options.mrlfeParams.fluidDensity = 1000;
+options.mrlfeParams.fluidSoundSpeed = 1500;
+options.mrlfeParams.etaS = etaS;
+options.mrlfeParams.etaL = 0;
+options.mrlfeParams.useComplexLambda = false;
 end
 
 function preset = profileToNumericalPreset(profile)

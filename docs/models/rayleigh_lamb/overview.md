@@ -30,7 +30,8 @@ seed construction.
 
 ## Workflows
 
-`rlRunSweep` composes the shared `runParametricSweep` iterator and public
+The opt-in `runRayleighLambSensitivity` study composes the
+`lamb.sweeps.runParametricSweep` iterator and public
 RL solver. Plot-data extraction owns branch selection and units; renderers
 only display the already-computed curves.
 
@@ -48,7 +49,7 @@ Run `startup` for production APIs. Examples are not added globally:
 ```matlab
 run('examples/rayleigh_lamb/basic/run_default_A0_S0.m')
 run('examples/rayleigh_lamb/fitting/fit_default_A0.m')
-run('examples/rayleigh_lamb/sweeps/rl_sweep_thickness_A0.m')
+run('studies/sensitivity/rayleigh_lamb/study_thickness_A0.m')
 ```
 
 Numerical regression owns basic branch and synthetic recovery fixtures;

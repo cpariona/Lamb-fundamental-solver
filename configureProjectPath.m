@@ -15,8 +15,7 @@ end
 addpath(char(projectRoot));
 addpath(char(fullfile(projectRoot, "src")));
 roots = [ ...
-    fullfile(projectRoot, "app"), ...
-    fullfile(projectRoot, "analysis")];
+    fullfile(projectRoot, "app")];
 
 for i = 1:numel(roots)
     addActiveTree(roots(i), excludedNames);

@@ -6,8 +6,8 @@ Last reviewed: 2026-07-04
 
 ## Context
 
-The repository exposes execution-profile controls across Main GUI, SweepTool,
-and FitTool. Existing documentation distinguishes this surface control from
+The repository exposes execution-profile controls across Main GUI and FitTool.
+Existing documentation distinguishes this surface control from
 route policies, branch policies, optimizer controls, and physical parameters.
 
 ## Decision

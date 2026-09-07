@@ -46,7 +46,7 @@ PR #135 was merged:
 
 Total maintained tests: 115.
 
-After the final SweepTool characterization-test correction, extended
+After the historical sweep-GUI characterization-test correction, extended
 integration and performance/benchmark were rerun and passed. The correction was
 limited to a stale test assumption about the generic sweep request envelope; no
 production source or numerical policy changed. PR #135 then merged that
@@ -73,16 +73,17 @@ No functional blocker was found.
 
 ### Confirmed invariants
 
-- Production startup exposes repository root plus `app/`, `models/`, and
-  `analysis/`, and only the six test launchers from `tests/runners/`.
+- Production startup exposed the then-maintained trees and only the six test
+  launchers from `tests/runners/`; the canonical architecture now supersedes
+  that transitional layout.
 - Test bodies, examples, and executable diagnostics are not globally loaded by
   production startup.
 - RL, mRLFE, and AE public model entrypoints exist at their documented owners.
 - The only intentional cross-family scientific dependency remains the mRLFE
   seed use of the Rayleigh-Lamb solver.
 - Generic frequency construction has neutral shared ownership.
-- Main GUI, SweepTool, and FitTool reach mRLFE through the public mRLFE route.
-- One-dimensional sweep results retain the common `runParametricSweep` shape;
+- Main GUI, FitTool, and sensitivity studies reach mRLFE through its public route.
+- One-dimensional sensitivity results retain the common `lamb.sweeps.runParametricSweep` shape;
   AE 2-D grids remain intentionally specialized.
 - Maintained direct tests use runner-owned path setup and the global hygiene
   gate scans every tracked `test_*.m`.

@@ -48,18 +48,17 @@ The fitting adapter does not select low-level trackers, fallback, or quality
 logic. It translates app input into the fitting workflow and normalizes the
 final fit result.
 
-SweepTool mRLFE forward sweeps also reach this core through the public API:
+mRLFE sensitivity studies also reach this core through the public API:
 
 ```text
-guiRunMRLFESweep
-  -> runParametricSweep
+runMRLFESensitivity
+  -> lamb.sweeps.runParametricSweep
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve, once per sweep point
 ```
 
-The sweep adapter translates each point into a public model request and
-normalizes point and aggregate metadata. It does not call the Main GUI adapter,
-select low-level trackers, or apply fallback.
+The opt-in study translates each point into a public model request. It does not
+call an app adapter, select low-level trackers, or apply fallback.
 
 ## Configuration
 
@@ -206,15 +205,13 @@ Main GUI preserves the completed public `modelResult` and derives a shallow
 presentation view for plotting and export. Partial-quality results remain visible and are
 reported with neutral status metadata instead of being replaced by fallback.
 
-SweepTool stores the same public `modelResult` for each sweep point. Aggregate
-sweep metadata reports unique effective presets, engines, termination policies,
-and fallback policies across all points, plus point counts and failure counts,
-instead of reporting one point's route as sweep-wide state. The maintained
-SweepTool route uses the public `fast` preset, adaptive selection, no fallback,
-`physicalTail` termination for A0Like, and `none` termination for S0Like.
+Sensitivity studies store the public result for each point and may summarize
+effective presets, engines, termination policies, and fallback policies. The
+representative study uses the public `fast` preset, adaptive selection, no
+fallback, `physicalTail` termination for A0Like, and `none` for S0Like.
 
 ## Boundary
 
 Seed, tracking, termination, result construction, and quality are model-owned.
 Human consumers reach this core through lamb.models.mrlfe.mrlfeSolve. No production dependency
-points back to analysis, app, tests, or executable examples/diagnostics.
+points back to studies, app, tests, or executable examples/diagnostics.

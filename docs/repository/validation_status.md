@@ -1,5 +1,8 @@
 # Validation status
 
+> Historical post-PR-#137 snapshot. Current runner ownership and maintained
+> test count are defined by `tests/README.md` and the runner files themselves.
+
 Last reviewed: 2026-09-05.
 
 ## Current integrated state

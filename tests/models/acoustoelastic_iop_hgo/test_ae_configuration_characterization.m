@@ -20,13 +20,6 @@ profileNames = ["Fast", "Balanced", "Robust"];
 expectedY = [300, 600, 900];
 expectedTopN = [12, 16, 20];
 for i = 1:numel(profileNames)
-    physicalSweep = aeDefaultSweepOptions(profileNames(i));
-    assert(physicalSweep.atlasNumYPoints == expectedY(i));
-    assert(physicalSweep.atlasTopNMinima == expectedTopN(i));
-    assert(physicalSweep.M54_variant == "corrected");
-    assert(physicalSweep.normalizeRows == false);
-    assert(physicalSweep.atlasBranchPolicy == "atlasA0");
-
     [surfaceOptions, metadata] = aeResolveExecutionProfile(profileNames(i));
     assert(surfaceOptions.atlasNumYPoints == expectedY(i));
     assert(surfaceOptions.atlasTopNMinima == expectedTopN(i));
@@ -48,16 +41,11 @@ assert(mainGui.refineLocalMinima == true);
 assert(mainGui.atlasInitializationNumFrequencyPoints == 50);
 assert(mainGui.executionProfileMetadata.surfaceDefaultExecutionProfile == "Balanced");
 
-% SweepTool and FitTool both begin with the Fast profile. Their adapters may
-% subsequently apply explicit visible controls, which must remain higher
-% precedence than this profile selection.
-[sweepTool, sweepMetadata] = aeResolveExecutionProfile(struct('executionProfile', "Fast"), ...
-    'DefaultProfile', "Fast", 'DefaultSource', "SweepTool default");
+% FitTool begins with the Fast profile. Explicit visible controls remain
+% higher precedence than this profile selection.
 [fitTool, fitMetadata] = aeResolveExecutionProfile(struct('robustness', "Fast"), ...
-    'DefaultProfile', "Fast", 'DefaultSource', "FitTool default");
-assert(sweepTool.atlasNumYPoints == 300 && sweepTool.atlasTopNMinima == 12);
+    'DefaultProfile', "Fast", 'DefaultSource', "FitTool default", 'Surface', "FitTool");
 assert(fitTool.atlasNumYPoints == 300 && fitTool.atlasTopNMinima == 12);
-assert(sweepMetadata.surfaceDefaultExecutionProfile == "Fast");
 assert(fitMetadata.surfaceDefaultExecutionProfile == "Fast");
 
 explicit = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions( ...

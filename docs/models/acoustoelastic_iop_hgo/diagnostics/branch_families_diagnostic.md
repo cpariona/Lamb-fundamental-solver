@@ -16,7 +16,7 @@ The purpose is to inspect competing raw-atlas branch families instead of forcing
 
 ```matlab
 startup
-run('examples/acoustoelastic_iop_hgo/diagnostics/diagnose_branch_families.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_branch_families.m')
 AcoustoelasticIOPHGOBranchFamiliesSummary
 AcoustoelasticIOPHGOBranchFamiliesAggregate
 ```

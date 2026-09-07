@@ -27,7 +27,7 @@ assert(profileResult.metadata.executionProfile.effectiveExecutionProfile == "Fas
     'RL metadata should report effective Fast.');
 
 %% mRLFE main adapter applies the requested Balanced preset directly.
-mrlfeOptions = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
+mrlfeOptions = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', 0);
 mrlfeOptions.executionProfile = "Balanced";
 mrlfeOptions.effectiveExecutionProfile = "Balanced";
 mrlfeOptions.robustness = "Balanced";

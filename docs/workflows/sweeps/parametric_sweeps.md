@@ -1,22 +1,26 @@
-# Parametric sweeps
+# Parametric sensitivity studies
 
-The maintained executable examples deliberately cover one representative 1D
-sweep per model plus one AE 2D grid:
+Sweep is secondary infrastructure for repeated calls to a canonical solver.
+The only production sweep API is:
 
 ```matlab
-run('examples/rayleigh_lamb/sweeps/rl_sweep_thickness_A0.m')
-run('examples/mrlfe/sweeps/mrlfe_sweep_etaS_A0Like.m')
-run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_iop_A0Like.m')
-run('examples/acoustoelastic_iop_hgo/sweeps/ae_sweep_mu_iop_A0Like.m')
+lamb.sweeps.runParametricSweep
 ```
 
-Reusable orchestration belongs to `runParametricSweep` and the model-owned
-`rlRunSweep`, `mrlfeRunSweep`, `aeRunSweep`, and `aeRunGridSweep` helpers.
-Plot-data construction is separate from rendering and persistence; generated
-tables and figures are untracked run artifacts below the canonical `Results/`
-roots.
+It applies parameter values, invokes a supplied evaluator, and records results,
+requests, timing, and point status. It owns no physics, model policy, plotting,
+persistence, GUI state, or sensitivity interpretation.
 
-SweepTool uses `guiBuildSweepRequest`, `guiRunSweep`, and
-`guiNormalizeAcoustoelasticIOPHGOSweep` rather than invoking example scripts.
-Additional parameters and branches are exercised through
-`run_extended_integration_tests`.
+Maintained campaigns are opt-in studies:
+
+```matlab
+run('studies/sensitivity/rayleigh_lamb/study_thickness_A0.m')
+run('studies/sensitivity/mrlfe/study_etaS_A0Like.m')
+run('studies/sensitivity/acoustoelastic_iop_hgo/study_iop_A0Like.m')
+run('studies/sensitivity/acoustoelastic_iop_hgo/study_mu_iop_A0Like.m')
+```
+
+The family study folders own parameter ranges, solver configuration, summary,
+plotting, and output persistence. Every evaluated point calls the corresponding
+canonical model API. Study code is not placed on the production path by
+`startup`.

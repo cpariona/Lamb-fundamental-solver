@@ -85,7 +85,7 @@ The lightweight characterization measured approximately 3.0x to 4.3x speedup for
 
 ## Contracts
 
-- Main GUI, SweepTool, and FitTool call the public solver route.
+- Main GUI, FitTool, and mRLFE sensitivity studies call the public solver route.
 - `result.frequency_Hz` remains identical to `request.frequency_Hz`.
 - Diagnostic frequency overrides remain available.
 - `dense` remains the maintained reference preset.
@@ -102,7 +102,7 @@ run_performance_and_benchmark_tests
 For bounded manual diagnostic follow-up:
 
 ```matlab
-run('examples/mrlfe/diagnostics/validate_grid_presets.m')
+run('studies/solver_diagnostics/mrlfe/investigate_mrlfe_grid_presets.m')
 ```
 
 Do not add the extended full matrix to lightweight smoke runners.

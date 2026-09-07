@@ -5,7 +5,7 @@
 The repository must remain scientifically trustworthy while also being easy to
 understand, modify, extend, debug, and operate through its human-facing GUI.
 Passing tests is necessary but not sufficient. A maintainer should be able to
-trace a user action from Main GUI, FitTool, SweepTool, or a programmatic API to
+trace a user action from Main GUI, FitTool, or a programmatic API to
 the scientific owner that performs the calculation without traversing an opaque
 framework or duplicated pipeline.
 
@@ -175,7 +175,7 @@ hidden alternate solvers
 model-specific numerical decisions that belong to the model
 ```
 
-Main GUI, FitTool, SweepTool, examples, and programmatic scripts should converge
+Main GUI, FitTool, examples, studies, and programmatic scripts should converge
 on the same canonical model APIs.
 
 ### 10. Separate science, interaction, presentation, and persistence

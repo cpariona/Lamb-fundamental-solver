@@ -79,10 +79,9 @@ a reference file is supplied:
 
 `tests/models/mrlfe/test_mrlfe_production_core_characterization.m`.
 
-The 24-case GUI/FitTool/SweepTool comparisons compute differences, but compare
-each consumer with the current public solver. Their exact equality proves
-adapter consistency, not preservation against Phase 1. This distinction remains
-important when interpreting characterization evidence.
+The historical 24-case consumer comparison included the now-retired sweep GUI.
+It compared each consumer with the public solver, proving adapter consistency
+rather than independent preservation against Phase 1.
 
 ## Resolution
 

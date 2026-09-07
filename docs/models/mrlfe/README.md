@@ -10,8 +10,8 @@ This folder contains the maintained mRLFE model, fitting, sweep, and diagnostic 
 | Production core | `docs/models/mrlfe/production_core.md` |
 | FitTool fitting route | `docs/models/mrlfe/fitting_workflow.md` |
 | Numerical grid presets and validation | `docs/validation/mrlfe_grid_presets.md` |
-| Maintained sweeps | `docs/models/mrlfe/current_sweeps.md` |
-| Diagnostic commands | `examples/mrlfe/diagnostics/README.md` |
+| Maintained sweeps | `docs/models/mrlfe/sensitivity_studies.md` |
+| Diagnostic commands | `studies/solver_diagnostics/mrlfe/README.md` |
 
 ## Maintained route summary
 
@@ -19,8 +19,8 @@ All maintained mRLFE consumers call the public production API:
 
 ```text
 Main GUI  -> guiRunMRLFEModel      -> lamb.models.mrlfe.mrlfeSolve
-SweepTool -> guiRunMRLFESweep      -> lamb.models.mrlfe.mrlfeSolve per point
 FitTool   -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel -> lamb.models.mrlfe.mrlfeSolve
+Study     -> lamb.sweeps.runParametricSweep -> lamb.models.mrlfe.mrlfeSolve per point
 ```
 
 Fast, Balanced, and Robust execution profiles resolve to the public `fast`, `balanced`, and `robust` numerical presets. The `dense` preset remains the maintained 10 Hz reference/diagnostic configuration.

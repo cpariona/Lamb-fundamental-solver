@@ -39,7 +39,7 @@ for i = 1:numel(tokens)
     end
     if value == "AGENTS.md"
         resolved = fullfile(repoRoot, value);
-    elseif isempty(regexp(value, '^(?:analysis|app|docs|examples|src|tests)/.+\.(?:m|md)$', 'once'))
+    elseif isempty(regexp(value, '^(?:app|docs|examples|src|studies|tests)/.+\.(?:m|md)$', 'once'))
         if isempty(regexp(value, '^(?:\.\./|[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.md$', 'once'))
             continue;
         end

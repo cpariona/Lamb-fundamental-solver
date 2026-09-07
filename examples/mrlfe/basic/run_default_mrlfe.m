@@ -8,11 +8,12 @@ params.fmin = 500;
 params.fmax = 8000;
 params.numFrequencyPoints = 120;
 params.frequencySpacing = "hybrid";
+params.etaS = 0;
 frequency_Hz = lamb.grids.buildFrequencyVector(params);
 
 results = struct();
 for branchName = ["A0Like", "S0Like"]
-    options = mrlfeDefaultSweepOptions(branchName, 'EtaS', 0);
+    options = lamb.models.mrlfe.mrlfeDefaultOptions();
     request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequency_Hz, branchName, options);
     results.(char(branchName)) = lamb.models.mrlfe.mrlfeSolve(request);
 end

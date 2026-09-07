@@ -10,7 +10,7 @@ The maintained model-oriented entry point for real-k mRLFE solving is:
 result = lamb.models.mrlfe.mrlfeSolve(request);
 ```
 
-Main GUI, FitTool, and SweepTool consume this model-owned API. Application
+Main GUI, FitTool, and sensitivity studies consume this model-owned API. Application
 adapters own surface state and presentation, but canonical mRLFE request
 translation is model-owned by `lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` under
 `src/+lamb/+models/+mrlfe/+configuration/`.
@@ -246,31 +246,30 @@ fitted-curve evaluations use the same public solver route with the final fitted
 parameters. Characterization compares maintained consumers directly against
 `lamb.models.mrlfe.mrlfeSolve`.
 
-## SweepTool Use
+## Sensitivity-study use
 
-The maintained SweepTool mRLFE chain is:
+The maintained mRLFE sensitivity chain is:
 
 ```text
-SweepTool_GUI
-  -> guiBuildSweepRequest
-  -> guiRunSweep
-  -> guiRunMRLFESweep
-  -> runParametricSweep
+study_etaS_A0Like
+  -> runMRLFESensitivity
+  -> lamb.sweeps.runParametricSweep
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve, once per sweep point
 ```
 
-The sweep workflow translates current SweepTool SI parameters (`mu`, `etaS`,
+The study workflow translates its SI parameters (`mu`, `etaS`,
 `rho`, `nu`, `thickness`, fluid density, and fluid sound speed) through the same
-model-owned request builder. The maintained SweepTool default is public `fast`.
+model-owned request builder. The representative study uses public `fast`.
 A0Like sweeps use adaptive selection with `physicalTail` termination and no
 fallback. S0Like sweeps use adaptive selection with no additional termination
 and no fallback.
 
-SweepTool no longer delegates mRLFE solving to `guiRunMRLFEModel`. Each point
+Each point
 stores the full public model result under `sweepResult.points{i}.modelResult`;
-aggregate sweep metadata reports the effective engines, presets, termination
-policies, and fallback policies represented by the points.
+aggregate study metadata reports the effective engines, presets, termination
+policies, and fallback policies represented by the points. This orchestration
+is opt-in and is not a production model API.
 
 ## Diagnostics and debug boundary
 

@@ -23,7 +23,7 @@ Example scripts are not backend dependencies.
 
 ## Consequences
 
-- `FitTool_GUI`, `SweepTool_GUI`, and Main GUI remain interaction surfaces.
+- `FitTool_GUI` and Main GUI remain interaction surfaces; sensitivity is study-owned.
 - Solver changes occur in model layers.
 - Adapters normalize requests and results.
 - Tests should reflect app and model boundaries.

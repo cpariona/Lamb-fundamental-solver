@@ -14,7 +14,7 @@ params.thickness = 0.5e-3;
 params.rho = 1070;
 params.nu = 0.4999;
 
-options = mrlfeDefaultSweepOptions("A0Like", 'EtaS', 0);
+options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like", 'EtaS', 0);
 options.executionProfile = "Balanced";
 options.effectiveExecutionProfile = "Balanced";
 options.robustness = "Balanced";
