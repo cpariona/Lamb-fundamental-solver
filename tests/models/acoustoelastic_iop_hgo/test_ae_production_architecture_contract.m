@@ -78,7 +78,7 @@ for i = 1:numel(internalSolvers)
 end
 
 architecturePath = fullfile(repoRoot, 'docs', 'models', ...
-    'acoustoelastic_iop_hgo', 'active', 'architecture.md');
+    'acoustoelastic_iop_hgo', 'architecture.md');
 assert(isfile(architecturePath), 'Missing maintained AE architecture contract.');
 architectureText = string(fileread(architecturePath));
 documentedOwners = ["lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch"; internalSolvers];
@@ -93,6 +93,7 @@ end
 
 function text = readMatlabTree(root)
 files = dir(fullfile(root, '**', '*.m'));
+assert(~isempty(files), 'AE production architecture scan must include MATLAB files.');
 text = "";
 for i = 1:numel(files)
     text = text + newline + string(fileread(fullfile(files(i).folder, files(i).name)));

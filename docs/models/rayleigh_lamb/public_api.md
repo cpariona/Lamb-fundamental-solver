@@ -54,5 +54,5 @@ Examples are executed by path, for example:
 run('examples/rayleigh_lamb/basic/run_default_A0_S0.m')
 ```
 
-See `overview.md` for algorithm ownership and `fitting_workflow.md` for
+See `overview.md` for algorithm ownership and `fitting.md` for
 the fitting-grid contract.

@@ -1,5 +1,5 @@
 function configureProjectPath(projectRoot)
-%CONFIGUREPROJECTPATH Reset and add only active repository folders.
+%CONFIGUREPROJECTPATH Reset and add only maintained repository folders.
 
 projectRoot = normalizePath(projectRoot);
 excludedNames = ["archive", "figures", "outputs", "generated"];
@@ -18,13 +18,13 @@ roots = [ ...
     fullfile(projectRoot, "app")];
 
 for i = 1:numel(roots)
-    addActiveTree(roots(i), excludedNames);
+    addMaintainedTree(roots(i), excludedNames);
 end
 % Only six explicit launchers are discoverable; test bodies are opt-in.
 addpath(char(fullfile(projectRoot, "tests", "runners")));
 end
 
-function addActiveTree(treeRoot, excludedNames)
+function addMaintainedTree(treeRoot, excludedNames)
 if ~isfolder(treeRoot)
     return;
 end

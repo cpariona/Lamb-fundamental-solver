@@ -40,7 +40,7 @@ Its evaluator uses the same model-layer `lamb.models.rayleigh_lamb.tracking.rlSo
 an internal continuation grid retaining exact experimental frequencies and
 prediction fallback disabled. It does not call the batch-grid public compute
 API; replacing this route would change the established fitting semantics.
-See `fitting_workflow.md`.
+See `fitting.md`.
 
 ## Use and validation
 

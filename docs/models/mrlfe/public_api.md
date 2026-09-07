@@ -206,7 +206,7 @@ LambFundamental_GUI
   -> GUI result adapter
 ```
 
-The request builder translates the current Main GUI SI parameters (`mu`,
+The request builder translates the Solver GUI SI parameters (`mu`,
 `etaS`, `rho`, `nu`, `thickness`, fluid density, fluid sound speed, frequency
 grid, and branch toggles) to the public material, geometry, and fluid fields.
 The Main GUI defaults to `Balanced`, which maps directly to public preset
@@ -218,7 +218,7 @@ Main GUI no longer contains mRLFE seed construction, low-level tracker
 selection, atlas candidate inspection, physical-tail cutting, or zero-viscosity
 fallback logic. Partial-quality public results are returned and reported with
 their `quality.accepted` and `quality.reason` metadata; the GUI does not replace
-them with a legacy branch.
+them with a separate branch implementation.
 
 ## FitTool Fitting Use
 
@@ -280,7 +280,7 @@ application adapters do not inspect it.
 
 ## Algorithm and limitations
 
-See `production_core.md` for model-layer algorithm ownership. The engines are
+See `solver.md` for model-layer algorithm ownership. The engines are
 `elastic_adaptive` for etaS=0 and `viscoelastic_adaptive` for etaS>0.
 The real-k approximation does not solve a complex-wavenumber attenuation
 problem. Branches may be partial or quality-rejected; `validMask` and quality

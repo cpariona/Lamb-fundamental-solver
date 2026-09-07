@@ -72,6 +72,7 @@ end
 
 function text = readMatlabTree(root)
 files = dir(fullfile(root, '**', '*.m'));
+assert(~isempty(files), 'AE configuration ownership scan must include MATLAB files.');
 text = "";
 for i = 1:numel(files)
     text = text + newline + string(fileread(fullfile(files(i).folder, files(i).name)));
