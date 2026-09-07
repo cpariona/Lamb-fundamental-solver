@@ -1,5 +1,5 @@
-function test_acoustoelastic_iop_hgo_identityA0_diagnostic_policy()
-%TEST_ACOUSTOELASTIC_IOP_HGO_IDENTITYA0_DIAGNOSTIC_POLICY
+function test_ae_identityA0_diagnostic_policy()
+%TEST_AE_IDENTITYA0_DIAGNOSTIC_POLICY Verify diagnostic policy ownership.
 % Verify that identityA0Diagnostic preserves official atlas output.
 
 params = struct();
@@ -14,17 +14,17 @@ params.rhoF = 1000;
 params.fluidBulkModulus = 2.2e9;
 params.frequency = logspace(log10(100), log10(20e3), 40);
 
-options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.atlasBranchPolicy = "atlasA0";
 options.atlasNumYPoints = 500;
 options.atlasTopNMinima = 18;
 
-resultAtlas = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
+resultAtlas = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
 
 options.atlasBranchPolicy = "identityA0Diagnostic";
-resultIdentity = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
+resultIdentity = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
 
 assert(isfield(resultIdentity.diagnostics, 'identityA0'), ...
     'identityA0Diagnostic must add diagnostics.identityA0.');

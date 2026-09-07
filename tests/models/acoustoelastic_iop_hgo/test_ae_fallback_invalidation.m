@@ -1,5 +1,5 @@
-function test_acoustoelastic_iop_hgo_fallback_invalidation()
-%TEST_ACOUSTOELASTIC_IOP_HGO_FALLBACK_INVALIDATION Validate fallback rejection.
+function test_ae_fallback_invalidation()
+%TEST_AE_FALLBACK_INVALIDATION Validate fallback rejection.
 
 params = struct();
 params.R = 7.8e-3;
@@ -13,7 +13,7 @@ params.rhoF = 1000;
 params.fluidBulkModulus = 2.2e9;
 params.frequency = logspace(log10(1000), log10(15e3), 35);
 
-options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.atlasBranchPolicy = "atlasA0";
@@ -22,7 +22,7 @@ options.atlasTopNMinima = 12;
 options.invalidateAtlasFallbackOutput = true;
 options.useInternalAtlasTrackingGrid = false;
 
-result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
+result = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
 
 assert(isstruct(result), 'Result must be a struct.');
 assert(isfield(result, 'quality'), 'Result must include quality.');

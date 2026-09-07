@@ -1,5 +1,5 @@
-function test_acoustoelastic_iop_hgo_atlasA0_smoke()
-%TEST_ACOUSTOELASTIC_IOP_HGO_ATLASA0_SMOKE Validate maintained atlasA0 solve.
+function test_ae_atlasA0_smoke()
+%TEST_AE_ATLASA0_SMOKE Validate maintained atlasA0 solve.
 
 params = struct();
 params.R = 7.8e-3;
@@ -13,14 +13,14 @@ params.fluidBulkModulus = 2.2e9;
 params.frequency = logspace(log10(300), log10(15e3), 35);
 params.IOP = 15 * 133.322;
 
-options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.atlasNumYPoints = 300;
 options.atlasTopNMinima = 12;
 options.atlasBranchPolicy = "atlasA0";
 
-result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
+result = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
 resolvedOptions = result.options;
 
 assert(isstruct(result), 'Result must be a struct.');

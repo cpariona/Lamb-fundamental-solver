@@ -27,9 +27,9 @@ test_mrlfe_public_contract_result_schema;
 test_ae_result_schema_characterization;
 test_ae_tracking_policy_characterization;
 test_ae_tracking_policy_ownership;
-test_acoustoelastic_iop_hgo_fallback_invalidation;
-test_acoustoelastic_iop_hgo_internal_tracking_grid;
-test_acoustoelastic_iop_hgo_atlasA0_smoke;
+test_ae_fallback_invalidation;
+test_ae_internal_tracking_grid;
+test_ae_atlasA0_smoke;
 test_ae_fit_synthetic_atlasA0;
 
 % Snapshot follows independent objective, tracking, and recovery evidence.

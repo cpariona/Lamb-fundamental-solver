@@ -1,6 +1,5 @@
-function test_acoustoelastic_iop_hgo_branch_persistence_refinement()
-%TEST_ACOUSTOELASTIC_IOP_HGO_BRANCH_PERSISTENCE_REFINEMENT
-% Lightweight synthetic test for diagnostic branch-persistence refinement.
+function test_ae_branch_persistence_refinement()
+%TEST_AE_BRANCH_PERSISTENCE_REFINEMENT Lightweight diagnostic refinement test.
 
 result = struct();
 result.frequency_Hz = (1:6) * 1e3;
@@ -38,7 +37,7 @@ expectedClasses = ["caution_low_rank_branch","weak_partial_extension","accepted_
 assert(any(refinement.classification.DecisionClass == expectedClasses), ...
     'Unexpected branch-persistence classification.');
 
-fprintf('test_acoustoelastic_iop_hgo_branch_persistence_refinement passed.\n');
+fprintf('test_ae_branch_persistence_refinement passed.\n');
 end
 
 function rows = addMin(rows, f, cp, rank, obj)
