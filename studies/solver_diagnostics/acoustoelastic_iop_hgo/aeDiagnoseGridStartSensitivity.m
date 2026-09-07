@@ -5,7 +5,7 @@ addpath(repoRoot);
 addpath(fullfile(repoRoot, 'studies'));
 configureStudyPath(repoRoot);
 
-%DIAGNOSE_GRID_START_SENSITIVITY Diagnose AE atlasA0 sensitivity to output grid start/density.
+%AE_DIAGNOSE_GRID_START_SENSITIVITY Diagnose AE atlasA0 sensitivity to output grid start/density.
 %
 % This diagnostic is intentionally not part of the automated validation tiers. It is a
 % solver-interface diagnostic for the AE IOP/HGO branch-selection issue.
@@ -35,7 +35,7 @@ for i = 1:numel(caseSpecs)
     fprintf('Running %s: fmin %.3g Hz, fmax %.3g Hz, N=%d, yN=%d, topN=%d\n', ...
         spec.label, spec.fmin_Hz, spec.fmax_Hz, spec.nFreq, options.atlasNumYPoints, options.atlasTopNMinima);
 
-    result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
+    result = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
     key = matlab.lang.makeValidName(spec.label);
     resultByCase.(key) = result;
 
@@ -62,9 +62,9 @@ plotCurves(curveTableAll, outputFolder);
 
 disp(summaryTable);
 fprintf('\nDiagnostic files written to:\n%s\n', outputFolder);
-assignin('base', 'AEGridStartSensitivitySummary', summaryTable);
-assignin('base', 'AEGridStartSensitivityCurves', curveTableAll);
-assignin('base', 'AEGridStartSensitivityResults', resultByCase);
+assignin('base', 'aeGridStartSensitivitySummary', summaryTable);
+assignin('base', 'aeGridStartSensitivityCurves', curveTableAll);
+assignin('base', 'aeGridStartSensitivityResults', resultByCase);
 
 function params = makeBaseParams()
 params = struct();
@@ -123,7 +123,7 @@ frequency = logspace(log10(fmin_Hz), log10(fmax_Hz), nFreq);
 end
 
 function options = makeOptions(spec)
-options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 options.M54_variant = "corrected";
 options.normalizeRows = false;
 options.usePhysicalCpWindow = false;

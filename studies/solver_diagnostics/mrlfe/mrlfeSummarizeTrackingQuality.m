@@ -1,7 +1,7 @@
-function summaryTable = summarizeMRLFETrackingQuality(results, labels, varargin)
-%SUMMARIZEMRLFETRACKINGQUALITY Summarize mRLFE tracking quality metrics.
+function summaryTable = mrlfeSummarizeTrackingQuality(results, labels, varargin)
+%MRLFESUMMARIZETRACKINGQUALITY Summarize mRLFE tracking quality metrics.
 %
-% summaryTable = summarizeMRLFETrackingQuality(results, labels) accepts either
+% summaryTable = mrlfeSummarizeTrackingQuality(results, labels) accepts either
 % mRLFE result structs with a branches field or individual branch structs. The
 % metrics are diagnostic and intended for comparing maintained tracking
 % strategies, such as direct tracking versus the internal-grid policy.
@@ -21,7 +21,7 @@ labels = string(labels(:));
 
 n = numel(results);
 if numel(labels) ~= n
-    error('summarizeMRLFETrackingQuality:LabelCountMismatch', ...
+    error('mrlfeSummarizeTrackingQuality:LabelCountMismatch', ...
         'labels must contain one entry per result.');
 end
 
@@ -120,20 +120,20 @@ function branch = extractBranch(result, branchName)
 branch = result;
 if isstruct(result) && isfield(result, 'model') && string(result.model) == "mrlfe"
     if string(result.branch) ~= branchName
-        error('summarizeMRLFETrackingQuality:MissingBranch', ...
+        error('mrlfeSummarizeTrackingQuality:MissingBranch', ...
             'mRLFE public result is for branch %s, not %s.', result.branch, branchName);
     end
     branch = result.debug.solverResult.branch;
 end
 if isstruct(result) && isfield(result, 'branches')
     if ~isfield(result.branches, char(branchName))
-        error('summarizeMRLFETrackingQuality:MissingBranch', ...
+        error('mrlfeSummarizeTrackingQuality:MissingBranch', ...
             'mRLFE result does not contain branch %s.', branchName);
     end
     branch = result.branches.(char(branchName));
 end
 if ~isstruct(branch) || ~isfield(branch, 'Cp') || ~isfield(branch, 'frequency')
-    error('summarizeMRLFETrackingQuality:InvalidBranch', ...
+    error('mrlfeSummarizeTrackingQuality:InvalidBranch', ...
         'Each input must be an mRLFE result with branches or a branch with Cp and frequency.');
 end
 end

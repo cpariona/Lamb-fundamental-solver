@@ -4,7 +4,7 @@ addpath(repoRoot);
 addpath(fullfile(repoRoot, 'studies'));
 configureStudyPath(repoRoot);
 
-% Li 2024 modal atlas diagnostic.
+%AE_DIAGNOSE_MODAL_ATLAS Li 2024 modal-atlas diagnostic.
 %
 % This diagnostic builds a full low-frequency-to-high-frequency Cp map of the
 % characteristic-matrix objective and identifies local-minimum families as
@@ -55,7 +55,7 @@ minBranchPoints = 10;
 % Existing tracker overlays. These are not used to define branches.
 trackerGridPoints = [900, 1800, 3600];
 
-baseOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+baseOptions = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 baseOptions.branch = "A0";
 baseOptions.trackingDirection = "backward";
 baseOptions.trackingMethod = "globalScan";
@@ -149,12 +149,12 @@ disp(conditionSummary);
 
 fprintf('\nCSV files written to:\n%s\n', outputFolder);
 
-assignin('base', 'AcoustoelasticIOPHGOModalAtlasMaps', atlasMaps);
-assignin('base', 'AcoustoelasticIOPHGOModalAtlasMinimaTable', allMinima);
-assignin('base', 'AcoustoelasticIOPHGOModalAtlasBranchTable', allBranches);
-assignin('base', 'AcoustoelasticIOPHGOModalAtlasTrackerMatchTable', allTrackerMatches);
-assignin('base', 'AcoustoelasticIOPHGOModalAtlasConditionSummaryTable', conditionSummary);
-assignin('base', 'AcoustoelasticIOPHGOModalAtlasTrackerResults', trackerResults);
+assignin('base', 'aeModalAtlasMaps', atlasMaps);
+assignin('base', 'aeModalAtlasMinimaTable', allMinima);
+assignin('base', 'aeModalAtlasBranchTable', allBranches);
+assignin('base', 'aeModalAtlasTrackerMatchTable', allTrackerMatches);
+assignin('base', 'aeModalAtlasConditionSummaryTable', conditionSummary);
+assignin('base', 'aeModalAtlasTrackerResults', trackerResults);
 
 function conditionList = makeConditionList(baseOptions)
 conditionList = struct([]);
@@ -185,7 +185,7 @@ conditionList(3).overlayTrackers = false;
 end
 
 function [directParams, state] = buildDirectParamsFromIOP(params)
-[alpha, beta, gamma, state] = lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO( ...
+[alpha, beta, gamma, state] = lamb.models.acoustoelastic_iop_hgo.constitutive.aeComputeABGFromIOPHGO( ...
     params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
 directParams = struct();
 directParams.alpha = alpha;
@@ -277,7 +277,7 @@ trackerResultsForCase = cell(numel(gridList), 1);
 for g = 1:numel(gridList)
     opt = options;
     opt.numCpScanPoints = gridList(g);
-    result = lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticIOPHGODispersion(params, opt);
+    result = lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveIOPHGODispersion(params, opt);
     trackerResultsForCase{g} = result;
 
     for k = 1:numel(result.frequency_Hz)

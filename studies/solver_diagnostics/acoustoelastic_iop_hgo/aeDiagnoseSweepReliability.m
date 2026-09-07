@@ -5,7 +5,7 @@ addpath(repoRoot);
 addpath(fullfile(repoRoot, 'studies'));
 configureStudyPath(repoRoot);
 
-%DIAGNOSE_SWEEP_RELIABILITY Analyze maintained sweep workspaces.
+%AE_DIAGNOSE_SWEEP_RELIABILITY Analyze maintained AE sweep workspaces.
 %
 % Outputs are written to:
 %   Results/ae_iop_hgo/sweep_reliability
@@ -78,8 +78,8 @@ save(fullfile(outputFolder, 'sweep_reliability_workspace.mat'), ...
 disp(overallTable);
 fprintf('\nReliability diagnostic files written to:\n%s\n', outputFolder);
 
-assignin('base', 'AcoustoelasticIOPHGOSweepReliabilityAnalysis', analysisBySweep);
-assignin('base', 'AcoustoelasticIOPHGOSweepReliabilityOverallTable', overallTable);
+assignin('base', 'aeSweepReliabilityAnalysis', analysisBySweep);
+assignin('base', 'aeSweepReliabilityOverallTable', overallTable);
 
 function specs = makeWorkspaceSpecs(launchFolder)
 specs = struct([]);

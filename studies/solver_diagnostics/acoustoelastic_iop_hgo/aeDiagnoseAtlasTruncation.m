@@ -5,7 +5,7 @@ addpath(repoRoot);
 addpath(fullfile(repoRoot, 'studies'));
 configureStudyPath(repoRoot);
 
-%DIAGNOSE_ATLAS_TRUNCATION AtlasA0 truncation-cause diagnostic.
+%AE_DIAGNOSE_ATLAS_TRUNCATION Diagnose atlasA0 truncation causes.
 %
 % Outputs are written to:
 %   Results/ae_iop_hgo/atlas_truncation
@@ -68,9 +68,9 @@ save(fullfile(outputFolder, 'atlas_truncation_workspace.mat'), ...
 disp(summaryTable);
 fprintf('\nAtlasA0 truncation-cause diagnostic files written to:\n%s\n', outputFolder);
 
-assignin('base', 'AcoustoelasticIOPHGOAtlasA0TruncationCause', caseDiagnosisByName);
-assignin('base', 'AcoustoelasticIOPHGOAtlasA0TruncationCauseSummary', summaryTable);
-assignin('base', 'AcoustoelasticIOPHGOAtlasA0TruncationCauseOutputFolder', outputFolder);
+assignin('base', 'aeAtlasA0TruncationCause', caseDiagnosisByName);
+assignin('base', 'aeAtlasA0TruncationCauseSummary', summaryTable);
+assignin('base', 'aeAtlasA0TruncationCauseOutputFolder', outputFolder);
 
 function cases = makeCaseSpecs(launchFolder)
 cases = struct([]);

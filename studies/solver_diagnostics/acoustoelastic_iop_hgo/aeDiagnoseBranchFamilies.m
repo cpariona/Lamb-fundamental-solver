@@ -5,7 +5,7 @@ addpath(repoRoot);
 addpath(fullfile(repoRoot, 'studies'));
 configureStudyPath(repoRoot);
 
-%DIAGNOSE_BRANCH_FAMILIES Diagnose competing branch families in the difficult corner.
+%AE_DIAGNOSE_BRANCH_FAMILIES Diagnose competing AE branch families in the difficult corner.
 %
 % Diagnostic only. This script focuses on IOP = 35 mmHg, mu = 25 kPa and
 % ranks several persistent raw-atlas branches instead of selecting a single
@@ -27,11 +27,11 @@ params.frequency = settings.frequency;
 
 atlasOptions = defaultSolverOptions(settings);
 atlasOptions.atlasBranchPolicy = "atlasA0";
-atlasResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, atlasOptions);
+atlasResult = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, atlasOptions);
 
 identityOptions = atlasOptions;
 identityOptions.atlasBranchPolicy = "identityA0Diagnostic";
-identityResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, identityOptions);
+identityResult = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, identityOptions);
 
 [directParams, state] = buildDirectParamsFromIOP(params);
 
@@ -82,9 +82,9 @@ fprintf('\nAggregate\n');
 disp(aggregate);
 fprintf('\nData files written to:\n%s\n', outputFolder);
 
-assignin('base', 'AcoustoelasticIOPHGOBranchFamiliesSummary', familyRows);
-assignin('base', 'AcoustoelasticIOPHGOBranchFamiliesAggregate', aggregate);
-assignin('base', 'AcoustoelasticIOPHGOBranchFamiliesOutputFolder', outputFolder);
+assignin('base', 'aeBranchFamiliesSummary', familyRows);
+assignin('base', 'aeBranchFamiliesAggregate', aggregate);
+assignin('base', 'aeBranchFamiliesOutputFolder', outputFolder);
 
 function params = defaultCaseParams()
 params = struct();
@@ -137,7 +137,7 @@ end
 end
 
 function solverOptions = defaultSolverOptions(settings)
-solverOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+solverOptions = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 solverOptions.M54_variant = "corrected";
 solverOptions.normalizeRows = false;
 solverOptions.usePhysicalCpWindow = false;
@@ -146,7 +146,7 @@ solverOptions.atlasTopNMinima = settings.AtlasTopNMinima;
 end
 
 function [directParams, state] = buildDirectParamsFromIOP(params)
-[alpha, beta, gamma, state] = lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO( ...
+[alpha, beta, gamma, state] = lamb.models.acoustoelastic_iop_hgo.constitutive.aeComputeABGFromIOPHGO( ...
     params.IOP, params.R, params.thickness, params.mu, params.k1, params.k2);
 directParams = struct();
 directParams.alpha = alpha;
@@ -160,7 +160,7 @@ directParams.frequency = params.frequency(:).';
 end
 
 function rawAtlas = computeRawAtlas(params, config)
-rawOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+rawOptions = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 rawOptions.M54_variant = "corrected";
 rawOptions.normalizeRows = false;
 rawOptions.usePhysicalCpWindow = false;
@@ -175,7 +175,7 @@ rows = [];
 for k = 1:numel(freq)
     obj = nan(numel(cGrid), 1);
     for j = 1:numel(cGrid)
-        obj(j) = lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
+        obj(j) = lamb.models.acoustoelastic_iop_hgo.core.aeObjectiveResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, freq(k), cGrid(j), rawOptions);
     end
     minima = lamb.models.acoustoelastic_iop_hgo.tracking.aeFindAtlasLocalMinima( ...
@@ -347,7 +347,7 @@ if numel(candidateCp) == numel(f) && (isempty(candidateFrequency) || numel(candi
 end
 
 if numel(candidateFrequency) ~= numel(candidateCp)
-    warning('diagnose_branch_families:IdentityGridMismatch', ...
+    warning('aeDiagnoseBranchFamilies:IdentityGridMismatch', ...
         'identityA0Diagnostic candidate length does not match either the output grid or its own frequency grid. Marking identity candidate invalid for this case.');
     return;
 end
