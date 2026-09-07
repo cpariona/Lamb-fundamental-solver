@@ -1,11 +1,11 @@
-function fig = plotAcoustoelasticGridSensitivity(sweepResult, varargin)
-%AEPLOTGRIDSWEEPCP Plot Cp(f) curves from a multi-parameter AE grid sweep.
+function fig = aePlotGridSensitivity(sweepResult, varargin)
+%AEPLOTGRIDSENSITIVITY Plot Cp(f) curves from a multi-parameter AE grid sensitivity study.
 
 p = inputParser();
 addParameter(p, 'Title', '', @(x)ischar(x) || isstring(x));
 parse(p, varargin{:});
 
-fig = figure('Name', 'AE IOP/HGO grid sweep Cp', 'Color', 'w');
+fig = figure('Name', 'AE IOP/HGO grid sensitivity Cp', 'Color', 'w');
 ax = axes(fig);
 hold(ax, 'on');
 
@@ -31,7 +31,7 @@ legend(ax, 'Location', 'bestoutside');
 if strlength(string(p.Results.Title)) > 0
     title(ax, string(p.Results.Title));
 else
-    title(ax, sweepResult.label + " Cp grid sweep");
+    title(ax, sweepResult.label + " Cp grid sensitivity");
 end
 
 hold(ax, 'off');

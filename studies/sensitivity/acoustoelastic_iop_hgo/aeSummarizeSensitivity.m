@@ -1,8 +1,8 @@
-function summary = summarizeAcoustoelasticSensitivity(sweepResult)
-%AESUMMARIZESWEEP Build AE analysis tables from the canonical 1-D sweep result.
+function summary = aeSummarizeSensitivity(sweepResult)
+%AESUMMARIZESENSITIVITY Build AE analysis tables from a canonical 1-D sweep result.
 
 if nargin < 1 || isempty(sweepResult) || ~isfield(sweepResult, 'results')
-    error('summarizeAcoustoelasticSensitivity requires canonical runParametricSweep output.');
+    error('aeSummarizeSensitivity requires canonical runParametricSweep output.');
 end
 
 summary = struct();

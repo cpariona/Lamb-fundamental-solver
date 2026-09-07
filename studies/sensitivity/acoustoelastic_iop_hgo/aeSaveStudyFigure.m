@@ -1,5 +1,5 @@
-function figureFolder = saveAcoustoelasticStudyFigure(fig, scriptFile, taskName, filePrefix)
-%AESAVEEXAMPLEFIGURE Save example figures next to the sweep script.
+function figureFolder = aeSaveStudyFigure(fig, scriptFile, taskName, filePrefix)
+%AESAVESTUDYFIGURE Save AE study figures next to the study script.
 
 if nargin < 4 || isempty(filePrefix)
     filePrefix = taskName;

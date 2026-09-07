@@ -6,21 +6,16 @@ addpath(repoRoot);
 addpath(fullfile(repoRoot, 'studies'));
 configureStudyPath(repoRoot);
 
-%AE_SWEEP_MU_IOP_A0LIKE Combined mu and IOP case-study sweep for the AE IOP/HGO A0-like branch.
-%
-% Case-study intent:
-%   Evaluate how a small physiological IOP range changes the A0-like curve
-%   across a narrow biomechanical shear-modulus range.
+%AE_STUDY_MU_IOP_ATLASA0 Combined mu and IOP sensitivity study for AE IOP/HGO atlasA0.
 %
 % Tables/workspace are written to:
 %   Results/ae_iop_hgo/mu_iop_sweep
 %
 % Static figures are written next to this script under:
 %   figures/mu_iop_sweep
-%
 
-baseParams = acoustoelasticSensitivityParameters();
-options = acoustoelasticSensitivityOptions("Robust");
+baseParams = aeSensitivityParameters();
+options = aeSensitivityOptions("Robust");
 
 mu_kPa = [60, 65, 70, 75, 80];
 IOP_mmHg = [12.5, 15, 17.5];
@@ -60,7 +55,7 @@ sweepMetadata.IOP_mmHg = IOP_mmHg;
 sweepMetadata.sweepAxes = sweepAxes;
 sweepMetadata.sweepConfig = sweepConfig;
 
-fprintf('\nAcoustoelastic IOP/HGO combined mu-IOP case-study sweep\n');
+fprintf('\nAE IOP/HGO combined mu-IOP sensitivity study\n');
 fprintf('Launch folder: %s\n', launchFolder);
 fprintf('mu values: %s kPa\n', mat2str(mu_kPa));
 fprintf('IOP values: %s mmHg\n', mat2str(IOP_mmHg));
@@ -68,25 +63,25 @@ fprintf('Frequency range: %.3g Hz to %.3g kHz\n', min(baseParams.frequency), max
 fprintf('Conditions: %d\n', numel(mu_kPa) * numel(IOP_mmHg));
 fprintf('Branch policy: %s\n\n', string(options.atlasBranchPolicy));
 
-sweepResult = runAcoustoelasticGridSensitivity(baseParams, sweepAxes, options, sweepConfig);
-summary = summarizeAcoustoelasticGridSensitivity(sweepResult);
+sweepResult = aeRunGridSensitivity(baseParams, sweepAxes, options, sweepConfig);
+summary = aeSummarizeGridSensitivity(sweepResult);
 
-outputFolder = writeAcoustoelasticSensitivityOutputs(launchFolder, "mu_iop_sweep", "mu_iop_sweep", ...
+outputFolder = aeWriteSensitivityOutputs(launchFolder, "mu_iop_sweep", "mu_iop_sweep", ...
     baseParams, options, sweepMetadata, sweepResult, summary);
 
-figs = plotAcoustoelasticGridSensitivityByAxis(sweepResult, "IOP", "mu", ...
-    "TitlePrefix", "AE IOP/HGO A0-like sensitivity to mu");
+figs = aePlotGridSensitivityByAxis(sweepResult, "IOP", "mu", ...
+    "TitlePrefix", "AE IOP/HGO atlasA0 sensitivity to mu");
 figureFolder = "";
 for i = 1:numel(figs)
     filePrefix = "mu_iop_sweep_cp_iop_" + replace(sprintf('%.1f', IOP_mmHg(i)), '.', 'p') + "mmHg";
-    figureFolder = saveAcoustoelasticStudyFigure(figs(i), scriptFile, "mu_iop_sweep", filePrefix);
+    figureFolder = aeSaveStudyFigure(figs(i), scriptFile, "mu_iop_sweep", filePrefix);
 end
 fprintf('\nCondition summary\n');
 disp(summary.conditionTable);
 fprintf('\nData files written to:\n%s\n', outputFolder);
 fprintf('Static figure files written to:\n%s\n', figureFolder);
 
-assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepResult', sweepResult);
-assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepSummary', summary);
-assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepOutputFolder', outputFolder);
-assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepFigureFolder', figureFolder);
+assignin('base', 'aeMuIOPSweepResult', sweepResult);
+assignin('base', 'aeMuIOPSweepSummary', summary);
+assignin('base', 'aeMuIOPSweepOutputFolder', outputFolder);
+assignin('base', 'aeMuIOPSweepFigureFolder', figureFolder);

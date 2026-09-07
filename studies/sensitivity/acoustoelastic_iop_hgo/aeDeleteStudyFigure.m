@@ -1,5 +1,5 @@
-function figureFolder = deleteAcoustoelasticStudyFigure(scriptFile, taskName, filePrefix)
-%AEDELETEEXAMPLEFIGURE Delete generated example figure files when obsolete.
+function figureFolder = aeDeleteStudyFigure(scriptFile, taskName, filePrefix)
+%AEDELETESTUDYFIGURE Delete generated AE study figure files when obsolete.
 
 scriptFolder = fileparts(scriptFile);
 figureFolder = fullfile(scriptFolder, 'figures', char(taskName));

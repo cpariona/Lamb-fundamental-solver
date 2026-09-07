@@ -1,5 +1,5 @@
-function figs = plotAcoustoelasticGridSensitivityByAxis(sweepResult, groupAxisName, curveAxisName, varargin)
-%AEPLOTGRIDSWEEPCPBYAXIS Plot one Cp figure per value of a grid-sweep axis.
+function figs = aePlotGridSensitivityByAxis(sweepResult, groupAxisName, curveAxisName, varargin)
+%AEPLOTGRIDSENSITIVITYBYAXIS Plot one Cp figure per value of an AE grid-sensitivity axis.
 
 p = inputParser();
 addParameter(p, 'TitlePrefix', '', @(x)ischar(x) || isstring(x));
@@ -20,7 +20,7 @@ figs = gobjects(1, numel(groupValues));
 for g = 1:numel(groupValues)
     groupValue = groupValues(g);
     groupDisplay = "";
-    fig = figure('Name', ['AE IOP/HGO grid sweep ', groupAxisName], 'Color', 'w');
+    fig = figure('Name', ['AE IOP/HGO grid sensitivity ', groupAxisName], 'Color', 'w');
     ax = axes(fig);
     hold(ax, 'on');
 

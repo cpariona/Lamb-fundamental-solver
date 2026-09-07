@@ -1,5 +1,5 @@
-function cube = buildAcoustoelasticGridSensitivityCube(sweepResult, xAxisName, yAxisName)
-%AEBUILDGRIDSWEEPCPCUBE Build Cp(y,x,f) cube from a two-axis AE grid sweep.
+function cube = aeBuildGridSensitivityCube(sweepResult, xAxisName, yAxisName)
+%AEBUILDGRIDSENSITIVITYCUBE Build Cp(y,x,f) cube from a two-axis AE grid sensitivity study.
 
 xAxisName = char(xAxisName);
 yAxisName = char(yAxisName);

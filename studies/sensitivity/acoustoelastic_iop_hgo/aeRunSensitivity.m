@@ -1,11 +1,10 @@
-function sweepResult = runAcoustoelasticSensitivity(baseParams, sweepField, sweepValues, options, sweepConfig)
-%AERUNSWEEP Run a maintained AE IOP/HGO one-dimensional parameter sweep.
+function sweepResult = aeRunSensitivity(baseParams, sweepField, sweepValues, options, sweepConfig)
+%AERUNSENSITIVITY Run a maintained AE IOP/HGO one-dimensional sensitivity sweep.
 %
-% The returned structure is the canonical runParametricSweep result. AE-only
-% summaries and plotting are derived from this result by analysis helpers.
+% The returned structure is the canonical runParametricSweep result.
 
 if nargin < 4 || isempty(options)
-    options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+    options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 end
 if nargin < 5 || isempty(sweepConfig)
     sweepConfig = struct();
@@ -26,7 +25,7 @@ spec = struct( ...
     'valueFormatter', string(sweepConfig.ValueFormatter));
 
 sweepResult = lamb.sweeps.runParametricSweep(baseParams, options, spec, ...
-    @(params, pointOptions)lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, pointOptions));
+    @(params, pointOptions)lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, pointOptions));
 end
 
 function sweepConfig = fillSweepConfigDefaults(sweepConfig, sweepField)

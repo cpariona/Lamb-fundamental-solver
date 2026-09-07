@@ -1,8 +1,8 @@
-function summary = summarizeAcoustoelasticGridSensitivity(sweepResult)
-%AESUMMARIZEGRIDSWEEP Summarize a multi-parameter AE IOP/HGO grid sweep.
+function summary = aeSummarizeGridSensitivity(sweepResult)
+%AESUMMARIZEGRIDSENSITIVITY Summarize a multi-parameter AE IOP/HGO grid sensitivity study.
 
 if nargin < 1 || isempty(sweepResult)
-    error('summarizeAcoustoelasticGridSensitivity requires a sweepResult structure.');
+    error('aeSummarizeGridSensitivity requires a sweepResult structure.');
 end
 
 summary = struct();

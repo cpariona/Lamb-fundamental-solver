@@ -1,7 +1,7 @@
-function outputFolder = writeAcoustoelasticSensitivityOutputs(launchFolder, taskName, filePrefix, baseParams, options, sweepMetadata, sweepResult, summary)
-%AEWRITESWEEPOUTPUTS Write standard AE IOP/HGO sweep outputs.
+function outputFolder = aeWriteSensitivityOutputs(launchFolder, taskName, filePrefix, baseParams, options, sweepMetadata, sweepResult, summary)
+%AEWRITESENSITIVITYOUTPUTS Write standard AE IOP/HGO sensitivity outputs.
 %
-% sweepMetadata may be any structure describing the sweep campaign.
+% sweepMetadata may be any structure describing the sensitivity campaign.
 
 if nargin < 6 || isempty(sweepMetadata)
     sweepMetadata = struct();

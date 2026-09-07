@@ -1,5 +1,5 @@
-function baseParams = acoustoelasticSensitivityParameters(varargin)
-%AEDEFAULTSWEEPPARAMS Default AE IOP/HGO parameters for reusable sweep workflows.
+function baseParams = aeSensitivityParameters(varargin)
+%AESENSITIVITYPARAMETERS Build the reference AE IOP/HGO sensitivity parameters.
 %
 % Name-value overrides are accepted for any field in the returned structure.
 

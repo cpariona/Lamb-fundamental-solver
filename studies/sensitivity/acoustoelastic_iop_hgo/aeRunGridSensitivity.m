@@ -1,11 +1,11 @@
-function sweepResult = runAcoustoelasticGridSensitivity(baseParams, sweepAxes, options, sweepConfig)
-%AERUNGRIDSWEEP Run a reusable multi-parameter AE IOP/HGO grid sweep.
+function sweepResult = aeRunGridSensitivity(baseParams, sweepAxes, options, sweepConfig)
+%AERUNGRIDSENSITIVITY Run a reusable multi-parameter AE IOP/HGO grid sensitivity study.
 %
 % sweepAxes is a struct array with fields:
 %   Field, Values, Name, Label, Unit, ValueScale, ValueFormatter
 
 if nargin < 3 || isempty(options)
-    options = acoustoelasticSensitivityOptions();
+    options = aeSensitivityOptions();
 end
 if nargin < 4 || isempty(sweepConfig)
     sweepConfig = struct();
@@ -39,7 +39,7 @@ for idx = 1:numConditions
         axisDisplayStruct.(axisName) = formatAxisValue(value, sweepAxes(a));
     end
 
-    result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
+    result = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
 
     conditions(idx).index = idx;
     conditions(idx).params = params;
@@ -52,12 +52,12 @@ for idx = 1:numConditions
     row = makeSummaryRow(idx, sweepAxes, axisValuesStruct, axisDisplayStruct, result);
     summaryRows = [summaryRows; row]; %#ok<AGROW>
 
-    fprintf('Grid sweep condition %d/%d complete: %s\n', idx, numConditions, joinDisplayValues(axisDisplayStruct));
+    fprintf('Grid sensitivity condition %d/%d complete: %s\n', idx, numConditions, joinDisplayValues(axisDisplayStruct));
 end
 
 sweepResult = struct();
-sweepResult.name = getStructField(sweepConfig, 'Name', "grid_sweep");
-sweepResult.label = getStructField(sweepConfig, 'Label', "Grid sweep");
+sweepResult.name = getStructField(sweepConfig, 'Name', "grid_sensitivity");
+sweepResult.label = getStructField(sweepConfig, 'Label', "Grid sensitivity");
 sweepResult.axes = sweepAxes;
 sweepResult.options = options;
 sweepResult.baseParams = baseParams;
@@ -75,10 +75,10 @@ function axesOut = normalizeAxes(axesIn)
 axesOut = axesIn(:).';
 for i = 1:numel(axesOut)
     if ~isfield(axesOut(i), 'Field') || isempty(axesOut(i).Field)
-        error('Each sweep axis requires a Field.');
+        error('Each sensitivity axis requires a Field.');
     end
     if ~isfield(axesOut(i), 'Values') || isempty(axesOut(i).Values)
-        error('Each sweep axis requires Values.');
+        error('Each sensitivity axis requires Values.');
     end
     axesOut(i).Field = string(axesOut(i).Field);
     axesOut(i).Values = axesOut(i).Values(:).';
