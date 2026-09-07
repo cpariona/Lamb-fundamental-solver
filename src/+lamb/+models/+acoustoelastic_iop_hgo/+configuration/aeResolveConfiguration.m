@@ -13,7 +13,7 @@ p = inputParser;
 addParameter(p, 'NumericalPreset', "", @(x)ischar(x) || isstring(x));
 parse(p, varargin{:});
 
-options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 
 requestedPreset = "";
 if strlength(string(p.Results.NumericalPreset)) > 0

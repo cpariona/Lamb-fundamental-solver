@@ -8,7 +8,7 @@ cGrid = yGrid(:) * cShear;
 
 cpState = cell(numel(cGrid), 1);
 for j = 1:numel(cGrid)
-    cpState{j} = lamb.models.acoustoelastic_iop_hgo.core.aeComputeAcoustoelasticCpState(params.alpha, params.beta, params.gamma, ...
+    cpState{j} = lamb.models.acoustoelastic_iop_hgo.core.aeComputeCpState(params.alpha, params.beta, params.gamma, ...
         params.rho, params.rhoF, params.fluidBulkModulus, cGrid(j));
 end
 
@@ -16,7 +16,7 @@ objectiveMap = nan(numel(cGrid), numel(frequency));
 for k = 1:numel(frequency)
     f = frequency(k);
     for j = 1:numel(cGrid)
-        objectiveMap(j,k) = lamb.models.acoustoelastic_iop_hgo.core.objectiveAcoustoelasticResidual(params.alpha, params.beta, params.gamma, ...
+        objectiveMap(j,k) = lamb.models.acoustoelastic_iop_hgo.core.aeObjectiveResidual(params.alpha, params.beta, params.gamma, ...
             params.thickness, params.rho, params.rhoF, params.fluidBulkModulus, ...
             f, cGrid(j), options, cpState{j});
     end
