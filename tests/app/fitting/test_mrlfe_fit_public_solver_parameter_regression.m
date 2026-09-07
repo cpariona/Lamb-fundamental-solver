@@ -57,7 +57,7 @@ for iCase = 1:numel(cases)
             'optimizerOptions', optimset('Display', 'off', 'MaxIter', c.maxIter, ...
             'MaxFunEvals', c.maxEval, 'TolX', 1e-5)));
 
-    fitOutput = guiFitMRLFESolver(request);
+    fitOutput = mrlfeGuiFitSolver(request);
     fitResult = fitOutput.fitResult;
     evaluation = fitResult.modelEvaluation;
 
