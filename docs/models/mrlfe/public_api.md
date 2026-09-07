@@ -199,7 +199,7 @@ The maintained Main GUI mRLFE chain is:
 
 ```text
 LambFundamental_GUI
-  -> guiRunMRLFEModel
+  -> mrlfeGuiRunModel
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve
   -> GUI result adapter
@@ -225,7 +225,7 @@ The maintained FitTool mRLFE fitting chain is:
 
 ```text
 FitTool_GUI
-  -> guiFitMRLFESolver
+  -> mrlfeGuiFitSolver
   -> lamb.fitting.mrlfe.mrlfeFitDispersionData
   -> lamb.fitting.solveDispersionFitProblem
   -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel
@@ -250,8 +250,8 @@ parameters. Characterization compares maintained consumers directly against
 The maintained mRLFE sensitivity chain is:
 
 ```text
-study_etaS_A0Like
-  -> runMRLFESensitivity
+mrlfeStudyEtaSA0Like
+  -> mrlfeRunSensitivity
   -> lamb.sweeps.runParametricSweep
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve, once per sweep point
