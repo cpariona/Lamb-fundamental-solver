@@ -1,5 +1,5 @@
-function options = rayleighLambSensitivityOptions(branchName)
-%RLDEFAULTSWEEPOPTIONS Build reference solver options for Rayleigh-Lamb sweeps.
+function options = rlSensitivityOptions(branchName)
+%RLSENSITIVITYOPTIONS Build reference solver options for Rayleigh-Lamb sensitivity studies.
 
 if nargin < 1 || strlength(string(branchName)) == 0
     branchName = "A0";

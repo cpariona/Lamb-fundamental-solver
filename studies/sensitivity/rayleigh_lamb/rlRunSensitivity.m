@@ -1,5 +1,5 @@
-function [sweepResults, sweepSummary, fig, outputFolder, figureFolder] = runRayleighLambSensitivity(sweepName, branchName, varargin)
-%RLRUNSWEEP Run a maintained Rayleigh-Lamb sweep workflow.
+function [sweepResults, sweepSummary, fig, outputFolder, figureFolder] = rlRunSensitivity(sweepName, branchName, varargin)
+%RLRUNSENSITIVITY Run a maintained Rayleigh-Lamb sensitivity workflow.
 
 p = inputParser;
 addRequired(p, 'sweepName', @(x)ischar(x) || isstring(x));
@@ -13,14 +13,14 @@ parse(p, sweepName, branchName, varargin{:});
 sweepName = lower(string(p.Results.sweepName));
 branchName = string(p.Results.branchName);
 
-[sweepSpec, caseInfo] = buildRayleighLambSensitivitySpec(sweepName);
-baseParams = rayleighLambSensitivityParameters();
-options = rayleighLambSensitivityOptions(branchName);
+[sweepSpec, caseInfo] = rlBuildSensitivitySpec(sweepName);
+baseParams = rlSensitivityParameters();
+options = rlSensitivityOptions(branchName);
 
 referenceMu_kPa = baseParams.mu / 1e3;
 referenceThickness_mm = baseParams.thickness * 1e3;
 
-fprintf('\nRayleigh-Lamb %s sweep\n', char(sweepName));
+fprintf('\nRayleigh-Lamb %s sensitivity study\n', char(sweepName));
 fprintf('Launch folder: %s\n', char(string(p.Results.LaunchFolder)));
 fprintf('%s values: %s %s\n', char(string(sweepSpec.label)), mat2str(getDisplayValues(sweepSpec)), char(string(sweepSpec.units)));
 fprintf('Elastic reference: mu = %.1f kPa, 2h = %.1f mm\n', referenceMu_kPa, referenceThickness_mm);
@@ -49,13 +49,13 @@ if logical(p.Results.WriteOutputs)
     sweepMetadata.referenceMu_kPa = referenceMu_kPa;
     sweepMetadata.referenceThickness_mm = referenceThickness_mm;
 
-    outputFolder = writeRayleighLambSensitivityOutputs(p.Results.LaunchFolder, ...
+    outputFolder = rlWriteSensitivityOutputs(p.Results.LaunchFolder, ...
         caseInfo.taskName, caseInfo.taskName + "_" + branchName, ...
         baseParams, options, sweepMetadata, sweepResults, sweepSummary);
 
     scriptFile = string(p.Results.ScriptFile);
     if strlength(scriptFile) > 0
-        figureFolder = saveRayleighLambStudyFigure(fig, scriptFile, ...
+        figureFolder = rlSaveStudyFigure(fig, scriptFile, ...
             caseInfo.taskName, caseInfo.filePrefix + "_" + branchName);
     end
 end
@@ -84,7 +84,7 @@ end
 function [resultName, summaryName] = rlSweepWorkspaceNames(sweepName, branchName)
 switch lower(string(sweepName))
     case "thickness"
-        prefix = "RayleighLambThicknessSweep";
+        prefix = "rlThicknessSweep";
     otherwise
         error('Unsupported Rayleigh-Lamb sweepName "%s".', char(sweepName));
 end

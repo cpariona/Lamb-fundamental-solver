@@ -1,5 +1,5 @@
-function [sweepSpec, caseInfo] = buildRayleighLambSensitivitySpec(sweepName)
-%RLMAKESWEEPSPEC Build maintained one-parameter Rayleigh-Lamb sweep specs.
+function [sweepSpec, caseInfo] = rlBuildSensitivitySpec(sweepName)
+%RLBUILDSENSITIVITYSPEC Build maintained one-parameter Rayleigh-Lamb sensitivity specs.
 %
 % Supported sweepName values:
 %   "thickness" -> full-thickness 2h sweep, displayed in mm

@@ -1,7 +1,7 @@
-function outputFolder = writeRayleighLambSensitivityOutputs(launchFolder, taskName, filePrefix, baseParams, options, sweepMetadata, sweepResults, sweepSummary)
-%RLWRITESWEEPOUTPUTS Write standard Rayleigh-Lamb sweep outputs.
+function outputFolder = rlWriteSensitivityOutputs(launchFolder, taskName, filePrefix, baseParams, options, sweepMetadata, sweepResults, sweepSummary)
+%RLWRITESENSITIVITYOUTPUTS Write standard Rayleigh-Lamb sensitivity outputs.
 %
-% sweepMetadata may be any structure describing the sweep campaign.
+% sweepMetadata may be any structure describing the sensitivity campaign.
 
 if nargin < 6 || isempty(sweepMetadata)
     sweepMetadata = struct();

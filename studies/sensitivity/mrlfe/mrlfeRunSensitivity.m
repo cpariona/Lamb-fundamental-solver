@@ -1,5 +1,5 @@
-function [sweepResults, sweepSummary, fig, outputFolder, figureFolder] = runMRLFESensitivity(sweepName, branchName, varargin)
-%MRLFERUNSWEEP Run a maintained mRLFE sweep workflow.
+function [sweepResults, sweepSummary, fig, outputFolder, figureFolder] = mrlfeRunSensitivity(sweepName, branchName, varargin)
+%MRLFERUNSENSITIVITY Run a maintained mRLFE sensitivity workflow.
 
 p = inputParser;
 addRequired(p, 'sweepName', @(x)ischar(x) || isstring(x));
@@ -13,7 +13,7 @@ parse(p, sweepName, branchName, varargin{:});
 sweepName = lower(string(p.Results.sweepName));
 branchName = string(p.Results.branchName);
 
-[sweepSpec, caseInfo] = buildMRLFESensitivitySpec(sweepName);
+[sweepSpec, caseInfo] = mrlfeBuildSensitivitySpec(sweepName);
 baseParams = mrlfeSensitivityParameters();
 options = mrlfeSensitivityOptions(branchName, 'EtaS', caseInfo.fixedEtaS);
 
@@ -21,7 +21,7 @@ referenceMu_kPa = baseParams.mu / 1e3;
 referenceThickness_mm = baseParams.thickness * 1e3;
 referenceEtaS = caseInfo.fixedEtaS;
 
-fprintf('\nmRLFE %s sweep\n', char(sweepName));
+fprintf('\nmRLFE %s sensitivity study\n', char(sweepName));
 fprintf('Launch folder: %s\n', char(string(p.Results.LaunchFolder)));
 fprintf('%s values: %s %s\n', char(string(sweepSpec.label)), mat2str(sweepResultsDisplayValues(sweepSpec)), char(string(sweepSpec.units)));
 fprintf('Fixed reference: mu = %.1f kPa, etaS = %.3g Pa*s, 2h = %.1f mm\n', referenceMu_kPa, referenceEtaS, referenceThickness_mm);
@@ -52,13 +52,13 @@ if logical(p.Results.WriteOutputs)
     sweepMetadata.referenceEtaS_Pa_s = referenceEtaS;
     sweepMetadata.referenceThickness_mm = referenceThickness_mm;
 
-    outputFolder = writeMRLFESensitivityOutputs(p.Results.LaunchFolder, ...
+    outputFolder = mrlfeWriteSensitivityOutputs(p.Results.LaunchFolder, ...
         caseInfo.taskName, caseInfo.taskName, baseParams, options, ...
         sweepMetadata, sweepResults, sweepSummary);
 
     scriptFile = string(p.Results.ScriptFile);
     if strlength(scriptFile) > 0
-        figureFolder = saveMRLFEStudyFigure(fig, scriptFile, ...
+        figureFolder = mrlfeSaveStudyFigure(fig, scriptFile, ...
             caseInfo.taskName, caseInfo.filePrefix + "_" + branchName);
     end
 end
@@ -98,11 +98,11 @@ end
 function [resultName, summaryName] = mrlfeSweepWorkspaceNames(sweepName, branchName)
 switch lower(string(sweepName))
     case {"mu", "stiffness"}
-        prefix = "MRLFEMuSweep";
+        prefix = "mrlfeMuSweep";
     case "viscosity"
-        prefix = "MRLFEViscositySweep";
+        prefix = "mrlfeViscositySweep";
     case "thickness"
-        prefix = "MRLFEThicknessSweep";
+        prefix = "mrlfeThicknessSweep";
     otherwise
         error('Unsupported mRLFE sweepName "%s".', char(sweepName));
 end

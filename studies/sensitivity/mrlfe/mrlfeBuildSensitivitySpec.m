@@ -1,5 +1,5 @@
-function [sweepSpec, caseInfo] = buildMRLFESensitivitySpec(sweepName)
-%MRLFEMAKESWEEPSPEC Build maintained one-parameter mRLFE sweep specs.
+function [sweepSpec, caseInfo] = mrlfeBuildSensitivitySpec(sweepName)
+%MRLFEBUILDSENSITIVITYSPEC Build maintained one-parameter mRLFE sensitivity specs.
 %
 % Supported sweepName values:
 %   "mu"         -> shear-modulus sweep, displayed in kPa

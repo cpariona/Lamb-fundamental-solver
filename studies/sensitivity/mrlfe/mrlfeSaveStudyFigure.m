@@ -1,5 +1,5 @@
-function figureFolder = saveRayleighLambStudyFigure(fig, scriptFile, taskName, filePrefix)
-%RLSAVEEXAMPLEFIGURE Save example figures next to the sweep script.
+function figureFolder = mrlfeSaveStudyFigure(fig, scriptFile, taskName, filePrefix)
+%MRLFESAVESTUDYFIGURE Save mRLFE study figures next to the study script.
 
 if nargin < 4 || isempty(filePrefix)
     filePrefix = taskName;

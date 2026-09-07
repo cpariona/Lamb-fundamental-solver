@@ -1,7 +1,7 @@
-function outputFolder = writeMRLFESensitivityOutputs(launchFolder, taskName, filePrefix, baseParams, options, sweepMetadata, sweepResults, sweepSummary)
-%MRLFEWRITESWEEPOUTPUTS Write standard mRLFE sweep outputs.
+function outputFolder = mrlfeWriteSensitivityOutputs(launchFolder, taskName, filePrefix, baseParams, options, sweepMetadata, sweepResults, sweepSummary)
+%MRLFEWRITESENSITIVITYOUTPUTS Write standard mRLFE sensitivity outputs.
 %
-% sweepMetadata may be any structure describing the sweep campaign.
+% sweepMetadata may be any structure describing the sensitivity campaign.
 
 if nargin < 6 || isempty(sweepMetadata)
     sweepMetadata = struct();

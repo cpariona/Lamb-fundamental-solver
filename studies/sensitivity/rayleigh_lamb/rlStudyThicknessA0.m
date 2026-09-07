@@ -6,22 +6,24 @@ addpath(repoRoot);
 addpath(fullfile(repoRoot, 'studies'));
 configureStudyPath(repoRoot);
 
-%MRLFE_SWEEP_ETAS_A0LIKE Maintained shear-viscosity sweep for mRLFE A0-like.
+%RL_STUDY_THICKNESS_A0 Maintained full-thickness sensitivity study for Rayleigh-Lamb A0.
 %
 % Tables/workspace are written to:
-%   Results/mrlfe/etaS_sweep
+%   Results/rayleigh_lamb/thickness_sweep
 %
 % Figures are written next to this script under:
-%   figures/etaS_sweep
+%   figures/thickness_sweep
 
-[sweepResults, sweepSummary, fig, outputFolder, figureFolder] = runMRLFESensitivity( ...
-    'viscosity', 'A0Like', ...
+[sweepResults, sweepSummary, fig, outputFolder, figureFolder] = rlRunSensitivity( ...
+    'thickness', 'A0', ...
     'AssignToBase', true, ...
     'WriteOutputs', true, ...
     'LaunchFolder', launchFolder, ...
     'ScriptFile', scriptFile);
 
-fprintf('\nBranch summary\n');
+fprintf('\nA0 branch summary\n');
 disp(sweepSummary);
 fprintf('\nData files written to:\n%s\n', outputFolder);
 fprintf('Figure files written to:\n%s\n', figureFolder);
+
+assignin('base', 'rlThicknessSweepA0Figure', fig);
