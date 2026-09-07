@@ -1,4 +1,5 @@
-function guiRequest = guiBuildAcoustoelasticIOPHGORequest(baseParams, aeControls, robustness)
+function guiRequest = aeGuiBuildRequest(baseParams, aeControls, executionProfile)
+%AEGUIBUILDREQUEST Build the AE solver-GUI request.
 aeParams = struct();
 aeParams.R = aeControls.R.Value * 1e-3;
 aeParams.thickness = baseParams.thickness;
@@ -13,5 +14,5 @@ aeParams.frequency = lamb.grids.buildFrequencyVector(baseParams);
 
 guiRequest = struct();
 guiRequest.params = aeParams;
-guiRequest.options = guiBuildAcoustoelasticIOPHGOOptions(robustness);
+guiRequest.options = aeGuiBuildOptions(executionProfile);
 end

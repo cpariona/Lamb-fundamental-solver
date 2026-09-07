@@ -20,8 +20,6 @@ surface = canonicalSurface(p.Results.Surface);
 surfaceOverrides = buildSurfaceOverrides(surface, p.Results.Overrides);
 [options, configurationMetadata] = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(surfaceOverrides, ...
     'NumericalPreset', numericalPreset);
-options.executionProfile = profile;
-options.robustness = profile;
 
 metadata.internalSolverPreset = "";
 metadata.internalAtlasPreset = configurationMetadata.internalAtlasPreset;
@@ -48,7 +46,7 @@ end
 
 function overrides = buildSurfaceOverrides(surface, requestedOverrides)
 overrides = struct();
-if ismember(surface, ["MainGUI", "FitTool"])
+if ismember(surface, ["SolverGUI", "FitTool"])
     overrides = struct( ...
         'M54_variant', "corrected", ...
         'normalizeRows', false, ...
@@ -63,8 +61,8 @@ switch lower(strtrim(string(value)))
         surface = "direct";
     case {"fittool", "fit", "fittool requested curve", "fittool synthetic"}
         surface = "FitTool";
-    case {"maingui", "main_gui", "main"}
-        surface = "MainGUI";
+    case {"solvergui", "solver_gui", "solver"}
+        surface = "SolverGUI";
     otherwise
         error('aeResolveExecutionProfile:InvalidSurface', ...
             'Unknown AE application surface "%s".', string(value));

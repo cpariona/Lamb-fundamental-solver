@@ -1,5 +1,5 @@
 function [options, metadata] = rlResolveExecutionProfile(profileInput, varargin)
-%RLRESOLVEEXECUTIONPROFILE Resolve app-level profile to RL solver options.
+%RLRESOLVEEXECUTIONPROFILE Resolve app-level profile to RL numerical options.
 
 p = inputParser;
 addParameter(p, 'DefaultProfile', "Balanced", @(x)ischar(x) || isstring(x));
@@ -11,8 +11,6 @@ parse(p, varargin{:});
     'DefaultSource', p.Results.DefaultSource);
 
 options = lamb.models.rayleigh_lamb.rlDefaultOptions(profile);
-options.executionProfile = profile;
-options.robustness = profile;
 
 metadata.internalSolverPreset = profile;
 metadata.internalAtlasPreset = "";

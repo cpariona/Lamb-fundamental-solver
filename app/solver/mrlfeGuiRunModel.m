@@ -1,18 +1,17 @@
-function result = guiRunMRLFEModel(guiRequest)
-%GUIRUNMRLFEMODEL Run Main GUI mRLFE solving through the public API.
+function result = mrlfeGuiRunModel(guiRequest)
+%MRLFEGUIRUNMODEL Run solver-GUI mRLFE through the public API.
 
 if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
 end
 
-params = guiMergeStructs(lamb.models.mrlfe.configuration.mrlfeDefaultWorkflowParams(), guiGetStructField(guiRequest, 'params', struct()));
+params = guiMergeStructs(mrlfeGuiDefaultParameters(), guiGetStructField(guiRequest, 'params', struct()));
 options = guiGetStructField(guiRequest, 'options', struct());
 [profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
-    'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
-    'DefaultSource', "model default");
+    'DefaultProfile', "Balanced", ...
+    'DefaultSource', "Solver GUI default");
 options.executionProfile = profile;
 options.effectiveExecutionProfile = profile;
-options.robustness = profile;
 options.mrlfeNumericalPreset = profileToNumericalPreset(profile);
 options.mrlfeParams = resolveMRLFEParams(guiRequest, options);
 options.mrlfeA0Policy = normalizeA0Policy(guiGetStructField(options, 'mrlfeA0Policy', "physicalTail"));
@@ -59,6 +58,14 @@ result.metadata = struct( ...
     'executionProfile', profileMetadata);
 end
 
+function params = mrlfeGuiDefaultParameters()
+public = lamb.models.mrlfe.mrlfeDefaultParameters();
+params = struct('modelType', "ShearPoisson", 'rho', public.rho_kgm3, ...
+    'mu', public.mu_Pa, 'nu', public.nu, 'thickness', public.thickness_m, ...
+    'fmin', 100, 'fmax', 16000, 'numFrequencyPoints', "auto", ...
+    'frequencySpacing', "hybrid");
+end
+
 function mrlfeParams = resolveMRLFEParams(guiRequest, options)
 mrlfeParams = guiGetStructField(options, 'mrlfeParams', lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters());
 if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
@@ -85,10 +92,10 @@ branchNames = string(guiGetStructField(options, 'branchNames', ...
     guiGetStructField(options, 'branchName', "A0Like")));
 branchNames = unique(branchNames(:).', 'stable');
 if isempty(branchNames)
-    error('mrlfe:InvalidGuiBranchSelection', 'Main GUI mRLFE requires A0Like or S0Like selection.');
+    error('mrlfe:InvalidGuiBranchSelection', 'Solver GUI mRLFE requires A0Like or S0Like selection.');
 end
 if any(~ismember(branchNames, ["A0Like", "S0Like"]))
-    error('mrlfe:InvalidGuiBranchSelection', 'Main GUI mRLFE branches must be A0Like or S0Like.');
+    error('mrlfe:InvalidGuiBranchSelection', 'Solver GUI mRLFE branches must be A0Like or S0Like.');
 end
 end
 

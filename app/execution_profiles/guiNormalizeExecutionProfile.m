@@ -1,8 +1,5 @@
 function [profile, metadata] = guiNormalizeExecutionProfile(inputValue, varargin)
 %GUINORMALIZEEXECUTIONPROFILE Canonicalize app-level execution profile input.
-%
-% Supports the canonical executionProfile field and the legacy robustness
-% alias. If both are present they must resolve to the same canonical value.
 
 p = inputParser;
 addParameter(p, 'DefaultProfile', "Balanced", @(x)ischar(x) || isstring(x));
@@ -14,60 +11,29 @@ defaultProfile = localCanonicalProfile(p.Results.DefaultProfile);
 defaultSource = string(p.Results.DefaultSource);
 
 if nargin < 1 || isempty(inputValue)
-    [profile, source, aliasUsed] = deal(defaultProfile, defaultSource, false);
+    profile = defaultProfile;
+    source = defaultSource;
 elseif isstruct(inputValue)
-    [profile, source, aliasUsed] = localProfileFromStruct(inputValue, defaultProfile, defaultSource);
+    if isfield(inputValue, 'executionProfile') && ~isempty(inputValue.executionProfile) && ...
+            strlength(string(inputValue.executionProfile)) > 0
+        profile = localCanonicalProfile(inputValue.executionProfile);
+        source = "executionProfile";
+    else
+        profile = defaultProfile;
+        source = defaultSource;
+    end
 else
     profile = localCanonicalProfile(inputValue);
     source = string(p.Results.Source);
     if strlength(source) == 0
         source = "executionProfile";
     end
-    aliasUsed = source == "robustness";
 end
 
 metadata = struct();
 metadata.requestedExecutionProfile = profile;
 metadata.effectiveExecutionProfile = profile;
 metadata.executionProfileSource = source;
-metadata.legacyRobustnessAliasUsed = logical(aliasUsed);
-end
-
-function [profile, source, aliasUsed] = localProfileFromStruct(s, defaultProfile, defaultSource)
-hasExecutionProfile = isfield(s, 'executionProfile') && ~isempty(s.executionProfile) && ...
-    strlength(string(s.executionProfile)) > 0;
-hasRobustness = isfield(s, 'robustness') && ~isempty(s.robustness) && ...
-    strlength(string(s.robustness)) > 0;
-
-if hasExecutionProfile
-    executionProfile = localCanonicalProfile(s.executionProfile);
-end
-if hasRobustness
-    robustnessProfile = localCanonicalProfile(s.robustness);
-end
-
-if hasExecutionProfile && hasRobustness
-    if executionProfile ~= robustnessProfile
-        error('guiNormalizeExecutionProfile:ConflictingProfiles', ...
-            'executionProfile "%s" conflicts with robustness "%s".', ...
-            string(s.executionProfile), string(s.robustness));
-    end
-    profile = executionProfile;
-    source = "executionProfile+robustness";
-    aliasUsed = true;
-elseif hasExecutionProfile
-    profile = executionProfile;
-    source = "executionProfile";
-    aliasUsed = false;
-elseif hasRobustness
-    profile = robustnessProfile;
-    source = "robustness";
-    aliasUsed = true;
-else
-    profile = defaultProfile;
-    source = defaultSource;
-    aliasUsed = false;
-end
 end
 
 function profile = localCanonicalProfile(value)
