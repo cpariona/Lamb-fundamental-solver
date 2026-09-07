@@ -107,8 +107,8 @@ lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations
 lamb.models.mrlfe.mrlfeDefaultParameters
 lamb.models.mrlfe.mrlfeDefaultOptions
 lamb.models.mrlfe.mrlfeSolve
-lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions
-lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
+lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions
+lamb.models.acoustoelastic_iop_hgo.aeSolveBranch
 lamb.fitting.rayleigh_lamb.rlFitDispersionData
 lamb.fitting.rayleigh_lamb.rlEvaluateFitModel
 lamb.fitting.mrlfe.mrlfeFitDispersionData
