@@ -1,8 +1,8 @@
 # AE IOP/HGO architecture
 
 The maintained public solver is
-`lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch`, owned by
-`src/+lamb/+models/+acoustoelastic_iop_hgo/solveAcoustoelasticIOPHGOBranch.m`.
+`lamb.models.acoustoelastic_iop_hgo.aeSolveBranch`, owned by
+`src/+lamb/+models/+acoustoelastic_iop_hgo/aeSolveBranch.m`.
 It owns public request validation/orchestration and delegates scientific work to
 the model layer. `lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration` and `lamb.models.acoustoelastic_iop_hgo.configuration.aeGetNumericalPreset` own
 configuration; atlas construction, linking, selection, fallback, quality
@@ -12,7 +12,8 @@ The common model-family spine is explicit:
 
 ```text
 src/+lamb/+models/+acoustoelastic_iop_hgo/
-  public solver and defaults
+  aeSolveBranch.m
+  aeDefaultOptions.m
   +configuration/   validation, policy normalization, presets
   +core/            model problem/state construction
   +solvers/         maintained atlas solve orchestration
@@ -22,10 +23,10 @@ src/+lamb/+models/+acoustoelastic_iop_hgo/
 ```
 
 The maintained internal solver owners are
-`lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticAtlasBranch`,
-`lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticIOPHGODispersion`,
-`lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticDispersion`, and
-`lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticComplexCDispersion`.
+`lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveAtlasBranch`,
+`lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveIOPHGODispersion`,
+`lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveDispersion`, and
+`lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveComplexCDispersion`.
 
 Scientifically specific AE ownership remains under `+constitutive/`,
 `+diagnostics/`, and `+policies/` where those stages are real model
