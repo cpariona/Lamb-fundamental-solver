@@ -12,18 +12,18 @@ options = guiGetStructField(guiRequest, 'options', struct());
     'DefaultSource', "Solver GUI default");
 options.executionProfile = profile;
 options.effectiveExecutionProfile = profile;
-options.mrlfeNumericalPreset = profileToNumericalPreset(profile);
-options.mrlfeParams = resolveMRLFEParams(guiRequest, options);
-options.mrlfeA0Policy = normalizeA0Policy(guiGetStructField(options, 'mrlfeA0Policy', "physicalTail"));
+options.mrlfeNumericalPreset = mrlfeProfileToNumericalPreset(profile);
+options.mrlfeParams = mrlfeResolveParams(guiRequest, options);
+options.mrlfeA0Policy = mrlfeNormalizeA0Policy(guiGetStructField(options, 'mrlfeA0Policy', "physicalTail"));
 
-branchNames = selectedBranches(options);
+branchNames = mrlfeSelectedBranches(options);
 frequency_Hz = lamb.grids.buildFrequencyVector(params);
-[modelResults, requests, elapsedSeconds] = solveBranches(params, options, frequency_Hz, branchNames);
+[modelResults, requests, elapsedSeconds] = mrlfeSolveBranches(params, options, frequency_Hz, branchNames);
 
-result = normalizeModelResults(modelResults);
+result = mrlfeNormalizeModelResults(modelResults);
 result.modelResult = modelResults{1};
-result.modelResults = cellsByBranch(modelResults);
-result.requests = cellsByBranch(requests);
+result.modelResults = mrlfeCellsByBranch(modelResults);
+result.requests = mrlfeCellsByBranch(requests);
 
 profileMetadata.effectiveExecutionProfile = profile;
 profileMetadata.internalSolverPreset = profile;
@@ -50,11 +50,11 @@ result.metadata = struct( ...
     'modelResult', modelResults{1}, 'modelResults', result.modelResults, ...
     'requests', result.requests, 'elapsedSeconds', elapsedSeconds, ...
     'seedBranchesHiddenFromPlotSurface', true, 'status', status, ...
-    'quality', collectBranchField(modelResults, 'quality'), ...
-    'termination', collectBranchField(modelResults, 'termination'), ...
-    'fallback', collectBranchField(modelResults, 'fallback'), ...
-    'execution', collectBranchField(modelResults, 'execution'), ...
-    'configuration', collectBranchField(modelResults, 'configuration'), ...
+    'quality', mrlfeCollectBranchField(modelResults, 'quality'), ...
+    'termination', mrlfeCollectBranchField(modelResults, 'termination'), ...
+    'fallback', mrlfeCollectBranchField(modelResults, 'fallback'), ...
+    'execution', mrlfeCollectBranchField(modelResults, 'execution'), ...
+    'configuration', mrlfeCollectBranchField(modelResults, 'configuration'), ...
     'executionProfile', profileMetadata);
 end
 
@@ -66,7 +66,7 @@ params = struct('modelType', "ShearPoisson", 'rho', public.rho_kgm3, ...
     'frequencySpacing', "hybrid");
 end
 
-function mrlfeParams = resolveMRLFEParams(guiRequest, options)
+function mrlfeParams = mrlfeResolveParams(guiRequest, options)
 mrlfeParams = guiGetStructField(options, 'mrlfeParams', lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters());
 if isfield(guiRequest, 'mrlfeParams') && isstruct(guiRequest.mrlfeParams)
     mrlfeParams = guiRequest.mrlfeParams;
@@ -76,7 +76,7 @@ mrlfeParams.etaL = 0;
 mrlfeParams.useComplexLambda = false;
 end
 
-function [results, requests, elapsedSeconds] = solveBranches(params, options, frequency_Hz, branchNames)
+function [results, requests, elapsedSeconds] = mrlfeSolveBranches(params, options, frequency_Hz, branchNames)
 results = cell(1, numel(branchNames));
 requests = cell(1, numel(branchNames));
 timerStart = tic;
@@ -87,7 +87,7 @@ end
 elapsedSeconds = toc(timerStart);
 end
 
-function branchNames = selectedBranches(options)
+function branchNames = mrlfeSelectedBranches(options)
 branchNames = string(guiGetStructField(options, 'branchNames', ...
     guiGetStructField(options, 'branchName', "A0Like")));
 branchNames = unique(branchNames(:).', 'stable');
@@ -99,21 +99,21 @@ if any(~ismember(branchNames, ["A0Like", "S0Like"]))
 end
 end
 
-function out = cellsByBranch(items)
+function out = mrlfeCellsByBranch(items)
 out = struct();
 for i = 1:numel(items)
     out.(char(items{i}.branch)) = items{i};
 end
 end
 
-function out = collectBranchField(results, fieldName)
+function out = mrlfeCollectBranchField(results, fieldName)
 out = struct();
 for i = 1:numel(results)
     out.(char(results{i}.branch)) = results{i}.(fieldName);
 end
 end
 
-function result = normalizeModelResults(modelResults)
+function result = mrlfeNormalizeModelResults(modelResults)
 result = guiBuildModelResultView(modelResults{1}, mfilename);
 for i = 2:numel(modelResults)
     view = guiBuildModelResultView(modelResults{i}, mfilename);
@@ -122,14 +122,14 @@ end
 result.diagnostics.branchCount = numel(result.branches);
 end
 
-function policy = normalizeA0Policy(policy)
+function policy = mrlfeNormalizeA0Policy(policy)
 policy = string(policy);
 if policy ~= "physicalTail"
     policy = "physicalTail";
 end
 end
 
-function preset = profileToNumericalPreset(profile)
+function preset = mrlfeProfileToNumericalPreset(profile)
 profiles = ["Fast", "Balanced", "Robust"];
 presets = ["fast", "balanced", "robust"];
 idx = find(string(profile) == profiles, 1);

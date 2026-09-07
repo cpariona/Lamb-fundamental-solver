@@ -160,7 +160,7 @@ updateAxisFieldState();
             options.computeA0 = false;
             options.computeS0 = false;
             options.runMRLFE = false;
-            options.acoustoelasticOptions = guiBuildAcoustoelasticIOPHGOOptions(options.executionProfile);
+            options.acoustoelasticOptions = aeGuiBuildOptions(options.executionProfile);
             return;
         end
 
@@ -188,9 +188,9 @@ updateAxisFieldState();
                 repmat("S0Like", 1, double(requestedS0Like))];
             options = mrlfeOptions;
             options.executionProfileMetadata = mrlfeMetadata;
-            options.mrlfeParams = readMRLFEParamsFromGui();
+            options.mrlfeParams = mrlfeReadParamsFromGui();
             if isfield(modelControls.mrlfe, 'a0Policy')
-                options.mrlfeA0Policy = normalizeMrlfeA0Policy(string(modelControls.mrlfe.a0Policy.Value));
+                options.mrlfeA0Policy = mrlfeNormalizeA0Policy(string(modelControls.mrlfe.a0Policy.Value));
             end
         end
     end
@@ -217,14 +217,14 @@ updateAxisFieldState();
         params.lambda = material.lambda;
     end
 
-    function policy = normalizeMrlfeA0Policy(policyIn)
+    function policy = mrlfeNormalizeA0Policy(policyIn)
         policy = string(policyIn);
         if policy ~= "physicalTail"
             policy = "physicalTail";
         end
     end
 
-    function mrlfeParams = readMRLFEParamsFromGui()
+    function mrlfeParams = mrlfeReadParamsFromGui()
         mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
         mrlfeParams.fluidDensity = modelControls.mrlfe.fluidDensity.Value;
         mrlfeParams.fluidSoundSpeed = modelControls.mrlfe.fluidSoundSpeed.Value;
@@ -261,8 +261,8 @@ updateAxisFieldState();
 
     function [results, guiResult] = runModelRequestThroughAdapter(params, options)
         if getOptionValueLocal(options, 'computeAcoustoelasticIOPHGO', false)
-            guiRequest = guiBuildAcoustoelasticIOPHGORequest(params, modelControls.ae, options.robustness);
-            guiResult = guiRunAcoustoelasticIOPHGOModel(guiRequest);
+            guiRequest = aeGuiBuildRequest(params, modelControls.ae, options.robustness);
+            guiResult = aeGuiRunModel(guiRequest);
             results = guiResult.metadata.modelResult;
             return;
         end
@@ -275,9 +275,9 @@ updateAxisFieldState();
         if getOptionValueLocal(options, 'runMRLFE', false)
             guiRequest.computeElastic = true;
             guiRequest.computeVisco = isfield(options, 'mrlfeParams') && options.mrlfeParams.etaS > 0;
-            guiResult = guiRunMRLFEModel(guiRequest);
+            guiResult = mrlfeGuiRunModel(guiRequest);
         else
-            guiResult = guiRunRayleighLambModel(guiRequest);
+            guiResult = rlGuiRunModel(guiRequest);
         end
         results = guiResult.metadata.modelResult;
     end
@@ -440,7 +440,7 @@ updateAxisFieldState();
             case "RayleighLamb"
                 name = char(branchName);
             case {"mRLFERealK", "mRLFEElasticRealK", "mRLFEViscoRealK"}
-                name = ['mRLFE real-k ', char(formatMRLFEBranchName(branchName))];
+                name = ['mRLFE real-k ', char(mrlfeFormatBranchName(branchName))];
             case "AcoustoelasticIOPHGO"
                 name = 'AE IOP/HGO A0-like';
             otherwise
@@ -471,7 +471,7 @@ updateAxisFieldState();
         end
     end
 
-    function txt = formatMRLFEBranchName(branchName)
+    function txt = mrlfeFormatBranchName(branchName)
         switch string(branchName)
             case "A0Like"
                 txt = "A0-like";
@@ -536,13 +536,13 @@ updateAxisFieldState();
             return;
         end
         if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
-            updateAcoustoelasticLabels();
+            aeUpdateLabels();
         else
             updateRayleighLambLabels();
         end
     end
 
-    function updateAcoustoelasticLabels()
+    function aeUpdateLabels()
         r = lastResults;
         materialInfo.Text = sprintf('AE IOP/HGO | mu %.2f kPa | rho %.1f kg/m^3 | h %.3f mm\nIOP %.2f mmHg | R %.2f mm | k1 %.2f kPa | k2 %.2f', ...
             lastParams.mu/1e3, lastParams.rho, lastParams.thickness*1e3, ...
@@ -871,8 +871,8 @@ updateAxisFieldState();
         end
 
         try
-            exportData = guiBuildMainResultExport(lastGuiResult, lastPhysicalParameters);
-            savedPath = guiSaveMainResultExport(fullfile(path, file), exportData);
+            exportData = guiBuildSolverResultExport(lastGuiResult, lastPhysicalParameters);
+            savedPath = guiSaveSolverResultExport(fullfile(path, file), exportData);
             setStatusText({['Status: saved ', savedPath]});
         catch ME
             setStatusText({['Status: export error: ', ME.message]});
