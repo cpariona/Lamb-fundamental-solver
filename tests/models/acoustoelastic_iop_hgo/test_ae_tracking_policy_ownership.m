@@ -19,7 +19,7 @@ for i = 1:size(owners, 1)
         '%s must resolve to its canonical model owner.', qualifiedName);
 end
 
-solverText = fileread(fullfile(modelRoot, '+solvers', 'solveAcoustoelasticAtlasBranch.m'));
+solverText = fileread(fullfile(modelRoot, '+solvers', 'aeSolveAtlasBranch.m'));
 assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.solvers.aeBuildAtlas(params, options)');
 assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.tracking.aeFindAtlasLocalMinima(');
 assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.tracking.aeLinkAtlasBranches(');
@@ -29,11 +29,11 @@ for oldLocal = ["function minima = localMinima", "function [minimaTable, branchT
     assert(~contains(solverText, oldLocal), 'Old local production owner remains: %s', oldLocal);
 end
 
-publicOwnerText = fileread(fullfile(modelRoot, 'solveAcoustoelasticIOPHGOBranch.m'));
+publicOwnerText = fileread(fullfile(modelRoot, 'aeSolveBranch.m'));
 assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest(params');
 assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(options)');
-assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.constitutive.computeAcoustoelasticABGFromIOPHGO(');
-assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.solvers.solveAcoustoelasticAtlasBranch(');
+assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.constitutive.aeComputeABGFromIOPHGO(');
+assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveAtlasBranch(');
 assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy(result)');
 assert(~contains(publicOwnerText, 'solveAcoustoelasticIOPHGOAtlasBranch'), ...
     'The public AE owner must not be a forwarding wrapper.');
