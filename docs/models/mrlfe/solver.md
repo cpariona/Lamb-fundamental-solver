@@ -25,7 +25,7 @@ application, studies, examples, or tests. Main GUI forward solving reaches this
 core through the public API:
 
 ```text
-guiRunMRLFEModel
+mrlfeGuiRunModel
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve
 ```
@@ -37,7 +37,7 @@ physical-tail cuts, or perform zero-viscosity fallback.
 FitTool fitting reaches this core through the public API:
 
 ```text
-guiFitMRLFESolver
+mrlfeGuiFitSolver
   -> lamb.fitting.mrlfe.mrlfeFitDispersionData
   -> lamb.fitting.solveDispersionFitProblem
   -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel
@@ -52,7 +52,7 @@ final fit result.
 mRLFE sensitivity studies also reach this core through the public API:
 
 ```text
-runMRLFESensitivity
+mrlfeRunSensitivity
   -> lamb.sweeps.runParametricSweep
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve, once per sweep point
