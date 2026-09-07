@@ -16,9 +16,9 @@ The purpose is to inspect competing raw-atlas branch families instead of forcing
 
 ```matlab
 startup
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_branch_families.m')
-AcoustoelasticIOPHGOBranchFamiliesSummary
-AcoustoelasticIOPHGOBranchFamiliesAggregate
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseBranchFamilies.m')
+aeBranchFamiliesSummary
+aeBranchFamiliesAggregate
 ```
 
 ### Output folder
@@ -37,7 +37,7 @@ Results/ae_iop_hgo/branch_families
 
 ### Configurations
 
-The first run used five configurations:
+The diagnostic evaluates five configurations:
 
 | Config | NumY | TopNMinimaPerFrequency | MaxLogYJumpForRawBranch |
 |---|---:|---:|---:|
