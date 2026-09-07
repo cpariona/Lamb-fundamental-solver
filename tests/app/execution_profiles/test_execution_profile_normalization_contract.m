@@ -10,12 +10,13 @@ adapterFunctions = [ ...
     "mrlfeBuildSurfaceExecutionMetadata"];
 for i = 1:numel(adapterFunctions)
     fileName = adapterFunctions(i) + ".m";
-    expectedPath = fullfile(repoRoot, 'app', 'shared', fileName);
-    oldPath = fullfile(repoRoot, 'app', 'adapters', fileName);
-    assert(isfile(expectedPath), '%s must live in app/shared.', adapterFunctions(i));
-    assert(~isfile(oldPath), 'The former app/adapters path must be absent for %s.', adapterFunctions(i));
+    expectedPath = fullfile(repoRoot, 'app', 'execution_profiles', fileName);
+    oldPaths = [fullfile(repoRoot, 'app', 'shared', fileName); ...
+        fullfile(repoRoot, 'app', 'adapters', fileName)];
+    assert(isfile(expectedPath), '%s must live in app/execution_profiles.', adapterFunctions(i));
+    assert(~any(isfile(oldPaths)), 'Retired app owners must be absent for %s.', adapterFunctions(i));
     assert(strcmp(which(adapterFunctions(i)), expectedPath), ...
-        '%s must resolve uniquely from app/shared.', adapterFunctions(i));
+        '%s must resolve uniquely from app/execution_profiles.', adapterFunctions(i));
 end
 
 profiles = guiExecutionProfileValues();
@@ -93,10 +94,10 @@ assert(mrlfeMetadata.profileOverrideApplied == false && mrlfeMetadata.profileOve
 assert(mrlfeMetadata.profileSupportMode == "direct", ...
     'mRLFE support mode should report direct profile support.');
 
-%% Active docs describe the canonical field and compatibility alias.
+%% Canonical docs describe the field and compatibility alias.
 assertDocContains('README.md', 'executionProfile');
 assertDocContains('README.md', 'compatibility alias');
-assertDocContains(fullfile('docs', 'architecture', 'execution_profiles_surface_integration.md'), ...
+assertDocContains(fullfile('docs', 'architecture.md'), ...
     'execution-profile metadata contract');
 fprintf('Execution profile normalization contract test passed.\n');
 end

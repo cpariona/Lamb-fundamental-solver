@@ -5,15 +5,15 @@ Its public contract is in `public_api.md`.
 
 ## Scientific ownership
 
-- `api/`: public defaults and the maintained model entrypoint.
-- `configuration/`: frequency-grid construction and parameter/option validation.
-- `core/`: material/geometry construction and branch specification.
-- `solvers/`: model-level fundamental-mode solve orchestration.
-- `equations/`: antisymmetric and symmetric Rayleigh-Lamb residuals.
-- `tracking/`: `lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch`, the shared continuation owner.
-- `quality/`: post-solve quality assessment through `lamb.models.rayleigh_lamb.quality.rlEvaluateModeQuality`.
-- `approximations/`: A0 thin-plate and S0 extensional approximations.
-- `results/`: canonical scientific result assembly.
+- The family root exposes public defaults and the maintained model entrypoint.
+- `+configuration/`: frequency-grid construction and parameter/option validation.
+- `+core/`: material/geometry construction and branch specification.
+- `+solvers/`: model-level fundamental-mode solve orchestration.
+- `+equations/`: antisymmetric and symmetric Rayleigh-Lamb residuals.
+- `+tracking/`: `lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch`, the shared continuation owner.
+- `+quality/`: post-solve quality assessment through `lamb.models.rayleigh_lamb.quality.rlEvaluateModeQuality`.
+- `+approximations/`: A0 thin-plate and S0 extensional approximations.
+- `+results/`: canonical scientific result assembly.
 - `src/+lamb/+elasticity/`: shared isotropic elastic-material conversions.
 
 Soft-material inputs use `ShearPoisson`: mu, nu, and rho determine E,
@@ -40,7 +40,7 @@ Its evaluator uses the same model-layer `lamb.models.rayleigh_lamb.tracking.rlSo
 an internal continuation grid retaining exact experimental frequencies and
 prediction fallback disabled. It does not call the batch-grid public compute
 API; replacing this route would change the established fitting semantics.
-See `fitting_workflow.md`.
+See `fitting.md`.
 
 ## Use and validation
 

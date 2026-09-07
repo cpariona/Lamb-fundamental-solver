@@ -2,8 +2,7 @@ function test_mrlfe_maintained_surface_contract()
 %TEST_MRLFE_MAINTAINED_SURFACE_CONTRACT Guard the maintained mRLFE surface.
 
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
-entrypointsText = string(fileread(fullfile(repoRoot, 'docs', 'repository', ...
-    'maintained_entrypoints.md')));
+entrypointsText = string(fileread(fullfile(repoRoot, 'docs', 'architecture.md')));
 for name = ["lamb.models.mrlfe.mrlfeSolve", "lamb.models.mrlfe.mrlfeDefaultParameters", "lamb.models.mrlfe.mrlfeDefaultOptions"]
     assert(contains(entrypointsText, name), ...
         'Maintained entrypoint documentation is missing %s.', name);

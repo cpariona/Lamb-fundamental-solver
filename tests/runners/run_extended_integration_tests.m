@@ -13,7 +13,7 @@ fprintf('\nRunning extended integration tests...\n');
 fprintf('-------------------------------------\n');
 
 % Execution profiles and fitted-curve integration.
-test_execution_profile_current_contract;
+test_execution_profile_contract;
 test_execution_profile_surface_integration;
 test_execution_profile_fit_curve_metadata;
 test_execution_profile_validation_matrix;

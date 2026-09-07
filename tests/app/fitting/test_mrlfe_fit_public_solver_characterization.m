@@ -43,7 +43,7 @@ for iBranch = 1:numel(branches)
             direct = lamb.models.mrlfe.mrlfeSolve(request);
 
             assert(isequal(rawPublic.frequency_Hz(:), direct.frequency_Hz(:)), ...
-                'Frequency grid changed during public-solver migration.');
+                'Frequency grid changed across public-solver consumers.');
             assert(rawPublic.branchName == direct.branch, 'Branch identity changed.');
             assert(rawPublic.modelResult.execution.effectivePreset == "fast", ...
                 'Maintained fitting route must retain the selected public preset metadata.');

@@ -52,7 +52,7 @@ request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, lamb.gr
 end
 
 function options = localGuiOptions(branch, etaS)
-options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branch, 'EtaS', etaS);
+options = lamb.models.mrlfe.mrlfeDefaultOptions();
 options.branchNames = branch;
 options.mrlfeParams = localMrlfeParams(etaS);
 end

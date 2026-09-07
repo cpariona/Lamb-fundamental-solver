@@ -14,7 +14,7 @@ for i = 1:size(owners, 1)
     qualifiedName = string(owners{i,2});
     parts = split(qualifiedName, ".");
     expected = fullfile(modelRoot, '+' + string(owners{i,1}), parts(end) + ".m");
-    assert(isfile(expected), 'Missing Phase-4 owner: %s', expected);
+    assert(isfile(expected), 'Missing tracking-policy owner: %s', expected);
     assert(samePath(which(char(qualifiedName)), expected), ...
         '%s must resolve to its canonical model owner.', qualifiedName);
 end

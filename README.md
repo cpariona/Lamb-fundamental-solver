@@ -1,9 +1,9 @@
 # Lamb Fundamental Solver
 
-MATLAB tools for forward fundamental Lamb-wave dispersion and inverse
-dispersion fitting in soft materials. The maintained model families are
-Rayleigh-Lamb A0/S0, fluid-loaded mRLFE A0Like/S0Like, and prestressed AE
-IOP/HGO atlasA0.
+MATLAB solvers and inverse-fitting tools for fundamental Lamb-wave dispersion
+in soft materials. The maintained families are Rayleigh-Lamb A0/S0,
+fluid-loaded mRLFE A0Like/S0Like, and prestressed acoustoelastic IOP/HGO
+atlasA0.
 
 ## Start
 
@@ -21,8 +21,7 @@ the six validation launchers under `tests/runners/`. Studies, test bodies,
 examples, and generated outputs are not loaded by `startup`.
 
 GUI requests use `executionProfile` (Fast, Balanced, Robust). The established
-`robustness` compatibility alias is restricted to app normalization. See the
-[profile contract](docs/architecture/execution_profiles_surface_integration.md).
+`robustness` compatibility alias is restricted to app normalization.
 
 ## Programmatic APIs
 
@@ -71,7 +70,7 @@ run_performance_and_benchmark_tests
 ```
 
 Each runner loads tests and studies explicitly and restores the caller path.
-See [tests](tests/README.md).
+See [validation](docs/validation.md).
 
 ## Architecture
 
@@ -83,5 +82,5 @@ See [tests](tests/README.md).
 - `examples/` contains only short solver/fitting API demonstrations.
 - `tests/` owns validation and benchmark tooling.
 
-Start with [repository structure](docs/repository/repository_structure.md) and
-the [GUI routes](docs/workflows/gui/adapter_architecture.md).
+Start with the [architecture](docs/architecture.md), [engineering
+conventions](docs/conventions.md), and [fitting guide](docs/fitting.md).

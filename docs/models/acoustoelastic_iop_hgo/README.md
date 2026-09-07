@@ -28,5 +28,5 @@ Fitting is owned by `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData`; 1
 `runAcoustoelasticSensitivity` and `runAcoustoelasticGridSensitivity`. Diagnostic algorithms do not select or
 rebuild the official production result.
 
-See `active/public_api.md`, `active/branch_policy.md`, and
+See `public_api.md`, `branch_policy.md`, and
 `diagnostics/README.md` for the maintained contracts.
