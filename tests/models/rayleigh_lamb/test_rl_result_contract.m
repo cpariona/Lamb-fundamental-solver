@@ -47,7 +47,7 @@ assert(strcmp(which('lamb.models.rayleigh_lamb.quality.rlEvaluateModeQuality'), 
     '+lamb', '+models', '+rayleigh_lamb', '+quality', 'rlEvaluateModeQuality.m')));
 
 exampleSource = fileread(fullfile(repoRoot, 'examples', 'rayleigh_lamb', ...
-    'basic', 'run_default_A0_S0.m'));
+    'basic', 'rlRunDefaultA0S0.m'));
 assert(contains(exampleSource, 'mode.diagnostics.residual'));
 assert(~contains(exampleSource, 'mode.residual'), 'Example uses a retired residual field.');
 approximations = lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations(frequency_Hz, result.material, result.geometry);
