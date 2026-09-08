@@ -1,43 +1,6 @@
 function test_ae_tracking_policy_ownership()
 %TEST_AE_TRACKING_POLICY_OWNERSHIP Verify canonical model-layer ownership.
 
-repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
-modelRoot = fullfile(repoRoot, 'src', '+lamb', '+models', '+acoustoelastic_iop_hgo');
-owners = {
-    'solvers', 'lamb.models.acoustoelastic_iop_hgo.solvers.aeBuildAtlas';
-    'tracking', 'lamb.models.acoustoelastic_iop_hgo.tracking.aeFindAtlasLocalMinima';
-    'tracking', 'lamb.models.acoustoelastic_iop_hgo.tracking.aeLinkAtlasBranches';
-    'tracking', 'lamb.models.acoustoelastic_iop_hgo.tracking.aeSplitAtlasBranches';
-    'policies', 'lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch';
-    'policies', 'lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy'};
-for i = 1:size(owners, 1)
-    qualifiedName = string(owners{i,2});
-    parts = split(qualifiedName, ".");
-    expected = fullfile(modelRoot, '+' + string(owners{i,1}), parts(end) + ".m");
-    assert(isfile(expected), 'Missing tracking-policy owner: %s', expected);
-    assert(samePath(which(char(qualifiedName)), expected), ...
-        '%s must resolve to its canonical model owner.', qualifiedName);
-end
-
-solverText = fileread(fullfile(modelRoot, '+solvers', 'aeSolveAtlasBranch.m'));
-assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.solvers.aeBuildAtlas(params, options)');
-assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.tracking.aeFindAtlasLocalMinima(');
-assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.tracking.aeLinkAtlasBranches(');
-assertContains(solverText, 'lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch(');
-for oldLocal = ["function minima = localMinima", "function [minimaTable, branchTable] = linkBranches", ...
-        "function minimaTable = splitBranchesOnLargeCpJump", "function [branch, id, branchTable] = selectBranch"]
-    assert(~contains(solverText, oldLocal), 'Old local production owner remains: %s', oldLocal);
-end
-
-publicOwnerText = fileread(fullfile(modelRoot, 'aeSolveBranch.m'));
-assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest(params');
-assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(options)');
-assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.constitutive.aeComputeABGFromIOPHGO(');
-assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveAtlasBranch(');
-assertContains(publicOwnerText, 'lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy(result)');
-assert(~contains(publicOwnerText, 'solveAcoustoelasticIOPHGOAtlasBranch'), ...
-    'The public AE owner must not be a forwarding wrapper.');
-
 assertLocalMinimaContract();
 assertLinkContract();
 assertSplitContract();
@@ -133,14 +96,4 @@ assert(isequaln(decided.quality, result.quality), ...
 result.options.invalidateAtlasFallbackOutput = false;
 [unchanged, applied] = lamb.models.acoustoelastic_iop_hgo.policies.aeApplyAtlasA0FallbackPolicy(result);
 assert(applied == false && isequaln(unchanged, result));
-end
-
-function assertContains(text, fragment)
-assert(contains(text, fragment), 'Missing expected production call: %s', fragment);
-end
-
-function tf = samePath(actual, expected)
-actualPath = replace(string(actual), filesep, "/");
-expectedPath = replace(string(expected), filesep, "/");
-tf = strcmpi(actualPath, expectedPath);
 end

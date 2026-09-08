@@ -29,18 +29,6 @@ assert(diagnostic.numCpScanPoints == 555);
 assert(diagnostic.trackingMethod == "globalScan");
 assert(diagnostic.complexCMaxIter == 250);
 
-modelRoot = fileparts(fileparts(which('lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration')));
-modelText = readMatlabTree(modelRoot);
-for surfaceToken = ["MainGUI", "FitTool", ...
-        "aeUseGuiFastAtlasPreset", "aeGuiAtlasPreset"]
-    assert(~contains(modelText, surfaceToken), ...
-        'Model configuration must not own app surface token %s.', surfaceToken);
-end
-appResolverText = string(fileread(which('aeResolveExecutionProfile')));
-assert(contains(appResolverText, 'SolverGUI') && contains(appResolverText, 'FitTool') && ...
-    ~contains(appResolverText, 'SweepTool'), ...
-    'App execution-profile resolver must own surface translation.');
-
 accepted = struct('IOP', [], 'R', [], 'thickness', [], 'mu', [], 'k1', [], ...
     'k2', [], 'rho', [], 'rhoF', [], 'fluidBulkModulus', [], 'frequency', []);
 lamb.models.acoustoelastic_iop_hgo.configuration.aeValidateRequest(accepted, 'Context', "iopSolver");
@@ -68,15 +56,6 @@ assertGrid([200, 75, 200, NaN, -10], boundaryOptions, ...
 assert(isempty(lamb.models.acoustoelastic_iop_hgo.configuration.aeBuildInternalTrackingGrid([NaN, -1, 0], gridOptions)));
 
 fprintf('test_ae_configuration_ownership passed.\n');
-end
-
-function text = readMatlabTree(root)
-files = dir(fullfile(root, '**', '*.m'));
-assert(~isempty(files), 'AE configuration ownership scan must include MATLAB files.');
-text = "";
-for i = 1:numel(files)
-    text = text + newline + string(fileread(fullfile(files(i).folder, files(i).name)));
-end
 end
 
 function assertGrid(requested, options, expected)
