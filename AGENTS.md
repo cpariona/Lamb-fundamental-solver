@@ -11,7 +11,7 @@ for Rayleigh-Lamb, mRLFE, and acoustoelastic IOP/HGO models.
 - `app/solver/`, `app/fitting/`: the `LambFundamental_GUI` and `FitTool_GUI`
   workflows.
 - `app/execution_profiles/`: Fast/Balanced/Robust surface translation.
-- `studies/`: opt-in sensitivity campaigns and solver investigations.
+- `studies/`: opt-in sensitivity studies and solver investigations.
 - `tests/`: ownership-aligned validation, runners, repository guards, tooling.
 
 Read [architecture](docs/architecture.md), [conventions](docs/conventions.md),
