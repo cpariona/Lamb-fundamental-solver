@@ -24,6 +24,7 @@ for i = 1:numel(markdownPaths)
     text = string(fileread(fullfile(repoRoot, path)));
     assertRelativeLinks(repoRoot, path, text);
     assertCodeSpanPaths(repoRoot, path, text);
+    assertRunnableRunTargets(repoRoot, path, text);
 end
 
 assertNoRetiredOwnerPaths(repoRoot, guardedPaths);
@@ -77,6 +78,18 @@ for i = 1:numel(tokens)
         resolved = fullfile(repoRoot, value);
     end
     assert(isfile(resolved), 'Documented repository file does not exist in %s: %s', documentPath, value);
+end
+end
+
+function assertRunnableRunTargets(repoRoot, documentPath, text)
+singleQuoted = regexp(char(text), 'run\s*\(\s*''([^'']+\.m)''\s*\)', 'tokens');
+doubleQuoted = regexp(char(text), 'run\s*\(\s*"([^"]+\.m)"\s*\)', 'tokens');
+tokens = [singleQuoted, doubleQuoted];
+for i = 1:numel(tokens)
+    target = string(tokens{i}{1});
+    resolved = fullfile(repoRoot, target);
+    assert(isfile(resolved), ...
+        'Documented run target does not exist in %s: %s', documentPath, target);
 end
 end
 
