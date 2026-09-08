@@ -1,18 +1,35 @@
 function result = rlGuiRunModel(guiRequest)
-%RLG UIRUNMODEL Run the Rayleigh-Lamb model for solver-GUI workflows.
+%RLGUIRUNMODEL Run the Rayleigh-Lamb model for solver-GUI workflows.
+%
+% This adapter translates app inputs and metadata without changing the
+% numerical solver configuration supplied in guiRequest.options.
 
 if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
 end
 
-params = guiMergeStructs(lamb.models.rayleigh_lamb.rlDefaultParams(), guiGetStructField(guiRequest, 'params', struct()));
-profileInput = guiGetStructField(guiRequest, 'executionProfile', guiGetStructField(guiRequest, 'options', struct()));
-[options, profileMetadata] = rlResolveExecutionProfile(profileInput, ...
-    'DefaultProfile', "Balanced", ...
-    'DefaultSource', "Solver GUI default");
-requestedOptions = guiGetStructField(guiRequest, 'options', struct());
-requestedOptions = rmExecutionProfileFields(requestedOptions);
-options = guiMergeStructs(options, requestedOptions);
+params = guiMergeStructs(lamb.models.rayleigh_lamb.rlDefaultParams(), ...
+    guiGetStructField(guiRequest, 'params', struct()));
+options = guiMergeStructs(lamb.models.rayleigh_lamb.rlDefaultOptions(), ...
+    guiGetStructField(guiRequest, 'options', struct()));
+[profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
+    'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
+    'DefaultSource', "model default");
+options.executionProfile = profile;
+options.robustness = profile;
+profileMetadata.internalSolverPreset = profile;
+profileMetadata.internalAtlasPreset = "";
+profileMetadata.profileOverrideApplied = false;
+profileMetadata.profileOverrideReason = "";
+profileMetadata.routePolicy = "direct";
+profileMetadata.optimizerProfile = "";
+profileMetadata.gridPointsInitial = options.gridPointsInitial;
+profileMetadata.gridPointsTracking = options.gridPointsTracking;
+profileMetadata.jumpTol = options.jumpTol;
+profileMetadata.searchFactors = options.searchFactors;
+profileMetadata.supportedExecutionProfiles = guiExecutionProfileValues();
+profileMetadata.profileSupportMode = "fully_supported";
+profileMetadata.surfaceDefaultExecutionProfile = "Balanced";
 
 elapsedTimer = tic;
 modelResult = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(params, options);
@@ -25,13 +42,4 @@ result.metadata.options = options;
 result.metadata.elapsedSeconds = elapsedSeconds;
 result.metadata.executionProfile = profileMetadata;
 result.diagnostics.executionProfile = profileMetadata;
-end
-
-function options = rmExecutionProfileFields(options)
-for name = ["executionProfile", "effectiveExecutionProfile"]
-    fieldName = char(name);
-    if isfield(options, fieldName)
-        options = rmfield(options, fieldName);
-    end
-end
 end

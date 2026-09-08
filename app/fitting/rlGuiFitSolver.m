@@ -1,25 +1,43 @@
 function fitOutput = rlGuiFitSolver(request)
-%R LGUIFITSOLVER Run Rayleigh-Lamb fitting from an app-level request.
+%RLGUIFITSOLVER Run Rayleigh-Lamb fitting from an app-level request.
 
 request = guiBuildFitRequest(request.modelFamily, ...
-    'branchName', request.branchName, 'mode', request.mode, ...
-    'experimental', request.experimental, 'fixedParams', request.fixedParams, ...
-    'freeParams', request.freeParams, 'initialGuess', request.initialGuess, ...
-    'bounds', request.bounds, 'controls', request.controls, ...
-    'fitOptions', request.fitOptions, 'outputMode', request.outputMode);
+    'branchName', request.branchName, ...
+    'mode', request.mode, ...
+    'experimental', request.experimental, ...
+    'fixedParams', request.fixedParams, ...
+    'freeParams', request.freeParams, ...
+    'initialGuess', request.initialGuess, ...
+    'bounds', request.bounds, ...
+    'controls', request.controls, ...
+    'fitOptions', request.fitOptions, ...
+    'outputMode', request.outputMode);
+
 branchName = string(request.branchName);
-if strlength(branchName) == 0, branchName = "A0"; end
+if strlength(branchName) == 0
+    branchName = "A0";
+end
 if ~(branchName == "A0" || branchName == "S0")
     error('Unsupported Rayleigh-Lamb fitting branchName. Use A0 or S0.');
 end
+
 controls = request.controls;
 [solverOptions, profileMetadata] = rlResolveExecutionProfile(controls, ...
-    'DefaultProfile', "Fast", 'DefaultSource', "FitTool default");
+    'DefaultProfile', "Fast", ...
+    'DefaultSource', "FitTool default");
 controls.executionProfile = profileMetadata.requestedExecutionProfile;
+controls.robustness = profileMetadata.requestedExecutionProfile;
 request.controls = controls;
-fitConfig = struct('branchName', branchName, 'freeParams', request.freeParams, ...
-    'fixedParams', request.fixedParams, 'initialGuess', request.initialGuess, ...
-    'bounds', request.bounds, 'solverOptions', solverOptions, 'fitOptions', request.fitOptions);
+
+fitConfig = struct();
+fitConfig.branchName = branchName;
+fitConfig.freeParams = request.freeParams;
+fitConfig.fixedParams = request.fixedParams;
+fitConfig.initialGuess = request.initialGuess;
+fitConfig.bounds = request.bounds;
+fitConfig.solverOptions = solverOptions;
+fitConfig.fitOptions = request.fitOptions;
+
 tFit = tic;
 fitResult = lamb.fitting.rayleigh_lamb.rlFitDispersionData(request.experimental, fitConfig);
 fitElapsedSeconds = toc(tFit);
@@ -27,8 +45,14 @@ normalized = guiNormalizeFitResult(fitResult, request);
 normalized.executionProfile = profileMetadata;
 normalized.fullCurve.executionProfile = profileMetadata;
 normalized.fitElapsedSeconds = fitElapsedSeconds;
-fitOutput = struct('request', request, 'modelFamily', "rayleigh_lamb", ...
-    'modelName', "RayleighLamb", 'branchName', branchName, 'fitResult', fitResult, ...
-    'normalized', normalized, 'executionProfile', profileMetadata, ...
-    'fitElapsedSeconds', fitElapsedSeconds);
+
+fitOutput = struct();
+fitOutput.request = request;
+fitOutput.modelFamily = "rayleigh_lamb";
+fitOutput.modelName = "RayleighLamb";
+fitOutput.branchName = branchName;
+fitOutput.fitResult = fitResult;
+fitOutput.normalized = normalized;
+fitOutput.executionProfile = profileMetadata;
+fitOutput.fitElapsedSeconds = fitElapsedSeconds;
 end

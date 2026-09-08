@@ -5,13 +5,15 @@ if nargin < 1 || isempty(guiRequest)
     guiRequest = struct();
 end
 
-params = guiMergeStructs(mrlfeGuiDefaultParameters(), guiGetStructField(guiRequest, 'params', struct()));
+params = guiMergeStructs(lamb.models.mrlfe.configuration.mrlfeDefaultWorkflowParams(), ...
+    guiGetStructField(guiRequest, 'params', struct()));
 options = guiGetStructField(guiRequest, 'options', struct());
 [profile, profileMetadata] = guiNormalizeExecutionProfile(options, ...
-    'DefaultProfile', "Balanced", ...
-    'DefaultSource', "Solver GUI default");
+    'DefaultProfile', guiGetStructField(options, 'robustness', "Balanced"), ...
+    'DefaultSource', "model default");
 options.executionProfile = profile;
 options.effectiveExecutionProfile = profile;
+options.robustness = profile;
 options.mrlfeNumericalPreset = mrlfeProfileToNumericalPreset(profile);
 options.mrlfeParams = mrlfeResolveParams(guiRequest, options);
 options.mrlfeA0Policy = mrlfeNormalizeA0Policy(guiGetStructField(options, 'mrlfeA0Policy', "physicalTail"));
@@ -56,14 +58,6 @@ result.metadata = struct( ...
     'execution', mrlfeCollectBranchField(modelResults, 'execution'), ...
     'configuration', mrlfeCollectBranchField(modelResults, 'configuration'), ...
     'executionProfile', profileMetadata);
-end
-
-function params = mrlfeGuiDefaultParameters()
-public = lamb.models.mrlfe.mrlfeDefaultParameters();
-params = struct('modelType', "ShearPoisson", 'rho', public.rho_kgm3, ...
-    'mu', public.mu_Pa, 'nu', public.nu, 'thickness', public.thickness_m, ...
-    'fmin', 100, 'fmax', 16000, 'numFrequencyPoints', "auto", ...
-    'frequencySpacing', "hybrid");
 end
 
 function mrlfeParams = mrlfeResolveParams(guiRequest, options)
