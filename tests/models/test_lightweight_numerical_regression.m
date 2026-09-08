@@ -96,14 +96,14 @@ aeParams.fluidBulkModulus = 2.2e9;
 aeParams.frequency = logspace(log10(300), log10(15e3), 35);
 aeParams.IOP = 15 * 133.322;
 
-aeOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+aeOptions = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 aeOptions.M54_variant = "corrected";
 aeOptions.normalizeRows = false;
 aeOptions.atlasNumYPoints = 300;
 aeOptions.atlasTopNMinima = 12;
 aeOptions.atlasBranchPolicy = "atlasA0";
 
-aeResult = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(aeParams, aeOptions);
+aeResult = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(aeParams, aeOptions);
 assert(nnz(aeResult.validMask) == 35 && numel(aeResult.validMask) == 35, ...
     'AE IOP/HGO validMask snapshot changed.');
 assert(string(aeResult.quality.policyName) == "atlasA0", ...
