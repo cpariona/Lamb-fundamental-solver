@@ -1,9 +1,9 @@
 function request = mrlfeBuildSolveRequest(source, frequency_Hz, branchName, options)
-%MRLFEBUILDSOLVEREQUEST Translate physical parameters to one mRLFE request.
+%MRLFEBUILDSOLVEREQUEST Translate workflow parameters to one mRLFE request.
 %
-% source contains physical parameters using maintained public aliases.
+% source contains physical parameters using maintained public/app aliases.
 % options may contain mrlfeParams and numerical-preset input.
-% This helper is independent of GUI handles, studies, fitting, and plotting.
+% This helper is independent of GUI handles, sweeps, fitting, and plotting.
 
 if nargin < 4 || isempty(options)
     options = struct();
@@ -106,7 +106,7 @@ if isfield(options, 'numerics') && isstruct(options.numerics) && ...
 elseif isfield(options, 'mrlfeNumericalPreset') && ~isempty(options.mrlfeNumericalPreset)
     preset = lower(string(options.mrlfeNumericalPreset));
 else
-    preset = "fast";
+    preset = presetFromProfile(options);
 end
 
 if ~isscalar(preset) || ~any(preset == ["fast", "balanced", "robust", "dense"])
@@ -114,6 +114,26 @@ if ~isscalar(preset) || ~any(preset == ["fast", "balanced", "robust", "dense"])
         ['Unsupported mRLFE numerical preset "%s". ' ...
          'Use "fast", "balanced", "robust", or "dense".'], join(preset, ", "));
 end
+end
+
+function preset = presetFromProfile(options)
+if isfield(options, 'effectiveExecutionProfile') && ~isempty(options.effectiveExecutionProfile)
+    profile = string(options.effectiveExecutionProfile);
+elseif isfield(options, 'executionProfile') && ~isempty(options.executionProfile)
+    profile = string(options.executionProfile);
+elseif isfield(options, 'robustness') && ~isempty(options.robustness)
+    profile = string(options.robustness);
+else
+    profile = "Fast";
+end
+profiles = ["Fast", "Balanced", "Robust"];
+presets = ["fast", "balanced", "robust"];
+idx = find(profile == profiles, 1);
+if isempty(idx)
+    error('mrlfe:InvalidExecutionProfile', ...
+        'Unsupported mRLFE execution profile "%s".', profile);
+end
+preset = presets(idx);
 end
 
 function policy = terminationPolicy(branchName)

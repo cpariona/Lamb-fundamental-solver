@@ -20,7 +20,7 @@ effectiveProfile = requestedProfile;
 numericalPreset = profileToNumericalPreset(requestedProfile);
 
 switch surface
-    case {"gui", "solver", "api"}
+    case {"gui", "main", "solver", "api"}
         options = defaultAppSolveOptions(branchName, p.Results.EtaS, ...
             normalizeA0Policy(p.Results.A0Policy));
     case "fit"
@@ -34,6 +34,7 @@ end
 
 options.executionProfile = requestedProfile;
 options.effectiveExecutionProfile = effectiveProfile;
+options.robustness = requestedProfile;
 options.mrlfeNumericalPreset = numericalPreset;
 
 metadata.requestedExecutionProfile = requestedProfile;
@@ -60,6 +61,7 @@ options.modelFamily = "mrlfe";
 options.branchName = branchName;
 options.executionProfile = "Fast";
 options.effectiveExecutionProfile = "Fast";
+options.robustness = "Fast";
 options.mrlfeNumericalPreset = "fast";
 options.mrlfeA0Policy = a0Policy;
 options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
