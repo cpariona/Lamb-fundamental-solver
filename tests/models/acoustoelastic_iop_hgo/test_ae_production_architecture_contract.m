@@ -75,17 +75,6 @@ for i = 1:numel(internalSolvers)
         'Expected one definition for internal AE solver %s.', internalSolvers(i));
 end
 
-architecturePath = fullfile(repoRoot, 'docs', 'models', ...
-    'acoustoelastic_iop_hgo', 'architecture.md');
-assert(isfile(architecturePath), 'Missing maintained AE architecture contract.');
-architectureText = string(fileread(architecturePath));
-documentedOwners = ["lamb.models.acoustoelastic_iop_hgo.aeSolveBranch"; internalSolvers];
-for i = 1:numel(documentedOwners)
-    identifier = documentedOwners(i);
-    assert(contains(architectureText, identifier), ...
-        'Architecture contract does not classify %s.', identifier);
-end
-
 fprintf('AE production architecture contract passed.\n');
 end
 

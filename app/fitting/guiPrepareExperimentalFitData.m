@@ -1,5 +1,11 @@
 function prepared = guiPrepareExperimentalFitData(imported, varargin)
 %GUIPREPAREEXPERIMENTALFITDATA Select, convert, validate, and sort fit data.
+%   Frequency is converted to Hz and phase speed to m/s. Nonfinite or
+%   nonpositive rows are removed, at least two valid rows are required, and
+%   output is sorted by ascending frequency. Duplicate frequencies use the
+%   selected policy (mean by default); duplicate logical Use values combine
+%   with any. The returned provenance retains source, column, unit, duplicate,
+%   removal, and output-row evidence.
 
 p = inputParser;
 addRequired(p, 'imported', @isstruct);

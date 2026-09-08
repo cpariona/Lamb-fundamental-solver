@@ -10,7 +10,6 @@ assert(numel(names) == numel(unique(lower(names))), ...
 assertFilenameFunctionAgreement(repoRoot, trackedPaths);
 assertExampleTerms(trackedPaths);
 assertPrefixContracts(repoRoot, trackedPaths);
-assertDocumentedEntrypoints(repoRoot, trackedPaths, names);
 assertPermanentValidationNames(trackedPaths, names);
 retiredNames = retiredFunctionNames();
 assertRetiredFilenamesAbsent(names, retiredNames);
@@ -123,52 +122,6 @@ for i = 1:numel(paths)
         assert(allowed, 'Neutral app function has no ownership prefix: %s', path);
     end
 end
-end
-
-function assertDocumentedEntrypoints(repoRoot, trackedPaths, trackedNames)
-docPath = fullfile(repoRoot, 'docs', 'architecture.md');
-documented = matlabFenceIdentifiers(fileread(docPath));
-assert(~isempty(documented), ...
-    'docs/architecture.md must document at least one MATLAB entrypoint.');
-for i = 1:numel(documented)
-    identifier = documented(i);
-    if contains(identifier, ".")
-        resolved = string(which(identifier));
-        assert(strlength(resolved) > 0, ...
-            'Documented package entrypoint %s does not resolve.', identifier);
-        relative = erase(replace(resolved, "\", "/"), ...
-            replace(string(repoRoot), "\", "/") + "/");
-        assert(any(string({trackedPaths.relative}) == relative), ...
-            'Documented package entrypoint %s does not resolve to a tracked file.', identifier);
-    else
-        count = nnz(trackedNames == identifier);
-        assert(count == 1, ...
-            'Documented entrypoint %s must have one tracked definition; found %d.', ...
-            identifier, count);
-    end
-end
-end
-
-function names = matlabFenceIdentifiers(text)
-lines = splitlines(string(text));
-inMatlab = false;
-names = strings(0, 1);
-for i = 1:numel(lines)
-    line = strtrim(lines(i));
-    if line == "```matlab"
-        inMatlab = true;
-        continue;
-    elseif startsWith(line, "```")
-        inMatlab = false;
-        continue;
-    end
-    if inMatlab && ~isempty(regexp(line, ...
-            '^[A-Za-z]\w*(?:\.[A-Za-z]\w*)*$', 'once'))
-        names(end + 1, 1) = line; %#ok<AGROW>
-    end
-end
-assert(numel(names) == numel(unique(names)), ...
-    'docs/architecture.md contains a duplicate canonical MATLAB identifier.');
 end
 
 function assertPermanentValidationNames(paths, trackedNames)

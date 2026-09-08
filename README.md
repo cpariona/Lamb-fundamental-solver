@@ -1,64 +1,49 @@
 # Lamb Fundamental Solver
 
-MATLAB solvers and inverse-fitting tools for fundamental Lamb-wave dispersion
-in soft materials. The maintained families are Rayleigh-Lamb A0/S0,
+MATLAB forward solvers and inverse-fitting tools for fundamental Lamb-wave
+dispersion in soft materials. Maintained families are Rayleigh-Lamb A0/S0,
 fluid-loaded mRLFE A0Like/S0Like, and prestressed acoustoelastic IOP/HGO
-atlasA0.
+`atlasA0`.
 
 ## Start
 
-From the repository root in MATLAB:
+From the repository root:
 
 ```matlab
 startup
-runApp
-% Independent fitting surface:
-FitTool_GUI
+runApp                 % Solver GUI
+FitTool_GUI            % Independent fitting GUI
 ```
 
-The production path contains the repository root, `src/`, `app/`, and only
-the six validation launchers under `tests/runners/`. Studies, test bodies,
-examples, and generated outputs are not loaded by `startup`.
+GUI requests use `executionProfile` (`Fast`, `Balanced`, or `Robust`). The
+`robustness` compatibility alias is accepted only at app normalization
+boundaries.
 
-GUI requests use `executionProfile` (Fast, Balanced, Robust). The established
-`robustness` compatibility alias is restricted to app normalization.
-
-## Programmatic APIs
+## Canonical APIs
 
 | Family | Public operations |
 | --- | --- |
-| RL | `lamb.models.rayleigh_lamb.rlDefaultParams`, `lamb.models.rayleigh_lamb.rlDefaultOptions`, `lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes`, `lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations` |
+| Rayleigh-Lamb | `lamb.models.rayleigh_lamb.rlDefaultParams`, `lamb.models.rayleigh_lamb.rlDefaultOptions`, `lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes`, `lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations` |
 | mRLFE | `lamb.models.mrlfe.mrlfeDefaultParameters`, `lamb.models.mrlfe.mrlfeDefaultOptions`, `lamb.models.mrlfe.mrlfeSolve` |
-| AE | `lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions`, `lamb.models.acoustoelastic_iop_hgo.aeSolveBranch` |
+| AE IOP/HGO | `lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions`, `lamb.models.acoustoelastic_iop_hgo.aeSolveBranch` |
 | Fitting | `lamb.fitting.rayleigh_lamb.rlFitDispersionData`, `lamb.fitting.mrlfe.mrlfeFitDispersionData`, `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` |
-| Sweep infrastructure | `lamb.sweeps.runParametricSweep` |
+| Sweeps | `lamb.sweeps.runParametricSweep` |
 
-Sensitivity studies are not production APIs. They live under `studies/`
-and call canonical solvers through the generic sweep engine.
+Use MATLAB `help` on an entrypoint for its request, units, result, and validity
+contract.
 
-## Examples and studies
+## Examples
 
-Six short, opt-in examples remain for complete runnable solver and fitting
-demonstrations:
+Examples and studies are opt-in and are not added by `startup`:
 
 ```matlab
 run('examples/rayleigh_lamb/basic/rlRunDefaultA0S0.m')
+run('examples/mrlfe/basic/mrlfeRunDefault.m')
+run('examples/acoustoelastic_iop_hgo/basic/aeRunAtlasBranch.m')
 run('examples/rayleigh_lamb/fitting/rlFitDefaultA0.m')
 ```
 
-Sensitivity studies and solver investigations are opt-in. A study
-script configures its own study path and never changes normal startup:
-
-```matlab
-run('studies/sensitivity/rayleigh_lamb/rlStudyThicknessA0.m')
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseModalAtlas.m')
-```
-
-Generated figures and results are untracked.
-
 ## Validation
-
-After `startup`, invoke any of the six commands directly:
 
 ```matlab
 run_repository_hygiene_tests
@@ -69,18 +54,4 @@ run_extended_integration_tests
 run_performance_and_benchmark_tests
 ```
 
-Each runner loads tests and studies explicitly and restores the caller path.
-See [validation](docs/validation.md).
-
-## Architecture
-
-- `src/+lamb/+models/` owns physics, tracking, quality, and scientific results.
-- `src/+lamb/+fitting/` owns inverse fitting and neutral fitting primitives.
-- `src/+lamb/+sweeps/` owns only generic repeated-evaluation infrastructure.
-- `app/` owns the solver GUI, FitTool, and request/view translation.
-- `studies/` owns sensitivity studies and solver investigations.
-- `examples/` contains only short solver/fitting API demonstrations.
-- `tests/` owns validation and benchmark tooling.
-
-Start with the [architecture](docs/architecture.md), [engineering
-conventions](docs/conventions.md), and [fitting guide](docs/fitting.md).
+The six runners form the complete maintained validation surface.

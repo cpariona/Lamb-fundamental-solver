@@ -97,8 +97,6 @@ assert(mrlfeMetadata.profileSupportMode == "direct", ...
 %% Canonical docs describe the field and compatibility alias.
 assertDocContains('README.md', 'executionProfile');
 assertDocContains('README.md', 'compatibility alias');
-assertDocContains(fullfile('docs', 'architecture.md'), ...
-    'execution-profile metadata contract');
 fprintf('Execution profile normalization contract test passed.\n');
 end
 

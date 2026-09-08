@@ -1,5 +1,7 @@
 function params = mrlfeDefaultParameters()
 %MRLFEDEFAULTPARAMETERS Public default physical parameters for mRLFE.
+%   Fields use SI units as indicated by their suffixes: Pa, Pa*s, kg/m^3,
+%   m, and m/s. thickness_m is full physical thickness.
 
 params = struct();
 params.mu_Pa = 75e3;

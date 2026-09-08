@@ -5,7 +5,7 @@ repoRoot = testRepositoryRoot(mfilename('fullpath'));
 paths = gitTrackedPaths(repoRoot);
 
 allowedTopLevel = ["app", "docs", "examples", "src", "studies", "tests"];
-requiredTopLevel = allowedTopLevel;
+requiredTopLevel = ["app", "examples", "src", "studies", "tests"];
 for i = 1:numel(requiredTopLevel)
     assert(isfolder(fullfile(repoRoot, requiredTopLevel(i))), ...
         'Required repository directory is missing: %s', requiredTopLevel(i));
@@ -239,11 +239,14 @@ assert(isequal(sort(utilityFiles), sort(expectedUtilities)), ...
 end
 
 function assertDocumentationOwnership(repoRoot, paths)
-canonical = ["docs/architecture.md"; "docs/conventions.md"; ...
-    "docs/fitting.md"; "docs/validation.md"];
+canonical = [ ...
+    "README.md"
+    "AGENTS.md"
+    "src/+lamb/+models/+mrlfe/AGENTS.md"
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/AGENTS.md"];
 for path = canonical(:).'
     assert(any(paths == path) && isfile(fullfile(repoRoot, path)), ...
-        'Missing canonical documentation: %s', path);
+        'Missing canonical repository context: %s', path);
 end
 retiredRoots = ["docs/architecture/", "docs/project/", "docs/repository/", ...
     "docs/validation/", "docs/workflows/"];
@@ -251,11 +254,6 @@ assert(~any(startsWith(paths, retiredRoots)), ...
     'Campaign or superseded documentation owner returned.');
 assert(~any(contains(paths(startsWith(paths, "docs/")), "/active/")), ...
     'Transition-era active/ documentation must remain absent.');
-for family = ["rayleigh_lamb", "mrlfe", "acoustoelastic_iop_hgo"]
-    familyDocs = paths(startsWith(paths, "docs/models/" + family + "/") & ...
-        endsWith(paths, ".md"));
-    assert(~isempty(familyDocs), 'Model documentation scan is empty: %s', family);
-end
 end
 
 function assertAeModelDiagnosticOwnership(paths)
