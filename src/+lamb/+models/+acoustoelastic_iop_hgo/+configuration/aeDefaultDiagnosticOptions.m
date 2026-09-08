@@ -1,7 +1,7 @@
 function options = aeDefaultDiagnosticOptions(overrides)
 %AEDEFAULTDIAGNOSTICOPTIONS Internal options for retained direct AE diagnostics.
 
-options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 
 options.branch = "A0";
 options.trackingDirection = "forward";
