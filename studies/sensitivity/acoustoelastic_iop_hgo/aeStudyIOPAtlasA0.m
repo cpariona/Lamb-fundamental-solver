@@ -52,7 +52,7 @@ disp(summary.conditionTable);
 fprintf('\nData files written to:\n%s\n', outputFolder);
 fprintf('Figure files written to:\n%s\n', figureFolder);
 
-assignin('base', 'aeIOPSweepResult', sweepResult);
-assignin('base', 'aeIOPSweepSummary', summary);
-assignin('base', 'aeIOPSweepOutputFolder', outputFolder);
-assignin('base', 'aeIOPSweepFigureFolder', figureFolder);
+assignin('base', 'AcoustoelasticIOPHGOIOPSweepResult', sweepResult);
+assignin('base', 'AcoustoelasticIOPHGOIOPSweepSummary', summary);
+assignin('base', 'AcoustoelasticIOPHGOIOPSweepOutputFolder', outputFolder);
+assignin('base', 'AcoustoelasticIOPHGOIOPSweepFigureFolder', figureFolder);

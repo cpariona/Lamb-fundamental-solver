@@ -81,7 +81,7 @@ disp(summary.conditionTable);
 fprintf('\nData files written to:\n%s\n', outputFolder);
 fprintf('Static figure files written to:\n%s\n', figureFolder);
 
-assignin('base', 'aeMuIOPSweepResult', sweepResult);
-assignin('base', 'aeMuIOPSweepSummary', summary);
-assignin('base', 'aeMuIOPSweepOutputFolder', outputFolder);
-assignin('base', 'aeMuIOPSweepFigureFolder', figureFolder);
+assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepResult', sweepResult);
+assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepSummary', summary);
+assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepOutputFolder', outputFolder);
+assignin('base', 'AcoustoelasticIOPHGOMuIOPSweepFigureFolder', figureFolder);

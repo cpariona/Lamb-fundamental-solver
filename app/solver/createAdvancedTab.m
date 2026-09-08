@@ -11,7 +11,7 @@ uilabel(g, 'Text', 'Numerical solver', 'FontWeight', 'bold');
 uilabel(g, 'Text', '');
 
 uilabel(g, 'Text', 'Execution profile');
-h.executionProfile = uidropdown(g, 'Items', cellstr(guiExecutionProfileValues()), ...
+h.robustness = uidropdown(g, 'Items', cellstr(guiExecutionProfileValues()), ...
     'Value', 'Balanced', 'ValueChangedFcn', callbacks.markDirty);
 
 uilabel(g, 'Text', 'Preset effect');
