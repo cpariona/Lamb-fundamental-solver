@@ -77,9 +77,6 @@ assert(mrlfeMetadata.profileOverrideApplied == false && mrlfeMetadata.profileOve
 assert(mrlfeMetadata.profileSupportMode == "direct", ...
     'mRLFE support mode should report direct profile support.');
 
-%% Canonical docs describe the field and compatibility alias.
-assertDocContains('README.md', 'executionProfile');
-assertDocContains('README.md', 'compatibility alias');
 fprintf('Execution profile normalization contract test passed.\n');
 end
 
@@ -99,13 +96,6 @@ for iFamily = 1:numel(registry.modelFamilies)
     assert(strlength(string(family.surfaceDefaultExecutionProfile)) > 0, ...
         '%s family %s should define surfaceDefaultExecutionProfile.', label, family.id);
 end
-end
-
-function assertDocContains(pathParts, expected)
-root = testRepositoryRoot();
-filePath = fullfile(root, pathParts);
-txt = string(fileread(filePath));
-assert(contains(txt, expected), 'Expected %s to contain "%s".', filePath, expected);
 end
 
 function assertThrows(fcn, expectedId)

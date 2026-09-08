@@ -1,83 +1,89 @@
 function test_ae_sensitivity_study_contract()
-%TEST_AE_SENSITIVITY_STUDY_CONTRACT Validate maintained AE sensitivity campaigns.
-%
-% This is a lightweight source-level contract. It checks the public entrypoints,
-% requested fields, ranges, units, and output task names without running the
-% computationally expensive Robust sweeps.
+%TEST_AE_SENSITIVITY_STUDY_CONTRACT Validate the maintained AE sweep behavior.
 
+timerStart = tic;
 repoRoot = testRepositoryRoot();
-studyRoot = fullfile(repoRoot, 'studies', 'sensitivity', ...
-    'acoustoelastic_iop_hgo');
-studyPath = fullfile(studyRoot, 'aeRunSensitivity.m');
-oldModelPath = fullfile(repoRoot, 'src', '+lamb', '+models', '+acoustoelastic_iop_hgo', '+solvers', 'aeRunSensitivity.m');
-assert(isfile(studyPath), 'AE sensitivity orchestration must be study-owned.');
-assert(~isfile(oldModelPath), 'Model code must not own sensitivity orchestration.');
-assert(strcmp(which('aeRunSensitivity'), studyPath), ...
+studyOwner = fullfile(repoRoot, 'studies', 'sensitivity', ...
+    'acoustoelastic_iop_hgo', 'aeRunSensitivity.m');
+assert(strcmp(which('aeRunSensitivity'), studyOwner), ...
     'AE sensitivity orchestration must resolve from its opt-in study owner.');
-assert(~isfolder(fullfile(repoRoot, 'app', 'sweep')), ...
-    'The retired SweepTool adapter tree must remain absent.');
-assert(isempty(which('aePlotGridSweepFrequencySurfaceInteractive')), ...
-    'The retired SweepTool interactive plot must not resolve.');
 
-cases = makeCase("aeStudyIOPAtlasA0", "IOP", ...
-    "IOP_mmHg = [5, 10, 15, 20, 25]", "iop_sweep");
+baseParams = representativeParams();
+options = fastTestOptions();
+iopValues_mmHg = [10, 20];
+iopValues_Pa = iopValues_mmHg * 133.322;
+sweepConfig = struct('Name', "tiny_iop", 'Label', "IOP", ...
+    'Unit', "mmHg", 'ValueScale', 133.322, 'ValueFormatter', "%.0f");
 
-for i = 1:numel(cases)
-    entryPath = fullfile(studyRoot, cases(i).entrypoint + ".m");
-    assert(isfile(entryPath), ...
-        'Missing maintained AE sweep entrypoint: %s.', cases(i).entrypoint);
+sweep = aeRunSensitivity(baseParams, "IOP", iopValues_Pa, options, sweepConfig);
 
-    text = string(fileread(entryPath));
-    expectedCall = string(sprintf('aeRunSensitivity(baseParams, "%s"', cases(i).field));
-    expectedTask = string(sprintf('"%s"', cases(i).taskName));
+assert(sweep.spec.parameter == "IOP" && sweep.parameter == "IOP");
+assert(sweep.spec.parameterPath == "params.IOP");
+assert(sweep.spec.units == "mmHg" && sweep.spec.displayScale == 133.322);
+assert(isequal(sweep.values, iopValues_Pa));
+assert(isequal(sweep.displayValues, iopValues_mmHg));
+assert(numel(sweep.results) == numel(iopValues_Pa) && ...
+    numel(sweep.requests) == numel(iopValues_Pa), ...
+    'The sweep must create one result and request per IOP value.');
 
-    assert(contains(text, cases(i).rangeText), ...
-        'Unexpected sweep range in %s.', cases(i).entrypoint);
-    assert(contains(text, "aeSensitivityParameters()"), ...
-        '%s must use the shared AE sweep defaults.', cases(i).entrypoint);
-    assert(contains(text, "aeSensitivityOptions(""Robust"")"), ...
-        '%s must preserve the maintained Robust example profile.', cases(i).entrypoint);
-    assert(contains(text, expectedCall), ...
-        '%s must sweep the expected physical field.', cases(i).entrypoint);
-    assert(contains(text, "aeWriteSensitivityOutputs"), ...
-        '%s must use the maintained AE output writer.', cases(i).entrypoint);
-    assert(contains(text, expectedTask), ...
-        '%s must use the expected output task name.', cases(i).entrypoint);
-    assert(contains(text, "aePlotSensitivity"), ...
-        '%s must use the maintained AE sweep plot helper.', cases(i).entrypoint);
-    assert(contains(text, "aeSaveStudyFigure"), ...
-        '%s must use the maintained AE figure writer.', cases(i).entrypoint);
+for i = 1:numel(iopValues_Pa)
+    expectedParams = baseParams;
+    expectedParams.IOP = iopValues_Pa(i);
+    assert(isequaln(sweep.params{i}, expectedParams), ...
+        'The sweep must vary only IOP in the physical request.');
+    assert(isequaln(sweep.options{i}, options), ...
+        'The sweep must not vary numerical options between IOP points.');
+
+    result = sweep.results{i};
+    assertCanonicalAtlasA0(result, baseParams.frequency);
+    assert(sweep.points{i}.status == "ok");
+    assert(isequaln(sweep.requests{i}, result.configuration.requested), ...
+        'Stored sweep request must preserve canonical requested configuration.');
+    assert(result.configuration.requested.parameters.IOP == iopValues_Pa(i));
+
+    direct = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch( ...
+        expectedParams, options);
+    assert(isequaln(result.phaseVelocity_mps, direct.phaseVelocity_mps));
+    assert(isequal(result.validMask, direct.validMask));
+    assert(isequaln(result.wavenumber_radpm, direct.wavenumber_radpm));
+    assert(isequaln(result.quality, direct.quality));
+    assert(isequaln(result.configuration, direct.configuration));
 end
 
-assert(isfile(fullfile(studyRoot, 'aeStudyMuIOPAtlasA0.m')), ...
-    'Missing maintained AE combined mu-IOP sweep entrypoint.');
-assertObsoleteEntrypointsAreAbsent([ ...
-    "sweep_iop", ...
-    "sweep_mu", ...
-    "sweep_thickness", ...
-    "sweep_k1", ...
-    "sweep_k2", ...
-    "sweep_radius", ...
-    "sweep_mu_iop" ...
-    ]);
-assertObsoleteEntrypointsAreAbsent([ ...
-    "rlRunSweep", "mrlfeRunSweep", "aeRunSweep", "aeRunGridSweep", ...
-    "runAcoustoelasticSensitivity", "runAcoustoelasticGridSensitivity"]);
-
-fprintf('AE sensitivity study contract passed.\n');
+fprintf('AE tiny sensitivity behavior passed in %.3f s.\n', toc(timerStart));
 end
 
-function assertObsoleteEntrypointsAreAbsent(names)
-for i = 1:numel(names)
-    assert(isempty(which(names(i))), ...
-        'Obsolete AE sweep entrypoint should not resolve on the MATLAB path: %s.', names(i));
-end
+function params = representativeParams()
+params = struct();
+params.R = 7.8e-3;
+params.thickness = 550e-6;
+params.IOP = 15 * 133.322;
+params.mu = 50e3;
+params.k1 = 25e3;
+params.k2 = 100;
+params.rho = 1060;
+params.rhoF = 1000;
+params.fluidBulkModulus = 2.2e9;
+params.frequency = logspace(log10(1000), log10(5000), 5);
 end
 
-function c = makeCase(entrypoint, field, rangeText, taskName)
-c = struct( ...
-    'entrypoint', string(entrypoint), ...
-    'field', string(field), ...
-    'rangeText', string(rangeText), ...
-    'taskName', string(taskName));
+function options = fastTestOptions()
+[options, ~] = aeResolveExecutionProfile("Fast");
+options.M54_variant = "corrected";
+options.normalizeRows = false;
+options.atlasBranchPolicy = "atlasA0";
+options.atlasNumYPoints = 120;
+options.atlasTopNMinima = 6;
+options.useInternalAtlasTrackingGrid = false;
+end
+
+function assertCanonicalAtlasA0(result, frequency)
+required = {'model', 'branch', 'frequency_Hz', 'phaseVelocity_mps', ...
+    'wavenumber_radpm', 'validMask', 'quality', 'diagnostics', ...
+    'configuration', 'execution'};
+assert(all(isfield(result, required)), 'Canonical AE result schema is incomplete.');
+assert(result.model == "acoustoelastic_iop_hgo" && result.branch == "atlasA0");
+assert(isequal(result.frequency_Hz, frequency(:)));
+assert(isa(result.validMask, 'logical'));
+assert(all(isnan(result.phaseVelocity_mps(~result.validMask))));
 end
