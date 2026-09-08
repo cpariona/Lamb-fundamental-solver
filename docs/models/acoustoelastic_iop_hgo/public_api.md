@@ -5,8 +5,8 @@ params = struct('R',7.8e-3,'thickness',550e-6,'mu',50e3, ...
     'k1',25e3,'k2',100,'rho',1060,'rhoF',1000, ...
     'fluidBulkModulus',2.2e9,'IOP',15*133.322, ...
     'frequency',logspace(log10(300),log10(15e3),35));
-opts = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions;
-result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, opts);
+opts = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions;
+result = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, opts);
 ```
 
 ## Inputs and options
@@ -40,12 +40,12 @@ not another accepted production branch. See
 ## Workflows and limitations
 
 The reusable inverse operation is `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData`.
-One- and two-dimensional sensitivity campaigns are opt-in studies, not model
+One- and two-dimensional sensitivity studies are opt-in workflows, not model
 APIs. Application adapters only translate inputs and views.
 Examples are opt-in, e.g.:
 
 ```matlab
-run('examples/acoustoelastic_iop_hgo/basic/run_atlas_branch.m')
+run('examples/acoustoelastic_iop_hgo/basic/aeRunAtlasBranch.m')
 ```
 
 A finite atlas and conservative branch policy can truncate output in difficult

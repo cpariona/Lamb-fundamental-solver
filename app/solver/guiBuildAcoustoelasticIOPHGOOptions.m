@@ -1,6 +1,0 @@
-function aeOptions = guiBuildAcoustoelasticIOPHGOOptions(robustness)
-[aeOptions, profileMetadata] = aeResolveExecutionProfile(robustness, ...
-    'DefaultProfile', "Balanced", ...
-    'DefaultSource', "Main GUI default");
-aeOptions.executionProfileMetadata = profileMetadata;
-end

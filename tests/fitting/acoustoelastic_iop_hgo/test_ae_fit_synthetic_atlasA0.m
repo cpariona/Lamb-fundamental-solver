@@ -16,7 +16,7 @@ trueParams.fluidBulkModulus = 2.2e9;
 trueParams.IOP = 15 * 133.322;
 trueParams.frequency = logspace(log10(300), log10(15e3), 35);
 
-solverOptions = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+solverOptions = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 solverOptions.M54_variant = "corrected";
 solverOptions.normalizeRows = false;
 solverOptions.atlasNumYPoints = 300;

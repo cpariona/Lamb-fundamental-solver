@@ -10,7 +10,7 @@ The maintained model-oriented entry point for real-k mRLFE solving is:
 result = lamb.models.mrlfe.mrlfeSolve(request);
 ```
 
-Main GUI, FitTool, and sensitivity studies consume this model-owned API. Application
+Solver GUI, FitTool, and sensitivity studies consume this model-owned API. Application
 adapters own surface state and presentation, but canonical mRLFE request
 translation is model-owned by `lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` under
 `src/+lamb/+models/+mrlfe/+configuration/`.
@@ -193,13 +193,13 @@ lamb.models.mrlfe.mrlfeSolve
 The only intentional cross-family dependency is `lamb.models.mrlfe.tracking.mrlfeBuildSeed ->
 lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes` for the scientific seed.
 
-## Main GUI Use
+## Solver GUI Use
 
-The maintained Main GUI mRLFE chain is:
+The maintained Solver GUI mRLFE chain is:
 
 ```text
 LambFundamental_GUI
-  -> guiRunMRLFEModel
+  -> mrlfeGuiRunModel
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve
   -> GUI result adapter
@@ -208,7 +208,7 @@ LambFundamental_GUI
 The request builder translates the Solver GUI SI parameters (`mu`,
 `etaS`, `rho`, `nu`, `thickness`, fluid density, fluid sound speed, frequency
 grid, and branch toggles) to the public material, geometry, and fluid fields.
-The Main GUI defaults to `Balanced`, which maps directly to public preset
+The Solver GUI defaults to `Balanced`, which maps directly to public preset
 `balanced`; explicit Fast and Robust selections map to `fast` and `robust`.
 A0Like uses adaptive selection with `physicalTail` termination and no fallback.
 S0Like uses adaptive selection with no additional termination and no fallback.
@@ -225,7 +225,7 @@ The maintained FitTool mRLFE fitting chain is:
 
 ```text
 FitTool_GUI
-  -> guiFitMRLFESolver
+  -> mrlfeGuiFitSolver
   -> lamb.fitting.mrlfe.mrlfeFitDispersionData
   -> lamb.fitting.solveDispersionFitProblem
   -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel
@@ -250,8 +250,8 @@ parameters. Characterization compares maintained consumers directly against
 The maintained mRLFE sensitivity chain is:
 
 ```text
-study_etaS_A0Like
-  -> runMRLFESensitivity
+mrlfeStudyEtaSA0Like
+  -> mrlfeRunSensitivity
   -> lamb.sweeps.runParametricSweep
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve, once per sweep point

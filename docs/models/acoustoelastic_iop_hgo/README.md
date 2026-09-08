@@ -1,31 +1,31 @@
 # AE IOP/HGO model
 
-The production entrypoint is `lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch`; defaults are
-created with `lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions`. Production uses the
+The production entrypoint is `lamb.models.acoustoelastic_iop_hgo.aeSolveBranch`; defaults are
+created with `lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions`. Production uses the
 `atlasA0` policy and returns canonical frequency, phase-velocity, wavenumber,
 validity, and quality fields.
 
 Maintained examples are:
 
 ```matlab
-run('examples/acoustoelastic_iop_hgo/basic/run_atlas_branch.m')
-run('examples/acoustoelastic_iop_hgo/fitting/fit_ae_atlasA0.m')
-run('studies/sensitivity/acoustoelastic_iop_hgo/study_iop_A0Like.m')
-run('studies/sensitivity/acoustoelastic_iop_hgo/study_mu_iop_A0Like.m')
+run('examples/acoustoelastic_iop_hgo/basic/aeRunAtlasBranch.m')
+run('examples/acoustoelastic_iop_hgo/fitting/aeFitAtlasA0.m')
+run('studies/sensitivity/acoustoelastic_iop_hgo/aeStudyIOPAtlasA0.m')
+run('studies/sensitivity/acoustoelastic_iop_hgo/aeStudyMuIOPAtlasA0.m')
 ```
 
 Maintained diagnostics are:
 
 ```matlab
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_atlas_truncation.m')
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_branch_families.m')
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_grid_start_sensitivity.m')
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_modal_atlas.m')
-run('studies/solver_diagnostics/acoustoelastic_iop_hgo/diagnose_sweep_reliability.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseAtlasTruncation.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseBranchFamilies.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseGridStartSensitivity.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseModalAtlas.m')
+run('studies/solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseSweepReliability.m')
 ```
 
 Fitting is owned by `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData`; 1D and 2D sweeps are owned by
-`runAcoustoelasticSensitivity` and `runAcoustoelasticGridSensitivity`. Diagnostic algorithms do not select or
+`aeRunSensitivity` and `aeRunGridSensitivity`. Diagnostic algorithms do not select or
 rebuild the official production result.
 
 See `public_api.md`, `branch_policy.md`, and

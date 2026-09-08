@@ -10,8 +10,8 @@ end
 
 exampleRoot = fullfile(repoRoot, 'examples', 'mrlfe');
 expected = [ ...
-    "basic/run_default_mrlfe.m"
-    "fitting/fit_mrlfe_A0Like.m"];
+    "basic/mrlfeRunDefault.m"
+    "fitting/mrlfeFitA0Like.m"];
 files = dir(fullfile(exampleRoot, '**', '*.m'));
 actual = strings(numel(files), 1);
 for i = 1:numel(files)

@@ -11,7 +11,7 @@ rlResult.branches = [ ...
     makeBranch("RayleighLamb", "S0", frequency, [18.0; 18.4; 18.9], [true; true; true])];
 rlParameters = struct('modelType', "ShearPoisson", 'rho_kg_m3', 1000, ...
     'mu_Pa', 50000, 'nu', 0.49, 'thickness_m', 5e-4);
-assertExportContract(guiBuildMainResultExport(rlResult, rlParameters), 2, rlParameters);
+assertExportContract(guiBuildSolverResultExport(rlResult, rlParameters), 2, rlParameters);
 
 %% mRLFE
 mrlfeResult = struct();
@@ -20,7 +20,7 @@ mrlfeResult.branches = makeBranch("mRLFERealK", "A0Like", frequency, ...
 mrlfeParameters = struct('modelType', "ShearPoisson", 'rho_kg_m3', 1000, ...
     'mu_Pa', 50000, 'nu', 0.49, 'thickness_m', 5e-4, ...
     'fluidDensity_kg_m3', 1000, 'fluidSoundSpeed_m_s', 1500, 'etaS_Pa_s', 0.05);
-mrlfeExport = guiBuildMainResultExport(mrlfeResult, mrlfeParameters);
+mrlfeExport = guiBuildSolverResultExport(mrlfeResult, mrlfeParameters);
 assertExportContract(mrlfeExport, 1, mrlfeParameters);
 assert(isequal(mrlfeExport.curves.data.Valid, [true; false; true]), ...
     'Exported validity must preserve normalized branch validity.');
@@ -33,13 +33,13 @@ aeParameters = struct('modelType', "ShearPoisson", 'rho_kg_m3', 1050, ...
     'mu_Pa', 80000, 'nu', 0.49, 'thickness_m', 5.5e-4, ...
     'IOP_mmHg', 15, 'radius_mm', 7.8, 'k1_Pa', 25000, 'k2', 100, ...
     'fluidDensity_kg_m3', 1000, 'fluidBulkModulus_Pa', 2.2e9);
-aeExport = guiBuildMainResultExport(aeResult, aeParameters);
+aeExport = guiBuildSolverResultExport(aeResult, aeParameters);
 assertExportContract(aeExport, 1, aeParameters);
 
 %% Save contract
 filePath = [tempname, '.mat'];
 cleanup = onCleanup(@()deleteIfPresent(filePath)); %#ok<NASGU>
-savedPath = guiSaveMainResultExport(filePath, aeExport);
+savedPath = guiSaveSolverResultExport(filePath, aeExport);
 assert(strcmp(savedPath, filePath), 'Save helper must return the resolved MAT-file path.');
 saved = load(filePath);
 assert(isequal(fieldnames(saved), {'LambExport'}), ...

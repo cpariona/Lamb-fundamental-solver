@@ -4,13 +4,13 @@ function test_ae_study_layout_contract()
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 studyRoot = fullfile(repoRoot, 'studies');
 expected = [ ...
-    "sensitivity/acoustoelastic_iop_hgo/study_iop_A0Like.m"
-    "sensitivity/acoustoelastic_iop_hgo/study_mu_iop_A0Like.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/diagnose_atlas_truncation.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/diagnose_branch_families.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/diagnose_grid_start_sensitivity.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/diagnose_modal_atlas.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/diagnose_sweep_reliability.m"];
+    "sensitivity/acoustoelastic_iop_hgo/aeStudyIOPAtlasA0.m"
+    "sensitivity/acoustoelastic_iop_hgo/aeStudyMuIOPAtlasA0.m"
+    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseAtlasTruncation.m"
+    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseBranchFamilies.m"
+    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseGridStartSensitivity.m"
+    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseModalAtlas.m"
+    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseSweepReliability.m"];
 
 for i = 1:numel(expected)
     [~, name] = fileparts(expected(i));
@@ -19,7 +19,7 @@ for i = 1:numel(expected)
 end
 
 diagnosticPath = fullfile(studyRoot, 'solver_diagnostics', ...
-    'acoustoelastic_iop_hgo', 'diagnose_branch_families.m');
+    'acoustoelastic_iop_hgo', 'aeDiagnoseBranchFamilies.m');
 diagnosticText = stripMatlabComments(fileread(diagnosticPath));
 assert(~isempty(regexp(diagnosticText, ...
     'lamb\.models\.acoustoelastic_iop_hgo\.tracking\.aeFindAtlasLocalMinima\s*\(', 'once')), ...

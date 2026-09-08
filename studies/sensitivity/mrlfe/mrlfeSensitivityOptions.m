@@ -1,8 +1,8 @@
 function options = mrlfeSensitivityOptions(branchName, varargin)
-%MRLFEDEFAULTSWEEPOPTIONS Build reference solver options for mRLFE sweeps.
+%MRLFESENSITIVITYOPTIONS Build reference solver options for mRLFE studies.
 %
 % branchName must be "A0Like" or "S0Like". The returned structure belongs
-% to mRLFE analysis workflows and is translated to the public request API.
+% to mRLFE sensitivity studies and is translated to the public request API.
 
 p = inputParser;
 addRequired(p, 'branchName', @(x)ischar(x) || isstring(x));

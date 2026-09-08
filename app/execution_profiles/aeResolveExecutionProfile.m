@@ -48,7 +48,7 @@ end
 
 function overrides = buildSurfaceOverrides(surface, requestedOverrides)
 overrides = struct();
-if ismember(surface, ["MainGUI", "FitTool"])
+if ismember(surface, ["SolverGUI", "FitTool"])
     overrides = struct( ...
         'M54_variant', "corrected", ...
         'normalizeRows', false, ...
@@ -63,8 +63,8 @@ switch lower(strtrim(string(value)))
         surface = "direct";
     case {"fittool", "fit", "fittool requested curve", "fittool synthetic"}
         surface = "FitTool";
-    case {"maingui", "main_gui", "main"}
-        surface = "MainGUI";
+    case {"solvergui", "solver_gui", "solver", "maingui", "main_gui", "main"}
+        surface = "SolverGUI";
     otherwise
         error('aeResolveExecutionProfile:InvalidSurface', ...
             'Unknown AE application surface "%s".', string(value));

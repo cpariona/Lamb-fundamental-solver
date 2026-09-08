@@ -121,7 +121,7 @@ aeSweep.params = {aeParams1, aeParams2};
 aeSweep.options = {struct(), struct()};
 aeSweep.results = {makeAeResult(frequency, [4; 5; 6]), makeAeResult(frequency, [5; 6; 7])};
 
-aeData = buildAcoustoelasticSensitivityPlotData(aeSweep);
+aeData = aeBuildSensitivityPlotData(aeSweep);
 assert(numel(aeData.curves) == 2, 'AE adapter returned the wrong curve count.');
 assert(any(contains(aeData.fixedParameterLines, "IOP = 15.0 mmHg")), ...
     'AE adapter is missing fixed IOP metadata.');
@@ -129,7 +129,7 @@ assert(~any(contains(aeData.fixedParameterLines, "h =")), ...
     'AE adapter should not list the swept thickness as fixed.');
 assert(string(aeData.curves(1).legendLabel) == "h = 400 um", ...
     'AE adapter should use the compact h sweep label.');
-fig = plotAcoustoelasticSensitivity(aeSweep);
+fig = aePlotSensitivity(aeSweep);
 ax = findSingleDataAxes(fig);
 lgd = findSingleLegend(fig);
 assert(contains(string(ax.Subtitle.String), "IOP = 15.0 mmHg"), ...
@@ -141,7 +141,7 @@ close(fig);
 %% AE unitless k2 formatting
 aeSweep.parameter = "k1";
 aeSweep.spec = struct('label', "k1", 'units', "kPa");
-aeData = buildAcoustoelasticSensitivityPlotData(aeSweep);
+aeData = aeBuildSensitivityPlotData(aeSweep);
 k2Line = aeData.fixedParameterLines(contains(aeData.fixedParameterLines, "k2 ="));
 assert(isscalar(k2Line) && string(k2Line) == "k2 = 200", ...
     'Unitless k2 should be formatted without a fake unit.');

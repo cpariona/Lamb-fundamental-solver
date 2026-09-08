@@ -39,7 +39,7 @@ request = guiBuildFitRequest("mrlfe", ...
     'fitOptions', struct('useStandardErrorWeights', false, ...
         'optimizerOptions', optimset('Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-5)));
 
-fitOutput = guiFitMRLFESolver(request);
+fitOutput = mrlfeGuiFitSolver(request);
 fitResult = fitOutput.fitResult;
 
 assert(isfield(fitResult.fixedParams, 'etaS'), 'GUI mRLFE fit must propagate fixed etaS into fixedParams.');

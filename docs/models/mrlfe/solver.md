@@ -21,23 +21,23 @@ lamb.models.mrlfe.mrlfeSolve
 ```
 
 The core owns model physics and tracking without depending on fitting,
-application, studies, examples, or tests. Main GUI forward solving reaches this
+application, studies, examples, or tests. Solver GUI forward solving reaches this
 core through the public API:
 
 ```text
-guiRunMRLFEModel
+mrlfeGuiRunModel
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve
 ```
 
-The Main GUI adapter translates app input and adapts the public result for
+The Solver GUI adapter translates app input and adapts the public result for
 plotting/export presentation. It does not select low-level trackers, apply
 physical-tail cuts, or perform zero-viscosity fallback.
 
 FitTool fitting reaches this core through the public API:
 
 ```text
-guiFitMRLFESolver
+mrlfeGuiFitSolver
   -> lamb.fitting.mrlfe.mrlfeFitDispersionData
   -> lamb.fitting.solveDispersionFitProblem
   -> lamb.fitting.mrlfe.mrlfeEvaluateFitModel
@@ -52,7 +52,7 @@ final fit result.
 mRLFE sensitivity studies also reach this core through the public API:
 
 ```text
-runMRLFESensitivity
+mrlfeRunSensitivity
   -> lamb.sweeps.runParametricSweep
   -> lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest
   -> lamb.models.mrlfe.mrlfeSolve, once per sweep point
@@ -209,7 +209,7 @@ FitTool fitting preserves the final public evaluation under
 preset, neutral internal engine, termination policy, fallback policy/applied
 state, and quality summary.
 
-Main GUI preserves the completed public `modelResult` and derives a shallow
+Solver GUI preserves the completed public `modelResult` and derives a shallow
 presentation view for plotting and export. Partial-quality results remain visible and are
 reported with neutral status metadata instead of being replaced by fallback.
 

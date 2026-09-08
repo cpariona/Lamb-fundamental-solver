@@ -68,7 +68,7 @@ visible summary emphasizes the fitted parameter.
   selected numerical preset. A0Like uses `physicalTail`, S0Like uses `none`,
   and fallback remains disabled.
 - AE fitting routes through
-  `lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch`; atlas
+  `lamb.models.acoustoelastic_iop_hgo.aeSolveBranch`; atlas
   construction and branch selection remain model-owned.
 
 Shared fitting primitives own residual calculation, fit metrics,

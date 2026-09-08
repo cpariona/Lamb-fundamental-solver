@@ -1,5 +1,5 @@
 function test_ae_configuration_characterization()
-production = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+production = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 assert(production.atlasNumYPoints == 1000);
 assert(production.atlasTopNMinima == 18);
 assert(production.refineLocalMinima == true);
@@ -31,10 +31,10 @@ for i = 1:numel(profileNames)
         "ae_atlas_" + string(expectedY(i)) + "x" + string(expectedTopN(i)));
 end
 
-% Main GUI currently passes a complete profile configuration to its model
-% adapter. These values therefore have explicit-override precedence over the
-% separately maintained interactive bundle.
-mainGui = guiBuildAcoustoelasticIOPHGOOptions("Balanced");
+% Main GUI passes a complete profile configuration to its model adapter. These
+% values therefore have explicit-override precedence over the maintained
+% interactive bundle.
+mainGui = aeGuiBuildOptions("Balanced");
 assert(mainGui.atlasNumYPoints == 600);
 assert(mainGui.atlasTopNMinima == 16);
 assert(mainGui.refineLocalMinima == true);
@@ -48,7 +48,7 @@ assert(mainGui.executionProfileMetadata.surfaceDefaultExecutionProfile == "Balan
 assert(fitTool.atlasNumYPoints == 300 && fitTool.atlasTopNMinima == 12);
 assert(fitMetadata.surfaceDefaultExecutionProfile == "Fast");
 
-explicit = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions( ...
+explicit = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions( ...
     'atlasNumYPoints', 321, ...
     'atlasTopNMinima', 7, ...
     'atlasBranchPolicy', "ATLASA0");
@@ -59,7 +59,7 @@ assert(explicit.atlasBranchPolicy == "atlasA0");
 missingParams = struct('IOP', 1);
 didReject = false;
 try
-    lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(missingParams, production);
+    lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(missingParams, production);
 catch ME
     didReject = contains(ME.message, ...
         'Missing required acoustoelastic IOP/HGO atlas parameter: R');

@@ -19,8 +19,8 @@ semantic owner.
   files are `LambFundamental_GUI` and `FitTool_GUI`.
 - `app/execution_profiles/` translates Fast, Balanced, and Robust surface
   requests; `app/utilities/` contains only small helpers shared by both GUIs.
-- `studies/sensitivity/` and `studies/solver_diagnostics/` own opt-in research
-  campaigns and investigations.
+- `studies/sensitivity/` and `studies/solver_diagnostics/` own opt-in sensitivity
+  studies and solver investigations.
 - `examples/` contains six short, opt-in solver and fitting demonstrations.
 - `tests/` mirrors these owners and keeps runners, repository guards, and test
   tooling explicit.
@@ -107,8 +107,8 @@ lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations
 lamb.models.mrlfe.mrlfeDefaultParameters
 lamb.models.mrlfe.mrlfeDefaultOptions
 lamb.models.mrlfe.mrlfeSolve
-lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions
-lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
+lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions
+lamb.models.acoustoelastic_iop_hgo.aeSolveBranch
 lamb.fitting.rayleigh_lamb.rlFitDispersionData
 lamb.fitting.rayleigh_lamb.rlEvaluateFitModel
 lamb.fitting.mrlfe.mrlfeFitDispersionData

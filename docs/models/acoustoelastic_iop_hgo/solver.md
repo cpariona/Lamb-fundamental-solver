@@ -31,7 +31,7 @@ src/+lamb/+models/+acoustoelastic_iop_hgo/+tracking/aeRefineSelectedAtlasBranch.
 and is invoked from:
 
 ```text
-src/+lamb/+models/+acoustoelastic_iop_hgo/+solvers/solveAcoustoelasticAtlasBranch.m
+src/+lamb/+models/+acoustoelastic_iop_hgo/+solvers/aeSolveAtlasBranch.m
 ```
 
 ## Configuration contract
@@ -48,7 +48,6 @@ selectedBranchRefinementMaxIter
 `refineLocalMinima=false` disables continuous refinement and preserves a fully
 discrete official branch on `cGrid`. The candidate table remains discrete in
 both configurations.
-
 
 ## Limitations
 

@@ -1,8 +1,5 @@
 function [options, metadata] = mrlfeResolveExecutionProfile(branchName, profileInput, varargin)
 %MRLFERESOLVEEXECUTIONPROFILE Resolve app-level profile for mRLFE workflows.
-%
-% Maintained app surfaces apply the requested Fast/Balanced/Robust profile
-% directly to the public mRLFE numerical preset with the same normalized name.
 
 p = inputParser;
 addRequired(p, 'branchName', @(x)ischar(x) || isstring(x));
@@ -23,7 +20,7 @@ effectiveProfile = requestedProfile;
 numericalPreset = profileToNumericalPreset(requestedProfile);
 
 switch surface
-    case {"gui", "main", "api"}
+    case {"gui", "main", "solver", "api"}
         options = defaultAppSolveOptions(branchName, p.Results.EtaS, ...
             normalizeA0Policy(p.Results.A0Policy));
     case "fit"

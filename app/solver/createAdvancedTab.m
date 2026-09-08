@@ -1,5 +1,5 @@
 function h = createAdvancedTab(tabs, callbacks)
-% Build Advanced tab controls.
+%CREATEADVANCEDTAB Build advanced solver controls.
 
 tab = uitab(tabs, 'Title', 'Advanced');
 g = uigridlayout(tab, [6 2]);
@@ -10,12 +10,13 @@ g.Padding = [12 12 12 12];
 uilabel(g, 'Text', 'Numerical solver', 'FontWeight', 'bold');
 uilabel(g, 'Text', '');
 
-uilabel(g, 'Text', 'execution profile');
-h.robustness = uidropdown(g, 'Items', cellstr(guiExecutionProfileValues()), 'Value', 'Balanced', 'ValueChangedFcn', callbacks.markDirty);
+uilabel(g, 'Text', 'Execution profile');
+h.robustness = uidropdown(g, 'Items', cellstr(guiExecutionProfileValues()), ...
+    'Value', 'Balanced', 'ValueChangedFcn', callbacks.markDirty);
 
-uilabel(g, 'Text', 'preset effect');
-uilabel(g, 'Text', 'Model-specific cost/robustness profile. Metadata reports the effective internal preset.', 'WordWrap', 'on');
+uilabel(g, 'Text', 'Preset effect');
+uilabel(g, 'Text', 'Model-specific cost and numerical-stability profile. Metadata reports the effective internal preset.', 'WordWrap', 'on');
 
-uilabel(g, 'Text', 'settings');
-uilabel(g, 'Text', 'Route policy, atlas branch selection, and optimizer options remain configured separately.', 'WordWrap', 'on', 'FontAngle', 'italic');
+uilabel(g, 'Text', 'Settings');
+uilabel(g, 'Text', 'Route policy, branch selection, and optimizer options remain configured separately.', 'WordWrap', 'on', 'FontAngle', 'italic');
 end

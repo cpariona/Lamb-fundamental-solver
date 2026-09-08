@@ -57,11 +57,11 @@ function [summary, sweepResult] = normalizeInput(inputData)
 sweepResult = struct();
 if isstruct(inputData) && isfield(inputData, 'results') && isfield(inputData, 'spec')
     sweepResult = inputData;
-    summary = summarizeAcoustoelasticSensitivity(inputData);
+    summary = aeSummarizeSensitivity(inputData);
 elseif isstruct(inputData) && isfield(inputData, 'dispersionTable')
     summary = inputData;
 else
-    error('Input must be canonical runAcoustoelasticSensitivity output or an summarizeAcoustoelasticSensitivity summary.');
+    error('Input must be canonical aeRunSensitivity output or an aeSummarizeSensitivity summary.');
 end
 end
 

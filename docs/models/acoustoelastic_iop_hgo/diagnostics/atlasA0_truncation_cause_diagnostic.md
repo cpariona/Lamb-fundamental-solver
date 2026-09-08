@@ -49,7 +49,7 @@ This distinction matters for `mu_25kPa`, where an internal gap appears before th
 
 Use the maintained entrypoint:
 
-`diagnose_atlas_truncation`
+`aeDiagnoseAtlasTruncation`
 
 The script loads the maintained IOP and shear-modulus sweep workspaces from:
 

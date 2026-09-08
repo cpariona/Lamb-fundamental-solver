@@ -91,13 +91,13 @@ switch string(scenario.Model)
         options.executionProfile = profile;
         options.computeA0 = true;
         options.computeS0 = false;
-        out = guiRunRayleighLambModel(struct('params', params, 'options', options));
+        out = rlGuiRunModel(struct('params', params, 'options', options));
         metadata = out.metadata.executionProfile;
         cp = extractMainCp(out, "RayleighLamb", "A0");
     case "AE IOP/HGO"
         params = shortAEParams();
-        options = guiBuildAcoustoelasticIOPHGOOptions(profile);
-        out = guiRunAcoustoelasticIOPHGOModel(struct('params', params, 'options', options));
+        options = aeGuiBuildOptions(profile);
+        out = aeGuiRunModel(struct('params', params, 'options', options));
         metadata = out.metadata.executionProfile;
         cp = out.phaseVelocity(:);
     case "mRLFE"
@@ -145,7 +145,7 @@ params = shortRLParams();
 [options, ~] = mrlfeResolveExecutionProfile("A0Like", profile, ...
     'Surface', "main", 'EtaS', etaS);
 options.branchNames = "A0Like";
-out = guiRunMRLFEModel(struct('params', params, 'options', options, ...
+out = mrlfeGuiRunModel(struct('params', params, 'options', options, ...
     'mrlfeParams', options.mrlfeParams, 'computeVisco', etaS > 0));
 cp = extractMainCp(out, "mRLFERealK", "A0Like");
 end

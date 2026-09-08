@@ -43,7 +43,7 @@ result.validMask
 from:
 
 ```matlab
-lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch
+lamb.models.acoustoelastic_iop_hgo.aeSolveBranch
 ```
 
 Diagnostic branches such as `identityA0Diagnostic`, `raw_branch1`, and branch-family candidates are not used as fitting outputs.
@@ -106,7 +106,7 @@ Run:
 clear functions
 rehash toolboxcache
 startup
-run('examples/acoustoelastic_iop_hgo/fitting/fit_ae_atlasA0.m')
+run('examples/acoustoelastic_iop_hgo/fitting/aeFitAtlasA0.m')
 ```
 
 The example generates synthetic atlasA0 data with a known shear modulus and fits `mu` while keeping IOP, thickness, curvature, HGO fiber parameters, density, and fluid parameters fixed.
@@ -114,7 +114,7 @@ The example generates synthetic atlasA0 data with a known shear modulus and fits
 The example assigns the result to the base workspace as:
 
 ```matlab
-AEAtlasA0FitResult
+aeAtlasA0FitResult
 ```
 
 ## Tests
@@ -166,7 +166,7 @@ request.branchName = "atlasA0";
 The AE fitting adapter is:
 
 ```matlab
-guiFitAcoustoelasticIOPHGOSolver
+aeGuiFitSolver
 ```
 
 The declarative fitting configuration exposes AE IOP/HGO through:

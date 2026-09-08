@@ -1,5 +1,5 @@
 function params = mrlfeSensitivityParameters()
-%MRLFEDEFAULTSWEEPPARAMS Build the reference parameter set for mRLFE sweeps.
+%MRLFESENSITIVITYPARAMETERS Build the reference parameter set for mRLFE studies.
 
 params = lamb.models.mrlfe.configuration.mrlfeDefaultWorkflowParams();
 params.rho = 1070;

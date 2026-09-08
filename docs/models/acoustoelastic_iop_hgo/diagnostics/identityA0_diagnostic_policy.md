@@ -18,9 +18,9 @@ The policy only adds a separate diagnostic branch under:
 ### How to enable
 
 ```matlab
-options = lamb.models.acoustoelastic_iop_hgo.defaultAcoustoelasticIOPHGOOptions();
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
 options.atlasBranchPolicy = "identityA0Diagnostic";
-result = lamb.models.acoustoelastic_iop_hgo.solveAcoustoelasticIOPHGOBranch(params, options);
+result = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
 ```
 
 The official production policy remains:

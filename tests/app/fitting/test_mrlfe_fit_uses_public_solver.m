@@ -6,7 +6,7 @@ fprintf('------------------------------------------------------\n');
 
 repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 evaluatorPath = fullfile(repoRoot, 'src', '+lamb', '+fitting', '+mrlfe', 'mrlfeEvaluateFitModel.m');
-adapterPath = fullfile(repoRoot, 'app', 'fitting', 'guiFitMRLFESolver.m');
+adapterPath = fullfile(repoRoot, 'app', 'fitting', 'mrlfeGuiFitSolver.m');
 fitWorkflowPath = fullfile(repoRoot, 'src', '+lamb', '+fitting', '+mrlfe', 'mrlfeFitDispersionData.m');
 
 evaluatorText = string(fileread(evaluatorPath));
