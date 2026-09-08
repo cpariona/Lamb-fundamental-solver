@@ -12,7 +12,9 @@ assertExampleTerms(trackedPaths);
 assertPrefixContracts(repoRoot, trackedPaths);
 assertDocumentedEntrypoints(repoRoot, trackedPaths, names);
 assertPermanentValidationNames(trackedPaths, names);
-assertRetiredFilenamesAbsent(names);
+retiredNames = retiredFunctionNames();
+assertRetiredFilenamesAbsent(names, retiredNames);
+assertRetiredExecutableReferencesAbsent(repoRoot, trackedPaths, retiredNames);
 
 fprintf('Repository naming contract test passed.\n');
 end
@@ -194,8 +196,8 @@ for i = 1:numel(paths)
 end
 end
 
-function assertRetiredFilenamesAbsent(trackedNames)
-retired = [ ...
+function names = retiredFunctionNames()
+names = [ ...
     "solveAcoustoelasticIOPHGOBranch", "defaultAcoustoelasticIOPHGOOptions", ...
     "computeAcoustoelasticABGFromIOPHGO", "computeAcoustoelasticAlphaBetaGamma", ...
     "computeAcoustoelasticPrestressSigma", "solveAcoustoelasticHGOStretch", ...
@@ -203,13 +205,128 @@ retired = [ ...
     "computeAcoustoelasticSRoots", "objectiveAcoustoelasticResidual", ...
     "objectiveAcoustoelasticComplexDeterminant", "solveAcoustoelasticAtlasBranch", ...
     "solveAcoustoelasticComplexCDispersion", "solveAcoustoelasticDispersion", ...
-    "solveAcoustoelasticIOPHGODispersion", "guiRunAcoustoelasticIOPHGOModel", ...
-    "guiBuildAcoustoelasticIOPHGORequest", "guiBuildAcoustoelasticIOPHGOOptions", ...
-    "guiRunRayleighLambModel", "guiRunMRLFEModel", ...
+    "solveAcoustoelasticIOPHGODispersion", ...
+    "guiRunAcoustoelasticIOPHGOModel", "guiBuildAcoustoelasticIOPHGORequest", ...
+    "guiBuildAcoustoelasticIOPHGOOptions", "guiRunRayleighLambModel", "guiRunMRLFEModel", ...
     "guiFitAcoustoelasticIOPHGOSolver", "guiFitRLSolver", "guiFitMRLFESolver", ...
-    "run_default_mrlfe", "investigate_mrlfe_grid_presets", "diagnose_modal_atlas"];
-for i = 1:numel(retired)
-    assert(~any(trackedNames == retired(i)), ...
-        'Retired filename must not reappear: %s', retired(i));
+    "guiBuildMainResultExport", "guiSaveMainResultExport", ...
+    "runAcoustoelasticSensitivity", "runAcoustoelasticGridSensitivity", ...
+    "buildAcoustoelasticGridSensitivityCube", "buildAcoustoelasticSensitivityPlotData", ...
+    "plotAcoustoelasticSensitivity", "plotAcoustoelasticGridSensitivity", ...
+    "plotAcoustoelasticGridSensitivityByAxis", "summarizeAcoustoelasticSensitivity", ...
+    "summarizeAcoustoelasticGridSensitivity", "writeAcoustoelasticSensitivityOutputs", ...
+    "saveAcoustoelasticStudyFigure", "deleteAcoustoelasticStudyFigure", ...
+    "acoustoelasticSensitivityParameters", "acoustoelasticSensitivityOptions", ...
+    "runMRLFESensitivity", "buildMRLFESensitivitySpec", "saveMRLFEStudyFigure", ...
+    "writeMRLFESensitivityOutputs", "summarizeMRLFETrackingQuality", ...
+    "runRayleighLambSensitivity", "buildRayleighLambSensitivitySpec", ...
+    "saveRayleighLambStudyFigure", "writeRayleighLambSensitivityOutputs", ...
+    "rayleighLambSensitivityParameters", "rayleighLambSensitivityOptions", ...
+    "study_thickness_A0", "study_etaS_A0Like", "study_iop_A0Like", "study_mu_iop_A0Like", ...
+    "run_default_mrlfe", "run_default_A0_S0", "fit_default_A0", ...
+    "fit_mrlfe_A0Like", "fit_ae_atlasA0", "investigate_mrlfe_grid_presets", ...
+    "diagnose_atlas_truncation", "diagnose_branch_families", ...
+    "diagnose_grid_start_sensitivity", "diagnose_modal_atlas", "diagnose_sweep_reliability"];
 end
+
+function assertRetiredFilenamesAbsent(trackedNames, retiredNames)
+for i = 1:numel(retiredNames)
+    assert(~any(trackedNames == retiredNames(i)), ...
+        'Retired filename must not reappear: %s', retiredNames(i));
+end
+end
+
+function assertRetiredExecutableReferencesAbsent(repoRoot, paths, retiredNames)
+for i = 1:numel(paths)
+    filePath = fullfile(repoRoot, paths(i).relative);
+    executable = matlabExecutableText(fileread(filePath));
+    for j = 1:numel(retiredNames)
+        escaped = regexptranslate('escape', char(retiredNames(j)));
+        callPattern = ['(?<![A-Za-z0-9_])', escaped, '\s*\('];
+        handlePattern = ['(?<![A-Za-z0-9_])@\s*', escaped, '(?![A-Za-z0-9_])'];
+        assert(isempty(regexp(executable, callPattern, 'once')) && ...
+                isempty(regexp(executable, handlePattern, 'once')), ...
+            'Retired executable symbol %s remains in %s.', retiredNames(j), paths(i).relative);
+    end
+end
+end
+
+function clean = matlabExecutableText(text)
+chars = char(text);
+clean = repmat(' ', size(chars));
+state = 0; % 0 code, 1 line comment, 2 block comment, 3 char literal, 4 string literal
+i = 1;
+while i <= numel(chars)
+    c = chars(i);
+    switch state
+        case 0
+            if c == '%'
+                if i < numel(chars) && chars(i + 1) == '{'
+                    state = 2;
+                    i = i + 1;
+                else
+                    state = 1;
+                end
+            elseif c == '"'
+                state = 4;
+            elseif c == ''''
+                if startsCharLiteral(chars, i)
+                    state = 3;
+                else
+                    clean(i) = c;
+                end
+            else
+                clean(i) = c;
+            end
+        case 1
+            if c == newline
+                clean(i) = c;
+                state = 0;
+            end
+        case 2
+            if c == '%' && i < numel(chars) && chars(i + 1) == '}'
+                state = 0;
+                i = i + 1;
+            elseif c == newline
+                clean(i) = c;
+            end
+        case 3
+            if c == ''''
+                if i < numel(chars) && chars(i + 1) == ''''
+                    i = i + 1;
+                else
+                    state = 0;
+                end
+            elseif c == newline
+                clean(i) = c;
+                state = 0;
+            end
+        case 4
+            if c == '"'
+                if i < numel(chars) && chars(i + 1) == '"'
+                    i = i + 1;
+                else
+                    state = 0;
+                end
+            elseif c == newline
+                clean(i) = c;
+                state = 0;
+            end
+    end
+    i = i + 1;
+end
+end
+
+function tf = startsCharLiteral(chars, index)
+j = index - 1;
+while j >= 1 && isspace(chars(j)) && chars(j) ~= newline
+    j = j - 1;
+end
+if j < 1 || chars(j) == newline
+    tf = true;
+    return;
+end
+previous = chars(j);
+stringPredecessors = ['(', '[', '{', ',', ';', '=', ':', '+', '-', '*', '/', '\', '^', '<', '>', '&', '|', '~'];
+tf = any(previous == stringPredecessors);
 end
