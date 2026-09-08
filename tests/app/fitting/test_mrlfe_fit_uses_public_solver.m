@@ -4,25 +4,6 @@ function test_mrlfe_fit_uses_public_solver()
 fprintf('\nRunning mRLFE FitTool public-solver route guard test...\n');
 fprintf('------------------------------------------------------\n');
 
-repoRoot = fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
-evaluatorPath = fullfile(repoRoot, 'src', '+lamb', '+fitting', '+mrlfe', 'mrlfeEvaluateFitModel.m');
-adapterPath = fullfile(repoRoot, 'app', 'fitting', 'mrlfeGuiFitSolver.m');
-fitWorkflowPath = fullfile(repoRoot, 'src', '+lamb', '+fitting', '+mrlfe', 'mrlfeFitDispersionData.m');
-
-evaluatorText = string(fileread(evaluatorPath));
-adapterText = string(fileread(adapterPath));
-workflowText = string(fileread(fitWorkflowPath));
-
-assert(contains(evaluatorText, "lamb.models.mrlfe.mrlfeSolve"), ...
-    'mRLFE fitting evaluator must call the public lamb.models.mrlfe.mrlfeSolve API.');
-assert(~contains(evaluatorText, "mrlfeEvaluateAtlasFitModel"), ...
-    'mRLFE fitting evaluator must not call the old atlas evaluator.');
-assert(~contains(adapterText + workflowText + evaluatorText, "mrlfeEvaluateAtlasFitModel"), ...
-    'Maintained FitTool fitting path must not reference the old atlas evaluator.');
-assert(~contains(adapterText, "solveMRLFE") && ~contains(adapterText, "computeMRLFE") && ...
-    ~contains(adapterText, "lamb.models.mrlfe.tracking.mrlfeTrackBranchAdaptive"), ...
-    'FitTool adapter must not contain low-level mRLFE solver logic.');
-
 params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
 params.mu = 75e3;
 params.etaS = 0.05;

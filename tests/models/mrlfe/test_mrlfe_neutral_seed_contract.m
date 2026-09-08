@@ -7,7 +7,7 @@ fprintf('------------------------------------------\n');
 for branch = ["A0Like" "S0Like"]
     configuration = lamb.models.mrlfe.configuration.mrlfeResolveConfiguration(localRequest(branch, 0.05, "fast"));
     problem = lamb.models.mrlfe.core.mrlfeBuildProblem(configuration);
-    seed = lamb.models.mrlfe.tracking.mrlfeBuildSeed(problem, configuration);
+    [seed, seedResult] = lamb.models.mrlfe.tracking.mrlfeBuildSeed(problem, configuration);
 
     assert(isfield(seed, 'frequency'), 'Seed must expose frequency.');
     assert(isfield(seed, 'Cp'), 'Seed must expose Cp.');
@@ -20,6 +20,29 @@ for branch = ["A0Like" "S0Like"]
     assert(all(isfinite(seed.Cp(seed.valid)) & seed.Cp(seed.valid) > 0), ...
         'Valid seed points must have positive finite Cp.');
     assert(string(seed.family) == branch, 'Seed branch family changed.');
+    assert(startsWith(string(seed.seedSource), "RayleighLambSeed"), ...
+        'The maintained mRLFE seed must identify its Rayleigh-Lamb source.');
+    assert(string(seedResult.model) == "rayleigh_lamb", ...
+        'The seed result must preserve canonical Rayleigh-Lamb model metadata.');
+
+    modeName = char(erase(branch, "Like"));
+    otherModeName = char(erase(setdiff(["A0Like", "S0Like"], branch), "Like"));
+    assert(isfield(seedResult.modes, modeName) && ~isfield(seedResult.modes, otherModeName), ...
+        'The requested mRLFE branch must map to only its RL fundamental branch.');
+    rlMode = seedResult.modes.(modeName);
+    assert(isequal(seed.frequency(:), rlMode.frequency_Hz(:)) && ...
+        isequal(seed.valid(:), rlMode.validMask(:)), ...
+        'Seed frequency and validity evidence must come from the mapped RL branch.');
+    assert(all(isfinite(rlMode.phaseVelocity_mps(rlMode.validMask)) & ...
+        rlMode.phaseVelocity_mps(rlMode.validMask) > 0), ...
+        'The mapped RL branch must provide positive finite Cp evidence.');
+    if branch == "A0Like"
+        assert(isequaln(seed.Cp(:), rlMode.phaseVelocity_mps(:)), ...
+            'A0Like seed Cp must equal the mapped RL A0 branch.');
+    else
+        assert(all(seed.Cp(seed.valid) >= rlMode.phaseVelocity_mps(seed.valid)), ...
+            'S0Like physical-floor handling must not fall below its mapped RL S0 branch.');
+    end
 end
 
 fprintf('mRLFE neutral seed contract test passed.\n');
