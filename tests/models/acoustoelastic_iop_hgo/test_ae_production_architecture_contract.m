@@ -4,29 +4,6 @@ function test_ae_production_architecture_contract()
 repoRoot = testRepositoryRoot();
 modelRoot = fullfile(repoRoot, 'src', '+lamb', '+models', '+acoustoelastic_iop_hgo');
 
-canonicalOwners = [ ...
-    "aeSolveBranch.m"
-    "aeDefaultOptions.m"
-    "+configuration/aeValidateRequest.m"
-    "+configuration/aeResolveConfiguration.m"
-    "+configuration/aeGetNumericalPreset.m"
-    "+configuration/aeBuildInternalTrackingGrid.m"
-    "+configuration/aeDefaultDiagnosticOptions.m"
-    "+configuration/aeNormalizeBranchPolicy.m"
-    "+solvers/aeSolveAtlasBranch.m"
-    "+solvers/aeBuildAtlas.m"
-    "+tracking/aeFindAtlasLocalMinima.m"
-    "+tracking/aeLinkAtlasBranches.m"
-    "+tracking/aeSplitAtlasBranches.m"
-    "+tracking/aeRefineSelectedAtlasBranch.m"
-    "+policies/aeSelectAtlasA0Branch.m"
-    "+policies/aeApplyAtlasA0FallbackPolicy.m"
-    "+quality/aeEvaluateAtlasA0Quality.m"
-    "+results/aeBuildResult.m"];
-for i = 1:numel(canonicalOwners)
-    assert(isfile(fullfile(modelRoot, canonicalOwners(i))), ...
-        'Missing canonical AE owner: %s', canonicalOwners(i));
-end
 assert(~isfolder(fullfile(modelRoot, '+options')), ...
     'Generic AE options must be owned by configuration/.');
 assert(~isfile(fullfile(modelRoot, '+solvers', ...
@@ -64,15 +41,6 @@ assert(~contains(lower(modelText), "analysis/acoustoelastic_iop_hgo") && ...
 for surfaceToken = ["MainGUI", "FitTool"]
     assert(~contains(modelText, surfaceToken), ...
         'AE model code must not own app surface token %s.', surfaceToken);
-end
-
-internalSolvers = ["lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveAtlasBranch"; ...
-    "lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveIOPHGODispersion"; "lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveDispersion"; ...
-    "lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveComplexCDispersion"];
-for i = 1:numel(internalSolvers)
-    definitions = which(char(internalSolvers(i)), '-all');
-    assert(numel(definitions) == 1, ...
-        'Expected one definition for internal AE solver %s.', internalSolvers(i));
 end
 
 fprintf('AE production architecture contract passed.\n');

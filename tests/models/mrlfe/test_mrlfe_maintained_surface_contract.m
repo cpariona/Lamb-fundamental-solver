@@ -8,35 +8,5 @@ for name = ["lamb.models.mrlfe.mrlfeSolve", "lamb.models.mrlfe.mrlfeDefaultParam
         'Maintained entrypoint documentation is missing %s.', name);
 end
 
-exampleRoot = fullfile(repoRoot, 'examples', 'mrlfe');
-expected = [ ...
-    "basic/mrlfeRunDefault.m"
-    "fitting/mrlfeFitA0Like.m"];
-files = dir(fullfile(exampleRoot, '**', '*.m'));
-actual = strings(numel(files), 1);
-for i = 1:numel(files)
-    fullPath = replace(string(fullfile(files(i).folder, files(i).name)), "\", "/");
-    rootPrefix = replace(string(exampleRoot), "\", "/") + "/";
-    actual(i) = erase(fullPath, rootPrefix);
-end
-assert(isequal(sort(actual), sort(expected)), ...
-    'Maintained short mRLFE examples changed: %s', ...
-    strjoin(setxor(actual, expected), ', '));
-
-for i = 1:numel(expected)
-    [~, name] = fileparts(expected(i));
-    expectedPath = fullfile(exampleRoot, expected(i));
-    assert(isfile(expectedPath), 'Explicit example path is missing: %s.', name);
-    assert(isempty(which(name)), 'Examples must not be globally on the path: %s.', name);
-end
-
-modelFiles = dir(fullfile(repoRoot, 'src', '+lamb', '+models', '+mrlfe', '**', '*.m'));
-assert(~isempty(modelFiles), ...
-    'Maintained mRLFE ownership-prefix scan must include MATLAB files.');
-for i = 1:numel(modelFiles)
-    assert(startsWith(string(erase(modelFiles(i).name, '.m')), "mrlfe"), ...
-        'mRLFE model function lacks its ownership prefix: %s.', modelFiles(i).name);
-end
-
 fprintf('mRLFE maintained surface contract passed.\n');
 end

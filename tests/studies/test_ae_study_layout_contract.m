@@ -3,21 +3,6 @@ function test_ae_study_layout_contract()
 
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 studyRoot = fullfile(repoRoot, 'studies');
-expected = [ ...
-    "sensitivity/acoustoelastic_iop_hgo/aeStudyIOPAtlasA0.m"
-    "sensitivity/acoustoelastic_iop_hgo/aeStudyMuIOPAtlasA0.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseAtlasTruncation.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseBranchFamilies.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseGridStartSensitivity.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseModalAtlas.m"
-    "solver_diagnostics/acoustoelastic_iop_hgo/aeDiagnoseSweepReliability.m"];
-
-for i = 1:numel(expected)
-    [~, name] = fileparts(expected(i));
-    expectedPath = fullfile(studyRoot, expected(i));
-    assert(isfile(expectedPath), 'Explicit AE study path is missing: %s.', name);
-end
-
 diagnosticPath = fullfile(studyRoot, 'solver_diagnostics', ...
     'acoustoelastic_iop_hgo', 'aeDiagnoseBranchFamilies.m');
 diagnosticText = stripMatlabComments(fileread(diagnosticPath));

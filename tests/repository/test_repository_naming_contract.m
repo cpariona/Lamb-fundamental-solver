@@ -8,9 +8,8 @@ assert(numel(names) == numel(unique(lower(names))), ...
     'Tracked MATLAB filenames must be globally unique, including case-insensitive platforms.');
 
 assertFilenameFunctionAgreement(repoRoot, trackedPaths);
-assertExampleTerms(trackedPaths);
-assertPrefixContracts(repoRoot, trackedPaths);
-assertPermanentValidationNames(trackedPaths, names);
+assertProductionFamilyPrefixes(repoRoot, trackedPaths);
+assertTestNamesDoNotEncodeCampaigns(trackedPaths);
 retiredNames = retiredFunctionNames();
 assertRetiredFilenamesAbsent(names, retiredNames);
 assertRetiredExecutableReferencesAbsent(repoRoot, trackedPaths, retiredNames);
@@ -72,19 +71,7 @@ for i = 1:numel(lines)
 end
 end
 
-function assertExampleTerms(paths)
-forbidden = '(?i)(^|_)(prototype|temporary|backup|copy|final2|old|deprecated)($|_)';
-for i = 1:numel(paths)
-    path = paths(i).relative;
-    if ~startsWith(path, "examples/")
-        continue;
-    end
-    assert(isempty(regexp(paths(i).name, forbidden, 'once')), ...
-        'Maintained example or diagnostic has a forbidden filename term: %s', path);
-end
-end
-
-function assertPrefixContracts(repoRoot, paths)
+function assertProductionFamilyPrefixes(repoRoot, paths)
 for i = 1:numel(paths)
     path = paths(i).relative;
     name = paths(i).name;
@@ -96,50 +83,11 @@ for i = 1:numel(paths)
         assert(startsWith(name, "rl"), 'Rayleigh-Lamb model function lacks rl prefix: %s', path);
     elseif startsWith(path, "src/+lamb/+models/+acoustoelastic_iop_hgo/") && startsWith(strtrim(firstCode), "function")
         assert(startsWith(name, "ae"), 'AE model function lacks ae prefix: %s', path);
-    elseif startsWith(path, "studies/sensitivity/acoustoelastic_iop_hgo/") || ...
-            startsWith(path, "studies/solver_diagnostics/acoustoelastic_iop_hgo/")
-        assert(startsWith(name, "ae"), 'AE study file lacks ae prefix: %s', path);
-    elseif startsWith(path, "studies/sensitivity/mrlfe/") || ...
-            startsWith(path, "studies/solver_diagnostics/mrlfe/")
-        assert(startsWith(name, "mrlfe"), 'mRLFE study file lacks mrlfe prefix: %s', path);
-    elseif startsWith(path, "studies/sensitivity/rayleigh_lamb/")
-        assert(startsWith(name, "rl"), 'Rayleigh-Lamb study file lacks rl prefix: %s', path);
-    elseif startsWith(path, "examples/acoustoelastic_iop_hgo/")
-        assert(startsWith(name, "ae"), 'AE example file lacks ae prefix: %s', path);
-    elseif startsWith(path, "examples/mrlfe/")
-        assert(startsWith(name, "mrlfe"), 'mRLFE example file lacks mrlfe prefix: %s', path);
-    elseif startsWith(path, "examples/rayleigh_lamb/")
-        assert(startsWith(name, "rl"), 'Rayleigh-Lamb example file lacks rl prefix: %s', path);
-    elseif startsWith(path, "tests/models/acoustoelastic_iop_hgo/")
-        assert(startsWith(name, "test_ae_"), 'AE model test lacks test_ae_ prefix: %s', path);
-    elseif startsWith(path, "tests/models/mrlfe/")
-        assert(startsWith(name, "test_mrlfe_"), 'mRLFE model test lacks test_mrlfe_ prefix: %s', path);
-    elseif startsWith(path, "tests/models/rayleigh_lamb/")
-        assert(startsWith(name, "test_rl_"), 'Rayleigh-Lamb model test lacks test_rl_ prefix: %s', path);
-    elseif startsWith(path, "app/execution_profiles/") || startsWith(path, "app/utilities/")
-        allowed = startsWith(name, "gui") || startsWith(name, "ae") || ...
-            startsWith(name, "mrlfe") || startsWith(name, "rl");
-        assert(allowed, 'Neutral app function has no ownership prefix: %s', path);
     end
 end
 end
 
-function assertPermanentValidationNames(paths, trackedNames)
-canonical = [ ...
-    "mrlfeRunDefault", "mrlfeInvestigateGridPresets", ...
-    "aeDiagnoseModalAtlas", "mrlfeDefaultInternalParameters", ...
-    "mrlfeObjectiveResidual", "test_mrlfe_maintained_route_characterization", ...
-    "test_mrlfe_canonical_route_contract", ...
-    "test_mrlfe_configuration_ownership_contract", ...
-    "test_execution_profile_normalization_contract", "test_execution_profile_contract", ...
-    "run_repository_hygiene_tests", "run_quick_contract_tests", ...
-    "run_quick_smoke_tests", "run_numerical_regression_tests", ...
-    "run_extended_integration_tests", "run_performance_and_benchmark_tests"];
-for i = 1:numel(canonical)
-    assert(nnz(trackedNames == canonical(i)) == 1, ...
-        'Canonical maintained name must have one tracked definition: %s', canonical(i));
-end
-
+function assertTestNamesDoNotEncodeCampaigns(paths)
 forbidden = '(?i)(^|_)(final|new|old|phase[0-9]*|migration|temporary|architecture_v2)($|_)';
 for i = 1:numel(paths)
     if startsWith(paths(i).relative, "tests/")

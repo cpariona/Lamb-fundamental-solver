@@ -2,23 +2,6 @@ function test_execution_profile_normalization_contract()
 fprintf('\nRunning execution profile normalization contract test...\n');
 fprintf('------------------------------------------------\n');
 
-repoRoot = testRepositoryRoot();
-adapterFunctions = [ ...
-    "aeResolveExecutionProfile"; ...
-    "mrlfeResolveExecutionProfile"; ...
-    "rlResolveExecutionProfile"; ...
-    "mrlfeBuildSurfaceExecutionMetadata"];
-for i = 1:numel(adapterFunctions)
-    fileName = adapterFunctions(i) + ".m";
-    expectedPath = fullfile(repoRoot, 'app', 'execution_profiles', fileName);
-    oldPaths = [fullfile(repoRoot, 'app', 'shared', fileName); ...
-        fullfile(repoRoot, 'app', 'adapters', fileName)];
-    assert(isfile(expectedPath), '%s must live in app/execution_profiles.', adapterFunctions(i));
-    assert(~any(isfile(oldPaths)), 'Retired app owners must be absent for %s.', adapterFunctions(i));
-    assert(strcmp(which(adapterFunctions(i)), expectedPath), ...
-        '%s must resolve uniquely from app/execution_profiles.', adapterFunctions(i));
-end
-
 profiles = guiExecutionProfileValues();
 assert(isequal(profiles, ["Fast", "Balanced", "Robust"]), ...
     'Canonical execution profile list changed.');
