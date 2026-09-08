@@ -43,7 +43,7 @@ The model layer does not depend on application, studies, examples, or tests.
 Production code does not depend on studies, examples, or tests. Fitting owns
 inverse-problem construction and optimization; the neutral sweep primitive owns
 only repeated evaluation. Application code owns surface translation and
-presentation, while studies own opt-in campaign orchestration and diagnostic
+presentation, while studies own opt-in study orchestration and diagnostic
 interpretation. Examples only compose maintained APIs.
 
 The official public curve uses column-oriented

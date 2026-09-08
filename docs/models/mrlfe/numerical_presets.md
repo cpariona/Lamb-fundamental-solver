@@ -85,7 +85,7 @@ The lightweight characterization measured approximately 3.0x to 4.3x speedup for
 
 ## Contracts
 
-- Main GUI, FitTool, and mRLFE sensitivity studies call the public solver route.
+- Solver GUI, FitTool, and mRLFE sensitivity studies call the public solver route.
 - `result.frequency_Hz` remains identical to `request.frequency_Hz`.
 - Diagnostic frequency overrides remain available.
 - `dense` remains the maintained reference preset.

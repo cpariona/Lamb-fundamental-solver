@@ -19,8 +19,8 @@ semantic owner.
   files are `LambFundamental_GUI` and `FitTool_GUI`.
 - `app/execution_profiles/` translates Fast, Balanced, and Robust surface
   requests; `app/utilities/` contains only small helpers shared by both GUIs.
-- `studies/sensitivity/` and `studies/solver_diagnostics/` own opt-in research
-  campaigns and investigations.
+- `studies/sensitivity/` and `studies/solver_diagnostics/` own opt-in sensitivity
+  studies and solver investigations.
 - `examples/` contains six short, opt-in solver and fitting demonstrations.
 - `tests/` mirrors these owners and keeps runners, repository guards, and test
   tooling explicit.

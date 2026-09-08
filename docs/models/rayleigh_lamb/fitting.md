@@ -103,7 +103,7 @@ Run:
 clear functions
 rehash toolboxcache
 startup
-run('examples/rayleigh_lamb/fitting/fit_default_A0.m')
+run('examples/rayleigh_lamb/fitting/rlFitDefaultA0.m')
 ```
 
 The example generates synthetic A0 data with a known shear modulus and fits `mu` while keeping thickness, density, and Poisson ratio fixed.

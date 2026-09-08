@@ -47,7 +47,7 @@ approximations are separate estimates, not replacements for tracked roots.
 RL never calls mRLFE; mRLFE may request an RL seed.
 
 The maintained inverse API is `lamb.fitting.rayleigh_lamb.rlFitDispersionData`.
-Parameter campaigns are opt-in studies, not model APIs.
+Parameter sensitivity analyses are opt-in studies, not model APIs.
 Examples are executed by path, for example:
 
 ```matlab

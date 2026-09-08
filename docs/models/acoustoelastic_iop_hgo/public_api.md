@@ -40,7 +40,7 @@ not another accepted production branch. See
 ## Workflows and limitations
 
 The reusable inverse operation is `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData`.
-One- and two-dimensional sensitivity campaigns are opt-in studies, not model
+One- and two-dimensional sensitivity studies are opt-in workflows, not model
 APIs. Application adapters only translate inputs and views.
 Examples are opt-in, e.g.:
 

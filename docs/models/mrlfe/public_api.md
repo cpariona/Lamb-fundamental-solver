@@ -10,7 +10,7 @@ The maintained model-oriented entry point for real-k mRLFE solving is:
 result = lamb.models.mrlfe.mrlfeSolve(request);
 ```
 
-Main GUI, FitTool, and sensitivity studies consume this model-owned API. Application
+Solver GUI, FitTool, and sensitivity studies consume this model-owned API. Application
 adapters own surface state and presentation, but canonical mRLFE request
 translation is model-owned by `lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest` under
 `src/+lamb/+models/+mrlfe/+configuration/`.
@@ -193,9 +193,9 @@ lamb.models.mrlfe.mrlfeSolve
 The only intentional cross-family dependency is `lamb.models.mrlfe.tracking.mrlfeBuildSeed ->
 lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes` for the scientific seed.
 
-## Main GUI Use
+## Solver GUI Use
 
-The maintained Main GUI mRLFE chain is:
+The maintained Solver GUI mRLFE chain is:
 
 ```text
 LambFundamental_GUI
@@ -208,7 +208,7 @@ LambFundamental_GUI
 The request builder translates the Solver GUI SI parameters (`mu`,
 `etaS`, `rho`, `nu`, `thickness`, fluid density, fluid sound speed, frequency
 grid, and branch toggles) to the public material, geometry, and fluid fields.
-The Main GUI defaults to `Balanced`, which maps directly to public preset
+The Solver GUI defaults to `Balanced`, which maps directly to public preset
 `balanced`; explicit Fast and Robust selections map to `fast` and `robust`.
 A0Like uses adaptive selection with `physicalTail` termination and no fallback.
 S0Like uses adaptive selection with no additional termination and no fallback.

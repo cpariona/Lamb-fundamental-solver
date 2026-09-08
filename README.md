@@ -33,7 +33,7 @@ GUI requests use `executionProfile` (Fast, Balanced, Robust). The established
 | Fitting | `lamb.fitting.rayleigh_lamb.rlFitDispersionData`, `lamb.fitting.mrlfe.mrlfeFitDispersionData`, `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` |
 | Sweep infrastructure | `lamb.sweeps.runParametricSweep` |
 
-Sensitivity campaigns are not production APIs. They live under `studies/`
+Sensitivity studies are not production APIs. They live under `studies/`
 and call canonical solvers through the generic sweep engine.
 
 ## Examples and studies
@@ -46,7 +46,7 @@ run('examples/rayleigh_lamb/basic/rlRunDefaultA0S0.m')
 run('examples/rayleigh_lamb/fitting/rlFitDefaultA0.m')
 ```
 
-Sensitivity campaigns and solver investigations are opt-in studies. A study
+Sensitivity studies and solver investigations are opt-in. A study
 script configures its own study path and never changes normal startup:
 
 ```matlab
@@ -78,7 +78,7 @@ See [validation](docs/validation.md).
 - `src/+lamb/+fitting/` owns inverse fitting and neutral fitting primitives.
 - `src/+lamb/+sweeps/` owns only generic repeated-evaluation infrastructure.
 - `app/` owns the solver GUI, FitTool, and request/view translation.
-- `studies/` owns sensitivity campaigns and solver investigations.
+- `studies/` owns sensitivity studies and solver investigations.
 - `examples/` contains only short solver/fitting API demonstrations.
 - `tests/` owns validation and benchmark tooling.
 
