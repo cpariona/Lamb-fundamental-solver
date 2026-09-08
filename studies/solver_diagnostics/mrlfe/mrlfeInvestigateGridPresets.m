@@ -1,4 +1,4 @@
-%% investigate_mrlfe_grid_presets.m
+%% mrlfeInvestigateGridPresets.m
 % Validate candidate mRLFE frequency-grid steps against a fine reference.
 %
 % This diagnostic uses exact internal solve-frequency overrides and does not
