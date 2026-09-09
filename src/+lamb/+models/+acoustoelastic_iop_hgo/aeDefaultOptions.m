@@ -2,7 +2,7 @@ function options = aeDefaultOptions(varargin)
 %AEDEFAULTOPTIONS Public production options for AE IOP/HGO.
 %
 % These options belong to the maintained IOP/HGO -> atlasA0 route. Direct
-% real-Cp and complex-C diagnostic controls are owned separately by
+% real-Cp diagnostic controls are owned separately by
 % lamb.models.acoustoelastic_iop_hgo.configuration.aeDefaultDiagnosticOptions.
 
 options = struct();

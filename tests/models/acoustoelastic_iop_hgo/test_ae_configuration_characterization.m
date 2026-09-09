@@ -6,8 +6,7 @@ assert(production.refineLocalMinima == true);
 assert(production.atlasInitializationMinFrequency_Hz == 300);
 assert(production.atlasInitializationNumFrequencyPoints == 50);
 assert(production.atlasBranchPolicy == "atlasA0");
-for diagnosticField = ["trackingMethod", "numCpScanPoints", ...
-        "complexCMaxIter", "usePhysicalCpWindow"]
+for diagnosticField = ["trackingMethod", "numCpScanPoints", "usePhysicalCpWindow"]
     assert(~isfield(production, diagnosticField), ...
         'Public production defaults must not expose %s.', diagnosticField);
 end

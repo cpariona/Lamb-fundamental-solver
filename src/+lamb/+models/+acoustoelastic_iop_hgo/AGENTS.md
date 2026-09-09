@@ -7,8 +7,8 @@ Repository-wide and cross-layer rules remain in the root `AGENTS.md`.
 
 `atlasA0` is the only official production branch. The official arrays are the
 selected production result and its validity mask. Raw atlas branches,
-`identityA0Diagnostic`, direct real-Cp or complex-C diagnostics, and fallback
-candidates never replace or fill official output.
+`identityA0Diagnostic`, direct real-Cp diagnostics, and fallback candidates
+never replace or fill official output. There is no maintained complex-C route.
 
 The production order is invariant:
 

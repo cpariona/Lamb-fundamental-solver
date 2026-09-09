@@ -13,7 +13,6 @@ end
 assert(production.atlasNumYPoints == 1000);
 assert(production.atlasTopNMinima == 18);
 assert(~isfield(production, 'trackingMethod'));
-assert(~isfield(production, 'complexCMaxIter'));
 assert(~isfield(productionMetadata, 'surface'));
 
 overrides = struct('atlasNumYPoints', 777, 'atlasTopNMinima', 9, ...
@@ -27,7 +26,6 @@ assert(metadata.profileOverrideApplied == true);
 diagnostic = lamb.models.acoustoelastic_iop_hgo.configuration.aeDefaultDiagnosticOptions(struct('numCpScanPoints', 555));
 assert(diagnostic.numCpScanPoints == 555);
 assert(diagnostic.trackingMethod == "globalScan");
-assert(diagnostic.complexCMaxIter == 250);
 
 accepted = struct('IOP', [], 'R', [], 'thickness', [], 'mu', [], 'k1', [], ...
     'k2', [], 'rho', [], 'rhoF', [], 'fluidBulkModulus', [], 'frequency', []);

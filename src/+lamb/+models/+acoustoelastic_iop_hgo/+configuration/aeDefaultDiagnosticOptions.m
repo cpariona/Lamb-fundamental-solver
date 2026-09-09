@@ -17,15 +17,6 @@ options.macWeight = 12.0;
 options.minAcceptableMAC = 0.00;
 options.allowPredictiveFallbackNearest = true;
 
-options.complexCInitialImagRatio = -1e-3;
-options.complexCImagLimitRatio = 0.50;
-options.complexCMinScale = 0.05;
-options.complexCMaxIter = 250;
-options.complexCMaxFunEvals = 900;
-options.complexCTolX = 1e-9;
-options.complexCTolFun = 1e-9;
-options.complexCDisplay = "off";
-
 options.branchSelectionMode = "band";
 options.minDimensionlessFrequency = 0;
 options.A0Band = [0.02, 0.75];
