@@ -20,13 +20,12 @@ params.fluidBulkModulus = 2.2e9;
 params.frequency = logspace(log10(300), log10(15e3), 35);
 params.IOP = 15 * 133.322;
 
-options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
-options.M54_variant = "corrected";
-options.normalizeRows = false;
-options.usePhysicalCpWindow = false;
-options.atlasNumYPoints = 300;
-options.atlasTopNMinima = 12;
-options.atlasBranchPolicy = "atlasA0";
+options = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(struct( ...
+    'M54_variant', "corrected", ...
+    'normalizeRows', false, ...
+    'usePhysicalCpWindow', false, ...
+    'atlasBranchPolicy', "atlasA0"), ...
+    'NumericalPreset', "Fast");
 
 result = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
 
