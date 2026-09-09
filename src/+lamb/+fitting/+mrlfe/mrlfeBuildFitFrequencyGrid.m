@@ -15,9 +15,13 @@ end
 if nargin < 2 || isempty(forwardModel)
     forwardModel = struct();
 end
-minimumPointCount = localPositiveInteger(forwardModel, 'minimumPointCount', 12);
-maximumPointCount = localPositiveInteger(forwardModel, 'maximumPointCount', 40);
-maximumStep_Hz = localPositiveScalar(forwardModel, 'maximumStep_Hz', 250);
+defaults = lamb.fitting.mrlfe.mrlfeDefaultFitGridPolicy();
+minimumPointCount = localPositiveInteger(forwardModel, ...
+    'minimumPointCount', defaults.minimumPointCount);
+maximumPointCount = localPositiveInteger(forwardModel, ...
+    'maximumPointCount', defaults.maximumPointCount);
+maximumStep_Hz = localPositiveScalar(forwardModel, ...
+    'maximumStep_Hz', defaults.maximumStep_Hz);
 if maximumPointCount < minimumPointCount
     error('mrlfe:InvalidFitGridPolicy', ...
         'forwardModel.maximumPointCount must be at least minimumPointCount.');

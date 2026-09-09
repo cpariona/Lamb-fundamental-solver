@@ -80,8 +80,7 @@ end
 end
 
 function forwardModel = forwardModelPolicy(fitOptions)
-forwardModel = struct('gridPolicy', "fitOptimized", 'minimumPointCount', 12, ...
-    'maximumPointCount', 40, 'maximumStep_Hz', 250);
+forwardModel = lamb.fitting.mrlfe.mrlfeDefaultFitGridPolicy();
 if isstruct(fitOptions) && isfield(fitOptions, 'forwardModel') && isstruct(fitOptions.forwardModel)
     names = fieldnames(fitOptions.forwardModel);
     for i = 1:numel(names)
