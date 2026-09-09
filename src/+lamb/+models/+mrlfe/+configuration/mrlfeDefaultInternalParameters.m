@@ -2,8 +2,9 @@ function mrlfeParams = mrlfeDefaultInternalParameters()
 %MRLFEDEFAULTINTERNALPARAMETERS Return internal mRLFE model parameters.
 
 mrlfeParams = struct();
-mrlfeParams.fluidDensity = 1000;       % [kg/m^3]
-mrlfeParams.fluidSoundSpeed = 1500;    % [m/s]
+physicalDefaults = lamb.models.mrlfe.mrlfeDefaultParameters();
+mrlfeParams.fluidDensity = physicalDefaults.fluidDensity_kgm3;    % [kg/m^3]
+mrlfeParams.fluidSoundSpeed = physicalDefaults.fluidSoundSpeed_mps; % [m/s]
 mrlfeParams.etaL = 0;                  % [Pa*s]
 mrlfeParams.etaS = 0;                  % [Pa*s]
 mrlfeParams.solveComplexK = false;

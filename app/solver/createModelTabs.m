@@ -23,6 +23,7 @@ h.rl.computeS0 = uicheckbox(gRL, 'Text', 'S0', 'Value', opts0.computeS0, 'ValueC
 uilabel(gRL, 'Text', 'mRLFE computes the Rayleigh-Lamb seed branches required internally by the selected A0-like/S0-like branches, but those seed branches are not exposed as mRLFE plot results.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 
 tabMRLFE = uitab(tg, 'Title', 'mRLFE');
+mrlfePhysicalDefaults = lamb.models.mrlfe.mrlfeDefaultParameters();
 gM = uigridlayout(tabMRLFE, [9 4]);
 gM.ColumnWidth = {105, '1x', 105, '1x'};
 gM.RowHeight = {22, 24, 22, 24, 24, 24, 24, 24, '1x'};
@@ -59,14 +60,18 @@ h.mrlfe.computeS0Like.Layout.Column = [3 4];
 label = uilabel(gM, 'Text', 'fluid density [kg/m^3]');
 label.Layout.Row = 5;
 label.Layout.Column = [1 2];
-h.mrlfe.fluidDensity = uieditfield(gM, 'numeric', 'Value', 1000, 'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
+h.mrlfe.fluidDensity = uieditfield(gM, 'numeric', ...
+    'Value', mrlfePhysicalDefaults.fluidDensity_kgm3, ...
+    'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.fluidDensity.Layout.Row = 5;
 h.mrlfe.fluidDensity.Layout.Column = [3 4];
 
 label = uilabel(gM, 'Text', 'fluid sound speed [m/s]');
 label.Layout.Row = 6;
 label.Layout.Column = [1 2];
-h.mrlfe.fluidSoundSpeed = uieditfield(gM, 'numeric', 'Value', 1500, 'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
+h.mrlfe.fluidSoundSpeed = uieditfield(gM, 'numeric', ...
+    'Value', mrlfePhysicalDefaults.fluidSoundSpeed_mps, ...
+    'Limits', [0 Inf], 'ValueChangedFcn', callbacks.markDirty);
 h.mrlfe.fluidSoundSpeed.Layout.Row = 6;
 h.mrlfe.fluidSoundSpeed.Layout.Column = [3 4];
 

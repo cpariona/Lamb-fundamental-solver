@@ -65,10 +65,7 @@ options.robustness = "Fast";
 options.mrlfeNumericalPreset = "fast";
 options.mrlfeA0Policy = a0Policy;
 options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
-options.mrlfeParams.fluidDensity = 1000;
-options.mrlfeParams.fluidSoundSpeed = 1500;
 options.mrlfeParams.etaS = etaS;
-options.mrlfeParams.etaL = 0;
 options.mrlfeParams.useComplexLambda = false;
 end
 

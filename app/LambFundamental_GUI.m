@@ -229,7 +229,6 @@ updateAxisFieldState();
         mrlfeParams.fluidDensity = modelControls.mrlfe.fluidDensity.Value;
         mrlfeParams.fluidSoundSpeed = modelControls.mrlfe.fluidSoundSpeed.Value;
         mrlfeParams.etaS = modelControls.mrlfe.etaS.Value;
-        mrlfeParams.etaL = 0;
         mrlfeParams.useComplexLambda = false;
     end
 
