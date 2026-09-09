@@ -1,5 +1,5 @@
-function figureFolder = mrlfeSaveStudyFigure(fig, scriptFile, taskName, filePrefix)
-%MRLFESAVESTUDYFIGURE Save mRLFE study figures next to the study script.
+function figureFolder = saveStudyFigure(fig, scriptFile, taskName, filePrefix)
+%SAVESTUDYFIGURE Save an already-created sensitivity-study figure.
 
 if nargin < 4 || isempty(filePrefix)
     filePrefix = taskName;

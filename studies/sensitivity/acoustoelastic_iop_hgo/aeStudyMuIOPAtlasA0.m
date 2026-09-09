@@ -74,7 +74,7 @@ figs = aePlotGridSensitivityByAxis(sweepResult, "IOP", "mu", ...
 figureFolder = "";
 for i = 1:numel(figs)
     filePrefix = "mu_iop_sweep_cp_iop_" + replace(sprintf('%.1f', IOP_mmHg(i)), '.', 'p') + "mmHg";
-    figureFolder = aeSaveStudyFigure(figs(i), scriptFile, "mu_iop_sweep", filePrefix);
+    figureFolder = saveStudyFigure(figs(i), scriptFile, "mu_iop_sweep", filePrefix);
 end
 fprintf('\nCondition summary\n');
 disp(summary.conditionTable);
