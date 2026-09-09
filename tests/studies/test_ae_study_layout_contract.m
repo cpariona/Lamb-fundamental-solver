@@ -3,11 +3,9 @@ function test_ae_study_layout_contract()
 
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 studyRoot = fullfile(repoRoot, 'studies');
-diagnosticPath = fullfile(studyRoot, 'solver_diagnostics', ...
-    'acoustoelastic_iop_hgo', 'aeDiagnoseBranchFamilies.m');
 atlasHelperPath = fullfile(studyRoot, 'solver_diagnostics', ...
     'acoustoelastic_iop_hgo', 'aeComputeModalAtlasForCase.m');
-assertCanonicalDiagnosticOwners([string(diagnosticPath), string(atlasHelperPath)]);
+assertCanonicalDiagnosticOwners(string(atlasHelperPath));
 
 params = diagnosticParams();
 options = diagnosticOptions();

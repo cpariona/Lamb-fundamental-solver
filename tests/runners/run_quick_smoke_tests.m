@@ -28,6 +28,7 @@ test_ae_configuration_ownership;
 test_ae_production_architecture_contract;
 test_ae_result_ownership;
 test_ae_analyze_truncation_recovery;
+test_ae_analyze_sweep_reliability;
 test_ae_branch_persistence_refinement;
 test_ae_constitutive_identity;
 test_ae_sensitivity_study_contract;
