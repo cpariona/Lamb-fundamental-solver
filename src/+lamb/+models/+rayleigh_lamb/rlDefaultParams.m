@@ -1,5 +1,8 @@
 function params = rlDefaultParams()
-% Return default physical, geometry, and frequency parameters.
+%RLDEFAULTPARAMS Default Rayleigh-Lamb physical and frequency parameters.
+%   Physical fields use SI units: mu in Pa, rho in kg/m^3, and full
+%   thickness in m. Frequency bounds are in Hz. modelType selects the
+%   maintained material formulation; ShearPoisson uses mu, nu, and rho.
 
 params = struct();
 params.modelType = "ShearPoisson";

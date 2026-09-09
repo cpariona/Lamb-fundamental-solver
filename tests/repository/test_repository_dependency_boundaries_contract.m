@@ -17,9 +17,90 @@ assertLayer(repoRoot, paths, "src/+lamb/+sweeps/", ...
 assertLayer(repoRoot, paths, "studies/", ["app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "app/", ["studies/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "examples/", ["studies/", "app/", "tests/"]);
+assertMaintainedModelFamilies(paths);
+assertCrossFamilyModelDependencies(repoRoot, paths);
+assertNeutralOwnership(repoRoot);
 assertAeInternalBoundaries(repoRoot, paths);
 
 fprintf('Repository dependency-boundary contract test passed.\n');
+end
+
+function assertMaintainedModelFamilies(paths)
+modelPaths = paths(startsWith(paths, "src/+lamb/+models/"));
+tokens = regexp(cellstr(modelPaths), ...
+    '^src/\+lamb/\+models/\+([^/]+)/', 'tokens', 'once');
+tokens = tokens(~cellfun(@isempty, tokens));
+actual = unique(string(cellfun(@(token)token{1}, tokens, 'UniformOutput', false)));
+expected = ["acoustoelastic_iop_hgo"; "mrlfe"; "rayleigh_lamb"];
+assert(isequal(sort(actual(:)), sort(expected(:))), ...
+    'Maintained model-family surface changed: %s', ...
+    strjoin(setxor(actual, expected), ', '));
+end
+
+function assertCrossFamilyModelDependencies(repoRoot, paths)
+families = ["rayleigh_lamb"; "mrlfe"; "acoustoelastic_iop_hgo"];
+allowedSource = "src/+lamb/+models/+mrlfe/+tracking/mrlfeBuildSeed.m";
+allowedTargets = ["rlDefaultOptions"; "rlComputeFundamentalLambModes"];
+requiredSeedTarget = "rlComputeFundamentalLambModes";
+seedRouteFound = false;
+
+for sourceIndex = 1:numel(families)
+    sourceFamily = families(sourceIndex);
+    sourcePrefix = "src/+lamb/+models/+" + sourceFamily + "/";
+    sourcePaths = paths(startsWith(paths, sourcePrefix) & endsWith(paths, ".m"));
+    assert(~isempty(sourcePaths), ...
+        'Cross-family scan source is empty for model family %s.', sourceFamily);
+
+    for targetIndex = 1:numel(families)
+        targetFamily = families(targetIndex);
+        if targetFamily == sourceFamily
+            continue;
+        end
+        targetPrefix = "src/+lamb/+models/+" + targetFamily + "/";
+        targetNames = matlabNames(paths(startsWith(paths, targetPrefix) & endsWith(paths, ".m")));
+        assert(~isempty(targetNames), ...
+            'Cross-family scan target is empty for model family %s.', targetFamily);
+
+        for path = sourcePaths(:).'
+            source = fileread(fullfile(repoRoot, path));
+            offenders = intersect(matlabCallNames(source), targetNames);
+            if path == allowedSource && sourceFamily == "mrlfe" && ...
+                    targetFamily == "rayleigh_lamb"
+                unexpected = setdiff(offenders, allowedTargets);
+                assert(isempty(unexpected), ...
+                    'Authorized mRLFE seed owner calls unexpected Rayleigh-Lamb APIs: %s', ...
+                    strjoin(unexpected, ', '));
+                seedRouteFound = seedRouteFound || ismember(requiredSeedTarget, offenders);
+            else
+                assert(isempty(offenders), ...
+                    'Cross-family dependency %s -> %s is forbidden in %s through: %s', ...
+                    sourceFamily, targetFamily, path, strjoin(offenders, ', '));
+            end
+        end
+    end
+end
+
+assert(seedRouteFound, ...
+    'The authorized mRLFE -> Rayleigh-Lamb seed route is missing from %s.', allowedSource);
+end
+
+function assertNeutralOwnership(repoRoot)
+assertCanonicalOwner(repoRoot, 'lamb.grids.buildFrequencyVector', ...
+    'src/+lamb/+grids/buildFrequencyVector.m');
+assertCanonicalOwner(repoRoot, 'lamb.elasticity.elasticFromLame', ...
+    'src/+lamb/+elasticity/elasticFromLame.m');
+assertCanonicalOwner(repoRoot, 'lamb.elasticity.elasticFromMuNu', ...
+    'src/+lamb/+elasticity/elasticFromMuNu.m');
+assert(isempty(which('rlBuildFrequencyVector')), ...
+    'The retired Rayleigh-Lamb frequency wrapper must not remain discoverable.');
+end
+
+function assertCanonicalOwner(repoRoot, functionName, relativePath)
+expected = string(fullfile(repoRoot, replace(string(relativePath), "/", filesep)));
+resolved = string(which(functionName, '-all'));
+assert(isscalar(resolved) && resolved == expected, ...
+    'Unexpected owner for %s. Expected %s, got %s.', ...
+    functionName, expected, strjoin(resolved, ', '));
 end
 
 function assertAeInternalBoundaries(repoRoot, paths)

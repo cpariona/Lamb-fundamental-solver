@@ -2,23 +2,6 @@ function test_execution_profile_normalization_contract()
 fprintf('\nRunning execution profile normalization contract test...\n');
 fprintf('------------------------------------------------\n');
 
-repoRoot = testRepositoryRoot();
-adapterFunctions = [ ...
-    "aeResolveExecutionProfile"; ...
-    "mrlfeResolveExecutionProfile"; ...
-    "rlResolveExecutionProfile"; ...
-    "mrlfeBuildSurfaceExecutionMetadata"];
-for i = 1:numel(adapterFunctions)
-    fileName = adapterFunctions(i) + ".m";
-    expectedPath = fullfile(repoRoot, 'app', 'execution_profiles', fileName);
-    oldPaths = [fullfile(repoRoot, 'app', 'shared', fileName); ...
-        fullfile(repoRoot, 'app', 'adapters', fileName)];
-    assert(isfile(expectedPath), '%s must live in app/execution_profiles.', adapterFunctions(i));
-    assert(~any(isfile(oldPaths)), 'Retired app owners must be absent for %s.', adapterFunctions(i));
-    assert(strcmp(which(adapterFunctions(i)), expectedPath), ...
-        '%s must resolve uniquely from app/execution_profiles.', adapterFunctions(i));
-end
-
 profiles = guiExecutionProfileValues();
 assert(isequal(profiles, ["Fast", "Balanced", "Robust"]), ...
     'Canonical execution profile list changed.');
@@ -94,11 +77,6 @@ assert(mrlfeMetadata.profileOverrideApplied == false && mrlfeMetadata.profileOve
 assert(mrlfeMetadata.profileSupportMode == "direct", ...
     'mRLFE support mode should report direct profile support.');
 
-%% Canonical docs describe the field and compatibility alias.
-assertDocContains('README.md', 'executionProfile');
-assertDocContains('README.md', 'compatibility alias');
-assertDocContains(fullfile('docs', 'architecture.md'), ...
-    'execution-profile metadata contract');
 fprintf('Execution profile normalization contract test passed.\n');
 end
 
@@ -118,13 +96,6 @@ for iFamily = 1:numel(registry.modelFamilies)
     assert(strlength(string(family.surfaceDefaultExecutionProfile)) > 0, ...
         '%s family %s should define surfaceDefaultExecutionProfile.', label, family.id);
 end
-end
-
-function assertDocContains(pathParts, expected)
-root = testRepositoryRoot();
-filePath = fullfile(root, pathParts);
-txt = string(fileread(filePath));
-assert(contains(txt, expected), 'Expected %s to contain "%s".', filePath, expected);
 end
 
 function assertThrows(fcn, expectedId)

@@ -1,13 +1,6 @@
 function fitOutput = mrlfeGuiFitSolver(request)
 %MRLFEGUIFITSOLVER Run mRLFE fitting from an app-level request.
 
-request = guiBuildFitRequest(request.modelFamily, ...
-    'branchName', request.branchName, 'mode', request.mode, ...
-    'experimental', request.experimental, 'fixedParams', request.fixedParams, ...
-    'freeParams', request.freeParams, 'initialGuess', request.initialGuess, ...
-    'bounds', request.bounds, 'controls', request.controls, ...
-    'fitOptions', request.fitOptions, 'outputMode', request.outputMode);
-
 branchName = string(request.branchName);
 if strlength(branchName) == 0
     branchName = "A0Like";
@@ -65,8 +58,11 @@ fitOutput = struct( ...
 end
 
 function controls = fitControls(controls)
-defaults = struct('etaS', 0.05, 'fluidDensity', 1000, ...
-    'fluidSoundSpeed', 1500, 'mrlfeA0Policy', "physicalTail");
+physicalDefaults = lamb.models.mrlfe.mrlfeDefaultParameters();
+defaults = struct('etaS', 0.05, ...
+    'fluidDensity', physicalDefaults.fluidDensity_kgm3, ...
+    'fluidSoundSpeed', physicalDefaults.fluidSoundSpeed_mps, ...
+    'mrlfeA0Policy', "physicalTail");
 names = fieldnames(defaults);
 for i = 1:numel(names)
     name = names{i};
@@ -77,8 +73,7 @@ end
 end
 
 function forwardModel = forwardModelPolicy(fitOptions)
-forwardModel = struct('gridPolicy', "fitOptimized", 'minimumPointCount', 12, ...
-    'maximumPointCount', 40, 'maximumStep_Hz', 250);
+forwardModel = lamb.fitting.mrlfe.mrlfeDefaultFitGridPolicy();
 if isstruct(fitOptions) && isfield(fitOptions, 'forwardModel') && isstruct(fitOptions.forwardModel)
     names = fieldnames(fitOptions.forwardModel);
     for i = 1:numel(names)

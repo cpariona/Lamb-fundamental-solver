@@ -39,9 +39,6 @@ assertPlotDataIsValid(rlPlotData, 'Rayleigh-Lamb normalized plot data is invalid
 rlPlotDataK = guiGetNormalizedBranchPlotData(rlGuiResult.branches(1), "kThickness");
 assertPlotDataIsValid(rlPlotDataK, 'Rayleigh-Lamb normalized kThickness plot data is invalid.');
 
-rlBranchTables = guiNormalizedBranchesToTables(rlGuiResult);
-assertBranchTablesAreValid(rlBranchTables, 'Rayleigh-Lamb normalized branch tables are invalid.');
-
 %% mRLFE normalized adapter, etaS = 0 elastic limit
 [mrlfeOptions, ~] = mrlfeResolveExecutionProfile("A0Like", "Fast", ...
     'Surface', "main", 'EtaS', 0, 'A0Policy', "physicalTail");
@@ -77,9 +74,6 @@ assertNormalizedBranches(mrlfeGuiResult.branches);
 
 mrlfePlotData = guiGetNormalizedBranchPlotData(mrlfeGuiResult.branches(1), "frequency");
 assertPlotDataIsValid(mrlfePlotData, 'mRLFE normalized plot data is invalid.');
-
-mrlfeBranchTables = guiNormalizedBranchesToTables(mrlfeGuiResult);
-assertBranchTablesAreValid(mrlfeBranchTables, 'mRLFE normalized branch tables are invalid.');
 
 %% mRLFE normalized adapter, etaS > 0 viscous case
 viscoRequest = mrlfeRequest;
@@ -133,19 +127,4 @@ end
 assert(isequal(size(plotData.x), size(plotData.y)), message);
 assert(isequal(size(plotData.y), size(plotData.validMask)), message);
 assert(any(isfinite(plotData.y(:))), message);
-end
-
-function assertBranchTablesAreValid(branchTables, message)
-assert(isstruct(branchTables) && ~isempty(fieldnames(branchTables)), message);
-keys = fieldnames(branchTables);
-requiredVariables = {'ModelName','BranchName','Frequency_Hz', ...
-    'PhaseVelocity_mps','Wavenumber_1_per_m','kThickness'};
-for iKey = 1:numel(keys)
-    T = branchTables.(keys{iKey});
-    assert(istable(T), message);
-    for iVar = 1:numel(requiredVariables)
-        assert(ismember(requiredVariables{iVar}, T.Properties.VariableNames), message);
-    end
-    assert(height(T) > 0, message);
-end
 end

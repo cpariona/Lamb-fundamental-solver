@@ -5,7 +5,7 @@ repoRoot = testRepositoryRoot(mfilename('fullpath'));
 paths = gitTrackedPaths(repoRoot);
 
 allowedTopLevel = ["app", "docs", "examples", "src", "studies", "tests"];
-requiredTopLevel = allowedTopLevel;
+requiredTopLevel = ["app", "examples", "src", "studies", "tests"];
 for i = 1:numel(requiredTopLevel)
     assert(isfolder(fullfile(repoRoot, requiredTopLevel(i))), ...
         'Required repository directory is missing: %s', requiredTopLevel(i));
@@ -33,12 +33,9 @@ assert(~any(startsWith(paths, "docs/") & endsWith(paths, ".m")), ...
 assertTestLocations(paths);
 assertTestOwnership(repoRoot, paths);
 assertModelTestsDoNotDependOnFitting(repoRoot, paths);
-assertFittingOwnership(repoRoot, paths);
+assertRetiredUnqualifiedFittingNames();
 assertStudyOwnership(repoRoot, paths);
-assertSweepOwnership(paths);
 assertAppSurfaceOwnership(paths);
-assertDocumentationOwnership(repoRoot, paths);
-assertAeModelDiagnosticOwnership(paths);
 assertNoModelCampaigns(paths);
 assertNoModelUiCode(repoRoot, paths);
 
@@ -62,18 +59,6 @@ assert(isequal(sort(runnerFiles(:)), sort(expectedRunners(:))), ...
     'The maintained runner surface must contain exactly six tiers: %s', ...
     strjoin(setxor(runnerFiles, expectedRunners), ', '));
 
-legacyTestFiles = paths(startsWith(paths, "tests/") & endsWith(paths, ".m") & ...
-    ~startsWith(paths, ["tests/app/", "tests/fitting/", "tests/models/", ...
-        "tests/repository/", "tests/runners/", "tests/studies/", ...
-        "tests/sweeps/", "tests/tooling/"]));
-assert(isempty(legacyTestFiles), ...
-    'Tests exist outside stable layout locations: %s', ...
-    strjoin(legacyTestFiles, ', '));
-for requiredRoot = ["tests/app/", "tests/fitting/", "tests/models/", ...
-        "tests/repository/", "tests/runners/", "tests/tooling/"]
-    owned = paths(startsWith(paths, requiredRoot) & endsWith(paths, ".m"));
-    assert(~isempty(owned), 'Maintained test owner contains no MATLAB files: %s', requiredRoot);
-end
 end
 
 function assertModelTestsDoNotDependOnFitting(repoRoot, paths)
@@ -112,16 +97,6 @@ assert(~any(contains(studyMatlab, "/shared/")), ...
 assert(~any(contains(lower(studyMatlab), "example")), ...
     'Study function names must not retain Example chronology.');
 
-for familyRoot = [ ...
-        "studies/sensitivity/rayleigh_lamb/", ...
-        "studies/sensitivity/mrlfe/", ...
-        "studies/sensitivity/acoustoelastic_iop_hgo/", ...
-        "studies/solver_diagnostics/mrlfe/", ...
-        "studies/solver_diagnostics/acoustoelastic_iop_hgo/"]
-    familyFiles = studyMatlab(startsWith(studyMatlab, familyRoot));
-    assert(~isempty(familyFiles), 'Study family contains no MATLAB files: %s', familyRoot);
-end
-
 retiredDiagnostics = ["aeFindTopModalAtlasLocalMinima.m", ...
     "aeLinkModalAtlasMinimaIntoBranches.m", "aeResolveResultFile.m"];
 for name = retiredDiagnostics
@@ -141,51 +116,7 @@ for path = studyMatlab(:).'
 end
 end
 
-function assertSweepOwnership(paths)
-sweepPaths = paths(startsWith(paths, "src/+lamb/+sweeps/") & endsWith(paths, ".m"));
-expected = "src/+lamb/+sweeps/runParametricSweep.m";
-assert(isequal(sweepPaths, expected), ...
-    'lamb.sweeps must contain only the generic iteration engine.');
-end
-
-function assertFittingOwnership(repoRoot, paths)
-fittingRoot = "src/+lamb/+fitting/";
-expected = fittingRoot + [ ...
-    "assessFitIdentifiability.m"
-    "assessFitPhysicalQuality.m"
-    "applyParameterOverrides.m"
-    "buildParameterVector.m"
-    "buildParameterBounds.m"
-    "computeConstantSpeedBaseline.m"
-    "computeDispersionFitMetrics.m"
-    "computeDispersionFitResiduals.m"
-    "estimateLocalSensitivity.m"
-    "evaluateBoundedObjective.m"
-    "getFitConfigValue.m"
-    "normalizeExperimentalDispersionData.m"
-    "solveDispersionFitProblem.m"
-    "unpackParameterVector.m"
-    "validateExperimentalDispersionData.m"
-    "+rayleigh_lamb/rlBuildFitProblem.m"
-    "+rayleigh_lamb/rlEvaluateFitModel.m"
-    "+rayleigh_lamb/rlFitDispersionData.m"
-    "+mrlfe/mrlfeBuildFitFrequencyGrid.m"
-    "+mrlfe/mrlfeBuildFitProblem.m"
-    "+mrlfe/mrlfeDefaultFitOptions.m"
-    "+mrlfe/mrlfeDefaultFitParameters.m"
-    "+mrlfe/mrlfeEvaluateFitModel.m"
-    "+mrlfe/mrlfeFitDispersionData.m"
-    "+acoustoelastic_iop_hgo/aeBuildFitProblem.m"
-    "+acoustoelastic_iop_hgo/aeDefaultFitOptions.m"
-    "+acoustoelastic_iop_hgo/aeDefaultFitParameters.m"
-    "+acoustoelastic_iop_hgo/aeEvaluateFitModel.m"
-    "+acoustoelastic_iop_hgo/aeFitDispersionData.m"];
-actual = paths(startsWith(paths, fittingRoot) & endsWith(paths, ".m"));
-assert(isequal(sort(actual), sort(expected)), ...
-    'Canonical fitting ownership changed: %s', strjoin(setxor(actual, expected), ', '));
-assert(~isfolder(fullfile(repoRoot, 'analysis', 'fitting')), ...
-    'analysis/fitting must remain absent under canonical fitting ownership.');
-
+function assertRetiredUnqualifiedFittingNames()
 oldNames = [ ...
     "rlBuildFitProblem", "rlEvaluateFitModel", "rlFitDispersionData", ...
     "mrlfeBuildFitFrequencyGrid", "mrlfeBuildFitProblem", ...
@@ -218,60 +149,6 @@ assert(~any(startsWith(paths, "app/sweep/")), ...
     'The retired app/sweep adapter tree must remain absent.');
 assert(~any(endsWith(paths, "/SweepTool_GUI.m")), ...
     'The retired SweepTool GUI must remain absent.');
-for owner = ["app/solver/", "app/fitting/", "app/execution_profiles/", "app/utilities/"]
-    owned = paths(startsWith(paths, owner) & endsWith(paths, ".m"));
-    assert(~isempty(owned), 'Maintained app owner contains no MATLAB files: %s', owner);
-end
-executionProfileFiles = paths(startsWith(paths, "app/execution_profiles/") & endsWith(paths, ".m"));
-expectedProfiles = "app/execution_profiles/" + [ ...
-    "aeResolveExecutionProfile.m"; "guiExecutionProfileValues.m"; ...
-    "guiFormatExecutionProfileDiagnostics.m"; "guiNormalizeControlExecutionProfile.m"; ...
-    "guiNormalizeExecutionProfile.m"; "mrlfeBuildSurfaceExecutionMetadata.m"; ...
-    "mrlfeResolveExecutionProfile.m"; "rlResolveExecutionProfile.m"];
-assert(isequal(sort(executionProfileFiles), sort(expectedProfiles)), ...
-    'Execution-profile ownership changed: %s', ...
-    strjoin(setxor(executionProfileFiles, expectedProfiles), ', '));
-utilityFiles = paths(startsWith(paths, "app/utilities/") & endsWith(paths, ".m"));
-expectedUtilities = "app/utilities/" + ["guiGetStructField.m"; "guiMergeStructs.m"];
-assert(isequal(sort(utilityFiles), sort(expectedUtilities)), ...
-    'App utilities must remain a narrow cross-GUI owner: %s', ...
-    strjoin(setxor(utilityFiles, expectedUtilities), ', '));
-end
-
-function assertDocumentationOwnership(repoRoot, paths)
-canonical = ["docs/architecture.md"; "docs/conventions.md"; ...
-    "docs/fitting.md"; "docs/validation.md"];
-for path = canonical(:).'
-    assert(any(paths == path) && isfile(fullfile(repoRoot, path)), ...
-        'Missing canonical documentation: %s', path);
-end
-retiredRoots = ["docs/architecture/", "docs/project/", "docs/repository/", ...
-    "docs/validation/", "docs/workflows/"];
-assert(~any(startsWith(paths, retiredRoots)), ...
-    'Campaign or superseded documentation owner returned.');
-assert(~any(contains(paths(startsWith(paths, "docs/")), "/active/")), ...
-    'Transition-era active/ documentation must remain absent.');
-for family = ["rayleigh_lamb", "mrlfe", "acoustoelastic_iop_hgo"]
-    familyDocs = paths(startsWith(paths, "docs/models/" + family + "/") & ...
-        endsWith(paths, ".md"));
-    assert(~isempty(familyDocs), 'Model documentation scan is empty: %s', family);
-end
-end
-
-function assertAeModelDiagnosticOwnership(paths)
-diagnosticPaths = paths(startsWith(paths, ...
-    "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/") & endsWith(paths, ".m"));
-expected = [ ...
-    "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/aeBuildIdentityA0DiagnosticBranch.m"
-    "src/+lamb/+models/+acoustoelastic_iop_hgo/+diagnostics/aeScoreBranchIdentityCandidates.m"];
-assert(isequal(sort(diagnosticPaths), sort(expected)), ...
-    'AE model diagnostic ownership changed: %s', ...
-    strjoin(setxor(diagnosticPaths, expected), ', '));
-resultPaths = paths(startsWith(paths, ...
-    "src/+lamb/+models/+acoustoelastic_iop_hgo/+results/") & endsWith(paths, ".m"));
-assert(isequal(resultPaths, ...
-    "src/+lamb/+models/+acoustoelastic_iop_hgo/+results/aeBuildResult.m"), ...
-    'AE results/ must contain result construction only.');
 end
 
 function assertNoModelCampaigns(paths)

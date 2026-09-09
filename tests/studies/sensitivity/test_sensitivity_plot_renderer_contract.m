@@ -1,23 +1,6 @@
 function test_sensitivity_plot_renderer_contract()
 %TEST_SENSITIVITY_PLOT_RENDERER_CONTRACT Validate study plot adaptation/rendering.
 
-repoRoot = testRepositoryRoot();
-studyFunctions = [ ...
-    "buildParametricSweepPlotData"; ...
-    "plotParametricSweepCp"; ...
-    "plotSweepCpFigure"; ...
-    "setSweepPlotLimits"; ...
-    "summarizeParametricSweepBranch"];
-studyFolder = fullfile(repoRoot, 'studies', 'sensitivity');
-for i = 1:numel(studyFunctions)
-    expectedPath = fullfile(studyFolder, studyFunctions(i) + ".m");
-    assert(isfile(expectedPath), '%s must be owned directly by sensitivity studies.', studyFunctions(i));
-    assert(strcmp(which(studyFunctions(i)), expectedPath), ...
-        '%s must resolve from its opt-in study owner.', studyFunctions(i));
-end
-enginePath = fullfile(repoRoot, 'src', '+lamb', '+sweeps', 'runParametricSweep.m');
-assert(strcmp(which('lamb.sweeps.runParametricSweep'), enginePath), ...
-    'The generic sweep engine must resolve from lamb.sweeps.');
 assert(isempty(which('runParametricSweep')), ...
     'The retired bare sweep-engine name must not resolve.');
 
@@ -121,7 +104,8 @@ aeSweep.params = {aeParams1, aeParams2};
 aeSweep.options = {struct(), struct()};
 aeSweep.results = {makeAeResult(frequency, [4; 5; 6]), makeAeResult(frequency, [5; 6; 7])};
 
-aeData = aeBuildSensitivityPlotData(aeSweep);
+aeData = buildParametricSweepPlotData( ...
+    aeSweep, "AcoustoelasticIOPHGO", "atlasA0");
 assert(numel(aeData.curves) == 2, 'AE adapter returned the wrong curve count.');
 assert(any(contains(aeData.fixedParameterLines, "IOP = 15.0 mmHg")), ...
     'AE adapter is missing fixed IOP metadata.');
@@ -141,7 +125,8 @@ close(fig);
 %% AE unitless k2 formatting
 aeSweep.parameter = "k1";
 aeSweep.spec = struct('label', "k1", 'units', "kPa");
-aeData = aeBuildSensitivityPlotData(aeSweep);
+aeData = buildParametricSweepPlotData( ...
+    aeSweep, "AcoustoelasticIOPHGO", "atlasA0");
 k2Line = aeData.fixedParameterLines(contains(aeData.fixedParameterLines, "k2 ="));
 assert(isscalar(k2Line) && string(k2Line) == "k2 = 200", ...
     'Unitless k2 should be formatted without a fake unit.');

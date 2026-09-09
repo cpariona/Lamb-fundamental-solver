@@ -1,5 +1,8 @@
 function normalized = guiNormalizeFitResult(fitResult, request)
 %GUINORMALIZEFITRESULT Normalize model-specific fit output for app plotting/export.
+%   This adapter does not invoke a model solver. Its fullCurve is an
+%   objective-consistent display interpolation. A new forward solve occurs
+%   only through guiEvaluateRequestedFitCurve after explicit user request.
 
 validMask = fitResult.validMask(:) & isfinite(fitResult.frequency_Hz(:)) & ...
     isfinite(fitResult.Cp_exp_mps(:)) & isfinite(fitResult.Cp_fit_mps(:));

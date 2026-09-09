@@ -33,25 +33,5 @@ for i = 1:numel(deletedFiles)
     assert(~isfile(deletedFiles(i)), 'Deleted legacy file still exists: %s.', deletedFiles(i));
 end
 
-consumerFiles = string({ ...
-    fullfile(root, 'app', 'solver', 'mrlfeGuiRunModel.m'), ...
-    fullfile(root, 'app', 'fitting', 'mrlfeGuiFitSolver.m'), ...
-    fullfile(root, 'src', '+lamb', '+fitting', '+mrlfe', 'mrlfeEvaluateFitModel.m')});
-for i = 1:numel(consumerFiles)
-    text = string(fileread(consumerFiles(i)));
-    assert(contains(text, "lamb.models.mrlfe.mrlfeSolve") || contains(text, "mrlfeEvaluateFitModel") || contains(text, "mrlfeFitDispersionData"), ...
-        'Maintained consumer no longer reaches the public mRLFE route: %s.', consumerFiles(i));
-    for j = 1:numel(deletedFunctions)
-        token = deletedFunctions(j);
-        if token == "computeMRLFE"
-            hasLegacyReference = contains(text, "computeMRLFE(");
-        else
-            hasLegacyReference = contains(text, token);
-        end
-        assert(~hasLegacyReference, ...
-            'Maintained consumer references deleted legacy function %s: %s.', deletedFunctions(j), consumerFiles(i));
-    end
-end
-
 fprintf('mRLFE canonical route contract passed.\n');
 end

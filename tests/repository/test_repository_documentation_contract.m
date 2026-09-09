@@ -8,16 +8,11 @@ assert(~isempty(markdownPaths), 'Documentation scan must include tracked Markdow
 canonicalPaths = [
     "README.md"
     "AGENTS.md"
-    "docs/architecture.md"
-    "docs/conventions.md"
-    "docs/fitting.md"
-    "docs/validation.md"
+    "src/+lamb/+models/+mrlfe/AGENTS.md"
+    "src/+lamb/+models/+acoustoelastic_iop_hgo/AGENTS.md"
 ];
-modelPaths = markdownPaths(startsWith(markdownPaths, "docs/models/"));
-guardedPaths = unique([canonicalPaths; modelPaths], 'stable');
-assert(~isempty(modelPaths), 'Retired-owner documentation scan must include model documents.');
 assert(all(ismember(canonicalPaths, markdownPaths)), ...
-    'Retired-owner documentation scan is missing a canonical document.');
+    'Documentation scan is missing canonical repository context.');
 
 for i = 1:numel(markdownPaths)
     path = markdownPaths(i);
@@ -27,7 +22,7 @@ for i = 1:numel(markdownPaths)
     assertRunnableRunTargets(repoRoot, path, text);
 end
 
-assertNoRetiredOwnerPaths(repoRoot, guardedPaths);
+assertNoRetiredOwnerPaths(repoRoot, markdownPaths);
 
 fprintf('Repository documentation contract test passed.\n');
 end

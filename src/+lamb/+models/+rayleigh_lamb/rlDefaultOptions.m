@@ -1,7 +1,10 @@
 function options = rlDefaultOptions(robustness)
-% Return default solver options for the requested robustness preset.
+%RLDEFAULTOPTIONS Return Rayleigh-Lamb numerical and branch options.
 %
-% robustness can be "Fast", "Balanced", or "Robust".
+%   OPTIONS = RLDEFAULTOPTIONS(PROFILE) accepts "Fast", "Balanced", or
+%   "Robust". Profiles change numerical effort, not physical meaning.
+%   Defaults enable A0 and leave S0 disabled. Search, continuation,
+%   residual, jump, and prediction controls are numerical options.
 
 if nargin < 1 || strlength(string(robustness)) == 0
     robustness = "Balanced";

@@ -45,7 +45,7 @@ outputFolder = aeWriteSensitivityOutputs(launchFolder, "iop_sweep", "iop_sweep",
     baseParams, options, sweepMetadata, sweepResult, summary);
 
 fig = aePlotSensitivity(sweepResult, "Title", "AE IOP/HGO atlasA0 sensitivity to IOP");
-figureFolder = aeSaveStudyFigure(fig, scriptFile, "iop_sweep", "iop_sweep_cp");
+figureFolder = saveStudyFigure(fig, scriptFile, "iop_sweep", "iop_sweep_cp");
 
 fprintf('\nCondition summary\n');
 disp(summary.conditionTable);

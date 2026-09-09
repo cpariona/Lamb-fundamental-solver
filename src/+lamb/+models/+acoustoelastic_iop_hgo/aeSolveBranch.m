@@ -8,6 +8,12 @@ function result = aeSolveBranch(params, options)
 % constitutive state, tracks/refines the selected atlas branch, projects the
 % requested frequency grid, applies the production policy, and builds the
 % final result.
+%
+% Official output fields include frequency_Hz, phaseVelocity_mps,
+% wavenumber_radpm, validMask, quality, diagnostics, execution, and
+% requested/effective configuration. atlasA0 is the only production branch.
+% identityA0Diagnostic and raw/fallback candidates are inspection evidence
+% only and never replace or fill the official arrays.
 
 if nargin < 2
     options = [];

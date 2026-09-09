@@ -14,11 +14,17 @@ options = guiGetStructField(guiRequest, 'options', struct());
 options.executionProfile = profile;
 options.effectiveExecutionProfile = profile;
 options.robustness = profile;
-options.mrlfeNumericalPreset = mrlfeProfileToNumericalPreset(profile);
 options.mrlfeParams = mrlfeResolveParams(guiRequest, options);
 options.mrlfeA0Policy = mrlfeNormalizeA0Policy(guiGetStructField(options, 'mrlfeA0Policy', "physicalTail"));
 
 branchNames = mrlfeSelectedBranches(options);
+[resolvedProfileOptions, ~] = mrlfeResolveExecutionProfile(branchNames(1), profile, ...
+    'Surface', "solver", ...
+    'DefaultProfile', "Balanced", ...
+    'DefaultSource', "model default", ...
+    'EtaS', options.mrlfeParams.etaS, ...
+    'A0Policy', options.mrlfeA0Policy);
+options.mrlfeNumericalPreset = resolvedProfileOptions.mrlfeNumericalPreset;
 frequency_Hz = lamb.grids.buildFrequencyVector(params);
 [modelResults, requests, elapsedSeconds] = mrlfeSolveBranches(params, options, frequency_Hz, branchNames);
 
@@ -121,15 +127,4 @@ policy = string(policy);
 if policy ~= "physicalTail"
     policy = "physicalTail";
 end
-end
-
-function preset = mrlfeProfileToNumericalPreset(profile)
-profiles = ["Fast", "Balanced", "Robust"];
-presets = ["fast", "balanced", "robust"];
-idx = find(string(profile) == profiles, 1);
-if isempty(idx)
-    error('mrlfe:InvalidExecutionProfile', ...
-        'Unsupported mRLFE execution profile "%s".', string(profile));
-end
-preset = presets(idx);
 end

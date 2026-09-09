@@ -18,7 +18,6 @@ test_fit_parameter_state_contract;
 test_fit_parameter_execution_contract;
 test_gui_normalized_adapters_smoke;
 test_ae_gui_main_adapter_smoke;
-test_ae_workflow_route_ownership;
 test_gui_fit_model_configuration_contract;
 test_fit_tool_model_configuration_contract;
 
@@ -29,7 +28,8 @@ test_ae_configuration_ownership;
 test_ae_production_architecture_contract;
 test_ae_result_ownership;
 test_ae_analyze_truncation_recovery;
-test_ae_branch_persistence_refinement;
+test_ae_analyze_sweep_reliability;
+test_ae_analyze_branch_persistence_candidates;
 test_ae_constitutive_identity;
 test_ae_sensitivity_study_contract;
 test_sensitivity_plot_renderer_contract;

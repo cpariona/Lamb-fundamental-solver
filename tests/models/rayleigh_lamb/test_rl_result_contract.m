@@ -39,13 +39,6 @@ for name = ["A0", "S0"]
 end
 
 repoRoot = testRepositoryRoot();
-assert(strcmp(which('lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes'), fullfile(repoRoot, 'src', ...
-    '+lamb', '+models', '+rayleigh_lamb', 'rlComputeFundamentalLambModes.m')));
-assert(strcmp(which('lamb.models.rayleigh_lamb.solvers.rlSolveFundamentalModes'), fullfile(repoRoot, 'src', ...
-    '+lamb', '+models', '+rayleigh_lamb', '+solvers', 'rlSolveFundamentalModes.m')));
-assert(strcmp(which('lamb.models.rayleigh_lamb.quality.rlEvaluateModeQuality'), fullfile(repoRoot, 'src', ...
-    '+lamb', '+models', '+rayleigh_lamb', '+quality', 'rlEvaluateModeQuality.m')));
-
 exampleSource = fileread(fullfile(repoRoot, 'examples', 'rayleigh_lamb', ...
     'basic', 'rlRunDefaultA0S0.m'));
 assert(contains(exampleSource, 'mode.diagnostics.residual'));

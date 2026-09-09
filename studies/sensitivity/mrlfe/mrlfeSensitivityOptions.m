@@ -25,10 +25,7 @@ options.robustness = "Fast";
 options.mrlfeNumericalPreset = "fast";
 options.mrlfeA0Policy = normalizeA0Policy(p.Results.A0Policy);
 options.mrlfeParams = lamb.models.mrlfe.configuration.mrlfeDefaultInternalParameters();
-options.mrlfeParams.fluidDensity = 1000;
-options.mrlfeParams.fluidSoundSpeed = 1500;
 options.mrlfeParams.etaS = p.Results.EtaS;
-options.mrlfeParams.etaL = 0;
 options.mrlfeParams.useComplexLambda = false;
 
 function policy = normalizeA0Policy(policyIn)

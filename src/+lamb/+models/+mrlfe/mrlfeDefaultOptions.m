@@ -1,5 +1,8 @@
 function options = mrlfeDefaultOptions()
 %MRLFEDEFAULTOPTIONS Public default numerical and policy options for mRLFE.
+%   Production presets are fast, balanced, robust, and dense. A0Like uses
+%   physicalTail termination, S0Like uses none, and production fallback is
+%   disabled. Presets control numerical effort, not physical meaning.
 
 options = struct();
 options.numerics = struct('preset', "fast");
