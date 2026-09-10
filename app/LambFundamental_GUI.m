@@ -189,9 +189,6 @@ updateAxisFieldState();
             options = mrlfeOptions;
             options.executionProfileMetadata = mrlfeMetadata;
             options.mrlfeParams = mrlfeReadParamsFromGui();
-            if isfield(modelControls.mrlfe, 'a0Policy')
-                options.mrlfeA0Policy = mrlfeNormalizeA0Policy(string(modelControls.mrlfe.a0Policy.Value));
-            end
         end
     end
 
@@ -215,13 +212,6 @@ updateAxisFieldState();
         params.CT = material.CT;
         params.nu = material.nu;
         params.lambda = material.lambda;
-    end
-
-    function policy = mrlfeNormalizeA0Policy(policyIn)
-        policy = string(policyIn);
-        if policy ~= "physicalTail"
-            policy = "physicalTail";
-        end
     end
 
     function mrlfeParams = mrlfeReadParamsFromGui()
@@ -549,6 +539,9 @@ updateAxisFieldState();
         elapsedText = formatElapsedText(getGuiElapsedSeconds());
         statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d%s', numel(r.phaseVelocity_mps), elapsedText), ...
             sprintf('Cp valid %d/%d', nnz(r.validMask), numel(r.phaseVelocity_mps))};
+        if ~all(r.validMask)
+            statusLines{2} = [statusLines{2}, ' - incomplete branch'];
+        end
         setStatusText(statusLines);
     end
 

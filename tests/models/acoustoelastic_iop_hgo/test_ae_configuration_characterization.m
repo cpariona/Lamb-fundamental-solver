@@ -34,6 +34,8 @@ end
 % values therefore have explicit-override precedence over the maintained
 % interactive bundle.
 mainGui = aeGuiBuildOptions("Balanced");
+assert(~mainGui.normalizeRows, 'Main GUI must resolve its maintained surface configuration.');
+assert(mainGui.executionProfileMetadata.surface == "SolverGUI");
 assert(mainGui.atlasNumYPoints == 600);
 assert(mainGui.atlasTopNMinima == 16);
 assert(mainGui.refineLocalMinima == true);

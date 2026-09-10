@@ -48,4 +48,50 @@ end
 
 fprintf('AE internal tracking grid passed. Fallback=%d, valid points: %d/%d.\n', ...
     result.quality.selectionFallbackUsed, nnz(result.validMask), numel(result.validMask));
+assertRequestedSamplingInvariant();
+end
+
+function assertRequestedSamplingInvariant()
+params = struct('R', 7.8e-3, 'thickness', 0.5e-3, 'mu', 158e3, ...
+    'IOP', 15*133.322, 'k1', 25e3, 'k2', 100, 'rho', 1070, ...
+    'rhoF', 1000, 'fluidBulkModulus', 2.2e9);
+options = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration( ...
+    struct('normalizeRows', false), 'NumericalPreset', "Balanced");
+commonFrequency = [300, 1000, 4000, 8000, 16000];
+sparseFrequency = unique([commonFrequency, logspace(log10(300), log10(16000), 20)]);
+denseFrequency = unique([sparseFrequency, linspace(300, 16000, 300)]);
+params.frequency = sparseFrequency;
+sparse = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
+params.frequency = denseFrequency;
+dense = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
+sparseCp = sparse.phaseVelocity_mps;
+denseCp = dense.phaseVelocity_mps;
+assert(all(sparse.validMask) && all(dense.validMask));
+assert(isequal(sparse.trackingFrequency, dense.trackingFrequency));
+assert(isequaln(sparse.minimaTable, dense.minimaTable));
+assert(isequaln(sparse.branchTable, dense.branchTable));
+assert(isequaln(sparse.selectedBranch, dense.selectedBranch));
+assert(sparse.selectedBranch.FrequencyStart_Hz == sparse.trackingFrequency(1));
+[present, indices] = ismember(sparseFrequency, denseFrequency);
+assert(all(present));
+% Identical frequency/seed/objective/refinement inputs must give exact parity.
+assert(isequaln(sparseCp, denseCp(indices)));
+assert(isequaln(sparse.nearestRank, dense.nearestRank(indices)));
+assert(isequaln(sparse.nearestBranchID, dense.nearestBranchID(indices)));
+
+% Removing an internal identity endpoint must not allow requested evaluation
+% to bridge that gap, even with an otherwise complete selected branch.
+trackingParams = sparse.directParams;
+trackingParams.frequency = sparse.trackingFrequency;
+tracking = lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveAtlasBranch(trackingParams, options);
+removedFrequency = tracking.frequency_Hz(10);
+tracking.minimaTable(tracking.minimaTable.Frequency_Hz == removedFrequency & ...
+    tracking.minimaTable.BranchID == tracking.selectedBranchID, :) = [];
+trackingParams.frequency = sqrt(tracking.frequency_Hz(9)*removedFrequency);
+fields = lamb.models.acoustoelastic_iop_hgo.tracking.aeEvaluateSelectedAtlasBranch(tracking, trackingParams, options);
+assert(~fields.validCp && isnan(fields.Cp) && ~fields.interpolatedCp);
+params.frequency = [];
+emptyResult = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, options);
+assert(isempty(emptyResult.frequency_Hz) && isempty(emptyResult.validMask));
+fprintf('AE requested sampling identity and gap guards passed.\n');
 end

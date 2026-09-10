@@ -5,7 +5,11 @@ fprintf('Running AE IOP/HGO main GUI adapter smoke test...\n');
 
 baseGridParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 baseGridParams.fmin = 300;
-baseGridParams.fmax = 15e3;
+baseGridParams.fmax = 16e3;
+baseGridParams.mu = 158e3;
+baseGridParams.rho = 1070;
+baseGridParams.nu = 0.4999;
+baseGridParams.thickness = 0.5e-3;
 baseGridParams.numFrequencyPoints = "auto";
 baseGridParams.frequencySpacing = "hybrid";
 requestedFrequency = lamb.grids.buildFrequencyVector(baseGridParams);
@@ -36,26 +40,8 @@ assert(~isfield(builtRequest.options, 'aeGuiAtlasPreset'), ...
 assert(string(builtRequest.options.executionProfileMetadata.requestedExecutionProfile) == "Balanced");
 assert(string(builtRequest.options.executionProfileMetadata.effectiveExecutionProfile) == "Balanced");
 
-params = struct();
-params.R = 7.8e-3;
-params.thickness = 550e-6;
-params.IOP = 15 * 133.322;
-params.mu = 50e3;
-params.k1 = 25e3;
-params.k2 = 100;
-params.rho = 1060;
-params.rhoF = 1000;
-params.fluidBulkModulus = 2.2e9;
-params.frequency = requestedFrequency;
-
-options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
-options.M54_variant = "corrected";
-options.normalizeRows = false;
-options.atlasBranchPolicy = "atlasA0";
-options.atlasNumYPoints = 300;
-options.atlasTopNMinima = 12;
-
-guiRequest = struct('params', params, 'options', options);
+params = builtRequest.params;
+guiRequest = builtRequest;
 result = aeGuiRunModel(guiRequest);
 expectedRawResult = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, result.metadata.options);
 expectedView = guiBuildModelResultView(expectedRawResult, "expectedAEView");
@@ -69,8 +55,8 @@ assert(numel(result.frequency) == numel(params.frequency));
 assert(numel(result.phaseVelocity) == numel(params.frequency));
 assert(numel(result.frequency) > 100, ...
     'AE adapter fixture must use the shared dense output grid.');
-assert(any(isfinite(result.phaseVelocity)), ...
-    'AE adapter must produce at least one finite Cp value.');
+assert(all(isfinite(result.phaseVelocity)) && all(result.metadata.modelResult.validMask), ...
+    'Actual Main GUI request must retain the complete initialized atlasA0 branch.');
 
 assert(isequaln(result.metadata.modelResult.phaseVelocity_mps, ...
     expectedRawResult.phaseVelocity_mps), ...
@@ -87,8 +73,68 @@ assert(isequal(result.branches.diagnostics.valid, ...
     result.metadata.modelResult.validMask(:)), ...
     'AE normalized branch must consume canonical validity directly.');
 assert(isfield(result.metadata, 'elapsedSeconds') && isfinite(result.metadata.elapsedSeconds));
+assertDefaultRangeIdentity(baseGridParams, aeControls, expectedRawResult);
 
 fprintf('AE IOP/HGO main GUI adapter smoke test passed.\n');
+end
+
+function assertDefaultRangeIdentity(baseParams, controls, reference)
+% Real hybrid grids differ between ranges. A union requested from the supported
+% boundary compares every GUI sample exactly, without interpolating Cp.
+results = cell(1, 3);
+supportedFrequency = reference.frequency_Hz(:);
+minimums = [10, 300, 1000];
+boundary = reference.trackingFrequency(1);
+for i = 1:numel(minimums)
+    baseParams.fmin = minimums(i);
+    request = aeGuiBuildRequest(baseParams, controls, "Balanced");
+    assert(isequal(request.params.frequency, lamb.grids.buildFrequencyVector(baseParams)));
+    assert(request.params.frequency(end) == 16000);
+    assert(numel(request.params.frequency) > 100);
+    view = aeGuiRunModel(request);
+    raw = view.metadata.modelResult;
+    canonical = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(request.params, view.metadata.options);
+    assert(isequaln(raw.phaseVelocity_mps, canonical.phaseVelocity_mps));
+    assert(isequal(raw.validMask, canonical.validMask));
+    assert(isequaln(view.branches.phaseVelocity, canonical.phaseVelocity_mps(:)));
+    assert(isequal(view.branches.diagnostics.valid, canonical.validMask(:)));
+    assert(isequal(raw.trackingFrequency, reference.trackingFrequency));
+    assert(boundary == request.options.atlasInitializationMinFrequency_Hz);
+    assert(raw.selectedBranch.FrequencyStart_Hz == boundary);
+    assert(isequaln(raw.selectedBranch, reference.selectedBranch));
+    assert(isequaln(raw.minimaTable, reference.minimaTable));
+    assert(~raw.quality.selectionFallbackUsed && raw.quality.a0StartFilterPassed);
+    supported = raw.frequency_Hz >= boundary;
+    assert(isequal(raw.validMask(:), supported(:)), ...
+        'Only requested points below AE initialization may be invalid in this case.');
+    assert(all(isnan(raw.phaseVelocity_mps(~supported))));
+    if minimums(i) == 10
+        assert(request.params.frequency(1) == 10);
+        assert(any(~supported) && any(supported));
+    end
+    [common, a, b] = intersect(raw.frequency_Hz, reference.frequency_Hz);
+    assert(~isempty(common));
+    assert(isequaln(raw.phaseVelocity_mps(a), reference.phaseVelocity_mps(b)));
+    supportedFrequency = [supportedFrequency; raw.frequency_Hz(supported)]; %#ok<AGROW>
+    results{i} = raw;
+    fprintf('AE GUI range %g-16000 Hz: %d/%d valid, start=%g Hz, fallback=%d.\n', ...
+        minimums(i), nnz(raw.validMask), numel(raw.validMask), ...
+        raw.selectedBranch.FrequencyStart_Hz, raw.quality.selectionFallbackUsed);
+end
+baseParams.fmin = 300;
+request = aeGuiBuildRequest(baseParams, controls, "Balanced");
+request.params.frequency = unique(supportedFrequency);
+comparison = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(request.params, request.options);
+assert(all(comparison.validMask));
+assert(isequaln(comparison.selectedBranch, reference.selectedBranch));
+for i = 1:numel(results)
+    raw = results{i};
+    supported = raw.validMask;
+    [present, indices] = ismember(raw.frequency_Hz(supported), comparison.frequency_Hz);
+    assert(all(present));
+    assert(isequaln(raw.phaseVelocity_mps(supported), comparison.phaseVelocity_mps(indices)), ...
+        'Changing GUI fmin must preserve Cp at every supported requested sample.');
+end
 end
 
 function assertCommonView(result)

@@ -21,5 +21,9 @@ initMin = min(initMin, fMax);
 nInit = round(options.atlasInitializationNumFrequencyPoints);
 nInit = max(nInit, 2);
 initFrequency = logspace(log10(initMin), log10(fMax), nInit);
-trackingFrequency = unique([initFrequency(:); requestedFrequency(:)], 'sorted').';
+% Preserve the exact interval endpoints: log/exp roundoff must not classify
+% a requested endpoint as outside the identity-tracking interval.
+initFrequency(1) = initMin;
+initFrequency(end) = fMax;
+trackingFrequency = unique(initFrequency, 'sorted');
 end

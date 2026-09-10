@@ -53,7 +53,7 @@ selectedBranch = table();
 branchPoints = table();
 
 if ~isempty(branchTable)
-    [selectedBranch, selectedBranchID, branchTable] = lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch(branchTable, options);
+    [selectedBranch, selectedBranchID, branchTable] = lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch(branchTable, options, frequency(1));
     branchPoints = sortrows(minimaTable(minimaTable.BranchID == selectedBranchID, :), 'Frequency_Hz');
     branchPoints = lamb.models.acoustoelastic_iop_hgo.tracking.aeRefineSelectedAtlasBranch(branchPoints, params, cGrid, options);
     [Cp, branchExistsAtFrequency, interpolatedCp] = assignCpFromBranch(frequency, branchPoints, options);
