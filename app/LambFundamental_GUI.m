@@ -549,6 +549,9 @@ updateAxisFieldState();
         elapsedText = formatElapsedText(getGuiElapsedSeconds());
         statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d%s', numel(r.phaseVelocity_mps), elapsedText), ...
             sprintf('Cp valid %d/%d', nnz(r.validMask), numel(r.phaseVelocity_mps))};
+        if ~all(r.validMask)
+            statusLines{2} = [statusLines{2}, ' - incomplete branch'];
+        end
         setStatusText(statusLines);
     end
 

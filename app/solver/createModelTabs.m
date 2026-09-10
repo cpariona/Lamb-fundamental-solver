@@ -156,7 +156,7 @@ h.ae.fluidBulkModulus = uieditfield(gAE, 'numeric', 'Value', 2.2, 'Limits', [0 I
 h.ae.fluidBulkModulus.Layout.Row = 6;
 h.ae.fluidBulkModulus.Layout.Column = [3 4];
 
-note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, fmin, and fmax. The GUI adapter uses a fast atlas preset for interaction; dense diagnostics keep explicit solver options.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note = uilabel(gAE, 'Text', 'Shared fields come from Setup: rho, mu, thickness, fmin, and fmax. The execution profile controls atlas effort. The model tracks atlasA0 on an internal grid and evaluates the requested output frequencies.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
 note.Layout.Row = 7;
 note.Layout.Column = [1 4];
 

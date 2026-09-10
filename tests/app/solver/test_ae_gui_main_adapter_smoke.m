@@ -5,7 +5,11 @@ fprintf('Running AE IOP/HGO main GUI adapter smoke test...\n');
 
 baseGridParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 baseGridParams.fmin = 300;
-baseGridParams.fmax = 15e3;
+baseGridParams.fmax = 16e3;
+baseGridParams.mu = 158e3;
+baseGridParams.rho = 1070;
+baseGridParams.nu = 0.4999;
+baseGridParams.thickness = 0.5e-3;
 baseGridParams.numFrequencyPoints = "auto";
 baseGridParams.frequencySpacing = "hybrid";
 requestedFrequency = lamb.grids.buildFrequencyVector(baseGridParams);
@@ -36,26 +40,8 @@ assert(~isfield(builtRequest.options, 'aeGuiAtlasPreset'), ...
 assert(string(builtRequest.options.executionProfileMetadata.requestedExecutionProfile) == "Balanced");
 assert(string(builtRequest.options.executionProfileMetadata.effectiveExecutionProfile) == "Balanced");
 
-params = struct();
-params.R = 7.8e-3;
-params.thickness = 550e-6;
-params.IOP = 15 * 133.322;
-params.mu = 50e3;
-params.k1 = 25e3;
-params.k2 = 100;
-params.rho = 1060;
-params.rhoF = 1000;
-params.fluidBulkModulus = 2.2e9;
-params.frequency = requestedFrequency;
-
-options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
-options.M54_variant = "corrected";
-options.normalizeRows = false;
-options.atlasBranchPolicy = "atlasA0";
-options.atlasNumYPoints = 300;
-options.atlasTopNMinima = 12;
-
-guiRequest = struct('params', params, 'options', options);
+params = builtRequest.params;
+guiRequest = builtRequest;
 result = aeGuiRunModel(guiRequest);
 expectedRawResult = lamb.models.acoustoelastic_iop_hgo.aeSolveBranch(params, result.metadata.options);
 expectedView = guiBuildModelResultView(expectedRawResult, "expectedAEView");
@@ -69,8 +55,8 @@ assert(numel(result.frequency) == numel(params.frequency));
 assert(numel(result.phaseVelocity) == numel(params.frequency));
 assert(numel(result.frequency) > 100, ...
     'AE adapter fixture must use the shared dense output grid.');
-assert(any(isfinite(result.phaseVelocity)), ...
-    'AE adapter must produce at least one finite Cp value.');
+assert(all(isfinite(result.phaseVelocity)) && all(result.metadata.modelResult.validMask), ...
+    'Actual Main GUI request must retain the complete initialized atlasA0 branch.');
 
 assert(isequaln(result.metadata.modelResult.phaseVelocity_mps, ...
     expectedRawResult.phaseVelocity_mps), ...
