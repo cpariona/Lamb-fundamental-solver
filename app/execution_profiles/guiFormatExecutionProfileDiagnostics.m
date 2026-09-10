@@ -43,8 +43,7 @@ end
 lines(end+1) = "  override reason: " + reason;
 
 lines(end+1) = "Internal configuration";
-lines(end+1) = "  solver preset: " + displayValue(localField(metadata, 'internalSolverPreset', ""));
-lines(end+1) = "  atlas preset: " + displayValue(localField(metadata, 'internalAtlasPreset', ""));
+lines = appendPresetSummary(lines, metadata, p.Results.Model);
 lines(end+1) = "  route policy: " + displayValue(localField(metadata, 'routePolicy', ""));
 if isfield(metadata, 'actualRoute') && strlength(string(metadata.actualRoute)) > 0
     lines(end+1) = "  actual route: " + string(metadata.actualRoute);
@@ -86,6 +85,20 @@ if ~isempty(extra)
     lines = [lines(:); extraLines(:)]; %#ok<AGROW>
 end
 lines = lines(:);
+end
+
+function lines = appendPresetSummary(lines, metadata, modelName)
+modelName = lower(strtrim(string(modelName)));
+solverPreset = localField(metadata, 'internalSolverPreset', "");
+secondaryPreset = localField(metadata, 'internalAtlasPreset', "");
+if contains(modelName, "mrlfe")
+    lines(end+1) = "  solver preset: " + displayValue(solverPreset);
+    lines(end+1) = "  numerical preset: " + displayValue(secondaryPreset);
+elseif contains(modelName, "ae") || contains(modelName, "acoustoelastic")
+    lines(end+1) = "  atlas preset: " + displayValue(secondaryPreset);
+else
+    lines(end+1) = "  solver preset: " + displayValue(solverPreset);
+end
 end
 
 function lines = appendIfText(lines, prefix, value)
