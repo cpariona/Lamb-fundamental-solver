@@ -18,12 +18,14 @@ rlLines = guiFormatExecutionProfileDiagnostics(rlMetadata, ...
 assertContains(rlLines, "control value: Robust");
 assertContains(rlLines, "requested: Robust");
 assertContains(rlLines, "effective: Robust");
+assertContains(rlLines, "solver preset: Robust");
 assertContains(rlLines, "gridPointsInitial = 6000");
 assertContains(rlLines, "gridPointsTracking = 1400");
 assertContains(rlLines, "route policy: direct");
+assertNotContains(rlLines, "atlas preset:");
 assertNoRequestedEffectiveSlash(rlLines);
 
-%% AE diagnostics expose atlas density and route policy.
+%% AE diagnostics expose atlas density and route policy, not a fake solver preset.
 [~, aeMetadata] = aeResolveExecutionProfile("Balanced", ...
     'DefaultProfile', "Balanced", 'DefaultSource', "Main GUI default", ...
     'Surface', "MainGUI");
@@ -39,8 +41,9 @@ assertContains(aeLines, "atlas preset: ae_atlas_600x16");
 assertContains(aeLines, "atlasNumYPoints = 600");
 assertContains(aeLines, "atlasTopNMinima = 16");
 assertContains(aeLines, "route policy: atlasA0");
+assertNotContains(aeLines, "solver preset:");
 
-%% mRLFE diagnostics show direct Balanced support and the balanced preset.
+%% mRLFE diagnostics name the second preset as numerical, not atlas.
 [~, mrlfeMetadata] = mrlfeResolveExecutionProfile("A0Like", ...
     struct('executionProfile', "Balanced"), ...
     'Surface', "fit", ...
@@ -62,7 +65,9 @@ mrlfeLines = guiFormatExecutionProfileDiagnostics(mrlfeMetadata, ...
 assertContains(mrlfeLines, "requested: Balanced");
 assertContains(mrlfeLines, "effective: Balanced");
 assertContains(mrlfeLines, "support mode: direct");
-assertContains(mrlfeLines, "atlas preset: balanced");
+assertContains(mrlfeLines, "solver preset: Balanced");
+assertContains(mrlfeLines, "numerical preset: balanced");
+assertNotContains(mrlfeLines, "atlas preset:");
 assertContains(mrlfeLines, "actual route: elastic_adaptive");
 assertContains(mrlfeLines, "A0 policy: physicalTail");
 
@@ -72,6 +77,11 @@ end
 function assertContains(lines, expected)
 assert(any(contains(string(lines), expected)), ...
     'Expected diagnostics to contain "%s".', expected);
+end
+
+function assertNotContains(lines, unexpected)
+assert(~any(contains(string(lines), unexpected)), ...
+    'Diagnostics should not contain "%s".', unexpected);
 end
 
 function assertNoRequestedEffectiveSlash(lines)
