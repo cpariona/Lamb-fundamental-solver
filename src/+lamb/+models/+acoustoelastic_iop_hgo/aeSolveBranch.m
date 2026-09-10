@@ -8,6 +8,9 @@ function result = aeSolveBranch(params, options)
 % constitutive state, tracks/refines the selected atlas branch, projects the
 % requested frequency grid, applies the production policy, and builds the
 % final result.
+% With internal tracking enabled, requested samples do not enter branch
+% linking or selection. Output points require unambiguous discrete support
+% between consecutive selected internal points; unsupported points stay NaN.
 %
 % Official output fields include frequency_Hz, phaseVelocity_mps,
 % wavenumber_radpm, validMask, quality, diagnostics, execution, and
@@ -71,37 +74,12 @@ trackingParams = directParams;
 trackingParams.frequency = trackingFrequency;
 
 trackingResult = lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveAtlasBranch(trackingParams, options);
-result = restrictResultToRequestedFrequency(trackingResult, requestedFrequency, trackingFrequency, options);
+result = evaluateRequestedFrequency(trackingResult, directParams, trackingFrequency, options);
 end
 
-function result = restrictResultToRequestedFrequency(trackingResult, requestedFrequency, trackingFrequency, options)
-requestedFrequency = requestedFrequency(:).';
-[isTracked, loc] = ismember(requestedFrequency, trackingFrequency);
-
-fields = struct();
-fields.frequency = requestedFrequency;
-fields.Cp = nan(size(requestedFrequency));
-fields.validCp = false(size(requestedFrequency));
-fields.branchExistsAtFrequency = false(size(requestedFrequency));
-fields.interpolatedCp = false(size(requestedFrequency));
-fields.objective = nan(size(requestedFrequency));
-fields.nearestRank = nan(size(requestedFrequency));
-fields.nearestBranchID = nan(size(requestedFrequency));
-fields.pointStatus = repmat("belowAtlasInitializationRange", size(requestedFrequency));
-
-if any(isTracked)
-    idx = loc(isTracked);
-    fields.Cp(isTracked) = trackingResult.phaseVelocity_mps(idx);
-    fields.validCp(isTracked) = trackingResult.validMask(idx);
-    fields.branchExistsAtFrequency(isTracked) = trackingResult.branchExistsAtFrequency(idx);
-    fields.interpolatedCp(isTracked) = trackingResult.interpolatedCp(idx);
-    fields.objective(isTracked) = trackingResult.objective(idx);
-    fields.nearestRank(isTracked) = trackingResult.nearestRank(idx);
-    fields.nearestBranchID(isTracked) = trackingResult.nearestBranchID(idx);
-    fields.pointStatus(isTracked) = trackingResult.pointStatus(idx);
-end
-
-fields.objectiveMap = [];
+function result = evaluateRequestedFrequency(trackingResult, directParams, trackingFrequency, options)
+requestedFrequency = directParams.frequency(:).';
+[fields, requestedObjectiveMap] = lamb.models.acoustoelastic_iop_hgo.tracking.aeEvaluateSelectedAtlasBranch(trackingResult, directParams, options);
 trackingMetadata = struct();
 trackingMetadata.Used = true;
 trackingMetadata.TrackingFrequency_Hz = trackingFrequency(:).';
@@ -128,10 +106,7 @@ result = lamb.models.acoustoelastic_iop_hgo.results.aeBuildResult(spec);
 % columns that correspond exactly to those requested frequencies.
 if isfield(trackingResult.diagnostics, 'identityA0')
     diagnosticResult = result;
-    diagnosticResult.objectiveMap = nan(size(trackingResult.objectiveMap, 1), numel(requestedFrequency));
-    if any(isTracked)
-        diagnosticResult.objectiveMap(:, isTracked) = trackingResult.objectiveMap(:, loc(isTracked));
-    end
+    diagnosticResult.objectiveMap = requestedObjectiveMap;
     identity = lamb.models.acoustoelastic_iop_hgo.diagnostics.aeBuildIdentityA0DiagnosticBranch(diagnosticResult);
     spec = rebuildSpec(result);
     spec.diagnosticFields = struct( ...

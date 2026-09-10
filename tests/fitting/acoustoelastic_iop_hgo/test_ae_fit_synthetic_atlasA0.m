@@ -60,5 +60,25 @@ assert(~isfield(fitResult.modelEvaluation.solverResult, 'identityA0') || ...
 fprintf('True mu: %.3f kPa\n', trueParams.mu / 1e3);
 fprintf('Fit  mu: %.3f kPa\n', fitResult.bestParams.mu / 1e3);
 fprintf('Relative mu error: %.6g\n', relativeMuError);
+assertFrequencySamplingInvariant();
 fprintf('\nAE IOP/HGO synthetic atlasA0 fitting test passed.\n');
+end
+
+function assertFrequencySamplingInvariant()
+params = struct('R', 7.8e-3, 'thickness', 0.5e-3, 'mu', 158e3, ...
+    'IOP', 15*133.322, 'k1', 25e3, 'k2', 100, 'rho', 1070, ...
+    'rhoF', 1000, 'fluidBulkModulus', 2.2e9);
+options = lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitOptions("Balanced");
+sparseFrequency = logspace(log10(300), log10(16000), 20);
+sparseFrequency([1 end]) = [300 16000];
+denseFrequency = unique([sparseFrequency, linspace(300, 16000, 300)]);
+[sparseCp, sparse] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(params, sparseFrequency, "atlasA0", options);
+[denseCp, dense] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(params, denseFrequency, "atlasA0", options);
+[~, index] = ismember(sparseFrequency, denseFrequency);
+assert(all(sparse.validMask) && all(dense.validMask));
+assert(isequaln(sparse.solverResult.selectedBranch, dense.solverResult.selectedBranch));
+assert(isequaln(sparse.solverResult.minimaTable, dense.solverResult.minimaTable));
+assert(isequaln(sparseCp, denseCp(index)), ...
+    'Fitting samples must evaluate the same identity at common frequencies.');
+fprintf('AE fitting frequency-sampling invariance passed.\n');
 end

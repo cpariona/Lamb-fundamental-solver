@@ -70,6 +70,15 @@ assert(id == 1 && selected.BranchID == 1);
 assert(isequal(scored.A0StartFilterPassed, [true; false]));
 assert(isfinite(scored.SelectionScore(1)) && isinf(scored.SelectionScore(2)));
 assert(all(~scored.SelectionFallbackUsed));
+% A late-born branch must not inherit A0 identity from low y/rank alone.
+T.YStart(2) = T.YStart(1);
+T.StartRank(2) = T.StartRank(1);
+T.FrequencyStart_Hz(2) = 10000;
+[~, id, scored] = lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch(T, options, 300);
+assert(id == 1 && ~scored.A0StartFilterPassed(2));
+T.FrequencyStart_Hz(1) = 500;
+[selected, ~, scored] = lamb.models.acoustoelastic_iop_hgo.policies.aeSelectAtlasA0Branch(T, options, 300);
+assert(~any(scored.A0StartFilterPassed) && selected.SelectionFallbackUsed);
 end
 
 function assertFallbackContract()

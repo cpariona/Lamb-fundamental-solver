@@ -1,7 +1,12 @@
-function [branch, id, branchTable] = aeSelectAtlasA0Branch(branchTable, options)
+function [branch, id, branchTable] = aeSelectAtlasA0Branch(branchTable, options, initializationFrequency)
 %AESELECTATLASA0BRANCH Apply the maintained atlasA0 selection policy.
 
 a0Mask = true(height(branchTable), 1);
+% Internal-grid production identity must originate at its initialization
+% anchor. A low-y, low-rank candidate born later is not an initialized A0.
+if nargin >= 3 && options.useInternalAtlasTrackingGrid
+    a0Mask = branchTable.FrequencyStart_Hz == initializationFrequency;
+end
 if options.atlasRequireLowStartY
     a0Mask = a0Mask & branchTable.YStart <= options.atlasMaxStartY;
 end
@@ -15,7 +20,7 @@ if ~any(selectionMask)
         selectionMask = true(height(branchTable), 1);
         fallbackUsed = true;
     else
-        error('No atlas branch satisfies the hard A0-like start filters. Relax atlasMaxStartY or atlasMaxStartRank.');
+        error('No atlas branch satisfies the hard A0-like start filters, including the internal initialization anchor when enabled.');
     end
 end
 

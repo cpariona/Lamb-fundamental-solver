@@ -39,18 +39,18 @@ assertErrorContains(@()lamb.models.acoustoelastic_iop_hgo.configuration.aeValida
 gridOptions = struct('atlasInitializationMinFrequency_Hz', 300, ...
     'atlasInitializationNumFrequencyPoints', 4);
 assertGrid([1000, 2000, 4000], gridOptions, ...
-    unique([logspace(log10(300), log10(4000), 4), 1000, 2000, 4000], 'sorted'));
+    unique(logspace(log10(300), log10(4000), 4), 'sorted'));
 assertGrid([100, 300, 500], gridOptions, ...
-    unique([logspace(log10(300), log10(500), 4), 100, 300, 500], 'sorted'));
+    unique(logspace(log10(300), log10(500), 4), 'sorted'));
 assertGrid([3000, 1000, 2000], gridOptions, ...
-    unique([logspace(log10(300), log10(3000), 4), 1000, 2000, 3000], 'sorted'));
+    unique(logspace(log10(300), log10(3000), 4), 'sorted'));
 assertGrid([1000, 1000, 2750, 1600], gridOptions, ...
-    unique([logspace(log10(300), log10(2750), 4), 1000, 1600, 2750], 'sorted'));
+    unique(logspace(log10(300), log10(2750), 4), 'sorted'));
 
 boundaryOptions = struct('atlasInitializationMinFrequency_Hz', -5, ...
     'atlasInitializationNumFrequencyPoints', 1);
 assertGrid([200, 75, 200, NaN, -10], boundaryOptions, ...
-    unique([logspace(log10(eps), log10(200), 2), 75, 200], 'sorted'));
+    unique(logspace(log10(eps), log10(200), 2), 'sorted'));
 assert(isempty(lamb.models.acoustoelastic_iop_hgo.configuration.aeBuildInternalTrackingGrid([NaN, -1, 0], gridOptions)));
 
 fprintf('test_ae_configuration_ownership passed.\n');
@@ -58,7 +58,11 @@ end
 
 function assertGrid(requested, options, expected)
 actual = lamb.models.acoustoelastic_iop_hgo.configuration.aeBuildInternalTrackingGrid(requested, options);
-assert(isequal(actual, expected), 'Internal tracking grid changed.');
+positiveRequested = requested(isfinite(requested) & requested > 0);
+assert(numel(actual) == numel(expected));
+assert(isequal(actual(2:end-1), expected(2:end-1)), 'Internal log grid changed.');
+assert(actual(1) == min(max(options.atlasInitializationMinFrequency_Hz, eps), max(positiveRequested)));
+assert(actual(end) == max(positiveRequested), 'Requested upper endpoint must be tracked exactly.');
 end
 
 function assertErrorContains(fcn, expectedText)
