@@ -24,9 +24,9 @@ uilabel(gRL, 'Text', 'mRLFE computes the Rayleigh-Lamb seed branches required in
 
 tabMRLFE = uitab(tg, 'Title', 'mRLFE');
 mrlfePhysicalDefaults = lamb.models.mrlfe.mrlfeDefaultParameters();
-gM = uigridlayout(tabMRLFE, [9 4]);
+gM = uigridlayout(tabMRLFE, [8 4]);
 gM.ColumnWidth = {105, '1x', 105, '1x'};
-gM.RowHeight = {22, 24, 22, 24, 24, 24, 24, 24, '1x'};
+gM.RowHeight = {22, 24, 22, 24, 24, 24, 24, '1x'};
 gM.Padding = [10 6 10 6];
 gM.RowSpacing = 2;
 gM.ColumnSpacing = 6;
@@ -82,16 +82,8 @@ h.mrlfe.etaS = uieditfield(gM, 'numeric', 'Value', 0, 'Limits', [0 Inf], 'ValueC
 h.mrlfe.etaS.Layout.Row = 7;
 h.mrlfe.etaS.Layout.Column = [3 4];
 
-label = uilabel(gM, 'Text', 'A0 atlas policy');
-label.Layout.Row = 8;
-label.Layout.Column = [1 2];
-h.mrlfe.a0Policy = uidropdown(gM, 'Items', {'physicalTail'}, ...
-    'Value', 'physicalTail', 'ValueChangedFcn', callbacks.markDirty);
-h.mrlfe.a0Policy.Layout.Row = 8;
-h.mrlfe.a0Policy.Layout.Column = [3 4];
-
-note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 computes the same mRLFE model with shear viscosity. A0Like uses the public physicalTail termination policy; S0Like uses no additional termination.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
-note.Layout.Row = 9;
+note = uilabel(gM, 'Text', 'etaS = 0 gives the elastic fluid-loaded limit. etaS > 0 adds shear viscosity. A0Like uses the maintained physicalTail termination policy; S0Like uses no additional termination.', 'WordWrap', 'on', 'FontAngle', 'italic', 'FontSize', 9);
+note.Layout.Row = 8;
 note.Layout.Column = [1 4];
 
 h.mrlfe.computeComplexK = struct('Value', false);
