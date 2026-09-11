@@ -10,6 +10,7 @@ end
 
 function runTests()
 test_main_gui_curve_gaps;
+test_fit_plot_legend;
 fprintf('\nRunning quick smoke validation...\n');
 fprintf('---------------------------------\n');
 

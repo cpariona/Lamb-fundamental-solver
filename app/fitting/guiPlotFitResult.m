@@ -10,18 +10,25 @@ if nargin < 2 || isempty(ax) || ~isgraphics(ax, 'axes')
     ax = axes();
 end
 
+legend(ax, 'off');
 cla(ax); hold(ax, 'on'); grid(ax, 'on');
 
 frequency_kHz = normalizedFit.frequency_Hz(:) ./ 1e3;
 CpExp = normalizedFit.Cp_exp_mps(:);
 CpFit = normalizedFit.Cp_fit_mps(:);
-valid = normalizedFit.validMask(:) & isfinite(frequency_kHz) & isfinite(CpExp) & isfinite(CpFit);
-legendEntries = {};
-
-plot(ax, frequency_kHz(valid), CpExp(valid), 'o', 'LineWidth', 1.2);
-legendEntries{end+1} = 'Experimental data';
-plot(ax, frequency_kHz(valid), CpFit(valid), '.', 'MarkerSize', 14);
-legendEntries{end+1} = 'Model at data points';
+selected = normalizedFit.validMask(:) & isfinite(frequency_kHz);
+experimentalValid = selected & isfinite(CpExp);
+fittedValid = selected & isfinite(CpFit);
+valid = experimentalValid & fittedValid;
+legendHandles = gobjects(0,1);
+if any(experimentalValid)
+    legendHandles(end+1) = plot(ax, frequency_kHz(experimentalValid), CpExp(experimentalValid), ...
+        'o', 'LineWidth', 1.2, 'DisplayName', 'Experimental data');
+end
+if any(fittedValid)
+    legendHandles(end+1) = plot(ax, frequency_kHz(fittedValid), CpFit(fittedValid), ...
+        '.', 'MarkerSize', 14, 'DisplayName', 'Model at data points');
+end
 
 if isfield(normalizedFit, 'fullCurve') && isstruct(normalizedFit.fullCurve) && ...
         isfield(normalizedFit.fullCurve, 'frequency_Hz') && ~isempty(normalizedFit.fullCurve.frequency_Hz)
@@ -30,8 +37,8 @@ if isfield(normalizedFit, 'fullCurve') && isstruct(normalizedFit.fullCurve) && .
     fullValid = normalizedFit.fullCurve.validMask(:) & isfinite(fullFrequency_kHz) & isfinite(fullCp);
     if any(fullValid)
         fullCp(~fullValid) = nan;
-        plot(ax, fullFrequency_kHz, fullCp, '-', 'LineWidth', 1.5);
-        legendEntries{end+1} = 'Fitted curve'; %#ok<AGROW>
+        legendHandles(end+1) = plot(ax, fullFrequency_kHz, fullCp, '-', ...
+            'LineWidth', 1.5, 'DisplayName', 'Fitted curve');
     end
 end
 
@@ -42,9 +49,8 @@ if isfield(normalizedFit, 'requestedCurve') && isstruct(normalizedFit.requestedC
     requestedValid = normalizedFit.requestedCurve.validMask(:) & isfinite(requestedFrequency_kHz) & isfinite(requestedCp);
     if any(requestedValid)
         requestedCp(~requestedValid) = nan;
-        plot(ax, requestedFrequency_kHz, requestedCp, '-', ...
-            'LineWidth', 1.8, 'LineStyle', '-.');
-        legendEntries{end+1} = 'Evaluated solver curve'; %#ok<AGROW>
+        legendHandles(end+1) = plot(ax, requestedFrequency_kHz, requestedCp, '-', ...
+            'LineWidth', 1.8, 'LineStyle', '-.', 'DisplayName', 'Evaluated solver curve');
     end
 end
 
@@ -53,8 +59,8 @@ if isfield(normalizedFit, 'qc') && isfield(normalizedFit.qc, 'baseline') && ...
     baselineFrequency = frequency_kHz(valid);
     baselineCp = normalizedFit.qc.baseline.Cp0_mps * ones(size(baselineFrequency));
     if ~isempty(baselineFrequency)
-        plot(ax, baselineFrequency, baselineCp, '--', 'LineWidth', 1.0);
-        legendEntries{end+1} = 'Constant baseline'; %#ok<AGROW>
+        legendHandles(end+1) = plot(ax, baselineFrequency, baselineCp, '--', ...
+            'LineWidth', 1.0, 'DisplayName', 'Constant baseline');
     end
 end
 
@@ -75,8 +81,10 @@ else
     title(ax, sprintf('%s - %s fit', char(guiFitDisplayLabel("model", normalizedFit.modelName)), ...
         char(guiFitDisplayLabel("branch", normalizedFit.branchName))), 'Interpreter', 'none');
 end
-legend(ax, legendEntries, 'Location', 'best', 'Interpreter', 'none');
-applyPhysicalYLimits(ax, CpExp(valid), CpFit(valid), normalizedFit);
+if ~isempty(legendHandles)
+    legend(ax, legendHandles, 'Location', 'best', 'Interpreter', 'none');
+end
+applyPhysicalYLimits(ax, CpExp(experimentalValid), CpFit(fittedValid), normalizedFit);
 hold(ax, 'off');
 end
 
