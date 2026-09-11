@@ -32,6 +32,15 @@ boundaries.
 Use MATLAB `help` on an entrypoint for its request, units, result, and validity
 contract.
 
+### Fitting coverage contract
+
+`experimental.validMask` defines the fixed observation set for a fit. Every
+candidate parameter set must return finite model phase velocity at every selected
+observation; a candidate cannot improve the objective by dropping difficult
+points. Observations intentionally excluded by `validMask=false` remain outside
+the objective. AE `atlasA0` fitting also rejects selected frequencies below its
+configured internal initialization anchor before optimization.
+
 ## Examples
 
 Examples and studies are opt-in and are not added by `startup`:
