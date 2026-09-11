@@ -528,6 +528,10 @@ updateAxisFieldState();
             aeUpdateLabels();
         else
             updateRayleighLambLabels();
+            mrlfeStatus = guiBuildMrlfeStatusText(lastGuiResult, formatElapsedText(getGuiElapsedSeconds()));
+            if ~isempty(mrlfeStatus)
+                setStatusText(cellstr(mrlfeStatus));
+            end
         end
     end
 
