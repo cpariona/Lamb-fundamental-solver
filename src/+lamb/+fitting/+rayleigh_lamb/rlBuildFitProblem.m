@@ -40,8 +40,13 @@ fitOptions = lamb.fitting.getFitConfigValue(fitConfig, 'fitOptions', struct());
 if ~isfield(fitOptions, 'useStandardErrorWeights')
     fitOptions.useStandardErrorWeights = false;
 end
-if ~isfield(fitOptions, 'minValidFraction') || isempty(fitOptions.minValidFraction)
-    fitOptions.minValidFraction = 0.80;
+if isfield(fitOptions, 'minValidFraction') && ~isempty(fitOptions.minValidFraction)
+    if ~isscalar(fitOptions.minValidFraction) || ~isfinite(fitOptions.minValidFraction) || fitOptions.minValidFraction ~= 1
+        error('lamb:fitting:PartialCoverageNotSupported', ...
+            ['Rayleigh-Lamb fitting no longer permits partial objective coverage. ' ...
+             'Remove fitOptions.minValidFraction or set it to 1.']);
+    end
+    fitOptions = rmfield(fitOptions, 'minValidFraction');
 end
 
 problem = struct();
@@ -69,10 +74,5 @@ end
 function residuals = localResidualFunction(x, problem)
 params = lamb.fitting.unpackParameterVector(x, problem.baseParams, problem.freeParams);
 CpModel_mps = problem.evaluateModel(params);
-[residuals, residualInfo] = lamb.fitting.computeDispersionFitResiduals(CpModel_mps, problem.experimental, problem.fitOptions);
-requiredCount = max(1, ceil(problem.fitOptions.minValidFraction * nnz(problem.experimental.validMask)));
-if residualInfo.numResiduals < requiredCount
-    error('Insufficient valid Rayleigh-Lamb model coverage: %d/%d valid pairs.', ...
-        residualInfo.numResiduals, nnz(problem.experimental.validMask));
-end
+residuals = lamb.fitting.computeDispersionFitResiduals(CpModel_mps, problem.experimental, problem.fitOptions);
 end
