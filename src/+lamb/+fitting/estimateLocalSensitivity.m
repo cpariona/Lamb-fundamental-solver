@@ -3,8 +3,10 @@ function [S, sensitivityInfo] = estimateLocalSensitivity(evaluateFcn, baseParams
 %
 % evaluateFcn must accept a parameter structure and return Cp values on the
 % same frequency grid as experimental.frequency_Hz. The sensitivity uses the
-% same fixed experimental objective mask as the fit; central-difference
-% perturbations are not allowed to lose required model points.
+% same fixed experimental objective mask as the fit. If either central-
+% difference perturbation loses required model coverage, that parameter's
+% sensitivity column is left unavailable rather than being computed on a
+% smaller observation set.
 
 if nargin < 5 || isempty(options)
     options = struct();
@@ -36,6 +38,8 @@ objectiveMask = baseCoverage.objectiveMask;
 
 S = nan(nnz(objectiveMask), numel(freeParams));
 steps = nan(numel(freeParams), 1);
+parameterCoverageAccepted = true(numel(freeParams), 1);
+coverageFailureReason = strings(numel(freeParams), 1);
 
 for j = 1:numel(freeParams)
     name = char(freeParams(j));
@@ -61,8 +65,20 @@ for j = 1:numel(freeParams)
     CpPlus = CpPlus(:);
     CpMinus = CpMinus(:);
 
-    assertPerturbationCoverage(CpPlus, experimental, name, "positive");
-    assertPerturbationCoverage(CpMinus, experimental, name, "negative");
+    [plusAccepted, plusReason] = perturbationCoverageAccepted(CpPlus, experimental);
+    [minusAccepted, minusReason] = perturbationCoverageAccepted(CpMinus, experimental);
+    if ~(plusAccepted && minusAccepted)
+        parameterCoverageAccepted(j) = false;
+        reasons = strings(0,1);
+        if ~plusAccepted
+            reasons(end+1) = "positive: " + plusReason; %#ok<AGROW>
+        end
+        if ~minusAccepted
+            reasons(end+1) = "negative: " + minusReason; %#ok<AGROW>
+        end
+        coverageFailureReason(j) = strjoin(reasons, " | ");
+        continue;
+    end
 
     S(:, j) = (CpPlus(objectiveMask) - CpMinus(objectiveMask)) ./ (2 * step);
 end
@@ -74,19 +90,23 @@ sensitivityInfo.validMask = objectiveMask;
 sensitivityInfo.objectiveMask = objectiveMask;
 sensitivityInfo.numValidPoints = nnz(objectiveMask);
 sensitivityInfo.expectedPointCount = baseCoverage.expectedPointCount;
-sensitivityInfo.coverageAccepted = true;
+sensitivityInfo.coverageAccepted = all(parameterCoverageAccepted);
+sensitivityInfo.parameterCoverageAccepted = parameterCoverageAccepted;
+sensitivityInfo.coverageFailureReason = coverageFailureReason;
 sensitivityInfo.baseCp_mps = baseCp;
 sensitivityInfo.baseCpValid_mps = baseCp(objectiveMask);
 end
 
-function assertPerturbationCoverage(Cp_mps, experimental, parameterName, direction)
+function [accepted, reason] = perturbationCoverageAccepted(Cp_mps, experimental)
+accepted = true;
+reason = "";
 try
     lamb.fitting.validateDispersionFitCoverage(Cp_mps, experimental);
 catch ME
     if strcmp(ME.identifier, 'lamb:fitting:IncompleteModelCoverage')
-        error('lamb:fitting:SensitivityIncompleteModelCoverage', ...
-            'Sensitivity %s perturbation for %s lost objective coverage. %s', ...
-            direction, parameterName, ME.message);
+        accepted = false;
+        reason = string(ME.message);
+        return;
     end
     rethrow(ME);
 end
