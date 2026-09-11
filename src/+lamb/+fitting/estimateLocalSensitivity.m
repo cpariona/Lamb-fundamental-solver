@@ -2,7 +2,9 @@ function [S, sensitivityInfo] = estimateLocalSensitivity(evaluateFcn, baseParams
 %ESTIMATELOCALSENSITIVITY Estimate local Cp sensitivity to free parameters.
 %
 % evaluateFcn must accept a parameter structure and return Cp values on the
-% same frequency grid as experimental.frequency_Hz.
+% same frequency grid as experimental.frequency_Hz. The sensitivity uses the
+% same fixed experimental objective mask as the fit; central-difference
+% perturbations are not allowed to lose required model points.
 
 if nargin < 5 || isempty(options)
     options = struct();
@@ -29,16 +31,10 @@ end
 
 baseCp = evaluateFcn(baseParams);
 baseCp = baseCp(:);
-if numel(baseCp) ~= experimental.numPoints
-    error('evaluateFcn must return one Cp value per experimental point.');
-end
+[baseCoverage, experimental] = lamb.fitting.validateDispersionFitCoverage(baseCp, experimental);
+objectiveMask = baseCoverage.objectiveMask;
 
-validMask = experimental.validMask & isfinite(baseCp);
-if ~any(validMask)
-    error('No valid points are available for sensitivity estimation.');
-end
-
-S = nan(nnz(validMask), numel(freeParams));
+S = nan(nnz(objectiveMask), numel(freeParams));
 steps = nan(numel(freeParams), 1);
 
 for j = 1:numel(freeParams)
@@ -65,18 +61,33 @@ for j = 1:numel(freeParams)
     CpPlus = CpPlus(:);
     CpMinus = CpMinus(:);
 
-    if numel(CpPlus) ~= experimental.numPoints || numel(CpMinus) ~= experimental.numPoints
-        error('evaluateFcn output size changed while perturbing %s.', name);
-    end
+    assertPerturbationCoverage(CpPlus, experimental, name, "positive");
+    assertPerturbationCoverage(CpMinus, experimental, name, "negative");
 
-    S(:, j) = (CpPlus(validMask) - CpMinus(validMask)) ./ (2 * step);
+    S(:, j) = (CpPlus(objectiveMask) - CpMinus(objectiveMask)) ./ (2 * step);
 end
 
 sensitivityInfo = struct();
 sensitivityInfo.freeParams = freeParams;
 sensitivityInfo.steps = steps;
-sensitivityInfo.validMask = validMask;
-sensitivityInfo.numValidPoints = nnz(validMask);
+sensitivityInfo.validMask = objectiveMask;
+sensitivityInfo.objectiveMask = objectiveMask;
+sensitivityInfo.numValidPoints = nnz(objectiveMask);
+sensitivityInfo.expectedPointCount = baseCoverage.expectedPointCount;
+sensitivityInfo.coverageAccepted = true;
 sensitivityInfo.baseCp_mps = baseCp;
-sensitivityInfo.baseCpValid_mps = baseCp(validMask);
+sensitivityInfo.baseCpValid_mps = baseCp(objectiveMask);
+end
+
+function assertPerturbationCoverage(Cp_mps, experimental, parameterName, direction)
+try
+    lamb.fitting.validateDispersionFitCoverage(Cp_mps, experimental);
+catch ME
+    if strcmp(ME.identifier, 'lamb:fitting:IncompleteModelCoverage')
+        error('lamb:fitting:SensitivityIncompleteModelCoverage', ...
+            'Sensitivity %s perturbation for %s lost objective coverage. %s', ...
+            direction, parameterName, ME.message);
+    end
+    rethrow(ME);
+end
 end
