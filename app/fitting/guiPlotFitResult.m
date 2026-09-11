@@ -29,7 +29,8 @@ if isfield(normalizedFit, 'fullCurve') && isstruct(normalizedFit.fullCurve) && .
     fullCp = normalizedFit.fullCurve.Cp_mps(:);
     fullValid = normalizedFit.fullCurve.validMask(:) & isfinite(fullFrequency_kHz) & isfinite(fullCp);
     if any(fullValid)
-        plot(ax, fullFrequency_kHz(fullValid), fullCp(fullValid), '-', 'LineWidth', 1.5);
+        fullCp(~fullValid) = nan;
+        plot(ax, fullFrequency_kHz, fullCp, '-', 'LineWidth', 1.5);
         legendEntries{end+1} = 'Fitted curve'; %#ok<AGROW>
     end
 end
@@ -40,7 +41,8 @@ if isfield(normalizedFit, 'requestedCurve') && isstruct(normalizedFit.requestedC
     requestedCp = normalizedFit.requestedCurve.Cp_mps(:);
     requestedValid = normalizedFit.requestedCurve.validMask(:) & isfinite(requestedFrequency_kHz) & isfinite(requestedCp);
     if any(requestedValid)
-        plot(ax, requestedFrequency_kHz(requestedValid), requestedCp(requestedValid), '-', ...
+        requestedCp(~requestedValid) = nan;
+        plot(ax, requestedFrequency_kHz, requestedCp, '-', ...
             'LineWidth', 1.8, 'LineStyle', '-.');
         legendEntries{end+1} = 'Evaluated solver curve'; %#ok<AGROW>
     end

@@ -9,6 +9,7 @@ runTests();
 end
 
 function runTests()
+test_main_gui_curve_gaps;
 fprintf('\nRunning quick smoke validation...\n');
 fprintf('---------------------------------\n');
 
