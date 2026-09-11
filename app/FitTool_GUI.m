@@ -97,9 +97,6 @@ onFitModelChanged();
         freeParam = string(fitControls.freeParam.Value);
         fitParameterState = guiBuildFitParameterState(modelFamily, freeParam);
         fitControls.robustness.Value = char(family.defaultRobustness);
-        if modelFamily == "mrlfe"
-            fitControls.a0Policy.Value = 'physicalTail';
-        end
         updateParameterTable();
         fitControls.status.Text = sprintf('Fit status: restored %s defaults.', string(family.label));
     end
@@ -443,7 +440,7 @@ onFitModelChanged();
 
         switch getSelectedModelFamily()
             case "mrlfe"
-                parts.controls.mrlfeA0Policy = normalizeMrlfeA0Policy(string(fitControls.a0Policy.Value));
+                parts.controls.mrlfeA0Policy = "physicalTail";
                 parts.fitOptions.optimizerOptions = optimset( ...
                     'Display', 'off', 'MaxIter', 35, 'MaxFunEvals', 80, 'TolX', 1e-5);
             case "acoustoelastic_iop_hgo"
@@ -490,7 +487,7 @@ onFitModelChanged();
                 frequency_Hz = linspace(1000, 8000, 10).';
                 options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions(branchName, ...
                     'EtaS', resolvedControls.etaS, ...
-                    'A0Policy', normalizeMrlfeA0Policy(string(fitControls.a0Policy.Value)));
+                    'A0Policy', "physicalTail");
                 options.mrlfeParams.fluidDensity = resolvedControls.fluidDensity;
                 options.mrlfeParams.fluidSoundSpeed = resolvedControls.fluidSoundSpeed;
                 Cp_mps = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency_Hz, branchName, options);
@@ -517,7 +514,6 @@ onFitModelChanged();
         end
         fitControls.a0PolicyLabel.Visible = visibility;
         fitControls.a0Policy.Visible = visibility;
-        fitControls.a0Policy.Enable = visibility;
     end
 
     function modelFamily = getSelectedModelFamily()
@@ -699,13 +695,6 @@ onFitModelChanged();
             extra(end+1) = "A0 policy: " + string(getControlField(parts.controls, 'mrlfeA0Policy', "physicalTail"));
         end
         extra = extra(:);
-    end
-
-    function policy = normalizeMrlfeA0Policy(policyIn)
-        policy = string(policyIn);
-        if policy ~= "physicalTail"
-            policy = "physicalTail";
-        end
     end
 
     function extra = fitExtraLines(fitOutput)

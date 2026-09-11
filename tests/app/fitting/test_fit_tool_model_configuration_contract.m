@@ -35,6 +35,13 @@ controls = createFittingTab(tabs, lamb.models.rayleigh_lamb.rlDefaultParams(), c
 assert(isfield(controls, 'model'), 'Fitting tab controls must include model dropdown.');
 assert(isfield(controls, 'branch'), 'Fitting tab controls must include branch dropdown.');
 assert(isfield(controls, 'freeParam'), 'Fitting tab controls must include freeParam dropdown.');
+assert(isa(controls.a0Policy, 'matlab.ui.control.Label'), ...
+    'The fixed A0 policy must be informational, not an interactive selector.');
+assert(strcmp(controls.a0Policy.Text, 'Physical tail (fixed)'));
+source = fileread(which('FitTool_GUI'));
+assert(~contains(source, 'fitControls.a0Policy.Value'));
+assert(contains(source, 'parts.controls.mrlfeA0Policy = "physicalTail";'), ...
+    'The maintained request field must preserve the fixed policy.');
 assert(numel(controls.model.Items) >= 3, 'Model dropdown must expose at least three models.');
 assert(any(strcmp(controls.model.Items, 'Rayleigh-Lamb')), 'Model dropdown must include Rayleigh-Lamb.');
 assert(any(strcmp(controls.model.Items, 'mRLFE')), 'Model dropdown must include mRLFE.');

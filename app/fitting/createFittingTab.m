@@ -77,10 +77,7 @@ h.parameterTable.Layout.Column = [1 4];
 h.a0PolicyLabel = uilabel(g, 'Text', 'A0 branch policy');
 h.a0PolicyLabel.Layout.Row = 6;
 h.a0PolicyLabel.Layout.Column = [1 2];
-h.a0Policy = uidropdown(g, ...
-    'Items', {'Physical tail'}, ...
-    'ItemsData', {'physicalTail'}, ...
-    'Value', 'physicalTail');
+h.a0Policy = uilabel(g, 'Text', 'Physical tail (fixed)');
 h.a0Policy.Layout.Row = 6;
 h.a0Policy.Layout.Column = [3 4];
 h.a0PolicyLabel.Visible = 'off';
