@@ -14,6 +14,7 @@ fprintf('------------------------------------\n');
 
 test_model_output_folder_helpers;
 test_fitting_helpers_smoke;
+test_fit_objective_coverage_contract;
 test_shared_fit_optimizer_contract;
 test_parametric_sweep_workflow;
 test_rl_result_contract;

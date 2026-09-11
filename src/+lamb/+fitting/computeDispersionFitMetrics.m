@@ -1,8 +1,9 @@
 function metrics = computeDispersionFitMetrics(CpModel_mps, experimental)
 %COMPUTEDISPERSIONFITMETRICS Compute basic metrics for dispersion fitting.
 %
-% Metrics are computed on points that are valid in the experimental data and
-% finite in the model output.
+% Metrics use the fixed experimental objective mask. Complete finite model
+% coverage of that mask is required by computeDispersionFitResiduals before
+% any metric is reported.
 
 [~, residualInfo] = lamb.fitting.computeDispersionFitResiduals(CpModel_mps, experimental, struct('useStandardErrorWeights', false));
 

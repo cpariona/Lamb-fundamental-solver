@@ -41,6 +41,7 @@ bounds = lamb.fitting.getFitConfigValue(fitConfig, 'bounds', struct());
 solverOptions = lamb.fitting.getFitConfigValue(fitConfig, 'solverOptions', ...
     lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitOptions("Fast"));
 solverOptions.atlasBranchPolicy = "atlasA0";
+validateObjectiveFrequencySupport(experimental, solverOptions);
 
 fitOptions = lamb.fitting.getFitConfigValue(fitConfig, 'fitOptions', struct());
 if ~isfield(fitOptions, 'useStandardErrorWeights')
@@ -73,4 +74,22 @@ function residuals = localResidualFunction(x, problem)
 params = lamb.fitting.unpackParameterVector(x, problem.baseParams, problem.freeParams);
 CpModel_mps = problem.evaluateModel(params);
 residuals = lamb.fitting.computeDispersionFitResiduals(CpModel_mps, problem.experimental, problem.fitOptions);
+end
+
+function validateObjectiveFrequencySupport(experimental, solverOptions)
+resolved = lamb.models.acoustoelastic_iop_hgo.configuration.aeResolveConfiguration(solverOptions);
+if ~resolved.useInternalAtlasTrackingGrid
+    return;
+end
+anchor_Hz = resolved.atlasInitializationMinFrequency_Hz;
+outside = experimental.validMask & experimental.frequency_Hz < anchor_Hz;
+if any(outside)
+    firstFrequency_Hz = experimental.frequency_Hz(find(outside, 1, 'first'));
+    error('lamb:fitting:AEObjectiveOutsideSupportedRange', ...
+        ['AE atlasA0 fitting requires every selected experimental frequency to ' ...
+         'be at or above the %.9g Hz initialization anchor. %d selected point(s) ' ...
+         'are below that range; first unsupported frequency %.9g Hz. Exclude ' ...
+         'those observations explicitly or adjust the fitting range.'], ...
+        anchor_Hz, nnz(outside), firstFrequency_Hz);
+end
 end
