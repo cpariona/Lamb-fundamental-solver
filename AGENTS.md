@@ -31,6 +31,14 @@ bounds and metrics, result schemas, quality thresholds, tolerances, numerical
 snapshots, performance baselines, and established execution-profile semantics
 unless a scientific change is explicitly authorized.
 
+Fitting uses `experimental.validMask` as a fixed objective mask. Every candidate
+parameter set must return finite model phase velocity at every selected
+observation; model-dependent point dropping is forbidden. Metrics use that same
+fixed mask. Local sensitivity may be reported unavailable if a perturbation
+loses coverage, but it must never shrink the observation mask to manufacture a
+derivative. Family-specific fitting may reject observations outside a declared
+forward-model support range before optimization.
+
 Keep physical parameters, numerical options, execution profiles, and UI state
 separate. `executionProfile` is the canonical app field; the established
 `robustness` compatibility alias is restricted to app normalization. Profiles
