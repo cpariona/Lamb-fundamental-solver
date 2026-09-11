@@ -374,7 +374,7 @@ updateAxisFieldState();
             if isempty(x) || ~any(valid)
                 continue;
             end
-            plot(ax, x(valid), Cp(valid), '-', 'Color', normalizedBranchColor(branch), ...
+            guiPlotSolverCurve(ax, x, Cp, valid, '-', 'Color', normalizedBranchColor(branch), ...
                 'LineWidth', 2.0, 'DisplayName', normalizedBranchDisplayName(branch));
             plotted = true;
         end
@@ -401,7 +401,7 @@ updateAxisFieldState();
             valid = valid & logical(approx.valid(:));
         end
         if any(valid)
-            plot(ax, x(valid), Cp(valid), lineStyle, 'Color', colors.Approx, 'LineWidth', 1.5, 'DisplayName', label);
+            guiPlotSolverCurve(ax, x, Cp, valid, lineStyle, 'Color', colors.Approx, 'LineWidth', 1.5, 'DisplayName', label);
             plotted = true;
         end
     end
@@ -480,7 +480,7 @@ updateAxisFieldState();
             valid = valid & branch.valid(:);
         end
         if any(valid)
-            plot(ax, x(valid), Cp(valid), '-', 'Color', color, 'LineWidth', 2.0, 'DisplayName', label);
+            guiPlotSolverCurve(ax, x, Cp, valid, '-', 'Color', color, 'LineWidth', 2.0, 'DisplayName', label);
         end
     end
 

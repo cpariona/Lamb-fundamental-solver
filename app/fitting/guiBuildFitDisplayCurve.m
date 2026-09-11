@@ -12,20 +12,36 @@ CpAnchor_mps = fitResult.Cp_fit_mps(:);
 validAnchor = fitResult.validMask(:) & isfinite(frequencyAnchor_Hz) & ...
     isfinite(CpAnchor_mps) & frequencyAnchor_Hz > 0;
 
-if nnz(validAnchor) < 2
-    frequencySmooth_Hz = frequencyAnchor_Hz;
-    CpSmooth_mps = CpAnchor_mps;
-    validSmooth = validAnchor;
-else
-    fmin = min(frequencyAnchor_Hz(validAnchor));
-    fmax = max(frequencyAnchor_Hz(validAnchor));
-    frequencySmooth_Hz = linspace(fmin, fmax, max(20, round(nPoints))).';
-    [frequencySorted, idx] = sort(frequencyAnchor_Hz(validAnchor));
-    CpSorted = CpAnchor_mps(validAnchor);
+% Segment before sorting: an invalid anchor is a boundary, never discarded.
+boundaries = diff([false; validAnchor; false]);
+starts = find(boundaries == 1);
+stops = find(boundaries == -1) - 1;
+frequencySmooth_Hz = [];
+CpSmooth_mps = [];
+nextAnchor = 1;
+for segment = 1:numel(starts)
+    first = starts(segment);
+    last = stops(segment);
+    frequencySmooth_Hz = [frequencySmooth_Hz; frequencyAnchor_Hz(nextAnchor:first-1)]; %#ok<AGROW>
+    CpSmooth_mps = [CpSmooth_mps; nan(first-nextAnchor, 1)]; %#ok<AGROW>
+    [frequencySorted, idx] = sort(frequencyAnchor_Hz(first:last));
+    CpSorted = CpAnchor_mps(first:last);
     CpSorted = CpSorted(idx);
-    CpSmooth_mps = interp1(frequencySorted, CpSorted, frequencySmooth_Hz, 'pchip', nan);
-    validSmooth = isfinite(CpSmooth_mps);
+    if first == last
+        segmentFrequency = frequencySorted;
+        segmentCp = CpSorted;
+    else
+        segmentFrequency = linspace(frequencySorted(1), frequencySorted(end), ...
+            max(20, round(nPoints))).';
+        segmentCp = interp1(frequencySorted, CpSorted, segmentFrequency, 'pchip', nan);
+    end
+    frequencySmooth_Hz = [frequencySmooth_Hz; segmentFrequency]; %#ok<AGROW>
+    CpSmooth_mps = [CpSmooth_mps; segmentCp]; %#ok<AGROW>
+    nextAnchor = last + 1;
 end
+frequencySmooth_Hz = [frequencySmooth_Hz; frequencyAnchor_Hz(nextAnchor:end)];
+CpSmooth_mps = [CpSmooth_mps; nan(numel(validAnchor)-nextAnchor+1, 1)];
+validSmooth = isfinite(CpSmooth_mps);
 
 displayCurve = struct();
 displayCurve.modelFamily = string(fitResult.modelFamily);
