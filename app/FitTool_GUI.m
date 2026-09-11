@@ -710,7 +710,7 @@ onFitModelChanged();
         if isfield(fitOutput, 'fitResult') && isfield(fitOutput.fitResult, 'modelEvaluation') && ...
                 isfield(fitOutput.fitResult.modelEvaluation, 'evaluationPath') && ...
                 isfield(fitOutput.fitResult.modelEvaluation.evaluationPath, 'fitAtlasPreset')
-            extra(end+1) = "fit atlas preset: " + string(fitOutput.fitResult.modelEvaluation.evaluationPath.fitAtlasPreset);
+            extra(end+1) = "fit numerical preset: " + string(fitOutput.fitResult.modelEvaluation.evaluationPath.fitAtlasPreset);
         end
         extra = extra(:);
     end
