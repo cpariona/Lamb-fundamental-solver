@@ -2,10 +2,13 @@ function fitResult = aeFitDispersionData(experimental, fitConfig)
 %AEFITDISPERSIONDATA Fit AE IOP/HGO atlasA0 parameters to dispersion data.
 %
 % EXPERIMENTAL requires frequency_Hz and Cp_mps; validMask and
-% standardError_Cp_mps are optional. FITCONFIG supplies fixed/free physical
-% parameters, initial guesses, bounds, solver options, and optimizer
-% controls. The evaluator always uses the official atlasA0 output from
-% lamb.models.acoustoelastic_iop_hgo.aeSolveBranch.
+% standardError_Cp_mps are optional. validMask defines the fixed objective
+% observations and every selected point requires a finite official atlasA0 Cp.
+% With internal atlas tracking enabled, selected frequencies below the
+% configured initialization anchor are rejected before optimization. FITCONFIG
+% supplies fixed/free physical parameters, initial guesses, bounds, solver
+% options, and optimizer controls. The evaluator always uses the official
+% atlasA0 output from lamb.models.acoustoelastic_iop_hgo.aeSolveBranch.
 %
 % One-parameter fits with finite bounds use fminbnd. Multi-parameter fits use
 % fminsearch with objective penalties for bounds. Diagnostic branches are not
