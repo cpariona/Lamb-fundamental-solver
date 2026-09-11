@@ -18,6 +18,7 @@ test_fit_parameter_state_contract;
 test_fit_parameter_execution_contract;
 test_gui_normalized_adapters_smoke;
 test_ae_gui_main_adapter_smoke;
+test_main_gui_diagnostics_text;
 test_gui_fit_model_configuration_contract;
 test_fit_tool_model_configuration_contract;
 

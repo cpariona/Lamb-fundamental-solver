@@ -73,6 +73,7 @@ assert(isequal(result.branches.diagnostics.valid, ...
     result.metadata.modelResult.validMask(:)), ...
     'AE normalized branch must consume canonical validity directly.');
 assert(isfield(result.metadata, 'elapsedSeconds') && isfinite(result.metadata.elapsedSeconds));
+assertCurrentDiagnostics(result, result.metadata.modelResult, builtRequest.options, baseGridParams);
 assertDefaultRangeIdentity(baseGridParams, aeControls, expectedRawResult);
 
 fprintf('AE IOP/HGO main GUI adapter smoke test passed.\n');
@@ -111,6 +112,10 @@ for i = 1:numel(minimums)
     if minimums(i) == 10
         assert(request.params.frequency(1) == 10);
         assert(any(~supported) && any(supported));
+        diagnosticsText = guiBuildMainDiagnosticsText(view, raw, request.options, baseParams);
+        assertContainsText(diagnosticsText, sprintf("requested below anchor: %d", nnz(~supported)));
+        assertContainsText(diagnosticsText, "missing at/above anchor: 0");
+        assertContainsText(diagnosticsText, "initialization anchor: 300 Hz");
     end
     [common, a, b] = intersect(raw.frequency_Hz, reference.frequency_Hz);
     assert(~isempty(common));
@@ -135,6 +140,28 @@ for i = 1:numel(results)
     assert(isequaln(raw.phaseVelocity_mps(supported), comparison.phaseVelocity_mps(indices)), ...
         'Changing GUI fmin must preserve Cp at every supported requested sample.');
 end
+end
+
+function assertCurrentDiagnostics(view, raw, options, setupParams)
+txt = guiBuildMainDiagnosticsText(view, raw, options, setupParams);
+assertContainsText(txt, "AE identity / requested grid:");
+assertContainsText(txt, "internal identity tracking used: 1");
+assertContainsText(txt, "initialization anchor: 300 Hz");
+assertContainsText(txt, "missing at/above anchor: 0");
+assertContainsText(txt, "selection fallback used: 0");
+assertContainsText(txt, "AE constitutive / physical state:");
+assertContainsText(txt, "prestress sigma");
+assertContainsText(txt, "stretch lambda");
+assertContainsText(txt, "alpha");
+assert(~contains(txt, "lambda_Lame"), ...
+    'AE diagnostics must not present unused isotropic Lamé properties as model inputs.');
+assert(~contains(txt, "Rayleigh-Lamb seed"), ...
+    'AE diagnostics must not present irrelevant Rayleigh-Lamb seed options.');
+end
+
+function assertContainsText(txt, expected)
+assert(contains(string(txt), string(expected)), ...
+    'Expected Main GUI diagnostics to contain "%s".', string(expected));
 end
 
 function assertCommonView(result)

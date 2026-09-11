@@ -538,11 +538,27 @@ updateAxisFieldState();
             modelControls.ae.IOP.Value, modelControls.ae.R.Value, modelControls.ae.k1.Value, modelControls.ae.k2.Value);
         elapsedText = formatElapsedText(getGuiElapsedSeconds());
         statusLines = {sprintf('Status: AE IOP/HGO A0-like | N=%d%s', numel(r.phaseVelocity_mps), elapsedText), ...
-            sprintf('Cp valid %d/%d', nnz(r.validMask), numel(r.phaseVelocity_mps))};
-        if ~all(r.validMask)
-            statusLines{2} = [statusLines{2}, ' - incomplete branch'];
-        end
+            sprintf('Cp valid %d/%d%s', nnz(r.validMask), numel(r.phaseVelocity_mps), aeValidityStatus(r))};
         setStatusText(statusLines);
+    end
+
+    function suffix = aeValidityStatus(result)
+        suffix = '';
+        if all(result.validMask)
+            return;
+        end
+        if isfield(result, 'internalAtlasTracking') && isstruct(result.internalAtlasTracking) && ...
+                isfield(result.internalAtlasTracking, 'InitializationMinFrequency_Hz')
+            boundary = result.internalAtlasTracking.InitializationMinFrequency_Hz;
+            frequency = result.frequency_Hz(:);
+            valid = logical(result.validMask(:));
+            below = frequency < boundary;
+            if any(below) && all(~valid(below)) && all(valid(~below))
+                suffix = sprintf(' - %d requested points below %.6g Hz initialization anchor', nnz(below), boundary);
+                return;
+            end
+        end
+        suffix = ' - incomplete branch';
     end
 
     function updateRayleighLambLabels()
@@ -570,253 +586,9 @@ updateAxisFieldState();
             return;
         end
         diagFig = uifigure('Name','Diagnostics','Position',[120 120 760 560]);
-        ta = uitextarea(diagFig,'Value',cellstr(splitlines(buildDiagnosticsText())),'Editable','off','FontName','Consolas');
+        txt = guiBuildMainDiagnosticsText(lastGuiResult, lastResults, lastOptions, lastParams);
+        ta = uitextarea(diagFig,'Value',cellstr(splitlines(txt)),'Editable','off','FontName','Consolas');
         ta.Position = [10 10 740 540];
-    end
-
-    function txt = buildDiagnosticsText()
-        lines = strings(0,1);
-        if getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
-            lines(end+1) = "AE IOP/HGO diagnostics";
-        else
-            lines(end+1) = "Rayleigh-Lamb / mRLFE diagnostics";
-        end
-        lines(end+1) = "";
-        lines = appendGuiVisibleDiagnostics(lines);
-        lines = appendRawModelDiagnostics(lines);
-        lines = appendOptionDiagnostics(lines);
-        lines = appendParameterDiagnostics(lines);
-        txt = strjoin(lines, newline);
-    end
-
-    function lines = appendGuiVisibleDiagnostics(lines)
-        lines(end+1) = "GUI-visible branches:";
-        if isempty(lastGuiResult) || ~isfield(lastGuiResult, 'branches') || isempty(lastGuiResult.branches)
-            lines(end+1) = "  none";
-        else
-            for i = 1:numel(lastGuiResult.branches)
-                branch = lastGuiResult.branches(i);
-                n = numel(branch.phaseVelocity);
-                valid = getBranchValidCount(branch);
-                lines(end+1) = sprintf("  %s %s | valid %d/%d", string(branch.modelName), string(branch.branchName), valid, n); %#ok<AGROW>
-            end
-        end
-        elapsed = getGuiElapsedSeconds();
-        if isfinite(elapsed)
-            lines(end+1) = sprintf("adapter elapsed %.6g s", elapsed);
-        end
-        if ~isempty(lastGuiResult) && isfield(lastGuiResult, 'metadata') && ...
-                isfield(lastGuiResult.metadata, 'seedBranchesHiddenFromPlotSurface')
-            lines(end+1) = sprintf("seed branches hidden from plotting surface: %d", logical(lastGuiResult.metadata.seedBranchesHiddenFromPlotSurface));
-        end
-        lines(end+1) = "";
-    end
-
-    function lines = appendRawModelDiagnostics(lines)
-        lines(end+1) = "Raw/internal result content:";
-        if isfield(lastResults, 'modes')
-            lines(end+1) = sprintf("  RL seed/result modes: %s", strjoin(string(fieldnames(lastResults.modes)), ", "));
-        end
-        lines(end+1) = "";
-    end
-
-    function lines = appendOptionDiagnostics(lines)
-        lines(end+1) = "GUI route / policy:";
-        if isempty(lastGuiResult) || ~isfield(lastGuiResult, 'metadata')
-            lines(end+1) = "  unavailable";
-        else
-            md = lastGuiResult.metadata;
-            if isfield(md, 'executionProfile')
-                profileExtra = strings(0, 1);
-                if isfield(md, 'status')
-                    profileExtra(end+1) = "status: " + string(md.status);
-                end
-                if isfield(md, 'execution') && isstruct(md.execution)
-                    profileExtra = appendExecutionSummary(profileExtra, md.execution);
-                end
-                if isfield(md, 'termination') && isstruct(md.termination)
-                    profileExtra = appendPolicySummary(profileExtra, "termination", md.termination, "policy");
-                end
-                if isfield(md, 'fallback') && isstruct(md.fallback)
-                    profileExtra = appendPolicySummary(profileExtra, "fallback", md.fallback, "policy");
-                end
-                if isfield(md, 'quality') && isstruct(md.quality)
-                    profileExtra = appendQualitySummary(profileExtra, md.quality);
-                end
-                if isfield(md, 'mrlfeA0Policy')
-                    profileExtra(end+1) = "A0 policy: " + string(md.mrlfeA0Policy);
-                end
-                [visibleBranch, validCount, totalCount] = firstVisibleBranchSummary();
-                formatted = guiFormatExecutionProfileDiagnostics(md.executionProfile, ...
-                    'Surface', "Main GUI", ...
-                    'Model', mainDiagnosticModelName(), ...
-                    'ControlProfile', getControlExecutionProfileText(), ...
-                    'VisibleBranch', visibleBranch, ...
-                    'ValidCount', validCount, ...
-                    'TotalCount', totalCount, ...
-                    'ElapsedSeconds', getGuiElapsedSeconds(), ...
-                    'Fallback', getMainFallbackText(md), ...
-                    'ExtraLines', profileExtra);
-                lines = [lines; "  " + formatted(:)];
-            end
-            if isfield(md, 'mrlfeA0Policy')
-                lines(end+1) = sprintf("  A0 policy: %s", string(md.mrlfeA0Policy));
-            end
-            if isfield(md, 'mrlfeZeroViscosityAdaptiveQuality')
-                q = md.mrlfeZeroViscosityAdaptiveQuality;
-                if isfield(q, 'validFraction')
-                    lines(end+1) = sprintf("  zero-eta valid fraction: %.3f", q.validFraction);
-                end
-                if isfield(q, 'validCount') && isfield(q, 'totalCount')
-                    lines(end+1) = sprintf("  zero-eta valid points: %d/%d", q.validCount, q.totalCount);
-                end
-                if isfield(q, 'maxJumpRelative')
-                    lines(end+1) = sprintf("  zero-eta max jump relative: %.3g", q.maxJumpRelative);
-                end
-            end
-        end
-        lines(end+1) = "";
-
-        lines(end+1) = "Requested GUI options:";
-        if isempty(lastOptions)
-            lines(end+1) = "  unavailable";
-        else
-            if isfield(lastOptions, 'executionProfileMetadata')
-                mdProfile = lastOptions.executionProfileMetadata;
-                lines(end+1) = sprintf("  control execution profile: %s", getControlExecutionProfileText());
-                lines(end+1) = sprintf("  normalized requested profile: %s", ...
-                    string(mdProfile.requestedExecutionProfile));
-                lines(end+1) = sprintf("  control profile source: %s", string(mdProfile.executionProfileSource));
-            end
-            optionNames = ["computeA0", "computeS0", "runMRLFE", "computeAcoustoelasticIOPHGO"];
-            optionLabels = ["Rayleigh-Lamb seed A0", "Rayleigh-Lamb seed S0", ...
-                "mRLFE real-k", "AE IOP/HGO"];
-            for i = 1:numel(optionNames)
-                name = optionNames(i);
-                if isfield(lastOptions, char(name))
-                    lines(end+1) = sprintf("  %s = %d", optionLabels(i), logical(lastOptions.(char(name)))); %#ok<AGROW>
-                end
-            end
-            if isfield(lastOptions, 'branchNames')
-                lines(end+1) = sprintf("  mRLFE branches = %s", strjoin(string(lastOptions.branchNames), ", "));
-            end
-            if isfield(lastOptions, 'mrlfeParams') && isfield(lastOptions.mrlfeParams, 'etaS')
-                lines(end+1) = sprintf("  etaS = %.6g Pa*s", lastOptions.mrlfeParams.etaS);
-            end
-        end
-        lines(end+1) = "";
-    end
-
-    function lines = appendParameterDiagnostics(lines)
-        lines(end+1) = "Material / geometry:";
-        if isempty(lastParams)
-            lines(end+1) = "  unavailable";
-        else
-            lines(end+1) = sprintf("  modelType %s", string(lastParams.modelType));
-            lines(end+1) = sprintf("  rho %.6g kg/m^3", lastParams.rho);
-            lines(end+1) = sprintf("  mu %.6g Pa", lastParams.mu);
-            lines(end+1) = sprintf("  nu %.6g", lastParams.nu);
-            lines(end+1) = sprintf("  E %.6g Pa", lastParams.E);
-            lines(end+1) = sprintf("  lambda_Lame %.6g Pa", lastParams.lambda);
-            lines(end+1) = sprintf("  K %.6g Pa", lastParams.K);
-            lines(end+1) = sprintf("  CL %.6g m/s", lastParams.CL);
-            lines(end+1) = sprintf("  CT %.6g m/s", lastParams.CT);
-            lines(end+1) = sprintf("  2h %.6g m", lastParams.thickness);
-        end
-    end
-
-    function text = getControlExecutionProfileText()
-        if ~isempty(lastOptions) && isfield(lastOptions, 'executionProfile')
-            text = string(lastOptions.executionProfile);
-        elseif ~isempty(advanced) && isfield(advanced, 'robustness')
-            text = string(advanced.robustness.Value);
-        else
-            text = "";
-        end
-    end
-
-    function modelName = mainDiagnosticModelName()
-        modelName = "Rayleigh-Lamb";
-        if ~isempty(lastOptions) && getOptionValueLocal(lastOptions, 'computeAcoustoelasticIOPHGO', false)
-            modelName = "AE IOP/HGO";
-        elseif ~isempty(lastOptions) && getOptionValueLocal(lastOptions, 'runMRLFE', false)
-            modelName = "mRLFE";
-        end
-    end
-
-    function fallback = getMainFallbackText(md)
-        fallback = "";
-        if isfield(md, 'executionProfile') && isfield(md.executionProfile, 'anyFallbackApplied')
-            fallback = string(logical(md.executionProfile.anyFallbackApplied));
-            return;
-        end
-    end
-
-    function linesOut = appendExecutionSummary(linesIn, execution)
-        linesOut = linesIn;
-        names = fieldnames(execution);
-        for iExec = 1:numel(names)
-            name = string(names{iExec});
-            value = execution.(char(name));
-            if isstruct(value) && isfield(value, 'internalEngine')
-                linesOut(end+1) = name + " engine: " + string(value.internalEngine); %#ok<AGROW>
-            end
-            if isstruct(value) && isfield(value, 'effectivePreset')
-                linesOut(end+1) = name + " preset: " + string(value.effectivePreset); %#ok<AGROW>
-            end
-        end
-    end
-
-    function linesOut = appendPolicySummary(linesIn, label, policies, fieldName)
-        linesOut = linesIn;
-        names = fieldnames(policies);
-        for iPolicy = 1:numel(names)
-            name = string(names{iPolicy});
-            value = policies.(char(name));
-            if isstruct(value) && isfield(value, fieldName)
-                linesOut(end+1) = name + " " + label + ": " + string(value.(fieldName)); %#ok<AGROW>
-            end
-            if label == "fallback" && isstruct(value) && isfield(value, 'applied')
-                linesOut(end+1) = name + " fallback applied: " + string(logical(value.applied)); %#ok<AGROW>
-            end
-        end
-    end
-
-    function linesOut = appendQualitySummary(linesIn, quality)
-        linesOut = linesIn;
-        names = fieldnames(quality);
-        for iQuality = 1:numel(names)
-            name = string(names{iQuality});
-            value = quality.(char(name));
-            if isstruct(value) && isfield(value, 'accepted')
-                linesOut(end+1) = name + " quality accepted: " + string(logical(value.accepted)); %#ok<AGROW>
-            end
-            if isstruct(value) && isfield(value, 'reason')
-                linesOut(end+1) = name + " quality reason: " + string(value.reason); %#ok<AGROW>
-            end
-        end
-    end
-
-    function [visibleBranch, validCount, totalCount] = firstVisibleBranchSummary()
-        visibleBranch = "";
-        validCount = nan;
-        totalCount = nan;
-        if isempty(lastGuiResult) || ~isfield(lastGuiResult, 'branches') || isempty(lastGuiResult.branches)
-            return;
-        end
-        branch = lastGuiResult.branches(1);
-        visibleBranch = string(branch.modelName) + " " + string(branch.branchName);
-        totalCount = numel(branch.phaseVelocity);
-        validCount = getBranchValidCount(branch);
-    end
-
-    function nValid = getBranchValidCount(branch)
-        values = branch.phaseVelocity(:);
-        valid = isfinite(values);
-        if isfield(branch, 'diagnostics') && isfield(branch.diagnostics, 'valid') && ~isempty(branch.diagnostics.valid)
-            valid = valid & logical(branch.diagnostics.valid(:));
-        end
-        nValid = nnz(valid);
     end
 
     function elapsed = getGuiElapsedSeconds()
