@@ -32,6 +32,7 @@ assertNotContains(txt, "Rayleigh-Lamb seed");
 end
 
 function assertMrlfeDiagnostics(setup)
+assertMrlfeStatus();
 result = struct();
 result.model = "mrlfe";
 result.branch = "A0Like";
@@ -74,6 +75,31 @@ assertContains(txt, "A0Like termination policy: physicalTail");
 assertContains(txt, "S0Like termination policy: none");
 assertContains(txt, "termination: physicalTail");
 assertNotContains(txt, "atlas preset:");
+end
+
+function assertMrlfeStatus()
+for complete = [false true]
+    for accepted = [false true]
+        r = struct('model', "mrlfe", 'branch', "A0Like", ...
+            'validMask', [true; complete; true], ...
+            'quality', struct('accepted', accepted, 'reason', "large_relative_jump"));
+        status = "success";
+        if ~accepted, status = "partial"; end
+        view = struct('metadata', struct('status', status, 'modelResults', struct('A0Like', r)));
+        before = view;
+        lines = guiBuildMrlfeStatusText(view);
+        assert(contains(lines(1), '(partial)') == (~complete || ~accepted));
+        assertContains(lines(2), sprintf('Cp valid %d/3', 2+complete));
+        assertContains(lines(2), sprintf('quality accepted: %d', accepted));
+        assertContains(lines(2), 'large_relative_jump');
+        assert(isequaln(view, before));
+        second = r; second.branch = "S0Like"; second.validMask = true(3,1);
+        view.metadata.modelResults.S0Like = second;
+        assert(numel(guiBuildMrlfeStatusText(view)) == 3);
+    end
+end
+assert(isempty(guiBuildMrlfeStatusText(struct())));
+assert(contains(fileread(which('LambFundamental_GUI')), 'guiBuildMrlfeStatusText(lastGuiResult'));
 end
 
 function assertAeDiagnostics(setup)

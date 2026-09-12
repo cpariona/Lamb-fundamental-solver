@@ -70,6 +70,9 @@ assertContains(mrlfeLines, "numerical preset: balanced");
 assertNotContains(mrlfeLines, "atlas preset:");
 assertContains(mrlfeLines, "actual route: elastic_adaptive");
 assertContains(mrlfeLines, "A0 policy: physicalTail");
+fitToolSource = fileread(which('FitTool_GUI'));
+assert(contains(fitToolSource, '"fit numerical preset: "'));
+assert(~contains(fitToolSource, '"fit atlas preset: "'));
 
 fprintf('Execution profile diagnostics format test passed.\n');
 end
