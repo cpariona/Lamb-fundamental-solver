@@ -13,6 +13,8 @@ fprintf('\nRunning numerical regression tests...\n');
 fprintf('-------------------------------------\n');
 
 % Rayleigh-Lamb and mRLFE numerical contracts.
+test_rl_simple_root_certification;
+test_rl_dimensional_certification;
 test_rl_fit_evaluator_branch_consistency;
 test_rl_fit_synthetic_A0;
 test_mrlfe_fit_synthetic_A0Like;
