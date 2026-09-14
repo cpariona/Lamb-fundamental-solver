@@ -148,8 +148,8 @@ function validatePhysicalScalars(request)
 validatePositive(request.material.mu_Pa, 'mrlfe:InvalidMaterial', 'mu');
 validateNonnegative(request.material.etaS_Pas, 'mrlfe:InvalidMaterial', 'etaS');
 validatePositive(request.material.rho_kgm3, 'mrlfe:InvalidMaterial', 'rho');
-if ~(isfinite(request.material.nu) && request.material.nu > -1 && request.material.nu < 0.5)
-    error('mrlfe:InvalidMaterial', 'nu must be finite and satisfy -1 < nu < 0.5.');
+if ~(isfinite(request.material.nu) && request.material.nu >= 0.49 && request.material.nu < 0.5)
+    error('mrlfe:UnsupportedPoissonRatio', 'The production mRLFE public RL seed requires 0.49 <= nu < 0.5.');
 end
 validatePositive(request.geometry.thickness_m, 'mrlfe:InvalidGeometry', 'thickness');
 validatePositive(request.fluid.density_kgm3, 'mrlfe:InvalidFluid', 'fluid density');

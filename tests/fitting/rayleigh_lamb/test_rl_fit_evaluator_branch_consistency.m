@@ -1,58 +1,24 @@
 function test_rl_fit_evaluator_branch_consistency()
-%TEST_RL_FIT_EVALUATOR_BRANCH_CONSISTENCY Validate branch-coherent fitting evaluation.
-
-fprintf('\nRunning Rayleigh-Lamb fitting evaluator branch-consistency test...\n');
-fprintf('---------------------------------------------------------------\n');
-
-params = lamb.models.rayleigh_lamb.rlDefaultParams();
-params.mu = 90e3;
-params.thickness = 0.50e-3;
-params.rho = 1070;
-params.nu = 0.4999;
-
-frequency_Hz = [9000; 10000; 11000; 12000];
-options = lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
-
-[CpFit_mps, rawFit] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(params, frequency_Hz, "A0", options);
-assert(all(isfinite(CpFit_mps) & CpFit_mps > 0), 'Branch-coherent fit evaluator returned invalid requested Cp values.');
-assert(rawFit.trackingMode == "branch_coherent_internal_grid", 'Unexpected RL fitting tracking mode.');
-assert(isfield(rawFit, 'internalFrequency_Hz') && numel(rawFit.internalFrequency_Hz) >= numel(frequency_Hz), ...
-    'Fit evaluator must expose its internal tracking grid.');
-assert(isfield(rawFit, 'reliability') && rawFit.reliability.SelectionFallbackUsed == false, ...
-    'Fit evaluator must not report prediction fallback as official fitting output.');
-assert(isfield(rawFit, 'diagnostics') && isinf(rawFit.diagnostics.maxPredictionRelativeError), ...
-    'Fit evaluator should not use prediction error as a hard fitting rejection gate by default.');
-assert(rawFit.diagnostics.jumpTol >= 0.80, ...
-    'Fit evaluator should use a permissive internal jump tolerance by default.');
-
-referenceParams = params;
-referenceParams.fmin = min(rawFit.internalFrequency_Hz);
-referenceParams.fmax = max(rawFit.internalFrequency_Hz);
-referenceParams.numFrequencyPoints = 220;
-referenceParams.frequencySpacing = "linspace";
-referenceOptions = options;
-referenceOptions.computeA0 = true;
-referenceOptions.computeS0 = false;
-
-reference = lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(referenceParams, referenceOptions);
-CpReference_mps = interp1(reference.modes.A0.frequency_Hz, reference.modes.A0.phaseVelocity_mps, frequency_Hz, 'linear', NaN);
-
-relativeDifference = abs(CpFit_mps - CpReference_mps) ./ max(CpReference_mps, eps);
-assert(all(isfinite(relativeDifference)), 'Reference comparison produced invalid relative differences.');
-assert(max(relativeDifference) < 0.05, ...
-    'Branch-coherent fit evaluator differs from the maintained A0 solver by more than 5%%.');
-
-internalValid = rawFit.internalValidMask(:);
-internalCp = rawFit.internalCp_mps(internalValid);
-relativeJump = abs(diff(internalCp)) ./ max(internalCp(1:end-1), eps);
-assert(isempty(relativeJump) || max(relativeJump) < rawFit.diagnostics.jumpTol, ...
-    'Internal branch contains a jump larger than the configured fitting continuation tolerance.');
-
-fprintf('Max relative difference to maintained A0 solver: %.6g\n', max(relativeDifference));
-if isempty(relativeJump)
-    fprintf('Internal branch max relative jump: NaN\n');
-else
-    fprintf('Internal branch max relative jump: %.6g\n', max(relativeJump));
+% Public output and fixed objective predictions share one model-owned identity.
+p=lamb.models.rayleigh_lamb.rlDefaultParams();p.mu=90e3;
+o=lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
+objective=[900 1500 2600 4500 7000 9000 12000].';
+contexts={objective,sort([objective;linspace(1111,11111,10).']),sort([objective;linspace(222,11999,38).'])};
+for branch=["A0","S0"]
+ reference=[];
+ for j=1:3
+  f=contexts{j};[cp,raw]=lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(p,f,branch,o);
+  q=p;q.frequencySpacing="explicit";q.frequencyVector_Hz=f;q.fmin=f(1);q.fmax=f(end);
+  op=o;op.computeA0=branch=="A0";op.computeS0=branch=="S0";
+  r=lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(q,op);
+  assert(isequal(cp,r.modes.(branch).phaseVelocity_mps));
+  assert(raw.trackingMode=="canonical_public_solver" && ~raw.reliability.SelectionFallbackUsed);
+  [~,ix]=ismember(objective,f);if j==1,reference=cp(ix);end
+  assert(isequal(reference,cp(ix)) && all(raw.validMask));
+  ex=struct('frequency_Hz',f,'Cp_mps',cp,'validMask',ismember(f,objective));
+  [~,info]=lamb.fitting.computeDispersionFitResiduals(cp,ex,struct());
+  assert(nnz(info.validMask)==7 && isequal(info.validMask,ex.validMask));
+ end
 end
-fprintf('\nRayleigh-Lamb fitting evaluator branch-consistency test passed.\n');
+fprintf('RL canonical public/fitting equality and 7/17/45 fixed observations passed.\n');
 end

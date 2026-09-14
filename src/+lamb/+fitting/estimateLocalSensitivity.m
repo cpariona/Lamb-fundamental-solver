@@ -60,8 +60,17 @@ for j = 1:numel(freeParams)
     paramsPlus.(name) = theta0 + step;
     paramsMinus.(name) = theta0 - step;
 
-    CpPlus = evaluateFcn(paramsPlus);
-    CpMinus = evaluateFcn(paramsMinus);
+    try
+        CpPlus = evaluateFcn(paramsPlus);
+        CpMinus = evaluateFcn(paramsMinus);
+    catch ME
+        if any(strcmp(ME.identifier, {'lamb:rl:UnsupportedPoissonRatio', 'mrlfe:UnsupportedPoissonRatio'}))
+            parameterCoverageAccepted(j) = false;
+            coverageFailureReason(j) = "perturbation outside model support: " + string(ME.message);
+            continue;
+        end
+        rethrow(ME);
+    end
     CpPlus = CpPlus(:);
     CpMinus = CpMinus(:);
 

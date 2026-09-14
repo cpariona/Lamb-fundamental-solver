@@ -28,7 +28,10 @@ opt = optimset('Display', 'off', ...
     'MaxFunEvals', tracker.refineMaxFunEvals);
 
 try
-    [cpRefined, residualRefined] = fminbnd(objective, lower, upper, opt);
+    % Squaring the nonnegative residual preserves its minimum and removes
+    % the elastic-root cusp. Score the selected root with the original residual.
+    cpRefined = fminbnd(@(cp)objective(cp).^2, lower, upper, opt);
+    residualRefined = objective(cpRefined);
 catch
     return;
 end

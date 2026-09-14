@@ -46,6 +46,14 @@ freeParams = string(fitConfig.freeParams(:));
 
 bounds = lamb.fitting.getFitConfigValue(fitConfig, 'bounds', struct());
 [lowerBounds, upperBounds] = lamb.fitting.buildParameterBounds(bounds, freeParams);
+lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest( ...
+    baseParams, experimental.frequency_Hz, branchName, solverOptions);
+nuIndex = freeParams == "nu";
+if any(lowerBounds(nuIndex) < 0.49 | upperBounds(nuIndex) >= 0.5 | ...
+        ~isfinite(lowerBounds(nuIndex)) | ~isfinite(upperBounds(nuIndex)))
+    error('mrlfe:UnsupportedPoissonRatio', ...
+        'The public RL seed requires free nu bounds inside 0.49 <= nu < 0.5.');
+end
 
 fitOptions = lamb.fitting.getFitConfigValue(fitConfig, 'fitOptions', struct());
 if ~isfield(fitOptions, 'useStandardErrorWeights')

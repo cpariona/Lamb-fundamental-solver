@@ -5,6 +5,8 @@ function result = mrlfeSolve(request)
 %   use SI units: mu_Pa, etaS_Pas, rho_kgm3, nu, thickness_m,
 %   density_kgm3, and soundSpeed_mps. frequency_Hz must be positive and
 %   strictly ascending.
+%   The maintained public RL seed requires 0.49 <= nu < 0.5. This is an
+%   execution-support limit, not a restriction of the constitutive equations.
 %
 %   RESULT exposes branch, frequency_Hz, phaseVelocity_mps,
 %   wavenumber_radpm, validMask, quality, termination, fallback, execution,

@@ -46,6 +46,7 @@ h.nu = uieditfield(g, 'numeric', 'Value', params0.nu, 'Limits', [-0.999 0.499999
     'ValueChangedFcn', callbacks.onPrimaryMaterialChanged);
 h.nu.Layout.Row = 4;
 h.nu.Layout.Column = 2;
+h.nu.Tooltip = 'RL and production mRLFE support 0.49 <= nu < 0.5. Other models retain their own material domain.';
 
 h.lambdalabel = uilabel(g, 'Text', 'lambda_L [MPa]');
 h.lambdalabel.Tooltip = 'First Lame parameter lambda_Lame [MPa]';

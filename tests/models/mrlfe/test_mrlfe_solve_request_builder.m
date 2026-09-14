@@ -10,7 +10,7 @@ assert(strcmp(which('lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest'), e
     'lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest must resolve to the model configuration owner.');
 
 frequency_Hz = [1000; 2000; 4000];
-params = struct('mu', 81e3, 'etaS', 0.07, 'rho', 1060, 'nu', 0.48, ...
+params = struct('mu', 81e3, 'etaS', 0.07, 'rho', 1060, 'nu', 0.495, ...
     'thickness', 0.62e-3, 'fluidDensity', 998, 'fluidSoundSpeed', 1480);
 options = struct('mrlfeNumericalPreset', "balanced", ...
     'mrlfeParams', struct('etaS', 0.09, 'fluidDensity', 1010, 'fluidSoundSpeed', 1510));
@@ -24,7 +24,7 @@ assert(a0.fluid.soundSpeed_mps == params.fluidSoundSpeed);
 s0 = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(rmfield(params, 'etaS'), frequency_Hz, "S0Like", options);
 assertRequest(s0, "S0Like", "balanced", "none", 0.09);
 
-canonical = struct('mu_Pa', 82e3, 'etaS_Pas', 0, 'rho_kgm3', 1070, 'nu', 0.47, ...
+canonical = struct('mu_Pa', 82e3, 'etaS_Pas', 0, 'rho_kgm3', 1070, 'nu', 0.49, ...
     'thickness_m', 0.55e-3, 'fluidDensity_kgm3', 997, 'fluidSoundSpeed_mps', 1492);
 canonicalRequest = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(canonical, frequency_Hz, "A0Like", struct());
 assertRequest(canonicalRequest, "A0Like", "fast", "physicalTail", 0);
