@@ -14,10 +14,12 @@ fprintf('-------------------------------------\n');
 
 % Rayleigh-Lamb and mRLFE numerical contracts.
 test_rl_fit_evaluator_branch_consistency;
+test_rl_near_incompressible_contract;
 test_rl_fit_synthetic_A0;
 test_mrlfe_fit_synthetic_A0Like;
 test_mrlfe_numerical_preset_grids;
 test_mrlfe_production_core_contract;
+test_mrlfe_seed_refinement_stability;
 test_mrlfe_solve_frequency_override;
 test_mrlfe_robust_start_contract;
 test_mrlfe_termination_policy;

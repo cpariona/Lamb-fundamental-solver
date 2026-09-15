@@ -54,8 +54,8 @@ switch modelType
         if params.mu <= 0
             error('mu must be positive.');
         end
-        if params.nu <= -1 || params.nu >= 0.5
-            error('nu must be in the range (-1, 0.5).');
+        if ~isnumeric(params.nu) || ~isscalar(params.nu) || ~isfinite(params.nu) || params.nu < 0.49 || params.nu >= 0.5
+            error('lamb:rl:UnsupportedPoissonRatio', 'Production Rayleigh-Lamb requires 0.49 <= nu < 0.5; supplied nu is not supported.');
         end
 
     case "LameParameters"
@@ -75,6 +75,11 @@ switch modelType
 
     otherwise
         error('Unknown material model type: %s.', modelType);
+end
+material = lamb.models.rayleigh_lamb.core.rlComputeMaterial(params);
+if ~isfinite(material.nu) || material.nu < 0.49 || material.nu >= 0.5
+    error('lamb:rl:UnsupportedPoissonRatio', ...
+        'Production Rayleigh-Lamb requires 0.49 <= effective nu < 0.5, including Lamé-derived material.');
 end
 end
 

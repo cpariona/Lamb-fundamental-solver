@@ -3,8 +3,9 @@ function options = rlDefaultOptions(robustness)
 %
 %   OPTIONS = RLDEFAULTOPTIONS(PROFILE) accepts "Fast", "Balanced", or
 %   "Robust". Profiles change numerical effort, not physical meaning.
-%   Defaults enable A0 and leave S0 disabled. Search, continuation,
-%   residual, jump, and prediction controls are numerical options.
+%   Defaults enable A0 and leave S0 disabled. gridPointsTracking controls
+%   continuation effort. Historical scan/ranking fields remain in the input
+%   configuration schema but do not select, replace, or repair roots.
 
 if nargin < 1 || strlength(string(robustness)) == 0
     robustness = "Balanced";

@@ -5,6 +5,9 @@ function results = rlComputeFundamentalLambModes(params, options)
 %   PARAMS uses SI units and full physical thickness; obtain defaults with
 %   rlDefaultParams. OPTIONS controls branches and numerical effort; obtain
 %   a Fast, Balanced, or Robust configuration with rlDefaultOptions.
+%   Production support is 0.49 <= effective nu < 0.5, also for Lamé input.
+%   Material values are never clipped. Requested frequencies do not select
+%   branch identity; local corrections consume model-owned continuation.
 %
 %   Enabled result modes expose column vectors frequency_Hz,
 %   phaseVelocity_mps, wavenumber_radpm, and validMask. Invalid phase speed

@@ -24,12 +24,37 @@ request.fallback = struct('policy', "none");
 result = lamb.models.mrlfe.mrlfeSolve(request);
 branch = result.debug.solverResult.branchSolve;
 
+% Correct RL seeds now establish a valid run without recovery on this grid.
+% Independent 90-digit determinant roots verify the newly covered prefix.
+assert(~branch.robustStart.Attempted && branch.robustStart.Reason == "not_required");
+assert(abs(branch.Cp(1) - 0.23213780739155229924466968812736377) < 1e-7);
+assert(abs(branch.Cp(3) - 1.73706538911752548214230665103858257) < 1e-7);
+assert(~branch.validCp(2) && ~branch.validCp(4), ...
+    'Unestablished points must remain invalid even when the prefix gains coverage.');
+
+% Exercise recovery with an explicitly failed seed rather than depending on
+% the retired RL prediction fallback to accidentally supply a constant seed.
+configuration = lamb.models.mrlfe.configuration.mrlfeResolveConfiguration(request);
+problem = lamb.models.mrlfe.core.mrlfeBuildProblem(configuration);
+failedSeed = lamb.models.mrlfe.tracking.mrlfeBuildSeed(problem, configuration);
+failedSeed.Cp(:) = NaN;
+failedSeed.k(:) = NaN;
+failedSeed.valid(:) = false;
+options = configuration.internalOptions;
+mp = options.mrlfeParams;
+mp.etaS = 0;
+mp.etaL = 0;
+mp.useComplexLambda = false;
+mp.solveComplexK = false;
+branch = lamb.models.mrlfe.tracking.mrlfeTrackBranchRobustStart( ...
+    problem, failedSeed, configuration, mp, options);
+
 assert(isfield(branch, 'robustStart') && isstruct(branch.robustStart), ...
     'A0Like branch diagnostics must include robustStart metadata.');
 assert(branch.robustStart.Enabled, ...
     'Robust-start must be enabled for A0Like production solving.');
 assert(branch.robustStart.Attempted, ...
-    'The low-frequency regression case must attempt robust-start recovery.');
+    'The controlled failed seed must attempt robust-start recovery.');
 
 if ~branch.robustStart.Applied
     fprintf('\nRobust-start candidate diagnostics\n');

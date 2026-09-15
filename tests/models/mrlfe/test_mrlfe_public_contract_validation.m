@@ -35,7 +35,11 @@ assertInvalid(bad, 'mrlfe:InvalidMaterial');
 
 bad = request;
 bad.material.nu = 0.5;
-assertInvalid(bad, 'mrlfe:InvalidMaterial');
+assertInvalid(bad, 'mrlfe:UnsupportedPoissonRatio');
+bad.material.nu = 0.49 - eps(0.49);
+assertInvalid(bad, 'mrlfe:UnsupportedPoissonRatio');
+bad.material.nu = 0.49;
+lamb.models.mrlfe.configuration.mrlfeValidateRequest(bad);
 
 bad = request;
 bad.geometry.thickness_m = 0;

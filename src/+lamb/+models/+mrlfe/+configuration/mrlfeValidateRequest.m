@@ -37,8 +37,8 @@ validatePositive(material, 'mu_Pa', 'mrlfe:InvalidMaterial');
 validateNonnegative(material, 'etaS_Pas', 'mrlfe:InvalidMaterial');
 validatePositive(material, 'rho_kgm3', 'mrlfe:InvalidMaterial');
 nu = getRequired(material, 'nu', 'mrlfe:InvalidMaterial');
-if ~isnumeric(nu) || ~isscalar(nu) || ~isfinite(nu) || nu <= -1 || nu >= 0.5
-    error('mrlfe:InvalidMaterial', 'material.nu must be finite and satisfy -1 < nu < 0.5.');
+if ~isnumeric(nu) || ~isscalar(nu) || ~isfinite(nu) || nu < 0.49 || nu >= 0.5
+    error('mrlfe:UnsupportedPoissonRatio', 'The production mRLFE public RL seed requires 0.49 <= material.nu < 0.5.');
 end
 
 validatePositive(geometry, 'thickness_m', 'mrlfe:InvalidGeometry');
