@@ -1,4 +1,5 @@
 function test_rl_near_incompressible_contract()
+verifyProfileInvariance();
 p=lamb.models.rayleigh_lamb.rlDefaultParams();assert(p.nu==.4999);
 o=lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 for nu=[.49 .495 .499 .4999]
@@ -48,6 +49,47 @@ p=lamb.models.rayleigh_lamb.rlDefaultParams();p.nu=.49;eval=@(q)lamb.fitting.ray
 assert(all(isnan(S)) && ~info.coverageAccepted && isequal(info.validMask,ex.validMask));
 root=testRepositoryRoot(mfilename('fullpath'));files=dir(fullfile(root,'src','+lamb','+models','+rayleigh_lamb','**','*.m'));assert(numel(files)<=17);
 fprintf('Near-incompressible RL domain, regular roots, anchors, Q=0, pathology and sensitivity passed.\n');
+end
+function verifyProfileInvariance()
+% Same 100-digit roots and existing 16-ULP root budget for every profile.
+refs=rlNearIncompressibleReferences();profiles=["Fast" "Balanced" "Robust"];
+maxOracle=0;maxSpread=0;
+for nu=[.49 .499 .4999]
+ p=lamb.models.rayleigh_lamb.rlDefaultParams();p.nu=nu;
+ mat=lamb.models.rayleigh_lamb.core.rlComputeMaterial(p);
+ g=lamb.models.rayleigh_lamb.core.rlComputeGeometry(p);
+ for family=["A" "S"]
+  rows=cell2mat(refs(:,1))==nu & string(refs(:,3))==family;
+  om=cell2mat(refs(rows,2)).';expected=cell2mat(refs(rows,4)).';
+  spec=lamb.models.rayleigh_lamb.core.rlMakeBranchSpec(family+"0",mat,g);
+  f=om*mat.CT/(2*pi*g.halfThickness);roots=nan(3,numel(f));
+  for j=1:3
+   options=lamb.models.rayleigh_lamb.rlDefaultOptions(profiles(j));
+   cp=lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch(f,spec,options);
+   roots(j,:)=om.*mat.CT./cp;
+   oracleError=abs(roots(j,:)-expected)./eps(expected);
+   fprintf('Profile %s nu=%.4g %s: finite=%d/%d, oracle=%.3g ULP\n',profiles(j),nu,family,nnz(isfinite(cp)),numel(cp),max(oracleError));
+   assert(all(isfinite(cp)), 'Execution profile lost reference-root coverage.');
+   assert(all(oracleError<=16), 'Execution profile disagrees with independent fundamental root.');
+   maxOracle=max(maxOracle,max(oracleError));
+  end
+  % Two results within the existing oracle budget differ by at most 32 ULP.
+  spread=(max(roots,[],1)-min(roots,[],1))./eps(expected);
+  assert(all(spread<=32));maxSpread=max(maxSpread,max(spread));
+ end
+end
+p.mu=25e3;p.nu=.4999;p.thickness=1e-3;p.frequencySpacing="explicit";
+p.frequencyVector_Hz=[10 6166.45601805833 16000];p.fmin=10;p.fmax=16000;
+pathology=nan(3,3);
+for j=1:3
+ options=lamb.models.rayleigh_lamb.rlDefaultOptions(profiles(j));options.computeS0=true;
+ result=lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(p,options);
+ pathology(j,:)=result.modes.S0.phaseVelocity_mps(:).';
+ % Existing independently certified pathology reference and error budget.
+ assert(all(isfinite(pathology(j,:))) && abs(pathology(j,2)-4.83137673339218)<2e-13);
+end
+assert(all(max(pathology,[],1)-min(pathology,[],1)<=32*eps(pathology(1,:))));
+fprintf('Profile invariance: maximum oracle %.3g ULP, spread %.3g ULP; pathology spread %.3g m/s.\n',maxOracle,maxSpread,max(max(pathology,[],1)-min(pathology,[],1)));
 end
 function mustError(fn,id)
 try,fn();catch ME,assert(strcmp(ME.identifier,id),ME.message);return;end

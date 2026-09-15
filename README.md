@@ -32,6 +32,20 @@ boundaries.
 Use MATLAB `help` on an entrypoint for its request, units, result, and validity
 contract.
 
+### Production material support
+
+Rayleigh-Lamb production supports `0.49 <= effective nu < 0.5`, including
+effective Poisson ratio derived from Lamé parameters; the default is `0.4999`.
+Material values are never clipped or substituted. Values below this interval
+are outside the production-qualified RL domain, not physically impossible
+materials. Generic elasticity utilities retain their broader mathematical
+domain. Maintained mRLFE execution inherits this interval because its seed uses
+the public RL solver; mRLFE retains its own physical dependence on `nu`.
+
+Numerical qualification covers the maintained operational fundamental-mode
+regime tested by this repository, not a mathematical proof for arbitrary
+`Omega -> infinity`.
+
 ### Fitting coverage contract
 
 `experimental.validMask` defines the fixed observation set for a fit. Every
