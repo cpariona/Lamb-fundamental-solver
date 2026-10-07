@@ -8,6 +8,9 @@ assert(~isempty(markdownPaths), 'Documentation scan must include tracked Markdow
 canonicalPaths = [
     "README.md"
     "AGENTS.md"
+    "docs/repository/final_architecture.md"
+    "docs/repository/validation_status.md"
+    "src/+lamb/+models/+rayleigh_lamb/AGENTS.md"
     "src/+lamb/+models/+mrlfe/AGENTS.md"
     "src/+lamb/+models/+acoustoelastic_iop_hgo/AGENTS.md"
 ];

@@ -56,6 +56,15 @@ evidence may be returned separately but must not become an alternate solver.
 
 ## Engineering constraints
 
+- Audit the affected owner, consumers, tests, and current contract before a
+  structural change; summarize the behavior and authorized scope before editing.
+- One responsibility has one obvious owner. Extend that owner before adding an
+  API. Prefer fewer conceptual layers and helper jumps; retain a one-file
+  package only when it protects a meaningful independent domain.
+- Keep orchestration at one abstraction level. Prefer a local one-use helper
+  over a forwarding wrapper; do not extract solely to shorten a function.
+- Validate at trust boundaries and preserve important physical invariants;
+  do not repeatedly validate an already resolved upstream contract.
 - Use `rl*`, `mrlfe*`, and `ae*` family prefixes for maintained family code.
 - Do not add generic `shared` or `common` dumping grounds, speculative
   registries, managers, frameworks, or symmetry-only packages.
@@ -72,23 +81,36 @@ evidence may be returned separately but must not become an alternate solver.
 
 Model-internal constraints that are difficult to infer live in
 `src/+lamb/+models/+mrlfe/AGENTS.md` and
-`src/+lamb/+models/+acoustoelastic_iop_hgo/AGENTS.md`. No local Rayleigh-Lamb
-context is currently required.
+`src/+lamb/+models/+acoustoelastic_iop_hgo/AGENTS.md`, and
+`src/+lamb/+models/+rayleigh_lamb/AGENTS.md`.
+
+## Documentation ownership
+
+Maintained documentation describes the current system. Git, commits, PRs, and
+issues own chronology, migrations, completed stages, prior architectures,
+branch names, merge SHAs, campaign logs, handoffs, and historical test counts.
+Do not create temporary context or history documents without a current
+operational responsibility. Preserve comments explaining physical intent,
+scientific provenance, and non-obvious invariants.
+
+README owns user orientation and entrypoints; this file owns modification policy.
+[Architecture](docs/repository/final_architecture.md) owns the responsibility map;
+[validation](docs/repository/validation_status.md) owns the validation contract.
+Local AGENTS files contain only non-obvious family invariants. Link to an owner
+instead of duplicating its contract.
 
 ## Validation and delivery
 
-Run from MATLAB after `startup`:
+Run the canonical gate from the repository root:
 
 ```matlab
-run_repository_hygiene_tests
-run_quick_contract_tests
-run_quick_smoke_tests
-run_numerical_regression_tests
-run_extended_integration_tests
-run_performance_and_benchmark_tests
+clear functions;
+startup;
+addpath(fullfile(pwd, "tests", "runners"), "-end");
+summary = run_regression_tests;
 ```
 
-Every maintained test must have exactly one runner owner. Runners own path setup
+Every maintained test must have exactly one catalog owner. The runner owns path setup
 and restore the caller path. Finish with `git diff --check`, inspect untracked or
 generated outputs, and report the exact validation and Git state. Work on a
 review branch; never modify or merge `main` without explicit authorization.
