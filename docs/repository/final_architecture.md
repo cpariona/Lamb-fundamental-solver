@@ -36,6 +36,12 @@ termination in `policies`, output assembly in `results` and selected-curve
 assessment in `quality`. `mrlfeSolve` owns the branch workflow once; explicit
 elastic and viscous option preparation feeds the same seed/tracking/policy chain.
 
+AE retains constitutive/prestress, residual physics, atlas construction,
+tracking/refinement, selection policy, result and quality boundaries. `solvers`
+owns the production atlas operations; `diagnostics` owns direct real-Cp solves
+and identity evidence. Diagnostic results do not replace official `atlasA0`
+arrays. The result owner is reused by atlas and requested-grid assembly.
+
 Dependencies point toward scientific owners. Models do not depend on fitting,
 app, studies, examples, tests or documentation. Fitting calls canonical public
 model APIs. Production never depends on studies, examples, tests or documentation.
