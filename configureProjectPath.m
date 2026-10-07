@@ -20,7 +20,7 @@ roots = [ ...
 for i = 1:numel(roots)
     addMaintainedTree(roots(i), excludedNames);
 end
-% Only six explicit launchers are discoverable; test bodies are opt-in.
+% Only the canonical gate is discoverable; test bodies are opt-in.
 addpath(char(fullfile(projectRoot, "tests", "runners")));
 end
 

@@ -12,7 +12,7 @@ assert(~any(startsWith(entries, exampleRoot)), 'Examples must be opt-in.');
 assert(~any(startsWith(entries, studyRoot)), 'Studies must be opt-in.');
 testEntries = entries(startsWith(entries, testRoot));
 assert(isequal(testEntries, string(fullfile(repoRoot, 'tests', 'runners'))), ...
-    'Only the six runner launchers may be on the production path.');
+    'Only the canonical runner folder may be on the production path.');
 for entry = entries(startsWith(entries, string(repoRoot)))
     parts = split(replace(entry, "\\", "/"), "/");
     assert(~any(ismember(lower(parts), ["archive","figures","outputs","generated"])), ...

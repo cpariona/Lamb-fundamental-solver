@@ -48,15 +48,11 @@ assert(isempty(rootTestFiles), ...
     'Root test wrappers are forbidden; commands must resolve to tests/runners/.');
 
 runnerFiles = paths(startsWith(paths, "tests/runners/") & endsWith(paths, ".m"));
-expectedRunners = "tests/runners/" + [ ...
-    "run_repository_hygiene_tests.m"
-    "run_quick_contract_tests.m"
-    "run_quick_smoke_tests.m"
-    "run_numerical_regression_tests.m"
-    "run_extended_integration_tests.m"
-    "run_performance_and_benchmark_tests.m"];
+expectedRunners = [ ...
+    "tests/runners/run_regression_tests.m"
+    "tests/runners/private/repository_test_catalog.m"];
 assert(isequal(sort(runnerFiles(:)), sort(expectedRunners(:))), ...
-    'The maintained runner surface must contain exactly six tiers: %s', ...
+    'The runner surface must contain only the canonical gate and private catalog: %s', ...
     strjoin(setxor(runnerFiles, expectedRunners), ', '));
 
 end
@@ -85,8 +81,8 @@ for p = runnerPaths(:).'
     found = string(regexp(source, '\<test_[A-Za-z0-9_]+\>', 'match'));
     mentions = [mentions; found(:)]; %#ok<AGROW>
 end
-assert(numel(mentions) == numel(unique(mentions)), 'A test has multiple runner owners.');
-assert(isequal(sort(testNames),sort(mentions)), 'Every maintained test needs exactly one runner owner.');
+assert(numel(mentions) == numel(unique(mentions)), 'A test has multiple catalog owners.');
+assert(isequal(sort(testNames),sort(mentions)), 'Every maintained test needs exactly one catalog owner.');
 end
 
 function assertStudyOwnership(repoRoot, paths)
