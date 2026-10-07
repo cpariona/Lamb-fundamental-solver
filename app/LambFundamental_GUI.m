@@ -205,7 +205,7 @@ updateAxisFieldState();
         params.numFrequencyPoints = "auto";
         params.frequencySpacing = "hybrid";
 
-        material = lamb.models.rayleigh_lamb.core.rlComputeMaterial(params);
+        material = lamb.models.rayleigh_lamb.rlComputeMaterial(params);
         params.E = material.E;
         params.K = material.K;
         params.CL = material.CL;

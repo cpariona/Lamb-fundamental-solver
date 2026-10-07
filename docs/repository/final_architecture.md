@@ -24,6 +24,12 @@ The model families are `rayleigh_lamb`, `mrlfe`, and
 `acoustoelastic_iop_hgo`. Each owns its physical formulation and numerical
 selection pipeline; their internal structures reflect different physics.
 
+Rayleigh-Lamb keeps parameter validation, material/geometry construction,
+physical branch identity, the regular boundary equation and continuation directly
+in its family package. `rlComputeFundamentalLambModes` owns the complete solve,
+with local option validation, result assembly and selected-mode quality assessment.
+The `approximations` package retains its public analytical-reference operation.
+
 Dependencies point toward scientific owners. Models do not depend on fitting,
 app, studies, examples, tests or documentation. Fitting calls canonical public
 model APIs. Production never depends on studies, examples, tests or documentation.

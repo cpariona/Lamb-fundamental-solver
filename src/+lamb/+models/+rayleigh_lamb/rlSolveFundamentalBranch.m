@@ -4,7 +4,7 @@ function [Cp, residual, trace] = rlSolveFundamentalBranch(frequency, spec, optio
 O=2*pi*frequency(:).'*spec.h/spec.CT;
 Cp=nan(size(O));residual=nan(size(O));
 family=extractBefore(spec.name,2);nu=spec.nu;
-eq=@(o,k)lamb.models.rayleigh_lamb.equations.rlBoundaryEquation(o,k,nu,family);
+eq=@(o,k)lamb.models.rayleigh_lamb.rlBoundaryEquation(o,k,nu,family);
 start=1e-5;
 % Existing profile density controls continuation effort, not root identity.
 maxStep=.04*300/options.gridPointsTracking;

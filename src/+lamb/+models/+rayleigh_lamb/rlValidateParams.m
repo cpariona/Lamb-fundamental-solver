@@ -76,7 +76,7 @@ switch modelType
     otherwise
         error('Unknown material model type: %s.', modelType);
 end
-material = lamb.models.rayleigh_lamb.core.rlComputeMaterial(params);
+material = lamb.models.rayleigh_lamb.rlComputeMaterial(params);
 if ~isfinite(material.nu) || material.nu < 0.49 || material.nu >= 0.5
     error('lamb:rl:UnsupportedPoissonRatio', ...
         'Production Rayleigh-Lamb requires 0.49 <= effective nu < 0.5, including Lamé-derived material.');

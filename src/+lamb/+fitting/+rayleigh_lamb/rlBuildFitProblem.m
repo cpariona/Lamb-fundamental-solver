@@ -34,7 +34,7 @@ freeParams = string(fitConfig.freeParams(:));
 
 bounds = lamb.fitting.getFitConfigValue(fitConfig, 'bounds', struct());
 [lowerBounds, upperBounds] = lamb.fitting.buildParameterBounds(bounds, freeParams);
-lamb.models.rayleigh_lamb.configuration.rlValidateParams(baseParams);
+lamb.models.rayleigh_lamb.rlValidateParams(baseParams);
 nuIndex = freeParams == "nu";
 if any(lowerBounds(nuIndex) < 0.49 | upperBounds(nuIndex) >= 0.5 | ...
         ~isfinite(lowerBounds(nuIndex)) | ~isfinite(upperBounds(nuIndex)))
