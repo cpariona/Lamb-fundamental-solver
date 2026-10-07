@@ -3,7 +3,7 @@ verifyProfileInvariance();
 p=lamb.models.rayleigh_lamb.rlDefaultParams();assert(p.nu==.4999);
 o=lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
 for nu=[.49 .495 .499 .4999]
- p.nu=nu;lamb.models.rayleigh_lamb.configuration.rlValidateParams(p);
+ p.nu=nu;lamb.models.rayleigh_lamb.rlValidateParams(p);
 end
 for nu=[.49-eps(.49) .5]
  p.nu=nu;mustError(@()lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(p,o),'lamb:rl:UnsupportedPoissonRatio');
@@ -11,28 +11,28 @@ end
 p=lamb.models.rayleigh_lamb.rlDefaultParams();p.modelType="LameParameters";p.lambda=p.mu;
 mustError(@()lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes(p,o),'lamb:rl:UnsupportedPoissonRatio');
 p.lambda=49*p.mu;p.nu=.1;
-lamb.models.rayleigh_lamb.configuration.rlValidateParams(p);
+lamb.models.rayleigh_lamb.rlValidateParams(p);
 assert(lamb.elasticity.elasticFromMuNu(p.mu,.3,p.rho).nu==.3);
 refs=rlNearIncompressibleReferences();
 for nu=[.49 .495 .499 .4999]
  p=lamb.models.rayleigh_lamb.rlDefaultParams();p.nu=nu;
- mat=lamb.models.rayleigh_lamb.core.rlComputeMaterial(p);g=lamb.models.rayleigh_lamb.core.rlComputeGeometry(p);
+ mat=lamb.models.rayleigh_lamb.rlComputeMaterial(p);g=lamb.models.rayleigh_lamb.rlComputeGeometry(p);
  for family=["A","S"]
   rows=cell2mat(refs(:,1))==nu & string(refs(:,3))==family;om=cell2mat(refs(rows,2)).';expected=cell2mat(refs(rows,4)).';
-  spec=lamb.models.rayleigh_lamb.core.rlMakeBranchSpec(family+"0",mat,g);f=om*mat.CT/(2*pi*g.halfThickness);
-  [cp,res]=lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch(f,spec,o);k=om.*mat.CT./cp;
+  spec=lamb.models.rayleigh_lamb.rlMakeBranchSpec(family+"0",mat,g);f=om*mat.CT/(2*pi*g.halfThickness);
+  [cp,res]=lamb.models.rayleigh_lamb.rlSolveFundamentalBranch(f,spec,o);k=om.*mat.CT./cp;
   assert(all(isfinite(cp)) && all(abs(k-expected)<=16*eps(expected)));
   assert(all(res<=16*eps));
   for K=[2 2*sqrt(spec.r2)]
-   [F,FK,FO,M]=lamb.models.rayleigh_lamb.equations.rlBoundaryEquation(2,K,nu,family);
+   [F,FK,FO,M]=lamb.models.rayleigh_lamb.rlBoundaryEquation(2,K,nu,family);
    assert(all(isfinite([F FK FO M(:).'])));
   end
  end
  % Locate and traverse the actual S0 Q=0 point with regular equations.
- oq=fzero(@(om)lamb.models.rayleigh_lamb.equations.rlBoundaryEquation(om,om,nu,"S"),[3.8 4.1]);
- spec=lamb.models.rayleigh_lamb.core.rlMakeBranchSpec("S0",mat,g);
+ oq=fzero(@(om)lamb.models.rayleigh_lamb.rlBoundaryEquation(om,om,nu,"S"),[3.8 4.1]);
+ spec=lamb.models.rayleigh_lamb.rlMakeBranchSpec("S0",mat,g);
  f=oq*[1-1e-6 1 1+1e-6]*mat.CT/(2*pi*g.halfThickness);
- cp=lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch(f,spec,o);
+ cp=lamb.models.rayleigh_lamb.rlSolveFundamentalBranch(f,spec,o);
  assert(all(isfinite(cp)) && abs(cp(2)-mat.CT)<=32*eps(mat.CT));
 end
 p.mu=25e3;p.nu=.4999;p.thickness=1e-3;p.frequencySpacing="explicit";p.frequencyVector_Hz=[10 6166.45601805833 16000];p.fmin=10;p.fmax=16000;o.computeS0=true;
@@ -56,16 +56,16 @@ refs=rlNearIncompressibleReferences();profiles=["Fast" "Balanced" "Robust"];
 maxOracle=0;maxSpread=0;
 for nu=[.49 .499 .4999]
  p=lamb.models.rayleigh_lamb.rlDefaultParams();p.nu=nu;
- mat=lamb.models.rayleigh_lamb.core.rlComputeMaterial(p);
- g=lamb.models.rayleigh_lamb.core.rlComputeGeometry(p);
+ mat=lamb.models.rayleigh_lamb.rlComputeMaterial(p);
+ g=lamb.models.rayleigh_lamb.rlComputeGeometry(p);
  for family=["A" "S"]
   rows=cell2mat(refs(:,1))==nu & string(refs(:,3))==family;
   om=cell2mat(refs(rows,2)).';expected=cell2mat(refs(rows,4)).';
-  spec=lamb.models.rayleigh_lamb.core.rlMakeBranchSpec(family+"0",mat,g);
+  spec=lamb.models.rayleigh_lamb.rlMakeBranchSpec(family+"0",mat,g);
   f=om*mat.CT/(2*pi*g.halfThickness);roots=nan(3,numel(f));
   for j=1:3
    options=lamb.models.rayleigh_lamb.rlDefaultOptions(profiles(j));
-   cp=lamb.models.rayleigh_lamb.tracking.rlSolveFundamentalBranch(f,spec,options);
+   cp=lamb.models.rayleigh_lamb.rlSolveFundamentalBranch(f,spec,options);
    roots(j,:)=om.*mat.CT./cp;
    oracleError=abs(roots(j,:)-expected)./eps(expected);
    fprintf('Profile %s nu=%.4g %s: finite=%d/%d, oracle=%.3g ULP\n',profiles(j),nu,family,nnz(isfinite(cp)),numel(cp),max(oracleError));

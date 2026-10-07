@@ -277,7 +277,7 @@ trackerResultsForCase = cell(numel(gridList), 1);
 for g = 1:numel(gridList)
     opt = options;
     opt.numCpScanPoints = gridList(g);
-    result = lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveIOPHGODispersion(params, opt);
+    result = lamb.models.acoustoelastic_iop_hgo.diagnostics.aeSolveIOPHGODispersion(params, opt);
     trackerResultsForCase{g} = result;
 
     for k = 1:numel(result.frequency_Hz)

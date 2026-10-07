@@ -10,8 +10,8 @@ params.fmax = 1000;
 params.numFrequencyPoints = 10;
 params.frequencySpacing = "linspace";
 
-material = lamb.models.rayleigh_lamb.core.rlComputeMaterial(params);
-geometry = lamb.models.rayleigh_lamb.core.rlComputeGeometry(params);
+material = lamb.models.rayleigh_lamb.rlComputeMaterial(params);
+geometry = lamb.models.rayleigh_lamb.rlComputeGeometry(params);
 geometry = rmfield(geometry, 'halfThickness');
 frequency = lamb.grids.buildFrequencyVector(params);
 omega = 2*pi*frequency(1);

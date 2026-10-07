@@ -24,6 +24,24 @@ The model families are `rayleigh_lamb`, `mrlfe`, and
 `acoustoelastic_iop_hgo`. Each owns its physical formulation and numerical
 selection pipeline; their internal structures reflect different physics.
 
+Rayleigh-Lamb keeps parameter validation, material/geometry construction,
+physical branch identity, the regular boundary equation and continuation directly
+in its family package. `rlComputeFundamentalLambModes` owns the complete solve,
+with local option validation, result assembly and selected-mode quality assessment.
+The `approximations` package retains its public analytical-reference operation.
+
+mRLFE keeps request/preset resolution in `configuration`, problem construction
+and residual physics in `core`, seed/discovery/refinement in `tracking`,
+termination in `policies`, output assembly in `results` and selected-curve
+assessment in `quality`. `mrlfeSolve` owns the branch workflow once; explicit
+elastic and viscous option preparation feeds the same seed/tracking/policy chain.
+
+AE retains constitutive/prestress, residual physics, atlas construction,
+tracking/refinement, selection policy, result and quality boundaries. `solvers`
+owns the production atlas operations; `diagnostics` owns direct real-Cp solves
+and identity evidence. Diagnostic results do not replace official `atlasA0`
+arrays. The result owner is reused by atlas and requested-grid assembly.
+
 Dependencies point toward scientific owners. Models do not depend on fitting,
 app, studies, examples, tests or documentation. Fitting calls canonical public
 model APIs. Production never depends on studies, examples, tests or documentation.

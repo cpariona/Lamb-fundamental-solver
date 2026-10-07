@@ -6,9 +6,9 @@ function result = aeSolveIOPHGODispersion(params, options)
 %   rho, rhoF, fluidBulkModulus, frequency
 %
 % This wrapper computes alpha, beta, gamma from the constitutive block and
-% then calls lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveDispersion. By default, it is intended
-% for the A0 corrected/backward workflow while the direct solver is being
-% validated.
+% then calls lamb.models.acoustoelastic_iop_hgo.diagnostics.aeSolveDispersion.
+% Its direct real-Cp output is diagnostic evidence and never replaces the
+% official atlasA0 arrays.
 
 if nargin < 2
     options = [];
@@ -39,7 +39,7 @@ if isfield(params, 'cGrid')
     directParams.cGrid = params.cGrid;
 end
 
-result = lamb.models.acoustoelastic_iop_hgo.solvers.aeSolveDispersion(directParams, options);
+result = lamb.models.acoustoelastic_iop_hgo.diagnostics.aeSolveDispersion(directParams, options);
 result.constitutiveState = state;
 result.directParams = directParams;
 end
