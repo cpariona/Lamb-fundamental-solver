@@ -36,6 +36,4 @@ solvers, policies, or result builders must not create an alternate RL route.
 
 `A0Like` uses `physicalTail`; `S0Like` uses `none`. Production fallback remains
 `none`. Preserve termination evidence, quality evaluation, neutral engine names,
-requested/effective configuration, and the public result schema. Fitting,
-studies, and apps must continue to reach this model through the canonical public
-solver rather than an internal or historical route.
+requested/effective configuration, and the public result schema.

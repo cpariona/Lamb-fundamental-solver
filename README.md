@@ -46,15 +46,6 @@ Numerical qualification covers the maintained operational fundamental-mode
 regime tested by this repository, not a mathematical proof for arbitrary
 `Omega -> infinity`.
 
-### Fitting coverage contract
-
-`experimental.validMask` defines the fixed observation set for a fit. Every
-candidate parameter set must return finite model phase velocity at every selected
-observation; a candidate cannot improve the objective by dropping difficult
-points. Observations intentionally excluded by `validMask=false` remain outside
-the objective. AE `atlasA0` fitting also rejects selected frequencies below its
-configured internal initialization anchor before optimization.
-
 ## Examples
 
 Examples and studies are opt-in and are not added by `startup`:
@@ -69,12 +60,11 @@ run('examples/rayleigh_lamb/fitting/rlFitDefaultA0.m')
 ## Validation
 
 ```matlab
-run_repository_hygiene_tests
-run_quick_contract_tests
-run_quick_smoke_tests
-run_numerical_regression_tests
-run_extended_integration_tests
-run_performance_and_benchmark_tests
+clear functions;
+startup;
+addpath(fullfile(pwd, "tests", "runners"), "-end");
+summary = run_regression_tests;
 ```
 
-The six runners form the complete maintained validation surface.
+See [architecture](docs/repository/final_architecture.md) for ownership and
+[validation](docs/repository/validation_status.md) for the gate contract.
