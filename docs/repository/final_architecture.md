@@ -30,6 +30,12 @@ in its family package. `rlComputeFundamentalLambModes` owns the complete solve,
 with local option validation, result assembly and selected-mode quality assessment.
 The `approximations` package retains its public analytical-reference operation.
 
+mRLFE keeps request/preset resolution in `configuration`, problem construction
+and residual physics in `core`, seed/discovery/refinement in `tracking`,
+termination in `policies`, output assembly in `results` and selected-curve
+assessment in `quality`. `mrlfeSolve` owns the branch workflow once; explicit
+elastic and viscous option preparation feeds the same seed/tracking/policy chain.
+
 Dependencies point toward scientific owners. Models do not depend on fitting,
 app, studies, examples, tests or documentation. Fitting calls canonical public
 model APIs. Production never depends on studies, examples, tests or documentation.
