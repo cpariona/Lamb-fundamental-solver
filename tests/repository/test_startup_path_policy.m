@@ -11,8 +11,8 @@ studyRoot = string(fullfile(repoRoot, 'studies'));
 assert(~any(startsWith(entries, exampleRoot)), 'Examples must be opt-in.');
 assert(~any(startsWith(entries, studyRoot)), 'Studies must be opt-in.');
 testEntries = entries(startsWith(entries, testRoot));
-assert(isequal(testEntries, string(fullfile(repoRoot, 'tests', 'runners'))), ...
-    'Only the canonical runner folder may be on the production path.');
+assert(isempty(testEntries), 'All tests, including runners, must be opt-in.');
+assert(isempty(which('run_regression_tests')), 'Regression gate leaked into startup.');
 for entry = entries(startsWith(entries, string(repoRoot)))
     parts = split(replace(entry, "\\", "/"), "/");
     assert(~any(ismember(lower(parts), ["archive","figures","outputs","generated"])), ...
