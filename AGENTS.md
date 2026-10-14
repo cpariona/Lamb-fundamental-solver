@@ -12,4 +12,4 @@ Antes de modificar código, leer el estándar común fijado en `.research-automa
 - Conservar prefijos de implementación `rl*`, `mrlfe*`, `ae*`; leer los `AGENTS.md` locales de las familias afectadas bajo `src/+lamb/+models/`.
 - Preservar métodos, presets, tracking, validez, tolerancias y benchmarks sin alterar snapshots para pasar tests. El gate y catálogo canónico están en [validación](docs/repository/validation_status.md).
 
-Las invariantes físicas locales tienen prioridad sobre generalizaciones del estándar. No integrar ni modificar `main` sin autorización.
+Estas invariantes físicas locales prevalecen cuando se aplican convenciones transversales.
