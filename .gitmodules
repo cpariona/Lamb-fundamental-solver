@@ -1,0 +1,3 @@
+[submodule ".research-automation"]
+	path = .research-automation
+	url = https://github.com/cpariona/Research-Automation.git
