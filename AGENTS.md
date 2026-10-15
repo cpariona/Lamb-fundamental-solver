@@ -10,6 +10,5 @@ Antes de modificar código, leer el estándar común fijado en `.research-automa
 - Separar parámetros físicos, opciones numéricas, perfiles de ejecución y UI. `executionProfile` es el campo canónico; `robustness` existe solo en normalización de la app. Los perfiles cambian costo, no física.
 - AE entrega `atlasA0` como resultado oficial. Diagnósticos y fallback no sustituyen esa curva. La calidad evalúa una curva ya seleccionada: no la reconecta, interpola, reemplaza ni selecciona otra rama.
 - Conservar prefijos de implementación `rl*`, `mrlfe*`, `ae*`; leer los `AGENTS.md` locales de las familias afectadas bajo `src/+lamb/+models/`.
-- Preservar métodos, presets, tracking, validez, tolerancias y benchmarks sin alterar snapshots para pasar tests. El gate y catálogo canónico están en [validación](docs/repository/validation_status.md).
+- Preservar métodos, presets, tracking, validez, tolerancias y benchmarks. El gate y catálogo canónico están en [validación](docs/repository/validation_status.md).
 
-Estas invariantes físicas locales prevalecen cuando se aplican convenciones transversales.
