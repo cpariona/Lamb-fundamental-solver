@@ -37,6 +37,5 @@ a structural change and investigate material regressions.
 
 Tests under the maintained test tree are catalogued executable contracts.
 Temporary diagnostics and observational measurements stay outside the maintained
-surface and do not replace regression evidence. Inspect generated artifacts and
-finish with `git diff --check`. Record run results in delivery reports and Git/PR
-history, not in this document.
+surface and do not replace regression evidence. General Git review and delivery
+reporting follow the pinned shared engineering standard referenced by root `AGENTS.md`.
