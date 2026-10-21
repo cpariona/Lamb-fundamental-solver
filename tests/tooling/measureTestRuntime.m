@@ -233,7 +233,8 @@ end
 function root = findRepositoryRoot(anchorFile)
 folder = fileparts(anchorFile);
 while true
-    if isfolder(fullfile(folder, '.git')) && isfile(fullfile(folder, 'startup.m'))
+    if (isfolder(fullfile(folder, '.git')) || isfile(fullfile(folder, '.git'))) && ...
+            isfile(fullfile(folder, 'startup.m'))
         root = folder;
         return
     end

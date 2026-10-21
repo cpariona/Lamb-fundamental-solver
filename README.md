@@ -2,8 +2,8 @@
 
 MATLAB forward solvers and inverse-fitting tools for fundamental Lamb-wave
 dispersion in soft materials. Maintained families are Rayleigh-Lamb A0/S0,
-fluid-loaded mRLFE A0Like/S0Like, and prestressed acoustoelastic IOP/HGO
-`atlasA0`.
+fluid-loaded mRLFE A0Like/S0Like, prestressed acoustoelastic IOP/HGO
+`atlasA0`, and the independent Li et al. (2022) elastic membrane A0 model.
 
 ## Start
 
@@ -26,11 +26,16 @@ boundaries.
 | Rayleigh-Lamb | `lamb.models.rayleigh_lamb.rlDefaultParams`, `lamb.models.rayleigh_lamb.rlDefaultOptions`, `lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes`, `lamb.models.rayleigh_lamb.approximations.rlComputeAnalyticalApproximations` |
 | mRLFE | `lamb.models.mrlfe.mrlfeDefaultParameters`, `lamb.models.mrlfe.mrlfeDefaultOptions`, `lamb.models.mrlfe.mrlfeSolve` |
 | AE IOP/HGO | `lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions`, `lamb.models.acoustoelastic_iop_hgo.aeSolveBranch` |
+| Li 2022 A0 | `lamb.models.acoustoelastic_li2022.liA0MasterCurve`, `lamb.models.acoustoelastic_li2022.liPredictA0`, `lamb.models.acoustoelastic_li2022.liInterpretModuli`, `lamb.fitting.acoustoelastic_li2022.liFitA0` |
 | Fitting | `lamb.fitting.rayleigh_lamb.rlFitDispersionData`, `lamb.fitting.mrlfe.mrlfeFitDispersionData`, `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` |
 | Sweeps | `lamb.sweeps.runParametricSweep` |
 
 Use MATLAB `help` on an entrypoint for its request, units, result, and validity
 contract.
+
+Li A0 has a direct linear SVD inversion and no GUI or OCE adapter. See the
+[Li model contract and usage](docs/models/acoustoelastic_li2022.md) for its
+assumptions, fixed observation mask, units and identification limits.
 
 ### Production material support
 

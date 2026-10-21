@@ -20,8 +20,8 @@
 | `+grids` | Model-neutral frequency-grid construction |
 | `+sweeps` | Parameter-sweep execution through supplied production operations |
 
-The model families are `rayleigh_lamb`, `mrlfe`, and
-`acoustoelastic_iop_hgo`. Each owns its physical formulation and numerical
+The model families are `rayleigh_lamb`, `mrlfe`, `acoustoelastic_iop_hgo`, and
+`acoustoelastic_li2022`. Each owns its physical formulation and numerical
 selection pipeline; their internal structures reflect different physics.
 
 Rayleigh-Lamb keeps parameter validation, material/geometry construction,
@@ -41,6 +41,13 @@ tracking/refinement, selection policy, result and quality boundaries. `solvers`
 owns the production atlas operations; `diagnostics` owns direct real-Cp solves
 and identity evidence. Diagnostic results do not replace official `atlasA0`
 arrays. The result owner is reused by atlas and requested-grid assembly.
+
+Li 2022 owns the dimensionless physical A0 curve, forward prediction and
+principal-state interpretation in `models.acoustoelastic_li2022`.
+`fitting.acoustoelastic_li2022` owns its fixed-mask data validation, direct
+linear SVD regression and identification diagnostics. It consumes the public
+master curve, with no nonlinear optimizer, family adapter framework or app
+integration. This approximation is independent of AE IOP/HGO and its atlas.
 
 Dependencies point toward scientific owners. Models do not depend on fitting,
 app, studies, examples, tests or documentation. Fitting calls canonical public
@@ -72,11 +79,21 @@ request/config -> constitutive/prestress state -> fixed atlas -> minima/linking
 -> atlasA0 selection -> bounded true-SVD refinement -> validity -> canonical result
 ```
 
-Fitting:
+Nonlinear fitting (Rayleigh-Lamb, mRLFE and AE IOP/HGO):
 
 ```text
 experimental fixed mask -> family adapter -> canonical public model
 -> residual/objective -> optimizer -> metrics/sensitivity
+```
+
+Li 2022:
+
+```text
+q = k*currentHalfThickness -> deflated physical A0 master curve
+-> frequency-domain forward prediction
+
+fixed A0 observations + current density/thickness + single condition/direction
+-> measured kh -> master curve eta^2 -> linear SVD -> rank/coverage/support
 ```
 
 Quality assesses an already selected curve. Diagnostic evidence remains separate

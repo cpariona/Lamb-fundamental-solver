@@ -81,6 +81,8 @@ for i = 1:numel(paths)
         assert(startsWith(name, "mrlfe"), 'mRLFE model function lacks mrlfe prefix: %s', path);
     elseif startsWith(path, "src/+lamb/+models/+rayleigh_lamb/") && startsWith(strtrim(firstCode), "function")
         assert(startsWith(name, "rl"), 'Rayleigh-Lamb model function lacks rl prefix: %s', path);
+    elseif startsWith(path, "src/+lamb/+models/+acoustoelastic_li2022/") && startsWith(strtrim(firstCode), "function")
+        assert(startsWith(name, "li"), 'Li 2022 model function lacks li prefix: %s', path);
     elseif startsWith(path, "src/+lamb/+models/+acoustoelastic_iop_hgo/") && startsWith(strtrim(firstCode), "function")
         assert(startsWith(name, "ae"), 'AE model function lacks ae prefix: %s', path);
     end
