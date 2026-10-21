@@ -47,8 +47,8 @@ curve, forward prediction and principal-state interpretation in
 `models.acoustoelastic_prestressed_plate`.
 `fitting.acoustoelastic_prestressed_plate` owns its fixed-mask data validation, direct
 linear SVD regression and identification diagnostics. It consumes the public
-master curve, with no nonlinear optimizer, family adapter framework or app
-integration. It currently supports A0 only, following Li et al. (2022), and is
+master curve, with no nonlinear optimizer or family adapter framework.
+It currently supports A0 only, following Li et al. (2022), and is
 independent of AE IOP/HGO and its atlas.
 
 Model-family and principal API identifiers describe physical formulations,
@@ -108,6 +108,51 @@ Quality assesses an already selected curve. Diagnostic evidence remains separate
 from official scientific arrays; AE official output is `atlasA0`.
 
 ## Presentation boundary
+
+`prepareOceFitObservations`, currently in `app/oce_integration/`, performs
+model-independent request translation from an already validated OCE scientific
+result. It is available
+through the existing recursive app path setup; it requires no GUI initialization.
+OCE owns acquisition processing, schema validation and result I/O, through
+`oce.results.validateScientificResult` and `oce.io.loadScientificResult`. The
+translator reads their validated product; it neither decodes MAT/BIN files nor
+implements a competing OCE schema validator.
+
+The caller selects one acquisition-order signed direction, estimator and explicit
+observation mask. Preparation preserves the original frequency/Cp rows, source
+validity/interpolation/extrapolation masks, estimator identity, condition, repetition,
+loading metadata, measured directional thickness and provenance. It rejects invalid
+selected numbers at the external-observation boundary so downstream fitting
+normalization cannot silently shrink the supplied mask. It does not use the GUI file-import
+path, which intentionally removes invalid rows, sorts and can collapse duplicates.
+Excluded observations and unknown thickness remain visible. Source ridge support
+and the reviewed fitting mask are distinct evidence; no mask is derived or repaired.
+
+Consumers pass `prepared.experimental` directly to the canonical family APIs:
+`rlFitDispersionData`, `mrlfeFitDispersionData`, `aeFitDispersionData`, or
+`aePlateFitDispersion`, in their respective `lamb.fitting` family packages.
+Consumers explicitly supply each family's physical parameters, modal/branch choice,
+fit configuration and support assessment. The translator selects no model, density,
+mode, weighting, inverse equation or optimizer and invokes no family API. Measured
+thickness is a physical observation, not a universal family-parameter mapping.
+Family-specific restrictions, including full-axis frequency support, remain visible
+as errors/rejections; the app must not trim or average inputs to bypass them.
+
+Preparation has no dependency on model or fitting implementations. Nonlinear fitting
+normalizes its own inputs; the direct plate fit consumes the minimal numeric request
+without generated counts or empty uncertainty fields. Models/fitting never depend on
+the translator. OCE remains the schema/I/O authority; preparation neither invokes a
+family API nor owns its physics, optimizer or support decisions.
+
+The current app location matches request translation and requires no additional path
+setup. Keep it while there is no demonstrated benefit to relocation. Directory choice
+is not a scientific invariant: an optional external-consumer surface could be considered
+if actual consumers or dependencies later justify it, without a speculative framework.
+Read-only OCE result inspection in studies or examples does not establish a second
+translation owner. The repository enforces dependency direction and absence of science,
+GUI import and native schema I/O in preparation, rather than prohibiting field access.
+The examples-to-app dependency rule has no exception: the present example is Markdown,
+not an executable MATLAB consumer. The retired pilot has no wrapper or duplicate adapter.
 
 App translates UI state into requests and coordinates, presents or persists
 already computed results. It never owns science. Physical parameters, numerical

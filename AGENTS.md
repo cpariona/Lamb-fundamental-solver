@@ -4,6 +4,7 @@ Antes de modificar código, leer el estándar común fijado en `.research-automa
 
 ## Invariantes locales
 
+- External observation preparation preserves explicit masks, rows and provenance; reject invalid selected inputs without repairing the mask. Producers own schema validation/I/O; scientific owners retain model-specific validation and inversion.
 - `src/+lamb/+models/` posee forward physics, tracking, políticas, calidad y resultados; `src/+lamb/+fitting/` posee fitting inverso, optimización y métricas. `app/` coordina y presenta; los modelos no dependen de fitting, app, studies ni tests. Propietarios en [arquitectura](docs/repository/final_architecture.md).
 - Rayleigh-Lamb, mRLFE y AE IOP/HGO tienen física y estructura distintas. La dependencia científica intencional entre familias es la semilla mRLFE mediante la API pública Rayleigh-Lamb. No forzar paquetes simétricos.
 - `experimental.validMask` es fijo en fitting: no descartar observaciones según parámetros candidatos ni modificar la máscara para fabricar métricas o sensibilidades. El modelo debe cubrir con velocidad de fase finita las observaciones seleccionadas, salvo rechazo de soporte declarado antes de optimizar.

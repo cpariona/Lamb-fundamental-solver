@@ -10,6 +10,7 @@ entries = [ ...
     "repository_hygiene" "tests/repository/test_startup_path_policy.m"
     "repository_hygiene" "tests/repository/test_repository_root_utilities.m"
     "quick_contracts" "tests/repository/test_model_output_folder_helpers.m"
+    "quick_contracts" "tests/app/oce_integration/test_oce_fit_observations.m"
     "quick_contracts" "tests/fitting/test_fitting_helpers_smoke.m"
     "quick_contracts" "tests/fitting/test_fit_objective_coverage_contract.m"
     "quick_contracts" "tests/fitting/test_shared_fit_optimizer_contract.m"
