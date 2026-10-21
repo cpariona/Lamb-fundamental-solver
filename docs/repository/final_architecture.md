@@ -21,8 +21,8 @@
 | `+sweeps` | Parameter-sweep execution through supplied production operations |
 
 The model families are `rayleigh_lamb`, `mrlfe`, `acoustoelastic_iop_hgo`, and
-`acoustoelastic_li2022`. Each owns its physical formulation and numerical
-selection pipeline; their internal structures reflect different physics.
+`acoustoelastic_prestressed_plate`. Each owns its physical formulation and
+numerical selection pipeline; their internal structures reflect different physics.
 
 Rayleigh-Lamb keeps parameter validation, material/geometry construction,
 physical branch identity, the regular boundary equation and continuation directly
@@ -42,12 +42,20 @@ owns the production atlas operations; `diagnostics` owns direct real-Cp solves
 and identity evidence. Diagnostic results do not replace official `atlasA0`
 arrays. The result owner is reused by atlas and requested-grid assembly.
 
-Li 2022 owns the dimensionless physical A0 curve, forward prediction and
-principal-state interpretation in `models.acoustoelastic_li2022`.
-`fitting.acoustoelastic_li2022` owns its fixed-mask data validation, direct
+The acoustoelastic prestressed-plate family owns the dimensionless physical A0
+curve, forward prediction and principal-state interpretation in
+`models.acoustoelastic_prestressed_plate`.
+`fitting.acoustoelastic_prestressed_plate` owns its fixed-mask data validation, direct
 linear SVD regression and identification diagnostics. It consumes the public
 master curve, with no nonlinear optimizer, family adapter framework or app
-integration. This approximation is independent of AE IOP/HGO and its atlas.
+integration. It currently supports A0 only, following Li et al. (2022), and is
+independent of AE IOP/HGO and its atlas.
+
+Model-family and principal API identifiers describe physical formulations,
+without publication-year branding or individual mode names. Established
+scientific model names such as Rayleigh-Lamb and HGO retain their conventional
+meaning; they are not identifiers derived from one publication. Mode-specific
+mathematical helpers may identify their mode, such as `aePlateA0MasterCurve`.
 
 Dependencies point toward scientific owners. Models do not depend on fitting,
 app, studies, examples, tests or documentation. Fitting calls canonical public
@@ -86,7 +94,7 @@ experimental fixed mask -> family adapter -> canonical public model
 -> residual/objective -> optimizer -> metrics/sensitivity
 ```
 
-Li 2022:
+Acoustoelastic prestressed plate (current A0 support):
 
 ```text
 q = k*currentHalfThickness -> deflated physical A0 master curve

@@ -1,5 +1,5 @@
-function curve = liA0MasterCurve(q)
-%LIA0MASTERCURVE Physical Li et al. (2022) A0 branch for q = k*h.
+function curve = aePlateA0MasterCurve(q)
+%AEPLATEA0MASTERCURVE Physical Li et al. (2022) A0 branch for q = k*h.
 %   Q is a nonnegative dimensionless array (Inf includes the Rayleigh limit).
 %   H is CURRENT HALF-thickness; k is angular wavenumber in rad/m.
 %   Output arrays retain the shape of Q. oneMinusEtaSquared preserves the

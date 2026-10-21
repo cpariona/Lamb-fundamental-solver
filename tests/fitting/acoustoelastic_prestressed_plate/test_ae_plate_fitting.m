@@ -1,11 +1,11 @@
-function tests = test_li_a0_inversion()
-%TEST_LI_A0_INVERSION Linear recovery, fixed masks and independent coverage.
+function tests = test_ae_plate_fitting()
+%TEST_AE_PLATE_FITTING Linear recovery, fixed masks and independent coverage.
 tests = functiontests(localfunctions);
 end
 
 function testIndependentSyntheticRecovery(testCase)
 [data, p] = independentData();
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyTrue(testCase, fit.accepted);
 verifyEqual(testCase, [fit.alpha_Pa, fit.gamma_Pa], [314300, 147200], 'AbsTol', 2e-7);
 verifyEqual(testCase, fit.regressionResidual_Pa, zeros(5, 1), 'AbsTol', 2e-7);
@@ -16,7 +16,7 @@ end
 function testTwoFrequencyStressByElimination(testCase)
 [data, p] = independentData();
 data.validMask = [true; false; false; false; true];
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 % Eliminate alpha,gamma from Note 7 using tabulated eta at q=0.1,5.
 % With the F definition printed in Eq. (S.11), the sign before the F term
 % must be MINUS to agree with rho*Cp^2=alpha-gamma*eta^2 (see model docs).
@@ -37,14 +37,14 @@ data.validMask = [false; true(5, 1); false];
 data.conditionId = ["excluded"; repmat("state_1", 5, 1); "other"];
 data.directionId = ["opposite"; repmat("+x1", 5, 1); "-x1"];
 original = data;
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyTrue(testCase, fit.accepted);
 verifyEqual(testCase, fit.experimental, original);
 verifyEqual(testCase, fit.validMask, data.validMask);
 verifyTrue(testCase, all(isnan(fit.regressionResidual_Pa(~data.validMask))));
 data.validMask(1) = true;
-verifyError(testCase, @() lamb.fitting.acoustoelastic_li2022.liFitA0(data, p), ...
-    'lamb:li2022:InvalidSelectedObservation');
+verifyError(testCase, @() lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p), ...
+    'lamb:aePlate:InvalidSelectedObservation');
 end
 
 function testReplicatesRemainSeparate(testCase)
@@ -52,7 +52,7 @@ function testReplicatesRemainSeparate(testCase)
 data.frequency_Hz = repelem(data.frequency_Hz, 3);
 data.Cp_mps = repelem(data.Cp_mps, 3);
 data.validMask = true(15, 1);
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyTrue(testCase, fit.accepted);
 verifyEqual(testCase, fit.diagnostics.observationCount, 15);
 verifyEqual(testCase, fit.diagnostics.independentFrequencyCount, 5);
@@ -63,7 +63,7 @@ end
 function testOneFrequencyScatterCannotCreateCoverage(testCase)
 [data, p] = independentData();
 data.frequency_Hz(:) = 1000;
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyFalse(testCase, fit.accepted);
 verifyEqual(testCase, fit.diagnostics.designRank, 2);
 verifyEqual(testCase, fit.diagnostics.frequencyDesignRank, 1);
@@ -73,14 +73,14 @@ end
 function testSingleObservationAndRankDeficiency(testCase)
 [data, p] = independentData();
 data.validMask = [true; false(4, 1)];
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyFalse(testCase, fit.accepted);
 verifyTrue(testCase, isnan(fit.alpha_Pa));
 verifyTrue(testCase, ismember("rank_deficient", fit.reasons));
 data.frequency_Hz(:) = 1000;
 data.Cp_mps(:) = 12;
 data.validMask(:) = true;
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyEqual(testCase, fit.diagnostics.designRank, 1);
 verifyTrue(testCase, isnan(fit.gamma_Pa));
 end
@@ -88,12 +88,12 @@ end
 function testThinAndHighFrequencyPlateaus(testCase)
 [data, p] = independentData();
 p.thickness_m = 1e-8;
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyFalse(testCase, fit.accepted);
 verifyTrue(testCase, ismember("poor_conditioning", fit.reasons));
 verifyTrue(testCase, ismember("insufficient_dispersion_coverage", fit.reasons));
 p.thickness_m = 1;
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyFalse(testCase, fit.accepted);
 verifyTrue(testCase, ismember("rank_deficient", fit.reasons));
 end
@@ -101,7 +101,7 @@ end
 function testResidualUnitsAndOriginalOLS(testCase)
 [data, p] = independentData();
 data.Cp_mps = data.Cp_mps+[0.02; -0.03; 0.01; 0.04; -0.02];
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 design = [ones(5, 1), -fit.etaSquared];
 y = p.density_kgpm3*data.Cp_mps.^2;
 % Independent QR via backslash, not the production SVD implementation.
@@ -117,12 +117,12 @@ end
 function testMixedConditionsAndOppositeDirectionsRejected(testCase)
 [data, p] = independentData();
 data.directionId = ["+x1"; "-x1"; "+x1"; "+x1"; "+x1"];
-verifyError(testCase, @() lamb.fitting.acoustoelastic_li2022.liFitA0(data, p), ...
-    'lamb:li2022:MixedGrouping');
+verifyError(testCase, @() lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p), ...
+    'lamb:aePlate:MixedGrouping');
 data.directionId = "+x1";
 data.conditionId = ["one"; "two"; "one"; "one"; "one"];
-verifyError(testCase, @() lamb.fitting.acoustoelastic_li2022.liFitA0(data, p), ...
-    'lamb:li2022:MixedGrouping');
+verifyError(testCase, @() lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p), ...
+    'lamb:aePlate:MixedGrouping');
 end
 
 function testNonphysicalCandidatePreservesMask(testCase)
@@ -130,7 +130,7 @@ function testNonphysicalCandidatePreservesMask(testCase)
 % Increasing q and decreasing Cp force a negative gamma in the regression.
 data.frequency_Hz = [100; 500; 1000; 5000; 10000];
 data.Cp_mps = [20; 18; 16; 14; 12];
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyLessThan(testCase, fit.gamma_Pa, 0);
 verifyFalse(testCase, fit.accepted);
 verifyTrue(testCase, ismember("outside_tensile_model_support", fit.reasons));
@@ -141,7 +141,7 @@ end
 function testRankTwoButPoorCoverage(testCase)
 [data, p] = independentData();
 p.thickness_m = 2e-6;
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyEqual(testCase, fit.diagnostics.designRank, 2);
 verifyFalse(testCase, fit.accepted);
 verifyTrue(testCase, ismember("insufficient_dispersion_coverage", fit.reasons));
@@ -153,9 +153,9 @@ for stress = [0, 10e3, 200e3]
     parameters = p;
     parameters.gamma_Pa = 147200;
     parameters.alpha_Pa = parameters.gamma_Pa+stress;
-    mode = lamb.models.acoustoelastic_li2022.liPredictA0(data.frequency_Hz, parameters);
+    mode = lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion(data.frequency_Hz, parameters);
     data.Cp_mps = mode.phaseVelocity_mps;
-    fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+    fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
     verifyEqual(testCase, [fit.alpha_Pa, fit.gamma_Pa], ...
         [parameters.alpha_Pa, parameters.gamma_Pa], 'AbsTol', 2e-7);
     if stress > 0
@@ -176,7 +176,7 @@ order = [4, 2, 5, 1, 3];
 data.frequency_Hz = data.frequency_Hz(order).';
 data.Cp_mps = data.Cp_mps(order).';
 data.validMask = [true, false, true, true, true];
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(data, p);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p);
 verifyEqual(testCase, fit.experimental, data);
 verifyEqual(testCase, fit.validMask, data.validMask(:));
 verifyEqual(testCase, fit.wavenumberThickness(data.validMask), [2; 5; 0.1; 1], 'AbsTol', 1e-13);
@@ -186,15 +186,15 @@ end
 function testInvalidMaskAndMetadataAreRejected(testCase)
 [data, p] = independentData();
 data.directionId = 1;
-verifyError(testCase, @() lamb.fitting.acoustoelastic_li2022.liFitA0(data, p), ...
-    'lamb:li2022:InvalidGrouping');
+verifyError(testCase, @() lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p), ...
+    'lamb:aePlate:InvalidGrouping');
 data.directionId = "";
-verifyError(testCase, @() lamb.fitting.acoustoelastic_li2022.liFitA0(data, p), ...
-    'lamb:li2022:MixedGrouping');
+verifyError(testCase, @() lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p), ...
+    'lamb:aePlate:MixedGrouping');
 data.directionId = "+x1";
 data.validMask(:) = false;
-verifyError(testCase, @() lamb.fitting.acoustoelastic_li2022.liFitA0(data, p), ...
-    'lamb:li2022:InvalidSelectedObservation');
+verifyError(testCase, @() lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data, p), ...
+    'lamb:aePlate:InvalidSelectedObservation');
 end
 
 function [data, p] = independentData()

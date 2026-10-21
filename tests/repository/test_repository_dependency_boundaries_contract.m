@@ -31,14 +31,14 @@ tokens = regexp(cellstr(modelPaths), ...
     '^src/\+lamb/\+models/\+([^/]+)/', 'tokens', 'once');
 tokens = tokens(~cellfun(@isempty, tokens));
 actual = unique(string(cellfun(@(token)token{1}, tokens, 'UniformOutput', false)));
-expected = ["acoustoelastic_iop_hgo"; "acoustoelastic_li2022"; "mrlfe"; "rayleigh_lamb"];
+expected = ["acoustoelastic_iop_hgo"; "acoustoelastic_prestressed_plate"; "mrlfe"; "rayleigh_lamb"];
 assert(isequal(sort(actual(:)), sort(expected(:))), ...
     'Maintained model-family surface changed: %s', ...
     strjoin(setxor(actual, expected), ', '));
 end
 
 function assertCrossFamilyModelDependencies(repoRoot, paths)
-families = ["rayleigh_lamb"; "mrlfe"; "acoustoelastic_iop_hgo"; "acoustoelastic_li2022"];
+families = ["rayleigh_lamb"; "mrlfe"; "acoustoelastic_iop_hgo"; "acoustoelastic_prestressed_plate"];
 allowedSource = "src/+lamb/+models/+mrlfe/+tracking/mrlfeBuildSeed.m";
 allowedTargets = ["rlDefaultOptions"; "rlComputeFundamentalLambModes"];
 requiredSeedTarget = "rlComputeFundamentalLambModes";
