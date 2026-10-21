@@ -73,6 +73,8 @@ entries = [ ...
     "numerical_regression" "tests/models/acoustoelastic_iop_hgo/test_ae_atlasA0_smoke.m"
     "numerical_regression" "tests/fitting/acoustoelastic_iop_hgo/test_ae_fit_synthetic_atlasA0.m"
     "numerical_regression" "tests/models/test_lightweight_numerical_regression.m"
+    "numerical_regression" "tests/models/acoustoelastic_li2022/test_li_a0_model.m"
+    "numerical_regression" "tests/fitting/acoustoelastic_li2022/test_li_a0_inversion.m"
     "extended_integration" "tests/app/fitting/test_execution_profile_contract.m"
     "extended_integration" "tests/app/execution_profiles/test_execution_profile_surface_integration.m"
     "extended_integration" "tests/app/execution_profiles/test_execution_profile_fit_curve_metadata.m"
