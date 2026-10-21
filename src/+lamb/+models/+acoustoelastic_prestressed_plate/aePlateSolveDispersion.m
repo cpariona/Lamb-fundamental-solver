@@ -1,5 +1,5 @@
-function mode = liPredictA0(frequency_Hz, physical)
-%LIPREDICTA0 Free elastic membrane A0 dispersion at requested frequencies.
+function mode = aePlateSolveDispersion(frequency_Hz, physical)
+%AEPLATESOLVEDISPERSION Free elastic membrane A0 dispersion at requested frequencies.
 %   PHYSICAL contains alpha_Pa, gamma_Pa, density_kgpm3, thickness_m.
 %   thickness_m is CURRENT FULL thickness (2*h), never reference thickness.
 %   Supports alpha >= gamma > 0: tensile or unstressed stable membranes.
@@ -17,7 +17,7 @@ for name = ["alpha_Pa", "gamma_Pa", "density_kgpm3", "thickness_m"]
         {'real', 'scalar', 'finite', 'positive'}, mfilename, char(name));
 end
 if physical.alpha_Pa < physical.gamma_Pa
-    error('lamb:li2022:UnsupportedCompression', ...
+    error('lamb:aePlate:UnsupportedCompression', ...
         'Forward prediction requires alpha_Pa >= gamma_Pa.');
 end
 frequency_Hz = frequency_Hz(:);
@@ -26,15 +26,15 @@ h = physical.thickness_m/2;
 target = omega*h;
 if any(~isfinite(omega) | ~isfinite(target)) || h == 0 || ...
         any(frequency_Hz > 0 & target == 0)
-    error('lamb:li2022:NumericalRange', 'Frequency/thickness conversion exceeds numerical range.');
+    error('lamb:aePlate:NumericalRange', 'Frequency/thickness conversion exceeds numerical range.');
 end
 rho = physical.density_kgpm3;
 gamma = physical.gamma_Pa;
 stressDifference = physical.alpha_Pa-gamma;
-limit = lamb.models.acoustoelastic_li2022.liA0MasterCurve(Inf);
+limit = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(Inf);
 cInfinity = sqrt((stressDifference+gamma*limit.oneMinusEtaSquared)/rho);
 if ~isfinite(cInfinity) || cInfinity == 0
-    error('lamb:li2022:NumericalRange', 'Limiting speed exceeds numerical range.');
+    error('lamb:aePlate:NumericalRange', 'Limiting speed exceeds numerical range.');
 end
 q = zeros(size(frequency_Hz));
 cp = repmat(sqrt(stressDifference/rho), size(frequency_Hz));
@@ -54,23 +54,23 @@ for i = 1:numel(q)
     lower = lower-log(2);
     logq = fzero(residual, [lower, upper]);
     q(i) = exp(logq);
-    curve = lamb.models.acoustoelastic_li2022.liA0MasterCurve(q(i));
+    curve = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(q(i));
     cp(i) = sqrt((stressDifference+gamma*curve.oneMinusEtaSquared)/rho);
 end
-curve = lamb.models.acoustoelastic_li2022.liA0MasterCurve(q);
+curve = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(q);
 mode = struct('frequency_Hz', frequency_Hz, 'angularFrequency_radps', omega, ...
     'phaseVelocity_mps', cp, 'wavenumber_radpm', q/h, ...
     'wavenumberThickness', q, 'etaSquared', curve.etaSquared, ...
     'oneMinusEtaSquared', curve.oneMinusEtaSquared, ...
     'validMask', isfinite(cp) & isfinite(q/h));
 if ~all(mode.validMask)
-    error('lamb:li2022:NumericalRange', 'Requested dispersion exceeds numerical range.');
+    error('lamb:aePlate:NumericalRange', 'Requested dispersion exceeds numerical range.');
 end
 end
 
 function value = frequencyResidual(logq, target, stressDifference, gamma, rho)
 q = exp(logq);
-curve = lamb.models.acoustoelastic_li2022.liA0MasterCurve(q);
+curve = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(q);
 cp = sqrt((stressDifference+gamma*curve.oneMinusEtaSquared)/rho);
 value = q*(cp/target)-1;
 end

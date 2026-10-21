@@ -1,5 +1,5 @@
-function result = liFitA0(experimental, physical, options)
-%LIFITA0 Original unweighted Li (2022) linear A0 inversion using SVD.
+function result = aePlateFitDispersion(experimental, physical, options)
+%AEPLATEFITDISPERSION Original unweighted Li (2022) linear A0 inversion using SVD.
 %   EXPERIMENTAL requires frequency_Hz, Cp_mps, logical validMask,
 %   conditionId and directionId. Each ID is scalar text or one text value
 %   per observation; selected observations must belong to ONE condition and
@@ -24,7 +24,7 @@ validateattributes(physical, {'struct'}, {'scalar'});
 validateattributes(options, {'struct'}, {'scalar'});
 defaults = struct('maximumConditionNumber', 1e6, 'minimumEtaSquaredSpan', 1e-3);
 if any(~ismember(fieldnames(options), fieldnames(defaults)))
-    error('lamb:li2022:UnknownOption', 'Unknown linear inversion option.');
+    error('lamb:aePlate:UnknownOption', 'Unknown linear inversion option.');
 end
 for name = string(fieldnames(defaults)).'
     if ~isfield(options, name)
@@ -33,7 +33,7 @@ for name = string(fieldnames(defaults)).'
     validateattributes(options.(name), {'double'}, {'real', 'scalar', 'finite', 'positive'});
 end
 if options.maximumConditionNumber <= 1 || options.minimumEtaSquaredSpan > 1
-    error('lamb:li2022:InvalidOption', 'Condition limit must exceed 1 and span must not exceed 1.');
+    error('lamb:aePlate:InvalidOption', 'Condition limit must exceed 1 and span must not exceed 1.');
 end
 for name = ["density_kgpm3", "thickness_m"]
     validateattributes(physical.(name), {'double'}, {'real', 'scalar', 'finite', 'positive'});
@@ -47,31 +47,31 @@ validateattributes(mask, {'logical'}, {'vector', 'numel', numel(f)});
 f = f(:); cp = cp(:); mask = mask(:);
 if ~any(mask) || any(~isfinite(f(mask)) | f(mask) <= 0 | ...
         ~isfinite(cp(mask)) | cp(mask) <= 0)
-    error('lamb:li2022:InvalidSelectedObservation', ...
+    error('lamb:aePlate:InvalidSelectedObservation', ...
         'Select at least one observation; all selected frequencies and speeds must be finite and positive.');
 end
 for name = ["conditionId", "directionId"]
     supplied = experimental.(name);
     if ~(isstring(supplied) || ischar(supplied) || iscellstr(supplied))
-        error('lamb:li2022:InvalidGrouping', 'IDs must be text.');
+        error('lamb:aePlate:InvalidGrouping', 'IDs must be text.');
     end
     labels = string(supplied);
     if ~(isvector(labels) && (isscalar(labels) || numel(labels) == numel(f)))
-        error('lamb:li2022:InvalidGrouping', 'IDs must be scalar text or one value per observation.');
+        error('lamb:aePlate:InvalidGrouping', 'IDs must be scalar text or one value per observation.');
     end
     if ~isscalar(labels)
         labels = labels(mask);
     end
     if any(ismissing(labels) | strlength(strtrim(labels)) == 0) || numel(unique(labels)) ~= 1
-        error('lamb:li2022:MixedGrouping', 'Selected observations require one nonempty %s.', name);
+        error('lamb:aePlate:MixedGrouping', 'Selected observations require one nonempty %s.', name);
     end
 end
 q = (pi*physical.thickness_m)*(f(mask)./cp(mask));
 y = physical.density_kgpm3*cp(mask).^2;
 if any(~isfinite(q) | q <= 0 | ~isfinite(y))
-    error('lamb:li2022:NumericalRange', 'Selected observations exceed numerical range.');
+    error('lamb:aePlate:NumericalRange', 'Selected observations exceed numerical range.');
 end
-curve = lamb.models.acoustoelastic_li2022.liA0MasterCurve(q);
+curve = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(q);
 x = curve.etaSquared;
 design = [ones(size(x)), -x];
 [u, s, v] = svd(design, 'econ');
@@ -129,7 +129,7 @@ end
 fullQ = nan(size(f)); fullQ(mask) = q;
 fullX = nan(size(f)); fullX(mask) = x;
 fullResidual = nan(size(f)); fullResidual(mask) = residual;
-result = struct('model', "acoustoelastic_li2022", 'experimental', experimental, ...
+result = struct('model', "acoustoelastic_prestressed_plate", 'experimental', experimental, ...
     'physical', physical, 'options', options, 'validMask', mask, ...
     'alpha_Pa', candidate(1), 'gamma_Pa', candidate(2), ...
     'accepted', isempty(reasons), 'reasons', reasons, ...

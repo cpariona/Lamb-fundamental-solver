@@ -1,6 +1,10 @@
-# Li et al. (2022) membrane A0 inversion
+# Acoustoelastic prestressed plate: current A0 implementation
 
 ## Physical scope
+
+The family and principal APIs describe the physical formulation. The current
+implementation supports A0 only; the mode-specific mathematical helper is
+`aePlateA0MasterCurve`. These names do not imply S0 or higher-mode support.
 
 The model follows Li, Gower, Destrade and Yun, *Non-destructive mapping of
 stress and strain in soft thin films through sound waves*, Communications
@@ -64,7 +68,7 @@ positive root of `eta^3+eta^2+3*eta-1=0`. The constant solution `eta=1` at
 positive `q` is spurious: its two thickness roots coincide and the unregularized
 boundary determinant vanishes without a physical mode.
 
-`liA0MasterCurve(q)` divides the residual analytically by `1-eta^2`.
+`aePlateA0MasterCurve(q)` divides the residual analytically by `1-eta^2`.
 For `q <= 0.05` it solves for `z=(1-eta^2)/q^2` using the deflated tanh
 series through its thirteenth-order term. This keeps the finite flexural
 correction when subtracting two nearly equal floating-point values would
@@ -75,7 +79,7 @@ infinity are accepted as limits. Negative, NaN or complex arguments are
 rejected. Output arrays retain input shape. Values smaller than floating-point
 range cannot retain their correction.
 
-`liPredictA0(frequency_Hz, physical)` solves `omega*h = q*Cp(q)` in `log(q)`
+`aePlateSolveDispersion(frequency_Hz, physical)` solves `omega*h = q*Cp(q)` in `log(q)`
 to avoid an absolute tolerance erasing very small positive wavenumbers. Its
 physical struct requires `alpha_Pa`, `gamma_Pa`, `density_kgpm3`, `thickness_m`.
 Result vectors are columns in requested order, including duplicate frequencies.
@@ -92,14 +96,14 @@ physical = struct('density_kgpm3', 1070, 'thickness_m', 0.0005);
 parameters = physical;
 parameters.alpha_Pa = 314300;
 parameters.gamma_Pa = 147200;
-mode = lamb.models.acoustoelastic_li2022.liPredictA0((2000:2000:20000)', parameters);
+mode = lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion((2000:2000:20000)', parameters);
 
 experimental = struct('frequency_Hz', mode.frequency_Hz, ...
     'Cp_mps', mode.phaseVelocity_mps, 'validMask', true(size(mode.frequency_Hz)), ...
     'conditionId', "single_state", 'directionId', "+principal_1");
-fit = lamb.fitting.acoustoelastic_li2022.liFitA0(experimental, physical);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(experimental, physical);
 assert(fit.accepted);
-state = lamb.models.acoustoelastic_li2022.liInterpretModuli(fit.alpha_Pa, fit.gamma_Pa);
+state = lamb.models.acoustoelastic_prestressed_plate.aePlateInterpretModuli(fit.alpha_Pa, fit.gamma_Pa);
 ```
 
 Experimental vectors have equal lengths. `validMask` is required and logical.
@@ -156,10 +160,16 @@ violation. The screen is reported in `stressDifferenceRoundoffBound_Pa` when
 physical support fails; it is not an experimental error or confidence bound.
 This can occur at zero true stress. No coefficient or stress is rounded to zero.
 
+The fitting result identifies its family as
+`result.model="acoustoelastic_prestressed_plate"`. Family-specific exceptions
+use `lamb:aePlate:` identifiers. These identifiers and the public operation
+names follow the physical formulation; the cited publication remains scientific
+provenance. Callers must use the documented package/API names directly.
+
 `regressionResidual_Pa` is fitted minus observed `rho*Cp^2` at the **measured**
 `kh`. `regressionRMSE_Pa` uses the number of selected observations; the sum of
 squares is `sumSquaredResidual_Pa2`. These are not speed residuals or
-frequency-domain forward-prediction residuals. Use `liPredictA0` separately
+frequency-domain forward-prediction residuals. Use `aePlateSolveDispersion` separately
 for a forward curve. Both response and predictor depend on measured speed;
 the original OLS fit therefore has errors in variables. It provides no
 calibrated uncertainty interval or statistical independence claim for repeated
@@ -175,7 +185,7 @@ alpha-gamma = sigma_propagation-sigma_normal
 sqrt(alpha/gamma) = lambda_propagation/lambda_normal
 ```
 
-`liInterpretModuli(alpha_Pa, gamma_Pa)` returns exactly these two quantities.
+`aePlateInterpretModuli(alpha_Pa, gamma_Pa)` returns exactly these two quantities.
 It requires positive finite moduli and does not return an absolute stress.
 A known normal traction is needed to set an absolute stress; in a verified
 traction-free membrane `sigma_normal=0`, so the difference equals the in-plane
@@ -209,8 +219,8 @@ From the repository root, targeted execution is:
 startup;
 addpath(fullfile(pwd, 'tests', 'tooling'));
 configureTestPath;
-results = runtests({'tests/models/acoustoelastic_li2022/test_li_a0_model.m', ...
-    'tests/fitting/acoustoelastic_li2022/test_li_a0_inversion.m'});
+results = runtests({'tests/models/acoustoelastic_prestressed_plate/test_ae_plate_model.m', ...
+    'tests/fitting/acoustoelastic_prestressed_plate/test_ae_plate_fitting.m'});
 assertSuccess(results);
 ```
 

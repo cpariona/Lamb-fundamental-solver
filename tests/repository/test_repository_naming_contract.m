@@ -9,6 +9,7 @@ assert(numel(names) == numel(unique(lower(names))), ...
 
 assertFilenameFunctionAgreement(repoRoot, trackedPaths);
 assertProductionFamilyPrefixes(repoRoot, trackedPaths);
+assertPhysicalModelIdentifiers(trackedPaths);
 assertTestNamesDoNotEncodeCampaigns(trackedPaths);
 retiredNames = retiredFunctionNames();
 assertRetiredFilenamesAbsent(names, retiredNames);
@@ -81,11 +82,62 @@ for i = 1:numel(paths)
         assert(startsWith(name, "mrlfe"), 'mRLFE model function lacks mrlfe prefix: %s', path);
     elseif startsWith(path, "src/+lamb/+models/+rayleigh_lamb/") && startsWith(strtrim(firstCode), "function")
         assert(startsWith(name, "rl"), 'Rayleigh-Lamb model function lacks rl prefix: %s', path);
-    elseif startsWith(path, "src/+lamb/+models/+acoustoelastic_li2022/") && startsWith(strtrim(firstCode), "function")
-        assert(startsWith(name, "li"), 'Li 2022 model function lacks li prefix: %s', path);
+    elseif startsWith(path, ["src/+lamb/+models/+acoustoelastic_prestressed_plate/", ...
+            "src/+lamb/+fitting/+acoustoelastic_prestressed_plate/"]) && startsWith(strtrim(firstCode), "function")
+        assert(startsWith(name, "aePlate"), 'Prestressed-plate function lacks aePlate prefix: %s', path);
     elseif startsWith(path, "src/+lamb/+models/+acoustoelastic_iop_hgo/") && startsWith(strtrim(firstCode), "function")
         assert(startsWith(name, "ae"), 'AE model function lacks ae prefix: %s', path);
     end
+end
+end
+
+function assertPhysicalModelIdentifiers(paths)
+for i = 1:numel(paths)
+    token = regexp(paths(i).relative, ...
+        '^src/\+lamb/\+(?:models|fitting)/\+([^/]+)/', 'tokens', 'once');
+    if isempty(token)
+        continue;
+    end
+    assertPhysicalIdentifier(string(token{1}), true);
+    if string(token{1}) == "acoustoelastic_prestressed_plate"
+        assertPhysicalIdentifier(paths(i).name, false);
+    end
+end
+% Established scientific names and mode-specific mathematics remain valid.
+for name = ["rayleigh_lamb", "acoustoelastic_iop_hgo", "acoustoelastic_prestressed_plate"]
+    assertPhysicalIdentifier(name, true);
+end
+for name = ["aePlateSolveDispersion", "aePlateFitDispersion", "aePlateInterpretModuli", "aePlateA0MasterCurve"]
+    assertPhysicalIdentifier(name, false);
+end
+rejected = {"acoustoelastic_smith2025", true, 'lamb:tests:PublicationIdentifier'; ...
+    "acoustoelastic_a0", true, 'lamb:tests:ModeSpecificFamily'; ...
+    "acoustoelastic_a0like", true, 'lamb:tests:ModeSpecificFamily'; ...
+    "aePlateFitDispersion2025", false, 'lamb:tests:PublicationIdentifier'; ...
+    "aePlateFitA0Dispersion", false, 'lamb:tests:ModeSpecificPrincipalApi'; ...
+    "aePlateA0SolveDispersion", false, 'lamb:tests:ModeSpecificPrincipalApi'; ...
+    "aePlateInterpretS0Moduli", false, 'lamb:tests:ModeSpecificPrincipalApi'};
+for i = 1:size(rejected, 1)
+    caught = '';
+    try
+        assertPhysicalIdentifier(rejected{i,1}, rejected{i,2});
+    catch exception
+        caught = exception.identifier;
+    end
+    assert(strcmp(caught, rejected{i,3}), 'Naming guard did not reject %s.', rejected{i,1});
+end
+end
+
+function assertPhysicalIdentifier(name, isFamily)
+% Calendar-year identifiers are publication branding, not physical names.
+assert(isempty(regexp(name, '(?:19|20)\d{2}', 'once')), ...
+    'lamb:tests:PublicationIdentifier', 'Model identifier encodes a publication year: %s', name);
+if isFamily
+    assert(isempty(regexp(name, '(?i)(^|_)[AS]\d+(?:like)?($|_)', 'once')), ...
+        'lamb:tests:ModeSpecificFamily', 'A model family must not encode one mode: %s', name);
+elseif ~isempty(regexp(name, '(?i)(Solve|Fit).*Dispersion|Interpret.*Moduli', 'once'))
+    assert(isempty(regexp(name, '(?i)[AS]\d+', 'once')), ...
+        'lamb:tests:ModeSpecificPrincipalApi', 'A principal model API must not encode one mode: %s', name);
 end
 end
 
@@ -101,6 +153,7 @@ end
 
 function names = retiredFunctionNames()
 names = [ ...
+    "liA0MasterCurve", "liPredictA0", "liFitA0", "liInterpretModuli", ...
     "solveAcoustoelasticIOPHGOBranch", "defaultAcoustoelasticIOPHGOOptions", ...
     "computeAcoustoelasticABGFromIOPHGO", "computeAcoustoelasticAlphaBetaGamma", ...
     "computeAcoustoelasticPrestressSigma", "solveAcoustoelasticHGOStretch", ...

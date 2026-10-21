@@ -1,6 +1,6 @@
-function state = liInterpretModuli(alpha_Pa, gamma_Pa, kinematics)
-%LIINTERPRETMODULI Principal stress difference and stretch ratio from moduli.
-%   STATE = LIINTERPRETMODULI(ALPHA_PA, GAMMA_PA) returns
+function state = aePlateInterpretModuli(alpha_Pa, gamma_Pa, kinematics)
+%AEPLATEINTERPRETMODULI Principal stress difference and stretch ratio from moduli.
+%   STATE = AEPLATEINTERPRETMODULI(ALPHA_PA, GAMMA_PA) returns
 %   sigma_propagation-sigma_normal [Pa] and lambda_propagation/lambda_normal.
 %   Propagation and thickness normal must be principal directions of an
 %   initially isotropic incompressible elastic solid. An absolute principal
@@ -18,11 +18,11 @@ validateattributes(alpha_Pa, {'double'}, {'real', 'scalar', 'finite', 'positive'
 validateattributes(gamma_Pa, {'double'}, {'real', 'scalar', 'finite', 'positive'});
 kinematics = string(kinematics);
 if ~isscalar(kinematics) || ~any(kinematics == ["principal", "uniaxial"])
-    error('lamb:li2022:InvalidKinematics', 'Choose exactly "principal" or "uniaxial".');
+    error('lamb:aePlate:InvalidKinematics', 'Choose exactly "principal" or "uniaxial".');
 end
 ratio = alpha_Pa/gamma_Pa;
 if ~isfinite(ratio) || ratio == 0
-    error('lamb:li2022:NumericalRange', 'Modulus ratio exceeds numerical range.');
+    error('lamb:aePlate:NumericalRange', 'Modulus ratio exceeds numerical range.');
 end
 state = struct('stressDifferencePropagationMinusNormal_Pa', alpha_Pa-gamma_Pa, ...
     'stretchRatioPropagationToNormal', sqrt(ratio), 'kinematics', kinematics, ...
