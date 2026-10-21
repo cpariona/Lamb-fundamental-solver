@@ -17,6 +17,15 @@ assertLayer(repoRoot, paths, "src/+lamb/+sweeps/", ...
 assertLayer(repoRoot, paths, "studies/", ["app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "app/", ["studies/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "examples/", ["studies/", "app/", "tests/"]);
+% Enforce the operation's dependencies, without fixing its directory.
+integrationPaths = paths(endsWith(paths, "/prepareOceFitObservations.m"));
+assert(isscalar(integrationPaths), 'Observation preparation must resolve to one maintained API.');
+fittingNames = matlabNames(paths(startsWith(paths, "src/+lamb/+fitting/")));
+modelNames = matlabNames(paths(startsWith(paths, "src/+lamb/+models/")));
+assertNoCalls(repoRoot, integrationPaths, ...
+    [fittingNames; modelNames; ...
+    "guiReadExperimentalFitFile"; "guiPrepareExperimentalFitData"; "load"; "save"; "readtable"], ...
+    'OCE observation preparation must not own fitting, physics, GUI import or schema I/O');
 assertMaintainedModelFamilies(paths);
 assertCrossFamilyModelDependencies(repoRoot, paths);
 assertNeutralOwnership(repoRoot);
