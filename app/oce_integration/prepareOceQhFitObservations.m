@@ -111,7 +111,12 @@ for row = 1:n
         error('lamb:oceQh:NotTargetBin', 'Review one existing QH target bin; full FFT bins are not pooled.');
     end
     mask = false(size(kf.frequency_axis_hz)); mask(bin) = reviewed.include(row);
-    physicalHz(row) = str2double(string(metadata.frequency_Hz));
+    value = metadata.frequency_Hz;
+    if isnumeric(value)
+        physicalHz(row) = double(value);
+    else
+        physicalHz(row) = str2double(string(value));
+    end
     validateattributes(physicalHz(row), {'double'}, {'scalar', 'finite', 'positive'});
     repetition = str2double(string(metadata.rep_id));
     evidence = struct('conditionId', selection.conditionId, 'repetitionId', repetition, ...
