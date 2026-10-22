@@ -7,9 +7,10 @@ function outcome = fitOceQhPrestressedPlate(assembly, physical, review, options)
 % nonempty references record the caller's physical review, not inferred physics.
 % No mean thickness or load/DIC constraint is computed. OPTIONS is passed
 % unchanged to aePlateFitDispersion; its native result/diagnostics are retained.
-% If physical QH groups and exact selected-Hz groups differ, no fit is run:
-% the current Plate API cannot express independent groups separately from Hz.
-% A matching grouping does not itself prove identifiability or model support.
+% If physical QH groups and exact selected-Hz groups differ, explicit physical
+% group IDs qualify coverage in Plate without changing any observed Hz or Cp.
+% Compatible partitions retain the historical native call and diagnostics.
+% Group identity does not itself prove identifiability or model support.
 % Original OCT thicknesses, including NaNs, remain in assembly. The supplied
 % scalar may come from an independent current physical measurement. Compact
 % OCT availability/range diagnostics are descriptive and never affect acceptance.
@@ -50,15 +51,16 @@ selectedHz = assembly.experimental.frequency_Hz(mask);
 samePhysicalGroup = physicalHz == physicalHz';
 sameSelectedGroup = selectedHz == selectedHz';
 compatible = isequal(samePhysicalGroup, sameSelectedGroup);
-outcome = struct('status', "requires_independent_frequency_groups", ...
+outcome = struct('status', "rejected", ...
     'nativeResult', [], 'assembly', assembly, 'physical', physical, 'review', review, ...
     'independentPhysicalFrequencyCount', numel(unique(physicalHz)), ...
     'nativeGroupingCompatible', compatible, 'thicknessDiagnostics', thicknessDiagnostics);
+experimental = assembly.experimental;
 if ~compatible
-    return;
+    [~, ~, experimental.independentFrequencyGroupId] = unique(assembly.physicalFrequency_Hz);
 end
 native = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
-    assembly.experimental, physical, options);
+    experimental, physical, options);
 outcome.nativeResult = native;
 outcome.status = "rejected";
 if native.accepted, outcome.status = "accepted"; end
