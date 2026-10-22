@@ -107,6 +107,33 @@ fixed A0 observations + current density/thickness + single condition/direction
 Quality assesses an already selected curve. Diagnostic evidence remains separate
 from official scientific arrays; AE official output is `atlasA0`.
 
+## Inverse inputs versus external validation
+
+Every inverse fit consumes only the measured observations, known physical quantities
+and assumptions explicitly required by its selected scientific model. Experimental
+control variables and independently measured validation quantities are not
+automatically fit inputs, constraints, regularizers or priors merely because they
+are available. The family-specific physics contract takes precedence: this rule
+must not omit a prestress, deformation or other input genuinely required by a
+different model.
+
+For the supported Li-style prestressed-plate A0 inversion, applied loading mass,
+externally estimated force and DIC-derived stretch are not required to estimate
+the model's identifiable acoustoelastic coefficients from suitable wave
+observations, measured current thickness and independently supplied material
+density. Any stress/stretch derived from fitted coefficients is conditional on
+the model's stated constitutive, deformation and principal-direction assumptions,
+and cannot be reported as identified when the inverse problem lacks adequate
+independent information. One measured frequency or multiple technical repeats
+do not themselves guarantee identifiability.
+
+Loading condition IDs may organize observations and distinguish experiments;
+their physical load values need not appear in inversion figures. Independent
+load/geometry-based stress and DIC-based local strain estimates are separate
+comparison and validation products, not implicit optimization evidence. Preserve
+their provenance and uncertainty without changing the original OCE observations,
+fitting masks or scientific ownership.
+
 ## Presentation boundary
 
 `prepareOceFitObservations`, currently in `app/oce_integration/`, performs
