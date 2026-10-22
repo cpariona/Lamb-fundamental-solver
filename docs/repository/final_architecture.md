@@ -181,6 +181,27 @@ GUI import and native schema I/O in preparation, rather than prohibiting field a
 The examples-to-app dependency rule has no exception: the present example is Markdown,
 not an executable MATLAB consumer. The retired pilot has no wrapper or duplicate adapter.
 
+`prepareOceQhFitObservations` assembles explicitly reviewed k-f target rows from
+OCE's recovered acquisitions, using `prepareOceFitObservations` once per signed
+direction/acquisition. It preserves physical versus selected frequencies,
+repetitions, measured thickness, original masks and full preparation lineage.
+Request identity fixes one intended experiment and subexperiment, verifies original
+result identity and preserves optional specimen-ID availability. Summary row numbers
+remain local references; original result paths retain acquisition identity.
+`fitOceQhPrestressedPlate` coordinates only the current Plate A0 fit after explicit
+physical review. It rejects incompatible independent-frequency partitions before
+fitting and requires a justified externally supplied constant current full thickness
+with its source. Original OCT thicknesses, including NaNs, remain separate evidence;
+their availability is not a universal prerequisite for an independent thickness input.
+Compact OCT availability/range diagnostics belong to the app and do not alter native
+scientific diagnostics or acceptance.
+The OCE recovery dependency is optional and remains outside Lamb's scientific
+packages. Equations, SVD and acceptance thresholds remain owned by Plate;
+the app neither rounds frequencies nor supplies alternative rank diagnostics.
+Mass, transmitted force and independent DIC strain do not enter this inversion.
+See the [QH integration contract](../../app/oce_integration/README.md#reviewed-qh-target-assembly-and-plate-coordination)
+for the unresolved independent-group and thickness boundaries.
+
 App translates UI state into requests and coordinates, presents or persists
 already computed results. It never owns science. Physical parameters, numerical
 options, execution profiles and UI state have distinct owners. Profiles vary
