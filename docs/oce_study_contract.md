@@ -6,6 +6,12 @@ algorithms, model-specific validation and native results. A study coordinates
 their maintained APIs; it does not decode OCE files, repair scientific observations,
 select alternate branches, duplicate fitting or implement another dispatcher.
 
+Summaries and comparison products identify and describe recorded conditions.
+Inversion consumes recovered individual observations, never averaged comparison
+values or paired scan-axis statistics. QH and Pulse are acquisition modes, not
+inversion models. Their eligibility depends on the explicitly selected native
+model, physical inputs and observation review.
+
 ## Shared preparation, explicit model choice
 
 `prepareOceFitObservations` translates one already validated OCE acquisition and
@@ -135,6 +141,70 @@ An OCE scan-axis comparison table is a descriptive summary; it is not a substitu
 for original signed-direction observations. Requested sample Hz, physical QH
 excitation, actual selected-bin Hz and original/aligned bin axes must stay distinct.
 Pulse periods describe acquisition conditions, not independent spectral groups.
+
+## Experimental pilots and combined observations
+
+Keep pilot configuration and results in a configurable external analysis root.
+Retain relative source references with an explicitly supplied experiment root,
+repository revisions and uncommitted patch hashes, original source hashes,
+reviewed masks, full requests/results and output hashes. Relocation changes root
+configuration, not datasets, saved observations or scientific APIs. Preserve
+earlier reports as historical evidence; do not silently overwrite them.
+
+A single reusable manual driver can live alongside the existing coordinators in
+`app/oce_integration/`. Dataset-specific selections, physical review and outputs
+remain external. A new permanent studies hierarchy is unnecessary for one pilot;
+the driver coordinates canonical APIs and keeps preparation/model selection
+separately executable as MATLAB sections.
+
+An exploratory fit may explicitly declare A0 and remaining model support as
+working hypotheses. Record that evidence class separately from reviewed physical
+inputs and the native accepted/rejected status; numerical acceptance cannot
+confirm the modal or material assumptions. A representative scalar current OCT
+thickness requires an explicit condition/direction selection policy and all
+original measurements with their descriptive variability. A median or range is
+not a calibrated uncertainty estimate, and no scalar is silently reused across
+states or directions.
+
+QH-Pulse condition matching is an explicit reviewed assertion, not a consequence
+of equal specimen names, folder labels, strain text or scan-axis numbers. Record
+the physical state correspondence and signed propagation geometry. Missing strain
+remains missing; a support document can be referenced without rewriting metadata.
+
+A joint QH+Pulse inversion additionally requires documented compatibility of the
+current material state, physical/modal support, thickness/density reference,
+calibration, geometry and observation eligibility. Review dependence/correlation,
+relative acquisition multiplicity and the selected model's residual definition.
+Do not automatically concatenate observations, assign equal dataset influence,
+discard correlated bins or turn Pulse periods into frequency groups. Plate's
+optional physical QH groups qualify its existing coverage screen; they do not
+define a joint-dataset weighting or independence policy. A combined request that
+lacks these decisions remains explicitly blocked, rather than introducing a new
+solver or implying experimental validation from a native accepted result.
+
+When Plate receives no optional explicit group IDs, its legacy diagnostics group
+exact observed Hz. For a Pulse curve this does not establish independent physical
+excitations or statistical independence of spectral bins. Preserve that native
+meaning instead of borrowing the physical QH grouping interpretation.
+
+## Inverse presentation after native fitting
+
+Use the [app visualization contract](../app/visualization/README.md) to present
+stored Plate results and their reviewed request/provenance. Do not rerun fitting
+to generate figures. Supply original ridge evidence and repetition identities
+where available, retain excluded/nonfinite rows, and distinguish the fixed native
+mask from robust/shared display limits. Save complete inspection views when
+shared limits clip original observations or predictions. Figure data retains
+the source references and clipping counts, including maxima outside the scale.
+
+Parameter trends require explicit caller-reviewed mechanical coordinates and
+signed axes. Pooled repetitions, raw/smoothed variants and per-repetition analyses
+are not independent experiments. Keep modal/model-support limitations visible and
+retain rejected native results. A later metadata correction must reference its
+separate correction record; a plot must not rewrite a historical request/result
+or silently invent the missing original metadata. Figures and FIG/TIF exports
+are derived presentation, not new canonical scientific products. Other native
+families keep their own equations, data requirements and residual definitions.
 
 ## Validation boundary
 

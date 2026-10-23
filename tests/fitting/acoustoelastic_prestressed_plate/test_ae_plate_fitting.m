@@ -197,6 +197,143 @@ verifyError(testCase, @() lamb.fitting.acoustoelastic_prestressed_plate.aePlateF
     'lamb:aePlate:InvalidSelectedObservation');
 end
 
+function testExplicitGroupsKeepObservedBinsAndRegression(testCase)
+[data, p] = independentData();
+data.frequency_Hz = repelem(data.frequency_Hz,3)+repmat([0;.25;-.25],5,1);
+data.Cp_mps = repelem(data.Cp_mps,3);
+data.validMask = true(15,1);
+legacy = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+data.independentFrequencyGroupId = repelem((10:10:50)',3);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+verifyRegressionUnchanged(testCase,fit,legacy);
+verifyEqual(testCase,fit.experimental,data);
+verifyTrue(testCase,fit.accepted);
+d = fit.diagnostics;
+verifyEqual(testCase,d.frequencyGroupingSource,"explicit_group_id");
+verifyEqual(testCase,d.independentFrequencyCount,5);
+verifyEqual(testCase,d.independentFrequencyGroupId,(10:10:50)');
+verifyEqual(testCase,d.frequencyObservationCount,3*ones(5,1));
+verifyEqual(testCase,d.frequencyEtaSquared,mean(reshape(legacy.etaSquared,3,5),1)');
+verifyEqual(testCase,numel(d.uniqueFrequency_Hz),15);
+verifyEqual(testCase,d.uniqueFrequency_Hz(d.observedFrequencyGroup),data.frequency_Hz);
+verifyEqual(testCase,d.independentFrequencyGroupId(d.frequencyGroup),data.independentFrequencyGroupId);
+end
+
+function testOneExplicitGroupCannotManufactureCoverage(testCase)
+[data, p] = independentData();
+legacy = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+data.independentFrequencyGroupId = ones(5,1);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+verifyRegressionUnchanged(testCase,fit,legacy);
+verifyFalse(testCase,fit.accepted);
+verifyEqual(testCase,fit.diagnostics.designRank,2);
+verifyEqual(testCase,fit.diagnostics.frequencyDesignRank,1);
+verifyEqual(testCase,fit.diagnostics.independentFrequencyCount,1);
+verifyEqual(testCase,fit.diagnostics.frequencyObservationCount,5);
+verifyEqual(testCase,fit.diagnostics.etaSquaredSpan,0);
+verifyTrue(testCase,all(ismember(["insufficient_independent_frequencies", ...
+    "rank_deficient","poor_conditioning","insufficient_dispersion_coverage"],fit.reasons)));
+end
+
+function testExplicitGroupsIgnoreExcludedRows(testCase)
+[data, p] = independentData();
+data.validMask = [true;true;false;false;false];
+data.frequency_Hz(3:end) = NaN; data.Cp_mps(3:end) = NaN;
+legacy = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+data.independentFrequencyGroupId = [7;7;NaN;9;9];
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+verifyRegressionUnchanged(testCase,fit,legacy);
+verifyEqual(testCase,fit.experimental,data);
+verifyEqual(testCase,fit.diagnostics.independentFrequencyGroupId,7);
+verifyEqual(testCase,fit.diagnostics.frequencyObservationCount,2);
+verifyEqual(testCase,fit.diagnostics.frequencyGroup,[1;1]);
+verifyEqual(testCase,fit.diagnostics.independentFrequencyCount,1);
+verifyFalse(testCase,fit.accepted);
+end
+
+function testExplicitGroupIdentityValidation(testCase)
+[data, p] = independentData();
+invalid = {[],1,ones(4,1),ones(2,3),single(ones(5,1)),true(5,1), ...
+    repmat("1",5,1),[1;2;3;4;NaN],[1;2;3;4;Inf],[1;2;3;4;0], ...
+    [1;2;3;4;-1],[1;2;3;4;1.5],[1;2;3;4;flintmax+2],ones(5,1)+1i};
+for index=1:numel(invalid)
+    data.independentFrequencyGroupId = invalid{index};
+    verifyError(testCase,@() lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p), ...
+        'lamb:aePlate:InvalidIndependentFrequencyGroupId');
+end
+data.independentFrequencyGroupId = [1,2,3,4,flintmax];
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+verifyTrue(testCase,fit.accepted);
+verifyEqual(testCase,fit.experimental,data);
+verifyEqual(testCase,fit.diagnostics.independentFrequencyGroupId,[1;2;3;4;flintmax]);
+end
+
+function testSamePartitionPreservesLegacyDiagnostics(testCase)
+[data, p] = independentData();
+data.frequency_Hz = repelem(data.frequency_Hz,3);
+data.Cp_mps = repelem(data.Cp_mps,3); data.validMask = true(15,1);
+legacy = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+verifyFalse(testCase,isfield(legacy.diagnostics,'frequencyGroupingSource'));
+data.independentFrequencyGroupId = repelem((1:5)',3);
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+fit.experimental = rmfield(fit.experimental,'independentFrequencyGroupId');
+fit.diagnostics = rmfield(fit.diagnostics, ...
+    {'frequencyGroupingSource','independentFrequencyGroupId','observedFrequencyGroup'});
+verifyEqual(testCase,fit,legacy);
+end
+
+function testRenumberedGroupsPreserveScientificConclusions(testCase)
+[data, p] = independentData();
+data.independentFrequencyGroupId = [30;30;10;10;20];
+first = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+data.independentFrequencyGroupId = [2;2;4;4;1];
+second = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+verifyRegressionUnchanged(testCase,first,second);
+verifyEqual(testCase,first.accepted,second.accepted);
+verifyEqual(testCase,first.reasons,second.reasons);
+verifyEqual(testCase,first.diagnostics.frequencyDesignRank,second.diagnostics.frequencyDesignRank);
+verifyEqual(testCase,first.diagnostics.frequencyConditionNumber, ...
+    second.diagnostics.frequencyConditionNumber,'RelTol',1e-12);
+verifyEqual(testCase,first.diagnostics.etaSquaredSpan,second.diagnostics.etaSquaredSpan);
+end
+
+function testExplicitGroupsPreserveQualificationRules(testCase)
+[data, p] = independentData();
+data.independentFrequencyGroupId = (1:5)';
+for thickness = [1e-8,2e-6,1]
+    p.thickness_m = thickness;
+    fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+    legacy = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
+        rmfield(data,'independentFrequencyGroupId'),p);
+    verifyRegressionUnchanged(testCase,fit,legacy);
+    verifyFalse(testCase,fit.accepted);
+    verifyEqual(testCase,fit.reasons,legacy.reasons);
+end
+p.thickness_m = .0005;
+data.frequency_Hz = [100;500;1000;5000;10000]; data.Cp_mps = [20;18;16;14;12];
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+verifyFalse(testCase,fit.accepted);
+verifyTrue(testCase,ismember("outside_tensile_model_support",fit.reasons));
+% Full observation rank cannot replace rank of the declared group means.
+data.frequency_Hz = [1000;1000;2000;2000]; data.Cp_mps = [10;20;20;40];
+data.validMask = true(4,1); data.independentFrequencyGroupId = [1;1;2;2];
+fit = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,p);
+verifyEqual(testCase,fit.diagnostics.designRank,2);
+verifyEqual(testCase,fit.diagnostics.frequencyDesignRank,1);
+verifyTrue(testCase,ismember("rank_deficient",fit.reasons));
+end
+
+function verifyRegressionUnchanged(testCase,actual,expected)
+for name = ["alpha_Pa","gamma_Pa","validMask","wavenumberThickness","etaSquared", ...
+        "regressionResidual_Pa","regressionRMSE_Pa","sumSquaredResidual_Pa2"]
+    verifyEqual(testCase,actual.(name),expected.(name));
+end
+for name = ["observationCount","designRank","singularValues","rankTolerance", ...
+        "conditionNumber","physicalCandidate","stressDifferenceRoundoffBound_Pa"]
+    verifyEqual(testCase,actual.diagnostics.(name),expected.diagnostics.(name));
+end
+end
+
 function [data, p] = independentData()
 % 80-digit roots of the original equation, q=[0.1,0.5,1,2,5].
 % rho=1070 kg/m^3, full thickness=0.5 mm, alpha=314.3 kPa, gamma=147.2 kPa.

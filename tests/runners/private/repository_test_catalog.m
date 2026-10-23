@@ -30,6 +30,7 @@ entries = [ ...
     "quick_contracts" "tests/app/fitting/test_gui_prepare_experimental_fit_data.m"
     "quick_smoke" "tests/app/solver/test_main_gui_curve_gaps.m"
     "quick_smoke" "tests/app/fitting/test_fit_plot_legend.m"
+    "quick_smoke" "tests/app/visualization/test_plate_inverse_visualization.m"
     "quick_smoke" "tests/app/utilities/test_gui_struct_helpers_contract.m"
     "quick_smoke" "tests/app/fitting/test_fit_parameter_state_contract.m"
     "quick_smoke" "tests/app/fitting/test_fit_parameter_execution_contract.m"

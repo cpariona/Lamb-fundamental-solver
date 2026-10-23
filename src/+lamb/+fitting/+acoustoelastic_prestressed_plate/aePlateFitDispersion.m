@@ -8,6 +8,10 @@ function result = aePlateFitDispersion(experimental, physical, options)
 %   The caller explicitly selects A0 observations within the Li assumptions.
 %   No observation is sorted, averaged, removed or reweighted. Invalid
 %   selected inputs throw an error; excluded inputs may be NaN.
+%   Optional independentFrequencyGroupId is one double integer code per row,
+%   positive and <= flintmax; excluded codes may be NaN. It defines coverage
+%   groups only, never regression rows or statistical independence. Without
+%   it, exact observed Hz define groups and historical diagnostics are retained.
 %   OPTIONS.maximumConditionNumber (default 1e6) and minimumEtaSquaredSpan
 %   (default 1e-3) are numerical qualification thresholds, not physical laws.
 %   Fits rho*Cp^2 = alpha - gamma*eta^2, q=pi*f*thickness/Cp.
@@ -66,6 +70,20 @@ for name = ["conditionId", "directionId"]
         error('lamb:aePlate:MixedGrouping', 'Selected observations require one nonempty %s.', name);
     end
 end
+explicitGroups = isfield(experimental, 'independentFrequencyGroupId');
+if explicitGroups
+    groupId = experimental.independentFrequencyGroupId;
+    if ~isa(groupId, 'double') || ~isreal(groupId) || ~isvector(groupId) || numel(groupId) ~= numel(f)
+        error('lamb:aePlate:InvalidIndependentFrequencyGroupId', ...
+            'Supply one double group identity per observation.');
+    end
+    groupId = groupId(:);
+    validId = isfinite(groupId) & groupId > 0 & groupId <= flintmax & groupId == fix(groupId);
+    if any(~validId & (mask | ~isnan(groupId)))
+        error('lamb:aePlate:InvalidIndependentFrequencyGroupId', ...
+            'Group identities must be positive integers <= flintmax; only excluded rows may use NaN.');
+    end
+end
 q = (pi*physical.thickness_m)*(f(mask)./cp(mask));
 y = physical.density_kgpm3*cp(mask).^2;
 if any(~isfinite(q) | q <= 0 | ~isfinite(y))
@@ -88,9 +106,14 @@ if designRank == 2
 end
 
 % Replicate scatter must not manufacture independent frequency coverage.
-% Frequencies use exact supplied Hz identity; grouping/rounding is upstream.
+% Keep the observed-Hz index separate when explicit physical groups are supplied.
 [uniqueFrequency_Hz, ~, frequencyGroup] = unique(f(mask));
+if explicitGroups
+    observedFrequencyGroup = frequencyGroup;
+    [uniqueGroupId, ~, frequencyGroup] = unique(groupId(mask));
+end
 frequencyEtaSquared = accumarray(frequencyGroup, x, [], @mean);
+independentFrequencyCount = numel(frequencyEtaSquared);
 independentDesign = [ones(size(frequencyEtaSquared)), -frequencyEtaSquared];
 frequencySingularValues = svd(independentDesign, 'econ');
 frequencyRank = nnz(frequencySingularValues > ...
@@ -101,7 +124,7 @@ if frequencyRank == 2
 end
 span = max(frequencyEtaSquared)-min(frequencyEtaSquared);
 reasons = strings(0, 1);
-if numel(uniqueFrequency_Hz) < 2
+if independentFrequencyCount < 2
     reasons(end+1) = "insufficient_independent_frequencies";
 end
 if designRank < 2 || frequencyRank < 2
@@ -138,10 +161,15 @@ result = struct('model', "acoustoelastic_prestressed_plate", 'experimental', exp
     'sumSquaredResidual_Pa2', sum(residual.^2), ...
     'diagnostics', struct('observationCount', nnz(mask), 'designRank', designRank, ...
     'singularValues', singularValues, 'rankTolerance', rankTolerance, ...
-    'conditionNumber', conditionNumber, 'independentFrequencyCount', numel(uniqueFrequency_Hz), ...
+    'conditionNumber', conditionNumber, 'independentFrequencyCount', independentFrequencyCount, ...
     'uniqueFrequency_Hz', uniqueFrequency_Hz, 'frequencyGroup', frequencyGroup, ...
     'frequencyObservationCount', accumarray(frequencyGroup, 1), ...
     'frequencyEtaSquared', frequencyEtaSquared, 'frequencyDesignRank', frequencyRank, ...
     'frequencyConditionNumber', frequencyCondition, 'etaSquaredSpan', span, ...
     'physicalCandidate', physicalCandidate, 'stressDifferenceRoundoffBound_Pa', stressRoundoffBound_Pa));
+if explicitGroups
+    result.diagnostics.frequencyGroupingSource = "explicit_group_id";
+    result.diagnostics.independentFrequencyGroupId = uniqueGroupId;
+    result.diagnostics.observedFrequencyGroup = observedFrequencyGroup;
+end
 end

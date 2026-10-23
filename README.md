@@ -39,6 +39,12 @@ and no GUI or OCE adapter. See the
 [prestressed-plate contract and usage](docs/models/acoustoelastic_prestressed_plate.md) for its
 assumptions, fixed observation mask, units and identification limits.
 
+GUI-independent native inverse presentation is owned by
+[app visualization](app/visualization/README.md). Plate A0 diagnostics and reviewed
+parameter trends consume stored native results without refitting, distinguish
+accepted/rejected candidates, and export editable FIG plus 300-dpi TIF to an
+explicit external output root. Other families retain their own scientific contracts.
+
 ### Production material support
 
 Rayleigh-Lamb production supports `0.49 <= effective nu < 0.5`, including

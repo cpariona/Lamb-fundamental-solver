@@ -2,6 +2,17 @@
 
 ## Physical scope
 
+Native inverse results, including rejected candidates, can be inspected with
+`plotAePlateFitDiagnostics` and `plotAePlateParameterTrends` in
+[the app visualization owner](../../app/visualization/README.md).
+These operations do not fit data, change the fixed mask or recompute residuals.
+The Li regression remains native and unweighted. A supported coefficient candidate
+may be evaluated through `aePlateSolveDispersion`; an unsupported candidate must
+not produce a forward curve. Diagnostic unconstrained lines are distinct from
+physical acceptance. Display limits and source ridge flags are not eligibility
+rules. Native acceptance and model-conditional alpha-minus-gamma interpretation
+do not establish experimental A0 purity or physical validation.
+
 The family and principal APIs describe the physical formulation. The current
 implementation supports A0 only; the mode-specific mathematical helper is
 `aePlateA0MasterCurve`. These names do not imply S0 or higher-mode support.
@@ -132,13 +143,50 @@ contain speed standard errors.
 Diagnostics expose singular values, numerical rank, the rank threshold
 `max(size(design))*eps(largestSingularValue)`, condition number, observation
 count, distinct-frequency count, replicate counts and distinct-frequency
-coverage. Exact supplied Hz values define distinct frequencies; rounding or
-instrument-resolution grouping belongs upstream. Per-frequency mean `eta^2`
-is used **only for coverage diagnostics**; every observation remains a separate
-row in the original regression. Replicate scatter at one frequency cannot
-manufacture independent dispersion coverage.
+coverage. Without `experimental.independentFrequencyGroupId`, exact supplied Hz
+define distinct frequencies and the historical result fields remain unchanged.
+No frequency rounding or instrument-resolution tolerance is introduced.
 
-Default numerical qualification requires at least two distinct frequencies,
+The optional `independentFrequencyGroupId` is a real double vector with exactly
+one code per observation, in the original row order (no scalar broadcasting).
+Codes are positive, finite integers no greater than `flintmax`; excluded rows may
+instead use NaN. Invalid supplied codes are errors, never a reason to shrink the
+mask or fall back to observed-Hz grouping. Codes have no units and identify
+caller-declared physical excitation-frequency groups. They must not encode run,
+repetition or Pulse period identity. The native API cannot authenticate the
+physical meaning of caller-supplied codes or recover precision already lost in
+metadata. Renumbering codes does not change the scientific partition.
+
+For the selected partition, mean `eta^2` is used **only for coverage diagnostics**;
+every observation remains a separate row in the original unweighted regression
+at its actual observed Hz and speed. Observation-level rank two can arise from
+within-group scatter; group-level rank, condition and span are separate screens.
+Two declared groups alone do not establish identifiability, statistical independence
+of repetitions, experimental validity or model support. Neither speeds nor
+frequencies are averaged or substituted. Additional repetitions retain their
+original contribution to the OLS objective; no group weighting is introduced.
+
+The diagnostic indexing contract is:
+
+| Field | Meaning |
+| --- | --- |
+| `uniqueFrequency_Hz` | Sorted unique selected **observed Hz**, in both modes |
+| `frequencyGroup` | One index per selected observation, in selected-row order, into the coverage groups |
+| `frequencyObservationCount`, `frequencyEtaSquared` | Count and mean `eta^2` per coverage group |
+| `independentFrequencyCount` | Number of selected coverage groups |
+| `frequencyDesignRank`, `frequencyConditionNumber`, `etaSquaredSpan` | Existing qualification diagnostics of the group-mean design |
+
+With explicit codes, `frequencyGroupingSource="explicit_group_id"` and sorted
+`independentFrequencyGroupId` identify those coverage groups:
+`independentFrequencyGroupId(frequencyGroup)` reconstructs the selected input codes.
+The additional `observedFrequencyGroup` indexes `uniqueFrequency_Hz`, so
+`uniqueFrequency_Hz(observedFrequencyGroup)` reconstructs the selected observed Hz.
+These three additional diagnostic fields are present only in explicit mode.
+The observed-Hz list can have a different length from the coverage-group arrays;
+it must not be indexed with physical group assignments. Without explicit codes,
+`frequencyGroup` retains its historical index into `uniqueFrequency_Hz`.
+
+Default numerical qualification requires at least two independent frequency groups,
 rank two in both designs, condition numbers at most `1e6`, and a per-frequency
 `eta^2` span of at least `1e-3`. The optional struct fields
 `maximumConditionNumber` and `minimumEtaSquaredSpan` expose those two thresholds.

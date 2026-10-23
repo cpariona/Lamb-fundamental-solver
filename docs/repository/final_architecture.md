@@ -136,6 +136,18 @@ fitting masks or scientific ownership.
 
 ## Presentation boundary
 
+`app/visualization/` owns GUI-independent presentation of native inverse results,
+reviewed experimental coordinates, display-only Cp limits and FIG/TIF export.
+Its first scientific presentation is Plate A0: it consumes unchanged native
+coefficients, residuals, masks and acceptance diagnostics. Supported candidate
+predictions and conditional principal interpretation call existing public Plate
+model APIs. It invokes no fitting engine, reads no OCE files and does not depend
+on studies or GUI initialization. See the [visualization contract](../../app/visualization/README.md).
+Observation preparation, scientific inversion and presentation remain separate.
+Neither the GUI-specific normalized renderer in `app/fitting/` nor the study-only
+sensitivity presentation is moved or replaced. Reusable scale/export conventions
+do not impose Plate fields or thresholds on other model families.
+
 `prepareOceFitObservations`, currently in `app/oce_integration/`, performs
 model-independent request translation from an already validated OCE scientific
 result. It is available
@@ -189,8 +201,10 @@ Request identity fixes one intended experiment and subexperiment, verifies origi
 result identity and preserves optional specimen-ID availability. Summary row numbers
 remain local references; original result paths retain acquisition identity.
 `fitOceQhPrestressedPlate` coordinates only the current Plate A0 fit after explicit
-physical review. It rejects incompatible independent-frequency partitions before
-fitting and requires a justified externally supplied constant current full thickness
+physical review. When physical and observed-Hz frequency partitions differ, it
+passes explicit physical-frequency group codes to Plate's existing coverage
+diagnostic while preserving observed Hz and the unweighted regression. Compatible
+partitions retain the historical call. It requires a justified externally supplied constant current full thickness
 with its source. Original OCT thicknesses, including NaNs, remain separate evidence;
 their availability is not a universal prerequisite for an independent thickness input.
 Compact OCT availability/range diagnostics belong to the app and do not alter native
@@ -200,7 +214,7 @@ packages. Equations, SVD and acceptance thresholds remain owned by Plate;
 the app neither rounds frequencies nor supplies alternative rank diagnostics.
 Mass, transmitted force and independent DIC strain do not enter this inversion.
 See the [QH integration contract](../../app/oce_integration/README.md#reviewed-qh-target-assembly-and-plate-coordination)
-for the unresolved independent-group and thickness boundaries.
+for the explicit-group contract and remaining physical thickness boundaries.
 
 App translates UI state into requests and coordinates, presents or persists
 already computed results. It never owns science. Physical parameters, numerical

@@ -61,18 +61,98 @@ sources(2).scientific_result.dispersion.estimators.kf_ridge.frequency_axis_hz(2)
 sources(2).scientific_result.dispersion.estimators.kf_ridge.directions(1).target_selection.selected_frequency_hz = 1000+eps(1000);
 assembly = prepareOceQhFitObservations(sources, selection);
 outcome = fitOceQhPrestressedPlate(assembly, physical, review);
-verifyEqual(testCase, outcome.status, "requires_independent_frequency_groups");
-verifyEmpty(testCase, outcome.nativeResult);
+verifyEqual(testCase, outcome.status, "rejected");
+verifyEqual(testCase, outcome.nativeResult.diagnostics.independentFrequencyCount, 1);
+verifyTrue(testCase,ismember("insufficient_independent_frequencies",outcome.nativeResult.reasons));
+verifyFalse(testCase,outcome.nativeGroupingCompatible);
 verifyEqual(testCase, outcome.independentPhysicalFrequencyCount, 1);
 verifyEqual(testCase, outcome.assembly.experimental.frequency_Hz, [1000;1000+eps(1000)]);
-% Expose the existing exact-Hz diagnostic boundary without changing its API.
+% Native callers without explicit groups retain exact-observed-Hz behavior.
 direct = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(assembly.experimental,physical);
 verifyEqual(testCase, direct.diagnostics.independentFrequencyCount, 2);
 selection.observations = table((1:5)',repmat(2,5,1),true(5,1), ...
     'VariableNames',{'sourceRow','binIndex','include'});
 multiple = fitOceQhPrestressedPlate(prepareOceQhFitObservations(sources,selection),physical,review);
-verifyEqual(testCase, multiple.status, "requires_independent_frequency_groups");
 verifyEqual(testCase, multiple.independentPhysicalFrequencyCount, 4);
+verifyEqual(testCase, multiple.nativeResult.diagnostics.independentFrequencyCount, 4);
+verifyEqual(testCase, multiple.nativeResult.diagnostics.frequencyObservationCount, [2;1;1;1]);
+end
+
+function testVaryingBinsUsePhysicalGroupsWithoutChangingRegression(testCase)
+[sources, selection, physical, review] = fixture();
+observed = [990;990.25;2505;5005;7495];
+parameters = physical; parameters.alpha_Pa = 314300; parameters.gamma_Pa = 147200;
+mode = lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion(observed,parameters);
+for row=1:5
+    sources(row).acquisition_metadata.period_us = 200+row; % Not a QH frequency identity.
+    kf = sources(row).scientific_result.dispersion.estimators.kf_ridge;
+    kf.frequency_axis_hz(2) = observed(row);
+    for direction=1:2
+        kf.directions(direction).target_selection.selected_frequency_hz = observed(row);
+        kf.directions(direction).phase_speed_curve.smoothed_phase_speed_m_per_s(2) = ...
+            mode.phaseVelocity_mps(row)+direction-1;
+    end
+    sources(row).scientific_result.dispersion.estimators.kf_ridge = kf;
+end
+assembly = prepareOceQhFitObservations(sources,selection);
+original = assembly;
+outcome = fitOceQhPrestressedPlate(assembly,physical,review);
+manual = manualData(sources,selection);
+ungrouped = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(manual,physical);
+manual.independentFrequencyGroupId = [1;1;2;3;4];
+direct = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(manual,physical);
+verifyEqual(testCase,outcome.nativeResult,direct);
+verifyEqual(testCase,outcome.status,"accepted");
+verifyEqual(testCase,outcome.assembly,original);
+verifyEqual(testCase,outcome.assembly.experimental.frequency_Hz,observed);
+verifyEqual(testCase,outcome.assembly.physicalFrequency_Hz,[1000;1000;2500;5000;7500]);
+verifyEqual(testCase,outcome.assembly.requestedTargetFrequency_Hz,original.requestedTargetFrequency_Hz);
+verifyFalse(testCase,isfield(assembly.experimental,'independentFrequencyGroupId'));
+for name=["alpha_Pa","gamma_Pa","etaSquared","regressionResidual_Pa","validMask"]
+    verifyEqual(testCase,direct.(name),ungrouped.(name));
+end
+verifyEqual(testCase,[direct.alpha_Pa;direct.gamma_Pa],[314300;147200],'AbsTol',2e-7);
+verifyEqual(testCase,direct.diagnostics.frequencyObservationCount,[2;1;1;1]);
+verifyEqual(testCase,direct.diagnostics.observationCount,5);
+end
+
+function testExcludedBinJitterPreservesCompatibleLegacyCall(testCase)
+[sources, selection, physical, review] = fixture();
+selection.observations.include(2) = false;
+sources(2).scientific_result.dispersion.estimators.kf_ridge.frequency_axis_hz(2) = 990;
+sources(2).scientific_result.dispersion.estimators.kf_ridge.directions(1).target_selection.selected_frequency_hz = 990;
+assembly = prepareOceQhFitObservations(sources,selection);
+outcome = fitOceQhPrestressedPlate(assembly,physical,review);
+direct = lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(assembly.experimental,physical);
+verifyTrue(testCase,outcome.nativeGroupingCompatible);
+verifyEqual(testCase,outcome.nativeResult,direct);
+verifyEqual(testCase,outcome.independentPhysicalFrequencyCount,4);
+verifyEqual(testCase,outcome.nativeResult.validMask,selection.observations.include);
+end
+
+function testExactNumericPhysicalFrequencyIdentity(testCase)
+[sources, selection, physical, review] = fixture();
+selection.observations = selection.observations(1:2,:);
+sources(2).acquisition_metadata.frequency_Hz = 1000+eps(1000);
+assembly = prepareOceQhFitObservations(sources,selection);
+verifyEqual(testCase,assembly.physicalFrequency_Hz,[1000;1000+eps(1000)]);
+verifyEqual(testCase,assembly.experimental.frequency_Hz,[1000;1000]);
+outcome = fitOceQhPrestressedPlate(assembly,physical,review);
+verifyEqual(testCase,outcome.independentPhysicalFrequencyCount,2);
+verifyEqual(testCase,outcome.nativeResult.experimental.independentFrequencyGroupId,[1;2]);
+verifyFalse(testCase,outcome.nativeResult.accepted); % Group labels cannot repair rank.
+sources(2).acquisition_metadata.frequency_Hz = "1000";
+legacyText = prepareOceQhFitObservations(sources,selection);
+verifyEqual(testCase,legacyText.physicalFrequency_Hz,[1000;1000]);
+end
+
+function testPulsePeriodsCannotBecomeQhFrequencyGroups(testCase)
+[sources, selection] = fixture();
+for row=1:5
+    sources(row).acquisition_metadata.excitation_type = "pulse";
+    sources(row).acquisition_metadata.period_us = 100+row;
+end
+verifyError(testCase,@() prepareOceQhFitObservations(sources,selection),'lamb:oceQh:NotQuasiHarmonic');
 end
 
 function testSignedDirectionAndConditionAreNeverPooled(testCase)
