@@ -153,6 +153,124 @@ verifyTrue(testCase, isnan(mapped.Cp_exp_mps(2)));
 verifyLessThan(testCase, abs(mapped.bestParams.mu-params.mu)/params.mu, 0.03);
 end
 
+function testNonlinearMrlfeEquivalence(testCase)
+[source,selection,metadata] = fixture();
+params = lamb.fitting.mrlfe.mrlfeDefaultFitParameters();
+params.mu = 75e3; params.rho = 1070; params.thickness = .0005; params.etaS = 0;
+frequency = [1000;2000;3500;5000;7000];
+options = lamb.fitting.mrlfe.mrlfeDefaultFitOptions("A0Like",'EtaS',0);
+options.mrlfeParams.fluidDensity = 1000; options.mrlfeParams.fluidSoundSpeed = 1500;
+[speed,forward] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params,frequency,"A0Like",options);
+verifyTrue(testCase,all(forward.validMask));
+source.dispersion.estimators.kf_ridge.frequency_axis_hz = frequency;
+speed(2) = NaN;
+source.dispersion.estimators.kf_ridge.directions(1).phase_speed_curve.smoothed_phase_speed_m_per_s = speed;
+selection.validMask = [true;false;true;true;true];
+prepared = prepareOceFitObservations(source,selection,metadata);
+config = struct('branchName',"A0Like",'freeParams',"mu", ...
+    'fixedParams',struct('rho',params.rho,'thickness',params.thickness,'nu',params.nu,'etaS',0), ...
+    'initialGuess',struct('mu',72e3),'bounds',struct('mu',[65e3 85e3]), ...
+    'solverOptions',options,'fitOptions',struct('useStandardErrorWeights',false));
+mapped = lamb.fitting.mrlfe.mrlfeFitDispersionData(prepared.experimental,config);
+direct = lamb.fitting.mrlfe.mrlfeFitDispersionData(manualData(source,selection,metadata),config);
+verifyNativeFitEquivalent(testCase,mapped,direct,prepared);
+verifyEqual(testCase,mapped.modelFamily,"mrlfe");
+verifyTrue(testCase,mapped.modelEvaluation.evaluationPath.usedPublicSolver);
+verifyEqual(testCase,mapped.branchName,"A0Like");
+end
+
+function testNonlinearIopHgoEquivalence(testCase)
+[source,selection,metadata] = fixture();
+params = lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitParameters();
+params.mu = 158e3; params.k1 = 25e3; params.k2 = 100;
+params.rho = 1070; params.thickness = .0005;
+frequency = [1000;2000;4000;7000;10000];
+options = lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitOptions("Balanced");
+[speed,forward] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(params,frequency,"atlasA0",options);
+verifyTrue(testCase,all(forward.validMask));
+source.dispersion.estimators.kf_ridge.frequency_axis_hz = frequency;
+speed(2) = NaN;
+source.dispersion.estimators.kf_ridge.directions(1).phase_speed_curve.smoothed_phase_speed_m_per_s = speed;
+selection.validMask = [true;false;true;true;true];
+prepared = prepareOceFitObservations(source,selection,metadata);
+config = struct('branchName',"atlasA0",'freeParams',"mu", ...
+    'fixedParams',rmfield(params,{'mu','frequency'}),'initialGuess',struct('mu',155e3), ...
+    'bounds',struct('mu',[150e3 166e3]),'solverOptions',options, ...
+    'fitOptions',struct('useStandardErrorWeights',false));
+mapped = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(prepared.experimental,config);
+direct = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(manualData(source,selection,metadata),config);
+verifyNativeFitEquivalent(testCase,mapped,direct,prepared);
+verifyEqual(testCase,mapped.modelFamily,"acoustoelastic_iop_hgo");
+verifyEqual(testCase,mapped.branchName,"atlasA0");
+verifyEqual(testCase,string(mapped.modelEvaluation.solverResult.options.atlasBranchPolicy),"atlasA0");
+end
+
+function testFamilyRequirementsAreNotRepairedByPreparation(testCase)
+[source,selection,metadata] = fixture();
+source.dispersion.estimators.kf_ridge.frequency_axis_hz = [0;1000;2000;3000;4000];
+selection.validMask = [false;true;true;true;true];
+prepared = prepareOceFitObservations(source,selection,metadata);
+original = prepared;
+config = struct('freeParams',"mu");
+verifyError(testCase,@() lamb.fitting.mrlfe.mrlfeBuildFitProblem(prepared.experimental,config), ...
+    'mrlfe:InvalidFrequency');
+rl = lamb.models.rayleigh_lamb.rlDefaultParams();
+ae = lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitParameters();
+actions = {@() lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(rl,prepared.experimental.frequency_Hz), ...
+    @() lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(ae,prepared.experimental.frequency_Hz)};
+for index=1:numel(actions)
+    caught = false;
+    try
+        actions{index}();
+    catch exception
+        caught = true; verifySubstring(testCase,exception.message,'positive finite');
+    end
+    verifyTrue(testCase,caught,'Excluded DC must not be removed to bypass native frequency support.');
+end
+verifyEqual(testCase,prepared,original);
+source.dispersion.estimators.kf_ridge.frequency_axis_hz(1) = 100;
+selection.validMask(:) = true;
+prepared = prepareOceFitObservations(source,selection,metadata);
+verifyError(testCase,@() lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem(prepared.experimental,config), ...
+    'lamb:fitting:AEObjectiveOutsideSupportedRange');
+% Native mRLFE requires strict frequency order even for excluded axis entries.
+source.dispersion.estimators.kf_ridge.frequency_axis_hz = [1000;1000;2000;3000;4000];
+prepared = prepareOceFitObservations(source,selection,metadata);
+verifyError(testCase,@() lamb.fitting.mrlfe.mrlfeBuildFitProblem(prepared.experimental,config), ...
+    'mrlfe:InvalidFrequencyOrder');
+end
+
+function testNativeRequestCountsAreNotPlateCoveragePolicy(testCase)
+[source,selection,metadata] = fixture();
+selection = rmfield(selection,'curve'); selection.estimator = "phase_gradient"; selection.validMask = true;
+prepared = prepareOceFitObservations(source,selection,metadata);
+config = struct('freeParams',"mu");
+rl = lamb.fitting.rayleigh_lamb.rlBuildFitProblem(prepared.experimental,config);
+mr = lamb.fitting.mrlfe.mrlfeBuildFitProblem(prepared.experimental,config);
+ae = lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem(prepared.experimental,config);
+for problem = {rl,mr,ae}
+    verifyEqual(testCase,problem{1}.experimental.numValidPoints,1);
+    verifyTrue(testCase,problem{1}.experimental.validMask);
+    verifyFalse(testCase,isfield(problem{1}.experimental,'independentFrequencyGroupId'));
+end
+% Request construction is not a claim that one observation identifies free parameters.
+end
+
+function verifyNativeFitEquivalent(testCase,mapped,direct,prepared)
+for name = ["bestParams","allParams","fixedParams","frequency_Hz","Cp_exp_mps", ...
+        "Cp_fit_mps","residuals","residualInfo","validMask","metrics","identifiability","sensitivityMatrix"]
+    verifyEqual(testCase,mapped.(name),direct.(name));
+end
+verifyEqual(testCase,mapped.optimizer.objective,direct.optimizer.objective);
+verifyEqual(testCase,mapped.optimizer.exitFlag,direct.optimizer.exitFlag);
+verifyTrue(testCase,mapped.residualInfo.coverageAccepted);
+verifyEqual(testCase,mapped.validMask,prepared.experimental.validMask);
+verifyEqual(testCase,mapped.problem.experimental.source,prepared.experimental.source);
+verifyEqual(testCase,mapped.problem.experimental.integrationMetadata,prepared.experimental.integrationMetadata);
+verifyTrue(testCase,isnan(mapped.Cp_exp_mps(2)));
+verifyFalse(testCase,isfield(mapped.problem.experimental,'independentFrequencyGroupId'));
+end
+
 function manual = manualData(source, selection, metadata)
 manual = struct('frequency_Hz', double(source.dispersion.estimators.kf_ridge.frequency_axis_hz(:)), ...
     'Cp_mps', double(source.dispersion.estimators.kf_ridge.directions(1).phase_speed_curve.smoothed_phase_speed_m_per_s(:)), ...
