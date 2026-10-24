@@ -7,7 +7,7 @@ Plate or impose Plate's independent-frequency-group requirements on other famili
 
 `prepareOceFitObservations(oceResult, selection, metadata)` translates an already
 validated OCE result into model-independent fitting observations. Normal Lamb
-`startup` exposes this maintained app API without initializing a GUI. OCE is an
+`startup` exposes this maintained integration API without initializing a GUI. OCE is an
 optional external producer, not a dependency of Lamb's physics or inverse packages.
 OCE's official loader/validator must run at the input boundary. No MAT/BIN decoder,
 schema migration, OCE processing or family dispatch is implemented here.
@@ -46,7 +46,7 @@ retained. Disabled estimators raise an error; invalid scalar estimates remain Na
 when explicitly excluded. Estimators are never mixed or substituted for one another.
 
 Every source frequency/Cp entry, including excluded values and DC, remains present.
-The app rejects selected nonfinite/nonpositive Hz or Cp before canonical fitting
+Preparation rejects selected nonfinite/nonpositive Hz or Cp before canonical fitting
 normalization can intersect the mask with finiteness. Preparation itself does not
 call that normalizer: it returns the explicit mask and numeric column vectors
 without counts or empty uncertainty fields. Nonlinear fitting normalizes its own
@@ -68,7 +68,7 @@ Unknown measured thickness stays NaN, even if velocities are valid.
 Consumers call the selected canonical `lamb.fitting` family API directly; see the
 [demonstration](../../examples/oce_integration/README.md). Model parameters, bounds,
 modal choice, physics/support validation, inverse equations, optimizer and diagnostics
-remain with their established owners. The app selects none of them. Preserve the
+remain with their established owners. Integration selects none of them. Preserve the
 prepared request alongside the native fit result, since some fitting results expose
 only a subset of input provenance.
 
@@ -158,7 +158,7 @@ is parsed as physical Hz; already-lost identities cannot be reconstructed.
 The original assembly remains unchanged. Only the native request copy receives
 the codes, with all original observed Hz, speeds, rows, masks and contributions to
 the unweighted regression retained. Native Plate owns the existing group-mean
-eta-squared coverage, rank, conditioning and acceptance diagnostics; the app
+eta-squared coverage, rank, conditioning and acceptance diagnostics; integration
 implements no SVD or alternative acceptance rule. Native diagnostics distinguish
 the observed-Hz index from physical coverage-group assignments; see the
 [Plate diagnostic contract](../../docs/models/acoustoelastic_prestressed_plate.md#linear-inverse-api).
@@ -189,7 +189,7 @@ they neither select the supplied scalar nor affect acceptance. No measured thick
 substituted or compared using a new numerical threshold. An externally supplied
 constant thickness is a reviewed physical approximation, not evidence that a
 variable-thickness plate is supported. Review references are caller attestations;
-the app cannot establish their physical validity. An alternative per-observation
+integration cannot establish their physical validity. An alternative per-observation
 thickness formulation would require separate scientific justification.
 
 Following the [scientific independence rule in PR #162](https://github.com/cpariona/Lamb-fundamental-solver/pull/162),

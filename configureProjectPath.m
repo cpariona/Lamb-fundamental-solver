@@ -15,7 +15,9 @@ end
 addpath(char(projectRoot));
 addpath(char(fullfile(projectRoot, "src")));
 roots = [ ...
-    fullfile(projectRoot, "app")];
+    fullfile(projectRoot, "app"), ...
+    fullfile(projectRoot, "integrations", "oce"), ...
+    fullfile(projectRoot, "visualization")];
 
 for i = 1:numel(roots)
     addMaintainedTree(roots(i), excludedNames);

@@ -4,7 +4,7 @@
 
 Native inverse results, including rejected candidates, can be inspected with
 `plotAePlateFitDiagnostics` and `plotAePlateParameterTrends` in
-[the app visualization owner](../../app/visualization/README.md).
+[the visualization owner](../../visualization/README.md).
 These operations do not fit data, change the fixed mask or recompute residuals.
 The Li regression remains native and unweighted. A supported coefficient candidate
 may be evaluated through `aePlateSolveDispersion`; an unsupported candidate must

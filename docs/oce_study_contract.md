@@ -69,7 +69,7 @@ automatic model-selection rule.
 The single executable workflow is [aePlateOceStudy.m](../studies/aePlateOceStudy.m).
 It replaces the pilot preview/export coordinator. It contains no specimen names,
 absolute study paths, FIG input dependency, frequency optimizer or model dispatcher.
-Initialize the reviewed OCE `src` path explicitly; Lamb startup supplies its app APIs.
+Initialize the reviewed OCE `src` path explicitly; Lamb startup supplies its integration and visualization APIs.
 
 Open the script, clear `study` to reset configuration, then run/edit section 1.
 Execute sections 2--7 manually, or run the script with a configured `study` in the
@@ -229,7 +229,7 @@ configuration, not datasets, saved observations or scientific APIs. Preserve
 earlier reports as historical evidence; do not silently overwrite them.
 
 The maintained manual driver is `studies/aePlateOceStudy.m`.
-`app/oce_integration/` owns the existing translation/preparation and QH coordinator
+`integrations/oce/` owns the existing translation/preparation and QH coordinator
 APIs, not the study script. Dataset-specific selections, physical review and
 outputs remain external. The study coordinates canonical APIs in separately
 executable MATLAB sections.
@@ -266,7 +266,7 @@ meaning instead of borrowing the physical QH grouping interpretation.
 
 ## Inverse presentation after native fitting
 
-Use the [app visualization contract](../app/visualization/README.md) to present
+Use the [visualization contract](../visualization/README.md) to present
 stored Plate results and their reviewed request/provenance. Do not rerun fitting
 to generate figures. Supply original ridge evidence and repetition identities
 where available, retain excluded/nonfinite rows, and distinguish the fixed native

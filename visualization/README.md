@@ -1,6 +1,6 @@
 # Native inverse-result visualization
 
-This app owner presents already-computed inverse results without GUI initialization,
+This visualization owner presents already-computed inverse results without GUI initialization,
 OCE I/O, fitting calls or scientific eligibility decisions. Plate A0 establishes
 the first model-specific renderer. It does not define a common result schema,
 dispatcher or acceptance policy for RL, mRLFE or IOP/HGO.
@@ -111,8 +111,8 @@ same retained result.
 
 ## Manual study and Pulse graphic sampling
 
-Use the single [Plate study](../../studies/aePlateOceStudy.m) and its
-[configuration contract](../../docs/oce_study_contract.md#maintained-manual-plate-study)
+Use the single [Plate study](../studies/aePlateOceStudy.m) and its
+[configuration contract](../docs/oce_study_contract.md#maintained-manual-plate-study)
 for QH and Pulse. Scientific input is recovered individual OCE products, never FIG
 contents, summary means or comparison statistics.
 
@@ -204,7 +204,7 @@ MATLAB savefig/exportgraphics conventions. It requires an explicit output root
 and deterministic safe basename, rejects an existing destination of either type,
 and never writes a native MAT result. No callbacks or cleanup objects are stored
 in figure data. The existing GUI renderer/export and sensitivity FIG/PNG owner
-are unchanged; the app does not depend on study functions.
+are unchanged; integration does not depend on study functions.
 
 Future renderers should consume their family's native outputs and reuse only
 appropriate display-limit/export conventions. They must preserve each family's

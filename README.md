@@ -35,7 +35,7 @@ Use MATLAB `help` on an entrypoint for its request, units, result, and validity
 contract.
 
 The prestressed-plate formulation supports A0 with a direct linear SVD inversion,
-independent of GUI and OCE. Optional [OCE integration](app/oce_integration/README.md)
+independent of GUI and OCE. Optional [OCE integration](integrations/oce/README.md)
 prepares observations for the native fitting families; the reviewed QH coordinator
 and [manual Plate study](studies/aePlateOceStudy.m) retain Plate-specific contracts.
 The study supports QH targets and Pulse broadband observations with separate fitting
@@ -44,7 +44,7 @@ and graphic selections. Plate is not integrated into the fitting GUI. See the
 assumptions, fixed observation mask, units and identification limits.
 
 GUI-independent native inverse presentation is owned by
-[app visualization](app/visualization/README.md). Plate A0 diagnostics and reviewed
+[scientific visualization](visualization/README.md). Plate A0 diagnostics and reviewed
 parameter trends consume stored native results without refitting, distinguish
 accepted/rejected candidates, and export editable FIG plus 300-dpi TIF to an
 explicit external output root. Other families retain their own scientific contracts.

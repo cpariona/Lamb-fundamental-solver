@@ -67,7 +67,7 @@ for i = 1:numel(tokens)
     end
     if value == "AGENTS.md"
         resolved = fullfile(repoRoot, value);
-    elseif isempty(regexp(value, '^(?:app|docs|examples|src|studies|tests)/.+\.(?:m|md)$', 'once'))
+    elseif isempty(regexp(value, '^(?:app|docs|examples|integrations|src|studies|tests|visualization)/.+\.(?:m|md)$', 'once'))
         if isempty(regexp(value, '^(?:\.\./|[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.md$', 'once'))
             continue;
         end
@@ -98,9 +98,10 @@ end
 end
 
 function paths = gitTrackedMarkdown(repoRoot)
-[status, output] = system(sprintf('git -C "%s" ls-files "*.md"', repoRoot));
+[status, output] = system(sprintf('git -C "%s" ls-files --cached --others --exclude-standard "*.md"', repoRoot));
 assert(status == 0, 'Could not enumerate tracked Markdown files.');
 paths = replace(splitlines(string(strtrim(output))), "\", "/");
 paths(paths == "") = [];
+paths = unique(paths,'stable');
 paths = paths(arrayfun(@(p)isfile(fullfile(repoRoot, p)), paths));
 end

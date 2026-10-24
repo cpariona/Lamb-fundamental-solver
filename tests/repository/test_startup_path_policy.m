@@ -1,7 +1,7 @@
 function test_startup_path_policy()
 %TEST_STARTUP_PATH_POLICY Production isolation and unique public resolution.
 callerPath = path;
-restorePath = onCleanup(@() path(callerPath)); %#ok<NASGU>
+restorePath = onCleanup(@() path(callerPath));
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 startup;
 entries = string(strsplit(path, pathsep));
@@ -22,10 +22,13 @@ publicOwners = [ ...
     "runApp", "runApp.m"
     "LambFundamental_GUI", "app/LambFundamental_GUI.m"
     "FitTool_GUI", "app/FitTool_GUI.m"
-    "plotAePlateFitDiagnostics", "app/visualization/plotAePlateFitDiagnostics.m"
-    "plotAePlateParameterTrends", "app/visualization/plotAePlateParameterTrends.m"
-    "resolveInversePhaseSpeedLimits", "app/visualization/resolveInversePhaseSpeedLimits.m"
-    "saveInverseFigure", "app/visualization/saveInverseFigure.m"
+    "prepareOceFitObservations", "integrations/oce/prepareOceFitObservations.m"
+    "prepareOceQhFitObservations", "integrations/oce/prepareOceQhFitObservations.m"
+    "fitOceQhPrestressedPlate", "integrations/oce/fitOceQhPrestressedPlate.m"
+    "plotAePlateFitDiagnostics", "visualization/plotAePlateFitDiagnostics.m"
+    "plotAePlateParameterTrends", "visualization/plotAePlateParameterTrends.m"
+    "resolveInversePhaseSpeedLimits", "visualization/resolveInversePhaseSpeedLimits.m"
+    "saveInverseFigure", "visualization/saveInverseFigure.m"
     "lamb.models.rayleigh_lamb.rlDefaultParams", "src/+lamb/+models/+rayleigh_lamb/rlDefaultParams.m"
     "lamb.models.rayleigh_lamb.rlDefaultOptions", "src/+lamb/+models/+rayleigh_lamb/rlDefaultOptions.m"
     "lamb.models.rayleigh_lamb.rlComputeFundamentalLambModes", "src/+lamb/+models/+rayleigh_lamb/rlComputeFundamentalLambModes.m"

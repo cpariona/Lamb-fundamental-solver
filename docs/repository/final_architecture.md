@@ -5,7 +5,9 @@
 | Location | Responsibility |
 | --- | --- |
 | `src/+lamb/` | Forward science and inverse fitting |
-| `app/` | Request translation, workflow coordination, presentation and persistence |
+| `integrations/oce/` | Translation of validated external observations and reviewed QH coordination |
+| `visualization/` | GUI-independent scientific presentation and figure export |
+| `app/` | GUI interaction, app request/result adaptation and execution profiles |
 | `studies/` | Opt-in scientific investigations consuming production APIs |
 | `examples/` | Opt-in usage examples consuming production APIs |
 | `tests/` | Executable contracts, regressions, performance checks and tooling |
@@ -58,7 +60,7 @@ meaning; they are not identifiers derived from one publication. Mode-specific
 mathematical helpers may identify their mode, such as `aePlateA0MasterCurve`.
 
 Dependencies point toward scientific owners. Models do not depend on fitting,
-app, studies, examples, tests or documentation. Fitting calls canonical public
+integration, visualization, app, studies, examples, tests or documentation. Fitting calls canonical public
 model APIs. Production never depends on studies, examples, tests or documentation.
 The sole intentional cross-family scientific dependency is the mRLFE seed through
 the public Rayleigh-Lamb solver. Model-neutral utilities do not own family policy.
@@ -134,34 +136,48 @@ comparison and validation products, not implicit optimization evidence. Preserve
 their provenance and uncertainty without changing the original OCE observations,
 fitting masks or scientific ownership.
 
+## Consumer domains and dependency boundaries
+
+The following table lists permitted outward dependencies. Collaboration within
+each domain remains permitted; no production domain depends on studies, examples,
+tests or documentation. The dependency tests inspect existing tracked and untracked
+candidate files and exclude paths removed from the working tree.
+
+| Consumer | Permitted dependencies |
+| --- | --- |
+| Models and neutral scientific utilities | Canonical scientific owners; the sole cross-family seed is mRLFE to public RL |
+| Fitting | Public model APIs and scientific fitting utilities |
+| OCE preparation | Validated OCE products and integration-local operations; no fitting, physics, GUI or schema I/O |
+| QH Plate coordinator | Prepared QH observations and the native Plate fitting API |
+| Visualization | Native result values and public forward/interpretation APIs; no fitting, integration, GUI or OCE package dependency |
+| GUI/app | Integration, scientific APIs and visualization; no study or example implementation |
+| Studies and scientific examples | Public scientific, integration and visualization APIs; no GUI internals or tests |
+
+These are domain rules, not per-function exceptions. The model/fitting core remains
+independent of optional producers. OCE's loader/recovery APIs remain its authority;
+manual callers initialize OCE explicitly. `configureProjectPath` exposes app,
+`integrations/oce/` and `visualization/` while studies, examples, tests and outputs
+remain opt-in. Public function names are unchanged; no compatibility copies or
+forwarding wrappers remain in the former app locations.
+
 ## Presentation boundary
 
-Studies may consume exactly the GUI-independent public app operations
-`prepareOceFitObservations`, `prepareOceQhFitObservations`,
-`fitOceQhPrestressedPlate`, `plotAePlateFitDiagnostics`,
-`plotAePlateParameterTrends`, `resolveInversePhaseSpeedLimits` and
-`saveInverseFigure`. This is a bounded consumer surface, not permission to call
-GUI callbacks, GUI fitting/import helpers or execution-profile internals.
-The dependency contract checks the permitted owners for GUI independence and
-includes untracked MATLAB files when reviewing the working tree. Models/fitting
-still cannot depend on any app operation; examples retain their existing rule.
-
-`app/visualization/` owns GUI-independent presentation of native inverse results,
+`visualization/` owns GUI-independent presentation of native inverse results,
 reviewed experimental coordinates, display-only Cp limits and FIG/TIF export.
 Its first scientific presentation is Plate A0: it consumes unchanged native
 coefficients, residuals, masks and acceptance diagnostics. Supported candidate
 predictions and conditional principal interpretation call existing public Plate
 model APIs. It invokes no fitting engine, reads no OCE files and does not depend
-on studies or GUI initialization. See the [visualization contract](../../app/visualization/README.md).
+on studies or GUI initialization. See the [visualization contract](../../visualization/README.md).
 Observation preparation, scientific inversion and presentation remain separate.
 Neither the GUI-specific normalized renderer in `app/fitting/` nor the study-only
 sensitivity presentation is moved or replaced. Reusable scale/export conventions
 do not impose Plate fields or thresholds on other model families.
 
-`prepareOceFitObservations`, currently in `app/oce_integration/`, performs
+`prepareOceFitObservations` in `integrations/oce/` performs
 model-independent request translation from an already validated OCE scientific
 result. It is available
-through the existing recursive app path setup; it requires no GUI initialization.
+through the maintained startup path setup; it requires no GUI initialization.
 OCE owns acquisition processing, schema validation and result I/O, through
 `oce.results.validateScientificResult` and `oce.io.loadScientificResult`. The
 translator reads their validated product; it neither decodes MAT/BIN files nor
@@ -185,7 +201,7 @@ fit configuration and support assessment. The translator selects no model, densi
 mode, weighting, inverse equation or optimizer and invokes no family API. Measured
 thickness is a physical observation, not a universal family-parameter mapping.
 Family-specific restrictions, including full-axis frequency support, remain visible
-as errors/rejections; the app must not trim or average inputs to bypass them.
+as errors/rejections; integration must not trim or average inputs to bypass them.
 
 Preparation has no dependency on model or fitting implementations. Nonlinear fitting
 normalizes its own inputs; the direct plate fit consumes the minimal numeric request
@@ -193,15 +209,11 @@ without generated counts or empty uncertainty fields. Models/fitting never depen
 the translator. OCE remains the schema/I/O authority; preparation neither invokes a
 family API nor owns its physics, optimizer or support decisions.
 
-The current app location matches request translation and requires no additional path
-setup. Keep it while there is no demonstrated benefit to relocation. Directory choice
-is not a scientific invariant: an optional external-consumer surface could be considered
-if actual consumers or dependencies later justify it, without a speculative framework.
 Read-only OCE result inspection in studies or examples does not establish a second
 translation owner. The repository enforces dependency direction and absence of science,
 GUI import and native schema I/O in preparation, rather than prohibiting field access.
-The examples-to-app dependency rule has no exception: the present example is Markdown,
-not an executable MATLAB consumer. The retired pilot has no wrapper or duplicate adapter.
+Studies and examples consume reusable integration/visualization domains directly;
+they do not depend on app components or maintain a duplicate adapter.
 
 `prepareOceQhFitObservations` assembles explicitly reviewed k-f target rows from
 OCE's recovered acquisitions, using `prepareOceFitObservations` once per signed
@@ -217,13 +229,13 @@ diagnostic while preserving observed Hz and the unweighted regression. Compatibl
 partitions retain the historical call. It requires a justified externally supplied constant current full thickness
 with its source. Original OCT thicknesses, including NaNs, remain separate evidence;
 their availability is not a universal prerequisite for an independent thickness input.
-Compact OCT availability/range diagnostics belong to the app and do not alter native
+Compact OCT availability/range diagnostics belong to integration and do not alter native
 scientific diagnostics or acceptance.
 The OCE recovery dependency is optional and remains outside Lamb's scientific
 packages. Equations, SVD and acceptance thresholds remain owned by Plate;
-the app neither rounds frequencies nor supplies alternative rank diagnostics.
+integration neither rounds frequencies nor supplies alternative rank diagnostics.
 Mass, transmitted force and independent DIC strain do not enter this inversion.
-See the [QH integration contract](../../app/oce_integration/README.md#reviewed-qh-target-assembly-and-plate-coordination)
+See the [QH integration contract](../../integrations/oce/README.md#reviewed-qh-target-assembly-and-plate-coordination)
 for the explicit-group contract and remaining physical thickness boundaries.
 
 App translates UI state into requests and coordinates, presents or persists

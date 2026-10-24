@@ -19,11 +19,13 @@ fprintf('Repository naming contract test passed.\n');
 end
 
 function paths = trackedMatlabPaths(repoRoot)
-command = sprintf('git -C "%s" ls-files "*.m"', repoRoot);
+command = sprintf('git -C "%s" ls-files --cached --others --exclude-standard "*.m"', repoRoot);
 [status, output] = system(command);
 assert(status == 0, 'Could not enumerate tracked MATLAB files.');
 relative = splitlines(string(strtrim(output)));
 relative(relative == "") = [];
+relative = unique(relative,'stable');
+relative = relative(arrayfun(@(p)isfile(fullfile(repoRoot,p)),relative));
 paths = repmat(struct('relative', "", 'name', ""), numel(relative), 1);
 for i = 1:numel(relative)
     paths(i).relative = replace(relative(i), "\", "/");
