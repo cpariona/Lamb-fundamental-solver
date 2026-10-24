@@ -73,9 +73,12 @@ prepared request alongside the native fit result, since some fitting results exp
 only a subset of input provenance.
 
 Preparation is model independent; successful preparation does not imply support by
-every family. In particular, current nonlinear evaluators can require finite positive
-frequencies across the full input axis even for excluded rows. Rayleigh-Lamb rejects
-DC/nonfinite full-axis frequencies; mRLFE also validates full-axis frequency support
+every family. Native Rayleigh-Lamb fitting preserves excluded DC/nonfinite rows,
+evaluates only positive finite frequencies and reconstructs predictions in the
+original order, with unavailable predictions explicit. Invalid selected data are
+rejected without repairing the fitting mask. Its direct model evaluator still
+requires positive finite frequencies. Other nonlinear evaluators can require
+full-axis support even for excluded rows; mRLFE validates full-axis frequency support
 and requires selected frequencies in ascending order. AE IOP/HGO keeps its atlas
 support restrictions. The direct plate fit supports A0 only and requires explicit
 current thickness/density and its physical assumptions. Errors/rejections must stay

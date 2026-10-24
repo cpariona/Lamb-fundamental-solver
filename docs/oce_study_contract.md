@@ -41,7 +41,7 @@ broadband curve can already satisfy the maintained mRLFE axis contract.
 
 | Family and maintained fitting API | Explicit physical/model inputs and numerical boundaries | Native evidence |
 | --- | --- | --- |
-| Rayleigh-Lamb: `lamb.fitting.rayleigh_lamb.rlFitDispersionData` | Elastic parameters, current thickness, density, supported near-incompressible Poisson ratio; explicit A0/S0 choice, fixed/free parameters, bounds and execution options. Fitting requires a positive finite full frequency axis. Its evaluator maps requested observations through the canonical RL solver. | Fixed-mask model coverage, optimizer result, residuals/metrics, sensitivity and local identifiability; selected A0/S0 output and native diagnostics. |
+| Rayleigh-Lamb: `lamb.fitting.rayleigh_lamb.rlFitDispersionData` | Elastic parameters, current thickness, density, supported near-incompressible Poisson ratio; explicit A0/S0 choice, fixed/free parameters, bounds and execution options. Selected observations require positive finite Hz/Cp. Excluded nonpositive/nonfinite frequencies remain in place with unavailable predictions; positive finite frequencies use the canonical RL solver. Direct model evaluation still requires a positive finite full axis. | Fixed-mask model coverage, optimizer result, residuals/metrics, sensitivity and local identifiability; selected A0/S0 output and unchanged official solver diagnostics. |
 | mRLFE: `lamb.fitting.mrlfe.mrlfeFitDispersionData` | Material modulus/viscosity, density, current thickness, supported Poisson ratio and fluid density/sound speed. Explicit A0Like/S0Like, numerical preset and fit-grid policy. The full requested frequency axis must be positive, finite and strictly ascending. Physical-tail/none termination and no fallback retain their native meaning. | Native public-solver route, requested/effective configuration, branch/termination and coverage evidence, optimizer result, sensitivity and identifiability. |
 | Prestressed Plate: `lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion` | Reviewed A0 support, one condition and signed principal direction, scalar current full thickness and density. Original unweighted Li regression. At least **two** independent frequency groups plus its existing observation/group rank, conditioning, eta-squared span and tensile-support screens. Optional `independentFrequencyGroupId` belongs to this family only. | `accepted`, `reasons`, unconstrained candidate moduli/residuals and explicit observation/group diagnostics. A returned candidate is not necessarily accepted. |
 | AE IOP/HGO: `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` | Geometry/radius, current thickness, IOP, matrix/fibre material parameters, tissue/fluid densities and fluid bulk modulus, with explicit fixed/free parameters and bounds. Only official `atlasA0`. Positive finite full frequency axis and the selected-frequency initialization-anchor requirement remain enforced. Plate assumptions and grouping fields do not replace this model's contracts. | Official atlas output and validity policy, fixed-mask coverage, optimizer result, sensitivity/identifiability and native model diagnostics. Diagnostic/fallback curves are not substitute observations or official predictions. |
@@ -57,6 +57,20 @@ The nonlinear APIs do not expose Plate's `accepted`/`reasons` schema. Preserve
 native model evidence separately. Optimizer termination, finite predictions,
 adequate sensitivity and experimental support are distinct findings. Do not
 manufacture a shared scientific acceptance boolean or rank test in the study.
+
+Native RL fitting requires explicit `validMask=false` for nonpositive/nonfinite
+frequencies; an absent/empty mask does not infer their exclusion.
+Observation-aligned prediction arrays retain the input
+length/order. When excluded frequencies cannot be evaluated,
+`modelEvaluation.evaluatedObservationMask` identifies the positive finite rows;
+unevaluated predictions/residuals/wavenumbers are NaN and model validity is false.
+Positive finite excluded rows may still have predictions. The official
+`modelResult` and `diagnostics` retain the canonical solver's unique positive
+grid, including its singleton auxiliary request when needed. Full-axis
+`reliability` counts describe prediction availability, including unevaluated
+exclusions; `residualInfo` separately reports complete coverage of the fixed
+objective mask. An excluded DC row is neither a missing selected prediction
+nor evidence of a failed root.
 
 Select models from reviewed physical assumptions before interpreting fitted
 parameters. Native residual definitions, units and weighting can differ: Plate's
