@@ -79,7 +79,7 @@ retain source rows/bins, repetitions, actual Hz, original flags and the final ma
 | Configuration | Meaning |
 | --- | --- |
 | `experimentRoot`, `summaryFile` | OCE root and persisted MAT containing `experiment`; OCE owns recovery. |
-| `experimentId`, `subexperimentId`, `sampleId`, `conditionId`, `condition` | Explicit identities and scalar literal-text mechanical condition entries. No folder-name inference. |
+| `experimentId`, `subexperimentId`, `sampleId`, `conditionId`, `condition` | Explicit identities and scalar mechanical condition entries: literal text for stored text, exact doubles for stored doubles. No folder-name inference or cross-type coercion. |
 | `mode`, `period_us`, `repetitions`, `scanAxisIndex`, `direction`, `curve` | QH/Pulse, literal Pulse period, repetition labels, signed direction and an existing raw/smoothed curve. |
 | `frequencySelection`, `frequency_Hz` | `all`, inclusive observed-Hz `interval=[low high]`, or `explicit` nominal requests mapped to original observations. No nearest-valid repair or interpolation. |
 | `physical`, `review` | Native Plate density/current full scalar thickness and explicit A0/thickness/density/support review. |
@@ -125,6 +125,47 @@ and source-result references. QH additionally compares the saved physical and
 requested-frequency assembly, without duplicating grouping logic. Legacy outcome
 containers can be opened manually and their canonical `nativeResult`/`assembly`
 supplied explicitly. No generic legacy MAT decoder is added.
+
+That reuse check establishes numerical request compatibility, not historical
+provenance equality. A compatible archived native result remains reusable even
+when it lacks input hashes. Matching `processing_run_id` alone never authenticates
+the bytes used during its historical OCE processing.
+
+When `saveResult=true`, the existing result MAT additionally contains
+`studyRecord`, with no duplicate observation arrays:
+
+- `selection`: experiment/root/summary references, condition with its original
+  value types, modality/period, repetitions, signed axis, curve, frequency mode,
+  nominal frequencies and effective requested graphic frequencies.
+- `code.Lamb` and `code.OCE`: resolved repository roots, Git commits, porcelain
+  modification/untracked status and availability. Missing Git evidence is explicit;
+  a dirty status requires preserving the corresponding code changes separately.
+- `matlabVersion`, `matlabRelease`, and `inputFiles` (path, bytes, SHA-256).
+  Input hashes cover the loaded summary, indexed PhaseSpeed files and canonical
+  AcquisitionParams tables used for recovery, including indexed sources outside
+  the final fitting selection. Files are fingerprinted before recovery and checked
+  again before persistence; changed inputs block saving.
+- Pending efficiency review: hashing follows the complete summary recovery index,
+  not only the selected condition. A future reduction must preserve recovery and
+  provenance guarantees; it is not part of the current implementation.
+- `numericallyReused`, `provenanceScope` and
+  `historicalProcessingContentVerified=false`: the hash evidence applies to the
+  current study inputs, never retroactively to historical processing.
+
+The existing `nativeResult.experimental`, `nativeResult.options`, `physical`,
+`review`, `assembly`, `observationReview` and frequency-mapping tables retain the
+effective native request, fixed mask, physical justification, acquisition lineage,
+original bins and quality flags. Together with `studyRecord.selection` they permit
+scientific configuration reconstruction; numeric replay can call Plate directly
+from the native result without reopening OCE files. Root paths remain explicit
+and can be relocated by the researcher. No raw BIN, ProcessingConfig or
+ProcessingRun manifest is read or hashed by this study; their references are
+producer provenance, not verified historical inputs. Physical review references
+are caller attestations, not additional files implicitly read by the study.
+
+Use OCE PR #146's exact-identity producer/recovery contract; the integration README
+pins its revision and legacy ambiguity boundary. No local label normalizer or
+summary migration belongs to Lamb.
 
 A historical review may name the scalar-selection method as its thickness policy.
 For the current study, declare `explicit_constant_current_thickness` and retain

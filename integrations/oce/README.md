@@ -95,10 +95,16 @@ Authoritative producer contract:
 
 ## Reviewed QH target assembly and Plate coordination
 
-The optional producer dependency is the official OCE recovery API published in
-[PR #144](https://github.com/cpariona/OCE_Workflow/pull/144), merged as
-`6ba9abae3e61eff51138ffb7026cf46532466ea2`. Its validated implementation commit is
-`315ddacab1cfabf84b19f89fa94e968cfd544666`. Use `oce.results.recoverSummaryObservations`;
+Plate studies require the exact-identity producer/recovery contract in
+[OCE PR #146](https://github.com/cpariona/OCE_Workflow/pull/146), commit
+`b2ea22b00423d3be08b03cd81db94fd397f2c581`, or a revision retaining that contract.
+Text design labels remain literal; stored doubles retain their exact identities.
+New summaries use `exact_table_values_v1`; legacy recovery is allowed only when
+the indexed identity is unambiguous. Lamb does not reimplement that policy or
+recover identities already lost by a producer. Matching processing-run IDs do
+not prove historical content equality.
+
+Use `oce.results.recoverSummaryObservations`;
 Lamb neither vendors that implementation nor decodes its persisted products.
 Initialize OCE separately, load an existing summary with MATLAB `load`, then:
 
@@ -129,6 +135,9 @@ explicit condition and the intended experiment/subexperiment/signed physical axi
 order is preserved; no absent repetitions are synthesized. The caller is
 responsible for specifying the physical coordinates that define the condition,
 including condition keys not present in a subexperiment's frequency-only design.
+Condition selectors must have the stored type: double values compare exactly
+without display-text conversion; text values compare literally (`001` differs
+from `1`). Numeric-looking text is not coerced into a numeric condition.
 
 Metadata and original result identities must agree on experiment, subexperiment
 and run. Specimen `sample_id` remains optional under the OCE contract: when

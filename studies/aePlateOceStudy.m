@@ -1,6 +1,7 @@
 %% 1. Configure one reviewed condition (edit here, or supply study in the workspace).
 % This script coordinates existing owners; it is not a model dispatcher.
 % Initialize the reviewed OCE src path explicitly before running this study.
+% Recovery requires OCE PR #146's exact-identity contract (including legacy rejection).
 if ~exist('study','var')
     study=struct('experimentRoot',"",'summaryFile',"",'experimentId',"", ...
         'subexperimentId',"",'sampleId',"",'mode',"QH",'period_us',"", ...
@@ -25,8 +26,24 @@ assert(any(study.mode==["QH","Pulse"]),'Select QH or Pulse explicitly.');
 assert(isscalar(string(study.experimentId))&&strlength(study.experimentId)>0);
 assert(isscalar(string(study.sampleId))&&strlength(study.sampleId)>0);
 assert(~isempty(fieldnames(study.condition)),'Supply the mechanical condition explicitly.');
+inputHashes=table();
+if study.saveResult
+    assert(strlength(study.resultFile)>0&&~isfile(study.resultFile),'Do not overwrite a historical result.');
+    summaryHash=hashStudyFiles(string(study.summaryFile));
+end
 savedSummary=load(study.summaryFile,'experiment');
 summary=savedSummary.experiment;
+if study.saveResult
+    inputFiles=[string(study.summaryFile);fullfile(study.experimentRoot,string(summary.source.index.result_file))];
+    referenceParts=split(replace(string(summary.source.index.result_file),'\','/'),'/',2);
+    subs=unique(referenceParts(:,2),'stable');
+    for sub=subs(:)'
+        [~,metadataFile]=oce.io.loadAcquisitionTable(study.experimentRoot,sub);
+        inputFiles(end+1,1)=string(metadataFile); %#ok<SAGROW>
+    end
+    inputHashes=hashStudyFiles(inputFiles);
+    assert(isequal(inputHashes(1,:),summaryHash),'lamb:study:InputsChanged','Summary changed while being read.');
+end
 recovered=oce.results.recoverSummaryObservations(study.experimentRoot,summary);
 metadata=vertcat(recovered.acquisition_metadata);
 selected=metadata.experiment_id==study.experimentId & metadata.sub_experiment==study.subexperimentId & ...
@@ -35,10 +52,17 @@ excitation="quasi_harmonic";if study.mode=="Pulse",excitation="pulse";end
 selected=selected&metadata.excitation_type==excitation;
 for key=string(fieldnames(study.condition))'
     expected=study.condition.(key);
-    assert((ischar(expected)||isstring(expected))&&isscalar(string(expected))&& ...
-        ~ismissing(string(expected)),'Condition identities must be scalar literal text.');
     assert(ismember(key,string(metadata.Properties.VariableNames)),'Condition key is absent.');
-    selected=selected&string(metadata.(key))==string(expected);
+    actual=metadata.(key);
+    if isa(actual,'double')
+        assert(isa(expected,'double')&&isscalar(expected), ...
+            'Numeric conditions require an exact scalar double selector.');
+        selected=selected&actual==expected;
+    else
+        assert((ischar(expected)||isstring(expected))&&isscalar(string(expected))&& ...
+            ~ismissing(string(expected)),'Text conditions require a scalar literal text selector.');
+        selected=selected&string(actual)==string(expected);
+    end
 end
 if study.mode=="Pulse"
     assert(strlength(study.period_us)>0,'Supply the literal saved Pulse period.');
@@ -268,8 +292,28 @@ end
 assert(isequal(nativeResult.validMask,validMask));
 if study.saveResult
     assert(strlength(study.resultFile)>0&&~isfile(study.resultFile),'Do not overwrite a historical result.');
-    save(study.resultFile,'nativeResult','assembly','physical','review','observationReview','frequencySelectionMapping','graphicSamplingMapping','-v7.3');
+    assert(isequal(hashStudyFiles(inputHashes.path),inputHashes), ...
+        'lamb:study:InputsChanged','An OCE input changed after recovery; do not persist this study.');
+    % Small configuration only: arrays, physical inputs and reviews already have owners below.
+    selectionFields={'experimentRoot','summaryFile','experimentId','subexperimentId','sampleId', ...
+        'mode','period_us','repetitions','conditionId','condition','scanAxisIndex','direction', ...
+        'curve','frequencySelection','frequency_Hz','graphicRequestedFrequency_Hz'};
+    effectiveSelection=struct();
+    for field=selectionFields,effectiveSelection.(field{1})=study.(field{1});end
+    if study.mode=="Pulse"&&study.showFigure
+        effectiveSelection.graphicRequestedFrequency_Hz=graphicRequested;
+    end
+    oceRoot=fileparts(fileparts(fileparts(fileparts(which('oce.results.recoverSummaryObservations')))));
+    studyRecord=struct('selection',effectiveSelection, ...
+        'matlabVersion',string(version),'matlabRelease',string(version('-release')), ...
+        'code',struct('Lamb',studyRepositoryState(projectRoot),'OCE',studyRepositoryState(oceRoot)), ...
+        'inputFiles',inputHashes,'numericallyReused',reusedResult, ...
+        'provenanceScope',"current_input_bytes_unchanged_during_this_study", ...
+        'historicalProcessingContentVerified',false);
+    save(study.resultFile,'studyRecord','nativeResult','assembly','physical','review', ...
+        'observationReview','frequencySelectionMapping','graphicSamplingMapping','-v7.3');
 end
+
 fprintf('AE Plate: %d selected rows; reused=%d; alpha=%.15g Pa; gamma=%.15g Pa; RMSE=%.15g Pa; numerical accepted=%d\n', ...
     nnz(validMask),reusedResult,nativeResult.alpha_Pa,nativeResult.gamma_Pa,nativeResult.regressionRMSE_Pa,nativeResult.accepted);
 
@@ -300,4 +344,31 @@ if study.showFigure
         assert(~isfile(output+".fig")&&~isfile(output+".png"),'Do not overwrite historical figures.');
         savefig(fig,output+".fig");exportgraphics(fig,output+".png",'Resolution',96);
     end
+end
+
+function hashes=hashStudyFiles(paths)
+% Fingerprint inputs before recovery and again at persistence, without loading MAT schemas.
+paths=unique(string(paths(:)),'stable');bytes=zeros(numel(paths),1);sha256=strings(numel(paths),1);
+for k=1:numel(paths)
+    fid=fopen(paths(k),'rb');
+    assert(fid>=0,'lamb:study:UnreadableInput','Cannot hash input: %s',paths(k));
+    closeFile=onCleanup(@() fclose(fid));
+    digest=java.security.MessageDigest.getInstance('SHA-256');
+    while ~feof(fid)
+        chunk=fread(fid,1024*1024,'*uint8');bytes(k)=bytes(k)+numel(chunk);digest.update(chunk);
+    end
+    sha256(k)=lower(string(reshape(dec2hex(typecast(digest.digest(),'uint8'),2)',1,[])));
+    clear closeFile
+end
+hashes=table(paths,bytes,sha256,'VariableNames',{'path','bytes','sha256'});
+end
+
+function state=studyRepositoryState(root)
+% Git describes the code used now, never the historical producer of a PhaseSpeed file.
+prefix=sprintf('git --no-optional-locks -c safe.directory="%s" -c core.quotepath=false -C "%s" ',root,root);
+[headStatus,head]=system([prefix 'rev-parse HEAD']);
+[statusCode,status]=system([prefix 'status --porcelain=v1 --untracked-files=all']);
+state=struct('root',string(root),'commit',strtrim(string(head)), ...
+    'status',string(status),'available',headStatus==0&&statusCode==0);
+if ~state.available,state.commit="unknown";end
 end

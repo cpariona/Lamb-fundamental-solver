@@ -333,6 +333,26 @@ verifyEqual(testCase,interval.validMask, ...
 verifyEqual(testCase,interval.frequency,allRows.frequency);
 end
 
+function testStudySelectsExactNumericAndLiteralConditions(testCase)
+body=string(fileread(fullfile(testRepositoryRoot(mfilename('fullpath')),'studies','aePlateOceStudy.m')));
+selectionCode=extractBetween(body,'selected=metadata.experiment_id','sources=recovered(selected)');
+selectionCode="selected=metadata.experiment_id"+selectionCode;
+value=1.2345678901234567;
+metadata=table(["E";"E"],["S";"S"],["P";"P"],["1";"2"], ...
+    ["quasi_harmonic";"quasi_harmonic"],[value;value+eps(value)], ...
+    'VariableNames',{'experiment_id','sub_experiment','sample_id','rep_id','excitation_type','state'});
+study=struct('experimentId',"E",'subexperimentId',"S",'sampleId',"P", ...
+    'repetitions',["1","2"],'mode',"QH",'condition',struct('state',value));
+eval(char(selectionCode));verifyEqual(testCase,selected,[true;false]);
+study.condition.state=value+eps(value);
+eval(char(selectionCode));verifyEqual(testCase,selected,[false;true]);
+metadata.state=["001";"1"];
+study.condition.state="001";
+eval(char(selectionCode));verifyEqual(testCase,selected,[true;false]);
+study.condition.state="1"; %#ok<STRNU> Read by the maintained selection section through eval.
+eval(char(selectionCode));verifyEqual(testCase,selected,[false;true]);
+end
+
 function review=runStudyFrequencySections(study,sources,sourceMetadata,summary) %#ok<INUSD> Inputs are consumed by eval below.
 % Execute the maintained manual sections, without optional external OCE I/O or fitting.
 repoRoot=testRepositoryRoot(mfilename('fullpath'));
