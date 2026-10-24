@@ -2,6 +2,8 @@
 
 Antes de modificar código, leer el estándar común fijado en `.research-automation/standards/engineering.md`. Si falta el submódulo privado, detener la edición e inicializarlo; no sustituirlo por una copia informal o una URL de `main`.
 
+For each implementation task, read the main README, `docs/repository/final_architecture.md`, affected domain contracts and dependency tests once before editing. Establish owners and consumers; preserve existing local changes.
+
 ## Invariantes locales
 
 - External observation preparation preserves explicit masks, rows and provenance; reject invalid selected inputs without repairing the mask. Producers own schema validation/I/O; scientific owners retain model-specific validation and inversion.

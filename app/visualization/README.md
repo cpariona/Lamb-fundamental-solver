@@ -5,69 +5,144 @@ OCE I/O, fitting calls or scientific eligibility decisions. Plate A0 establishes
 the first model-specific renderer. It does not define a common result schema,
 dispatcher or acceptance policy for RL, mRLFE or IOP/HGO.
 
-## Plate diagnostics
+## Plate diagnostics and observation selection
 
-`plotAePlateFitDiagnostics(result, provenance, ...)` consumes the **unchanged**
-native result of `lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion`.
-The caller supplies a scalar provenance struct with nonempty `label`, `material`,
-`sourceReference` and `modelSupportReference`. It may supply one `repetitionId`
-per original row and `sourceMasks` with original logical `valid_mask`,
-`interpolated_mask` and `extrapolated_mask` evidence. Each supplied mask must match
-the native row count. Unavailable evidence is explicitly labelled unavailable.
-The renderer does not import OCE products or infer identity from paths.
+`plotAePlateFitDiagnostics(result, provenance, ...)` presents the unchanged
+`aePlateFitDispersion` result. It never fits, repairs a mask, screens fitting
+outliers or interprets experimental validity. The four existing visualization
+APIs remain the owners; no solver dispatcher or model-neutral plotting framework
+is introduced. Other fitting families retain their own scientific contracts.
 
-The figure contains:
+The study supplies an explicit fixed `validMask` from original OCE evidence:
 
-1. Original observed frequency/Cp pairs, in kHz and m/s. Included rows use circles
-   coloured by the supplied repetition identity. Excluded-by-mask rows are gray
-   dots. Ridge-invalid rows have gray crosses, interpolated rows orange squares,
-   extrapolated rows purple triangles, and finite nonpositive Hz/Cp values plus
-   markers. Categories can overlap: original ridge support is evidence, not a
-   replacement fitting mask. Nonfinite coordinates are counted and retained in
-   the figure's data, never assigned fabricated plot coordinates.
-2. Native selected `etaSquared` against `rho*Cp^2` in Pa, with the unchanged
-   `alpha - gamma*etaSquared` line whenever the native design has rank two.
-   Numerically solvable rejected fits keep their unconstrained diagnostic line.
-   Excluded positive finite observations are gray and use **display-only**
-   eta-squared from the canonical `aePlateA0MasterCurve`, using measured
-   `q=pi*f*currentFullThickness/Cp`. Their native eta-squared stays NaN. No
-   excluded-row residual is created. Nonfinite transforms are counted.
-3. Original selected native residuals in Pa against original row number, a zero
-   line, native counts, observation/group ranks, condition numbers, group
-   eta-squared span and native RMSE. Rank-deficient unavailable residuals are
-   counted. There are no invented confidence intervals or alternative metrics.
+```text
+ridge.valid_mask & ~ridge.interpolated_mask & ~ridge.extrapolated_mask &
+isfinite(frequency_Hz) & frequency_Hz > 0 & isfinite(Cp_mps) & Cp_mps > 0
+```
 
-The native `diagnostics.physicalCandidate` alone gates forward evaluation.
-Supported candidates call `aePlateSolveDispersion` on a 128-point **display**
-grid over the selected observed frequency extent. This does not change the
-observed axis or scientific sampling. A numerically rejected but physically
-supported candidate may have a clearly labelled candidate curve. Unsupported
-rejected coefficients never produce a forward curve. Numerical acceptance is
-always distinct from experimental A0/model-support validation.
+All input rows, source masks, observed Hz, acquisition identities and signed
+directions remain intact. Flag causes can overlap and must not be summed as
+independent exclusions. This is a study selection policy, not an implicit policy
+inside the model-neutral `prepareOceFitObservations` API.
 
-Both the returned evidence and FIG `UserData` retain original rows, frequencies,
-speeds, fixed mask, native eta-squared/residuals, optional original ridge flags,
-display-only eta-squared, clipping evidence and complete caller provenance.
-The result is not modified or refitted.
+QH retains one original selected k-f target bin per selected acquisition through
+`prepareOceQhFitObservations`; this differs from pooling an entire QH FFT curve.
+Pulse retains the original full frequency axis for each selected acquisition.
+Selected repetitions form one fixed request without averaging phase speeds.
+The base quality mask can be combined with an observed-Hz interval or nominal
+frequency requests mapped to original bins by the study. Source passbands and ridge processing remain OCE
+evidence; there is no hidden outlier screen or automatic optimal-band selection.
 
-## Display scales
+### Existing curve choice
 
-`resolveInversePhaseSpeedLimits(values, 'Mode', "complete")` chooses a padded
-finite-data Cp range. `Mode="robust"` uses the positive population's upper
-median/MAD screen (modified Z <= 3.5), solely for axis resolution, with 10 percent
-padding. A zero MAD retains the population. Negative finite values remain
-inspectable. An empty finite population gets a display fallback [0,1] m/s.
-This takes the justified robust-scale principle from OCE presentation without
-depending on its private helper, rounding rule or scientific processing.
+The maintained study defaults to original OCE phase-speed estimates. Choosing
+an already persisted smoothed curve is an explicit study decision. No smoothing
+is performed here. Smoothing changes both regression coordinates; lower residuals
+on a different response do not establish more accurate parameters or model validity.
 
-To compare a reviewed population, resolve the scale **once** from the explicitly
-chosen original population and pass `PhaseSpeedLimits=[low high]` to each diagnostic.
-The renderer never silently rescales an explicit shared range. Captions and
-evidence report observation/prediction counts and maximum values outside it.
-All original points remain in the plotted objects and FIG data. Robust scales
-are not fitting masks or automatic outlier deletion. Save a separate complete
-view when clipping hides observations or prediction. Regression/residual/parameter
-panels retain their own physical scales, not the phase-speed limit.
+### Presentation and mathematical interpretation
+
+Supply nonempty `label`, `material`, `sourceReference` and
+`modelSupportReference` in provenance. Optional `displayLabel` supplies the
+human title (sample, state, signed direction and analysis); `displaySubtitle`
+identifies the acquisition/modality/period. Both are presentation labels,
+never identity matching keys. Preserve exact original metadata in provenance.
+Optional per-row `repetitionId` and original `sourceMasks` retain their meanings.
+
+The three panels show:
+
+1. Observed phase speed [m/s] against actual observed frequency [kHz], separated
+   by repetition/acquisition. A physically supported coefficient candidate alone
+   enables the existing canonical `aePlateSolveDispersion` prediction on its
+   128-point display grid. This grid never replaces observations.
+2. `rho Cp^2` [Pa] against `eta^2`, with alpha/gamma in readable Pa-based units.
+   A rank-two regression retains its calculated line even when inadmissible.
+   Prediction and regression lines are black dashed. Physical support is stated separately as
+   `alpha >= gamma > 0`, with the failed inequality shown when applicable.
+3. Original fitted-minus-observed regression residuals [Pa] against the aligned
+   original observed frequencies, and the native RMSE [Pa]. Repeated frequencies
+   remain separate observations; no averaging, sorting or residual recomputation
+   changes the fitting data.
+
+The panels retain native coefficients and RMSE; the brief footer reports physical
+support, density and scalar thickness. Rank, conditioning, group diagnostics,
+native acceptance and full reasons remain in results/FIG data rather than the
+footer. A0 and the remaining Plate assumptions are not experimentally confirmed.
+
+Sparse repetitions use blue/orange/purple symbols. Without explicit graphic
+sampling, dense series use fine dots at every original coordinate. Interpolated/extrapolated extensions are excluded
+from the robust main view; their full arrays, flags and counts remain in FIG
+data. The complete view uses sparse, unconnected extension glyphs, never a
+continuous experimental extension. One shared legend avoids repeated decoding.
+
+## Automatic panel scales and complete inspection
+
+The existing `resolveInversePhaseSpeedLimits` remains the sole display-limit
+owner. `Quantity="phase_speed"` (default) uses m/s; `Quantity="regression"` and
+`Quantity="residual"` use Pa. Evidence provides `limits`, `quantity`, `unit` and
+clipping counts/extremes; legacy m/s fields remain only for phase-speed results.
+
+`Mode="robust"` uses the existing median/MAD display screen (modified Z <= 3.5),
+upper-sided for phase speed/regression and two-sided for residuals. A zero MAD
+retains the finite population. Ranges include the appropriate zero reference,
+add 10 percent padding and round outward to readable bounds. An empty panel
+uses a documented [0,1] display fallback in its own units.
+
+For comparable cases, supply one vector per case in a cell vector. The resolver
+takes the envelope of case-wise ranges, so denser acquisitions cannot dominate
+the display merely by supplying more bins. Resolve one range **per panel** from
+an explicitly declared comparable population and reuse those ranges through
+`PhaseSpeedLimits`, `RegressionLimits` and `ResidualLimits`. No manual numeric
+limits are required. Do not mix differing study populations silently.
+
+Out-of-scale selected observations retain their full original coordinates and
+receive sparse filled boundary triangles. Exclusions use open triangles; line/model
+clipping uses compact summaries. Actual extrema appear above the panel.
+Line/model clipping is summarized by count and extrema; all their
+original coordinates remain available. None of these glyphs changes fitting
+rows, residuals, coefficients or acceptance.
+
+`DisplayMode="complete"` without shared limits restores all finite coordinates
+and model/line values, including sparse excluded-extension glyphs. Editable FIG
+data also retain `completePanelLimits`, exact observation rows, native parameters,
+full diagnostics and provenance. No automatic duplicate full-range export or
+serialized callback is needed; rerender complete inspection manually from the
+same retained result.
+
+## Manual study and Pulse graphic sampling
+
+Use the single [Plate study](../../studies/aePlateOceStudy.m) and its
+[configuration contract](../../docs/oce_study_contract.md#maintained-manual-plate-study)
+for QH and Pulse. Scientific input is recovered individual OCE products, never FIG
+contents, summary means or comparison statistics.
+
+Select one condition, literal Pulse period and signed direction. Pool selected
+repetitions into one native request without averaging velocities. Coefficients,
+the single regression, residuals and RMSE use the complete fixed fitting mask.
+Acquisition, repetition and source-bin identity remain available in the assembly.
+
+`DisplayFrequency_Hz` optionally selects exact stored frequencies for glyphs in
+all three panels; it never changes fitting masks or native diagnostics. The study
+uses compatible OCE sampling indices, or original bins selected from explicit
+graphic targets before checking validity. Missing/excluded bins remain absent.
+No nearest-valid repair, interpolation or experimental extension is performed.
+
+The approved diagnostic uses blue/orange/purple repetition symbols, simple
+`Rep. 1`/`Rep. 2`/`Rep. 3`/`Model` labels and black dashed model/regression lines.
+The brief footer states mathematical support, supplied density and scalar current
+thickness (mm, three display decimals). Full diagnostics and unrounded inputs remain
+in native results and figure data.
+
+## Independent-fit compatibility view
+
+The cell-input form of `plotAePlateFitDiagnostics` retains separate native fits;
+it is not a pooled inversion. No maintained study currently requires this form,
+but it remains available for compatibility with earlier independent-repetition
+reviews. Removal requires a separate API decision. Automatic limits use the
+existing case-envelope resolver for all three panels before rendering any case;
+explicit shared limits remain supported. Each repetition's clipping summaries
+and edge glyphs refer to those same limits, with full native evidence retained.
+The scalar joint-fit path used by the maintained study is unchanged.
 
 ## Parameter trends
 
@@ -111,11 +186,13 @@ provenance = struct('label', "Reviewed condition / signed direction", ...
 [fig, evidence] = plotAePlateFitDiagnostics(nativeResult, provenance);
 
 %% Use one shared display scale for a reviewed population
-shared = resolveInversePhaseSpeedLimits(reviewedPopulationCp_mps, 'Mode', "robust");
+population = cellfun(@(r) r.experimental.Cp_mps(r.validMask), ...
+    reviewedNativeResults, 'UniformOutput', false);
+shared = resolveInversePhaseSpeedLimits(population, 'Mode', "robust");
 fig = plotAePlateFitDiagnostics(nativeResult, provenance, 'PhaseSpeedLimits', shared);
 
 %% Save to a caller-configured external analysis root
-paths = saveInverseFigure(fig, externalOutputRoot, 'plate_condition_axis1_left_raw');
+paths = saveInverseFigure(fig, externalOutputRoot, 'plate_condition_axis1_left');
 
 %% Review parameter trends using explicit experimental coordinates
 trend = plotAePlateParameterTrends(nativeResults, reviewedCoordinates, ...

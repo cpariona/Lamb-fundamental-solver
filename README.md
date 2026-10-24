@@ -34,8 +34,12 @@ boundaries.
 Use MATLAB `help` on an entrypoint for its request, units, result, and validity
 contract.
 
-The prestressed-plate formulation supports A0 with a direct linear SVD inversion
-and no GUI or OCE adapter. See the
+The prestressed-plate formulation supports A0 with a direct linear SVD inversion,
+independent of GUI and OCE. Optional [OCE integration](app/oce_integration/README.md)
+prepares observations for the native fitting families; the reviewed QH coordinator
+and [manual Plate study](studies/aePlateOceStudy.m) retain Plate-specific contracts.
+The study supports QH targets and Pulse broadband observations with separate fitting
+and graphic selections. Plate is not integrated into the fitting GUI. See the
 [prestressed-plate contract and usage](docs/models/acoustoelastic_prestressed_plate.md) for its
 assumptions, fixed observation mask, units and identification limits.
 

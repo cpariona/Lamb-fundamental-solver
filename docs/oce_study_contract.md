@@ -64,6 +64,83 @@ regression residuals in Pa are not directly comparable to speed or normalized
 residuals from another family. This integration supplies no cross-model score or
 automatic model-selection rule.
 
+## Maintained manual Plate study
+
+The single executable workflow is [aePlateOceStudy.m](../studies/aePlateOceStudy.m).
+It replaces the pilot preview/export coordinator. It contains no specimen names,
+absolute study paths, FIG input dependency, frequency optimizer or model dispatcher.
+Initialize the reviewed OCE `src` path explicitly; Lamb startup supplies its app APIs.
+
+Open the script, clear `study` to reset configuration, then run/edit section 1.
+Execute sections 2--7 manually, or run the script with a configured `study` in the
+workspace. Inspect `sourceMetadata` and `observationReview` before fitting. They
+retain source rows/bins, repetitions, actual Hz, original flags and the final mask.
+
+| Configuration | Meaning |
+| --- | --- |
+| `experimentRoot`, `summaryFile` | OCE root and persisted MAT containing `experiment`; OCE owns recovery. |
+| `experimentId`, `subexperimentId`, `sampleId`, `conditionId`, `condition` | Explicit identities and scalar literal-text mechanical condition entries. No folder-name inference. |
+| `mode`, `period_us`, `repetitions`, `scanAxisIndex`, `direction`, `curve` | QH/Pulse, literal Pulse period, repetition labels, signed direction and an existing raw/smoothed curve. |
+| `frequencySelection`, `frequency_Hz` | `all`, inclusive observed-Hz `interval=[low high]`, or `explicit` nominal requests mapped to original observations. No nearest-valid repair or interpolation. |
+| `physical`, `review` | Native Plate density/current full scalar thickness and explicit A0/thickness/density/support review. |
+| `fitOptions` | Native options, forwarded unchanged. Empty options reuse a supplied result's effective settings; a new request otherwise uses native defaults. |
+| `existingNativeResult`, `existingAssembly`, `resultFile`, `reuseOnly` | Approved native objects or a MAT with `nativeResult` and `assembly`. Default `reuseOnly=true` rejects changed requests before fitting. |
+| `graphicRequestedFrequency_Hz` | Pulse graphic targets, independent of fitting selection; compatible OCE sampling is preferred. |
+| `showFigure`, `displayLabel`, `displaySubtitle` | One diagnostic with the approved fixed typography and renderer. |
+| `saveResult`, `exportFigure`, `figureFolder`, `figureName` | Opt-in persistence; defaults create no files. Existing destinations are never overwritten. |
+
+For `explicit`, `frequency_Hz` contains researcher-requested nominal frequencies.
+QH matches the registered physical excitation values and retains the existing
+selected FFT bins. Pulse reuses compatible OCE requested/selected-frequency
+correspondences; otherwise it selects the nearest bin on each complete original
+axis before applying quality. Excluded bins are never replaced by nearby valid
+ones. Requests outside an original Pulse axis are unmapped, not clamped to an end;
+unrecorded QH physical frequencies likewise select nothing.
+`frequencySelectionMapping` retains source/repetition, requested Hz, observed Hz,
+original source-bin index, quality and mapping origin, including unmapped requests.
+It is retained in the workspace and with newly saved study results. Multiple
+requests selecting one bin never duplicate that fitting row.
+
+Pulse fitting and graphic requests use one mapping pass on each original source
+axis. OCE's saved selected Hz are resolved to that axis; its aligned-summary bin
+indices are never used as original indices. `graphicSamplingMapping` records the
+same correspondence fields for display requests. The two masks remain independent:
+changing graphic targets cannot add or remove fitting observations. Both mapping
+tables are retained with newly saved study results.
+
+The single thickness policy is an explicit reviewed constant current full thickness
+in `physical.thickness_m`, for either modality. Its source and scalar-selection
+justification are required. A researcher may supply a median of reviewed OCT
+measurements or an independent measurement; the study never silently changes
+the measurement population by mode or invents uncertainty.
+
+QH uses `prepareOceQhFitObservations`; its existing Plate coordinator retains
+physical-frequency coverage preparation. Pulse calls `prepareOceFitObservations`
+per acquisition and concatenates every original row, including exclusions.
+Both reach the same unweighted `aePlateFitDispersion`, one request per condition
+and signed direction. Pulse periods/repetitions are never spectral group IDs.
+
+Reuse requires identical observations/mask/IDs, physical inputs, effective options
+and source-result references. QH additionally compares the saved physical and
+requested-frequency assembly, without duplicating grouping logic. Legacy outcome
+containers can be opened manually and their canonical `nativeResult`/`assembly`
+supplied explicitly. No generic legacy MAT decoder is added.
+
+A historical review may name the scalar-selection method as its thickness policy.
+For the current study, declare `explicit_constant_current_thickness` and retain
+that selection method in the justification; do not rewrite the archived review,
+scalar physical input or native result.
+
+Pulse uses compatible OCE selected Hz or original bins nearest explicit graphic
+targets before applying validity. Missing/excluded bins stay absent. Per-source
+graphic masks are checked against the renderer's exact-Hz selection; incompatible
+grids require review instead of silently selecting additional rows. All numerical
+diagnostics and acceptance still describe the complete fixed fitting request.
+
+Workspace outputs include `frequencySelectionMapping`, `assembly`, `observationReview`, `nativeResult`, `reusedResult`
+and, when requested, `fig`/`figureEvidence`. This study is Plate only. RL, mRLFE and
+IOP/HGO retain their model-specific direct APIs and scientific requirements.
+
 ## Manual MATLAB sections
 
 Keep preparation, physical review, model choice and fitting separately executable.
@@ -151,11 +228,11 @@ reviewed masks, full requests/results and output hashes. Relocation changes root
 configuration, not datasets, saved observations or scientific APIs. Preserve
 earlier reports as historical evidence; do not silently overwrite them.
 
-A single reusable manual driver can live alongside the existing coordinators in
-`app/oce_integration/`. Dataset-specific selections, physical review and outputs
-remain external. A new permanent studies hierarchy is unnecessary for one pilot;
-the driver coordinates canonical APIs and keeps preparation/model selection
-separately executable as MATLAB sections.
+The maintained manual driver is `studies/aePlateOceStudy.m`.
+`app/oce_integration/` owns the existing translation/preparation and QH coordinator
+APIs, not the study script. Dataset-specific selections, physical review and
+outputs remain external. The study coordinates canonical APIs in separately
+executable MATLAB sections.
 
 An exploratory fit may explicitly declare A0 and remaining model support as
 working hypotheses. Record that evidence class separately from reviewed physical

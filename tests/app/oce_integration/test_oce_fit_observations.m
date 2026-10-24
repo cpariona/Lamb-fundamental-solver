@@ -278,6 +278,94 @@ manual = struct('frequency_Hz', double(source.dispersion.estimators.kf_ridge.fre
     'directionId', "scan_axis_1:left");
 end
 
+function testStudyPulseUsesOneOriginalBinMappingAndSeparateMasks(testCase)
+[sources,sourceMetadata,summary]=studySources();
+study=struct('mode',"Pulse",'scanAxisIndex',1,'direction',"left",'curve',"raw", ...
+    'frequencySelection',"explicit",'frequency_Hz',[1000;2000;6000;1002], ...
+    'showFigure',true,'graphicRequestedFrequency_Hz',[3000;2000;6000]);
+before=sources;
+review=runStudyFrequencySections(study,sources,sourceMetadata,summary);
+verifyEqual(testCase,sources,before);
+verifyEqual(testCase,find(review.validMask),[2;7;12]);
+verifyFalse(testCase,any(review.graphicMask)); % Graphic targets outside the fixed fit stay excluded.
+verifyEqual(testCase,review.graphicFrequency,[1998;2002;2997;3003]);
+m=review.selectionMapping;
+verifyEqual(testCase,nnz(m.mappingSource=="OCE_persisted"),2);
+verifyTrue(testCase,all(m.sourceBinIndex(m.requestedFrequency_Hz==2000)==3));
+verifyFalse(testCase,any(m.qualityValid(m.requestedFrequency_Hz==2000)));
+verifyTrue(testCase,all(isnan(m.observedFrequency_Hz(m.requestedFrequency_Hz==6000))));
+verifyEqual(testCase,nnz(review.validMask),3); % Two requests must not duplicate one bin.
+g=review.graphicMapping;
+verifyEqual(testCase,g.sourceBinIndex(g.requestedFrequency_Hz==3000),[4;4;4]);
+verifyEqual(testCase,g.mappingSource(g.requestedFrequency_Hz==3000), ...
+    ["OCE_persisted";"nearest_original_bin";"OCE_persisted"]);
+% A graphic target change cannot alter the inversion mask or its correspondence.
+study.graphicRequestedFrequency_Hz=4000;
+other=runStudyFrequencySections(study,sources,sourceMetadata,summary);
+verifyEqual(testCase,other.validMask,review.validMask);
+verifyEqual(testCase,other.selectionMapping,review.selectionMapping);
+study.frequencySelection="all";study.graphicRequestedFrequency_Hz=[3000;2000;6000];
+allRows=runStudyFrequencySections(study,sources,sourceMetadata,summary);
+verifyEqual(testCase,find(allRows.graphicMask),[4;9;14]);
+verifyEqual(testCase,allRows.validMask,allRows.qualityMask);
+end
+
+function testStudyQhNominalIdentityAndLegacyFrequencyModes(testCase)
+[sources,sourceMetadata,summary]=studySources();
+sourceMetadata.frequency_Hz=[1000;1000;2000];
+sources(3).scientific_result.dispersion.estimators.kf_ridge.directions(1).target_selection.selected_bin_index=3;
+study=struct('mode',"QH",'scanAxisIndex',1,'direction',"left",'curve',"raw", ...
+    'frequencySelection',"explicit",'frequency_Hz',[1000;5000], ...
+    'showFigure',false,'graphicRequestedFrequency_Hz',[]);
+review=runStudyFrequencySections(study,sources,sourceMetadata,summary);
+verifyEqual(testCase,review.frequency,[1001;999;2002]);
+verifyEqual(testCase,review.bins,[2;2;3]);
+verifyEqual(testCase,review.validMask,[true;true;false]);
+verifyEqual(testCase,review.selectionMapping.observedFrequency_Hz(1:2),[1001;999]);
+verifyEqual(testCase,review.selectionMapping.mappingSource(end),"unrecorded_physical_frequency");
+study.mode="Pulse";study.frequencySelection="all";
+allRows=runStudyFrequencySections(study,sources,sourceMetadata,summary);
+verifyEqual(testCase,allRows.validMask,allRows.qualityMask);
+study.frequencySelection="interval";study.frequency_Hz=[1000;3000];
+interval=runStudyFrequencySections(study,sources,sourceMetadata,summary);
+verifyEqual(testCase,interval.validMask, ...
+    allRows.qualityMask&allRows.frequency>=1000&allRows.frequency<=3000);
+verifyEqual(testCase,interval.frequency,allRows.frequency);
+end
+
+function review=runStudyFrequencySections(study,sources,sourceMetadata,summary) %#ok<INUSD> Inputs are consumed by eval below.
+% Execute the maintained manual sections, without optional external OCE I/O or fitting.
+repoRoot=testRepositoryRoot(mfilename('fullpath'));
+body=string(fileread(fullfile(repoRoot,'studies','aePlateOceStudy.m')));
+selectionCode=extractBetween(body,'%% 3. Review','%% 4. Prepare');
+eval(char("%% 3. Review"+selectionCode));
+graphicCode=extractBetween(body,'%% 7. Sample','    reference=string(study.resultFile)');
+eval(char("%% 7. Sample"+graphicCode+newline+"end")); % Close showFigure before rendering.
+review=struct('frequency',frequency,'bins',bins,'qualityMask',qualityMask, ...
+    'validMask',validMask,'selectionMapping',frequencySelectionMapping, ...
+    'graphicMapping',graphicSamplingMapping,'graphicMask',graphicMask,'graphicFrequency',graphicFrequency);
+end
+
+function [sources,sourceMetadata,summary]=studySources()
+[source,~,~]=fixture();
+sources=repmat(struct('scientific_result',source),3,1);
+for j=1:3
+    f=[0;1001;2002;3003;4004];if j==2,f=[0;999;1998;2997;3996];end
+    one=source.dispersion.estimators.kf_ridge.directions(1);
+    one.phase_speed_curve.raw_phase_speed_m_per_s=[NaN;10;20;30;40];
+    one.ridge.valid_mask=[false;true;false;true;true];
+    one.ridge.interpolated_mask=false(5,1);one.ridge.extrapolated_mask=false(5,1);
+    one.target_selection.selected_bin_index=2;
+    sources(j).scientific_result.dispersion.estimators.kf_ridge.frequency_axis_hz=f;
+    sources(j).scientific_result.dispersion.estimators.kf_ridge.directions=repmat(one,1,4);
+end
+sourceMetadata=table(["1";"2";"3"],'VariableNames',{'rep_id'});
+% These are aligned-axis indices, deliberately outside every original source axis.
+summary=struct('summary',struct('dispersion_sampling', ...
+    struct('requested_frequency_hz',[1000;3000],'selected_frequency_hz',[1001;3003], ...
+    'selected_bin_index',[501;1501])));
+end
+
 function [source, selection, metadata] = fixture()
 % Narrow consumer projection, not a second complete OCE schema fixture.
 frequency = [800.14304727021295 4367.7985459023481 9583.0979186334731 ...

@@ -2,7 +2,7 @@ function test_repository_dependency_boundaries_contract()
 %TEST_REPOSITORY_DEPENDENCY_BOUNDARIES_CONTRACT Guard source-layer direction.
 
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
-paths = gitTrackedMatlab(repoRoot);
+paths = gitMatlab(repoRoot);
 
 assertLayer(repoRoot, paths, "src/+lamb/+models/", ...
     ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
@@ -14,7 +14,19 @@ assertLayer(repoRoot, paths, "src/+lamb/+grids/", ...
     ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "src/+lamb/+sweeps/", ...
     ["src/+lamb/+models/", "src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
-assertLayer(repoRoot, paths, "studies/", ["app/", "examples/", "tests/"]);
+studyAppApis = ["prepareOceFitObservations"; "prepareOceQhFitObservations"; ...
+    "fitOceQhPrestressedPlate"; "plotAePlateFitDiagnostics"; ...
+    "plotAePlateParameterTrends"; "resolveInversePhaseSpeedLimits"; "saveInverseFigure"];
+assertLayer(repoRoot, paths, "studies/", ["app/", "examples/", "tests/"], studyAppApis);
+appNames = matlabNames(paths(startsWith(paths,"app/")));
+assert(all(ismember(studyAppApis,appNames)), 'A declared public study API is missing.');
+uiNames = setdiff(appNames,studyAppApis);
+publicPaths = paths(endsWith(paths,"/"+studyAppApis+".m"));
+assertNoCalls(repoRoot,publicPaths,uiNames, ...
+    'Public study APIs must remain independent of GUI implementation');
+assert(isempty(intersect(matlabCallNames('prepareOceFitObservations(data, selection, metadata);'),uiNames)));
+assert(ismember("guiRunFit",intersect(matlabCallNames('feval("guiRunFit",request);'),uiNames)), ...
+    'Dynamic GUI calls must remain detectable.');
 assertLayer(repoRoot, paths, "app/", ["studies/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "examples/", ["studies/", "app/", "tests/"]);
 % Enforce the operation's dependencies, without fixing its directory.
@@ -174,11 +186,12 @@ assert(ismember("aeFindAtlasLocalMinima", offenders), ...
     'Qualified forbidden AE calls must be reduced to their bare semantic name.');
 end
 
-function assertLayer(repoRoot, paths, sourcePrefix, forbiddenPrefixes)
+function assertLayer(repoRoot, paths, sourcePrefix, forbiddenPrefixes, allowedNames)
+if nargin < 5, allowedNames = strings(0,1); end
 sourcePaths = paths(startsWith(paths, sourcePrefix));
 assert(~isempty(sourcePaths), 'Dependency scan source is empty: %s', sourcePrefix);
 forbiddenPaths = paths(startsWith(paths, forbiddenPrefixes));
-forbiddenNames = matlabNames(forbiddenPaths);
+forbiddenNames = setdiff(matlabNames(forbiddenPaths),allowedNames);
 
 for i = 1:numel(sourcePaths)
     source = fileread(fullfile(repoRoot, sourcePaths(i)));
@@ -217,11 +230,12 @@ end
 names = unique(names);
 end
 
-function paths = gitTrackedMatlab(repoRoot)
-[status, output] = system(sprintf('git -C "%s" ls-files "*.m"', repoRoot));
+function paths = gitMatlab(repoRoot)
+[status, output] = system(sprintf('git -C "%s" ls-files --cached --others --exclude-standard "*.m"', repoRoot));
 assert(status == 0, 'Could not enumerate tracked MATLAB files.');
 paths = replace(splitlines(string(strtrim(output))), "\", "/");
 paths(paths == "") = [];
+paths = unique(paths,'stable');
 end
 
 function text = executableMatlabText(text)

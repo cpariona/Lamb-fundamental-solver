@@ -136,6 +136,16 @@ fitting masks or scientific ownership.
 
 ## Presentation boundary
 
+Studies may consume exactly the GUI-independent public app operations
+`prepareOceFitObservations`, `prepareOceQhFitObservations`,
+`fitOceQhPrestressedPlate`, `plotAePlateFitDiagnostics`,
+`plotAePlateParameterTrends`, `resolveInversePhaseSpeedLimits` and
+`saveInverseFigure`. This is a bounded consumer surface, not permission to call
+GUI callbacks, GUI fitting/import helpers or execution-profile internals.
+The dependency contract checks the permitted owners for GUI independence and
+includes untracked MATLAB files when reviewing the working tree. Models/fitting
+still cannot depend on any app operation; examples retain their existing rule.
+
 `app/visualization/` owns GUI-independent presentation of native inverse results,
 reviewed experimental coordinates, display-only Cp limits and FIG/TIF export.
 Its first scientific presentation is Plate A0: it consumes unchanged native

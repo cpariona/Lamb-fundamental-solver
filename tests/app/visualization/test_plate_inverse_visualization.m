@@ -159,6 +159,146 @@ verifyEqual(testCase,sum(complete.outsideDisplayCount),0);
 verifyEqual(testCase,complete.alpha_Pa,e.alpha_Pa);verifyEqual(testCase,complete.gamma_Pa,e.gamma_Pa);
 end
 
+function testComparableCaseEnvelopeDoesNotWeightDenseAcquisitions(testCase)
+cases={(1:10)';(10:20)';[(2:8)';1e6]};
+[limits,e]=resolveInversePhaseSpeedLimits(cases,'Mode',"robust");
+dense=cases;dense{1}=repmat(dense{1},1000,1);
+verifyEqual(testCase,resolveInversePhaseSpeedLimits(dense,'Mode',"robust"),limits);
+verifyEqual(testCase,resolveInversePhaseSpeedLimits(cases([3 1 2]),'Mode',"robust"),limits);
+verifyGreaterThanOrEqual(testCase,limits(2),max(cases{2}));
+verifyLessThan(testCase,limits(2),1e6);verifyEqual(testCase,e.outsideCount,1);
+verifyEqual(testCase,e.source,"case_envelope_robust");
+verifyEqual(testCase,resolveInversePhaseSpeedLimits(cases,'Limits',[0 7]),[0 7]);
+end
+
+function testDenseGlyphsAndOffscaleExtremesKeepEveryNativeRow(testCase)
+[native,review]=fixture();data=native.experimental;
+for key=["frequency_Hz","Cp_mps","validMask"]
+    data.(key)=repmat(data.(key),100,1);
+end
+native=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,native.physical);
+review.repetitionId=repmat(review.repetitionId,100,1);
+for key=string(fieldnames(review.sourceMasks))'
+    review.sourceMasks.(key)=repmat(review.sourceMasks.(key),100,1);
+end
+before=native;
+[fig,e]=plotAePlateFitDiagnostics(native,review,'PhaseSpeedLimits',[0 1],'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,native,before);
+verifyEqual(testCase,e.observations.Cp_mps,native.experimental.Cp_mps);
+verifyEqual(testCase,e.observations.included,native.validMask);
+series=findall(fig,'Tag','included_observations');count=0;
+for k=1:numel(series)
+    count=count+numel(series(k).XData);
+    verifyEqual(testCase,series(k).Marker,'.');
+end
+verifyEqual(testCase,count,nnz(native.validMask));
+edge=findall(fig,'Tag','offscale_selected_speed');
+outside=native.validMask&isfinite(native.experimental.frequency_Hz)&isfinite(native.experimental.Cp_mps)&native.experimental.Cp_mps>1;
+verifyEqual(testCase,edge.UserData.originalYData,native.experimental.Cp_mps(outside));
+verifyEqual(testCase,edge.YData(:),ones(numel(edge.XData),1));
+axis=findall(fig,'Tag','plate_dispersion');verifyTrue(testCase,any(contains(string(axis.Title.String),"outside",'IgnoreCase',true)));
+verifyEqual(testCase,numel(findall(fig,'Type','legend')),1);
+end
+
+function testSignedPanelScalesHaveCorrectUnitsAndKeepZero(testCase)
+values=[(-5:5)';-1e9;1e9];
+[limits,e]=resolveInversePhaseSpeedLimits(values,'Mode',"robust",'Quantity',"residual");
+verifyLessThan(testCase,limits(1),0);verifyGreaterThan(testCase,limits(2),0);
+verifyLessThan(testCase,max(abs(limits)),1e9);verifyEqual(testCase,e.outsideCount,2);
+verifyEqual(testCase,e.unit,"Pa");verifyFalse(testCase,isfield(e,'limits_mps'));
+negative=resolveInversePhaseSpeedLimits([-5;-4;-3],'Mode',"robust",'Quantity',"residual");
+verifyGreaterThanOrEqual(testCase,negative(2),0);
+end
+
+function testReadableSupportAndOriginalFrequencyResidualCoordinates(testCase)
+[native,review]=fixture();before=native;
+review.displayLabel="Sample | state | longitudinal / left | AE Plate inversion";
+review.displaySubtitle="Pulse; period 166.667 us; repetition 1";
+[fig,e]=plotAePlateFitDiagnostics(native,review,'DisplayMode',"robust",'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,native,before);verifyEqual(testCase,e.observations.nativeResidual_Pa,native.regressionResidual_Pa);
+verifyTrue(testCase,contains(e.presentation.physicalStatement,"alpha >= gamma > 0"));
+extensions=findall(fig,'Tag','excluded_extensions');verifyEqual(testCase,string(extensions.Visible),"off");
+lines=findall(fig,'Tag','native_residual');xy=zeros(0,2);
+for k=1:numel(lines),xy=[xy;lines(k).XData(:),lines(k).YData(:)];end %#ok<AGROW>
+expected=[native.experimental.frequency_Hz(native.validMask)/1e3,native.regressionResidual_Pa(native.validMask)];
+verifyEqual(testCase,sortrows(xy),sortrows(expected));
+verifyEqual(testCase,numel(findall(fig,'Type','legend')),1);
+verifyEqual(testCase,e.display.limits,resolveInversePhaseSpeedLimits( ...
+    native.experimental.Cp_mps(native.validMask),'Mode',"robust"));
+end
+
+function testJointRepetitionDisplaySamplingKeepsFullFit(testCase)
+[native,review]=fixture();data=native.experimental;count=numel(data.frequency_Hz);
+for key=["frequency_Hz","Cp_mps","validMask"]
+    data.(key)=repmat(data.(key),3,1);
+end
+joint=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,native.physical);
+review.repetitionId=repelem(["1";"2";"3"],count);
+for key=string(fieldnames(review.sourceMasks))'
+    review.sourceMasks.(key)=repmat(review.sourceMasks.(key),3,1);
+end
+before=joint;requested=[100;111;3000];
+[fig,e]=plotAePlateFitDiagnostics(joint,review,'DisplayFrequency_Hz',requested,'Visible','off');
+cleanup=onCleanup(@()close(fig));
+expected=joint.validMask&ismember(joint.experimental.frequency_Hz,requested);
+verifyEqual(testCase,joint,before);
+verifyEqual(testCase,e.observations.included,joint.validMask);
+verifyEqual(testCase,e.observations.nativeResidual_Pa,joint.regressionResidual_Pa);
+verifyEqual(testCase,e.displayedObservationMask,expected);
+verifyEqual(testCase,nnz(joint.validMask),12);verifyEqual(testCase,nnz(expected),6);
+verifyEqual(testCase,numel(findall(fig,'Tag','native_regression_line')),1);
+verifyEqual(testCase,numel(findall(fig,'Tag','plate_forward')),1);
+for tag=["included_observations","native_regression_observations","native_residual"]
+    h=findall(fig,'Tag',tag);verifyEqual(testCase,numel(h),3);
+    verifyEqual(testCase,sum(arrayfun(@(s)numel(s.XData),h)),6);
+end
+end
+
+function testIndependentFitsShareAutomaticScalesAndClippingEvidence(testCase)
+[first,review]=fixture();data=first.experimental;
+data.Cp_mps(data.validMask)=3*data.Cp_mps(data.validMask);
+second=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,first.physical);
+original={first;second};reviews={review;review};
+reviews{1}.repetitionId=repmat("1",numel(data.frequency_Hz),1);
+reviews{2}.repetitionId=repmat("2",numel(data.frequency_Hz),1);
+[fig,e]=plotAePlateFitDiagnostics(original,reviews,'DisplayMode',"robust",'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,e.nativeResults,original);
+cp={first.experimental.Cp_mps(first.validMask);second.experimental.Cp_mps(second.validMask)};
+verifyEqual(testCase,e.sharedPanelLimits.phaseSpeed_mps,resolveInversePhaseSpeedLimits(cp,'Mode',"robust"));
+for k=1:2
+    verifyEqual(testCase,e.repetitionEvidence{k}.display.limits,e.sharedPanelLimits.phaseSpeed_mps);
+    verifyEqual(testCase,e.repetitionEvidence{k}.regressionDisplay.limits,e.sharedPanelLimits.regression_Pa);
+    verifyEqual(testCase,e.repetitionEvidence{k}.residualDisplay.limits,e.sharedPanelLimits.residual_Pa);
+end
+[clipped,c]=plotAePlateFitDiagnostics(original,reviews,'PhaseSpeedLimits',[0 1], ...
+    'RegressionLimits',[0 1],'ResidualLimits',[1e9 2e9],'Visible','off');
+cleanup2=onCleanup(@()close(clipped));
+for tag=["plate_dispersion","plate_regression","plate_residuals"]
+    ax=findall(clipped,'Tag',tag);notes=string(ax.Title.String);
+    verifyTrue(testCase,any(contains(notes,"Rep. 1: Data outside:")));
+    verifyTrue(testCase,any(contains(notes,"Rep. 2: Data outside:")));
+    edges=findall(ax,'-regexp','Tag','^offscale_');
+    for k=1:numel(edges)
+        verifyTrue(testCase,all(ismember(edges(k).YData,ylim(ax))));
+        verifyNotEmpty(testCase,edges(k).UserData.originalYData);
+    end
+end
+verifyEqual(testCase,c.nativeResults,original);
+[complete,allEvidence]=plotAePlateFitDiagnostics(original,reviews,'Visible','off');
+cleanup3=onCleanup(@()close(complete));
+for k=1:2
+    verifyEqual(testCase,allEvidence.repetitionEvidence{k}.observedClipping.outsideCount,0);
+    verifyEqual(testCase,allEvidence.repetitionEvidence{k}.predictionClipping.outsideCount,0);
+end
+ax=findall(complete,'Tag','plate_regression');lines=findall(ax,'Tag','native_regression_line');
+for k=1:numel(lines)
+    verifyTrue(testCase,all(lines(k).YData>=ax.YLim(1)&lines(k).YData<=ax.YLim(2)));
+end
+end
+
 function [native,review]=fixture()
 physical=struct('alpha_Pa',300000,'gamma_Pa',150000,'density_kgpm3',1070,'thickness_m',0.001);
 f=[100;1000;3000;8000];
