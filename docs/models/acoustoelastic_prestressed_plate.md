@@ -79,6 +79,11 @@ positive root of `eta^3+eta^2+3*eta-1=0`. The constant solution `eta=1` at
 positive `q` is spurious: its two thickness roots coincide and the unregularized
 boundary determinant vanishes without a physical mode.
 
+The universal Rayleigh-limit root is stored as its correctly rounded double
+`0.29559774252208477`, verified against the independent reference and cubic
+residual. Nested evaluations reuse that immutable mathematical value without
+repeating its root search, adding cache state or changing any API.
+
 `aePlateA0MasterCurve(q)` divides the residual analytically by `1-eta^2`.
 For `q <= 0.05` it solves for `z=(1-eta^2)/q^2` using the deflated tanh
 series through its thirteenth-order term. This keeps the finite flexural
@@ -89,6 +94,14 @@ correction to the Rayleigh root is below double precision. Zero and positive
 infinity are accepted as limits. Negative, NaN or complex arguments are
 rejected. Output arrays retain input shape. Values smaller than floating-point
 range cannot retain their correction.
+
+The small-q residual is scaled by the positive factor `tanh(q)/q` and evaluated
+as `(4/3-z) + q^2*correction`, rather than subtracting two rounded O(1) terms.
+Both tanh factors use the same retained thirteenth-order series. The first omitted
+term in `tanh(q)/q` is bounded by `929569/638512875 * q^14` on this interval;
+its contribution to the scaled residual is below `1.2e-21` for `q <= 0.05`.
+This removes the spurious endpoint-sign failure without widening `[0,4/3]`,
+changing root tolerances, clipping a root or substituting an asymptotic answer.
 
 `aePlateSolveDispersion(frequency_Hz, physical)` solves `omega*h = q*Cp(q)` in `log(q)`
 to avoid an absolute tolerance erasing very small positive wavenumbers. Its

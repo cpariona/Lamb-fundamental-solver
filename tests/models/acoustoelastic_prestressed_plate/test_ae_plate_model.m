@@ -30,9 +30,61 @@ verifyEqual(testCase, curve.oneMinusEtaSquared(2:end)./q(2:end).^2, ...
 verifyGreaterThan(testCase, curve.oneMinusEtaSquared(2), 0);
 end
 
+function testTinyFlexuralBracketRegression(testCase)
+% All 33 failures identified by the independent characterization sweep.
+q = [1.0914403364487571e-14;1.6904409316432633e-14;2.0137242498623896e-14; ...
+    4.0550853544838433e-14;4.623810213992594e-14;8.5310011401759131e-14; ...
+    1.2105981335504829e-13;4.6989410860521603e-13;7.2777980453682418e-13; ...
+    1.0327614057613959e-12;1.4028137045619589e-12;1.4655478409559129e-12; ...
+    2.0796966871036939e-12;1.425607593602188e-11;1.625548755750485e-11; ...
+    1.9364219639466029e-11;2.2080047330188969e-11;2.3067471887200668e-11; ...
+    2.7478941531023972e-11;3.2734069487883859e-11;5.2966344389165804e-11; ...
+    5.5335010921573709e-11;1.2705741052085393e-10;2.2438819237827616e-10; ...
+    2.5585858869056529e-10;3.4753616144320608e-10;4.3251383103500792e-10; ...
+    1.538154640303039e-9;1.6788040181225589e-9;2.2803420720004208e-9; ...
+    2.382319469358684e-9;3.2359365692962812e-9;5.4701596289397102e-9];
+curve = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(q);
+verifyGreaterThan(testCase,curve.oneMinusEtaSquared,0);
+verifyEqual(testCase,curve.oneMinusEtaSquared./q.^2,repmat(4/3,size(q)),'RelTol',2e-12);
+for k=1:numel(q)
+    scalar = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(q(k));
+    verifyEqual(testCase,scalar.eta,curve.eta(k));
+    verifyEqual(testCase,scalar.oneMinusEtaSquared,curve.oneMinusEtaSquared(k));
+end
+end
+
+function testTransitionNeighboursPreservePhysicalBranch(testCase)
+q = [.05-eps(.05),.05,.05+eps(.05);64-eps(64),64,64+eps(64)];
+curve = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(q);
+reference = repmat([.99833941569870538033;.29559774252208480319],1,3);
+verifyEqual(testCase,curve.eta,reference,'AbsTol',2e-13);
+verifyEqual(testCase,size(curve.eta),size(q));
+residual = 4*curve.eta.*tanh(curve.eta.*q)./tanh(q)-(1+curve.eta.^2).^2;
+verifyEqual(testCase,residual,zeros(size(q)),'AbsTol',2e-14);
+for k=1:numel(q)
+    scalar = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(q(k));
+    verifyEqual(testCase,scalar.oneMinusEtaSquared,curve.oneMinusEtaSquared(k));
+end
+end
+
+function testLowFrequencyForwardNearTensileBoundary(testCase)
+p = physicalParameters();
+frequency = [0;logspace(-10,8,61)'];
+for stress = [0,eps(p.gamma_Pa),1e-8*p.gamma_Pa,1e-4*p.gamma_Pa,p.gamma_Pa]
+    p.alpha_Pa = p.gamma_Pa+stress;
+    mode = lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion(frequency,p);
+    verifyTrue(testCase,all(mode.validMask));
+    verifyEqual(testCase,mode.frequency_Hz,frequency);
+    verifyEqual(testCase,mode.wavenumber_radpm(2:end).*mode.phaseVelocity_mps(2:end), ...
+        mode.angularFrequency_radps(2:end),'RelTol',2e-13);
+    verifyEqual(testCase,mode.phaseVelocity_mps(1),sqrt((p.alpha_Pa-p.gamma_Pa)/p.density_kgpm3));
+end
+end
+
 function testRayleighLimitAndResidual(testCase)
 curve = lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve([0.2, 1, 4, 20, 64, 1e5, Inf]);
 e = curve.eta(end);
+verifyEqual(testCase,e,0.29559774252208477098);
 verifyEqual(testCase, e^3+e^2+3*e-1, 0, 'AbsTol', 2e-15);
 verifyEqual(testCase, curve.eta(end-2:end), repmat(e, 1, 3));
 q = curve.wavenumberThickness(1:4); eta = curve.eta(1:4);
