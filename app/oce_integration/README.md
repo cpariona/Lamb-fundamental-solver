@@ -141,23 +141,33 @@ and processing provenance retain source identity even when run IDs repeat.
 
 ### Current scientific boundaries
 
-Plate computes independent frequency coverage by exact equality of supplied
-Hz. Its frequency-group diagnostic averages eta-squared within those exact
-groups; the unweighted observation regression itself retains every repetition.
-The app checks whether physical excitation groups and selected-bin Hz groups
-define the same partition of the included rows. It uses no rounding tolerance,
-changes no Hz and implements no replacement SVD diagnostic. If the partitions
-differ, `status="requires_independent_frequency_groups"`, `nativeResult=[]`
-and the physical-frequency count describe a blocked request, not a fitted or
-accepted model. Even machine-precision bin differences cannot create coverage.
-If compatible, native coefficients, masks, rejection reasons and diagnostics
-are preserved unchanged, with status `accepted` or `rejected`. One physical
-frequency with technical repeats remains insufficient for two coefficients.
+Plate defaults to exact observed-Hz frequency groups. The QH coordinator compares
+that partition with exact physical excitation-frequency values on the included
+rows. If they agree, the historical native call and output are preserved. If they
+differ, it supplies `experimental.independentFrequencyGroupId` to the same native
+Plate API: positive integer codes derived from the exact physical values, without
+rounding or frequency tolerances. Numeric AcquisitionParams frequencies are
+preserved directly, without conversion through display text. Legacy numeric text
+is parsed as physical Hz; already-lost identities cannot be reconstructed.
 
-The smallest proposed scientific extension is an optional independent-frequency
-group identity in Plate, used by its existing coverage diagnostic while keeping
-actual observation Hz in the regression. That changes a scientific acceptance
-contract and requires separate review; it is not implemented here.
+The original assembly remains unchanged. Only the native request copy receives
+the codes, with all original observed Hz, speeds, rows, masks and contributions to
+the unweighted regression retained. Native Plate owns the existing group-mean
+eta-squared coverage, rank, conditioning and acceptance diagnostics; the app
+implements no SVD or alternative acceptance rule. Native diagnostics distinguish
+the observed-Hz index from physical coverage-group assignments; see the
+[Plate diagnostic contract](../../docs/models/acoustoelastic_prestressed_plate.md#linear-inverse-api).
+
+`nativeGroupingCompatible` still reports compatibility with the legacy exact-Hz
+partition; false no longer blocks the fit. `nativeResult` retains the native fit,
+and status is `accepted` or `rejected` according to native acceptance. One physical
+frequency remains insufficient even when technical repetitions select different
+FFT bins. Group identity does not establish statistical independence, validity of
+the selected bins as A0 observations, mechanical equivalence or model support.
+Physical excitation and requested filter-target Hz remain separate; only the
+former defines QH coverage. No groups are derived from repetition/run IDs, bin
+proximity or Pulse `period_us`. The QH preparer still rejects Pulse acquisitions;
+Pulse broadband preparation remains separate and gains no period-based grouping.
 
 Plate currently accepts one scalar current full thickness. `physical` therefore
 contains only `density_kgpm3` and `thickness_m`. The wrapper requires
