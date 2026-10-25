@@ -86,8 +86,8 @@ absolute study paths, FIG input dependency, frequency optimizer or model dispatc
 Initialize the reviewed OCE `src` path explicitly; Lamb startup supplies its integration and visualization APIs.
 
 Open the script, clear `study` to reset configuration, then run/edit section 1.
-Execute sections 2--7 manually, or run the script with a configured `study` in the
-workspace. Inspect `sourceMetadata` and `observationReview` before fitting. They
+Execute the remaining sections manually, or run the script with a configured
+`study` in the workspace. Inspect `sourceMetadata` and `observationReview` before fitting. They
 retain source rows/bins, repetitions, actual Hz, original flags and the final mask.
 
 | Configuration | Meaning |
@@ -195,6 +195,69 @@ diagnostics and acceptance still describe the complete fixed fitting request.
 Workspace outputs include `frequencySelectionMapping`, `assembly`, `observationReview`, `nativeResult`, `reusedResult`
 and, when requested, `fig`/`figureEvidence`. This study is Plate only. RL, mRLFE and
 IOP/HGO retain their model-specific direct APIs and scientific requirements.
+
+## Maintained manual RL study
+
+[rlOceStudy.m](../studies/rlOceStudy.m) provides the same opt-in manual stages for
+native Rayleigh-Lamb A0/S0 fitting. Run Lamb `startup`, initialize the reviewed
+OCE `src` path explicitly, open section 1, and supply a configured `study` before
+running the remaining sections. Defaults request reuse only and write no files.
+
+Both scripts consume [prepareOceStudyObservations](../studies/prepareOceStudyObservations.m)
+for the same exact condition/repetition/signed-direction selection and nominal-to-
+original-bin mapping. It calls canonical OCE recovery and the existing preparation
+owners; it is not another loader, translator or experimental schema. The fixed
+mask and complete observation order remain inspectable before fitting. QH k-f
+requests use the recorded selected target bin, retaining full source preparations
+in the assembly; Pulse retains every original bin, including excluded DC rows.
+The RL study also accepts the already recorded QH `phase_gradient` estimator;
+it does not compute one or substitute it for missing k-f results. Pulse requires
+`kf_ridge`. Plate keeps its existing k-f contract.
+
+RL uses the common selection fields above plus:
+
+| Configuration | Native RL meaning |
+| --- | --- |
+| `estimator`, `curve` | Explicit `kf_ridge` raw/smoothed, or recorded QH `phase_gradient` (curve unused). |
+| `observationMask` | Empty uses the existing source-quality/frequency policy. A supplied logical vector is the exact original-row mask and must respect frequency selection. Invalid selected values are rejected, never repaired; original ridge flags remain separate evidence. |
+| `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI; `thickness` is current full thickness. |
+| `review` | Explicit `mode`, `thicknessSource`, `thicknessJustification`, `densityReference`, `parameterJustification` and `modelSupportReference`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. |
+
+The native `rlBuildFitProblem` validates and resolves defaults without evaluating
+the forward model. Reuse compares its effective value fields with the saved native
+problem, including all observations, fixed mask, branch, parameters, bounds,
+numerical/optimizer options and source-result order. QH additionally verifies
+physical/requested target frequencies and original selected bins. If anything
+differs, `reuseOnly=true` rejects before optimization. Native configuration or
+source changes never silently trigger a fit. Setting `reuseOnly=false` explicitly
+permits one call to `rlFitDispersionData`; repetitions are not averaged.
+
+`resultFile` can recover a saved `nativeResult` and `assembly` when saving is off.
+Alternatively supply `existingNativeResult` and `existingAssembly` explicitly.
+Historical containers remain manually opened rather than decoded through a
+generic legacy loader. A new save requires a different, absent destination.
+The MAT retains `nativeResult`, `assembly`, `fitConfig`, `review`, the two mapping
+tables, `observationReview` and `studyRecord`. The native `problem` owns resolved
+options/parameters; selection records do not duplicate the observation arrays.
+An explicit mask is reconstructible from `observationReview.validMask`, with its
+policy recorded separately. The common [oceStudyProvenance](../studies/oceStudyProvenance.m)
+records the same current input hashes, code state and provenance limits as Plate.
+The full-summary hashing scope is intentionally unchanged.
+
+Numerical reuse does not authenticate historical processing bytes. A corrected
+metadata source must remain linked to its correction record; retain superseded
+requests/caches as historical evidence instead of relabelling them in place.
+Check active metadata before applying any old correction package.
+
+Both studies render the retained native result and export only through
+`saveInverseFigure`: editable FIG plus full-canvas 300-dpi TIF, with no overwrite.
+They introduce no PNG export path. `openfig(...,'new','visible'); drawnow` reopens
+the editable product; scientific replay consumes the saved native request/config,
+not FIG or raster data. Pulse graphic bins remain independent of the fitting mask.
+The approved Plate/RL renderers are unchanged: B is Plate's Pa regression or RL's
+native parameter summary, and C uses each model's own residual definition/units.
+RL convergence/identifiability and Plate native acceptance are not interchangeable
+and establish neither experimental A0 purity nor physical model validation.
 
 ## Manual MATLAB sections
 

@@ -217,6 +217,13 @@ GUI import and native schema I/O in preparation, rather than prohibiting field a
 Studies and examples consume reusable integration/visualization domains directly;
 they do not depend on app components or maintain a duplicate adapter.
 
+The manual Plate and RL studies share `prepareOceStudyObservations` for acquisition
+selection, original-bin mappings and calls to the existing preparation APIs, and
+`oceStudyProvenance` for current input/code evidence. These opt-in study operations
+own no external schema, native fitting policy or result format. Model-specific
+scripts retain physical review, direct native requests and strict result reuse;
+they use the existing renderers and `saveInverseFigure` without a dispatcher.
+
 `prepareOceQhFitObservations` assembles explicitly reviewed k-f target rows from
 OCE's recovered acquisitions, using `prepareOceFitObservations` once per signed
 direction/acquisition. It preserves physical versus selected frequencies,

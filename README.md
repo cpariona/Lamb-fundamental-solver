@@ -38,8 +38,12 @@ The prestressed-plate formulation supports A0 with a direct linear SVD inversion
 independent of GUI and OCE. Optional [OCE integration](integrations/oce/README.md)
 prepares observations for the native fitting families; the reviewed QH coordinator
 and [manual Plate study](studies/aePlateOceStudy.m) retain Plate-specific contracts.
-The study supports QH targets and Pulse broadband observations with separate fitting
-and graphic selections. Plate is not integrated into the fitting GUI. See the
+The [manual RL study](studies/rlOceStudy.m) uses native A0/S0 optimization and its
+own physical configuration. Both studies share original-observation selection,
+current-input provenance, separate fitting/graphic masks and FIG/300-dpi TIF export.
+They support QH targets and Pulse broadband observations without averaging.
+See the [operational study contract](docs/oce_study_contract.md#maintained-manual-rl-study).
+Plate is not integrated into the fitting GUI. See the
 [prestressed-plate contract and usage](docs/models/acoustoelastic_prestressed_plate.md) for its
 assumptions, fixed observation mask, units and identification limits.
 

@@ -118,14 +118,19 @@ same retained result.
 
 ## Manual study and Pulse graphic sampling
 
-Use the single [Plate study](../studies/aePlateOceStudy.m) and its
+Use the [Plate study](../studies/aePlateOceStudy.m), the
+[RL study](../studies/rlOceStudy.m) and their
 [configuration contract](../docs/oce_study_contract.md#maintained-manual-plate-study)
 for QH and Pulse. Scientific input is recovered individual OCE products, never FIG
 contents, summary means or comparison statistics.
+Both studies export through `saveInverseFigure`: editable FIG and full-canvas
+300-dpi TIF, with existing destinations rejected. They do not emit PNG; review
+previews remain optional external presentation and never replace these products.
 
 Select one condition, literal Pulse period and signed direction. Pool selected
-repetitions into one native request without averaging velocities. Coefficients,
-the single regression, residuals and RMSE use the complete fixed fitting mask.
+repetitions into one native request without averaging velocities. Plate's
+coefficients/regression and RL's parameters/objective retain their native meaning;
+residuals and RMSE use the complete fixed fitting mask.
 Acquisition, repetition and source-bin identity remain available in the assembly.
 
 `DisplayFrequency_Hz` optionally selects exact stored frequencies for glyphs in
