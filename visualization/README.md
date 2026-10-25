@@ -2,15 +2,16 @@
 
 This visualization owner presents already-computed inverse results without GUI initialization,
 OCE I/O, fitting calls or scientific eligibility decisions. Plate A0 establishes
-the first model-specific renderer. It does not define a common result schema,
+the first model-specific renderer; native RL diagnostics reuse the same domain.
+Neither defines a common result schema,
 dispatcher or acceptance policy for RL, mRLFE or IOP/HGO.
 
 ## Plate diagnostics and observation selection
 
 `plotAePlateFitDiagnostics(result, provenance, ...)` presents the unchanged
 `aePlateFitDispersion` result. It never fits, repairs a mask, screens fitting
-outliers or interprets experimental validity. The four existing visualization
-APIs remain the owners; no solver dispatcher or model-neutral plotting framework
+outliers or interprets experimental validity. The Plate operations keep their
+existing owners; no solver dispatcher or model-neutral plotting framework
 is introduced. Other fitting families retain their own scientific contracts.
 
 The study supplies an explicit fixed `validMask` from original OCE evidence:
@@ -68,6 +69,11 @@ The panels retain native coefficients and RMSE; the brief footer reports physica
 support, density and scalar thickness. Rank, conditioning, group diagnostics,
 native acceptance and full reasons remain in results/FIG data rather than the
 footer. A0 and the remaining Plate assumptions are not experimentally confirmed.
+Both families keep fitted/original counts in B: Plate uses its upper-right corner,
+while RL retains its compact native-fit text block. The count uses the native mask
+independently of graphic sampling. Panel titles put the
+panel name first, its primary metric or coefficients second when present, then
+the applicable clipping summary: count, single value or range, and units.
 
 Sparse repetitions use blue/orange/purple symbols. Without explicit graphic
 sampling, dense series use fine dots at every original coordinate. Interpolated/extrapolated extensions are excluded
@@ -79,7 +85,8 @@ continuous experimental extension. One shared legend avoids repeated decoding.
 
 The existing `resolveInversePhaseSpeedLimits` remains the sole display-limit
 owner. `Quantity="phase_speed"` (default) uses m/s; `Quantity="regression"` and
-`Quantity="residual"` use Pa. Evidence provides `limits`, `quantity`, `unit` and
+`Quantity="residual"` use Pa; `Quantity="speed_residual"` uses m/s with the same
+two-sided residual display policy. Evidence provides `limits`, `quantity`, `unit` and
 clipping counts/extremes; legacy m/s fields remain only for phase-speed results.
 
 `Mode="robust"` uses the existing median/MAD display screen (modified Z <= 3.5),
@@ -144,6 +151,70 @@ explicit shared limits remain supported. Each repetition's clipping summaries
 and edge glyphs refer to those same limits, with full native evidence retained.
 The scalar joint-fit path used by the maintained study is unchanged.
 
+## Rayleigh-Lamb inverse diagnostics
+
+`plotRlFitDiagnostics(result, provenance, 'Visible', 'on')` consumes the complete
+native `rlFitDispersionData` result for A0 or S0. It does not call a fitter,
+forward solver or OCE loader. Supply the same nonempty label/material/source/support
+provenance fields as for Plate, optionally with one literal `repetitionId` per
+original row and a concise `displaySubtitle`. The support note is caller-supplied;
+optimizer termination and local sensitivity never become physical acceptance.
+
+The Plate layout is retained: a full-width A. Dispersion panel, B. Native fit
+at lower left, and C. Residuals at lower right. B summarizes native estimated
+parameters, the weighting policy and fitted/original counts. Bounds and other
+statistics remain in nativeFitConfiguration, nativeMetrics and observations.
+When mu is fitted, B also reports its native search bounds in kPa.
+RL has no Plate linear-regression panel; no artificial regression
+or newly evaluated objective curve is substituted.
+
+Dispersion and native raw fitted-minus-observed residuals use m/s.
+Residual units remain m/s for weighted fits by consuming
+`residualInfo.rawResiduals_mps`. Estimated parameters, actual scalar thickness,
+density, effective nu and native RMSE are displayed without fabricated intervals.
+Estimated parameters remain in B and full-fit RMSE in C. The two-line footer
+follows Plate: the caller's physical-support statement first, then actual physical
+values. It does not manufacture physical acceptance. Optional displayLabel
+uses the Plate title syntax: case/direction/model first, modality/repetitions/
+selection in displaySubtitle.
+Repetitions retain the established colors/markers; predictions are black dashed
+and finite exclusions are red crosses, retaining their original marker size,
+coordinates and row count.
+
+DisplayFrequency_Hz reuses Plate's exact original-frequency glyph filter. The
+study/caller supplies the maintained Pulse mapping: compatible persisted OCE
+sampling when available, otherwise the already reviewed nearest original bin
+chosen on the complete axis before validity. Missing/excluded bins are not
+replaced by nearby valid bins. The renderer performs no nominal-to-bin search,
+interpolation or extrapolation. Source-row/bin correspondence belongs to the
+caller's mapping; sample flags and all original rows remain in observations.
+
+Without graphic sampling the view includes every selected observation and finite exclusions within
+the fitted frequency domain, starting at zero. Excluded rows beyond that domain
+or without plottable coordinates are counted explicitly. All original rows,
+frequencies, speeds, masks, repetition labels, predictions and available residuals
+remain in `evidence.observations` and `FIG.UserData`; unavailable predictions are
+not replaced. With sampling, shownInDispersion and shownInResiduals identify
+actual glyph rows independently of selected. ResidualLimits accepts the same
+automatic/shared-limit convention as Plate, in m/s. Resolve a robust range with
+resolveInversePhaseSpeedLimits using Quantity="speed_residual" and Mode="robust"
+over an explicitly declared native display population: the complete objective or
+the approved graphic sample. The original display rule and cutoff are unchanged.
+Clipping counts/extrema always use the complete native objective and remain in
+residualClipping. C shows the full-fit RMSE second and the applicable Data outside
+summary third, including count, single value or range, and m/s. A compact filled
+blue triangle at each clipped boundary represents that side's most extreme
+original residual. All represented indices/values remain in its UserData; these
+summary indicators do not add rows to the approved sampled observation glyphs.
+Full-fit metrics are never recomputed
+from the graphic sample or clipped population. The complete range remains in
+completeResidualLimits_mps. Default residual limits retain the complete population.
+The native model line alone is sorted/deduplicated for display, with
+NaN gaps retained. No experimental curve is interpolated, averaged or extrapolated.
+Complete phase-speed limits reuse `resolveInversePhaseSpeedLimits`; figure export
+reuses `saveInverseFigure`. Full native requests/results and acquisition lineage
+remain separate scientific records, not recovered from figures.
+
 ## Parameter trends
 
 `plotAePlateParameterTrends(results, coordinates, 'CoordinateLabel', label)`
@@ -200,7 +271,12 @@ trend = plotAePlateParameterTrends(nativeResults, reviewedCoordinates, ...
 ```
 
 `saveInverseFigure` saves editable `.fig` and 300-dpi `.tif` using the existing
-MATLAB savefig/exportgraphics conventions. It requires an explicit output root
+MATLAB savefig/print operations. Both renderers use the same 17.8-by-18.5 cm canvas,
+Arial typography (header/subtitle 9.5 pt; panel titles/internal text/footer 9 pt;
+ticks/legend 8 pt), compact 2-by-2 tiling and loose padding.
+Raster export retains the full physical canvas with PaperPositionMode="auto";
+it does not crop to content, so different labels cannot change output dimensions.
+Review PNGs use the same full-canvas print operation. It requires an explicit output root
 and deterministic safe basename, rejects an existing destination of either type,
 and never writes a native MAT result. No callbacks or cleanup objects are stored
 in figure data. The existing GUI renderer/export and sensitivity FIG/PNG owner

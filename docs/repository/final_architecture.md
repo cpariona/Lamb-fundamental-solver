@@ -169,6 +169,8 @@ coefficients, residuals, masks and acceptance diagnostics. Supported candidate
 predictions and conditional principal interpretation call existing public Plate
 model APIs. It invokes no fitting engine, reads no OCE files and does not depend
 on studies or GUI initialization. See the [visualization contract](../../visualization/README.md).
+Native RL diagnostics consume stored phase-speed predictions and raw m/s residuals
+without forward evaluation or fitting; they retain RL's own result semantics.
 Observation preparation, scientific inversion and presentation remain separate.
 Neither the GUI-specific normalized renderer in `app/fitting/` nor the study-only
 sensitivity presentation is moved or replaced. Reusable scale/export conventions

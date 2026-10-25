@@ -1,20 +1,22 @@
 function [limits, evidence] = resolveInversePhaseSpeedLimits(values, varargin)
 %RESOLVEINVERSEPHASESPEEDLIMITS Display-only complete, robust or shared Cp scale.
-%   VALUES are original speeds in m/s from an explicitly reviewed population.
+%   VALUES are original values in the units declared by Quantity.
 %   Mode="complete" (default) includes all finite values. Mode="robust" uses
 %   an upper median/MAD screen (modified Z <= 3.5) only to choose the scale.
 %   Limits=[low high] uses an explicit shared scale, without rescreening it.
 %   A cell vector holds comparable cases: resolve each case, then take their
 %   envelope. Dense acquisitions cannot outweigh sparse cases in this scale.
 %   Quantity="regression" or "residual" resolves Pa-valued panel limits.
+%   Quantity="speed_residual" reuses the residual policy for native m/s values.
 %   Residuals use a two-sided median/MAD display screen, retaining zero.
 %   Never returns a fitting mask. EVIDENCE counts nonfinite and clipped values.
 p = inputParser;
 addParameter(p, 'Mode', "complete", @(x) any(string(x)==["complete","robust"]));
-addParameter(p, 'Quantity', "phase_speed", @(x) any(string(x)==["phase_speed","regression","residual"]));
+addParameter(p, 'Quantity', "phase_speed", @(x) any(string(x)==["phase_speed","regression","residual","speed_residual"]));
 addParameter(p, 'Limits', [], @(x) isempty(x) || ...
     (isnumeric(x) && isreal(x) && numel(x)==2 && all(isfinite(x)) && x(2)>x(1)));
 parse(p, varargin{:});
+isResidual = any(p.Results.Quantity==["residual","speed_residual"]);
 if iscell(values)
     validateattributes(values,{'cell'},{'vector','nonempty'});
     caseLimits=zeros(numel(values),2);
@@ -42,7 +44,7 @@ else
     source = string(p.Results.Mode);
     scaleValues = finite;
     if source=="robust"
-        if p.Results.Quantity=="residual"
+        if isResidual
             center=median(finite);spread=median(abs(finite-center));
             if spread>0
                 scaleValues=finite(0.674489750196082*abs(finite-center)/spread<=3.5);
@@ -63,7 +65,7 @@ else
         limits = [0 1];
     else
         lower = min([0;scaleValues]); upper = max(scaleValues);
-        if p.Results.Quantity=="residual",upper=max([0;scaleValues]);end
+        if isResidual,upper=max([0;scaleValues]);end
         padding = max(0.1*(upper-lower),0.1*max(abs([lower,upper])));
         if padding==0, padding=1; end
         limits = [lower-padding*(lower<0),upper+padding];
@@ -85,7 +87,7 @@ evidence = struct('source',source,'limits_mps',limits,'populationCount',numel(va
 evidence.limits=limits;evidence.quantity=string(p.Results.Quantity);evidence.unit="m/s";
 if p.Results.Quantity~="phase_speed"
     evidence=rmfield(evidence,{'limits_mps','maximumOutside_mps','minimumOutside_mps'});
-    evidence.unit="Pa";
+    if p.Results.Quantity~="speed_residual",evidence.unit="Pa";end
 end
 evidence.maximumOutside=NaN;evidence.minimumOutside=NaN;
 if any(outside)

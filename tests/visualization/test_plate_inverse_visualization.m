@@ -24,6 +24,41 @@ lines=findall(fig,'Tag','native_residual');
 plotted=[];
 for k=1:numel(lines),plotted=[plotted;lines(k).YData(:)];end %#ok<AGROW>
 verifyEqual(testCase,sort(plotted),sort(native.regressionResidual_Pa(native.validMask)));
+countNote=findall(fig,'Tag','plate_observation_count');
+verifyEqual(testCase,string(countNote.String),"Fitted observations: 4 / 8");
+verifyEqual(testCase,countNote.Parent,findall(fig,'Tag','plate_regression'));
+verifyEqual(testCase,countNote.Units,'normalized');
+verifyEqual(testCase,countNote.Position(1:2),[.98 .98]);
+verifyEqual(testCase,countNote.FontSize,9);
+excluded=findall(fig,'Type','line','-regexp','Tag','^excluded_');
+verifyNotEmpty(testCase,excluded);
+for glyph=excluded'
+    verifyEqual(testCase,glyph.Color,[.8 .12 .12]);
+    verifyEqual(testCase,glyph.Marker,'x');
+    verifyEqual(testCase,glyph.MarkerSize,4);
+end
+end
+
+function testMetricPrecedesClippingWithBlueOriginalValueIndicators(testCase)
+[native,review]=fixture();
+[fig,e]=plotAePlateFitDiagnostics(native,review,'PhaseSpeedLimits',[0 1], ...
+    'RegressionLimits',[0 1],'ResidualLimits',[1e9 2e9],'Visible','off');
+cleanup=onCleanup(@()close(fig));
+for tag=["plate_regression","plate_residuals"]
+    ax=findall(fig,'Tag',tag);captions=string(ax.Title.String);
+    verifySubstring(testCase,captions(3),"Data outside:");
+    verifySubstring(testCase,captions(3),"; ");
+    if tag=="plate_regression",verifySubstring(testCase,captions(2),"\alpha");
+    else,verifySubstring(testCase,captions(2),"RMSE = ");end
+end
+for tag=["offscale_selected_observation","offscale_selected_residual"]
+    glyphs=findall(fig,'Tag',tag);verifyNotEmpty(testCase,glyphs);
+    for glyph=glyphs'
+        verifyEqual(testCase,glyph.Color,[.16 .40 .68]);
+        verifyNotEmpty(testCase,glyph.UserData.originalYData);
+    end
+end
+verifyEqual(testCase,e.observations.included,native.validMask);
 end
 
 function testUnsupportedCandidateIsNotForwardEvaluated(testCase)
@@ -104,6 +139,9 @@ verifyEqual(testCase,findall(reopened,'Tag','plate_forward').YData,findall(fig,'
 imageInfo=imfinfo(files.tif);
 verifyEqual(testCase,imageInfo.XResolution,300);verifyEqual(testCase,imageInfo.YResolution,300);
 verifyGreaterThan(testCase,imageInfo.Width,0);verifyGreaterThan(testCase,imageInfo.Height,0);
+expectedPixels=round(fig.Position(3:4)/2.54*300);
+verifyEqual(testCase,[imageInfo.Width imageInfo.Height],expectedPixels);
+verifyEqual(testCase,reopened.PaperPositionMode,'auto');
 verifyNotEmpty(testCase,imread(files.tif));
 verifyError(testCase,@()saveInverseFigure(fig,folder,'synthetic_plate_raw'),'lamb:visualization:OutputExists');
 verifyError(testCase,@()saveInverseFigure(fig,folder,'../source'),'lamb:visualization:InvalidDestination');
@@ -287,6 +325,8 @@ for tag=["plate_dispersion","plate_regression","plate_residuals"]
     end
 end
 verifyEqual(testCase,c.nativeResults,original);
+countNote=findall(clipped,'Tag','plate_observation_count');
+verifyEqual(testCase,string(countNote.String),"Fitted observations: 8 / 16");
 [complete,allEvidence]=plotAePlateFitDiagnostics(original,reviews,'Visible','off');
 cleanup3=onCleanup(@()close(complete));
 for k=1:2

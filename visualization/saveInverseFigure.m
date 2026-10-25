@@ -15,6 +15,8 @@ if isfile(paths.fig) || isfile(paths.tif)
     error('lamb:visualization:OutputExists','Figure destination already exists: %s.',filename);
 end
 if ~isfolder(outputRoot), mkdir(outputRoot); end
+% Export the full physical canvas; tight content cropping changes image sizes.
+fig.PaperPositionMode='auto';
 savefig(fig, paths.fig);
-exportgraphics(fig, paths.tif, 'Resolution',300);
+print(fig, paths.tif, '-dtiff', '-r300');
 end

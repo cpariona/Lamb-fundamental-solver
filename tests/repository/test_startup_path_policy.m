@@ -26,6 +26,7 @@ publicOwners = [ ...
     "prepareOceQhFitObservations", "integrations/oce/prepareOceQhFitObservations.m"
     "fitOceQhPrestressedPlate", "integrations/oce/fitOceQhPrestressedPlate.m"
     "plotAePlateFitDiagnostics", "visualization/plotAePlateFitDiagnostics.m"
+    "plotRlFitDiagnostics", "visualization/plotRlFitDiagnostics.m"
     "plotAePlateParameterTrends", "visualization/plotAePlateParameterTrends.m"
     "resolveInversePhaseSpeedLimits", "visualization/resolveInversePhaseSpeedLimits.m"
     "saveInverseFigure", "visualization/saveInverseFigure.m"

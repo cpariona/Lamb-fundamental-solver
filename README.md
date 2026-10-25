@@ -44,7 +44,8 @@ and graphic selections. Plate is not integrated into the fitting GUI. See the
 assumptions, fixed observation mask, units and identification limits.
 
 GUI-independent native inverse presentation is owned by
-[scientific visualization](visualization/README.md). Plate A0 diagnostics and reviewed
+[scientific visualization](visualization/README.md). Native RL A0/S0 diagnostics,
+Plate A0 diagnostics and reviewed
 parameter trends consume stored native results without refitting, distinguish
 accepted/rejected candidates, and export editable FIG plus 300-dpi TIF to an
 explicit external output root. Other families retain their own scientific contracts.
