@@ -48,10 +48,12 @@ fprintf('Maintained test structure contract passed for %d tracked tests.\n', num
 end
 
 function paths = trackedTestFiles(repoRoot)
-[status, output] = system(sprintf('git -C "%s" ls-files "tests/**/*.m"', repoRoot));
+[status, output] = system(sprintf('git -C "%s" ls-files --cached --others --exclude-standard "tests/**/*.m"', repoRoot));
 assert(status == 0, 'Could not enumerate tracked MATLAB tests.');
 paths = replace(splitlines(string(strtrim(output))), "\", "/");
 paths(paths == "") = [];
+paths = unique(paths,'stable');
+paths = paths(arrayfun(@(p)isfile(fullfile(repoRoot,p)),paths));
 names = strings(size(paths));
 for i = 1:numel(paths)
     [~, name] = fileparts(paths(i));

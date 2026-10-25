@@ -1,4 +1,9 @@
-function test_rl_fit_evaluator_branch_consistency()
+function tests = test_rl_fit_evaluator_branch_consistency()
+%TEST_RL_FIT_EVALUATOR_BRANCH_CONSISTENCY Native fixed-mask and branch contracts.
+tests = functiontests(localfunctions);
+end
+
+function testCanonicalPublicBranchIdentity(~)
 % Public output and fixed objective predictions share one model-owned identity.
 p=lamb.models.rayleigh_lamb.rlDefaultParams();p.mu=90e3;
 o=lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
@@ -21,4 +26,166 @@ for branch=["A0","S0"]
  end
 end
 fprintf('RL canonical public/fitting equality and 7/17/45 fixed observations passed.\n');
+end
+
+function testExcludedInvalidFrequenciesRetainRowsAndOfficialDiagnostics(testCase)
+p = lamb.models.rayleigh_lamb.rlDefaultParams(); p.mu = 90e3;
+f = [4000; 0; 2000; NaN; 4000; -1; 1000; Inf; 3000];
+admissible = isfinite(f) & f > 0;
+mask = [true; false; false; false; true; false; true; false; true];
+for branch = ["A0", "S0"]
+    config = fitConfiguration(p, branch);
+    [reference, official] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel( ...
+        p, f(admissible), branch, config.solverOptions);
+    speed = nan(size(f)); speed(admissible) = reference + 0.1;
+    speed(3) = NaN; % Excluded Cp must not prevent prediction at admissible Hz.
+    ex = struct('frequency_Hz', f, 'Cp_mps', speed, 'validMask', mask, ...
+        'sourceRow', (1:numel(f))');
+    problem = lamb.fitting.rayleigh_lamb.rlBuildFitProblem(ex, config);
+    [cp, raw] = problem.evaluateModel(problem.baseParams);
+    verifyEqual(testCase, problem.experimental.frequency_Hz, f);
+    verifyEqual(testCase, problem.experimental.Cp_mps, speed);
+    verifyEqual(testCase, problem.experimental.validMask, mask);
+    verifyEqual(testCase, problem.experimental.sourceRow, ex.sourceRow);
+    verifyEqual(testCase, cp(admissible), reference);
+    verifyTrue(testCase, all(isnan(cp(~admissible))));
+    verifyEqual(testCase, raw.frequency_Hz, f);
+    verifyEqual(testCase, raw.Cp_mps, cp);
+    verifyEqual(testCase, raw.omega, 2*pi*f);
+    verifyEqual(testCase, raw.evaluatedObservationMask, admissible);
+    verifyEqual(testCase, raw.validMask(admissible), official.validMask);
+    verifyFalse(testCase, any(raw.validMask(~admissible)));
+    for name = ["k", "kThickness", "residual"]
+        verifyEqual(testCase, raw.(name)(admissible), official.(name));
+        verifyTrue(testCase, all(isnan(raw.(name)(~admissible))));
+    end
+    verifyEqual(testCase, raw.diagnostics, official.diagnostics);
+    verifyEqual(testCase, withoutElapsed(raw.modelResult), withoutElapsed(official.modelResult));
+    verifyEqual(testCase, raw.trackingMode, official.trackingMode);
+    verifyEqual(testCase, raw.reliability.ValidPoints, nnz(raw.validMask));
+    verifyEqual(testCase, raw.reliability.MissingPoints, nnz(~raw.validMask));
+    verifyEqual(testCase, raw.reliability.ValidFraction, mean(raw.validMask));
+    verifyFalse(testCase, raw.reliability.SelectionFallbackUsed);
+    positive = struct('frequency_Hz', f(admissible), 'Cp_mps', speed(admissible), ...
+        'validMask', mask(admissible));
+    [residual, info] = lamb.fitting.computeDispersionFitResiduals(cp, problem.experimental);
+    expected = lamb.fitting.computeDispersionFitResiduals(reference, positive);
+    verifyEqual(testCase, residual, expected);
+    verifyEqual(testCase, info.objectiveMask, mask);
+    verifyTrue(testCase, info.coverageAccepted);
+    verifyEqual(testCase, info.evaluatedPointCount, nnz(mask));
+    verifyEqual(testCase, lamb.fitting.computeDispersionFitMetrics(cp, problem.experimental), ...
+        lamb.fitting.computeDispersionFitMetrics(reference, positive));
+    cp(find(mask, 1)) = NaN;
+    verifyError(testCase, @() lamb.fitting.computeDispersionFitResiduals(cp, problem.experimental), ...
+        'lamb:fitting:IncompleteModelCoverage');
+    verifyError(testCase, @() lamb.fitting.computeDispersionFitMetrics(cp, problem.experimental), ...
+        'lamb:fitting:IncompleteModelCoverage');
+end
+end
+
+function testSelectedInvalidDataAreRejectedWithoutMaskRepair(testCase)
+p = lamb.models.rayleigh_lamb.rlDefaultParams();
+config = fitConfiguration(p, "A0");
+ex = struct('frequency_Hz', [1000; 2000; 3000], ...
+    'Cp_mps', [3; 4; 5], 'validMask', true(3, 1));
+for bad = [0, -1, NaN, Inf]
+    invalid = ex; invalid.frequency_Hz(2) = bad;
+    verifyError(testCase, @() lamb.fitting.rayleigh_lamb.rlBuildFitProblem(invalid, config), ...
+        'lamb:rl:InvalidSelectedObservation');
+    % The absent/empty optional mask must not implicitly exclude invalid Hz.
+    absent = rmfield(invalid, 'validMask');
+    verifyError(testCase, @() lamb.fitting.rayleigh_lamb.rlBuildFitProblem(absent, config), ...
+        'lamb:rl:InvalidSelectedObservation');
+    absent.validMask = [];
+    verifyError(testCase, @() lamb.fitting.rayleigh_lamb.rlBuildFitProblem(absent, config), ...
+        'lamb:rl:InvalidSelectedObservation');
+end
+for bad = [NaN, Inf]
+    invalid = ex; invalid.Cp_mps(2) = bad;
+    verifyError(testCase, @() lamb.fitting.rayleigh_lamb.rlBuildFitProblem(invalid, config), ...
+        'lamb:rl:InvalidSelectedObservation');
+end
+end
+
+function testPositiveRequestsKeepDirectEvaluationExactly(testCase)
+p = lamb.models.rayleigh_lamb.rlDefaultParams(); p.mu = 90e3;
+f = [7000; 1000; 3000; 3000; 2000];
+for branch = ["A0", "S0"]
+    config = fitConfiguration(p, branch);
+    [expected, official] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel( ...
+        p, f, branch, config.solverOptions);
+    ex = struct('frequency_Hz', f, 'Cp_mps', expected, 'validMask', true(size(f)));
+    for explicitMask = [true, false]
+        if ~explicitMask, ex = rmfield(ex, 'validMask'); end
+        problem = lamb.fitting.rayleigh_lamb.rlBuildFitProblem(ex, config);
+        [actual, raw] = problem.evaluateModel(problem.baseParams);
+        verifyEqual(testCase, actual, expected);
+        raw.modelResult = withoutElapsed(raw.modelResult);
+        reference = official; reference.modelResult = withoutElapsed(reference.modelResult);
+        verifyEqual(testCase, raw, reference);
+        verifyFalse(testCase, isfield(raw, 'evaluatedObservationMask'));
+    end
+end
+end
+
+function testCompletedFitPreservesStatisticsAndMaskWithExcludedDc(testCase)
+p = lamb.models.rayleigh_lamb.rlDefaultParams(); p.mu = 85e3;
+f = [4000; 1000; 4000; 2000; 6000];
+mask = [true; true; false; true; true];
+for branch = ["A0", "S0"]
+    config = fitConfiguration(p, branch); config.initialGuess.mu = 50e3;
+    cp = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(p, f, branch, config.solverOptions);
+    cp = cp + [0.01; -0.01; 0; 0.02; -0.02]; cp(3) = NaN;
+    ex = struct('frequency_Hz', f, 'Cp_mps', cp, 'validMask', mask);
+    reference = lamb.fitting.rayleigh_lamb.rlFitDispersionData(ex, config);
+    padded = struct('frequency_Hz', [0; f; NaN], 'Cp_mps', [NaN; cp; NaN], ...
+        'validMask', [false; mask; false]);
+    result = lamb.fitting.rayleigh_lamb.rlFitDispersionData(padded, config);
+    verifyEqual(testCase, result.frequency_Hz, padded.frequency_Hz);
+    verifyEqual(testCase, result.Cp_exp_mps, padded.Cp_mps);
+    verifyEqual(testCase, result.validMask, padded.validMask);
+    verifyEqual(testCase, result.problem.experimental.validMask, padded.validMask);
+    verifyEqual(testCase, result.Cp_fit_mps(2:end-1), reference.Cp_fit_mps);
+    verifyTrue(testCase, all(isnan(result.Cp_fit_mps([1 end]))));
+    for name = ["bestParams", "allParams", "residuals", "metrics", ...
+            "identifiability", "sensitivityMatrix", "optimizer"]
+        verifyEqual(testCase, result.(name), reference.(name));
+    end
+    verifyEqual(testCase, result.residualInfo.objectiveMask, padded.validMask);
+    verifyTrue(testCase, result.residualInfo.coverageAccepted);
+    verifyEqual(testCase, result.residualInfo.expectedPointCount, nnz(mask));
+    verifyEqual(testCase, result.residualInfo.rawResiduals_mps, reference.residualInfo.rawResiduals_mps);
+    verifyEqual(testCase, result.modelEvaluation.diagnostics, reference.modelEvaluation.diagnostics);
+    verifyEqual(testCase, withoutElapsed(result.modelEvaluation.modelResult), ...
+        withoutElapsed(reference.modelEvaluation.modelResult));
+end
+end
+
+function testSingletonFrequencyRetainsNativeAuxiliaryGrid(testCase)
+p = lamb.models.rayleigh_lamb.rlDefaultParams();
+for branch = ["A0", "S0"]
+    config = fitConfiguration(p, branch);
+    [expected, official] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel( ...
+        p, [2000; 2000], branch, config.solverOptions);
+    ex = struct('frequency_Hz', [0; 2000; 2000], 'Cp_mps', [NaN; expected], ...
+        'validMask', [false; true; true]);
+    problem = lamb.fitting.rayleigh_lamb.rlBuildFitProblem(ex, config);
+    [cp, raw] = problem.evaluateModel(problem.baseParams);
+    verifyEqual(testCase, cp(2:3), expected);
+    verifyTrue(testCase, isnan(cp(1)));
+    verifyEqual(testCase, withoutElapsed(raw.modelResult), withoutElapsed(official.modelResult));
+end
+end
+
+function config = fitConfiguration(p, branch)
+config = struct('branchName', branch, 'freeParams', "mu", ...
+    'fixedParams', struct('rho', p.rho, 'thickness', p.thickness, 'nu', p.nu), ...
+    'initialGuess', struct('mu', p.mu), 'bounds', struct('mu', [20e3 200e3]), ...
+    'solverOptions', lamb.models.rayleigh_lamb.rlDefaultOptions("Fast"), ...
+    'fitOptions', struct('useStandardErrorWeights', false));
+end
+
+function result = withoutElapsed(result)
+result.execution = rmfield(result.execution, 'elapsedSeconds');
 end

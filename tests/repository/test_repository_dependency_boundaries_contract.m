@@ -2,26 +2,38 @@ function test_repository_dependency_boundaries_contract()
 %TEST_REPOSITORY_DEPENDENCY_BOUNDARIES_CONTRACT Guard source-layer direction.
 
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
-paths = gitTrackedMatlab(repoRoot);
+paths = gitMatlab(repoRoot);
 
 assertLayer(repoRoot, paths, "src/+lamb/+models/", ...
-    ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+    ["src/+lamb/+fitting/", "integrations/", "visualization/", "studies/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "src/+lamb/+fitting/", ...
-    ["studies/", "app/", "examples/", "tests/"]);
+    ["integrations/", "visualization/", "studies/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "src/+lamb/+elasticity/", ...
-    ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+    ["src/+lamb/+fitting/", "integrations/", "visualization/", "studies/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "src/+lamb/+grids/", ...
-    ["src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+    ["src/+lamb/+fitting/", "integrations/", "visualization/", "studies/", "app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "src/+lamb/+sweeps/", ...
-    ["src/+lamb/+models/", "src/+lamb/+fitting/", "studies/", "app/", "examples/", "tests/"]);
+    ["src/+lamb/+models/", "src/+lamb/+fitting/", "integrations/", "visualization/", "studies/", "app/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "integrations/", ["visualization/", "app/", "studies/", "examples/", "tests/"]);
+assertLayer(repoRoot, paths, "visualization/", ["src/+lamb/+fitting/", "integrations/", "app/", "studies/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "studies/", ["app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "app/", ["studies/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "examples/", ["studies/", "app/", "tests/"]);
+for path = paths(startsWith(paths,["src/","visualization/"])).'
+    executable = executableMatlabText(fileread(fullfile(repoRoot,path)));
+    assert(isempty(regexp(executable,'(?<![A-Za-z0-9_.])oce\.', 'once')), ...
+        'Science and visualization must not depend on the external OCE package: %s',path);
+end
 % Enforce the operation's dependencies, without fixing its directory.
 integrationPaths = paths(endsWith(paths, "/prepareOceFitObservations.m"));
 assert(isscalar(integrationPaths), 'Observation preparation must resolve to one maintained API.');
 fittingNames = matlabNames(paths(startsWith(paths, "src/+lamb/+fitting/")));
 modelNames = matlabNames(paths(startsWith(paths, "src/+lamb/+models/")));
+visualizationPaths = paths(startsWith(paths,"visualization/") & endsWith(paths,".m"));
+assertNoCalls(repoRoot, visualizationPaths, ...
+    [fittingNames; "load"; "readtable"; "prepareOceFitObservations"; ...
+    "prepareOceQhFitObservations"; "FitTool_GUI"; "LambFundamental_GUI"], ...
+    'Inverse visualization consumes native results; it must not fit, import or initialize a GUI');
 assertNoCalls(repoRoot, integrationPaths, ...
     [fittingNames; modelNames; ...
     "guiReadExperimentalFitFile"; "guiPrepareExperimentalFitData"; "load"; "save"; "readtable"], ...
@@ -124,7 +136,7 @@ productionInternalNames = [ ...
     "aeSelectAtlasA0Branch"; "aeApplyAtlasA0FallbackPolicy"];
 assertQualifiedCallIsDetected(productionInternalNames);
 workflowPaths = paths( ...
-    startsWith(paths, ["app/", "examples/"]) | ...
+    startsWith(paths, ["app/", "integrations/", "visualization/", "examples/"]) | ...
     startsWith(paths, [ ...
         "src/+lamb/+fitting/+acoustoelastic_iop_hgo/", ...
         "studies/sensitivity/acoustoelastic_iop_hgo/"]));
@@ -212,11 +224,13 @@ end
 names = unique(names);
 end
 
-function paths = gitTrackedMatlab(repoRoot)
-[status, output] = system(sprintf('git -C "%s" ls-files "*.m"', repoRoot));
+function paths = gitMatlab(repoRoot)
+[status, output] = system(sprintf('git -C "%s" ls-files --cached --others --exclude-standard "*.m"', repoRoot));
 assert(status == 0, 'Could not enumerate tracked MATLAB files.');
 paths = replace(splitlines(string(strtrim(output))), "\", "/");
 paths(paths == "") = [];
+paths = unique(paths,'stable');
+paths = paths(arrayfun(@(p)isfile(fullfile(repoRoot,p)),paths));
 end
 
 function text = executableMatlabText(text)

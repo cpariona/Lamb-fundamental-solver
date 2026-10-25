@@ -90,10 +90,11 @@ for row = 1:n
         end
         expected = selection.condition.(key);
         actual = metadata.(key);
-        if isnumeric(expected)
-            equal = isscalar(expected) && str2double(string(actual)) == expected;
+        if isa(actual, 'double')
+            equal = isa(expected, 'double') && isscalar(expected) && actual == expected;
         else
-            equal = isscalar(string(expected)) && string(actual) == string(expected);
+            equal = (ischar(expected) || isstring(expected)) && ...
+                isscalar(string(expected)) && string(actual) == string(expected);
         end
         if ~equal
             error('lamb:oceQh:ConditionMismatch', 'Source row %d does not match %s.', reviewed.sourceRow(row), key);

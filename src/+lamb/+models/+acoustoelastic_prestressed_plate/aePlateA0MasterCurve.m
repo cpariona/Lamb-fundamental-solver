@@ -9,7 +9,9 @@ function curve = aePlateA0MasterCurve(q)
 %   Reference: doi:10.1038/s42005-022-01000-3, Eq. (3).
 
 validateattributes(q, {'double'}, {'real', 'nonnegative', 'nonnan'}, mfilename, 'q');
-etaInfinity = fzero(@(e) e^3 + e^2 + 3*e - 1, [0, 0.5]);
+% Unique positive root of eta^3+eta^2+3*eta-1, rounded to double.
+% Material-independent: reuse this value without per-call roots or cache state.
+etaInfinity = 0.29559774252208477;
 eta = ones(size(q));
 delta = zeros(size(q));
 for i = 1:numel(q)
@@ -36,16 +38,25 @@ curve = struct('wavenumberThickness', q, 'eta', eta, ...
 end
 
 function value = smallResidual(z, q)
-% tanh(t)=t+sum(c_n*t^(2*n+1)); factor eta^2-1 before evaluation.
+% Multiply the deflated residual by tanh(q)/q > 0 and use the same
+% thirteenth-order tanh series. Separate 4/3-z before rounding O(q^2)
+% terms: evaluating q/tanh(q) first can destroy the sign at z=4/3.
 coefficients = [-1/3, 2/15, -17/315, 62/2835, -1382/155925, 21844/6081075];
-etaSquared = 1-z*q^2;
-geometricSum = 0;
-series = 0;
-for n = 1:numel(coefficients)
+qSquared = q^2;
+etaSquared = 1-z*qSquared;
+geometricSum = 1;
+seriesTail = 0;
+power = 1;
+for n = 2:numel(coefficients)
     geometricSum = 1+etaSquared*geometricSum;
-    series = series+coefficients(n)*q^(2*n-2)*geometricSum;
+    seriesTail = seriesTail+coefficients(n)*power*geometricSum;
+    power = power*qSquared;
 end
-value = -4*etaSquared*(q/tanh(q))*series-z;
+tanhTail = coefficients(end);
+for n = numel(coefficients)-1:-1:1
+    tanhTail = coefficients(n)+qSquared*tanhTail;
+end
+value = (4/3-z)-qSquared*(z*(4/3+tanhTail)+4*etaSquared*seriesTail);
 end
 
 function value = deflatedResidual(eta, q)

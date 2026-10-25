@@ -4,8 +4,8 @@ function test_repository_structure_contract()
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 paths = gitTrackedPaths(repoRoot);
 
-allowedTopLevel = ["app", "docs", "examples", "src", "studies", "tests"];
-requiredTopLevel = ["app", "examples", "src", "studies", "tests"];
+allowedTopLevel = ["app", "docs", "examples", "integrations", "src", "studies", "tests", "visualization"];
+requiredTopLevel = ["app", "examples", "integrations", "src", "studies", "tests", "visualization"];
 for i = 1:numel(requiredTopLevel)
     assert(isfolder(fullfile(repoRoot, requiredTopLevel(i))), ...
         'Required repository directory is missing: %s', requiredTopLevel(i));
@@ -24,7 +24,7 @@ for i = 1:numel(paths)
     end
 end
 
-sourcePaths = paths(startsWith(paths, ["app/", "examples/", "src/", "studies/", "tests/"]));
+sourcePaths = paths(startsWith(paths, ["app/", "examples/", "integrations/", "src/", "studies/", "tests/", "visualization/"]));
 assert(~any(contains(lower(sourcePaths), "/archive/")), ...
     'Archive directories are forbidden under maintained source, example, and test trees.');
 assert(~any(startsWith(paths, "docs/") & endsWith(paths, ".m")), ...
@@ -171,10 +171,12 @@ end
 end
 
 function paths = gitTrackedPaths(repoRoot)
-[status, output] = system(sprintf('git -C "%s" ls-files', repoRoot));
+[status, output] = system(sprintf('git -C "%s" ls-files --cached --others --exclude-standard', repoRoot));
 assert(status == 0, 'Could not enumerate tracked repository files.');
 paths = replace(splitlines(string(strtrim(output))), "\", "/");
 paths(paths == "") = [];
+paths = unique(paths,'stable');
+paths = paths(arrayfun(@(p)isfile(fullfile(repoRoot,p)),paths));
 end
 
 function text = executableMatlabText(text)

@@ -7,7 +7,7 @@ Plate or impose Plate's independent-frequency-group requirements on other famili
 
 `prepareOceFitObservations(oceResult, selection, metadata)` translates an already
 validated OCE result into model-independent fitting observations. Normal Lamb
-`startup` exposes this maintained app API without initializing a GUI. OCE is an
+`startup` exposes this maintained integration API without initializing a GUI. OCE is an
 optional external producer, not a dependency of Lamb's physics or inverse packages.
 OCE's official loader/validator must run at the input boundary. No MAT/BIN decoder,
 schema migration, OCE processing or family dispatch is implemented here.
@@ -46,7 +46,7 @@ retained. Disabled estimators raise an error; invalid scalar estimates remain Na
 when explicitly excluded. Estimators are never mixed or substituted for one another.
 
 Every source frequency/Cp entry, including excluded values and DC, remains present.
-The app rejects selected nonfinite/nonpositive Hz or Cp before canonical fitting
+Preparation rejects selected nonfinite/nonpositive Hz or Cp before canonical fitting
 normalization can intersect the mask with finiteness. Preparation itself does not
 call that normalizer: it returns the explicit mask and numeric column vectors
 without counts or empty uncertainty fields. Nonlinear fitting normalizes its own
@@ -68,14 +68,17 @@ Unknown measured thickness stays NaN, even if velocities are valid.
 Consumers call the selected canonical `lamb.fitting` family API directly; see the
 [demonstration](../../examples/oce_integration/README.md). Model parameters, bounds,
 modal choice, physics/support validation, inverse equations, optimizer and diagnostics
-remain with their established owners. The app selects none of them. Preserve the
+remain with their established owners. Integration selects none of them. Preserve the
 prepared request alongside the native fit result, since some fitting results expose
 only a subset of input provenance.
 
 Preparation is model independent; successful preparation does not imply support by
-every family. In particular, current nonlinear evaluators can require finite positive
-frequencies across the full input axis even for excluded rows. Rayleigh-Lamb rejects
-DC/nonfinite full-axis frequencies; mRLFE also validates full-axis frequency support
+every family. Native Rayleigh-Lamb fitting preserves excluded DC/nonfinite rows,
+evaluates only positive finite frequencies and reconstructs predictions in the
+original order, with unavailable predictions explicit. Invalid selected data are
+rejected without repairing the fitting mask. Its direct model evaluator still
+requires positive finite frequencies. Other nonlinear evaluators can require
+full-axis support even for excluded rows; mRLFE validates full-axis frequency support
 and requires selected frequencies in ascending order. AE IOP/HGO keeps its atlas
 support restrictions. The direct plate fit supports A0 only and requires explicit
 current thickness/density and its physical assumptions. Errors/rejections must stay
@@ -95,10 +98,16 @@ Authoritative producer contract:
 
 ## Reviewed QH target assembly and Plate coordination
 
-The optional producer dependency is the official OCE recovery API published in
-[PR #144](https://github.com/cpariona/OCE_Workflow/pull/144), merged as
-`6ba9abae3e61eff51138ffb7026cf46532466ea2`. Its validated implementation commit is
-`315ddacab1cfabf84b19f89fa94e968cfd544666`. Use `oce.results.recoverSummaryObservations`;
+Plate studies require the exact-identity producer/recovery contract in
+[OCE PR #146](https://github.com/cpariona/OCE_Workflow/pull/146), commit
+`b2ea22b00423d3be08b03cd81db94fd397f2c581`, or a revision retaining that contract.
+Text design labels remain literal; stored doubles retain their exact identities.
+New summaries use `exact_table_values_v1`; legacy recovery is allowed only when
+the indexed identity is unambiguous. Lamb does not reimplement that policy or
+recover identities already lost by a producer. Matching processing-run IDs do
+not prove historical content equality.
+
+Use `oce.results.recoverSummaryObservations`;
 Lamb neither vendors that implementation nor decodes its persisted products.
 Initialize OCE separately, load an existing summary with MATLAB `load`, then:
 
@@ -129,6 +138,9 @@ explicit condition and the intended experiment/subexperiment/signed physical axi
 order is preserved; no absent repetitions are synthesized. The caller is
 responsible for specifying the physical coordinates that define the condition,
 including condition keys not present in a subexperiment's frequency-only design.
+Condition selectors must have the stored type: double values compare exactly
+without display-text conversion; text values compare literally (`001` differs
+from `1`). Numeric-looking text is not coerced into a numeric condition.
 
 Metadata and original result identities must agree on experiment, subexperiment
 and run. Specimen `sample_id` remains optional under the OCE contract: when
@@ -158,7 +170,7 @@ is parsed as physical Hz; already-lost identities cannot be reconstructed.
 The original assembly remains unchanged. Only the native request copy receives
 the codes, with all original observed Hz, speeds, rows, masks and contributions to
 the unweighted regression retained. Native Plate owns the existing group-mean
-eta-squared coverage, rank, conditioning and acceptance diagnostics; the app
+eta-squared coverage, rank, conditioning and acceptance diagnostics; integration
 implements no SVD or alternative acceptance rule. Native diagnostics distinguish
 the observed-Hz index from physical coverage-group assignments; see the
 [Plate diagnostic contract](../../docs/models/acoustoelastic_prestressed_plate.md#linear-inverse-api).
@@ -189,7 +201,7 @@ they neither select the supplied scalar nor affect acceptance. No measured thick
 substituted or compared using a new numerical threshold. An externally supplied
 constant thickness is a reviewed physical approximation, not evidence that a
 variable-thickness plate is supported. Review references are caller attestations;
-the app cannot establish their physical validity. An alternative per-observation
+integration cannot establish their physical validity. An alternative per-observation
 thickness formulation would require separate scientific justification.
 
 Following the [scientific independence rule in PR #162](https://github.com/cpariona/Lamb-fundamental-solver/pull/162),

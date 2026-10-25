@@ -1,7 +1,7 @@
 # Demonstrating the maintained OCE observation API
 
 This demonstration contains no observation mapping, schema decoder or fitting
-dispatcher. The maintained [app interface](../../app/oce_integration/README.md)
+dispatcher. The maintained [integration interface](../../integrations/oce/README.md)
 owns preparation. Run Lamb `startup`, explicitly add the reviewed OCE `src` folder,
 and supply reviewed metadata and selection:
 

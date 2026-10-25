@@ -170,6 +170,24 @@ sources(3).acquisition_metadata.strain_percent = 10;
 verifyError(testCase, @() prepareOceQhFitObservations(sources,selection), 'lamb:oceQh:ConditionMismatch');
 end
 
+function testExactConditionTypesAndAdjacentDoubles(testCase)
+[sources,selection]=fixture();
+value=1.2345678901234567;
+for k=1:numel(sources),sources(k).acquisition_metadata.strain_percent=value;end
+selection.condition.strain_percent=value;
+original=prepareOceQhFitObservations(sources,selection);
+verifyEqual(testCase,original.lineage(1).acquisitionMetadata.strain_percent,value);
+sources(2).acquisition_metadata.strain_percent=value+eps(value);
+verifyError(testCase,@() prepareOceQhFitObservations(sources,selection),'lamb:oceQh:ConditionMismatch');
+for k=1:numel(sources),sources(k).acquisition_metadata.strain_percent="001";end
+selection.condition.strain_percent="001";
+prepareOceQhFitObservations(sources,selection);
+selection.condition.strain_percent="1";
+verifyError(testCase,@() prepareOceQhFitObservations(sources,selection),'lamb:oceQh:ConditionMismatch');
+selection.condition.strain_percent=1;
+verifyError(testCase,@() prepareOceQhFitObservations(sources,selection),'lamb:oceQh:ConditionMismatch');
+end
+
 function testExplicitThicknessPolicyAndModelReview(testCase)
 [sources, selection, physical, review] = fixture();
 sources(2).scientific_result.borders.directional_mean_thickness_mm(1) = .61;

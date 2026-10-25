@@ -34,10 +34,25 @@ boundaries.
 Use MATLAB `help` on an entrypoint for its request, units, result, and validity
 contract.
 
-The prestressed-plate formulation supports A0 with a direct linear SVD inversion
-and no GUI or OCE adapter. See the
+The prestressed-plate formulation supports A0 with a direct linear SVD inversion,
+independent of GUI and OCE. Optional [OCE integration](integrations/oce/README.md)
+prepares observations for the native fitting families; the reviewed QH coordinator
+and [manual Plate study](studies/aePlateOceStudy.m) retain Plate-specific contracts.
+The [manual RL study](studies/rlOceStudy.m) uses native A0/S0 optimization and its
+own physical configuration. Both studies share original-observation selection,
+current-input provenance, separate fitting/graphic masks and FIG/300-dpi TIF export.
+They support QH targets and Pulse broadband observations without averaging.
+See the [operational study contract](docs/oce_study_contract.md#maintained-manual-rl-study).
+Plate is not integrated into the fitting GUI. See the
 [prestressed-plate contract and usage](docs/models/acoustoelastic_prestressed_plate.md) for its
 assumptions, fixed observation mask, units and identification limits.
+
+GUI-independent native inverse presentation is owned by
+[scientific visualization](visualization/README.md). Native RL A0/S0 diagnostics,
+Plate A0 diagnostics and reviewed
+parameter trends consume stored native results without refitting, distinguish
+accepted/rejected candidates, and export editable FIG plus 300-dpi TIF to an
+explicit external output root. Other families retain their own scientific contracts.
 
 ### Production material support
 
