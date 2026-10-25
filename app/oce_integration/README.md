@@ -1,5 +1,10 @@
 # OCE observation preparation
 
+For manual model selection, native request requirements, distinct result semantics
+and the minimum reproducible study record, see the
+[OCE study contract](../../docs/oce_study_contract.md). Preparation does not select
+Plate or impose Plate's independent-frequency-group requirements on other families.
+
 `prepareOceFitObservations(oceResult, selection, metadata)` translates an already
 validated OCE result into model-independent fitting observations. Normal Lamb
 `startup` exposes this maintained app API without initializing a GUI. OCE is an
