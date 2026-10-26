@@ -26,6 +26,13 @@ native Lamb inverse models to reviewed OCE acquisitions. This directory is
    rows and original masks. In Plate, the review output is printed in section 3
    and section 4 reviews physical inputs.
 5. Populate the model-specific physical configuration and review justifications.
+   Rayleigh–Lamb defaults to `study.thicknessPolicy="oce_directional_per_acquisition"`:
+   its native fitter uses OCE's exact signed-direction thickness for each
+   observation, retaining one acquisition thickness across Pulse frequency bins
+   and each original QH thickness independently. Missing recorded thickness
+   is an error; no median or average is substituted. `"explicit_constant"`
+   permits a separately reviewed scalar alternative. Prestressed Plate
+   retains its own explicit scalar thickness contract.
    **Do not treat numeric acceptance as experimental model validation.**
 6. Fitting is disabled by default (`study.reuseOnly=true`). Only after
    inspecting the request set `study.reuseOnly=false` in the workspace, then
