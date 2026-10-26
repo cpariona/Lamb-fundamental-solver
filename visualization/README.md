@@ -72,7 +72,7 @@ The three panels show:
    changes the fitting data.
 
 The panels retain native coefficients and RMSE; the brief footer reports physical
-support, density and scalar thickness. Rank, conditioning, group diagnostics,
+support, density and the actual current thickness (scalar or measured selected-row range). Rank, conditioning, group diagnostics,
 native acceptance and full reasons remain in results/FIG data rather than the
 footer. A0 and the remaining Plate assumptions are not experimentally confirmed.
 Both families keep fitted/original counts in B: Plate uses its upper-right corner,
@@ -147,8 +147,9 @@ No nearest-valid repair, interpolation or experimental extension is performed.
 
 The approved diagnostic uses blue/orange/purple repetition symbols, simple
 `Rep. 1`/`Rep. 2`/`Rep. 3`/`Model` labels and black dashed model/regression lines.
-The brief footer states mathematical support, supplied density and scalar current
-thickness (mm, three display decimals). Full diagnostics and unrounded inputs remain
+The brief footer states mathematical support, supplied density and the
+recorded selected-observation current full thickness range, or a reviewed
+scalar reference (mm, three display decimals). Full diagnostics and unrounded inputs remain
 in native results and figure data.
 
 ## Independent-fit compatibility view
@@ -161,6 +162,17 @@ existing case-envelope resolver for all three panels before rendering any case;
 explicit shared limits remain supported. Each repetition's clipping summaries
 and edge glyphs refer to those same limits, with full native evidence retained.
 The scalar joint-fit path used by the maintained study is unchanged.
+
+Plate native results with `experimental.observationThickness_m` retain the
+matched original full thickness when computing display-only excluded
+`etaSquared`. A supported candidate produces separate canonical
+`aePlateSolveDispersion` predictions for every *exactly equal* measured
+thickness, never a pooled single-height model line. Single-frequency groups
+appear as points. `evidence.forwardByThickness` retains original row indices,
+geometry and canonical outputs; `forwardCurve` remains the flattened
+envelope used for scaling/clipping. Regression coefficients, original masks
+and fitted residuals remain one shared state. Legacy constant-thickness
+results retain the existing forward curve and scale behavior.
 
 ## Rayleigh-Lamb inverse diagnostics
 
