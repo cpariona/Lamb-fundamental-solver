@@ -43,6 +43,12 @@ on a different response do not establish more accurate parameters or model valid
 
 ### Presentation and mathematical interpretation
 
+For a Rayleigh-Lamb result with `problem.experimental.observationThickness_m`,
+the renderer reports the directional thickness range over fitted observations
+and plots official predictions in distinct exact-thickness groups instead of
+a fictitious single-thickness curve. The original row-aligned fit, residuals,
+masks and per-group canonical solver results remain unchanged.
+
 Supply nonempty `label`, `material`, `sourceReference` and
 `modelSupportReference` in provenance. Optional `displayLabel` supplies the
 human title (sample, state, signed direction and analysis); `displaySubtitle`
