@@ -4,6 +4,7 @@
 experiment_root = ""; % Full folder containing the experiment's Results/
 oce_repository_root = ""; % Local OCE_Workflow checkout
 subexperiments = "all"; % "all" or exact recorded subexperiment IDs
+condition_keys = "strain_percent"; % Exact mechanical metadata field(s) to group; edit as needed
 families = ["RayleighLamb","Plate"];
 repetitions = "all"; % "all" or exact recorded repetition IDs
 scan_axes = "all"; % "all" or numeric scan axis indices
@@ -83,15 +84,15 @@ for sub = chosen(:)'
     assert(~isempty(recovered),'lamb:workflow:NoSources','Summary has no recovered sources.');
     metadata = vertcat(recovered.acquisition_metadata);
 
-    % The saved summary defines experiment dimensions. Frequency and
-    % repetition identify observations, not independent mechanical states.
-    condition_keys = setdiff(string(saved.experiment.design.dimension_keys(:)), ...
-        ["frequency_Hz","period_us","rep_id"],"stable");
-    assert(~isempty(condition_keys) && ...
-        all(ismember(condition_keys,string(metadata.Properties.VariableNames))), ...
+    % Physical condition keys are explicit. Subexperiment summaries may
+    % group only by frequency, so their design cannot define mechanical state.
+    mechanical_keys = string(condition_keys(:));
+    assert(~isempty(mechanical_keys) && ...
+        all(ismember(mechanical_keys,string(metadata.Properties.VariableNames))) && ...
+        ~any(ismember(mechanical_keys,["frequency_Hz","period_us","rep_id"])), ...
         'lamb:workflow:ConditionKeys', ...
-        'Review the original summary design; no mechanical condition keys found.');
-    group_columns = ["experiment_id","sample_id","excitation_type",condition_keys'];
+        'Select recorded mechanical-condition metadata keys explicitly.');
+    group_columns = ["experiment_id","sample_id","excitation_type",mechanical_keys'];
     if ismember("period_us",string(metadata.Properties.VariableNames))
         group_columns(end+1)="period_us";
     end
@@ -128,7 +129,7 @@ for sub = chosen(:)'
         else
             sides_to_use = string(directions(:))';
         end
-        condition = table2struct(groups(g,condition_keys));
+        condition = table2struct(groups(g,mechanical_keys));
         for ax = axes_to_use
             for side = sides_to_use
                 assert(ismember(side,["left","right"]), ...
