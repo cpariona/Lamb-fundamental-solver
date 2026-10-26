@@ -188,6 +188,30 @@ selection.condition.strain_percent=1;
 verifyError(testCase,@() prepareOceQhFitObservations(sources,selection),'lamb:oceQh:ConditionMismatch');
 end
 
+function testRecordedPlateThicknessPreservesQhGroupsAndDirectNativeFit(testCase)
+[sources,selection,physical,review]=fixture();
+% Keep the physical target frequency identity; add varying direction-matched h.
+for j=1:numel(sources)
+    sources(j).scientific_result.borders.directional_mean_thickness_mm(1)=.4+.01*j;
+end
+assembly=prepareOceQhFitObservations(sources,selection);
+assembly.experimental.observationThickness_m=assembly.measuredThickness_m(:);
+physical.thickness_m=assembly.measuredThickness_m(1); % Non-operative native reference.
+review.thicknessPolicy="oce_directional_per_acquisition";
+review.thicknessSource="Recorded per-acquisition signed-direction OCE thickness";
+review.thicknessJustification="Original current full thickness, no aggregation";
+outcome=fitOceQhPrestressedPlate(assembly,physical,review);
+direct=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
+    assembly.experimental,physical);
+verifyEqual(testCase,outcome.nativeResult,direct);
+verifyEqual(testCase,outcome.nativeResult.experimental.observationThickness_m, ...
+    assembly.measuredThickness_m(:));
+verifyEqual(testCase,outcome.nativeResult.diagnostics.selectedThicknessGroupCount,5);
+changed=assembly;changed.experimental.observationThickness_m(2)=NaN;
+verifyError(testCase,@()fitOceQhPrestressedPlate(changed,physical,review), ...
+    'lamb:oceQh:ThicknessAlignment');
+end
+
 function testExplicitThicknessPolicyAndModelReview(testCase)
 [sources, selection, physical, review] = fixture();
 sources(2).scientific_result.borders.directional_mean_thickness_mm(1) = .61;
