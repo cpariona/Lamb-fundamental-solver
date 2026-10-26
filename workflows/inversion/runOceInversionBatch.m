@@ -36,7 +36,25 @@ for j=1:n
     caseStudy.figureVisible=false;
     caseStudy.existingNativeResult=[];
     caseStudy.existingAssembly=[];
-    if ~isfield(caseStudy,'reuseOnly'),caseStudy.reuseOnly=true;end
+    % plan.execute=true is explicit authorization for a new fit unless the
+    % batch itself explicitly requests reuse-only for every case.
+    caseStudy.reuseOnly=~execute;
+    if isfield(plan,'reuseOnly')
+        validateattributes(plan.reuseOnly,{'logical'},{'scalar'});
+        caseStudy.reuseOnly=plan.reuseOnly;
+    end
+    assert(isfield(caseStudy,'frequencySelection') && ...
+        any(string(caseStudy.frequencySelection)==["interval","explicit","all"]), ...
+        'lamb:batch:BandReview','Each case requires an explicit frequency selection.');
+    if string(caseStudy.frequencySelection)=="all"
+        assert(isfield(caseStudy,'approvedAllFrequencies') && ...
+            isequal(caseStudy.approvedAllFrequencies,true), ...
+            'lamb:batch:BandReview', ...
+            'Using all frequencies requires an explicit reviewed approval per case.');
+    else
+        assert(isfield(caseStudy,'frequency_Hz')&&~isempty(caseStudy.frequency_Hz), ...
+            'lamb:batch:BandReview','Provide a reviewed frequency interval or explicit bins.');
+    end
     if ~isfield(caseStudy,'graphicRequestedFrequency_Hz')
         caseStudy.graphicRequestedFrequency_Hz=[];
     end
