@@ -6,6 +6,7 @@ For each implementation task, read the main README, `docs/repository/final_archi
 
 ## Invariantes locales
 
+- `workflows/inversion/` owns section-oriented human execution, separate from exploratory `studies/`; MATLAB Editor sections must resolve the actual open file rather than MATLAB's temporary section script. Workflows are opt-in and may consume maintained production/integration/visualization APIs; none of these domains may depend on workflows.
 - External observation preparation preserves explicit masks, rows and provenance; reject invalid selected inputs without repairing the mask. Producers own schema validation/I/O; scientific owners retain model-specific validation and inversion.
 - Scientific inversion uses only the observations and physical inputs required by the selected model. Available load, mass or external DIC measurements are not automatic fitting constraints; independent validation/comparison must remain separate. See [architecture](docs/repository/final_architecture.md#inverse-inputs-versus-external-validation).
 - `src/+lamb/+models/` owns forward science; `src/+lamb/+fitting/` owns inverse algorithms. Integration, visualization, GUI and study owners and permitted dependencies are defined in [architecture](docs/repository/final_architecture.md). Scientific packages never depend on those consumer domains.
