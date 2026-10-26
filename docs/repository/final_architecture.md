@@ -49,8 +49,12 @@ The acoustoelastic prestressed-plate family owns the dimensionless physical A0
 curve, forward prediction and principal-state interpretation in
 `models.acoustoelastic_prestressed_plate`.
 `fitting.acoustoelastic_prestressed_plate` owns its fixed-mask data validation, direct
-linear SVD regression and identification diagnostics. It consumes the public
-master curve, with no nonlinear optimizer or family adapter framework.
+linear SVD regression and identification diagnostics. It accepts either
+a legacy reviewed constant full thickness or a separate full current thickness
+per selected original observation for q_i=pi*f_i*h_i/Cp_i, retaining one common
+alpha/gamma pair. The local-uniform-plate approximation does not model
+spatial gradients or additional independent frequency coverage. It consumes
+the public master curve, with no nonlinear optimizer or family adapter framework.
 It currently supports A0 only, following Li et al. (2022), and is
 independent of AE IOP/HGO and its atlas.
 
@@ -237,11 +241,16 @@ remain local references; original result paths retain acquisition identity.
 physical review. When physical and observed-Hz frequency partitions differ, it
 passes explicit physical-frequency group codes to Plate's existing coverage
 diagnostic while preserving observed Hz and the unweighted regression. Compatible
-partitions retain the historical call. It requires a justified externally supplied constant current full thickness
-with its source. Original OCT thicknesses, including NaNs, remain separate evidence;
-their availability is not a universal prerequisite for an independent thickness input.
-Compact OCT availability/range diagnostics belong to integration and do not alter native
-scientific diagnostics or acceptance.
+partitions retain the historical call. A reviewed Plate request may use the
+OCE-measured full current thickness aligned with each original observation:
+the workflow supplies `experimental.observationThickness_m` and the QH
+coordinator checks that it matches the recorded signed-direction values.
+A separately reviewed constant thickness or one chosen acquisition remains a
+supported explicit approximation. Excluded/missing OCT measurements remain
+visible; selected missing thickness is rejected only for the per-observation
+policy. The original SVD, independent physical-frequency grouping and numerical
+acceptance belong to native Plate fitting, not the integration layer.
+Compact OCT availability/range diagnostics remain descriptive.
 The OCE recovery dependency is optional and remains outside Lamb's scientific
 packages. Equations, SVD and acceptance thresholds remain owned by Plate;
 integration neither rounds frequencies nor supplies alternative rank diagnostics.
