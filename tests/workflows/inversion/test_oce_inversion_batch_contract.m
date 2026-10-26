@@ -53,6 +53,45 @@ plate=run_ae_plate_oce_inversion_batch(plan);
 verifyTrue(testCase,all(contains(plate.report.resultFile,"Plate")));
 end
 
+function testLegacyRelativeSummarySurvivesBatchExecutionResolution(testCase)
+root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
+c=baseCase(root,"Stretch_1p00000");
+c.summaryFile=fullfile("Results","Reviewed","alternative_summary.mat");
+plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
+    'cases',c,'execute',false);
+reviewed=run_rl_oce_inversion_batch(plan);
+first=reviewed.cases{1};
+verifyEqual(testCase,first.resolvedSummaryRelativeFile,c.summaryFile);
+reused=resolveOceInversionPaths(first,"RayleighLamb");
+verifyEqual(testCase,reused.summaryFile,first.summaryFile);
+verifyEqual(testCase,reused.resolvedSummaryRelativeFile,c.summaryFile);
+first.subexperimentId="Stretch_1p10000";
+changed=resolveOceInversionPaths(first,"RayleighLamb");
+verifyEqual(testCase,changed.summaryFile, ...
+    fullfile(root,"Results","Stretch_1p10000","summary.mat"));
+end
+
+function testFailedBatchPersistsReviewedCaseWithoutMachinePaths(testCase)
+root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
+c=baseCase(root,"Stretch_1p00000");
+c.condition=struct('strain_percent',0);
+c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
+plan=struct('experimentRoot',string(root), ...
+    'oceRepositoryRoot',"missing_OCE_checkout",'cases',c, ...
+    'execute',true,'exportFigure',false,'saveResult',true, ...
+    'continueOnError',true);
+report=run_ae_plate_oce_inversion_batch(plan);
+verifyEqual(testCase,report.report.status,"failed");
+verifyTrue(testCase,isfile(report.report.failureRecordFile));
+saved=load(report.report.failureRecordFile,'failureRecord');
+verifyEqual(testCase,saved.failureRecord.errorId,"lamb:study:OceRepository");
+verifyEqual(testCase,saved.failureRecord.request.frequency_Hz,c.frequency_Hz);
+verifyFalse(testCase,isfield(saved.failureRecord.request,'experimentRoot'));
+verifyFalse(testCase,contains(string(saved.failureRecord.errorMessage),string(root)));
+verifyError(testCase,@()run_ae_plate_oce_inversion_batch(plan), ...
+    'lamb:study:OutputExists');
+end
+
 function testUnreviewedAllFrequenciesAreNotAutomated(testCase)
 root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 c=baseCase(root,"Stretch_1p00000");
