@@ -71,6 +71,36 @@ verifyEqual(testCase,changed.summaryFile, ...
     fullfile(root,"Results","Stretch_1p10000","summary.mat"));
 end
 
+function testPortableInversionManifestAndUntouchedNativePayload(testCase)
+root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
+source=fullfile(root,"Results","Stretch_1p00000","summary.mat");
+mkdir(fileparts(source));values=(1:5)';save(source,'values');
+projectRoot=testRepositoryRoot(mfilename('fullpath'));
+hashes=oceInversionProvenance(source,projectRoot);
+study=resolveOceInversionPaths(baseCase(root,"Stretch_1p00000"),"Plate");
+study.saveResult=true;study.showFigure=false;
+inputs=struct('inputHashes',hashes.inputFiles,'assembly', ...
+    struct('experimental',struct('frequency_Hz',1000,'Cp_mps',3, ...
+    'validMask',true),'sourceResultFiles',string(source)), ...
+    'observationReview',table(),'frequencySelectionMapping',table(), ...
+    'graphicSamplingMapping',table());
+nativeResult=struct('experimental',inputs.assembly.experimental, ...
+    'sourceReference',string(source));
+physical=struct('density_kgpm3',1050,'thickness_m',.0005);
+review=struct('mode',"A0");
+record=persistOceInversionStudy(study,inputs,nativeResult,physical, ...
+    review,false,projectRoot,"Plate");
+verifyEqual(testCase,record.inputFiles.path, ...
+    fullfile("Results","Stretch_1p00000","summary.mat"));
+verifyEqual(testCase,record.pathBase,"experimentRoot");
+verifyFalse(testCase,isfield(record.selection,'experimentRoot'));
+verifyFalse(testCase,isfield(record.code.Lamb,'root'));
+verifyFalse(testCase,isfield(record.code.OCE,'root'));
+saved=load(study.resultFile,'studyRecord','nativeResult');
+verifyEqual(testCase,saved.studyRecord,record);
+verifyEqual(testCase,saved.nativeResult,nativeResult);
+end
+
 function testFailedBatchPersistsReviewedCaseWithoutMachinePaths(testCase)
 root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 c=baseCase(root,"Stretch_1p00000");
