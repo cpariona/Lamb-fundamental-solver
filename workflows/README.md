@@ -32,12 +32,17 @@ native Lamb inverse models to reviewed OCE acquisitions. This directory is
    and each original QH thickness independently. Missing recorded thickness
    is an error; no median or average is substituted. `"explicit_constant"`
    permits a separately reviewed scalar alternative. Prestressed Plate
-   still requires **one scalar** current thickness: either independently
-   reviewed as `study.physical.thickness_m`, or selected from one OCE
-   signed-direction acquisition by setting
-   `study.thicknessPolicy="oce_reference_acquisition"` and
-   `study.thicknessReferenceSourceIndex`. This is not per-bin geometry
-   and does not change the native Li/Plate regression.
+   now defaults to that same OCE directional policy: each original
+   observation contributes its own current full `h_i` to the native
+   `q_i=pi*f_i*h_i/Cp_i`, while one pair of `alpha,gamma` remains shared
+   for the reviewed physical condition/direction. The former fixed-height
+   behavior remains available with
+   `study.thicknessPolicy="explicit_constant_current_thickness"` and
+   `study.physical.thickness_m`. Alternatively,
+   `"oce_reference_acquisition"` and
+   `study.thicknessReferenceSourceIndex` select exactly one OCE geometry
+   as a constant reference. No native SVD weighting, frequency grouping or
+   numerical-acceptance criteria are changed.
    **Do not treat numeric acceptance as experimental model validation.**
 6. Fitting is disabled by default (`study.reuseOnly=true`). Only after
    inspecting the request set `study.reuseOnly=false` in the workspace, then
@@ -119,8 +124,11 @@ report = run_rl_oce_inversion_batch(plan);
 disp(report.report);
 ```
 
-For Plate call `run_ae_plate_oce_inversion_batch(plan)` and supply reviewed
-scalar physical inputs with its model-specific review. `plan.execute=true`
+For Plate call `run_ae_plate_oce_inversion_batch(plan)` and supply
+reviewed density, thickness policy and model-support evidence. The default
+uses the OCE signed-direction full thickness for each selected observation.
+The recorded scalar `physical.thickness_m` is a non-operative reference
+under this policy; constant-thickness studies remain available explicitly. `plan.execute=true`
 explicitly permits fresh native fits; set `plan.reuseOnly=true` to require
 previously saved exact results instead. The default full MATLAB figure export
 is hidden during batch execution; it saves FIG and TIF and closes the GUI.
