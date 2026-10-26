@@ -53,6 +53,7 @@ if isfield(experimental, 'observationThickness_m')
             'Observation thickness must be one double in meters per original row.');
     end
     observationThickness = observationThickness(:);
+    experimental.observationThickness_m = observationThickness;
     admissibleThickness = isfinite(experimental.frequency_Hz) & experimental.frequency_Hz > 0;
     if any(~isfinite(observationThickness(admissibleThickness)) | ...
             observationThickness(admissibleThickness) <= 0)
