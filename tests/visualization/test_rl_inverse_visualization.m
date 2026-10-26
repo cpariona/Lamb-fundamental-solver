@@ -219,12 +219,20 @@ native.problem.experimental.observationThickness_m=h(:);
 cleanup=onCleanup(@()close(fig));
 lines=findall(fig,'Tag','rl_native_prediction');
 verifyEqual(testCase,numel(lines),2);
-for k=1:numel(lines)
-    row=ismember(native.frequency_Hz/1e3,lines(k).XData(:));
-    verifyTrue(testCase,all(ismember(lines(k).XData(:)*1e3,native.frequency_Hz)));
-    [~,idx]=ismember(lines(k).XData(:)*1e3,native.frequency_Hz);
-    verifyTrue(testCase,all(idx>0));
-    verifyNotEmpty(testCase,find(h==.405e-3 | h==.406e-3,1));
+allModelRows=find(isfinite(native.frequency_Hz)&native.frequency_Hz>0 & ...
+    native.frequency_Hz<=max(native.frequency_Hz(native.validMask)));
+for thickness=[.405e-3,.406e-3]
+    rows=allModelRows(h(allModelRows)==thickness);
+    [hz,index]=unique(native.frequency_Hz(rows),'sorted');
+    expectedCp=native.Cp_fit_mps(rows(index));
+    matched=false;
+    for k=1:numel(lines)
+        if isequal(lines(k).XData(:),hz(:)/1e3) && ...
+                isequal(lines(k).YData(:),expectedCp(:))
+            matched=true;
+        end
+    end
+    verifyTrue(testCase,matched);
 end
 verifyEqual(testCase,e.observations.selected,native.validMask);
 layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
