@@ -1,0 +1,49 @@
+function [fig,figureEvidence,figurePaths] = renderOceInversionStudy(study, inputs, nativeResult, review, family)
+%RENDEROCEINVERSIONSTUDY Render original OCE rows without changing fit masks.
+fig=[];figureEvidence=struct();figurePaths=struct();
+if ~study.showFigure,return;end
+experimental=inputs.assembly.experimental;
+r=inputs.observationReview;
+graphicHz=[];
+if study.mode=="Pulse"
+    mapping=inputs.graphicSamplingMapping;
+    graphicHz=unique(mapping.observedFrequency_Hz(isfinite(mapping.observedFrequency_Hz)));
+    expected=experimental.validMask & ismember( ...
+        [r.sourceIndex,r.sourceBinIndex], ...
+        [mapping.sourceIndex,mapping.sourceBinIndex],'rows');
+    assert(isequal(experimental.validMask & ...
+        ismember(experimental.frequency_Hz,graphicHz),expected), ...
+        'lamb:study:GraphicMapping','Graphic frequency bins collide across source grids.');
+end
+label=string(study.displayLabel);
+if strlength(strtrim(label))==0
+    label=string(study.sampleId)+" | "+string(study.subexperimentId)+ ...
+        " | axis "+string(study.scanAxisIndex)+" "+string(study.direction);
+end
+reference=string(study.resultFile);
+if ~study.saveResult,reference="Reviewed in-memory native request";end
+provenance=struct('label',label,'displayLabel',label, ...
+    'displaySubtitle',string(study.displaySubtitle), ...
+    'material',string(inputs.sourceMetadata.material(1)), ...
+    'sourceReference',reference,'originalResultReferences',inputs.sourceResultFiles, ...
+    'modelSupportReference',review.modelSupportReference,'physicalReview',review, ...
+    'repetitionId',r.repetitionId);
+visible="off";
+if ~isfield(study,'figureVisible')||study.figureVisible
+    visible="on";
+end
+if family=="RayleighLamb"
+    [fig,figureEvidence]=plotRlFitDiagnostics(nativeResult,provenance, ...
+        'DisplayFrequency_Hz',graphicHz,'Visible',visible);
+else
+    provenance.sourceMasks=struct('valid_mask',r.ridgeValid, ...
+        'interpolated_mask',r.interpolated,'extrapolated_mask',r.extrapolated);
+    [fig,figureEvidence]=plotAePlateFitDiagnostics(nativeResult,provenance, ...
+        'DisplayMode',"robust",'DisplayFrequency_Hz',graphicHz,'Visible',visible);
+end
+if visible=="on",drawnow;end
+if study.exportFigure
+    figurePaths=saveInverseFigure(fig,study.figureFolder,study.figureName);
+end
+if visible=="off",close(fig);fig=[];end
+end
