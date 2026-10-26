@@ -100,6 +100,8 @@ try
     % A model line uses only existing native predictions, with NaN gaps intact.
     modelRows = find(inDomain & f>0);
     if isfield(result.problem.experimental,'observationThickness_m')
+        % Include all native group predictions in the shared display scale.
+        modelCp = predicted(modelRows);
         % With varying thickness, Cp is not one function of frequency.
         % Plot each exact thickness group separately, never connect unlike h.
         h = result.problem.experimental.observationThickness_m(:);
