@@ -178,6 +178,63 @@ for branch = ["A0", "S0"]
 end
 end
 
+function testPerObservationThicknessKeepsNativeGroupsAndOriginalRows(testCase)
+% Direction-matched thickness groups must not be averaged or rounded.
+p=lamb.models.rayleigh_lamb.rlDefaultParams();
+p.mu=85e3; p.rho=1050; p.nu=0.4999;
+f=[0;900;1100;1500;1800;2200;2600];
+h=[NaN;.405e-3;.406e-3;.405e-3;.406e-3;.405e-3;.406e-3];
+selected=[false;true;true;false;true;true;true];
+cp=nan(size(f));op=lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
+for thickness=unique(h(2:end))'
+    rows=find(f>0 & h==thickness);
+    q=p;q.thickness=thickness;
+    cp(rows)=lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(q,f(rows),"A0",op);
+end
+ex=struct('frequency_Hz',f,'Cp_mps',cp,'validMask',selected, ...
+    'observationThickness_m',h);
+config=fitConfiguration(p,"A0");
+config.fixedParams.thickness=NaN; % Not a physical constant in grouped mode.
+problem=lamb.fitting.rayleigh_lamb.rlBuildFitProblem(ex,config);
+verifyEqual(testCase,problem.baseParams.thickness,h(2));
+verifyEqual(testCase,problem.experimental.observationThickness_m,h);
+[fitCp,raw]=problem.evaluateModel(problem.baseParams);
+verifyEqual(testCase,fitCp(2:end),cp(2:end));
+verifyTrue(testCase,isnan(fitCp(1)));
+verifyEqual(testCase,raw.validMask,[false;true(6,1)]);
+verifyEqual(testCase,raw.observationThickness_m,h);
+verifyEqual(testCase,raw.trackingMode,"canonical_public_solver_by_thickness");
+verifyEmpty(testCase,raw.modelResult);
+verifyEqual(testCase,[raw.modelResultsByThickness.thickness_m]',unique(h(2:end),'stable'));
+verifyEqual(testCase,raw.modelResultsByThickness(1).observationRows,[2;4;6]);
+verifyEqual(testCase,raw.modelResultsByThickness(2).observationRows,[3;5;7]);
+verifyEqual(testCase,raw.reliability.ValidPoints,6);
+fit=lamb.fitting.rayleigh_lamb.rlFitDispersionData(ex,config);
+verifyEqual(testCase,fit.validMask,selected);
+verifyEqual(testCase,fit.problem.experimental.observationThickness_m,h);
+verifyLessThan(testCase,abs(fit.bestParams.mu-p.mu)/p.mu,0.05);
+verifyLessThan(testCase,fit.metrics.RMSE,0.05);
+end
+
+function testObservationThicknessRejectsMissingDataAndScalarFit(testCase)
+p=lamb.models.rayleigh_lamb.rlDefaultParams();
+config=fitConfiguration(p,"A0");
+ex=struct('frequency_Hz',[0;1000;2000],'Cp_mps',[NaN;5;6], ...
+    'validMask',[false;true;true], ...
+    'observationThickness_m',[NaN;.405e-3;.406e-3]);
+for bad=[NaN,0,-.001,Inf]
+    changed=ex;changed.observationThickness_m(2)=bad;
+    verifyError(testCase,@()lamb.fitting.rayleigh_lamb.rlBuildFitProblem(changed,config), ...
+        'lamb:rl:ObservationThickness');
+end
+changed=ex;changed.observationThickness_m=changed.observationThickness_m(2:end);
+verifyError(testCase,@()lamb.fitting.rayleigh_lamb.rlBuildFitProblem(changed,config), ...
+    'lamb:rl:ObservationThickness');
+config.freeParams="thickness";
+verifyError(testCase,@()lamb.fitting.rayleigh_lamb.rlBuildFitProblem(ex,config), ...
+    'lamb:rl:ThicknessConflict');
+end
+
 function config = fitConfiguration(p, branch)
 config = struct('branchName', branch, 'freeParams', "mu", ...
     'fixedParams', struct('rho', p.rho, 'thickness', p.thickness, 'nu', p.nu), ...
