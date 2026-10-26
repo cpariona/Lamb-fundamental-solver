@@ -80,7 +80,7 @@ automatic model-selection rule.
 
 ## Maintained manual Plate study
 
-The single executable workflow is [aePlateOceStudy.m](../studies/aePlateOceStudy.m).
+The single executable workflow is [run_ae_plate_oce_inversion.m](../workflows/inversion/run_ae_plate_oce_inversion.m).
 It replaces the pilot preview/export coordinator. It contains no specimen names,
 absolute study paths, FIG input dependency, frequency optimizer or model dispatcher.
 Initialize the reviewed OCE `src` path explicitly; Lamb startup supplies its integration and visualization APIs.
@@ -198,12 +198,12 @@ IOP/HGO retain their model-specific direct APIs and scientific requirements.
 
 ## Maintained manual RL study
 
-[rlOceStudy.m](../studies/rlOceStudy.m) provides the same opt-in manual stages for
+[run_rl_oce_inversion.m](../workflows/inversion/run_rl_oce_inversion.m) provides the same opt-in manual stages for
 native Rayleigh-Lamb A0/S0 fitting. Run Lamb `startup`, initialize the reviewed
 OCE `src` path explicitly, open section 1, and supply a configured `study` before
 running the remaining sections. Defaults request reuse only and write no files.
 
-Both scripts consume [prepareOceStudyObservations](../studies/prepareOceStudyObservations.m)
+Both scripts consume [prepareOceInversionObservations](../workflows/inversion/prepareOceInversionObservations.m)
 for the same exact condition/repetition/signed-direction selection and nominal-to-
 original-bin mapping. It calls canonical OCE recovery and the existing preparation
 owners; it is not another loader, translator or experimental schema. The fixed
@@ -240,7 +240,7 @@ The MAT retains `nativeResult`, `assembly`, `fitConfig`, `review`, the two mappi
 tables, `observationReview` and `studyRecord`. The native `problem` owns resolved
 options/parameters; selection records do not duplicate the observation arrays.
 An explicit mask is reconstructible from `observationReview.validMask`, with its
-policy recorded separately. The common [oceStudyProvenance](../studies/oceStudyProvenance.m)
+policy recorded separately. The common [oceInversionProvenance](../workflows/inversion/oceInversionProvenance.m)
 records the same current input hashes, code state and provenance limits as Plate.
 The full-summary hashing scope is intentionally unchanged.
 
@@ -346,7 +346,7 @@ reviewed masks, full requests/results and output hashes. Relocation changes root
 configuration, not datasets, saved observations or scientific APIs. Preserve
 earlier reports as historical evidence; do not silently overwrite them.
 
-The maintained manual driver is `studies/aePlateOceStudy.m`.
+The maintained manual driver is `workflows/inversion/run_ae_plate_oce_inversion.m`.
 `integrations/oce/` owns the existing translation/preparation and QH coordinator
 APIs, not the study script. Dataset-specific selections, physical review and
 outputs remain external. The study coordinates canonical APIs in separately
