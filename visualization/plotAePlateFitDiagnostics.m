@@ -46,9 +46,21 @@ if iscell(result)
             if isempty(shared.PhaseSpeedLimits)&&r.diagnostics.physicalCandidate
                 physical=r.physical;physical.alpha_Pa=r.alpha_Pa;physical.gamma_Pa=r.gamma_Pa;
                 f=r.experimental.frequency_Hz(:);
-                forward=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion( ...
-                    linspace(min(f(mask)),max(f(mask)),128)',physical);
-                populations{k,1}=[populations{k,1};forward.phaseVelocity_mps];
+                if isfield(r.experimental,'observationThickness_m')
+                    h=r.experimental.observationThickness_m(:);
+                    groups=unique(h(mask),'stable');
+                    for g=1:numel(groups)
+                        hz=unique(f(mask&h==groups(g)),'sorted');
+                        if numel(hz)>1,hz=linspace(min(hz),max(hz),128)';end
+                        physical.thickness_m=groups(g);
+                        forward=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion(hz,physical);
+                        populations{k,1}=[populations{k,1};forward.phaseVelocity_mps];
+                    end
+                else
+                    forward=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion( ...
+                        linspace(min(f(mask)),max(f(mask)),128)',physical);
+                    populations{k,1}=[populations{k,1};forward.phaseVelocity_mps];
+                end
             end
             if r.diagnostics.designRank==2&&all(isfinite([r.alpha_Pa,r.gamma_Pa]))
                 populations{k,2}=[populations{k,2};r.alpha_Pa-r.gamma_Pa*r.etaSquared(mask)];
@@ -128,8 +140,15 @@ if iscell(result)
             violations=replace(support,["alpha","gamma",">=","<="],["\alpha","\gamma","\geq","\leq"]);
             statement="Physical support: "+join(legendNames(1:numel(result))+": "+violations,"; ");
         end
-        layout.XLabel.String={char(statement),sprintf('\\rho = %.15g kg m^{-3}; current thickness h = %.3f mm', ...
-            result{1}.physical.density_kgpm3,result{1}.physical.thickness_m*1e3)};
+        geometryCaption=sprintf('\\rho = %.15g kg m^{-3}; current thickness h = %.3f mm', ...
+            result{1}.physical.density_kgpm3,result{1}.physical.thickness_m*1e3);
+        if all(cellfun(@(r)isfield(r.experimental,'observationThickness_m'),result))
+            h=cell2mat(cellfun(@(r)r.experimental.observationThickness_m(r.validMask), ...
+                result,'UniformOutput',false));
+            geometryCaption=sprintf('\\rho = %.15g kg m^{-3}; directional h = %.3f - %.3f mm (per observation)', ...
+                result{1}.physical.density_kgpm3,min(h)*1e3,max(h)*1e3);
+        end
+        layout.XLabel.String={char(statement),geometryCaption};
         layout.XLabel.Interpreter='tex';layout.XLabel.FontSize=9;
         countNote=findall(fig,'Tag','plate_observation_count');
         countNote.String=sprintf('Fitted observations: %d / %d', ...
