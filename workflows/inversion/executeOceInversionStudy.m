@@ -1,7 +1,10 @@
-function result = executeOceInversionStudy(study, family, oceRepositoryRoot)
+function [result, executionError] = executeOceInversionStudy(study, family, oceRepositoryRoot)
 %EXECUTEOCEINVERSIONSTUDY Noninteractive, review-first RL or Plate study.
 % Caller supplies all original condition/scan/estimator/band/model decisions.
 % No frequency-band optimization, source-data edits or automatic refitting.
+% An optional second output retains a completed fit if persistence or
+% presentation fails. One-output callers retain the throwing behavior.
+executionError=[];
 projectRoot=fileparts(fileparts(fileparts(mfilename('fullpath'))));
 addpath(projectRoot);
 startup;
@@ -29,13 +32,21 @@ inputs=prepareOceInversionObservations(study);
 inputs.assembly.experimental=experimental;
 [nativeResult,reused,physics]=fitOceInversionNative(study,inputs.assembly, ...
     experimental,physics,review,inputs.sourceResultFiles,family);
-studyRecord=persistOceInversionStudy( ...
-    study,inputs,nativeResult,physics,review,reused,projectRoot,family);
-[fig,figureEvidence,figurePaths]=renderOceInversionStudy( ...
-    study,inputs,nativeResult,review,family);
 result=struct('study',study,'experimental',experimental, ...
     'assembly',inputs.assembly,'observationReview',inputs.observationReview, ...
     'physics',physics,'review',review,'nativeResult',nativeResult, ...
-    'reusedResult',reused,'studyRecord',studyRecord, ...
-    'figure',fig,'figureEvidence',figureEvidence,'figurePaths',figurePaths);
+    'reusedResult',reused,'studyRecord',struct(), ...
+    'figure',[],'figureEvidence',struct(),'figurePaths',struct(), ...
+    'completedThrough',"fit");
+try
+    result.studyRecord=persistOceInversionStudy( ...
+        study,inputs,nativeResult,physics,review,reused,projectRoot,family);
+    result.completedThrough="persistence";
+    [result.figure,result.figureEvidence,result.figurePaths]=renderOceInversionStudy( ...
+        study,inputs,nativeResult,review,family);
+    result.completedThrough="presentation";
+catch exception
+    if nargout<2,rethrow(exception);end
+    executionError=exception;
+end
 end

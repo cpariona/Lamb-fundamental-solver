@@ -32,12 +32,15 @@ function testRlStudyPersistenceHashesAndOverwriteProtection(testCase)
 folder=tempname;mkdir(folder);cleanup=onCleanup(@()rmdir(folder,'s'));
 inputFile=fullfile(folder,'source.mat');value=1;save(inputFile,'value');
 record=oceInversionProvenance(inputFile,testRepositoryRoot(mfilename('fullpath')));
-study.saveResult=true;study.resultFile=string(fullfile(folder,'study.mat'));
+study.experimentRoot=string(folder);study.summaryFile="source.mat";
+study=resolveOceInversionPaths(study,"RayleighLamb");study.saveResult=true;
 out=runRlStudySections(study,assembly,record.inputFiles);
 saved=load(study.resultFile);
 verifyEqual(testCase,saved.nativeResult,out.nativeResult);
 verifyEqual(testCase,saved.fitConfig,study.fitConfig);
-verifyEqual(testCase,saved.studyRecord.inputFiles,record.inputFiles);
+relativeHashes=record.inputFiles;relativeHashes.path="source.mat";
+verifyEqual(testCase,saved.studyRecord.inputFiles,relativeHashes);
+verifyEqual(testCase,saved.studyRecord.pathBase,"experimentRoot");
 verifyEqual(testCase,saved.studyRecord.selection.condition,study.condition);
 verifyEqual(testCase,saved.studyRecord.selection.repetitions,study.repetitions);
 verifyFalse(testCase,saved.studyRecord.historicalProcessingContentVerified);
@@ -47,7 +50,8 @@ reused=runRlStudySections(study,assembly);
 verifyTrue(testCase,reused.reusedResult);verifyEqual(testCase,reused.nativeResult,out.nativeResult);
 study.saveResult=true;
 verifyError(testCase,@()runRlStudySections(study,assembly,record.inputFiles),'lamb:study:OutputExists');
-study.resultFile=string(fullfile(folder,'changed-input.mat'));study.existingNativeResult=out.nativeResult;
+study.outputTag="changed-input";study=resolveOceInversionPaths(study,"RayleighLamb");
+study.existingNativeResult=out.nativeResult;
 study.existingAssembly=assembly;value=2;save(inputFile,'value');
 verifyError(testCase,@()runRlStudySections(study,assembly,record.inputFiles),'lamb:study:InputsChanged');
 verifyFalse(testCase,isfile(study.resultFile));
@@ -81,7 +85,9 @@ fig=figure('Visible','off');closeFigure=onCleanup(@()close(fig));
 plot(1:3);study=struct('exportFigure',true,'figureFolder',string(folder),'figureName',"Plate");
 for script=["run_ae_plate_oce_inversion","run_rl_oce_inversion"]
     body=string(fileread(fullfile(repoRoot,'workflows','inversion',script+".m")));
-    exportCode=extractBetween(body,'    if study.exportFigure','    end');
+    verifySubstring(testCase,body,'renderOceInversionStudy(');
+    renderer=string(fileread(fullfile(repoRoot,'workflows','inversion','renderOceInversionStudy.m')));
+    exportCode=extractBetween(renderer,'if study.exportFigure','end');
     eval(char(exportCode));
     verifyTrue(testCase,isfile(figurePaths.fig));verifyTrue(testCase,isfile(figurePaths.tif));
     info=imfinfo(figurePaths.tif);verifyEqual(testCase,info.XResolution,300);
@@ -97,7 +103,10 @@ if nargin<3,inputHashes=table();end %#ok<NASGU> Used by script eval.
 repoRoot=testRepositoryRoot(mfilename('fullpath'));projectRoot=repoRoot; %#ok<NASGU> Used by script eval.
 experimental=assembly.experimental;sourceFiles=assembly.sourceResultFiles; %#ok<NASGU>
 observationReview=table(experimental.validMask,'VariableNames',{'validMask'}); %#ok<NASGU>
-frequencySelectionMapping=table();graphicSamplingMapping=table(); %#ok<NASGU>
+frequencySelectionMapping=table();graphicSamplingMapping=table();
+inputs=struct('assembly',assembly,'observationReview',observationReview, ...
+    'inputHashes',inputHashes,'frequencySelectionMapping',frequencySelectionMapping, ...
+    'graphicSamplingMapping',graphicSamplingMapping); %#ok<NASGU> Used by script eval.
 body=string(fileread(fullfile(repoRoot,'workflows','inversion','run_rl_oce_inversion.m')));
 code=extractBetween(body,'%% 5. REVIEW RAYLEIGH-LAMB PHYSICS AND CONFIGURATION', ...
     '%% 8. OPTIONAL VISUALIZATION');
@@ -120,7 +129,8 @@ study=struct('experimentRoot',"synthetic",'summaryFile',"synthetic/summary.mat",
     'conditionId',"reviewed_state",'condition',struct('strain_percent',0), ...
     'scanAxisIndex',1,'direction',"left",'estimator',"kf_ridge",'curve',"raw", ...
     'frequencySelection',"all",'frequency_Hz',[],'graphicRequestedFrequency_Hz',[], ...
-    'observationMask',[],'reuseOnly',false,'existingNativeResult',[],'existingAssembly',[], ...
+    'observationMask',[],'thicknessPolicy',"explicit_constant", ...
+    'reuseOnly',false,'existingNativeResult',[],'existingAssembly',[], ...
     'resultFile',"",'saveResult',false,'showFigure',false, ...
     'fitConfig',struct('branchName',"A0",'freeParams',"mu", ...
         'fixedParams',struct('rho',1070,'thickness',.0005,'nu',.4999), ...
@@ -509,9 +519,18 @@ body=string(fileread(fullfile(repoRoot,'workflows','inversion','prepareOceInvers
 if ~isfield(study,'estimator'),study.estimator="kf_ridge";end
 selectionCode=extractBetween(body,'%% 3. Review','%% 4. Prepare');
 eval(char("%% 3. Review"+selectionCode));
-body=string(fileread(fullfile(repoRoot,'workflows','inversion','run_ae_plate_oce_inversion.m')));
-graphicCode=extractBetween(body,'%% 7. OPTIONAL VISUALIZATION','    reference=string(study.resultFile)');
-eval(char("%% 7. OPTIONAL VISUALIZATION"+graphicCode+newline+"end")); % Close showFigure before rendering.
+% Exercise the maintained renderer's mapping preflight without opening a figure.
+inputs=struct('assembly',struct('experimental',struct('frequency_Hz',frequency, ...
+    'Cp_mps',speed,'validMask',validMask)),'observationReview',observationReview, ...
+    'graphicSamplingMapping',graphicSamplingMapping); %#ok<NASGU> Used by eval.
+body=string(fileread(fullfile(repoRoot,'workflows','inversion','renderOceInversionStudy.m')));
+graphicCode=extractBetween(body,'experimental=inputs.assembly.experimental;', ...
+    'label=string(study.displayLabel);');
+graphicMask=false(size(validMask));graphicFrequency=[];
+if study.showFigure
+    eval(char("experimental=inputs.assembly.experimental;"+graphicCode));
+    if study.mode=="Pulse",graphicMask=expected;graphicFrequency=graphicHz;end
+end
 review=struct('frequency',frequency,'bins',bins,'qualityMask',qualityMask, ...
     'validMask',validMask,'selectionMapping',frequencySelectionMapping, ...
     'graphicMapping',graphicSamplingMapping,'graphicMask',graphicMask,'graphicFrequency',graphicFrequency);

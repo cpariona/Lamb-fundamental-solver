@@ -150,7 +150,12 @@ is hidden during batch execution; it saves FIG and TIF and closes the GUI.
  `plan.continueOnError=true` optionally collects failures rather than stopping
 on the first exception. When saving is enabled, a failed attempted case records
 `inversion_failure.mat` (reviewed request, error and portable source location)
-without overwriting any previous output. Failed cases never create a native fit.
+without overwriting any previous output. A failure before fitting has no
+native result. If fitting completes but saving or presentation fails, the
+case has status `partial`: its native result and metrics remain in `results`
+and the report. The failure record includes `completedThrough` and a relative
+reference to any successfully saved inversion MAT. With `continueOnError=false`,
+the original exception is still raised after recording the failure.
 
 Each batch case **must** supply `frequencySelection="interval"` with two Hz
 bounds, or `"explicit"` with its reviewed original target requests. The

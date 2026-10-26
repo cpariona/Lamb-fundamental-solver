@@ -213,3 +213,114 @@ c=struct('experimentRoot',string(root),'subexperimentId',string(sub), ...
     'outputRelativeFolder',"",'outputTag',"", ...
     'frequencySelection',"interval",'frequency_Hz',[500 2000]);
 end
+
+function testWindowsTrailingDotAliasesAreRejected(testCase)
+root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
+c=baseCase(root,"Stretch_1p00000");
+c.outputTag="review.";
+verifyError(testCase,@()resolveOceInversionPaths(c,"Plate"), ...
+    'lamb:study:UnsafeOutputPath');
+c.outputTag="review";c.outputRelativeFolder="Results/review./Plate";
+verifyError(testCase,@()resolveOceInversionPaths(c,"Plate"), ...
+    'lamb:study:UnsafeOutputPath');
+end
+
+function testExportFailureRetainsFitAndContinuesBatch(testCase)
+[root,oceRoot,cleanup]=presentationFailureFixture(); %#ok<ASGLU>
+c=baseCase(root,"Stretch_1p00000");
+c.mode="QH";c.period_us="";
+c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
+c.review=struct('mode',"A0");
+c.condition=struct('strain_percent',0);
+c.sampleId="fixture";
+second=c;second.conditionId="next";
+plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
+    'cases',[c,second],'execute',true,'exportFigure',true,'saveResult',true, ...
+    'continueOnError',true);
+batch=runOceInversionBatch(plan,"Plate");
+verifyEqual(testCase,batch.report.status,["partial";"completed"]);
+verifyEqual(testCase,batch.report.selectedObservations,[2;2]);
+verifyEqual(testCase,batch.report.nativeRMSE,[12;12]);
+verifyEqual(testCase,batch.results{1}.completedThrough,"persistence");
+verifyTrue(testCase,isfile(batch.report.resultFile(1)));
+saved=load(batch.report.resultFile(1),'nativeResult');
+verifyEqual(testCase,batch.results{1}.nativeResult,saved.nativeResult);
+failure=load(batch.report.failureRecordFile(1),'failureRecord');
+verifyEqual(testCase,failure.failureRecord.completedThrough,"persistence");
+verifyEqual(testCase,failure.failureRecord.nativeResultRelativeFile, ...
+    fullfile(batch.cases{1}.resolvedOutputRelativeFolder,"inversion.mat"));
+verifyEqual(testCase,failure.failureRecord.errorId,"lamb:test:ExportFailure");
+verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
+    'lamb:study:OutputExists');
+% The ordinary one-output API and stop-on-error batch still throw the error.
+single=batch.cases{1};single.outputTag="single";
+verifyError(testCase,@()executeOceInversionStudy(single,"Plate",oceRoot), ...
+    'lamb:test:ExportFailure');
+plan.cases=c;plan.cases.outputTag="stop";plan.continueOnError=false;
+verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
+    'lamb:test:ExportFailure');
+end
+
+function testPersistenceFailureRetainsNativeWithoutClaimingSavedMat(testCase)
+[root,oceRoot,cleanup]=presentationFailureFixture(); %#ok<ASGLU>
+c=baseCase(root,"Stretch_1p00000");c.mode="QH";c.period_us="";
+c.conditionId="persistence_failure";
+c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
+c.review=struct('mode',"A0");
+plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
+    'cases',c,'execute',true,'exportFigure',false,'saveResult',true, ...
+    'continueOnError',true);
+batch=runOceInversionBatch(plan,"Plate");
+verifyEqual(testCase,batch.report.status,"partial");
+verifyEqual(testCase,batch.results{1}.completedThrough,"fit");
+verifyEqual(testCase,batch.report.nativeRMSE,12);
+verifyFalse(testCase,isfile(batch.report.resultFile));
+saved=load(batch.report.failureRecordFile,'failureRecord');
+verifyEqual(testCase,saved.failureRecord.completedThrough,"fit");
+verifyEqual(testCase,saved.failureRecord.nativeResultRelativeFile,"");
+verifyEqual(testCase,saved.failureRecord.errorId,"lamb:study:InputsChanged");
+end
+
+function [root,oceRoot,cleanup]=presentationFailureFixture()
+% Replace external/scientific collaborators only; exercise actual workflow
+% execution, provenance persistence, error reporting and continuation.
+root=tempname;mkdir(root);mock=fullfile(root,'mocks');mkdir(mock);
+oceRoot=fullfile(root,'oce');
+oceFolder=fullfile(oceRoot,'src','+oce','+results');mkdir(oceFolder);
+writeFixtureFunction(fullfile(oceFolder,'recoverSummaryObservations.m'), ...
+    ["function value=recoverSummaryObservations(varargin)","value=[];","end"]);
+writeFixtureFunction(fullfile(mock,'prepareOceInversionObservations.m'),[ ...
+    "function inputs=prepareOceInversionObservations(study)", ...
+    "hashes=oceInversionProvenance(study.summaryFile,fileparts(which('startup')));", ...
+    "data=struct('frequency_Hz',[1000;2000],'Cp_mps',[3;4],'validMask',true(2,1));", ...
+    "inputs=struct('inputHashes',hashes.inputFiles,'assembly',struct('experimental',data), ...", ...
+    "'observationReview',table(),'frequencySelectionMapping',table(), ...", ...
+    "'graphicSamplingMapping',table(),'sourceResultFiles',string(study.summaryFile));", ...
+    "if study.conditionId==""persistence_failure"",inputs.inputHashes.sha256(:)=""changed"";end", ...
+    "end"]);
+writeFixtureFunction(fullfile(mock,'reviewOceInversionPhysics.m'),[ ...
+    "function [data,physics,review]=reviewOceInversionPhysics(study,assembly,varargin)", ...
+    "data=assembly.experimental;physics=study.physical;review=study.review;", "end"]);
+writeFixtureFunction(fullfile(mock,'fitOceInversionNative.m'),[ ...
+    "function [native,reused,physics]=fitOceInversionNative(study,assembly,data,physics,varargin)", ...
+    "native=struct('validMask',data.validMask,'regressionRMSE_Pa',12,'accepted',false);", ...
+    "reused=false;", "end"]);
+writeFixtureFunction(fullfile(mock,'renderOceInversionStudy.m'),[ ...
+    "function [fig,evidence,paths]=renderOceInversionStudy(study,varargin)", ...
+    "if study.conditionId==""initial"",error('lamb:test:ExportFailure','Injected export failure');end", ...
+    "fig=[];evidence=struct();paths=struct();", "end"]);
+folder=fullfile(root,'Results','Stretch_1p00000');mkdir(folder);
+value=1;save(fullfile(folder,'summary.mat'),'value');
+oldPath=path;addpath(mock,'-begin');
+cleanup=onCleanup(@()cleanupPresentationFixture(oldPath,root));
+end
+
+function writeFixtureFunction(file,lines)
+fid=fopen(file,'w');cleanup=onCleanup(@()fclose(fid));
+fprintf(fid,'%s\n',lines);
+end
+
+function cleanupPresentationFixture(oldPath,root)
+path(oldPath);
+rmdir(root,'s');
+end

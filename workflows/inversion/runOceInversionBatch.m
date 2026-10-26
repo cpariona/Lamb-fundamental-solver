@@ -96,7 +96,8 @@ failureFiles=strings(n,1);
 if execute
     for j=1:n
         try
-            results{j}=executeOceInversionStudy(cases{j},family,plan.oceRepositoryRoot);
+            [results{j},executionError]=executeOceInversionStudy( ...
+                cases{j},family,plan.oceRepositoryRoot);
             native=results{j}.nativeResult;
             selectedRows(j)=nnz(native.validMask);
             if family=="RayleighLamb"
@@ -107,13 +108,15 @@ if execute
                 metricUnit(j)="Pa";
                 nativeAccepted(j)=double(native.accepted);
             end
+            if ~isempty(executionError),rethrow(executionError);end
             status(j)="completed";
         catch exception
             status(j)="failed";
+            if ~isempty(results{j}),status(j)="partial";end
             messages(j)=string(exception.identifier)+" | "+string(exception.message);
             if saveResult
                 try
-                    failureFiles(j)=persistFailedCase(cases{j},family,exception);
+                    failureFiles(j)=persistFailedCase(cases{j},family,exception,results{j});
                 catch archiveError
                     warning('lamb:batch:FailurePersistence', ...
                         'Could not persist failed case %d: %s',j,archiveError.message);
@@ -132,9 +135,9 @@ batchResult=struct('family',family,'executed',execute,'report',report, ...
     'cases',{cases},'results',{results});
 end
 
-function path=persistFailedCase(study,family,exception)
-% A failed attempt has no native result. Store reviewed inputs and the error
-% separately from a successful inversion; never overwrite either record.
+function path=persistFailedCase(study,family,exception,result)
+% Store the error separately, retaining completed-stage evidence for partial
+% success. Never overwrite a native result or an earlier failure record.
 path=fullfile(study.figureFolder,"inversion_failure.mat");
 assert(~isfile(path),'lamb:study:OutputExists','A failure record already exists.');
 keys=["experimentId","subexperimentId","sampleId","mode","period_us", ...
@@ -158,6 +161,15 @@ failureRecord=struct('family',string(family),'request',request, ...
     'stackFunctions',string({exception.stack.name})', ...
     'stackFiles',string(strcat(stackName,stackExt))', ...
     'stackLines',[exception.stack.line]');
+failureRecord.completedThrough="none";
+failureRecord.nativeResultRelativeFile="";
+if ~isempty(result)
+    failureRecord.completedThrough=result.completedThrough;
+    if result.completedThrough=="persistence" && isfile(study.resultFile)
+        failureRecord.nativeResultRelativeFile= ...
+            fullfile(study.resolvedOutputRelativeFolder,"inversion.mat");
+    end
+end
 folder=fileparts(path);
 if ~isfolder(folder),mkdir(folder);end
 save(path,'failureRecord','-v7.3');

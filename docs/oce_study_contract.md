@@ -343,7 +343,13 @@ Batch failures with `saveResult=true` create a separate
 `inversion_failure.mat`, retaining the reviewed request, error identifier,
 portable stack-location names and UTC time; an earlier failure file is never
 replaced. `saveResult=false` leaves the failure in the returned batch report
-only. A failed attempt is **not** a fitted result or physical finding.
+only. A failure before fitting is **not** a fitted result or physical finding.
+If native fitting succeeds but persistence or presentation fails, the batch
+reports `partial` and retains the native result and metrics in memory. Its
+failure record distinguishes the completed stage and references any saved
+native MAT by an experiment-relative path. A one-output call to
+`executeOceInversionStudy` still raises downstream errors; its optional second
+output returns that error alongside the completed fit for batch coordination.
 
 **Thickness policies are reviewed per model:** RL uses one recorded
 directional current full thickness for each original observation and dispatches
