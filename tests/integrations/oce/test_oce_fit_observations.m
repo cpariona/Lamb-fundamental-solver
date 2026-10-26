@@ -31,7 +31,7 @@ function testRlStudyPersistenceHashesAndOverwriteProtection(testCase)
 [study,assembly]=rlStudyFixture();
 folder=tempname;mkdir(folder);cleanup=onCleanup(@()rmdir(folder,'s'));
 inputFile=fullfile(folder,'source.mat');value=1;save(inputFile,'value');
-record=oceStudyProvenance(inputFile,testRepositoryRoot(mfilename('fullpath')));
+record=oceInversionProvenance(inputFile,testRepositoryRoot(mfilename('fullpath')));
 study.saveResult=true;study.resultFile=string(fullfile(folder,'study.mat'));
 out=runRlStudySections(study,assembly,record.inputFiles);
 saved=load(study.resultFile);
@@ -79,8 +79,8 @@ repoRoot=testRepositoryRoot(mfilename('fullpath'));
 folder=tempname;mkdir(folder);cleanup=onCleanup(@()rmdir(folder,'s'));
 fig=figure('Visible','off');closeFigure=onCleanup(@()close(fig));
 plot(1:3);study=struct('exportFigure',true,'figureFolder',string(folder),'figureName',"Plate");
-for script=["aePlateOceStudy","rlOceStudy"]
-    body=string(fileread(fullfile(repoRoot,'studies',script+".m")));
+for script=["run_ae_plate_oce_inversion","run_rl_oce_inversion"]
+    body=string(fileread(fullfile(repoRoot,'workflows','inversion',script+".m")));
     exportCode=extractBetween(body,'    if study.exportFigure','    end');
     eval(char(exportCode));
     verifyTrue(testCase,isfile(figurePaths.fig));verifyTrue(testCase,isfile(figurePaths.tif));
@@ -98,9 +98,10 @@ repoRoot=testRepositoryRoot(mfilename('fullpath'));projectRoot=repoRoot; %#ok<NA
 experimental=assembly.experimental;sourceFiles=assembly.sourceResultFiles; %#ok<NASGU>
 observationReview=table(experimental.validMask,'VariableNames',{'validMask'}); %#ok<NASGU>
 frequencySelectionMapping=table();graphicSamplingMapping=table(); %#ok<NASGU>
-body=string(fileread(fullfile(repoRoot,'studies','rlOceStudy.m')));
-code=extractBetween(body,'%% 4. Review','%% 7. Render');
-eval(char("%% 4. Review"+code));
+body=string(fileread(fullfile(repoRoot,'workflows','inversion','run_rl_oce_inversion.m')));
+code=extractBetween(body,'%% 5. REVIEW RAYLEIGH-LAMB PHYSICS AND CONFIGURATION', ...
+    '%% 8. OPTIONAL VISUALIZATION');
+eval(char("%% 5. REVIEW RAYLEIGH-LAMB PHYSICS AND CONFIGURATION"+code));
 out=struct('nativeResult',nativeResult,'reusedResult',reusedResult,'fitConfig',fitConfig);
 end
 
