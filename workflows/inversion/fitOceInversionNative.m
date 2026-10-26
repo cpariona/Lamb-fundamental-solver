@@ -9,10 +9,13 @@ if isempty(existing)&&isfile(study.resultFile)
     existing=saved.nativeResult;existingAssembly=saved.assembly;
 end
 reused=false;
-fitOptions=study.fitOptions;
-if family=="Plate" && isempty(fieldnames(fitOptions)) && ~isempty(existing) && ...
-        isfield(existing,'options')
-    fitOptions=existing.options;
+fitOptions=struct();
+if family=="Plate"
+    fitOptions=study.fitOptions;
+    if isempty(fieldnames(fitOptions)) && ~isempty(existing) && ...
+            isfield(existing,'options')
+        fitOptions=existing.options;
+    end
 end
 if ~isempty(existing)&&~isempty(existingAssembly)
     if isfield(existingAssembly,'sourceResultFiles')
