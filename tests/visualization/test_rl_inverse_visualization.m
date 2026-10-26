@@ -235,6 +235,13 @@ for thickness=[.405e-3,.406e-3]
     verifyTrue(testCase,matched);
 end
 verifyEqual(testCase,e.observations.selected,native.validMask);
+withinView=isfinite(native.frequency_Hz) & native.frequency_Hz>=0 & ...
+    native.frequency_Hz<=max(native.frequency_Hz(native.validMask)) & ...
+    isfinite(native.Cp_exp_mps);
+[~,expectedScale]=resolveInversePhaseSpeedLimits( ...
+    [native.Cp_exp_mps(withinView);native.Cp_fit_mps(allModelRows)], ...
+    'Mode',"complete");
+verifyEqual(testCase,e.phaseSpeedScale,expectedScale);
 layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
 verifySubstring(testCase,string(layout.XLabel.String{2}),"per observation");
 verifySubstring(testCase,string(layout.XLabel.String{2}),"0.405");
