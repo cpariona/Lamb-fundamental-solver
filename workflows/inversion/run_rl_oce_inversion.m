@@ -5,7 +5,7 @@
 oce_repository_root = "";  % Full path to OCE_Workflow (not its src folder)
 study = struct();
 study.experimentRoot = "";  % Experiment root with original Data/ and Results/
-study.summaryFile = "";     % Full path to persisted experiment summary .mat
+study.summaryFile = "";     % Optional root-relative override; default Results/<sub>/summary.mat
 study.experimentId = "";
 study.subexperimentId = "";
 study.sampleId = "";
@@ -80,6 +80,7 @@ assert(~isempty(which('prepareOceInversionObservations')), ...
 %% 3. RECOVER ORIGINAL OBSERVATIONS (no fitting)
 % Section 1 must contain a real summary path, exact IDs, and a nonempty
 % condition. OCE owns all MAT/schema validation and source recovery.
+study=resolveOceInversionPaths(study,"RayleighLamb");
 inputs=prepareOceInversionObservations(study);
 assembly=inputs.assembly;observationReview=inputs.observationReview;
 frequencySelectionMapping=inputs.frequencySelectionMapping;
@@ -97,142 +98,23 @@ fprintf('Selected %d of %d original observations.\n', ...
     nnz(experimental.validMask), numel(experimental.validMask));
 
 %% 5. REVIEW RAYLEIGH-LAMB PHYSICS AND CONFIGURATION
-fitConfig=study.fitConfig;review=study.review;
-if study.thicknessPolicy == "oce_directional_per_acquisition"
-    % QH supplies one directional OCT thickness per acquisition/frequency.
-    % Pulse supplies one directional thickness per source repetition, repeated
-    % across the original frequency bins belonging to that acquisition.
-    if isfield(assembly, 'measuredThickness_m')
-        observationThickness = double(assembly.measuredThickness_m(:));
-    else
-        observationThickness = nan(numel(experimental.frequency_Hz),1);
-        for j = 1:numel(assembly.prepared)
-            observationThickness(observationReview.sourceIndex==j) = ...
-                assembly.prepared{j}.measuredThickness_m;
-        end
-    end
-    assert(numel(observationThickness)==numel(experimental.frequency_Hz), ...
-        'lamb:workflow:ThicknessAlignment', ...
-        'OCE directional thickness must align with every original observation.');
-    relevant = isfinite(experimental.frequency_Hz) & experimental.frequency_Hz > 0;
-    assert(all(isfinite(observationThickness(relevant)) & observationThickness(relevant)>0), ...
-        'lamb:workflow:MissingThickness', ...
-        'OCE directional thickness is missing/nonpositive; do not substitute an average.');
-    experimental.observationThickness_m = observationThickness;
-    assembly.experimental = experimental;
-    % This scalar is a native validation reference, not the thickness used
-    % to evaluate the per-observation model or fit a thickness parameter.
-    fitConfig.fixedParams.thickness = observationThickness(find(relevant,1));
-    review.thicknessSource = "OCE directional_mean_thickness_mm, selected scan axis and signed direction";
-    review.thicknessJustification = ...
-        "Exact recorded thickness per acquisition, aligned with original frequencies and repetitions; no pooling";
-    selectedThickness = observationThickness(experimental.validMask);
-    fprintf('OCE directional thickness: %.3f - %.3f mm across %d fitted rows (%d exact groups).\n', ...
-        min(selectedThickness)*1e3,max(selectedThickness)*1e3, ...
-        numel(selectedThickness),numel(unique(selectedThickness)));
-elseif study.thicknessPolicy ~= "explicit_constant"
-    error('lamb:workflow:ThicknessPolicy', ...
-        'Select oce_directional_per_acquisition or explicit_constant.');
-end
-assert(any(string(fitConfig.branchName)==["A0","S0"])&&review.mode==fitConfig.branchName);
-for name=["thicknessSource","thicknessJustification","densityReference", ...
-        "parameterJustification","modelSupportReference"]
-    assert(isscalar(string(review.(name)))&&strlength(strtrim(string(review.(name))))>0, ...
-        'RL physical inputs, free/fixed choices and model assumptions require explicit review.');
-end
-% Building a native problem validates/resolves defaults, but performs no forward
-% solve or optimization. Compare its value fields, never function handles.
-problem=lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,fitConfig);
-study.fitConfig = fitConfig; study.review = review; % Reflect resolved inputs in the Editor workspace.
-effectiveProblem=rmfield(problem,{'evaluateModel','residualFunction','objectiveFunction'});
+[experimental,fitConfig,review]=reviewOceInversionPhysics( ...
+    study,assembly,observationReview,"RayleighLamb");
+assembly.experimental=experimental;
+study.fitConfig=fitConfig;study.review=review;
 
 %% 6. RUN OR REUSE THE NATIVE INVERSE FIT (explicit opt-in)
-existing=study.existingNativeResult;existingAssembly=study.existingAssembly;
-if isempty(existing)&&strlength(study.resultFile)>0&&isfile(study.resultFile)
-    saved=load(study.resultFile,'nativeResult','assembly');
-    existing=saved.nativeResult;existingAssembly=saved.assembly;
-end
-reusedResult=false;
-if ~isempty(existing)&&~isempty(existingAssembly)
-    same=string(existing.modelFamily)=="rayleigh_lamb"&&isequaln(existing.problem,effectiveProblem);
-    if isfield(existingAssembly,'sourceResultFiles')
-        recordedFiles=string(existingAssembly.sourceResultFiles(:));
-    else
-        recordedFiles=string({existingAssembly.lineage.resultFile})';
-    end
-    same=same&&isequal(recordedFiles,sourceFiles);
-    if study.mode=="QH"&&study.estimator=="kf_ridge"
-        same=same&&isequaln(existingAssembly.physicalFrequency_Hz,assembly.physicalFrequency_Hz)&& ...
-            isequaln(existingAssembly.requestedTargetFrequency_Hz,assembly.requestedTargetFrequency_Hz)&& ...
-            isequal([existingAssembly.lineage.binIndex],[assembly.lineage.binIndex]);
-    end
-    if same,nativeResult=existing;reusedResult=true;end
-end
-assert(reusedResult||~study.reuseOnly,'lamb:study:RequestMismatch', ...
-    'No identical reviewed RL result is available. Inspect the fixed mask/configuration before enabling a fit.');
-if ~reusedResult
-    nativeResult=lamb.fitting.rayleigh_lamb.rlFitDispersionData(experimental,fitConfig);
-end
-assert(isequal(nativeResult.validMask,experimental.validMask));
-assert(isequaln(nativeResult.frequency_Hz,experimental.frequency_Hz)&& ...
-    isequaln(nativeResult.Cp_exp_mps,experimental.Cp_mps));
+[nativeResult,reusedResult,fitConfig]=fitOceInversionNative( ...
+    study,assembly,experimental,fitConfig,review,sourceFiles,"RayleighLamb");
 
 %% 7. OPTIONAL PERSISTENCE (no overwrite)
-if study.saveResult
-    assert(strlength(study.resultFile)>0&&~isfile(study.resultFile),'lamb:study:OutputExists','Do not overwrite a historical result.');
-    studyRecord=oceInversionProvenance(inputHashes.path,projectRoot);
-    assert(isequal(studyRecord.inputFiles,inputHashes), ...
-        'lamb:study:InputsChanged','An OCE input changed after recovery; do not persist this study.');
-    selectionFields={'experimentRoot','summaryFile','experimentId','subexperimentId','sampleId', ...
-        'mode','period_us','repetitions','conditionId','condition','scanAxisIndex','direction', ...
-        'estimator','curve','frequencySelection','frequency_Hz','graphicRequestedFrequency_Hz', ...
-        'thicknessPolicy'};
-    effectiveSelection=struct();
-    for field=selectionFields,effectiveSelection.(field{1})=study.(field{1});end
-    if study.mode=="Pulse"&&study.showFigure
-        effectiveSelection.graphicRequestedFrequency_Hz=unique(graphicSamplingMapping.requestedFrequency_Hz,'stable');
-    end
-    studyRecord.selection=effectiveSelection;studyRecord.numericallyReused=reusedResult;
-    studyRecord.maskPolicy="source_quality_and_frequency";
-    if ~isempty(study.observationMask),studyRecord.maskPolicy="explicit_observation_mask";end
-    save(study.resultFile,'studyRecord','nativeResult','assembly','fitConfig','review', ...
-        'observationReview','frequencySelectionMapping','graphicSamplingMapping','-v7.3');
-end
+inputs.assembly=assembly;
+studyRecord=persistOceInversionStudy( ...
+    study,inputs,nativeResult,fitConfig,review,reusedResult,projectRoot,"RayleighLamb");
 fprintf('RL %s: %d / %d selected rows; reused=%d; RMSE=%.15g m/s; optimizer exit=%d\n', ...
     nativeResult.branchName,nnz(nativeResult.validMask),numel(nativeResult.validMask), ...
     reusedResult,nativeResult.metrics.RMSE,nativeResult.optimizer.exitFlag);
 
 %% 8. OPTIONAL VISUALIZATION (FIG and 300-dpi TIF)
-if study.showFigure
-    graphicFrequency=[];
-    if study.mode=="Pulse"
-        graphicFrequency=unique(graphicSamplingMapping.observedFrequency_Hz( ...
-            isfinite(graphicSamplingMapping.observedFrequency_Hz)));
-        graphicMask=experimental.validMask&ismember( ...
-            [observationReview.sourceIndex,observationReview.sourceBinIndex], ...
-            [graphicSamplingMapping.sourceIndex,graphicSamplingMapping.sourceBinIndex],'rows');
-        assert(isequal(experimental.validMask&ismember(experimental.frequency_Hz,graphicFrequency),graphicMask), ...
-            'Graphic frequencies collide across different source grids; review the selected original bins.');
-    end
-    reference=string(study.resultFile);if strlength(reference)==0,reference="Reviewed in-memory native request";end
-    % Derive only presentation text from the reviewed source identity.
-    % Never infer material, mechanical state or physical fit parameters here.
-    plotLabel = string(study.displayLabel);
-    if strlength(strtrim(plotLabel)) == 0
-        plotLabel = string(study.sampleId) + " | " + ...
-            string(study.subexperimentId) + " | axis " + ...
-            string(study.scanAxisIndex) + " " + string(study.direction);
-    end
-    provenance=struct('label',plotLabel,'displayLabel',plotLabel, ...
-        'displaySubtitle',study.displaySubtitle,'material',string(sourceMetadata.material(1)), ...
-        'sourceReference',reference,'originalResultReferences',sourceFiles, ...
-        'modelSupportReference',review.modelSupportReference,'physicalReview',review, ...
-        'repetitionId',observationReview.repetitionId);
-    [fig,figureEvidence]=plotRlFitDiagnostics(nativeResult,provenance, ...
-        'DisplayFrequency_Hz',graphicFrequency,'Visible','on');
-    drawnow;
-    if study.exportFigure
-        assert(isfolder(study.figureFolder)&&strlength(study.figureName)>0);
-        figurePaths=saveInverseFigure(fig,study.figureFolder,study.figureName);
-    end
-end
+[fig,figureEvidence,figurePaths]=renderOceInversionStudy( ...
+    study,inputs,nativeResult,review,"RayleighLamb");
