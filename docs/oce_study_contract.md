@@ -277,8 +277,11 @@ Both studies render the retained native result and export only through
 They introduce no PNG export path. `openfig(...,'new','visible'); drawnow` reopens
 the editable product; scientific replay consumes the saved native request/config,
 not FIG or raster data. Pulse graphic bins remain independent of the fitting mask.
-The approved Plate/RL renderers are unchanged: B is Plate's Pa regression or RL's
-native parameter summary, and C uses each model's own residual definition/units.
+The Plate/RL renderers retain their native diagnostic panels: B is Plate's
+Pa regression or RL's native parameter summary, and C uses each model's own
+residual definition/units. RL's observation-thickness option displays its
+measured thickness range and keeps predictions for different exact thickness
+groups on separate model lines.
 RL convergence/identifiability and Plate native acceptance are not interchangeable
 and establish neither experimental A0 purity nor physical model validation.
 
