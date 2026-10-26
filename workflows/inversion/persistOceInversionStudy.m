@@ -15,8 +15,8 @@ for k=1:numel(names)
     name=names{k};
     if isfield(study,name),selection.(name)=study.(name);end
 end
-selection.summaryRelativeFile=study.summaryRelativeFile;
-selection.outputRelativeFolder=study.outputRelativeFolder;
+selection.summaryRelativeFile=study.resolvedSummaryRelativeFile;
+selection.outputRelativeFolder=study.resolvedOutputRelativeFolder;
 if isfield(study,'thicknessPolicy'),selection.thicknessPolicy=study.thicknessPolicy;end
 if isfield(study,'thicknessReferenceSourceIndex')
     selection.thicknessReferenceSourceIndex=study.thicknessReferenceSourceIndex;
