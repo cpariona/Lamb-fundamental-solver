@@ -9,15 +9,15 @@ root=string(study.experimentRoot);
 assert(isscalar(root)&&~ismissing(root)&&strlength(strtrim(root))>0&&isfolder(root), ...
     'lamb:study:ExperimentRoot','Supply an existing experiment root.');
 sub=safePart(study.subexperimentId);
-if ~isfield(study,'summaryRelativeFile')||strlength(string(study.summaryRelativeFile))==0
-    summaryRel=fullfile("Results",sub,"summary.mat");
-else
+if isfield(study,'summaryRelativeFile') && ...
+        strlength(string(study.summaryRelativeFile))>0
     summaryRel=safeRelative(study.summaryRelativeFile);
-end
-% Legacy summaryFile may be supplied as a relative override only.
-if isfield(study,'summaryFile')&&strlength(string(study.summaryFile))>0
+elseif isfield(study,'summaryFile') && strlength(string(study.summaryFile))>0
     summaryRel=safeRelative(study.summaryFile);
+else
+    summaryRel=fullfile("Results",sub,"summary.mat");
 end
+study.summaryRelativeFile=summaryRel;
 study.summaryFile=fullfile(root,summaryRel);
 if ~isfield(study,'outputTag'),study.outputTag="";end
 tag=string(study.outputTag);
