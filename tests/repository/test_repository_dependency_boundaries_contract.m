@@ -18,7 +18,14 @@ assertLayer(repoRoot, paths, "integrations/", ["visualization/", "app/", "studie
 assertLayer(repoRoot, paths, "visualization/", ["src/+lamb/+fitting/", "integrations/", "app/", "studies/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "studies/", ["app/", "examples/", "tests/"]);
 assertLayer(repoRoot, paths, "app/", ["studies/", "examples/", "tests/"]);
-assertLayer(repoRoot, paths, "examples/", ["studies/", "app/", "tests/"]);
+assertLayer(repoRoot, paths, "examples/", ["studies/", "app/", "workflows/", "tests/"]);
+assertLayer(repoRoot, paths, "workflows/", ["app/", "studies/", "examples/", "tests/"]);
+% Human workflows may consume production APIs; production never consumes drivers.
+workflowNames = matlabNames(paths(startsWith(paths,"workflows/") & endsWith(paths,".m")));
+productionPaths = paths(startsWith(paths, ...
+    ["src/", "integrations/", "visualization/", "app/", "studies/"]) & endsWith(paths,".m"));
+assertNoCalls(repoRoot, productionPaths, workflowNames, ...
+    'Production, GUI, and studies must not call human workflow implementations');
 for path = paths(startsWith(paths,["src/","visualization/"])).'
     executable = executableMatlabText(fileread(fullfile(repoRoot,path)));
     assert(isempty(regexp(executable,'(?<![A-Za-z0-9_.])oce\.', 'once')), ...
