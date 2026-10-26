@@ -126,6 +126,10 @@ if study.thicknessPolicy == "oce_directional_per_acquisition"
     review.thicknessSource = "OCE directional_mean_thickness_mm, selected scan axis and signed direction";
     review.thicknessJustification = ...
         "Exact recorded thickness per acquisition, aligned with original frequencies and repetitions; no pooling";
+    selectedThickness = observationThickness(experimental.validMask);
+    fprintf('OCE directional thickness: %.3f - %.3f mm across %d fitted rows (%d exact groups).\\n', ...
+        min(selectedThickness)*1e3,max(selectedThickness)*1e3, ...
+        numel(selectedThickness),numel(unique(selectedThickness)));
 elseif study.thicknessPolicy ~= "explicit_constant"
     error('lamb:workflow:ThicknessPolicy', ...
         'Select oce_directional_per_acquisition or explicit_constant.');
@@ -139,6 +143,7 @@ end
 % Building a native problem validates/resolves defaults, but performs no forward
 % solve or optimization. Compare its value fields, never function handles.
 problem=lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,fitConfig);
+study.fitConfig = fitConfig; study.review = review; % Reflect resolved inputs in the Editor workspace.
 effectiveProblem=rmfield(problem,{'evaluateModel','residualFunction','objectiveFunction'});
 
 %% 6. RUN OR REUSE THE NATIVE INVERSE FIT (explicit opt-in)
