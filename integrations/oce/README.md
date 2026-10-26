@@ -186,23 +186,30 @@ former defines QH coverage. No groups are derived from repetition/run IDs, bin
 proximity or Pulse `period_us`. The QH preparer still rejects Pulse acquisitions;
 Pulse broadband preparation remains separate and gains no period-based grouping.
 
-Plate currently accepts one scalar current full thickness. `physical` therefore
-contains only `density_kgpm3` and `thickness_m`. The wrapper requires
-`review.mode="A0"`, `thicknessPolicy="explicit_constant_current_thickness"`,
-and nonempty `thicknessSource`, `thicknessJustification`, `densityReference` and
-`modelSupportReference`. `physical.thickness_m` means the supplied scalar current
-full physical thickness in SI metres, not half-thickness or nominal thickness.
-Its source and justification remain in `outcome.review`, separately from native
-fitting diagnostics. An independent current measurement can support this input
-even if some or all original OCT thicknesses are unavailable. Every original OCT
-value, including NaNs, is retained unchanged in the assembly. Compact selected-row
-OCT counts/minimum/maximum/range are exposed in `outcome.thicknessDiagnostics`;
-they neither select the supplied scalar nor affect acceptance. No measured thicknesses are combined,
-substituted or compared using a new numerical threshold. An externally supplied
-constant thickness is a reviewed physical approximation, not evidence that a
-variable-thickness plate is supported. Review references are caller attestations;
-integration cannot establish their physical validity. An alternative per-observation
-thickness formulation would require separate scientific justification.
+Plate now accepts reviewed current full thickness for **each original
+observation**, through `experimental.observationThickness_m`. For the
+`oce_directional_per_acquisition` policy, the workflow copies the recorded
+signed-direction measurement to each corresponding source row: QH retains each
+acquisition's thickness; Pulse repeats its acquisition thickness only over its
+own FFT bins. The QH coordinator verifies exact alignment with
+`assembly.measuredThickness_m` and rejects missing/mismatched source evidence.
+It never averages or fabricates thickness, and these values enter the native
+`q_i=pi*f_i*h_i/Cp_i` directly before a **single** shared unweighted SVD.
+
+The required scalar `physical.thickness_m` remains a non-operative reference
+under this policy. Legacy `explicit_constant_current_thickness` and the reviewed
+`oce_reference_acquisition` workflow policy retain the scalar geometry.
+The QH coordinator accepts the effective native constant review for a selected
+reference acquisition; it does not introduce a third scientific equation.
+All Plate reviews require `review.mode="A0"` and nonempty
+`thicknessSource`, `thicknessJustification`, `densityReference` and
+`modelSupportReference`. The physical struct contains only
+`density_kgpm3` and `thickness_m`. Original measurements, including excluded
+NaN values, stay in the assembly; the existing descriptive
+`outcome.thicknessDiagnostics` does not choose the fitting policy or change
+numerical acceptance. The row-wise model assumes locally uniform plate geometry
+and a shared state/coefficient pair, not a globally heterogeneous plate solution.
+The researcher must still justify A0 assignment, bandwidth, geometry and support.
 
 Following the [scientific independence rule in PR #162](https://github.com/cpariona/Lamb-fundamental-solver/pull/162),
 condition labels organize observations; mass, transmitted force and DIC strain
