@@ -118,8 +118,8 @@ same retained result.
 
 ## Manual study and Pulse graphic sampling
 
-Use the [Plate study](../studies/aePlateOceStudy.m), the
-[RL study](../studies/rlOceStudy.m) and their
+Use the [Plate study](../workflows/inversion/run_ae_plate_oce_inversion.m), the
+[RL study](../workflows/inversion/run_rl_oce_inversion.m) and their
 [configuration contract](../docs/oce_study_contract.md#maintained-manual-plate-study)
 for QH and Pulse. Scientific input is recovered individual OCE products, never FIG
 contents, summary means or comparison statistics.
