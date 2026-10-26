@@ -15,7 +15,9 @@ function [fig, evidence] = plotAePlateFitDiagnostics(result, provenance, varargi
 %   Excluded positive finite observations receive display-only etaSquared from
 %   the canonical master curve. Native etaSquared/residuals are never replaced.
 %   A supported candidate uses the canonical forward solver, even if rejected
-%   by numerical coverage. Unsupported coefficients never produce a curve.
+%   by numerical coverage. With recorded per-observation thickness, the
+%   forward display retains separate exact-thickness groups (no pooled curve).
+%   Unsupported coefficients never produce a curve.
 p = inputParser;
 addParameter(p,'DisplayMode',"complete",@(x) any(string(x)==["complete","robust"]));
 addParameter(p,'PhaseSpeedLimits',[],@isnumeric);
@@ -182,21 +184,48 @@ end
 finite=isfinite(f)&isfinite(cp);
 positive=finite&f>0&cp>0;
 etaDisplay=result.etaSquared(:);
-excludedForEta=~included&positive;
-q=(pi*result.physical.thickness_m)*(f(excludedForEta)./cp(excludedForEta));
-indices=find(excludedForEta); indices=indices(isfinite(q)&q>0); q=q(isfinite(q)&q>0);
+rowThickness=repmat(result.physical.thickness_m,n,1);
+byObservation=isfield(result.experimental,'observationThickness_m');
+if byObservation
+    rowThickness=result.experimental.observationThickness_m(:);
+end
+excludedForEta=~included&positive&isfinite(rowThickness)&rowThickness>0;
+q=pi*rowThickness(excludedForEta).*f(excludedForEta)./cp(excludedForEta);
+indices=find(excludedForEta);indices=indices(isfinite(q)&q>0);q=q(isfinite(q)&q>0);
 if ~isempty(q)
     curve=lamb.models.acoustoelastic_prestressed_plate.aePlateA0MasterCurve(q);
     etaDisplay(indices)=curve.etaSquared;
 end
 forward=struct('frequency_Hz',zeros(0,1),'phaseVelocity_mps',zeros(0,1));
+forwardByThickness=struct('thickness_m',{},'sourceRows',{},'mode',{});
 forwardStatus="unsupported candidate: no forward prediction";
 if result.diagnostics.physicalCandidate
     physical=result.physical;
-    physical.alpha_Pa=result.alpha_Pa; physical.gamma_Pa=result.gamma_Pa;
-    frequencies=linspace(min(f(included)),max(f(included)),128)';
-    forward=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion(frequencies,physical);
-    forwardStatus="supported candidate (numerical acceptance is reported separately)";
+    physical.alpha_Pa=result.alpha_Pa;physical.gamma_Pa=result.gamma_Pa;
+    if byObservation
+        % One native geometry per exact measured thickness. Single-frequency
+        % groups are single model markers, never artificial dispersion lines.
+        groupThickness=unique(rowThickness(included),'stable');
+        for groupIndex=1:numel(groupThickness)
+            rows=find(included&rowThickness==groupThickness(groupIndex));
+            frequencies=unique(f(rows),'sorted');
+            if numel(frequencies)>1
+                frequencies=linspace(min(frequencies),max(frequencies),128)';
+            end
+            physical.thickness_m=groupThickness(groupIndex);
+            mode=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion( ...
+                frequencies,physical);
+            forwardByThickness(groupIndex)=struct('thickness_m',groupThickness(groupIndex), ...
+                'sourceRows',rows,'mode',mode);
+            forward.frequency_Hz=[forward.frequency_Hz;mode.frequency_Hz];
+            forward.phaseVelocity_mps=[forward.phaseVelocity_mps;mode.phaseVelocity_mps];
+        end
+        forwardStatus="supported candidate; exact-thickness model groups (numerical acceptance separate)";
+    else
+        frequencies=linspace(min(f(included)),max(f(included)),128)';
+        forward=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion(frequencies,physical);
+        forwardStatus="supported candidate (numerical acceptance is reported separately)";
+    end
 end
 scaleValues=cp;
 if string(p.Results.DisplayMode)=="robust",scaleValues=cp(included);end
@@ -212,6 +241,7 @@ evidence=struct('nativeAccepted',result.accepted,'nativeReasons',result.reasons,
     'nativeDiagnostics',result.diagnostics, ...
     'provenance',provenance,'display',displayEvidence,'observedClipping',observedClipping, ...
     'predictionClipping',predictionClipping,'forwardStatus',forwardStatus,'forwardCurve',forward, ...
+    'forwardByThickness',{forwardByThickness}, ...
     'ridgeEvidenceAvailable',hasRidge,'nonvisibleCoordinateCount',nnz(~finite), ...
     'unsupportedFiniteCount',nnz(finite&~positive),'excludedCount',nnz(~included), ...
     'observations',table((1:n)',f,cp,included,repetition,result.etaSquared(:),etaDisplay, ...
@@ -275,8 +305,20 @@ try
             "Rep. "+labels(k),'included_observations');
     end
     if ~isempty(forward.frequency_Hz)
-        plot(ax,forward.frequency_Hz/1e3,forward.phaseVelocity_mps,'k--','LineWidth',1.5, ...
-            'DisplayName','Model','Tag','plate_forward');
+        if byObservation
+            for j=1:numel(forwardByThickness)
+                one=forwardByThickness(j).mode;
+                marker='none';
+                if numel(one.frequency_Hz)==1,marker='.';end
+                lineHandle=plot(ax,one.frequency_Hz/1e3,one.phaseVelocity_mps, ...
+                    'k--','LineWidth',1.5,'Marker',marker, ...
+                    'DisplayName','Model','Tag','plate_forward');
+                if j>1,lineHandle.HandleVisibility='off';end
+            end
+        else
+            plot(ax,forward.frequency_Hz/1e3,forward.phaseVelocity_mps,'k--', ...
+                'LineWidth',1.5,'DisplayName','Model','Tag','plate_forward');
+        end
     end
     ylim(ax,limits);xlabel(ax,'Frequency [kHz]');ylabel(ax,'Phase speed [m/s]');
     if ~showExtensions
@@ -349,9 +391,15 @@ try
             ["\alpha","\gamma","\geq","\leq"]);
         support=support+"; not satisfied ("+violation+")";
     end
-    notes={char("Physical support: "+support+"."), ...
-        sprintf('\\rho = %.15g kg m^{-3}; current thickness h = %.3f mm', ...
-        result.physical.density_kgpm3,result.physical.thickness_m*1e3)};
+    thicknessCaption=sprintf('\\rho = %.15g kg m^{-3}; current thickness h = %.3f mm', ...
+        result.physical.density_kgpm3,result.physical.thickness_m*1e3);
+    if byObservation
+        selectedH=rowThickness(included);
+        thicknessCaption=sprintf( ...
+            '\\rho = %.15g kg m^{-3}; directional h = %.3f - %.3f mm (per observation)', ...
+            result.physical.density_kgpm3,min(selectedH)*1e3,max(selectedH)*1e3);
+    end
+    notes={char("Physical support: "+support+"."),thicknessCaption};
     xlabel(layout,notes,'FontName','Arial','FontSize',9,'FontWeight','normal','Interpreter','tex');
     title(layout,{char(displayLabel),char(displaySubtitle)}, ...
         'Interpreter','tex','FontName','Arial','FontSize',9.5,'FontWeight','normal');
