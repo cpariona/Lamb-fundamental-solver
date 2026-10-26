@@ -22,12 +22,18 @@ if strlength(strtrim(label))==0
 end
 reference=string(study.resultFile);
 if ~study.saveResult,reference="Reviewed in-memory native request";end
-provenance=struct('label',label,'displayLabel',label, ...
-    'displaySubtitle',string(study.displaySubtitle), ...
+provenance=struct('label',label, ...
     'material',string(inputs.sourceMetadata.material(1)), ...
     'sourceReference',reference,'originalResultReferences',inputs.sourceResultFiles, ...
     'modelSupportReference',review.modelSupportReference,'physicalReview',review, ...
     'repetitionId',r.repetitionId);
+% Empty overrides leave the native model title/subtitle intact.
+if strlength(strtrim(string(study.displayLabel)))>0
+    provenance.displayLabel=string(study.displayLabel);
+end
+if strlength(strtrim(string(study.displaySubtitle)))>0
+    provenance.displaySubtitle=string(study.displaySubtitle);
+end
 visible="off";
 if ~isfield(study,'figureVisible')||study.figureVisible
     visible="on";
