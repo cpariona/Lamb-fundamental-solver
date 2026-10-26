@@ -18,6 +18,12 @@ function fitResult = rlFitDispersionData(experimental, fitConfig)
 % reliability counts full-axis prediction availability, not objective coverage;
 % residualInfo reports complete coverage of the fixed fitting mask separately.
 %
+% Optional experimental.observationThickness_m provides one current full
+% thickness in meters per original observation. The native builder evaluates
+% exact recorded thickness groups independently through the canonical solver;
+% this option forbids fitting a scalar thickness. Group-specific official solver
+% outputs are retained separately, never represented as one uniform geometry.
+%
 % One-parameter fits with finite bounds use fminbnd. Multi-parameter fits use
 % fminsearch with objective penalties for bounds. This avoids an Optimization
 % Toolbox dependency. The result contains fitted/fixed parameters, observed
