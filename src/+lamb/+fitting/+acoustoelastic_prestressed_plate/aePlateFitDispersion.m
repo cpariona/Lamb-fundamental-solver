@@ -5,6 +5,12 @@ function result = aePlateFitDispersion(experimental, physical, options)
 %   per observation; selected observations must belong to ONE condition and
 %   ONE signed propagation direction. Call separately for other groups.
 %   PHYSICAL requires density_kgpm3 and CURRENT FULL thickness_m in SI.
+%   Optional EXPERIMENTAL.observationThickness_m supplies one measured full
+%   current thickness per original row. Its selected positive values replace
+%   PHYSICAL.thickness_m only in each q_i=pi*f_i*h_i/Cp_i. The scalar remains
+%   a non-operative reference for backward compatibility and native provenance.
+%   The regression still solves one shared alpha and gamma, with no geometry
+%   averaging, row filtering or adjustment of frequency coverage rules.
 %   The caller explicitly selects A0 observations within the Li assumptions.
 %   No observation is sorted, averaged, removed or reweighted. Invalid
 %   selected inputs throw an error; excluded inputs may be NaN.
@@ -84,7 +90,26 @@ if explicitGroups
             'Group identities must be positive integers <= flintmax; only excluded rows may use NaN.');
     end
 end
-q = (pi*physical.thickness_m)*(f(mask)./cp(mask));
+% Apply the full current thickness to the row that measured it, not a
+% pooled scalar or a separately resampled frequency-dependent geometry.
+% Retain the original input experimental struct for exact lineage/reuse.
+selectedThickness = repmat(physical.thickness_m,nnz(mask),1);
+hasObservationThickness = isfield(experimental,'observationThickness_m');
+if hasObservationThickness
+    h = experimental.observationThickness_m;
+    if ~isa(h,'double') || ~isreal(h) || ~isvector(h) || ...
+            numel(h)~=numel(f) || isempty(h)
+        error('lamb:aePlate:InvalidObservationThickness', ...
+            'Supply one real double full thickness in meters per original observation.');
+    end
+    h=h(:);
+    if any(~isfinite(h(mask)) | h(mask)<=0)
+        error('lamb:aePlate:InvalidObservationThickness', ...
+            'Selected observations require finite positive full thickness.');
+    end
+    selectedThickness=h(mask);
+end
+q = pi*f(mask).*selectedThickness./cp(mask);
 y = physical.density_kgpm3*cp(mask).^2;
 if any(~isfinite(q) | q <= 0 | ~isfinite(y))
     error('lamb:aePlate:NumericalRange', 'Selected observations exceed numerical range.');
@@ -171,5 +196,12 @@ if explicitGroups
     result.diagnostics.frequencyGroupingSource = "explicit_group_id";
     result.diagnostics.independentFrequencyGroupId = uniqueGroupId;
     result.diagnostics.observedFrequencyGroup = observedFrequencyGroup;
+end
+if hasObservationThickness
+    result.diagnostics.thicknessMode="per_observation_current_full_thickness";
+    result.diagnostics.selectedThicknessRange_m= ...
+        [min(selectedThickness) max(selectedThickness)];
+    result.diagnostics.selectedThicknessGroupCount= ...
+        numel(unique(selectedThickness));
 end
 end
