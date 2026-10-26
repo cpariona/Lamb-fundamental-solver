@@ -164,13 +164,15 @@ the bytes used during its historical OCE processing.
 When `saveResult=true`, the existing result MAT additionally contains
 `studyRecord`, with no duplicate observation arrays:
 
-- `selection`: experiment/root/summary references, condition with its original
-  value types, modality/period, repetitions, signed axis, curve, frequency mode,
-  nominal frequencies and effective requested graphic frequencies.
-- `code.Lamb` and `code.OCE`: resolved repository roots, Git commits, porcelain
-  modification/untracked status and availability. Missing Git evidence is explicit;
-  a dirty status requires preserving the corresponding code changes separately.
-- `matlabVersion`, `matlabRelease`, and `inputFiles` (path, bytes, SHA-256).
+- `selection`: experiment/subexperiment identities, root-relative summary and
+  output destinations, condition with original value types, modality/period,
+  repetitions, direction, curve, frequency and graphic selection.
+- `code.Lamb` and `code.OCE`: Git commits, relative porcelain
+  modification/untracked status and availability **without local checkout roots**.
+  Missing Git evidence is explicit; dirty code requires preserving patches.
+- `matlabVersion`, `matlabRelease`, and `inputFiles` (experiment-root-relative
+  `path`, bytes, SHA-256). Hashes are checked against unchanged absolute
+  input locations **before** references are converted for persistence.
   Input hashes cover the loaded summary, indexed PhaseSpeed files and canonical
   AcquisitionParams tables used for recovery, including indexed sources outside
   the final fitting selection. Files are fingerprinted before recovery and checked
@@ -187,8 +189,13 @@ The existing `nativeResult.experimental`, `nativeResult.options`, `physical`,
 effective native request, fixed mask, physical justification, acquisition lineage,
 original bins and quality flags. Together with `studyRecord.selection` they permit
 scientific configuration reconstruction; numeric replay can call Plate directly
-from the native result without reopening OCE files. Root paths remain explicit
-and can be relocated by the researcher. No raw BIN, ProcessingConfig or
+from the native result without reopening OCE files. The portable
+`studyRecord` references are relative to `experimentRoot`; the original
+native/OCE lineage is retained **unchanged**, including any absolute path
+strings supplied by its producer. Those historical reference strings are
+not required to reconstruct the native numerical result, but replay on a
+different workstation must rebind the OCE checkout and source experiment root.
+No raw BIN, ProcessingConfig or
 ProcessingRun manifest is read or hashed by this study; their references are
 producer provenance, not verified historical inputs. Physical review references
 are caller attestations, not additional files implicitly read by the study.
@@ -329,9 +336,14 @@ Only the experiment and OCE source repository roots are machine-local inputs.
 programmable overrides. No absolute output override or parent traversal is
 supported, and existing outputs are never replaced. `outputTag` is required
 to distinguish independent fit reviews with the same physical case identity.
-The resulting saved record retains the effective relative paths, fixed
-observation mask, original row mappings, source file hashes when saving,
-native solver result and explicit mechanical review.
+The resulting saved `studyRecord` retains effective relative paths, fixed
+observation mask, original row mappings and root-relative source hashes;
+the original native OCE payload and mechanical review remain alongside it.
+Batch failures with `saveResult=true` create a separate
+`inversion_failure.mat`, retaining the reviewed request, error identifier,
+portable stack-location names and UTC time; an earlier failure file is never
+replaced. `saveResult=false` leaves the failure in the returned batch report
+only. A failed attempt is **not** a fitted result or physical finding.
 
 **Thickness policies are reviewed per model:** RL uses one recorded
 directional current full thickness for each original observation and dispatches
