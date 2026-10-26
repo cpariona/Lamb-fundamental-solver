@@ -344,8 +344,17 @@ function testMeasuredThicknessPresentationUsesSeparateNativeGeometries(testCase)
 data=native.experimental;
 h=[.405;.406;.405;.406;NaN;NaN;.405;.406]*1e-3;
 data.observationThickness_m=h;
+physical=native.physical;
+physical.alpha_Pa=300000;physical.gamma_Pa=150000;
+for k=find(data.validMask(:))'
+    one=physical;one.thickness_m=h(k);
+    predicted=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion( ...
+        data.frequency_Hz(k),one);
+    data.Cp_mps(k)=predicted.phaseVelocity_mps;
+end
 native=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
     data,native.physical);
+verifyTrue(testCase,native.diagnostics.physicalCandidate);
 before=native;
 [fig,e]=plotAePlateFitDiagnostics(native,review,'Visible','off');
 cleanup=onCleanup(@()close(fig));
