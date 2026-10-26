@@ -38,7 +38,7 @@ elseif family=="Plate"
             study.thicknessPolicy=="oce_reference_acquisition"
         reference=study.thicknessReferenceSourceIndex;
         validateattributes(reference,{'double'}, ...
-            {'scalar','integer','positive','<=',height(study.sourceMetadata)});
+            {'scalar','integer','positive','<=',max(observationReview.sourceIndex)});
         recorded=directionalThickness(assembly,observationReview);
         rows=observationReview.sourceIndex==reference;
         candidates=unique(recorded(rows));
