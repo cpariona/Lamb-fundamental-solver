@@ -23,6 +23,18 @@
 | `+grids` | Model-neutral frequency-grid construction |
 | `+sweeps` | Parameter-sweep execution through supplied production operations |
 
+The repository's canonical external SI vocabulary for shared physical quantities
+is `density_kgpm3` (kg/m^3), `thickness_m` (current full thickness in m),
+`poisson_ratio` (dimensionless), and dimensional modulus fields suffixed `_Pa`.
+New public configuration and human workflows must use those names rather than
+mixing `rho`, `rho_kgm3` and `density_kgpm3` for the same quantity.
+Legacy forward-model mathematical symbols and persisted schema names remain
+owned by their scientific families; changing them requires a separately
+validated migration of their consumers and historic results. The RL public
+fitting boundary accepts canonical `fixedParams` names, translates only there,
+and rejects simultaneous canonical and legacy names for one quantity.
+No numeric unit conversion or material-state inference is performed.
+
 The model families are `rayleigh_lamb`, `mrlfe`, `acoustoelastic_iop_hgo`, and
 `acoustoelastic_prestressed_plate`. Each owns its physical formulation and
 numerical selection pipeline; their internal structures reflect different physics.
