@@ -7,7 +7,14 @@ assert(~isfile(study.resultFile), ...
 studyRecord=oceInversionProvenance(inputs.inputHashes.path,projectRoot);
 assert(isequal(studyRecord.inputFiles,inputs.inputHashes), ...
     'lamb:study:InputsChanged','A source input changed since OCE recovery.');
-names={'experimentRoot','experimentId','subexperimentId','sampleId','mode','period_us', ...
+% Portable manifest is relative to the experiment root. Keep unmodified
+% native OCE lineage in assembly; it may contain producer-supplied references.
+studyRecord.inputFiles.path=relativeSourcePaths( ...
+    studyRecord.inputFiles.path,study.experimentRoot);
+studyRecord.pathBase="experimentRoot";
+studyRecord.code.Lamb=rmfield(studyRecord.code.Lamb,'root');
+studyRecord.code.OCE=rmfield(studyRecord.code.OCE,'root');
+names={'experimentId','subexperimentId','sampleId','mode','period_us', ...
     'repetitions','conditionId','condition','scanAxisIndex','direction','estimator', ...
     'curve','frequencySelection','frequency_Hz','graphicRequestedFrequency_Hz'};
 selection=struct();
@@ -48,5 +55,22 @@ if family=="RayleighLamb"
 else
     save(study.resultFile,'studyRecord','nativeResult','assembly','physical','review', ...
         'observationReview','frequencySelectionMapping','graphicSamplingMapping','-v7.3');
+end
+end
+
+function relative=relativeSourcePaths(paths,root)
+% Relativize input hashes only after verifying the on-disk source bytes.
+root=replace(string(root),char(92),"/");
+if endsWith(root,"/"),root=extractBefore(root,strlength(root));end
+relative=replace(string(paths),char(92),"/");
+prefix=root+"/";
+for i=1:numel(relative)
+    assert(startsWith(lower(relative(i)),lower(prefix)), ...
+        'lamb:study:ExternalInputPath', ...
+        'A source used for the inversion lies outside the experiment root.');
+    relative(i)=extractAfter(relative(i),strlength(prefix));
+    assert(strlength(relative(i))>0 && ...
+        ~any(split(relative(i),"/")==["..","."]), ...
+        'lamb:study:ExternalInputPath','Source reference cannot escape the experiment.');
 end
 end
