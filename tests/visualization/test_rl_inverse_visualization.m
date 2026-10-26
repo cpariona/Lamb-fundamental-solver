@@ -211,6 +211,28 @@ verifyEqual(testCase,e.nativeMetrics,native.metrics);
 verifyEqual(testCase,e.observations.selected,native.validMask);
 end
 
+function testMeasuredThicknessModelLinesStayWithinExactGroups(testCase)
+native=testCase.TestData.native;
+h=[NaN;.405;.406;.405;.406;.405;.406;.405;.406;.405;.406;NaN]*1e-3;
+native.problem.experimental.observationThickness_m=h(:);
+[fig,e]=plotRlFitDiagnostics(native,testCase.TestData.provenance,'Visible','off');
+cleanup=onCleanup(@()close(fig));
+lines=findall(fig,'Tag','rl_native_prediction');
+verifyEqual(testCase,numel(lines),2);
+for k=1:numel(lines)
+    row=ismember(native.frequency_Hz/1e3,lines(k).XData(:));
+    verifyTrue(testCase,all(ismember(lines(k).XData(:)*1e3,native.frequency_Hz)));
+    [~,idx]=ismember(lines(k).XData(:)*1e3,native.frequency_Hz);
+    verifyTrue(testCase,all(idx>0));
+    verifyNotEmpty(testCase,find(h==.405e-3 | h==.406e-3,1));
+end
+verifyEqual(testCase,e.observations.selected,native.validMask);
+layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
+verifySubstring(testCase,string(layout.XLabel.String{2}),"per observation");
+verifySubstring(testCase,string(layout.XLabel.String{2}),"0.405");
+verifySubstring(testCase,string(layout.XLabel.String{2}),"0.406");
+end
+
 function [native,provenance] = fixture(branch)
 p=lamb.models.rayleigh_lamb.rlDefaultParams();p.mu=85e3;
 options=lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
