@@ -50,11 +50,11 @@ native Lamb inverse models to reviewed OCE acquisitions. This directory is
 7. Saving MAT and exporting FIG/TIF are independently disabled by default.
    When enabled, paths are automatically resolved under the experiment root
    (see next section); absolute paths are not accepted as overrides.
-   Optional `study.displayLabel` overrides the figure title; when empty, the
-   drivers build a label from the already-reviewed sample, subexperiment,
-   scan axis and signed direction. Source material and physical-support
-   references remain mandatory, and the visualization layer keeps its strict
-   provenance validation.
+   Optional `study.displayLabel` and `study.displaySubtitle` override
+   figure text only when nonempty. Otherwise, the workflow builds a label
+   from sample/subexperiment/signed direction and leaves native model-specific
+   title/subtitle defaults in place. Source material and physical-support
+   references remain mandatory.
 
 A failed or edited upstream section invalidates downstream workspace values.
 Re-run dependent sections, not only the last fitting or export step.
@@ -101,6 +101,37 @@ summary location use `study.summaryRelativeFile`; absolute summary/output
 overrides and parent-directory traversal are rejected. Generated outputs are
 never overwritten. Updating `study.subexperimentId` recomputes default paths
 instead of keeping destinations from the preceding study.
+
+## Human experiment-wide inversion batch
+
+Open [run_experiment_inversion_batch.m](inversion/run_experiment_inversion_batch.m)
+in **MATLAB Editor** and run its sections in order. Set `experiment_root`,
+`oce_repository_root`, `condition_keys` (the exact recorded mechanical
+metadata columns), the selected models/directions/repetitions, and the
+model-specific reviewed physical inputs in section 1. For uniaxial-stretch
+acquisitions `condition_keys="strain_percent"` is an example, not a value
+inferred from a folder name.
+
+Section 2 locates `Results/<subexperiment>/summary.mat` files and uses
+`oce.results.recoverSummaryObservations` to validate and discover existing
+acquisitions. Recorded frequencies and repetitions are not treated as
+mechanical conditions. Original Pulse periods are preserved verbatim.
+A missing selected repetition or signed direction is an error.
+
+Section 3 constructs independent, reviewable `plan.cases` arrays for
+RayleighLamb and Plate. The generated `condition_001` etc. labels are
+output identities only; the complete exact recorded condition is retained
+in each case. `frequency_selection="all"` requires the user to set
+`approved_all_frequencies=true`; the selection is never inferred or
+optimized. The researcher must review each case, physics, and output paths
+before enabling `run_batches=true` in section 4.
+
+The script never implements fitting, OCE I/O schemas, mask selection,
+renderers or a second batch engine. Outputs follow the existing experiment
+path policy and cannot overwrite previous inversions. Discovery reads
+actual OCE sources, whereas the underlying `plan.execute=false` preview
+checks only structural fields and output paths. The Editor Run Section
+path is required for this human workflow.
 
 ## Programmable batch workflows
 
