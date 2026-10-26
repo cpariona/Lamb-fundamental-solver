@@ -32,7 +32,6 @@ studyRecord.maskPolicy="source_quality_and_frequency";
 if isfield(study,'observationMask')&&~isempty(study.observationMask)
     studyRecord.maskPolicy="explicit_observation_mask";
 end
-native=inputs.assembly; %#ok<NASGU>
 assembly=inputs.assembly;observationReview=inputs.observationReview;
 frequencySelectionMapping=inputs.frequencySelectionMapping;
 graphicSamplingMapping=inputs.graphicSamplingMapping;
