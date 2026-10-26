@@ -12,12 +12,13 @@ sub=safePart(study.subexperimentId);
 if isfield(study,'summaryRelativeFile') && ...
         strlength(string(study.summaryRelativeFile))>0
     summaryRel=safeRelative(study.summaryRelativeFile);
-elseif isfield(study,'summaryFile') && strlength(string(study.summaryFile))>0
+elseif ~isfield(study,'resolvedSummaryRelativeFile') && ...
+        isfield(study,'summaryFile') && strlength(string(study.summaryFile))>0
     summaryRel=safeRelative(study.summaryFile);
 else
     summaryRel=fullfile("Results",sub,"summary.mat");
 end
-study.summaryRelativeFile=summaryRel;
+study.resolvedSummaryRelativeFile=summaryRel;
 study.summaryFile=fullfile(root,summaryRel);
 if ~isfield(study,'outputTag'),study.outputTag="";end
 tag=string(study.outputTag);
@@ -34,7 +35,7 @@ if ~isfield(study,'outputRelativeFolder')||strlength(string(study.outputRelative
 else
     destination=safeRelative(study.outputRelativeFolder);
 end
-study.outputRelativeFolder=destination;
+study.resolvedOutputRelativeFolder=destination;
 study.resultFile=fullfile(root,destination,"inversion.mat");
 study.figureFolder=fullfile(root,destination);
 study.figureName="inversion";
