@@ -61,10 +61,10 @@ plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
     'cases',c,'execute',false);
 reviewed=runOceInversionBatch(plan,"RayleighLamb");
 first=reviewed.cases{1};
-verifyEqual(testCase,first.resolvedSummaryRelativeFile,c.summaryFile);
+verifyEqual(testCase,string(first.resolvedSummaryRelativeFile),string(c.summaryFile));
 reused=resolveOceInversionPaths(first,"RayleighLamb");
 verifyEqual(testCase,reused.summaryFile,first.summaryFile);
-verifyEqual(testCase,reused.resolvedSummaryRelativeFile,c.summaryFile);
+verifyEqual(testCase,string(reused.resolvedSummaryRelativeFile),string(c.summaryFile));
 first.subexperimentId="Stretch_1p10000";
 changed=resolveOceInversionPaths(first,"RayleighLamb");
 verifyEqual(testCase,changed.summaryFile, ...
