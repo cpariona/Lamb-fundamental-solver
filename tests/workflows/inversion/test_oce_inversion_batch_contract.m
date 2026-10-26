@@ -53,6 +53,35 @@ plate=run_ae_plate_oce_inversion_batch(plan);
 verifyTrue(testCase,all(contains(plate.report.resultFile,"Plate")));
 end
 
+function testUnreviewedAllFrequenciesAreNotAutomated(testCase)
+root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
+c=baseCase(root,"Stretch_1p00000");
+c.frequencySelection="all";c.frequency_Hz=[];
+plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
+    'cases',c,'execute',false);
+verifyError(testCase,@()run_rl_oce_inversion_batch(plan), ...
+    'lamb:batch:BandReview');
+plan.cases.approvedAllFrequencies=true;
+planned=run_rl_oce_inversion_batch(plan);
+verifyEqual(testCase,planned.report.status,"planned");
+end
+
+function testRlSharedFitDoesNotRequirePlateOptions(testCase)
+p=lamb.models.rayleigh_lamb.rlDefaultParams();
+study=struct('existingNativeResult',[],'existingAssembly',[], ...
+    'resultFile',string(tempname)+".mat",'reuseOnly',true,'mode',"Pulse", ...
+    'estimator',"kf_ridge");
+config=struct('branchName',"A0",'freeParams',"mu", ...
+    'fixedParams',struct('rho',p.rho,'thickness',p.thickness,'nu',p.nu), ...
+    'initialGuess',struct('mu',p.mu),'bounds',struct('mu',[20e3 200e3]));
+experimental=struct('frequency_Hz',[1000;2000], ...
+    'Cp_mps',[3;4],'validMask',true(2,1));
+assembly=struct('experimental',experimental);
+verifyError(testCase,@()fitOceInversionNative(study,assembly, ...
+    experimental,config,struct(),strings(0,1),"RayleighLamb"), ...
+    'lamb:study:RequestMismatch');
+end
+
 function testReviewedPlateReferenceIsOneDirectionMatchedMeasurement(testCase)
 source=baseCase("unused","Stretch_1p00000");
 source.estimator="kf_ridge";
