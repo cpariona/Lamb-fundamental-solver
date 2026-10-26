@@ -339,6 +339,35 @@ for k=1:numel(lines)
 end
 end
 
+function testMeasuredThicknessPresentationUsesSeparateNativeGeometries(testCase)
+[native,review]=fixture();
+data=native.experimental;
+h=[.405;.406;.405;.406;NaN;NaN;.405;.406]*1e-3;
+data.observationThickness_m=h;
+native=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
+    data,native.physical);
+before=native;
+[fig,e]=plotAePlateFitDiagnostics(native,review,'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,native,before);
+verifyEqual(testCase,numel(e.forwardByThickness),2);
+verifyEqual(testCase,numel(findall(fig,'Tag','plate_forward')),2);
+for j=1:2
+    group=e.forwardByThickness(j);
+    measured=unique(h(native.validMask),'stable');
+    verifyEqual(testCase,group.thickness_m,measured(j));
+    physical=native.physical;
+    physical.thickness_m=group.thickness_m;
+    physical.alpha_Pa=native.alpha_Pa;physical.gamma_Pa=native.gamma_Pa;
+    exact=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion( ...
+        group.mode.frequency_Hz,physical);
+    verifyEqual(testCase,group.mode,exact);
+end
+verifyTrue(testCase,contains(e.forwardStatus,"exact-thickness"));
+layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
+verifySubstring(testCase,string(layout.XLabel.String{2}),"per observation");
+end
+
 function [native,review]=fixture()
 physical=struct('alpha_Pa',300000,'gamma_Pa',150000,'density_kgpm3',1070,'thickness_m',0.001);
 f=[100;1000;3000;8000];
