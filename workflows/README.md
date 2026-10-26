@@ -32,13 +32,19 @@ native Lamb inverse models to reviewed OCE acquisitions. This directory is
    and each original QH thickness independently. Missing recorded thickness
    is an error; no median or average is substituted. `"explicit_constant"`
    permits a separately reviewed scalar alternative. Prestressed Plate
-   retains its own explicit scalar thickness contract.
+   still requires **one scalar** current thickness: either independently
+   reviewed as `study.physical.thickness_m`, or selected from one OCE
+   signed-direction acquisition by setting
+   `study.thicknessPolicy="oce_reference_acquisition"` and
+   `study.thicknessReferenceSourceIndex`. This is not per-bin geometry
+   and does not change the native Li/Plate regression.
    **Do not treat numeric acceptance as experimental model validation.**
 6. Fitting is disabled by default (`study.reuseOnly=true`). Only after
    inspecting the request set `study.reuseOnly=false` in the workspace, then
    run the corresponding fit section (RL section 6; Plate section 5).
-7. Saving MAT and exporting FIG/TIF are independently disabled by default;
-   select new output paths explicitly before running persistence sections.
+7. Saving MAT and exporting FIG/TIF are independently disabled by default.
+   When enabled, paths are automatically resolved under the experiment root
+   (see next section); absolute paths are not accepted as overrides.
    Optional `study.displayLabel` overrides the figure title; when empty, the
    drivers build a label from the already-reviewed sample, subexperiment,
    scan axis and signed direction. Source material and physical-support
@@ -47,6 +53,91 @@ native Lamb inverse models to reviewed OCE acquisitions. This directory is
 
 A failed or edited upstream section invalidates downstream workspace values.
 Re-run dependent sections, not only the last fitting or export step.
+
+
+## Default storage and relative overrides
+
+Only `study.experimentRoot` and the OCE repository code location are
+machine-specific input anchors. No general filesystem destinations are
+hard-coded in any workflow. Unless overridden, the input summary is
+`Results/<subexperiment>/summary.mat` relative to the experiment root and
+output is:
+
+```text
+Results/<subexperiment>/Inversions/<RayleighLamb|Plate>/<case>/
+    inversion.mat
+    inversion.fig
+    inversion.tif
+```
+
+The case identifier is derived deterministically from the excitation mode,
+Pulse period, reviewed condition ID and signed scan direction. **The bandwidth
+is not part of this identifier**: a distinct fit/band for the same physical
+case must use a new reviewed `study.outputTag` to avoid collisions. A caller or
+agent can supply `study.outputRelativeFolder` to redirect output anywhere
+**inside the same experiment root**. Both custom fields are optional and not
+needed in the MATLAB Editor's user configuration section. For a nonstandard
+summary location use `study.summaryRelativeFile`; absolute summary/output
+overrides and parent-directory traversal are rejected. Generated outputs are
+never overwritten. Updating `study.subexperimentId` recomputes default paths
+instead of keeping destinations from the preceding study.
+
+## Programmable batch workflows
+
+Add `workflows/inversion` to your MATLAB path explicitly and initialize
+Lamb and OCE as with the interactive drivers. Entry points:
+
+- `run_rl_oce_inversion_batch(plan)`
+- `run_ae_plate_oce_inversion_batch(plan)`
+
+Both call the same `executeOceInversionStudy` as their scientific execution
+owner; the Editor scripts use the same preparation, review, fit, save and plot
+functions. These are callable MATLAB functions and do not invoke
+`matlab.desktop.editor`. One `plan.cases` element represents **one
+subexperiment / reviewed mechanical condition / period (Pulse) / signed
+direction / model / frequency-selection choice**. Do not combine QH and Pulse
+observations or different mechanical states without a separately reviewed
+joint-fit contract.
+
+A minimal calling pattern, after building each case from the model-specific
+interactive section 1 (no absolute paths inside case definitions):
+
+```matlab
+plan = struct();
+plan.experimentRoot = experimentRoot;       % Local experiment root supplied by caller
+plan.oceRepositoryRoot = oceRepositoryRoot; % Local OCE checkout supplied by caller
+plan.cases = [case1, case2];               % Explicit complete reviewed study structs
+plan.execute = false;                     % Read-only plan; no MATLAB/OCE input reads
+preview = run_rl_oce_inversion_batch(plan);
+disp(preview.report);
+
+% Only after reviewing selections and output destinations:
+plan.execute = true;
+plan.saveResult = true;
+plan.exportFigure = true;
+report = run_rl_oce_inversion_batch(plan);
+disp(report.report);
+```
+
+For Plate call `run_ae_plate_oce_inversion_batch(plan)` and supply reviewed
+scalar physical inputs with its model-specific review. `plan.execute=true`
+explicitly permits fresh native fits; set `plan.reuseOnly=true` to require
+previously saved exact results instead. The default full MATLAB figure export
+is hidden during batch execution; it saves FIG and TIF and closes the GUI.
+`plan.continueOnError=true` optionally collects failures rather than stopping
+on the first exception.
+
+Each batch case **must** supply `frequencySelection="interval"` with two Hz
+bounds, or `"explicit"` with its reviewed original target requests. The
+`"all"` mode is allowed only with
+`case.approvedAllFrequencies=true`. These selections are *not* discovered,
+optimized or repaired by the batch. Original estimator quality masks and
+source-row identities are preserved. Pulse graphic frequency sampling remains
+separate from fit eligibility. Fit acceptance is numerical and does not validate
+A0 modal purity or eliminate need for bandwidth review. In a dry-run the
+batch checks only its destination plan and mandatory selection fields; it does
+not attest to OCE data completeness, thickness, solver convergence or valid
+bands. Full native and OCE tests are required for scientific execution.
 
 ## Ownership
 
