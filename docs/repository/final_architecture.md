@@ -8,7 +8,8 @@
 | `integrations/oce/` | Translation of validated external observations and reviewed QH coordination |
 | `visualization/` | GUI-independent scientific presentation and figure export |
 | `app/` | GUI interaction, app request/result adaptation and execution profiles |
-| `studies/` | Opt-in scientific investigations consuming production APIs |
+| `workflows/` | Human-facing, section-oriented inversion execution consuming maintained APIs |
+| `studies/` | Opt-in sensitivity and solver-diagnostic investigations consuming production APIs |
 | `examples/` | Opt-in usage examples consuming production APIs |
 | `tests/` | Executable contracts, regressions, performance checks and tooling |
 
@@ -61,7 +62,7 @@ mathematical helpers may identify their mode, such as `aePlateA0MasterCurve`.
 
 Dependencies point toward scientific owners. Models do not depend on fitting,
 integration, visualization, app, studies, examples, tests or documentation. Fitting calls canonical public
-model APIs. Production never depends on studies, examples, tests or documentation.
+model APIs. Production never depends on workflows, studies, examples, tests or documentation.
 The sole intentional cross-family scientific dependency is the mRLFE seed through
 the public Rayleigh-Lamb solver. Model-neutral utilities do not own family policy.
 
@@ -151,7 +152,8 @@ candidate files and exclude paths removed from the working tree.
 | QH Plate coordinator | Prepared QH observations and the native Plate fitting API |
 | Visualization | Native result values and public forward/interpretation APIs; no fitting, integration, GUI or OCE package dependency |
 | GUI/app | Integration, scientific APIs and visualization; no study or example implementation |
-| Studies and scientific examples | Public scientific, integration and visualization APIs; no GUI internals or tests |
+| Human inversion workflows | Public scientific, integration and visualization APIs; no GUI internals, studies or tests |
+| Studies and scientific examples | Public scientific, integration and visualization APIs; no GUI internals, workflows or tests |
 
 These are domain rules, not per-function exceptions. The model/fitting core remains
 independent of optional producers. OCE's loader/recovery APIs remain its authority;
@@ -217,11 +219,11 @@ GUI import and native schema I/O in preparation, rather than prohibiting field a
 Studies and examples consume reusable integration/visualization domains directly;
 they do not depend on app components or maintain a duplicate adapter.
 
-The manual Plate and RL studies share `prepareOceStudyObservations` for acquisition
+The human Plate and RL inversion workflows share `prepareOceInversionObservations` for acquisition
 selection, original-bin mappings and calls to the existing preparation APIs, and
-`oceStudyProvenance` for current input/code evidence. These opt-in study operations
+`oceInversionProvenance` for current input/code evidence. These opt-in workflow operations
 own no external schema, native fitting policy or result format. Model-specific
-scripts retain physical review, direct native requests and strict result reuse;
+workflows retain physical review, direct native requests and strict result reuse;
 they use the existing renderers and `saveInverseFigure` without a dispatcher.
 
 `prepareOceQhFitObservations` assembles explicitly reviewed k-f target rows from
