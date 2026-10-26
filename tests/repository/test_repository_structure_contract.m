@@ -4,8 +4,8 @@ function test_repository_structure_contract()
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 paths = gitTrackedPaths(repoRoot);
 
-allowedTopLevel = ["app", "docs", "examples", "integrations", "src", "studies", "tests", "visualization"];
-requiredTopLevel = ["app", "examples", "integrations", "src", "studies", "tests", "visualization"];
+allowedTopLevel = ["app", "docs", "examples", "integrations", "src", "studies", "tests", "visualization", "workflows"];
+requiredTopLevel = ["app", "examples", "integrations", "src", "studies", "tests", "visualization", "workflows"];
 for i = 1:numel(requiredTopLevel)
     assert(isfolder(fullfile(repoRoot, requiredTopLevel(i))), ...
         'Required repository directory is missing: %s', requiredTopLevel(i));
@@ -24,7 +24,7 @@ for i = 1:numel(paths)
     end
 end
 
-sourcePaths = paths(startsWith(paths, ["app/", "examples/", "integrations/", "src/", "studies/", "tests/", "visualization/"]));
+sourcePaths = paths(startsWith(paths, ["app/", "examples/", "integrations/", "src/", "studies/", "tests/", "visualization/", "workflows/"]));
 assert(~any(contains(lower(sourcePaths), "/archive/")), ...
     'Archive directories are forbidden under maintained source, example, and test trees.');
 assert(~any(startsWith(paths, "docs/") & endsWith(paths, ".m")), ...
