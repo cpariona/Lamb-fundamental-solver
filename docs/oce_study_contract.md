@@ -37,6 +37,20 @@ axis. Automatic repeated-frequency projection is not supplied by this integratio
 changing that native fitting contract requires its own review. A per-acquisition
 broadband curve can already satisfy the maintained mRLFE axis contract.
 
+## Canonical public physical inputs
+
+New human-facing inputs use SI unit-qualified physical names shared across
+families: `density_kgpm3` (kg/m^3), `thickness_m` (current full m),
+`poisson_ratio` (dimensionless), and `mu_Pa` where a dimensional shear
+modulus is entered. The RL public fitting builder accepts these three fixed
+physical fields and maps them to unchanged native solver symbols
+(`rho`, `thickness`, `nu`) only at its request boundary. Existing native
+solver and historical MAT fields retain their model-owned names and semantics;
+legacy fixed-parameter names cannot be supplied alongside their canonical
+counterparts. Plate already uses `density_kgpm3` and `thickness_m`.
+Directional current thickness measured by OCE is still handled per original
+acquisition; the scalar field is only a reference under that reviewed policy.
+
 ## Model-specific contracts
 
 | Family and maintained fitting API | Explicit physical/model inputs and numerical boundaries | Native evidence |
