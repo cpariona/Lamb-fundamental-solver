@@ -12,12 +12,18 @@ sub=safePart(study.subexperimentId);
 if isfield(study,'summaryRelativeFile') && ...
         strlength(string(study.summaryRelativeFile))>0
     summaryRel=safeRelative(study.summaryRelativeFile);
+elseif isfield(study,'resolvedSummaryRelativeFile') && ...
+        isfield(study,'resolvedSubexperimentId') && ...
+        string(study.resolvedSubexperimentId)==sub
+    % Batch preflight and execution share this reviewed relative reference.
+    summaryRel=safeRelative(study.resolvedSummaryRelativeFile);
 elseif ~isfield(study,'resolvedSummaryRelativeFile') && ...
         isfield(study,'summaryFile') && strlength(string(study.summaryFile))>0
     summaryRel=safeRelative(study.summaryFile);
 else
     summaryRel=fullfile("Results",sub,"summary.mat");
 end
+study.resolvedSubexperimentId=sub;
 study.resolvedSummaryRelativeFile=summaryRel;
 study.summaryFile=fullfile(root,summaryRel);
 if ~isfield(study,'outputTag'),study.outputTag="";end
