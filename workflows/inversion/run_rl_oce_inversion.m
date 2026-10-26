@@ -21,10 +21,12 @@ study.curve = "raw";        % k-f: "raw" | "smoothed"
 study.frequencySelection = "all"; % "all" | "interval" | "explicit"
 study.frequency_Hz = [];   % [low high] for interval; nominal Hz for explicit
 study.observationMask = []; % [] retains documented source-quality selection
+study.thicknessPolicy = "oce_directional_per_acquisition"; % or "explicit_constant"
 
 % Rayleigh-Lamb native physical configuration (SI units).
-% Enter reviewed current full thickness (m), density (kg/m^3) and nu.
-% These NaN placeholders must be replaced before the model-review section.
+% Density (kg/m^3), nu and mu bounds remain explicitly reviewed.
+% With OCE thickness enabled, recorded directional measurements replace the
+% placeholder thickness; an explicit constant is available for other studies.
 study.fitConfig = struct( ...
     'branchName', "A0", 'freeParams', "mu", ...
     'fixedParams', struct('rho', NaN, 'thickness', NaN, 'nu', NaN), ...
@@ -96,6 +98,38 @@ fprintf('Selected %d of %d original observations.\n', ...
 
 %% 5. REVIEW RAYLEIGH-LAMB PHYSICS AND CONFIGURATION
 fitConfig=study.fitConfig;review=study.review;
+if study.thicknessPolicy == "oce_directional_per_acquisition"
+    % QH supplies one directional OCT thickness per acquisition/frequency.
+    % Pulse supplies one directional thickness per source repetition, repeated
+    % across the original frequency bins belonging to that acquisition.
+    if isfield(assembly, 'measuredThickness_m')
+        observationThickness = double(assembly.measuredThickness_m(:));
+    else
+        observationThickness = nan(numel(experimental.frequency_Hz),1);
+        for j = 1:numel(assembly.prepared)
+            observationThickness(observationReview.sourceIndex==j) = ...
+                assembly.prepared{j}.measuredThickness_m;
+        end
+    end
+    assert(numel(observationThickness)==numel(experimental.frequency_Hz), ...
+        'lamb:workflow:ThicknessAlignment', ...
+        'OCE directional thickness must align with every original observation.');
+    relevant = isfinite(experimental.frequency_Hz) & experimental.frequency_Hz > 0;
+    assert(all(isfinite(observationThickness(relevant)) & observationThickness(relevant)>0), ...
+        'lamb:workflow:MissingThickness', ...
+        'OCE directional thickness is missing/nonpositive; do not substitute an average.');
+    experimental.observationThickness_m = observationThickness;
+    assembly.experimental = experimental;
+    % This scalar is a native validation reference, not the thickness used
+    % to evaluate the per-observation model or fit a thickness parameter.
+    fitConfig.fixedParams.thickness = observationThickness(find(relevant,1));
+    review.thicknessSource = "OCE directional_mean_thickness_mm, selected scan axis and signed direction";
+    review.thicknessJustification = ...
+        "Exact recorded thickness per acquisition, aligned with original frequencies and repetitions; no pooling";
+elseif study.thicknessPolicy ~= "explicit_constant"
+    error('lamb:workflow:ThicknessPolicy', ...
+        'Select oce_directional_per_acquisition or explicit_constant.');
+end
 assert(any(string(fitConfig.branchName)==["A0","S0"])&&review.mode==fitConfig.branchName);
 for name=["thicknessSource","thicknessJustification","densityReference", ...
         "parameterJustification","modelSupportReference"]
@@ -146,7 +180,8 @@ if study.saveResult
         'lamb:study:InputsChanged','An OCE input changed after recovery; do not persist this study.');
     selectionFields={'experimentRoot','summaryFile','experimentId','subexperimentId','sampleId', ...
         'mode','period_us','repetitions','conditionId','condition','scanAxisIndex','direction', ...
-        'estimator','curve','frequencySelection','frequency_Hz','graphicRequestedFrequency_Hz'};
+        'estimator','curve','frequencySelection','frequency_Hz','graphicRequestedFrequency_Hz', ...
+        'thicknessPolicy'};
     effectiveSelection=struct();
     for field=selectionFields,effectiveSelection.(field{1})=study.(field{1});end
     if study.mode=="Pulse"&&study.showFigure
