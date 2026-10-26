@@ -90,8 +90,8 @@ physical=struct('density_kgpm3',1050,'thickness_m',.0005);
 review=struct('mode',"A0");
 record=persistOceInversionStudy(study,inputs,nativeResult,physical, ...
     review,false,projectRoot,"Plate");
-verifyEqual(testCase,record.inputFiles.path, ...
-    fullfile("Results","Stretch_1p00000","summary.mat"));
+verifyEqual(testCase,replace(record.inputFiles.path,char(92),"/"), ...
+    "Results/Stretch_1p00000/summary.mat");
 verifyEqual(testCase,record.pathBase,"experimentRoot");
 verifyFalse(testCase,isfield(record.selection,'experimentRoot'));
 verifyFalse(testCase,isfield(record.code.Lamb,'root'));
