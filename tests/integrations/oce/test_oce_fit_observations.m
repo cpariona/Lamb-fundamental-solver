@@ -483,7 +483,7 @@ verifyEqual(testCase,interval.frequency,allRows.frequency);
 end
 
 function testStudySelectsExactNumericAndLiteralConditions(testCase)
-body=string(fileread(fullfile(testRepositoryRoot(mfilename('fullpath')),'studies','prepareOceStudyObservations.m')));
+body=string(fileread(fullfile(testRepositoryRoot(mfilename('fullpath')),'workflows','inversion','prepareOceInversionObservations.m')));
 selectionCode=extractBetween(body,'selected=metadata.experiment_id','sources=recovered(selected)');
 selectionCode="selected=metadata.experiment_id"+selectionCode;
 value=1.2345678901234567;
@@ -505,13 +505,13 @@ end
 function review=runStudyFrequencySections(study,sources,sourceMetadata,summary) %#ok<INUSD> Inputs are consumed by eval below.
 % Execute the maintained manual sections, without optional external OCE I/O or fitting.
 repoRoot=testRepositoryRoot(mfilename('fullpath'));
-body=string(fileread(fullfile(repoRoot,'studies','prepareOceStudyObservations.m')));
+body=string(fileread(fullfile(repoRoot,'workflows','inversion','prepareOceInversionObservations.m')));
 if ~isfield(study,'estimator'),study.estimator="kf_ridge";end
 selectionCode=extractBetween(body,'%% 3. Review','%% 4. Prepare');
 eval(char("%% 3. Review"+selectionCode));
-body=string(fileread(fullfile(repoRoot,'studies','aePlateOceStudy.m')));
-graphicCode=extractBetween(body,'%% 5. Sample','    reference=string(study.resultFile)');
-eval(char("%% 5. Sample"+graphicCode+newline+"end")); % Close showFigure before rendering.
+body=string(fileread(fullfile(repoRoot,'workflows','inversion','run_ae_plate_oce_inversion.m')));
+graphicCode=extractBetween(body,'%% 7. OPTIONAL VISUALIZATION','    reference=string(study.resultFile)');
+eval(char("%% 7. OPTIONAL VISUALIZATION"+graphicCode+newline+"end")); % Close showFigure before rendering.
 review=struct('frequency',frequency,'bins',bins,'qualityMask',qualityMask, ...
     'validMask',validMask,'selectionMapping',frequencySelectionMapping, ...
     'graphicMapping',graphicSamplingMapping,'graphicMask',graphicMask,'graphicFrequency',graphicFrequency);
