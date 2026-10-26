@@ -90,10 +90,10 @@ instead of keeping destinations from the preceding study.
 ## Programmable batch workflows
 
 Add `workflows/inversion` to your MATLAB path explicitly and initialize
-Lamb and OCE as with the interactive drivers. Entry points:
-
-- `run_rl_oce_inversion_batch(plan)`
-- `run_ae_plate_oce_inversion_batch(plan)`
+Lamb and OCE as with the interactive drivers. The single programmable batch entry point is `runOceInversionBatch(plan,family)`,
+where `family="RayleighLamb"` or `family="Plate"`. This avoids maintaining
+two model-only forwarding wrappers; each case is still reviewed and executed
+by its own native physical family.
 
 Both call the same `executeOceInversionStudy` as their scientific execution
 owner; the Editor scripts use the same preparation, review, fit, save and plot
@@ -113,18 +113,18 @@ plan.experimentRoot = experimentRoot;       % Local experiment root supplied by 
 plan.oceRepositoryRoot = oceRepositoryRoot; % Local OCE checkout supplied by caller
 plan.cases = [case1, case2];               % Explicit complete reviewed study structs
 plan.execute = false;                     % Read-only plan; no MATLAB/OCE input reads
-preview = run_rl_oce_inversion_batch(plan);
+preview = runOceInversionBatch(plan,"RayleighLamb");
 disp(preview.report);
 
 % Only after reviewing selections and output destinations:
 plan.execute = true;
 plan.saveResult = true;
 plan.exportFigure = true;
-report = run_rl_oce_inversion_batch(plan);
+report = runOceInversionBatch(plan,"RayleighLamb");
 disp(report.report);
 ```
 
-For Plate call `run_ae_plate_oce_inversion_batch(plan)` and supply
+For Plate call `runOceInversionBatch(plan,"Plate")` and supply
 reviewed density, thickness policy and model-support evidence. The default
 uses the OCE signed-direction full thickness for each selected observation.
 The recorded scalar `physical.thickness_m` is a non-operative reference
@@ -132,8 +132,10 @@ under this policy; constant-thickness studies remain available explicitly. `plan
 explicitly permits fresh native fits; set `plan.reuseOnly=true` to require
 previously saved exact results instead. The default full MATLAB figure export
 is hidden during batch execution; it saves FIG and TIF and closes the GUI.
-`plan.continueOnError=true` optionally collects failures rather than stopping
-on the first exception.
+ `plan.continueOnError=true` optionally collects failures rather than stopping
+on the first exception. When saving is enabled, a failed attempted case records
+`inversion_failure.mat` (reviewed request, error and portable source location)
+without overwriting any previous output. Failed cases never create a native fit.
 
 Each batch case **must** supply `frequencySelection="interval"` with two Hz
 bounds, or `"explicit"` with its reviewed original target requests. The
