@@ -1,5 +1,5 @@
 function outcome = fitOceQhPrestressedPlate(assembly, physical, review, options)
-%FITOCEQHPRESTRESSEDPLATE Coordinate a reviewed constant-thickness A0 request.
+%FITOCEQHPRESTRESSEDPLATE Coordinate a reviewed scalar or row-thickness A0 request.
 % ASSEMBLY comes from prepareOceQhFitObservations. PHYSICAL contains only
 % density_kgpm3 and current full thickness_m (positive scalar SI values).
 % REVIEW requires mode="A0", thicknessPolicy either
@@ -14,8 +14,8 @@ function outcome = fitOceQhPrestressedPlate(assembly, physical, review, options)
 % group IDs qualify coverage in Plate without changing any observed Hz or Cp.
 % Compatible partitions retain the historical native call and diagnostics.
 % Group identity does not itself prove identifiability or model support.
-% Original OCT thicknesses, including NaNs, remain in assembly. The supplied
-% scalar may come from an independent current physical measurement. Compact
+% Original OCT thicknesses, including excluded NaNs, remain in assembly.
+% The scalar reference may come from an independently reviewed measurement. Compact
 % OCT availability/range diagnostics are descriptive and never affect acceptance.
 
 if nargin < 4, options = struct(); end
