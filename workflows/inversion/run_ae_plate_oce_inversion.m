@@ -4,7 +4,7 @@
 oce_repository_root = ""; % Full local OCE_Workflow repository root
 study = struct();
 study.experimentRoot = ""; % Original experiment root
-study.summaryFile = "";    % Full path to persisted experiment summary .mat
+study.summaryFile = "";    % Optional root-relative override; default Results/<sub>/summary.mat
 study.experimentId = "";
 study.subexperimentId = "";
 study.sampleId = "";
@@ -28,6 +28,8 @@ study.review = struct( ...
     'thicknessSource', "", 'thicknessJustification', "", ...
     'densityReference', "", 'modelSupportReference', "");
 study.fitOptions = struct(); % Native Plate A0 options (not RL optimizer settings)
+study.thicknessPolicy = "explicit_constant_current_thickness"; % or "oce_reference_acquisition"
+study.thicknessReferenceSourceIndex = NaN; % Required only for the OCE reference policy
 
 % Conservative defaults: review data/physics before enabling a fit.
 study.reuseOnly = true;      % false explicitly enables native fitting
@@ -72,6 +74,7 @@ assert(~isempty(which('prepareOceInversionObservations')), ...
 % Source/condition/repetition identities and original rows are retained.
 if ~isfield(study,'estimator'),study.estimator="kf_ridge";end
 assert(study.estimator=="kf_ridge",'The reviewed Plate study uses k-f observations.');
+study=resolveOceInversionPaths(study,"Plate");
 inputs=prepareOceInversionObservations(study);
 assembly=inputs.assembly;observationReview=inputs.observationReview;
 frequencySelectionMapping=inputs.frequencySelectionMapping;
@@ -91,117 +94,23 @@ disp(sourceMetadata);
 disp(observationReview);
 fprintf('Selected %d of %d original observations.\n', nnz(validMask), numel(validMask));
 %% 4. REVIEW CURRENT PLATE PHYSICAL INPUTS
-physical=study.physical;review=study.review;fitOptions=study.fitOptions;
-assert(review.mode=="A0"&&review.thicknessPolicy=="explicit_constant_current_thickness");
-for name=["density_kgpm3","thickness_m"]
-    validateattributes(physical.(name),{'double'},{'scalar','finite','real','positive'});
-end
-for name=["thicknessSource","thicknessJustification","densityReference","modelSupportReference"]
-    assert(isscalar(string(review.(name)))&&strlength(strtrim(string(review.(name))))>0, ...
-        'Physical inputs need explicit sources and justification.');
-end
-% OCT values remain observations; the workflow never silently selects thickness.
+[experimental,physical,review]=reviewOceInversionPhysics( ...
+    study,assembly,observationReview,"Plate");
+assembly.experimental=experimental;
+study.physical=physical;study.review=review;
 
 %% 5. RUN OR REUSE THE NATIVE PLATE A0 FIT (explicit opt-in)
-existing=study.existingNativeResult;existingAssembly=study.existingAssembly;
-if isempty(existing)&&strlength(study.resultFile)>0&&isfile(study.resultFile)
-    saved=load(study.resultFile,'nativeResult','assembly');
-    existing=saved.nativeResult;existingAssembly=saved.assembly;
-end
-reusedResult=false;
-if ~isempty(existing)
-    if isempty(fieldnames(fitOptions)),fitOptions=existing.options;end
-    same=isequaln(existing.physical,physical)&&isequaln(existing.options,fitOptions);
-    for name=string(fieldnames(experimental))'
-        same=same&&isfield(existing.experimental,name)&&isequaln(existing.experimental.(name),experimental.(name));
-    end
-    same=same&&~isempty(existingAssembly);
-    if ~isempty(existingAssembly)
-        if isfield(existingAssembly,'sourceResultFiles')
-            recordedFiles=string(existingAssembly.sourceResultFiles(:));
-        else
-            recordedFiles=string({existingAssembly.lineage.resultFile})';
-        end
-        same=same&&isequal(recordedFiles,sourceFiles);
-    end
-    if study.mode=="QH"
-        % Coverage is owned by fitOceQhPrestressedPlate. Reuse its recorded physical inputs,
-        % never reconstruct a second grouping implementation in this script.
-        same=same&&~isempty(existingAssembly)&& ...
-            isequaln(existingAssembly.physicalFrequency_Hz,assembly.physicalFrequency_Hz)&& ...
-            isequaln(existingAssembly.requestedTargetFrequency_Hz,assembly.requestedTargetFrequency_Hz);
-    else
-        same=same&&~isfield(existing.experimental,'independentFrequencyGroupId');
-    end
-    if same,nativeResult=existing;reusedResult=true;end
-end
-assert(reusedResult||~study.reuseOnly,'lamb:study:RequestMismatch', ...
-    'No identical reviewed result is available. Inspect observationReview and physical inputs before enabling a new fit.');
-if ~reusedResult
-    if study.mode=="QH"
-        outcome=fitOceQhPrestressedPlate(assembly,physical,review,fitOptions);
-        nativeResult=outcome.nativeResult;
-    else
-        nativeResult=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(experimental,physical,fitOptions);
-    end
-end
-assert(isequal(nativeResult.validMask,validMask));
-%% 6. OPTIONAL PERSISTENCE (no overwrite)
-if study.saveResult
-    assert(strlength(study.resultFile)>0&&~isfile(study.resultFile),'lamb:study:OutputExists','Do not overwrite a historical result.');
-    currentProvenance=oceInversionProvenance(inputHashes.path,projectRoot);
-    assert(isequal(currentProvenance.inputFiles,inputHashes), ...
-        'lamb:study:InputsChanged','An OCE input changed after recovery; do not persist this study.');
-    % Small configuration only: arrays, physical inputs and reviews already have owners below.
-    selectionFields={'experimentRoot','summaryFile','experimentId','subexperimentId','sampleId', ...
-        'mode','period_us','repetitions','conditionId','condition','scanAxisIndex','direction', ...
-        'estimator','curve','frequencySelection','frequency_Hz','graphicRequestedFrequency_Hz'};
-    effectiveSelection=struct();
-    for field=selectionFields,effectiveSelection.(field{1})=study.(field{1});end
-    if study.mode=="Pulse"&&study.showFigure
-        effectiveSelection.graphicRequestedFrequency_Hz=graphicRequested;
-    end
-    studyRecord=currentProvenance;
-    studyRecord.selection=effectiveSelection;
-    studyRecord.numericallyReused=reusedResult;
-    save(study.resultFile,'studyRecord','nativeResult','assembly','physical','review', ...
-        'observationReview','frequencySelectionMapping','graphicSamplingMapping','-v7.3');
-end
+[nativeResult,reusedResult,physical]=fitOceInversionNative( ...
+    study,assembly,experimental,physical,review,sourceFiles,"Plate");
 
-fprintf('AE Plate: %d selected rows; reused=%d; alpha=%.15g Pa; gamma=%.15g Pa; RMSE=%.15g Pa; numerical accepted=%d\n', ...
-    nnz(validMask),reusedResult,nativeResult.alpha_Pa,nativeResult.gamma_Pa,nativeResult.regressionRMSE_Pa,nativeResult.accepted);
+%% 6. OPTIONAL PERSISTENCE (no overwrite)
+inputs.assembly=assembly;
+studyRecord=persistOceInversionStudy( ...
+    study,inputs,nativeResult,physical,review,reusedResult,projectRoot,"Plate");
+fprintf('AE Plate: %d selected rows; reused=%d; alpha=%.15g Pa; gamma=%.15g Pa; RMSE=%.15g Pa; accepted=%d\n', ...
+    nnz(experimental.validMask),reusedResult,nativeResult.alpha_Pa, ...
+    nativeResult.gamma_Pa,nativeResult.regressionRMSE_Pa,nativeResult.accepted);
 
 %% 7. OPTIONAL VISUALIZATION (FIG and 300-dpi TIF)
-graphicFrequency=[];graphicMask=validMask;
-if study.showFigure
-    if study.mode=="Pulse"
-        graphicFrequency=unique(graphicSamplingMapping.observedFrequency_Hz( ...
-            isfinite(graphicSamplingMapping.observedFrequency_Hz)));
-        graphicMask=validMask&ismember([sourceIndex,bins], ...
-            [graphicSamplingMapping.sourceIndex,graphicSamplingMapping.sourceBinIndex],'rows');
-        assert(isequal(validMask&ismember(frequency,graphicFrequency),graphicMask), ...
-            'Graphic frequencies collide across different source grids; review the selected original bins.');
-    end
-    reference=string(study.resultFile);if strlength(reference)==0,reference="Reviewed in-memory native request";end
-    % Derive only presentation text from the reviewed source identity.
-    % Never infer material, mechanical state or physical fit parameters here.
-    plotLabel = string(study.displayLabel);
-    if strlength(strtrim(plotLabel)) == 0
-        plotLabel = string(study.sampleId) + " | " + ...
-            string(study.subexperimentId) + " | axis " + ...
-            string(study.scanAxisIndex) + " " + string(study.direction);
-    end
-    provenance=struct('label',plotLabel,'displayLabel',plotLabel, ...
-        'displaySubtitle',study.displaySubtitle,'material',string(sourceMetadata.material(1)), ...
-        'sourceReference',reference,'originalResultReferences',sourceFiles, ...
-        'modelSupportReference',review.modelSupportReference,'physicalReview',review, ...
-        'repetitionId',repetitionId,'sourceMasks',struct('valid_mask',ridge, ...
-        'interpolated_mask',interpolated,'extrapolated_mask',extrapolated));
-    [fig,figureEvidence]=plotAePlateFitDiagnostics(nativeResult,provenance, ...
-        'DisplayMode',"robust",'DisplayFrequency_Hz',graphicFrequency,'Visible','on');
-    drawnow;
-    if study.exportFigure
-        assert(isfolder(study.figureFolder)&&strlength(study.figureName)>0);
-        figurePaths=saveInverseFigure(fig,study.figureFolder,study.figureName);
-    end
-end
+[fig,figureEvidence,figurePaths]=renderOceInversionStudy( ...
+    study,inputs,nativeResult,review,"Plate");
