@@ -84,6 +84,29 @@ for branch = ["A0", "S0"]
 end
 end
 
+function testUnitQualifiedSiInputsMatchLegacySolverPhysics(testCase)
+% Public fit requests translate unit-qualified names without changing physics.
+p = lamb.models.rayleigh_lamb.rlDefaultParams();
+config = struct('branchName',"A0",'freeParams',"mu", ...
+    'fixedParams',struct('rho',p.rho,'thickness',p.thickness,'nu',p.nu), ...
+    'initialGuess',struct('mu',p.mu),'bounds',struct('mu',[5e4 2e5]));
+experimental = struct('frequency_Hz',[1000;1500;2000], ...
+    'Cp_mps',[2;3;4],'validMask',true(3,1));
+legacy = lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,config);
+config.fixedParams = struct('density_kgpm3',p.rho, ...
+    'thickness_m',p.thickness,'poisson_ratio',p.nu);
+current = lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,config);
+verifyEqual(testCase,current.baseParams,legacy.baseParams);
+verifyEqual(testCase,current.x0,legacy.x0);
+verifyEqual(testCase,current.lowerBounds,legacy.lowerBounds);
+verifyEqual(testCase,current.upperBounds,legacy.upperBounds);
+verifyEqual(testCase,current.experimental,legacy.experimental);
+bad = config;
+bad.fixedParams.rho = p.rho;
+verifyError(testCase,@()lamb.fitting.rayleigh_lamb.rlBuildFitProblem( ...
+    experimental,bad),'lamb:rl:AmbiguousPhysicalInput');
+end
+
 function testSelectedInvalidDataAreRejectedWithoutMaskRepair(testCase)
 p = lamb.models.rayleigh_lamb.rlDefaultParams();
 config = fitConfiguration(p, "A0");
