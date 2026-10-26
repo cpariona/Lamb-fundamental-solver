@@ -38,18 +38,18 @@ root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 c=baseCase(root,"Stretch_1p00000");
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused_in_dry_run", ...
     'cases',c,'execute',false);
-report=run_rl_oce_inversion_batch(plan);
+report=runOceInversionBatch(plan,"RayleighLamb");
 verifyFalse(testCase,report.executed);
 verifyEqual(testCase,report.report.status,"planned");
 verifyFalse(testCase,isfolder(fileparts(report.report.resultFile(1))));
 plan.cases=repmat(c,2,1);
-verifyError(testCase,@()run_rl_oce_inversion_batch(plan), ...
+verifyError(testCase,@()runOceInversionBatch(plan,"RayleighLamb"), ...
     'lamb:batch:DuplicateOutput');
 plan.cases(2).outputTag="second_review";
-report=run_rl_oce_inversion_batch(plan);
+report=runOceInversionBatch(plan,"RayleighLamb");
 verifyEqual(testCase,height(report.report),2);
 verifyEqual(testCase,numel(unique(report.report.resultFile)),2);
-plate=run_ae_plate_oce_inversion_batch(plan);
+plate=runOceInversionBatch(plan,"Plate");
 verifyTrue(testCase,all(contains(plate.report.resultFile,"Plate")));
 end
 
@@ -59,7 +59,7 @@ c=baseCase(root,"Stretch_1p00000");
 c.summaryFile=fullfile("Results","Reviewed","alternative_summary.mat");
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
     'cases',c,'execute',false);
-reviewed=run_rl_oce_inversion_batch(plan);
+reviewed=runOceInversionBatch(plan,"RayleighLamb");
 first=reviewed.cases{1};
 verifyEqual(testCase,first.resolvedSummaryRelativeFile,c.summaryFile);
 reused=resolveOceInversionPaths(first,"RayleighLamb");
@@ -110,7 +110,7 @@ plan=struct('experimentRoot',string(root), ...
     'oceRepositoryRoot',"missing_OCE_checkout",'cases',c, ...
     'execute',true,'exportFigure',false,'saveResult',true, ...
     'continueOnError',true);
-report=run_ae_plate_oce_inversion_batch(plan);
+report=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,report.report.status,"failed");
 verifyTrue(testCase,isfile(report.report.failureRecordFile));
 saved=load(report.report.failureRecordFile,'failureRecord');
@@ -118,7 +118,7 @@ verifyEqual(testCase,saved.failureRecord.errorId,"lamb:study:OceRepository");
 verifyEqual(testCase,saved.failureRecord.request.frequency_Hz,c.frequency_Hz);
 verifyFalse(testCase,isfield(saved.failureRecord.request,'experimentRoot'));
 verifyFalse(testCase,contains(string(saved.failureRecord.errorMessage),string(root)));
-verifyError(testCase,@()run_ae_plate_oce_inversion_batch(plan), ...
+verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
     'lamb:study:OutputExists');
 end
 
@@ -128,10 +128,10 @@ c=baseCase(root,"Stretch_1p00000");
 c.frequencySelection="all";c.frequency_Hz=[];
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
     'cases',c,'execute',false);
-verifyError(testCase,@()run_rl_oce_inversion_batch(plan), ...
+verifyError(testCase,@()runOceInversionBatch(plan,"RayleighLamb"), ...
     'lamb:batch:BandReview');
 plan.cases.approvedAllFrequencies=true;
-planned=run_rl_oce_inversion_batch(plan);
+planned=runOceInversionBatch(plan,"RayleighLamb");
 verifyEqual(testCase,planned.report.status,"planned");
 end
 
