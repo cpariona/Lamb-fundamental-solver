@@ -9,6 +9,11 @@ if isempty(existing)&&isfile(study.resultFile)
     existing=saved.nativeResult;existingAssembly=saved.assembly;
 end
 reused=false;
+fitOptions=study.fitOptions;
+if family=="Plate" && isempty(fieldnames(fitOptions)) && ~isempty(existing) && ...
+        isfield(existing,'options')
+    fitOptions=existing.options;
+end
 if ~isempty(existing)&&~isempty(existingAssembly)
     if isfield(existingAssembly,'sourceResultFiles')
         recordedFiles=string(existingAssembly.sourceResultFiles(:));
@@ -27,9 +32,6 @@ if ~isempty(existing)&&~isempty(existingAssembly)
                 isequal([existingAssembly.lineage.binIndex],[assembly.lineage.binIndex]);
         end
     else
-        if isempty(fieldnames(study.fitOptions)),physics.options=existing.options;end
-        fitOptions=study.fitOptions;
-        if isfield(physics,'options'),fitOptions=physics.options;physics=rmfield(physics,'options');end
         same=same&&isequaln(existing.physical,physics)&&isequaln(existing.options,fitOptions);
         for name=string(fieldnames(experimental))'
             same=same&&isfield(existing.experimental,name)&& ...
@@ -50,11 +52,11 @@ if ~reused
     if family=="RayleighLamb"
         nativeResult=lamb.fitting.rayleigh_lamb.rlFitDispersionData(experimental,physics);
     elseif study.mode=="QH"
-        outcome=fitOceQhPrestressedPlate(assembly,physics,review,study.fitOptions);
+        outcome=fitOceQhPrestressedPlate(assembly,physics,review,fitOptions);
         nativeResult=outcome.nativeResult;
     else
         nativeResult=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
-            experimental,physics,study.fitOptions);
+            experimental,physics,fitOptions);
     end
 end
 assert(isequal(nativeResult.validMask,experimental.validMask), ...
