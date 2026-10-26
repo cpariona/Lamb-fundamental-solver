@@ -112,6 +112,16 @@ model-specific reviewed physical inputs in section 1. For uniaxial-stretch
 acquisitions `condition_keys="strain_percent"` is an example, not a value
 inferred from a folder name.
 
+Use the shared `material` configuration with explicit SI fields:
+`density_kgpm3` (kg/m^3), `thickness_m` (current full m, only a
+scalar reference for the directional-OCE thickness policy), and
+`poisson_ratio` (dimensionless, RL only). Set the independent
+`rl_mu_initial_Pa` and `rl_mu_bounds_Pa`, and provide the model-specific
+physical-support references. The public RL fitting boundary maps those
+unit-qualified inputs to its retained native mathematical parameter symbols;
+Plate accepts the same density/thickness fields directly. Do not assign
+placeholder values or infer physical parameters from paths.
+
 Section 2 locates `Results/<subexperiment>/summary.mat` files and uses
 `oce.results.recoverSummaryObservations` to validate and discover existing
 acquisitions. Recorded frequencies and repetitions are not treated as
