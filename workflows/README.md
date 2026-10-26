@@ -32,6 +32,11 @@ native Lamb inverse models to reviewed OCE acquisitions. This directory is
    run the corresponding fit section (RL section 6; Plate section 5).
 7. Saving MAT and exporting FIG/TIF are independently disabled by default;
    select new output paths explicitly before running persistence sections.
+   Optional `study.displayLabel` overrides the figure title; when empty, the
+   drivers build a label from the already-reviewed sample, subexperiment,
+   scan axis and signed direction. Source material and physical-support
+   references remain mandatory, and the visualization layer keeps its strict
+   provenance validation.
 
 A failed or edited upstream section invalidates downstream workspace values.
 Re-run dependent sections, not only the last fitting or export step.
