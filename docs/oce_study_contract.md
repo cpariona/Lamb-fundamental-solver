@@ -78,17 +78,19 @@ regression residuals in Pa are not directly comparable to speed or normalized
 residuals from another family. This integration supplies no cross-model score or
 automatic model-selection rule.
 
-## Maintained manual Plate study
+## Maintained human Plate inversion workflow
 
-The single executable workflow is [run_ae_plate_oce_inversion.m](../workflows/inversion/run_ae_plate_oce_inversion.m).
+The maintained Plate human workflow is [run_ae_plate_oce_inversion.m](../workflows/inversion/run_ae_plate_oce_inversion.m).
 It replaces the pilot preview/export coordinator. It contains no specimen names,
 absolute study paths, FIG input dependency, frequency optimizer or model dispatcher.
-Initialize the reviewed OCE `src` path explicitly; Lamb startup supplies its integration and visualization APIs.
-
-Open the script, clear `study` to reset configuration, then run/edit section 1.
-Execute the remaining sections manually, or run the script with a configured
-`study` in the workspace. Inspect `sourceMetadata` and `observationReview` before fitting. They
-retain source rows/bins, repetitions, actual Hz, original flags and the final mask.
+Open the actual driver in MATLAB Editor. In section 1, edit `oce_repository_root`
+and the explicit `study` fields. Run section 2 to initialize both repositories;
+it resolves the active Editor file to avoid MATLAB's temporary Run Section file.
+Run section 3 to recover observations and inspect `sourceMetadata` and
+`observationReview` before fitting. These retain source rows/bins, repetitions,
+actual Hz, original flags and the fixed fitting mask. See the
+[human workflow guide](../workflows/README.md) for the sequence and opt-in gates.
+The ordinary Lamb `startup` intentionally excludes `workflows/`.
 
 | Configuration | Meaning |
 | --- | --- |
@@ -196,14 +198,15 @@ Workspace outputs include `frequencySelectionMapping`, `assembly`, `observationR
 and, when requested, `fig`/`figureEvidence`. This study is Plate only. RL, mRLFE and
 IOP/HGO retain their model-specific direct APIs and scientific requirements.
 
-## Maintained manual RL study
+## Maintained human Rayleigh-Lamb inversion workflow
 
-[run_rl_oce_inversion.m](../workflows/inversion/run_rl_oce_inversion.m) provides the same opt-in manual stages for
-native Rayleigh-Lamb A0/S0 fitting. Run Lamb `startup`, initialize the reviewed
-OCE `src` path explicitly, open section 1, and supply a configured `study` before
-running the remaining sections. Defaults request reuse only and write no files.
+[run_rl_oce_inversion.m](../workflows/inversion/run_rl_oce_inversion.m) exposes
+editable MATLAB Editor sections for native Rayleigh-Lamb A0/S0 fitting. Its
+configuration section constructs `study`, and its Editor-safe initialization
+section adds the opt-in workflow and the explicitly configured OCE `src` path.
+Defaults request reuse only and write no files.
 
-Both scripts consume [prepareOceInversionObservations](../workflows/inversion/prepareOceInversionObservations.m)
+Both human drivers consume [prepareOceInversionObservations](../workflows/inversion/prepareOceInversionObservations.m)
 for the same exact condition/repetition/signed-direction selection and nominal-to-
 original-bin mapping. It calls canonical OCE recovery and the existing preparation
 owners; it is not another loader, translator or experimental schema. The fixed
