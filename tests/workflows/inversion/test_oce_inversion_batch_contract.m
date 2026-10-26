@@ -82,6 +82,36 @@ verifyError(testCase,@()fitOceInversionNative(study,assembly, ...
     'lamb:study:RequestMismatch');
 end
 
+function testPlateUsesAllSelectedMeasuredThicknessRows(testCase)
+source=baseCase("unused","Stretch_1p00000");
+source.estimator="kf_ridge";
+source.thicknessPolicy="oce_directional_per_acquisition";
+source.physical=struct('density_kgpm3',1050,'thickness_m',NaN);
+source.review=struct('mode',"A0",'thicknessPolicy', ...
+    "oce_directional_per_acquisition",'thicknessSource',"", ...
+    'thicknessJustification',"",'densityReference',"Reviewed density", ...
+    'modelSupportReference',"Exploratory A0 assumption");
+data=struct('frequency_Hz',[1000;2000;3000;4000], ...
+    'Cp_mps',[3;4;5;6],'validMask',logical([1;1;0;1]), ...
+    'conditionId',"state1",'directionId',"axis1:left");
+h=[.405;.406;NaN;.408]*1e-3;
+assembly=struct('experimental',data,'measuredThickness_m',h);
+obs=table([1;2;3;4],'VariableNames',{'sourceIndex'});
+[exp,physical,review]=reviewOceInversionPhysics(source,assembly,obs,"Plate");
+verifyEqual(testCase,exp.observationThickness_m,h);
+verifyEqual(testCase,physical.thickness_m,h(1));
+verifyEqual(testCase,review.thicknessPolicy,"oce_directional_per_acquisition");
+native=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
+    exp,physical);
+verifyEqual(testCase,native.experimental.observationThickness_m,h);
+verifyEqual(testCase,native.wavenumberThickness(data.validMask), ...
+    pi*data.frequency_Hz(data.validMask).*h(data.validMask)./ ...
+    data.Cp_mps(data.validMask),'RelTol',1e-12);
+assembly.measuredThickness_m(2)=NaN;
+verifyError(testCase,@()reviewOceInversionPhysics(source,assembly,obs,"Plate"), ...
+    'lamb:study:MissingThickness');
+end
+
 function testReviewedPlateReferenceIsOneDirectionMatchedMeasurement(testCase)
 source=baseCase("unused","Stretch_1p00000");
 source.estimator="kf_ridge";
