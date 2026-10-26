@@ -9,7 +9,7 @@ study=baseCase(root,"Stretch_1p00000");
 one=resolveOceInversionPaths(study,"RayleighLamb");
 verifyEqual(testCase,one.summaryFile,fullfile(root,"Results","Stretch_1p00000","summary.mat"));
 verifyEqual(testCase,one.resultFile,fullfile(root,"Results","Stretch_1p00000", ...
-    "Inversions","RayleighLamb","Pulse_320_01us_initial_axis1_left","inversion.mat"));
+    "Inversions","RayleighLamb","Pulse_320.01us_initial_axis1_left","inversion.mat"));
 % Changing only subexperiment must not retain a stale auto-computed path.
 one.subexperimentId="Stretch_1p10000";
 two=resolveOceInversionPaths(one,"RayleighLamb");
@@ -75,7 +75,7 @@ verifyEqual(testCase,review.thicknessPolicy,"explicit_constant_current_thickness
 verifySubstring(testCase,review.thicknessSource,"source index 2");
 source.thicknessReferenceSourceIndex=4;
 verifyError(testCase,@()reviewOceInversionPhysics(source,assembly,obs,"Plate"), ...
-    'MATLAB:expected');
+    'lamb:study:ThicknessReference');
 end
 
 function c=baseCase(root,sub)
