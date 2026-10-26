@@ -285,6 +285,53 @@ groups on separate model lines.
 RL convergence/identifiability and Plate native acceptance are not interchangeable
 and establish neither experimental A0 purity nor physical model validation.
 
+## Programmable one-case and batch execution (reviewed inputs only)
+
+The source-of-truth for human and batch coordination is
+`workflows/inversion/executeOceInversionStudy.m`, with shared physical review
+(`reviewOceInversionPhysics`), exact-source native fitting and reuse
+(`fitOceInversionNative`), provenance persistence and pure result rendering.
+The manual Editor drivers retain their section boundaries, delegating to the
+same owners. Callable family batch entries are
+`run_rl_oce_inversion_batch(plan)` and
+`run_ae_plate_oce_inversion_batch(plan)`.
+
+Each independently reviewed case keeps the same recorded condition, signed
+direction and frequency selection it would have in a human Run Section.
+No automatic bandwidth optimization, robust outlier rejection, parameter
+retuning, source-quality repair, modal identification or QH+Pulse pooling is
+implemented. The batch refuses an unreviewed frequency-selection field and
+requires a specific `approvedAllFrequencies=true` acknowledgement for `all`.
+A read-only batch plan is the default; enabling `plan.execute=true` authorizes
+native fitting. Output MAT, FIG and TIF are independently controlled.
+
+The default storage layout, relative to the supplied machine-local experiment
+root, is
+`Results/<subexperiment>/Inversions/<RayleighLamb|Plate>/<case>/inversion.{mat,fig,tif}`.
+Only the experiment and OCE source repository roots are machine-local inputs.
+`outputRelativeFolder`, `outputTag` and `summaryRelativeFile` are optional
+programmable overrides. No absolute output override or parent traversal is
+supported, and existing outputs are never replaced. `outputTag` is required
+to distinguish independent fit reviews with the same physical case identity.
+The resulting saved record retains the effective relative paths, fixed
+observation mask, original row mappings, source file hashes when saving,
+native solver result and explicit mechanical review.
+
+**Thickness policies are model-specific:** RL uses one recorded
+signed-direction thickness for each original observation (Pulse bins inherit
+the thickness measured for their own acquisition). Plate's currently
+maintained master curve and SVD still require one scalar
+`physical.thickness_m` for the complete fit. Plate can now obtain that
+scalar from one explicitly indexed, direction-matched source acquisition with
+`thicknessPolicy="oce_reference_acquisition"` and
+`thicknessReferenceSourceIndex`. The exact selected thickness source and
+overall OCT thickness range are recorded; no directional median or frequency
+pooling is inferred. This is a reference-geometry approximation, **not**
+a per-observation-thickness generalization of Li's theory. The constant
+current-thickness model contract remains unchanged. Plate's QH physical
+frequency grouping continues to be owned exclusively by
+`fitOceQhPrestressedPlate`.
+
 ## Manual MATLAB sections
 
 Keep preparation, physical review, model choice and fitting separately executable.
