@@ -66,8 +66,10 @@ for j=1:n
     subexperiments(j)=string(caseStudy.subexperimentId);
     cases{j}=caseStudy;
 end
-assert(numel(unique(lower(replace(outputs,char(92),"/")))==n, ...
-    'lamb:batch:DuplicateOutput','Cases must use distinct output tags or relative folders.');
+normalizedOutputs=lower(replace(outputs,char(92),"/"));
+assert(numel(unique(normalizedOutputs))==n, ...
+    'lamb:batch:DuplicateOutput', ...
+    'Cases must use distinct output tags or relative folders.');
 if execute
     for j=1:n
         if saveResult
