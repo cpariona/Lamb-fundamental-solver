@@ -140,8 +140,8 @@ rows must contain finite positive thickness. Excluded rows may retain NaN
 rather than fabricated measurements. Without this optional field, the historical
 scalar `physical.thickness_m` behavior is unchanged.
 
-For each selected observation i, `q_i=pi*frequency_Hz(i)*
-observationThickness_m(i)/Cp_mps(i)`. These per-row q values enter exactly
+For each selected observation i, `q_i = pi*f_i*h_i/Cp_i`, where `h_i`
+is the selected current full thickness. These per-row q values enter exactly
 the same A0 master curve before the **same single shared** unweighted
 `rho*Cp^2 = alpha - gamma*etaSquared` SVD regression. No per-thickness
 regressions, pooled thickness, reassignment of frequencies, outlier removal,
