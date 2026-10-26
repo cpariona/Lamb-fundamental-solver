@@ -24,9 +24,6 @@ if study.exportFigure
         'lamb:study:OutputExists','The figure destination already exists.');
 end
 inputs=prepareOceInversionObservations(study);
-if family=="Plate"
-    study.sourceMetadata=inputs.sourceMetadata;
-end
 [experimental,physics,review]=reviewOceInversionPhysics( ...
     study,inputs.assembly,inputs.observationReview,family);
 inputs.assembly.experimental=experimental;
