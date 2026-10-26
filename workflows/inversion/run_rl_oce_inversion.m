@@ -53,9 +53,9 @@ study.figureName = "";
 %% 2. INITIALIZE LAMB AND OCE (MATLAB Editor Run Section)
 % Run Section may use a temporary MATLAB file; never use mfilename here.
 workflow_file = string(matlab.desktop.editor.getActiveFilename);
+[~, active_name, active_ext] = fileparts(char(workflow_file));
 if ismissing(workflow_file) || strlength(workflow_file) == 0 || ...
-        ~endsWith(replace(workflow_file, "\\", "/"), ...
-        "/run_rl_oce_inversion.m", 'IgnoreCase', true)
+        ~strcmpi(string(active_name) + string(active_ext), "run_rl_oce_inversion.m")
     error('lamb:workflow:EditorFile', ...
         'Open run_rl_oce_inversion.m in MATLAB Editor and run this section.');
 end
