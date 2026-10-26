@@ -60,6 +60,21 @@ A failed or edited upstream section invalidates downstream workspace values.
 Re-run dependent sections, not only the last fitting or export step.
 
 
+## OCE source dependency versus shared engineering standard
+
+Lamb's `.research-automation` submodule pins the **engineering standard** from
+Research-Automation; it does **not** vendor OCE_Workflow's MATLAB `+oce`
+package or guarantee that OCE's code is installed. Lamb's `integrations/oce`
+is an opt-in translation layer, not a replacement OCE reader.
+`oceRepositoryRoot` locates a maintained OCE_Workflow checkout whose
+`oce.results.recoverSummaryObservations` and `oce.io.loadAcquisitionTable`
+APIs recover and validate source metadata. The code checkout is a machine-local
+dependency, while output/input paths are experiment-root-relative.
+A future per-machine MATLAB path bootstrap could register the producer
+once instead of exposing a checkout root in every request, provided its
+API revision is checked; the current workflows deliberately do not infer a
+parent folder or silently choose a different producer revision.
+
 ## Default storage and relative overrides
 
 Only `study.experimentRoot` and the OCE repository code location are
