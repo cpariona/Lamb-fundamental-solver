@@ -221,7 +221,9 @@ lines=findall(fig,'Tag','rl_native_prediction');
 verifyEqual(testCase,numel(lines),2);
 allModelRows=find(isfinite(native.frequency_Hz)&native.frequency_Hz>0 & ...
     native.frequency_Hz<=max(native.frequency_Hz(native.validMask)));
-for thickness=[.405e-3,.406e-3]
+% Compare against the exact stored doubles. Constructing .405e-3
+% separately from .405*1e-3 can differ by one floating-point ULP.
+for thickness=unique(h(allModelRows),'stable')'
     rows=allModelRows(h(allModelRows)==thickness);
     [hz,index]=unique(native.frequency_Hz(rows),'sorted');
     expectedCp=native.Cp_fit_mps(rows(index));
