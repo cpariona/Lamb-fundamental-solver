@@ -12,7 +12,12 @@ if family=="RayleighLamb"
         assert(all(isfinite(recorded(relevant))&recorded(relevant)>0), ...
             'lamb:study:MissingThickness','Missing signed-direction current thickness at positive Hz.');
         experimental.observationThickness_m=recorded;
-        physics.fixedParams.thickness=recorded(find(relevant,1));
+        % The canonical public input is unit-qualified; the native solver uses h in meters.
+        if isfield(physics.fixedParams,'thickness')
+            physics.fixedParams.thickness=recorded(find(relevant,1));
+        else
+            physics.fixedParams.thickness_m=recorded(find(relevant,1));
+        end
         review.thicknessSource="OCE directional_mean_thickness_mm; selected signed direction";
         review.thicknessJustification="Recorded current thickness per acquisition, no averaging";
         selected=recorded(experimental.validMask);
