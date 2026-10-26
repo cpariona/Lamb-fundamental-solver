@@ -43,7 +43,7 @@ broadband curve can already satisfy the maintained mRLFE axis contract.
 | --- | --- | --- |
 | Rayleigh-Lamb: `lamb.fitting.rayleigh_lamb.rlFitDispersionData` | Elastic parameters, current thickness, density, supported near-incompressible Poisson ratio; explicit A0/S0 choice, fixed/free parameters, bounds and execution options. Selected observations require positive finite Hz/Cp. Excluded nonpositive/nonfinite frequencies remain in place with unavailable predictions; positive finite frequencies use the canonical RL solver. Direct model evaluation still requires a positive finite full axis. | Fixed-mask model coverage, optimizer result, residuals/metrics, sensitivity and local identifiability; selected A0/S0 output and unchanged official solver diagnostics. |
 | mRLFE: `lamb.fitting.mrlfe.mrlfeFitDispersionData` | Material modulus/viscosity, density, current thickness, supported Poisson ratio and fluid density/sound speed. Explicit A0Like/S0Like, numerical preset and fit-grid policy. The full requested frequency axis must be positive, finite and strictly ascending. Physical-tail/none termination and no fallback retain their native meaning. | Native public-solver route, requested/effective configuration, branch/termination and coverage evidence, optimizer result, sensitivity and identifiability. |
-| Prestressed Plate: `lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion` | Reviewed A0 support, one condition and signed principal direction, scalar current full thickness and density. Original unweighted Li regression. At least **two** independent frequency groups plus its existing observation/group rank, conditioning, eta-squared span and tensile-support screens. Optional `independentFrequencyGroupId` belongs to this family only. | `accepted`, `reasons`, unconstrained candidate moduli/residuals and explicit observation/group diagnostics. A returned candidate is not necessarily accepted. |
+| Prestressed Plate: `lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion` | Reviewed A0 support, one condition and signed principal direction, density and current full thickness per original observation (optional `experimental.observationThickness_m`; scalar legacy `physical.thickness_m` retained). Original unweighted Li regression with one shared `alpha,gamma` across observations. At least **two** independent frequency groups plus its existing observation/group rank, conditioning, eta-squared span and tensile-support screens. Optional `independentFrequencyGroupId` belongs to this family only. | `accepted`, `reasons`, unconstrained candidate moduli/residuals and explicit observation/group diagnostics. A returned candidate is not necessarily accepted. |
 | AE IOP/HGO: `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` | Geometry/radius, current thickness, IOP, matrix/fibre material parameters, tissue/fluid densities and fluid bulk modulus, with explicit fixed/free parameters and bounds. Only official `atlasA0`. Positive finite full frequency axis and the selected-frequency initialization-anchor requirement remain enforced. Plate assumptions and grouping fields do not replace this model's contracts. | Official atlas output and validity policy, fixed-mask coverage, optimizer result, sensitivity/identifiability and native model diagnostics. Diagnostic/fallback curves are not substitute observations or official predictions. |
 
 The native builders for RL, mRLFE and AE IOP/HGO currently accept requests with
@@ -98,7 +98,7 @@ The ordinary Lamb `startup` intentionally excludes `workflows/`.
 | `experimentId`, `subexperimentId`, `sampleId`, `conditionId`, `condition` | Explicit identities and scalar mechanical condition entries: literal text for stored text, exact doubles for stored doubles. No folder-name inference or cross-type coercion. |
 | `mode`, `period_us`, `repetitions`, `scanAxisIndex`, `direction`, `curve` | QH/Pulse, literal Pulse period, repetition labels, signed direction and an existing raw/smoothed curve. |
 | `frequencySelection`, `frequency_Hz` | `all`, inclusive observed-Hz `interval=[low high]`, or `explicit` nominal requests mapped to original observations. No nearest-valid repair or interpolation. |
-| `physical`, `review` | Native Plate density/current full scalar thickness and explicit A0/thickness/density/support review. |
+| `physical`, `review` | Native Plate density and explicit A0/thickness/density/support review; default direction-matched OCE current full thickness per original row, optional reviewed scalar alternative. |
 | `fitOptions` | Native options, forwarded unchanged. Empty options reuse a supplied result's effective settings; a new request otherwise uses native defaults. |
 | `existingNativeResult`, `existingAssembly`, `resultFile`, `reuseOnly` | Approved native objects or a MAT with `nativeResult` and `assembly`. Default `reuseOnly=true` rejects changed requests before fitting. |
 | `graphicRequestedFrequency_Hz` | Pulse graphic targets, independent of fitting selection; compatible OCE sampling is preferred. |
@@ -124,11 +124,25 @@ same correspondence fields for display requests. The two masks remain independen
 changing graphic targets cannot add or remove fitting observations. Both mapping
 tables are retained with newly saved study results.
 
-The single thickness policy is an explicit reviewed constant current full thickness
-in `physical.thickness_m`, for either modality. Its source and scalar-selection
-justification are required. A researcher may supply a median of reviewed OCT
-measurements or an independent measurement; the study never silently changes
-the measurement population by mode or invents uncertainty.
+The default thickness policy is `oce_directional_per_acquisition` for both
+QH and Pulse. The native Plate SVD takes `experimental.observationThickness_m`
+with one source-recorded **current full** directional thickness per original
+observation. QH keeps the measured value for each acquisition/frequency;
+Pulse shares an acquisition/direction thickness only between that acquisition's
+own FFT bins. Each selected row uses
+`q_i=pi*f_i*observationThickness_m(i)/Cp_i`; the regression retains one
+`alpha,gamma` per reviewed condition and signed propagation direction.
+`physical.thickness_m` remains a non-operative, source-derived scalar reference
+when the per-observation field exists. It does not pool, select, round, interpolate,
+or substitute measured thickness. Missing selected thickness is an error.
+A reviewer can instead explicitly choose `explicit_constant_current_thickness`
+with an independently justified scalar, or `oce_reference_acquisition` with
+one indexed original acquisition as a scalar-geometry approximation. Only these
+scalar policies use `physical.thickness_m` across all rows. Original SVD,
+validity mask, physical-frequency grouping and coverage/acceptance screens stay
+unchanged. Per-observation geometry assumes the local uniform-plate A0 relation
+is meaningful and shared acoustoelastic coefficients describe the fitted state;
+it does **not** model spatial-gradient scattering or prove homogeneity.
 
 QH uses `prepareOceQhFitObservations`; its existing Plate coordinator retains
 physical-frequency coverage preparation. Pulse calls `prepareOceFitObservations`
@@ -183,10 +197,10 @@ Use OCE PR #146's exact-identity producer/recovery contract; the integration REA
 pins its revision and legacy ambiguity boundary. No local label normalizer or
 summary migration belongs to Lamb.
 
-A historical review may name the scalar-selection method as its thickness policy.
-For the current study, declare `explicit_constant_current_thickness` and retain
-that selection method in the justification; do not rewrite the archived review,
-scalar physical input or native result.
+Historical constant-thickness inversions retain their original
+`explicit_constant_current_thickness` policy and physical reference.
+New OCE inversions default to recorded `oce_directional_per_acquisition`;
+do not rewrite archived reviews, physical inputs or native results.
 
 Pulse uses compatible OCE selected Hz or original bins nearest explicit graphic
 targets before applying validity. Missing/excluded bins stay absent. Per-source
@@ -242,9 +256,11 @@ height used to evaluate all observations. Fitting a scalar thickness is
 incompatible with this option. The RL figure presents the selected directional
 thickness range and does not connect model curves for differing thicknesses.
 `explicit_constant` preserves legacy single-height behavior when an
-independently reviewed constant is needed. Prestressed Plate continues to
-require a separately reviewed scalar current full thickness; its model has
-not been changed to per-observation geometry.
+independently reviewed constant is needed. Prestressed Plate now supports
+its own native per-observation geometry through `experimental.observationThickness_m`.
+Unlike RL, it applies each h_i directly in the dimensionless A0 master curve
+before one unweighted SVD of shared `alpha,gamma`; it does not independently
+solve a new regression for each thickness group.
 
 The native `rlBuildFitProblem` validates and resolves defaults without evaluating
 the forward model. Reuse compares its effective value fields with the saved native
@@ -317,20 +333,17 @@ The resulting saved record retains the effective relative paths, fixed
 observation mask, original row mappings, source file hashes when saving,
 native solver result and explicit mechanical review.
 
-**Thickness policies are model-specific:** RL uses one recorded
-signed-direction thickness for each original observation (Pulse bins inherit
-the thickness measured for their own acquisition). Plate's currently
-maintained master curve and SVD still require one scalar
-`physical.thickness_m` for the complete fit. Plate can now obtain that
-scalar from one explicitly indexed, direction-matched source acquisition with
-`thicknessPolicy="oce_reference_acquisition"` and
-`thicknessReferenceSourceIndex`. The exact selected thickness source and
-overall OCT thickness range are recorded; no directional median or frequency
-pooling is inferred. This is a reference-geometry approximation, **not**
-a per-observation-thickness generalization of Li's theory. The constant
-current-thickness model contract remains unchanged. Plate's QH physical
-frequency grouping continues to be owned exclusively by
-`fitOceQhPrestressedPlate`.
+**Thickness policies are reviewed per model:** RL uses one recorded
+directional current full thickness for each original observation and dispatches
+exact-thickness forward groups. Plate uses the same OCE geometry evidence but
+fits a **single** common `alpha,gamma` by substituting h_i into each row's
+`q_i` before the unweighted master-curve SVD. Optional scalar Plate policies
+(`explicit_constant_current_thickness` and `oce_reference_acquisition`)
+retain the historical single-height fit. Plate figures use separate native
+forward predictions for exactly equal thicknesses, avoiding false single-height
+dispersion curves. QH physical-frequency coverage remains exclusively owned by
+`fitOceQhPrestressedPlate`. Distinct h_i do not create statistically independent
+frequency groups or independent material states.
 
 ## Manual MATLAB sections
 
