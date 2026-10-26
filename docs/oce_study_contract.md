@@ -315,9 +315,9 @@ The source-of-truth for human and batch coordination is
 (`reviewOceInversionPhysics`), exact-source native fitting and reuse
 (`fitOceInversionNative`), provenance persistence and pure result rendering.
 The manual Editor drivers retain their section boundaries, delegating to the
-same owners. Callable family batch entries are
-`run_rl_oce_inversion_batch(plan)` and
-`run_ae_plate_oce_inversion_batch(plan)`.
+same owners. The maintained programmable entry point is
+`runOceInversionBatch(plan,family)`, with `family="RayleighLamb"` or
+`family="Plate"`, avoiding redundant forwarding wrappers.
 
 Each independently reviewed case keeps the same recorded condition, signed
 direction and frequency selection it would have in a human Run Section.
