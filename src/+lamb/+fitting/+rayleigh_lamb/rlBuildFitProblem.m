@@ -11,6 +11,9 @@ function problem = rlBuildFitProblem(experimental, fitConfig)
 %   bounds          fields with [lower upper] bounds
 %   solverOptions   lamb.models.rayleigh_lamb.rlDefaultOptions-compatible options
 %   fitOptions      residual options
+% EXPERIMENTAL may carry observationThickness_m: positive current full thickness
+% per original observation, in m. Same-thickness rows share one canonical solve;
+% no thickness interpolation, averaging, rounding or fitted thickness is used.
 %
 % An explicit validMask is fixed: normalization may not deselect invalid data.
 % Explicitly excluded nonpositive/nonfinite frequencies stay in the request
@@ -41,7 +44,31 @@ baseParams = lamb.fitting.applyParameterOverrides(baseParams, ...
 baseParams = lamb.fitting.applyParameterOverrides(baseParams, ...
     lamb.fitting.getFitConfigValue(fitConfig, 'initialGuess', struct()));
 
+observationThickness = [];
+if isfield(experimental, 'observationThickness_m')
+    observationThickness = experimental.observationThickness_m;
+    if ~isa(observationThickness, 'double') || ~isvector(observationThickness) || ...
+            numel(observationThickness) ~= numel(experimental.frequency_Hz)
+        error('lamb:rl:ObservationThickness', ...
+            'Observation thickness must be one double in meters per original row.');
+    end
+    observationThickness = observationThickness(:);
+    admissibleThickness = isfinite(experimental.frequency_Hz) & experimental.frequency_Hz > 0;
+    if any(~isfinite(observationThickness(admissibleThickness)) | ...
+            observationThickness(admissibleThickness) <= 0)
+        error('lamb:rl:ObservationThickness', ...
+            'Every positive-frequency observation requires its recorded positive finite thickness.');
+    end
+    % The scalar parameter remains a non-operative reference for existing
+    % material validation/reporting; evaluation uses each observation's h.
+    baseParams.thickness = observationThickness(find(admissibleThickness, 1));
+end
+
 freeParams = string(fitConfig.freeParams(:));
+if ~isempty(observationThickness) && any(freeParams == "thickness")
+    error('lamb:rl:ThicknessConflict', ...
+        'Cannot fit a single scalar thickness while using measured per-observation thickness.');
+end
 [x0, parameterInfo] = lamb.fitting.buildParameterVector(baseParams, freeParams);
 
 bounds = lamb.fitting.getFitConfigValue(fitConfig, 'bounds', struct());
@@ -91,7 +118,10 @@ if ~all(admissible) && isempty(suppliedMask)
     error('lamb:rl:InvalidSelectedObservation', ...
         'Nonpositive/nonfinite Hz require explicit validMask=false; exclusions are not inferred.');
 end
-if all(admissible)
+if ~isempty(observationThickness)
+    problem.evaluateModel = @(params) localEvaluateObservationThickness( ...
+        params, frequency, observationThickness, admissible, branchName, solverOptions);
+elseif all(admissible)
     problem.evaluateModel = @(params) lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(params, frequency, branchName, solverOptions);
 else
     problem.evaluateModel = @(params) localEvaluateExcludedRows(params, frequency, admissible, branchName, solverOptions);
@@ -120,6 +150,54 @@ rawResult.validMask = available;
 rawResult.evaluatedObservationMask = admissible;
 % These counts describe prediction availability on the full original axis,
 % including unevaluated exclusions; objective coverage is reported separately.
+rawResult.reliability.ValidFraction = mean(available);
+rawResult.reliability.ValidPoints = nnz(available);
+rawResult.reliability.MissingPoints = nnz(~available);
+end
+
+function [Cp_mps, rawResult] = localEvaluateObservationThickness(params, frequency, thickness, admissible, branch, options)
+% Evaluate exact recorded thickness groups with the same canonical solver.
+% Each group uses its complete original positive-frequency grid and branch.
+n = numel(frequency);
+Cp_mps = nan(n,1); k = Cp_mps; kThickness = Cp_mps; residual = Cp_mps;
+available = false(n,1);
+groupThickness = unique(thickness(admissible),'stable');
+groupResults = repmat(struct('thickness_m',NaN,'observationRows',[], ...
+    'modelResult',[],'diagnostics',[]),numel(groupThickness),1);
+for j = 1:numel(groupThickness)
+    rows = find(admissible & thickness == groupThickness(j));
+    current = params;
+    current.thickness = groupThickness(j);
+    [predicted, native] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel( ...
+        current, frequency(rows), branch, options);
+    Cp_mps(rows) = predicted;
+    k(rows) = native.k;
+    kThickness(rows) = native.kThickness;
+    residual(rows) = native.residual;
+    available(rows) = native.validMask;
+    groupResults(j) = struct('thickness_m',groupThickness(j), ...
+        'observationRows',rows,'modelResult',native.modelResult, ...
+        'diagnostics',native.diagnostics);
+    if j == 1
+        rawResult = native;
+    end
+end
+rawResult.frequency_Hz = frequency;
+rawResult.Cp_mps = Cp_mps;
+rawResult.omega = 2*pi*frequency;
+rawResult.k = k;
+rawResult.kThickness = kThickness;
+rawResult.residual = residual;
+rawResult.validMask = available;
+rawResult.evaluatedObservationMask = admissible;
+rawResult.observationThickness_m = thickness;
+rawResult.trackingMode = "canonical_public_solver_by_thickness";
+rawResult.geometry = []; % No single geometric thickness describes these solves.
+rawResult.modelResult = []; % Official solver products are retained per group.
+rawResult.modelResultsByThickness = groupResults;
+rawResult.diagnostics = struct('thicknessPolicy',"per_observation_current_thickness", ...
+    'groupCount',numel(groupResults), ...
+    'groupThickness_m',groupThickness);
 rawResult.reliability.ValidFraction = mean(available);
 rawResult.reliability.ValidPoints = nnz(available);
 rawResult.reliability.MissingPoints = nnz(~available);
