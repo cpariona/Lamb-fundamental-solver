@@ -66,7 +66,7 @@ for j=1:n
     subexperiments(j)=string(caseStudy.subexperimentId);
     cases{j}=caseStudy;
 end
-assert(numel(unique(lower(replace(outputs,"\\","/"))))==n, ...
+assert(numel(unique(lower(replace(outputs,char(92),"/")))==n, ...
     'lamb:batch:DuplicateOutput','Cases must use distinct output tags or relative folders.');
 if execute
     for j=1:n
@@ -83,11 +83,25 @@ if execute
 end
 status=repmat("planned",n,1);
 messages=strings(n,1);
+selectedRows=nan(n,1);
+metricValue=nan(n,1);
+metricUnit=strings(n,1);
+nativeAccepted=nan(n,1); % Plate native acceptance only; NaN for RL.
 results=cell(n,1);
 if execute
     for j=1:n
         try
             results{j}=executeOceInversionStudy(cases{j},family,plan.oceRepositoryRoot);
+            native=results{j}.nativeResult;
+            selectedRows(j)=nnz(native.validMask);
+            if family=="RayleighLamb"
+                metricValue(j)=native.metrics.RMSE;
+                metricUnit(j)="m/s";
+            else
+                metricValue(j)=native.regressionRMSE_Pa;
+                metricUnit(j)="Pa";
+                nativeAccepted(j)=double(native.accepted);
+            end
             status(j)="completed";
         catch exception
             status(j)="failed";
@@ -96,8 +110,10 @@ if execute
         end
     end
 end
-report=table((1:n)',subexperiments,outputs,status,messages, ...
-    'VariableNames',{'caseIndex','subexperimentId','resultFile','status','message'});
+report=table((1:n)',subexperiments,outputs,status,selectedRows, ...
+    metricValue,metricUnit,nativeAccepted,messages, ...
+    'VariableNames',{'caseIndex','subexperimentId','resultFile','status', ...
+    'selectedObservations','nativeRMSE','nativeRMSEUnit','plateNumericalAccepted','message'});
 batchResult=struct('family',family,'executed',execute,'report',report, ...
     'cases',{cases},'results',{results});
 end
