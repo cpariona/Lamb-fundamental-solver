@@ -99,10 +99,30 @@ try
     end
     % A model line uses only existing native predictions, with NaN gaps intact.
     modelRows = find(inDomain & f>0);
-    [modelHz,index] = unique(f(modelRows),'sorted');
-    modelCp = predicted(modelRows(index));
-    handles(numel(labels)+1) = plot(dispersion,modelHz/1e3,modelCp,'k--', ...
-        'LineWidth',1.5,'Tag','rl_native_prediction');
+    if isfield(result.problem.experimental,'observationThickness_m')
+        % With varying thickness, Cp is not one function of frequency.
+        % Plot each exact thickness group separately, never connect unlike h.
+        h = result.problem.experimental.observationThickness_m(:);
+        groups = unique(h(modelRows),'stable');
+        for j=1:numel(groups)
+            rows = modelRows(h(modelRows)==groups(j));
+            [modelHz,index] = unique(f(rows),'sorted');
+            marker = 'none';
+            if numel(modelHz)==1, marker='.'; end
+            lineHandle = plot(dispersion,modelHz/1e3,predicted(rows(index)),'k--', ...
+                'Marker',marker,'LineWidth',1.5,'Tag','rl_native_prediction');
+            if j==1
+                handles(numel(labels)+1) = lineHandle;
+            else
+                lineHandle.HandleVisibility = 'off';
+            end
+        end
+    else
+        [modelHz,index] = unique(f(modelRows),'sorted');
+        modelCp = predicted(modelRows(index));
+        handles(numel(labels)+1) = plot(dispersion,modelHz/1e3,modelCp,'k--', ...
+            'LineWidth',1.5,'Tag','rl_native_prediction');
+    end
     legendLabels(numel(labels)+1) = "Model";
     if any(excluded)
         handles(end) = plot(dispersion,f(excluded)/1e3,observed(excluded), ...
