@@ -34,7 +34,23 @@ elseif family=="Plate"
     assert(study.estimator=="kf_ridge", ...
         'lamb:study:PlateEstimator','Plate requires original k-f observations.');
     physics=study.physical;
-    if isfield(study,'thicknessPolicy')&& ...
+    if isfield(study,'thicknessPolicy') && ...
+            study.thicknessPolicy=="oce_directional_per_acquisition"
+        recorded=directionalThickness(assembly,observationReview);
+        selected=experimental.validMask(:);
+        assert(all(isfinite(recorded(selected))&recorded(selected)>0), ...
+            'lamb:study:MissingThickness', ...
+            'Selected Plate observations require the recorded signed-direction thickness.');
+        experimental.observationThickness_m=recorded;
+        % A validated scalar reference remains in the legacy PHYSICAL struct,
+        % but is never used in q when observationThickness_m is supplied.
+        physics.thickness_m=recorded(find(selected,1));
+        review.thicknessSource= ...
+            "OCE directional_mean_thickness_mm; each original signed-direction acquisition";
+        review.thicknessJustification= ...
+            "Full current thickness per selected original observation; no pooling or interpolation";
+        review.thicknessPolicy="oce_directional_per_acquisition";
+    elseif isfield(study,'thicknessPolicy')&& ...
             study.thicknessPolicy=="oce_reference_acquisition"
         reference=study.thicknessReferenceSourceIndex;
         assert(isa(reference,'double')&&isscalar(reference)&& ...
@@ -53,11 +69,13 @@ elseif family=="Plate"
     else
         assert(~isfield(study,'thicknessPolicy')|| ...
             study.thicknessPolicy=="explicit_constant_current_thickness", ...
-            'lamb:study:ThicknessPolicy','Plate requires explicit constant or reference acquisition.');
+            'lamb:study:ThicknessPolicy','Unknown reviewed Plate thickness policy.');
     end
-    % Plate's q=pi*f*h/Cp requires a single thickness; varying-h Plate is
-    % not implemented by copying RL's exact-thickness grouping policy.
-    review.thicknessPolicy="explicit_constant_current_thickness";
+    if ~isfield(experimental,'observationThickness_m')
+        review.thicknessPolicy="explicit_constant_current_thickness";
+    end
+    % Per-row thickness enters only the canonical Plate q_i geometry; the
+    % common alpha/gamma SVD and physical QH group qualification are unchanged.
     assert(review.mode=="A0",'lamb:study:ModelReview','Review Plate A0 mode.');
     for name=["density_kgpm3","thickness_m"]
         validateattributes(physics.(name),{'double'},{'scalar','finite','real','positive'});
