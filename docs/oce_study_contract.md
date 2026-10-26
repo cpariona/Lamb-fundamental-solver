@@ -223,8 +223,28 @@ RL uses the common selection fields above plus:
 | --- | --- |
 | `estimator`, `curve` | Explicit `kf_ridge` raw/smoothed, or recorded QH `phase_gradient` (curve unused). |
 | `observationMask` | Empty uses the existing source-quality/frequency policy. A supplied logical vector is the exact original-row mask and must respect frequency selection. Invalid selected values are rejected, never repaired; original ridge flags remain separate evidence. |
-| `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI; `thickness` is current full thickness. |
-| `review` | Explicit `mode`, `thicknessSource`, `thicknessJustification`, `densityReference`, `parameterJustification` and `modelSupportReference`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. |
+| `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI. A scalar `fixedParams.thickness` is used only under `explicit_constant`; under the OCE policy the native problem uses `experimental.observationThickness_m`. |
+| `thicknessPolicy` | Default `oce_directional_per_acquisition`: one source-recorded current full directional thickness per observation (QH acquisition/nominal frequency; Pulse acquisition/repetition repeated over its original bins). `explicit_constant` retains reviewed scalar thickness. Missing nonpositive-frequency measurements are tolerated; missing thickness at any positive-frequency observation blocks the request. |
+| `review` | Explicit `mode`, `thicknessSource`, `thicknessJustification`, `densityReference`, `parameterJustification` and `modelSupportReference`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. In the OCE thickness policy, source/justification are set to the actual recorded measurement policy. |
+
+The current full thickness comes from the already selected OCE signed direction
+(`borders.directional_mean_thickness_mm`, converted to meters). QH retains a
+separate thickness for each selected acquisition/frequency; Pulse repeats each
+acquisition's thickness only across that acquisition's original FFT bins. No
+sample median, pooled average, thickness interpolation, frequency matching or
+rounding is applied. The native Rayleigh-Lamb evaluator solves separately on
+each set of **exactly equal** thickness values, while retaining original
+observation positions and one shared fitted modulus. It does not create a
+single fictitious canonical model result for multiple geometries: native
+model products and diagnostics are retained by thickness group. The scalar
+`allParams.thickness` is a non-operative reference in this mode, never the
+height used to evaluate all observations. Fitting a scalar thickness is
+incompatible with this option. The RL figure presents the selected directional
+thickness range and does not connect model curves for differing thicknesses.
+`explicit_constant` preserves legacy single-height behavior when an
+independently reviewed constant is needed. Prestressed Plate continues to
+require a separately reviewed scalar current full thickness; its model has
+not been changed to per-observation geometry.
 
 The native `rlBuildFitProblem` validates and resolves defaults without evaluating
 the forward model. Reuse compares its effective value fields with the saved native
