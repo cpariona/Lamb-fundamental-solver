@@ -159,7 +159,7 @@ for sub = chosen(:)'
                 value = sprintf('%.17g',value);
             end
             condition_parts(q) = string(matlab.lang.makeValidName( ...
-                key+"_"+string(value),'ReplacementStyle','hex'));
+                key+"_"+string(value),'ReplacementStyle','underscore'));
         end
         condition_id = strjoin(condition_parts,"_");
         for ax = axes_to_use
