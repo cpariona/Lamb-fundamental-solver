@@ -109,7 +109,8 @@ if hasObservationThickness
     end
     selectedThickness=h(mask);
 end
-q = pi*f(mask).*selectedThickness./cp(mask);
+% Preserve the original product ordering for exact scalar-height parity.
+q = (pi*selectedThickness).*(f(mask)./cp(mask));
 y = physical.density_kgpm3*cp(mask).^2;
 if any(~isfinite(q) | q <= 0 | ~isfinite(y))
     error('lamb:aePlate:NumericalRange', 'Selected observations exceed numerical range.');
