@@ -19,7 +19,7 @@ label=string(study.displayLabel);
 if strlength(strtrim(label))==0
     label=string(study.sampleId)+" | "+string(study.subexperimentId)+ ...
         " | axis "+string(study.scanAxisIndex)+" "+string(study.direction);
-    label=replace(label,"_","\\_"); % Preserve literal IDs under the native TeX title interpreter.
+    label=replace(label,"_","\_"); % Preserve literal IDs under the native TeX title interpreter.
 end
 reference=string(study.resultFile);
 if ~study.saveResult,reference="Reviewed in-memory native request";end
