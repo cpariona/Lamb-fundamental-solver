@@ -20,16 +20,16 @@ study.curve = "raw";       % "raw" | "smoothed"
 study.frequencySelection = "all"; % "all" | "interval" | "explicit"
 study.frequency_Hz = [];  % Hz: [low high] or physical requested frequencies
 
-% Reviewed physical inputs in SI units. Current FULL thickness and density
-% must be justified independently; measured OCT thickness is not overwritten.
+% Plate A0 native physical inputs (SI); OCE source thickness is per row.
+% The scalar thickness_m is a non-operative reference under the OCE policy.
 study.physical = struct('density_kgpm3', NaN, 'thickness_m', NaN);
 study.review = struct( ...
-    'mode', "A0", 'thicknessPolicy', "explicit_constant_current_thickness", ...
+    'mode', "A0", 'thicknessPolicy', "oce_directional_per_acquisition", ...
     'thicknessSource', "", 'thicknessJustification', "", ...
     'densityReference', "", 'modelSupportReference', "");
-study.fitOptions = struct(); % Native Plate A0 options (not RL optimizer settings)
-study.thicknessPolicy = "explicit_constant_current_thickness"; % or "oce_reference_acquisition"
-study.thicknessReferenceSourceIndex = NaN; % Required only for the OCE reference policy
+study.fitOptions = struct(); % Native Plate SVD qualification settings
+study.thicknessPolicy = "oce_directional_per_acquisition"; % or "explicit_constant_current_thickness" | "oce_reference_acquisition"
+study.thicknessReferenceSourceIndex = NaN; % Only for scalar reference acquisition
 
 % Conservative defaults: review data/physics before enabling a fit.
 study.reuseOnly = true;      % false explicitly enables native fitting
