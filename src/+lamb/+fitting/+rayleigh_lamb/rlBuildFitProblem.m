@@ -6,7 +6,9 @@ function problem = rlBuildFitProblem(experimental, fitConfig)
 %
 % Optional fitConfig fields:
 %   branchName      default "A0"
-%   fixedParams     fields overriding lamb.models.rayleigh_lamb.rlDefaultParams
+%   fixedParams     density_kgpm3 (kg/m^3), thickness_m (full current m),
+%                   poisson_ratio (dimensionless); legacy solver names remain
+%                   accepted for existing callers, but cannot be mixed.
 %   initialGuess    fields for free-parameter initial guesses
 %   bounds          fields with [lower upper] bounds
 %   solverOptions   lamb.models.rayleigh_lamb.rlDefaultOptions-compatible options
@@ -39,8 +41,21 @@ branchName = lamb.fitting.getFitConfigValue(fitConfig, 'branchName', "A0");
 branchName = string(branchName);
 
 baseParams = lamb.models.rayleigh_lamb.rlDefaultParams();
-baseParams = lamb.fitting.applyParameterOverrides(baseParams, ...
-    lamb.fitting.getFitConfigValue(fitConfig, 'fixedParams', struct()));
+fixed = lamb.fitting.getFitConfigValue(fitConfig, 'fixedParams', struct());
+% Public fitting requests use unit-qualified SI names. Preserve the existing
+% model's rho/thickness/nu mathematics and legacy solver configurations.
+siNames = ["density_kgpm3", "thickness_m", "poisson_ratio"];
+modelNames = ["rho", "thickness", "nu"];
+for j = 1:numel(siNames)
+    publicName = char(siNames(j)); modelName = char(modelNames(j));
+    if isfield(fixed, publicName)
+        assert(~isfield(fixed, modelName), 'lamb:rl:AmbiguousPhysicalInput', ...
+            'Do not mix unit-qualified and legacy names for the same physical input.');
+        fixed.(modelName) = fixed.(publicName);
+        fixed = rmfield(fixed, publicName);
+    end
+end
+baseParams = lamb.fitting.applyParameterOverrides(baseParams, fixed);
 baseParams = lamb.fitting.applyParameterOverrides(baseParams, ...
     lamb.fitting.getFitConfigValue(fitConfig, 'initialGuess', struct()));
 
