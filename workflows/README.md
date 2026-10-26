@@ -129,9 +129,10 @@ mechanical conditions. Original Pulse periods are preserved verbatim.
 A missing selected repetition or signed direction is an error.
 
 Section 3 constructs independent, reviewable `plan.cases` arrays for
-RayleighLamb and Plate. The generated `condition_001` etc. labels are
-output identities only; the complete exact recorded condition is retained
-in each case. `frequency_selection="all"` requires the user to set
+RayleighLamb and Plate. The generated condition ID is a stable unit-free path label derived from
+recorded mechanical keys and literal values (for example,
+`strain_percent_0`); it does not depend on acquisition or Pulse-period
+ordering. The exact recorded condition values remain unchanged in each case. `frequency_selection="all"` requires the user to set
 `approved_all_frequencies=true`; the selection is never inferred or
 optimized. The researcher must review each case, physics, and output paths
 before enabling `run_batches=true` in section 4.
