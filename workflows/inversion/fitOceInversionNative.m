@@ -29,7 +29,7 @@ if ~isempty(existing)&&~isempty(existingAssembly)
         effective=rmfield(nativeProblem,{'evaluateModel','residualFunction','objectiveFunction'});
         same=same&&string(existing.modelFamily)=="rayleigh_lamb"&& ...
             isequaln(existing.problem,effective);
-        if study.mode=="QH"&&study.estimator=="kf_ridge"
+        if study.excitationMode=="QH"&&study.estimator=="kf_ridge"
             same=same&&isequaln(existingAssembly.physicalFrequency_Hz,assembly.physicalFrequency_Hz)&& ...
                 isequaln(existingAssembly.requestedTargetFrequency_Hz,assembly.requestedTargetFrequency_Hz)&& ...
                 isequal([existingAssembly.lineage.binIndex],[assembly.lineage.binIndex]);
@@ -40,7 +40,7 @@ if ~isempty(existing)&&~isempty(existingAssembly)
             same=same&&isfield(existing.experimental,name)&& ...
                 isequaln(existing.experimental.(name),experimental.(name));
         end
-        if study.mode=="QH"
+        if study.excitationMode=="QH"
             same=same&&isequaln(existingAssembly.physicalFrequency_Hz,assembly.physicalFrequency_Hz)&& ...
                 isequaln(existingAssembly.requestedTargetFrequency_Hz,assembly.requestedTargetFrequency_Hz);
         else
@@ -54,7 +54,7 @@ assert(reused||~study.reuseOnly,'lamb:study:RequestMismatch', ...
 if ~reused
     if family=="RayleighLamb"
         nativeResult=lamb.fitting.rayleigh_lamb.rlFitDispersionData(experimental,physics);
-    elseif study.mode=="QH"
+    elseif study.excitationMode=="QH"
         outcome=fitOceQhPrestressedPlate(assembly,physics,review,fitOptions);
         nativeResult=outcome.nativeResult;
     else
