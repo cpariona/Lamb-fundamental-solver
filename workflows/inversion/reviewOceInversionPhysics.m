@@ -4,6 +4,9 @@ function [experimental, physics, review] = reviewOceInversionPhysics(study, asse
 experimental=assembly.experimental;
 family=string(family);
 review=study.review;
+assert(~isfield(review,'modelBranch')&&~isfield(review,'thicknessPolicy'), ...
+    'lamb:study:DuplicatedReviewChoice', ...
+    'Set model branch and current thickness policy once in the study inputs.');
 if family=="RayleighLamb"
     physics=study.fitConfig;
     if study.thicknessPolicy=="oce_directional_per_acquisition"
