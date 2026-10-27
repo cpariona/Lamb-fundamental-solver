@@ -13,7 +13,7 @@ curve = "raw"; % "raw" | "smoothed"
 fit_frequency_selection = "all"; % "all" | "interval" | "explicit"
 fit_frequency_hz = []; % [low high] or explicitly reviewed target Hz
 full_band_reviewed = false; % Required when using "all"
-plot_target_fit_frequency_hz = []; % Optional Pulse display requests only
+plot_target_frequency_hz = []; % Optional Pulse display requests only
 
 % Shared material and separately reviewed current full geometry (SI).
 % Under the default OCE policy the geometry scalar is replaced per observation.
@@ -190,7 +190,7 @@ for sub = chosen(:)'
                     'direction',side,'estimator',"kf_ridge",'curve',curve, ...
                     'fitFrequencySelection',fit_frequency_selection,'fitFrequency_Hz',fit_frequency_hz, ...
                     'fullBandReviewed',full_band_reviewed, ...
-                    'plotTargetFrequency_Hz',plot_target_fit_frequency_hz, ...
+                    'plotTargetFrequency_Hz',plot_target_frequency_hz, ...
                     'displayLabel',"",'displaySubtitle',"",'outputTag',"");
                 if mode=="pulse",study.excitationMode="Pulse";end
                 for k = 1:numel(families)
