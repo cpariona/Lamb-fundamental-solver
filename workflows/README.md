@@ -44,6 +44,10 @@ native Lamb inverse models to reviewed OCE acquisitions. This directory is
    as a constant reference. No native SVD weighting, frequency grouping or
    numerical-acceptance criteria are changed.
    **Do not treat numeric acceptance as experimental model validation.**
+   In both human MATLAB Editor workflows, setting
+   `study.fitFrequencySelection="all"` requires explicitly setting
+   `study.fullBandReviewed=true` after reviewing the band. This does not
+   certify A0 purity or bypass the fixed observation mask.
 6. Fitting is disabled by default (`study.reuseOnly=true`). Only after
    inspecting the request set `study.reuseOnly=false` in the workspace, then
    run the corresponding fit section (RL section 6; Plate section 5).
@@ -209,7 +213,11 @@ under this policy; constant-thickness studies remain available explicitly. `plan
 explicitly permits fresh native fits; set `plan.reuseOnly=true` to require
 previously saved exact results instead. In reuse-only execution an existing
 `inversion.mat` is loaded only after exact native request matching and current
-source-hash verification; it is never overwritten. An existing FIG/TIF remains
+source-hash verification; it is never overwritten. Its archived researcher
+scientific review must match the current one before returning its saved record
+or exporting any new figure linked to it. Changes to physical assumptions
+must use a new reviewed output tag (or an in-memory figure with
+`saveResult=false` that does not cite the archived MAT). An existing FIG/TIF remains
 protected even when the MAT is reusable: select `plan.exportFigure=false` to
 reuse without exporting, or use a new reviewed output tag for new figures.
 Historic MAT selection fields are normalized only in the returned in-memory
