@@ -340,7 +340,15 @@ retuning, source-quality repair, modal identification or QH+Pulse pooling is
 implemented. The batch refuses an unreviewed frequency-selection field and
 requires a specific `fullBandReviewed=true` acknowledgement for `all`.
 A read-only batch plan is the default; enabling `plan.execute=true` authorizes
-native fitting. Output MAT, FIG and TIF are independently controlled.
+native fitting. Output MAT, FIG and TIF are independently controlled. With
+`plan.reuseOnly=true`, an existing exact-match `inversion.mat` is reused
+read-only and is not rewritten; its recorded input-file hashes must match the
+current sources. Figure destinations remain non-overwritable. Any historic
+`studyRecord.selection` naming is normalized in the returned record only.
+Legacy visualization `modelSupportReference` and prior review-source labels
+are accepted at a read-only provenance boundary, not rewritten into older MATs.
+The derived `review` must remain separate from editable `study.review` so
+manual MATLAB Editor review sections can be repeated without inconsistent state.
 
 The default storage layout, relative to the supplied machine-local experiment
 root, is
