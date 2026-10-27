@@ -22,6 +22,7 @@ addParameter(p,'DisplayObservationMask',[],@(v) isempty(v)||islogical(v));
 addParameter(p,'ResidualLimits',[],@isnumeric);
 addParameter(p, 'Visible', 'on', @(x) any(string(x)==["on","off"]));
 parse(p, varargin{:});
+provenance=normalizeInverseProvenance(provenance);
 if string(result.modelFamily) ~= "rayleigh_lamb" || ...
         ~any(string(result.branchName)==["A0","S0"])
     error('lamb:visualization:UnsupportedResult', 'Use a native Rayleigh-Lamb A0/S0 fit.');
