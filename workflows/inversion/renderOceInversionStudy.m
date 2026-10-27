@@ -2,6 +2,7 @@ function [fig,figureEvidence,figurePaths] = renderOceInversionStudy(study, input
 %RENDEROCEINVERSIONSTUDY Render original OCE rows without changing fit masks.
 fig=[];figureEvidence=struct();figurePaths=struct();
 if ~study.showFigure,return;end
+review=normalizeInverseProvenance(review);
 experimental=inputs.assembly.experimental;
 r=inputs.observationReview;
 displayRows=[];
