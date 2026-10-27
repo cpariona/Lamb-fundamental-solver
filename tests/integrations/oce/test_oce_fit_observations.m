@@ -49,7 +49,22 @@ study.saveResult=false;study.reuseOnly=true;
 reused=runRlStudySections(study,assembly);
 verifyTrue(testCase,reused.reusedResult);verifyEqual(testCase,reused.nativeResult,out.nativeResult);
 study.saveResult=true;
-verifyError(testCase,@()runRlStudySections(study,assembly,record.inputFiles),'lamb:study:OutputExists');
+% Reusing an exact saved native result is read-only; do not replace the MAT.
+fid=fopen(study.resultFile,'rb');
+assert(fid>=0);closeFile=onCleanup(@()fclose(fid));
+savedBytes=fread(fid,inf,'*uint8');clear closeFile;
+same=runRlStudySections(study,assembly,record.inputFiles);
+verifyTrue(testCase,same.reusedResult);
+verifyEqual(testCase,same.nativeResult,out.nativeResult);
+fid=fopen(study.resultFile,'rb');
+assert(fid>=0);closeFile=onCleanup(@()fclose(fid));
+verifyEqual(testCase,fread(fid,inf,'*uint8'),savedBytes);
+clear closeFile;
+% An unapproved fresh fit may not overwrite the already saved result.
+study.reuseOnly=false;
+verifyError(testCase,@()runRlStudySections(study,assembly,record.inputFiles), ...
+    'lamb:study:OutputExists');
+study.reuseOnly=true;
 study.outputTag="changed-input";study=resolveOceInversionPaths(study,"RayleighLamb");
 study.existingNativeResult=out.nativeResult;
 study.existingAssembly=assembly;value=2;save(inputFile,'value');
@@ -519,17 +534,15 @@ body=string(fileread(fullfile(repoRoot,'workflows','inversion','prepareOceInvers
 if ~isfield(study,'estimator'),study.estimator="kf_ridge";end
 selectionCode=extractBetween(body,'%% 3. Review','%% 4. Prepare');
 eval(char("%% 3. Review"+selectionCode));
-% Exercise the maintained renderer's mapping preflight without opening a figure.
-inputs=struct('assembly',struct('experimental',struct('frequency_Hz',frequency, ...
-    'Cp_mps',speed,'validMask',validMask)),'observationReview',observationReview, ...
-    'graphicSamplingMapping',graphicSamplingMapping); %#ok<NASGU> Used by eval.
-body=string(fileread(fullfile(repoRoot,'workflows','inversion','renderOceInversionStudy.m')));
-graphicCode=extractBetween(body,'experimental=inputs.assembly.experimental;', ...
-    'label=string(study.displayLabel);');
+% Invoke the maintained source/bin mapper directly, not renderer-local code.
+% Display selection is independent of the fixed scientific fit mask.
 graphicMask=false(size(validMask));graphicFrequency=[];
-if study.showFigure
-    eval(char("experimental=inputs.assembly.experimental;"+graphicCode));
-    if study.excitationMode=="Pulse",graphicMask=expected;graphicFrequency=graphicHz;end
+if study.showFigure && study.excitationMode=="Pulse"
+    displayRows=oceInversionGraphicRows(observationReview, ...
+        graphicSamplingMapping,numel(frequency));
+    graphicMask=validMask & displayRows;
+    graphicFrequency=unique(graphicSamplingMapping.observedFrequency_Hz( ...
+        isfinite(graphicSamplingMapping.observedFrequency_Hz)));
 end
 review=struct('frequency',frequency,'bins',bins,'qualityMask',qualityMask, ...
     'validMask',validMask,'selectionMapping',frequencySelectionMapping, ...
