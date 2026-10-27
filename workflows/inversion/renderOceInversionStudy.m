@@ -7,12 +7,9 @@ experimental=inputs.assembly.experimental;
 r=inputs.observationReview;
 displayRows=[];
 if study.excitationMode=="Pulse"
-    mapping=inputs.graphicSamplingMapping;
-    % Row identities, not shared floating-point Hz, own Pulse glyph selection.
-    displayRows=ismember([r.sourceIndex,r.sourceBinIndex], ...
-        [mapping.sourceIndex,mapping.sourceBinIndex],'rows');
-    assert(numel(displayRows)==numel(experimental.frequency_Hz), ...
-        'lamb:study:GraphicMapping','Graphic rows must align with source observations.');
+    % Source-bin identity, not shared Hz, controls visible Pulse glyphs.
+    displayRows=oceInversionGraphicRows( ...
+        r,inputs.graphicSamplingMapping,numel(experimental.frequency_Hz));
 end
 label=string(study.displayLabel);
 if strlength(strtrim(label))==0
