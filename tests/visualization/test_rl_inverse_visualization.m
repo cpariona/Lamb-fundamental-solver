@@ -24,7 +24,7 @@ verifyEqual(testCase,e.nativeMetrics,native.metrics);
 verifyEqual(testCase,e.nativeDiagnostics,native.modelEvaluation.diagnostics);
 verifyEqual(testCase,fig.UserData,e);
 layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
-verifySubstring(testCase,string(layout.XLabel.String{1}),"Physical support:");
+verifySubstring(testCase,string(layout.XLabel.String{1}),"Model assumption:");
 verifySubstring(testCase,string(layout.XLabel.String{2}),"h = 0.500 mm");
 lines=findall(fig,'Tag','rl_native_residual'); plotted=[];
 for k=1:numel(lines),plotted=[plotted;lines(k).YData(:)];end %#ok<AGROW>
@@ -191,7 +191,7 @@ verifyTrue(testCase,any(captions=="Search bounds: \mu \in [20, 200] kPa"));
 positions=arrayfun(@(item)item.Position(2),items);
 verifyLessThan(testCase,max(positions)-min(positions),.34);
 layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
-verifyEqual(testCase,string(layout.XLabel.String{1}),"Physical support: A_{0} hypothesis.");
+verifyEqual(testCase,string(layout.XLabel.String{1}),"Model assumption: A_{0} hypothesis.");
 end
 
 function testUnsampledOutliersHaveCompactNativeBoundaryIndicators(testCase)
