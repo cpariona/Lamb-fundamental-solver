@@ -14,9 +14,9 @@ studyRecord.inputFiles.path=relativeSourcePaths( ...
 studyRecord.pathBase="experimentRoot";
 studyRecord.code.Lamb=rmfield(studyRecord.code.Lamb,'root');
 studyRecord.code.OCE=rmfield(studyRecord.code.OCE,'root');
-names={'experimentId','subexperimentId','sampleId','mode','period_us', ...
+names={'experimentId','subexperimentId','sampleId','excitationMode','period_us', ...
     'repetitions','conditionId','condition','scanAxisIndex','direction','estimator', ...
-    'curve','frequencySelection','frequency_Hz','graphicRequestedFrequency_Hz'};
+    'curve','fitFrequencySelection','fitFrequency_Hz','plotTargetFrequency_Hz'};
 selection=struct();
 for k=1:numel(names)
     name=names{k};
@@ -28,7 +28,7 @@ if isfield(study,'thicknessPolicy'),selection.thicknessPolicy=study.thicknessPol
 if isfield(study,'thicknessReferenceSourceIndex')
     selection.thicknessReferenceSourceIndex=study.thicknessReferenceSourceIndex;
 end
-if study.mode=="Pulse"&&study.showFigure
+if study.excitationMode=="Pulse"&&study.showFigure
     selection.graphicRequestedFrequency_Hz= ...
         unique(inputs.graphicSamplingMapping.requestedFrequency_Hz,'stable');
 end
