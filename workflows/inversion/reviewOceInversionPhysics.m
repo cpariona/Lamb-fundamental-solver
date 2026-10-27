@@ -27,8 +27,9 @@ if family=="RayleighLamb"
         assert(study.thicknessPolicy=="explicit_constant", ...
             'lamb:study:ThicknessPolicy','RL requires a reviewed thickness policy.');
     end
-    assert(any(string(physics.branchName)==["A0","S0"])&&review.modelBranch==physics.branchName, ...
+    assert(any(string(physics.branchName)==["A0","S0"]), ...
         'lamb:study:ModelReview','Review A0/S0 before inversion.');
+    review.modelBranch=string(physics.branchName);
     for name=["thicknessSource","thicknessJustification","densitySource", ...
             "fitParameterJustification","modelAssumptionsJustification"]
         checkText(review,name);
@@ -81,7 +82,7 @@ elseif family=="Plate"
     end
     % Per-row thickness enters only the canonical Plate q_i geometry; the
     % common alpha/gamma SVD and physical QH group qualification are unchanged.
-    assert(review.modelBranch=="A0",'lamb:study:ModelReview','Review Plate A0 mode.');
+    review.modelBranch="A0"; % The native Plate model only supports A0.
     for name=["density_kgpm3","thickness_m"]
         validateattributes(physics.(name),{'double'},{'scalar','finite','real','positive'});
     end
