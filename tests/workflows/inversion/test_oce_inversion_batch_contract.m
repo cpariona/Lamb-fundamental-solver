@@ -103,12 +103,13 @@ nativeResult=struct('experimental',inputs.assembly.experimental, ...
     'sourceReference',string(source));
 physical=struct('density_kgpm3',1050,'thickness_m',.0005);
 review=struct('modelBranch',"A0");
+study.fullBandReviewed=true;
 record=persistOceInversionStudy(study,inputs,nativeResult,physical, ...
     review,false,projectRoot,"Plate");
 verifyEqual(testCase,replace(record.inputFiles.path,char(92),"/"), ...
     "Results/Stretch_1p00000/summary.mat");
 verifyEqual(testCase,record.pathBase,"experimentRoot");
-study.fullBandReviewed=true;
+verifyTrue(testCase,record.selection.fullBandReviewed);
 % A second invocation must reuse the saved MAT without changing its bytes.
 original=load(study.resultFile,'studyRecord','nativeResult');
 savedTime=dir(study.resultFile);
