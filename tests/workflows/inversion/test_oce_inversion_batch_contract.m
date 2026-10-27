@@ -126,6 +126,23 @@ verifyFalse(testCase,isfield(record.code.OCE,'root'));
 saved=load(study.resultFile,'studyRecord','nativeResult');
 verifyEqual(testCase,saved.studyRecord,record);
 verifyEqual(testCase,saved.nativeResult,nativeResult);
+% Simulate an archived selection schema without editing any experiment data.
+studyRecord=saved.studyRecord;
+sel=studyRecord.selection;
+sel.mode=sel.excitationMode;sel=rmfield(sel,'excitationMode');
+sel.frequencySelection=sel.fitFrequencySelection;
+sel.frequency_Hz=sel.fitFrequency_Hz;
+sel=rmfield(sel,{'fitFrequencySelection','fitFrequency_Hz'});
+studyRecord.selection=sel;
+save(study.resultFile,'studyRecord','-append');
+adapted=persistOceInversionStudy(study,inputs,nativeResult,physical, ...
+    review,true,projectRoot,"Plate");
+verifyEqual(testCase,adapted.selection.excitationMode,record.selection.excitationMode);
+verifyEqual(testCase,adapted.selection.fitFrequencySelection,record.selection.fitFrequencySelection);
+verifyEqual(testCase,adapted.selection.fitFrequency_Hz,record.selection.fitFrequency_Hz);
+archived=load(study.resultFile,'studyRecord');
+verifyTrue(testCase,isfield(archived.studyRecord.selection,'mode'));
+verifyFalse(testCase,isfield(archived.studyRecord.selection,'excitationMode'));
 end
 
 function testFailedBatchPersistsReviewedCaseWithoutMachinePaths(testCase)
