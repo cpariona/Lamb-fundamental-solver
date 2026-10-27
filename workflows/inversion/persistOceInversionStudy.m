@@ -29,7 +29,7 @@ if isfield(study,'thicknessReferenceSourceIndex')
     selection.thicknessReferenceSourceIndex=study.thicknessReferenceSourceIndex;
 end
 if study.excitationMode=="Pulse"&&study.showFigure
-    selection.graphicRequestedFrequency_Hz= ...
+    selection.plotTargetFrequency_Hz= ...
         unique(inputs.graphicSamplingMapping.requestedFrequency_Hz,'stable');
 end
 studyRecord.selection=selection;
