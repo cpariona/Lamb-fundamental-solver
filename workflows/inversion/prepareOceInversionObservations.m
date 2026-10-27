@@ -6,7 +6,7 @@ function inputs = prepareOceInversionObservations(study)
 %% 2. Recover individual products through OCE, then select literal acquisition identities.
 projectRoot=fileparts(fileparts(fileparts(mfilename('fullpath'))));
 if ~isfield(study,'estimator'),study.estimator="kf_ridge";end
-assert(any(study.mode==["QH","Pulse"]),'Select QH or Pulse explicitly.');
+assert(any(study.excitationMode==["QH","Pulse"]),'Select QH or Pulse explicitly.');
 assert(isscalar(string(study.experimentId))&&strlength(study.experimentId)>0);
 assert(isscalar(string(study.sampleId))&&strlength(study.sampleId)>0);
 assert(~isempty(fieldnames(study.condition)),'Supply the mechanical condition explicitly.');
@@ -34,7 +34,7 @@ recovered=oce.results.recoverSummaryObservations(study.experimentRoot,summary);
 metadata=vertcat(recovered.acquisition_metadata);
 selected=metadata.experiment_id==study.experimentId & metadata.sub_experiment==study.subexperimentId & ...
     metadata.sample_id==study.sampleId & ismember(metadata.rep_id,string(study.repetitions));
-excitation="quasi_harmonic";if study.mode=="Pulse",excitation="pulse";end
+excitation="quasi_harmonic";if study.excitationMode=="Pulse",excitation="pulse";end
 selected=selected&metadata.excitation_type==excitation;
 for key=string(fieldnames(study.condition))'
     expected=study.condition.(key);
@@ -50,14 +50,14 @@ for key=string(fieldnames(study.condition))'
         selected=selected&string(actual)==string(expected);
     end
 end
-if study.mode=="Pulse"
+if study.excitationMode=="Pulse"
     assert(strlength(study.period_us)>0,'Supply the literal saved Pulse period.');
     selected=selected&metadata.period_us==study.period_us;
 end
 sources=recovered(selected);sourceMetadata=metadata(selected,:);
 assert(~isempty(sources),'No acquisitions match the explicit condition.');
 assert(all(ismember(string(study.repetitions),sourceMetadata.rep_id)),'A selected repetition is missing.');
-if study.mode=="Pulse"
+if study.excitationMode=="Pulse"
     assert(height(sourceMetadata)==numel(study.repetitions), ...
         'Select exactly one Pulse acquisition per repetition, period and condition.');
 end
@@ -72,7 +72,7 @@ for j=1:numel(sources)
     d=find([identities.scan_axis_index]==study.scanAxisIndex & string({identities.direction})==study.direction);
     assert(isscalar(d),'The signed direction is missing or ambiguous.');directionIndex(j)=d;
     if study.estimator=="phase_gradient"
-        assert(study.mode=="QH",'lamb:study:EstimatorMode','Phase-gradient requires a recorded QH target.');
+        assert(study.excitationMode=="QH",'lamb:study:EstimatorMode','Phase-gradient requires a recorded QH target.');
         gradient=result.dispersion.estimators.phase_gradient;
         assert(gradient.enabled,'lamb:study:EstimatorUnavailable','The recorded phase-gradient estimator is unavailable.');
         frequency{j}=double(result.dispersion.target_frequency.requested_hz);
@@ -85,7 +85,7 @@ for j=1:numel(sources)
     assert(study.estimator=="kf_ridge",'Select kf_ridge or phase_gradient.');
     kf=result.dispersion.estimators.kf_ridge;one=kf.directions(d);
     index=(1:numel(kf.frequency_axis_hz))';
-    if study.mode=="QH"
+    if study.excitationMode=="QH"
         index=one.target_selection.selected_bin_index;
         validateattributes(index,{'double'},{'scalar','integer','finite','positive'});
     end
@@ -102,15 +102,15 @@ ridge=vertcat(ridge{:});interpolated=vertcat(interpolated{:});extrapolated=vertc
 sourceIndex=vertcat(sourceIndex{:});repetitionId=vertcat(repetitionId{:});
 qualityMask=ridge&~interpolated&~extrapolated&isfinite(frequency)&frequency>0&isfinite(speed)&speed>0;
 frequencySelectionMapping=table();graphicSamplingMapping=table();pulseMapping=table();
-if study.frequencySelection=="explicit"
-    validateattributes(study.frequency_Hz,{'double'},{'vector','nonempty','finite','positive'});
+if study.fitFrequencySelection=="explicit"
+    validateattributes(study.fitFrequency_Hz,{'double'},{'vector','nonempty','finite','positive'});
 end
-if study.mode=="Pulse"
+if study.excitationMode=="Pulse"
     requested=zeros(0,1);
-    if study.frequencySelection=="explicit",requested=study.frequency_Hz(:);end
+    if study.fitFrequencySelection=="explicit",requested=study.fitFrequency_Hz(:);end
     graphicRequested=zeros(0,1);
     if study.showFigure
-        graphicRequested=study.graphicRequestedFrequency_Hz(:);
+        graphicRequested=study.plotTargetFrequency_Hz(:);
         if isempty(graphicRequested)&&isfield(summary,'summary')&&isfield(summary.summary,'dispersion_sampling')
             graphicRequested=summary.summary.dispersion_sampling.requested_frequency_hz(:);
         end
@@ -151,16 +151,16 @@ if study.mode=="Pulse"
         'sourceBinIndex','qualityValid','mappingSource'});
     graphicSamplingMapping=pulseMapping(ismember(pulseMapping.requestedFrequency_Hz,graphicRequested),:);
 end
-switch study.frequencySelection
+switch study.fitFrequencySelection
     case "all"
         frequencyMask=true(size(frequency));
     case "interval"
-        validateattributes(study.frequency_Hz,{'double'},{'vector','numel',2,'finite','positive'});
-        assert(study.frequency_Hz(1)<=study.frequency_Hz(2));
-        frequencyMask=frequency>=study.frequency_Hz(1)&frequency<=study.frequency_Hz(2);
+        validateattributes(study.fitFrequency_Hz,{'double'},{'vector','numel',2,'finite','positive'});
+        assert(study.fitFrequency_Hz(1)<=study.fitFrequency_Hz(2));
+        frequencyMask=frequency>=study.fitFrequency_Hz(1)&frequency<=study.fitFrequency_Hz(2);
     case "explicit"
-        requested=study.frequency_Hz(:);frequencyMask=false(size(frequency));mapping=cell(numel(requested)*numel(sources),7);mapRow=0;
-        if study.mode=="QH"
+        requested=study.fitFrequency_Hz(:);frequencyMask=false(size(frequency));mapping=cell(numel(requested)*numel(sources),7);mapRow=0;
+        if study.excitationMode=="QH"
             registered=sourceMetadata.frequency_Hz;
             if isnumeric(registered),registered=double(registered(:));
             else,registered=str2double(string(registered));end
@@ -200,7 +200,7 @@ observationReview=table((1:numel(frequency))',sourceIndex,bins,repetitionId,freq
 assert(any(validMask),'The reviewed fitting mask is empty.');
 
 %% 4. Prepare one request; QH retains its target/physical-frequency contract.
-if study.mode=="QH"&&study.estimator=="kf_ridge"
+if study.excitationMode=="QH"&&study.estimator=="kf_ridge"
     observations=table([sources.summary_source_row]',bins,validMask, ...
         'VariableNames',{'sourceRow','binIndex','include'});
     selection=struct('experimentId',study.experimentId,'subexperimentId',study.subexperimentId, ...
