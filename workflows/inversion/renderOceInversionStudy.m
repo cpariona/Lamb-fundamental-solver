@@ -5,7 +5,7 @@ if ~study.showFigure,return;end
 experimental=inputs.assembly.experimental;
 r=inputs.observationReview;
 graphicHz=[];
-if study.mode=="Pulse"
+if study.excitationMode=="Pulse"
     mapping=inputs.graphicSamplingMapping;
     graphicHz=unique(mapping.observedFrequency_Hz(isfinite(mapping.observedFrequency_Hz)));
     expected=experimental.validMask & ismember( ...
