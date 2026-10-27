@@ -50,7 +50,7 @@ a fictitious single-thickness curve. The original row-aligned fit, residuals,
 masks and per-group canonical solver results remain unchanged.
 
 Supply nonempty `label`, `material`, `sourceReference` and
-`modelSupportReference` in provenance. Optional `displayLabel` supplies the
+`modelAssumptionsJustification` in provenance. Optional `displayLabel` supplies the
 human title (sample, state, signed direction and analysis); `displaySubtitle`
 identifies the acquisition/modality/period. Both are presentation labels,
 never identity matching keys. Preserve exact original metadata in provenance.
@@ -276,7 +276,7 @@ complete trend whenever the accepted-range view clips rejected candidates.
 provenance = struct('label', "Reviewed condition / signed direction", ...
     'material', "Researcher-specified material", ...
     'sourceReference', "Reviewed stored request/result", ...
-    'modelSupportReference', "A0 working hypothesis; physical review reference");
+    'modelAssumptionsJustification', "A0 working hypothesis; physical review reference");
 [fig, evidence] = plotAePlateFitDiagnostics(nativeResult, provenance);
 
 %% Use one shared display scale for a reviewed population
