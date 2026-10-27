@@ -143,7 +143,7 @@ A missing selected repetition or signed direction is an error.
 Section 3 constructs independent, reviewable `plan.cases` arrays for
 RayleighLamb and Plate. The generated condition ID is a stable unit-free path label derived from
 recorded mechanical keys and literal values (for example,
-`strain_percent_0`); it does not depend on acquisition or Pulse-period
+`strain_percent_0_<12-hex fingerprint>`); it does not depend on acquisition or Pulse-period
 ordering. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
 `full_band_reviewed=true`; the selection is never inferred or
 optimized. The researcher must review each case, physics, and output paths
