@@ -3,6 +3,13 @@ function [fig,figureEvidence,figurePaths] = renderOceInversionStudy(study, input
 fig=[];figureEvidence=struct();figurePaths=struct();
 if ~study.showFigure,return;end
 review=normalizeInverseProvenance(review);
+if study.saveResult && isfile(study.resultFile)
+    % A displayed MAT reference may not silently acquire new scientific claims.
+    saved=load(study.resultFile,'review');
+    assert(isfield(saved,'review'),'lamb:study:HistoricalReviewMissing', ...
+        'The referenced MAT lacks an archived scientific review.');
+    assertOceInversionReviewMatch(saved.review,review);
+end
 experimental=inputs.assembly.experimental;
 r=inputs.observationReview;
 displayRows=[];
