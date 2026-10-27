@@ -1,7 +1,7 @@
 function [fig, evidence] = plotRlFitDiagnostics(result, provenance, varargin)
 %PLOTRLFITDIAGNOSTICS Present a stored native Rayleigh-Lamb A0/S0 inversion.
 %   RESULT is the unchanged rlFitDispersionData output. PROVENANCE requires
-%   label, material, sourceReference and modelSupportReference. Optional
+%   label, material, sourceReference and modelAssumptionsJustification. Optional
 %   repetitionId identifies every original row; displayLabel/displaySubtitle
 %   are text only. DisplayFrequency_Hz uses the same exact stored-bin glyph
 %   filter as Plate; the caller supplies reviewed original frequencies.
@@ -25,7 +25,7 @@ if string(result.modelFamily) ~= "rayleigh_lamb" || ...
         ~any(string(result.branchName)==["A0","S0"])
     error('lamb:visualization:UnsupportedResult', 'Use a native Rayleigh-Lamb A0/S0 fit.');
 end
-for name = ["label","material","sourceReference","modelSupportReference"]
+for name = ["label","material","sourceReference","modelAssumptionsJustification"]
     value = string(provenance.(name));
     if ~isscalar(value) || ismissing(value) || strlength(strtrim(value))==0
         error('lamb:visualization:MissingProvenance', 'Nonempty %s is required.', name);
@@ -217,7 +217,7 @@ try
     if isfield(provenance,'displaySubtitle'), subtitle=string(provenance.displaySubtitle); end
     title(layout,{char(displayLabel);char(subtitle)}, ...
         'Interpreter','tex','FontName','Arial','FontSize',9.5,'FontWeight','normal');
-    notes = {char("Physical support: "+string(provenance.modelSupportReference)), ...
+    notes = {char("Model assumption: "+string(provenance.modelAssumptionsJustification)), ...
         char(physicalCaption)};
     xlabel(layout,notes,'Interpreter','tex','FontName','Arial','FontSize',9,'FontWeight','normal');
     evidence.phaseSpeedScale = scaleEvidence;
