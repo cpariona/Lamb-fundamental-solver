@@ -1,18 +1,21 @@
 function outcome = fitOceQhPrestressedPlate(assembly, physical, review, options)
-%FITOCEQHPRESTRESSEDPLATE Coordinate a reviewed constant-thickness A0 request.
+%FITOCEQHPRESTRESSEDPLATE Coordinate a reviewed scalar or row-thickness A0 request.
 % ASSEMBLY comes from prepareOceQhFitObservations. PHYSICAL contains only
 % density_kgpm3 and current full thickness_m (positive scalar SI values).
-% REVIEW requires mode="A0", thicknessPolicy="explicit_constant_current_thickness",
-% thicknessSource, thicknessJustification, densityReference and modelSupportReference. These
+% REVIEW requires modelBranch="A0", thicknessPolicy either
+% "explicit_constant_current_thickness" or "oce_directional_per_acquisition",
+% thicknessSource, thicknessJustification, densitySource and modelAssumptionsJustification. These
 % nonempty references record the caller's physical review, not inferred physics.
-% No mean thickness or load/DIC constraint is computed. OPTIONS is passed
+% No mean thickness or load/DIC constraint is computed. If the recorded
+% per-observation thickness exists, the native solver uses it in each q_i.
+% OPTIONS is passed
 % unchanged to aePlateFitDispersion; its native result/diagnostics are retained.
 % If physical QH groups and exact selected-Hz groups differ, explicit physical
 % group IDs qualify coverage in Plate without changing any observed Hz or Cp.
 % Compatible partitions retain the historical native call and diagnostics.
 % Group identity does not itself prove identifiability or model support.
-% Original OCT thicknesses, including NaNs, remain in assembly. The supplied
-% scalar may come from an independent current physical measurement. Compact
+% Original OCT thicknesses, including excluded NaNs, remain in assembly.
+% The scalar reference may come from an independently reviewed measurement. Compact
 % OCT availability/range diagnostics are descriptive and never affect acceptance.
 
 if nargin < 4, options = struct(); end
@@ -23,17 +26,26 @@ end
 for name = ["density_kgpm3", "thickness_m"]
     validateattributes(physical.(name), {'double'}, {'scalar', 'real', 'finite', 'positive'});
 end
-if ~isequal(review.mode, "A0") || ...
-        ~isequal(review.thicknessPolicy, "explicit_constant_current_thickness")
-    error('lamb:oceQh:PhysicalReviewRequired', 'Explicit A0 and a reviewed constant-current-thickness policy are required.');
+if ~isequal(review.modelBranch,"A0") || ...
+        ~any(string(review.thicknessPolicy)== ...
+            ["explicit_constant_current_thickness","oce_directional_per_acquisition"])
+    error('lamb:oceQh:PhysicalReviewRequired', ...
+        'Explicit A0 and a supported reviewed current-thickness policy are required.');
 end
-for name = ["thicknessSource", "thicknessJustification", "densityReference", "modelSupportReference"]
+for name = ["thicknessSource", "thicknessJustification", "densitySource", "modelAssumptionsJustification"]
     value = string(review.(name));
     if ~isscalar(value) || ismissing(value) || strlength(strtrim(value)) == 0
         error('lamb:oceQh:PhysicalReviewRequired', 'Nonempty %s is required.', name);
     end
 end
 mask = assembly.experimental.validMask;
+if review.thicknessPolicy=="oce_directional_per_acquisition"
+    assert(isfield(assembly.experimental,'observationThickness_m') && ...
+        isequaln(assembly.experimental.observationThickness_m(:), ...
+        assembly.measuredThickness_m(:)), ...
+        'lamb:oceQh:ThicknessAlignment', ...
+        'QH observation thickness must exactly match the direction-selected OCE measurements.');
+end
 if ~any(mask)
     error('lamb:oceQh:EmptySelection', 'At least one reviewed observation is required.');
 end

@@ -1,7 +1,7 @@
 function [fig, evidence] = plotRlFitDiagnostics(result, provenance, varargin)
 %PLOTRLFITDIAGNOSTICS Present a stored native Rayleigh-Lamb A0/S0 inversion.
 %   RESULT is the unchanged rlFitDispersionData output. PROVENANCE requires
-%   label, material, sourceReference and modelSupportReference. Optional
+%   label, material, sourceReference and modelAssumptionsJustification. Optional
 %   repetitionId identifies every original row; displayLabel/displaySubtitle
 %   are text only. DisplayFrequency_Hz uses the same exact stored-bin glyph
 %   filter as Plate; the caller supplies reviewed original frequencies.
@@ -18,14 +18,16 @@ function [fig, evidence] = plotRlFitDiagnostics(result, provenance, varargin)
 p = inputParser;
 addParameter(p,'DisplayFrequency_Hz',[],@(x) isnumeric(x)&&isreal(x)&& ...
     (isempty(x)||(isvector(x)&&all(isfinite(x))&&all(x>0))));
+addParameter(p,'DisplayObservationMask',[],@(v) isempty(v)||islogical(v));
 addParameter(p,'ResidualLimits',[],@isnumeric);
 addParameter(p, 'Visible', 'on', @(x) any(string(x)==["on","off"]));
 parse(p, varargin{:});
+provenance=normalizeInverseProvenance(provenance);
 if string(result.modelFamily) ~= "rayleigh_lamb" || ...
         ~any(string(result.branchName)==["A0","S0"])
     error('lamb:visualization:UnsupportedResult', 'Use a native Rayleigh-Lamb A0/S0 fit.');
 end
-for name = ["label","material","sourceReference","modelSupportReference"]
+for name = ["label","material","sourceReference","modelAssumptionsJustification"]
     value = string(provenance.(name));
     if ~isscalar(value) || ismissing(value) || strlength(strtrim(value))==0
         error('lamb:visualization:MissingProvenance', 'Nonempty %s is required.', name);
@@ -53,6 +55,11 @@ if ~isempty(p.Results.DisplayFrequency_Hz)
     % Same Plate contract: exact original Hz only, never nearest-valid repair.
     displayRows = ismember(f,p.Results.DisplayFrequency_Hz);
 end
+if ~isempty(p.Results.DisplayObservationMask)
+    validateattributes(p.Results.DisplayObservationMask,{'logical'}, ...
+        {'vector','numel',n});
+    displayRows=displayRows & p.Results.DisplayObservationMask(:);
+end
 shown = withinView & displayRows;
 modelAvailable = isfinite(predicted);
 observations = table((1:n)',repetition,f,observed,predicted,selected,modelAvailable, ...
@@ -64,6 +71,7 @@ evidence = struct('observations',observations,'nativeParameters',result.allParam
     'nativeMetrics',result.metrics,'nativeDiagnostics',result.modelEvaluation.diagnostics, ...
     'provenance',provenance,'frequencyDomain_Hz',[0 maximumFrequency], ...
     'displayFrequency_Hz',p.Results.DisplayFrequency_Hz, ...
+    'displayObservationMask',displayRows, ...
     'displayedSelectedCount',nnz(shown & selected), ...
     'excludedOutsideDomainCount',nnz(~selected & ~withinView), ...
     'excludedNotShownCount',nnz(~selected & ~shown), ...
@@ -99,10 +107,32 @@ try
     end
     % A model line uses only existing native predictions, with NaN gaps intact.
     modelRows = find(inDomain & f>0);
-    [modelHz,index] = unique(f(modelRows),'sorted');
-    modelCp = predicted(modelRows(index));
-    handles(numel(labels)+1) = plot(dispersion,modelHz/1e3,modelCp,'k--', ...
-        'LineWidth',1.5,'Tag','rl_native_prediction');
+    if isfield(result.problem.experimental,'observationThickness_m')
+        % Include all native group predictions in the shared display scale.
+        modelCp = predicted(modelRows);
+        % With varying thickness, Cp is not one function of frequency.
+        % Plot each exact thickness group separately, never connect unlike h.
+        h = result.problem.experimental.observationThickness_m(:);
+        groups = unique(h(modelRows),'stable');
+        for j=1:numel(groups)
+            rows = modelRows(h(modelRows)==groups(j));
+            [modelHz,index] = unique(f(rows),'sorted');
+            marker = 'none';
+            if numel(modelHz)==1, marker='.'; end
+            lineHandle = plot(dispersion,modelHz/1e3,predicted(rows(index)),'k--', ...
+                'Marker',marker,'LineWidth',1.5,'Tag','rl_native_prediction');
+            if j==1
+                handles(numel(labels)+1) = lineHandle;
+            else
+                lineHandle.HandleVisibility = 'off';
+            end
+        end
+    else
+        [modelHz,index] = unique(f(modelRows),'sorted');
+        modelCp = predicted(modelRows(index));
+        handles(numel(labels)+1) = plot(dispersion,modelHz/1e3,modelCp,'k--', ...
+            'LineWidth',1.5,'Tag','rl_native_prediction');
+    end
     legendLabels(numel(labels)+1) = "Model";
     if any(excluded)
         handles(end) = plot(dispersion,f(excluded)/1e3,observed(excluded), ...
@@ -195,7 +225,7 @@ try
     if isfield(provenance,'displaySubtitle'), subtitle=string(provenance.displaySubtitle); end
     title(layout,{char(displayLabel);char(subtitle)}, ...
         'Interpreter','tex','FontName','Arial','FontSize',9.5,'FontWeight','normal');
-    notes = {char("Physical support: "+string(provenance.modelSupportReference)), ...
+    notes = {char("Model assumption: "+string(provenance.modelAssumptionsJustification)), ...
         char(physicalCaption)};
     xlabel(layout,notes,'Interpreter','tex','FontName','Arial','FontSize',9,'FontWeight','normal');
     evidence.phaseSpeedScale = scaleEvidence;
@@ -224,7 +254,14 @@ for k=1:numel(result.freeParams)
     end
 end
 estimatedCaption = "Estimated "+join(estimated,"; ");
-physicalCaption = sprintf( ...
-    '\\rho = %.15g kg m^{-3}; current thickness h = %.3f mm; \\nu = %.6g', ...
-    result.allParams.rho,result.allParams.thickness*1e3,result.modelEvaluation.material.nu);
+if isfield(result.problem.experimental,'observationThickness_m')
+    h = result.problem.experimental.observationThickness_m(result.validMask);
+    physicalCaption = sprintf( ...
+        '\\rho = %.15g kg m^{-3}; directional h = %.3f - %.3f mm (per observation); \\nu = %.6g', ...
+        result.allParams.rho,min(h)*1e3,max(h)*1e3,result.modelEvaluation.material.nu);
+else
+    physicalCaption = sprintf( ...
+        '\\rho = %.15g kg m^{-3}; current thickness h = %.3f mm; \\nu = %.6g', ...
+        result.allParams.rho,result.allParams.thickness*1e3,result.modelEvaluation.material.nu);
+end
 end

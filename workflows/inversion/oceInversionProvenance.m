@@ -1,5 +1,5 @@
-function record = oceStudyProvenance(inputFiles, projectRoot)
-%OCESTUDYPROVENANCE Fingerprint the current inputs of the two manual OCE studies.
+function record = oceInversionProvenance(inputFiles, projectRoot)
+%OCEINVERSIONPROVENANCE Fingerprint current inputs for human OCE inversion workflows.
 % Current bytes and code state do not verify historical ProcessingRun inputs.
 paths=string(inputFiles);paths=unique(paths(:),'stable');
 bytes=zeros(numel(paths),1);sha256=strings(numel(paths),1);

@@ -37,13 +37,27 @@ axis. Automatic repeated-frequency projection is not supplied by this integratio
 changing that native fitting contract requires its own review. A per-acquisition
 broadband curve can already satisfy the maintained mRLFE axis contract.
 
+## Canonical public physical inputs
+
+New human-facing inputs use SI unit-qualified physical names shared across
+families: `density_kgpm3` (kg/m^3), `thickness_m` (current full m),
+`poisson_ratio` (dimensionless), and `mu_Pa` where a dimensional shear
+modulus is entered. The RL public fitting builder accepts these three fixed
+physical fields and maps them to unchanged native solver symbols
+(`rho`, `thickness`, `nu`) only at its request boundary. Existing native
+solver and historical MAT fields retain their model-owned names and semantics;
+legacy fixed-parameter names cannot be supplied alongside their canonical
+counterparts. Plate already uses `density_kgpm3` and `thickness_m`.
+Directional current thickness measured by OCE is still handled per original
+acquisition; the scalar field is only a reference under that reviewed policy.
+
 ## Model-specific contracts
 
 | Family and maintained fitting API | Explicit physical/model inputs and numerical boundaries | Native evidence |
 | --- | --- | --- |
 | Rayleigh-Lamb: `lamb.fitting.rayleigh_lamb.rlFitDispersionData` | Elastic parameters, current thickness, density, supported near-incompressible Poisson ratio; explicit A0/S0 choice, fixed/free parameters, bounds and execution options. Selected observations require positive finite Hz/Cp. Excluded nonpositive/nonfinite frequencies remain in place with unavailable predictions; positive finite frequencies use the canonical RL solver. Direct model evaluation still requires a positive finite full axis. | Fixed-mask model coverage, optimizer result, residuals/metrics, sensitivity and local identifiability; selected A0/S0 output and unchanged official solver diagnostics. |
 | mRLFE: `lamb.fitting.mrlfe.mrlfeFitDispersionData` | Material modulus/viscosity, density, current thickness, supported Poisson ratio and fluid density/sound speed. Explicit A0Like/S0Like, numerical preset and fit-grid policy. The full requested frequency axis must be positive, finite and strictly ascending. Physical-tail/none termination and no fallback retain their native meaning. | Native public-solver route, requested/effective configuration, branch/termination and coverage evidence, optimizer result, sensitivity and identifiability. |
-| Prestressed Plate: `lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion` | Reviewed A0 support, one condition and signed principal direction, scalar current full thickness and density. Original unweighted Li regression. At least **two** independent frequency groups plus its existing observation/group rank, conditioning, eta-squared span and tensile-support screens. Optional `independentFrequencyGroupId` belongs to this family only. | `accepted`, `reasons`, unconstrained candidate moduli/residuals and explicit observation/group diagnostics. A returned candidate is not necessarily accepted. |
+| Prestressed Plate: `lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion` | Reviewed A0 support, one condition and signed principal direction, density and current full thickness per original observation (optional `experimental.observationThickness_m`; scalar legacy `physical.thickness_m` retained). Original unweighted Li regression with one shared `alpha,gamma` across observations. At least **two** independent frequency groups plus its existing observation/group rank, conditioning, eta-squared span and tensile-support screens. Optional `independentFrequencyGroupId` belongs to this family only. | `accepted`, `reasons`, unconstrained candidate moduli/residuals and explicit observation/group diagnostics. A returned candidate is not necessarily accepted. |
 | AE IOP/HGO: `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` | Geometry/radius, current thickness, IOP, matrix/fibre material parameters, tissue/fluid densities and fluid bulk modulus, with explicit fixed/free parameters and bounds. Only official `atlasA0`. Positive finite full frequency axis and the selected-frequency initialization-anchor requirement remain enforced. Plate assumptions and grouping fields do not replace this model's contracts. | Official atlas output and validity policy, fixed-mask coverage, optimizer result, sensitivity/identifiability and native model diagnostics. Diagnostic/fallback curves are not substitute observations or official predictions. |
 
 The native builders for RL, mRLFE and AE IOP/HGO currently accept requests with
@@ -78,32 +92,34 @@ regression residuals in Pa are not directly comparable to speed or normalized
 residuals from another family. This integration supplies no cross-model score or
 automatic model-selection rule.
 
-## Maintained manual Plate study
+## Maintained human Plate inversion workflow
 
-The single executable workflow is [aePlateOceStudy.m](../studies/aePlateOceStudy.m).
+The maintained Plate human workflow is [run_ae_plate_oce_inversion.m](../workflows/inversion/run_ae_plate_oce_inversion.m).
 It replaces the pilot preview/export coordinator. It contains no specimen names,
 absolute study paths, FIG input dependency, frequency optimizer or model dispatcher.
-Initialize the reviewed OCE `src` path explicitly; Lamb startup supplies its integration and visualization APIs.
-
-Open the script, clear `study` to reset configuration, then run/edit section 1.
-Execute the remaining sections manually, or run the script with a configured
-`study` in the workspace. Inspect `sourceMetadata` and `observationReview` before fitting. They
-retain source rows/bins, repetitions, actual Hz, original flags and the final mask.
+Open the actual driver in MATLAB Editor. In section 1, edit `oce_repository_root`
+and the explicit `study` fields. Run section 2 to initialize both repositories;
+it resolves the active Editor file to avoid MATLAB's temporary Run Section file.
+Run section 3 to recover observations and inspect `sourceMetadata` and
+`observationReview` before fitting. These retain source rows/bins, repetitions,
+actual Hz, original flags and the fixed fitting mask. See the
+[human workflow guide](../workflows/README.md) for the sequence and opt-in gates.
+The ordinary Lamb `startup` intentionally excludes `workflows/`.
 
 | Configuration | Meaning |
 | --- | --- |
 | `experimentRoot`, `summaryFile` | OCE root and persisted MAT containing `experiment`; OCE owns recovery. |
 | `experimentId`, `subexperimentId`, `sampleId`, `conditionId`, `condition` | Explicit identities and scalar mechanical condition entries: literal text for stored text, exact doubles for stored doubles. No folder-name inference or cross-type coercion. |
-| `mode`, `period_us`, `repetitions`, `scanAxisIndex`, `direction`, `curve` | QH/Pulse, literal Pulse period, repetition labels, signed direction and an existing raw/smoothed curve. |
-| `frequencySelection`, `frequency_Hz` | `all`, inclusive observed-Hz `interval=[low high]`, or `explicit` nominal requests mapped to original observations. No nearest-valid repair or interpolation. |
-| `physical`, `review` | Native Plate density/current full scalar thickness and explicit A0/thickness/density/support review. |
+| `excitationMode`, `period_us`, `repetitions`, `scanAxisIndex`, `direction`, `curve` | QH/Pulse, literal Pulse period, repetition labels, signed direction and an existing raw/smoothed curve. |
+| `fitFrequencySelection`, `fitFrequency_Hz`, `fullBandReviewed` | `all` requires an explicit `fullBandReviewed=true` acknowledgement in both manual and batch workflows; `interval=[low high]` and `explicit` select reviewed observed/nominal Hz. This acknowledgement does not validate any source-quality row. No nearest-valid repair or interpolation. |
+| `physical`, `review` | Native Plate density and explicit A0/thickness/density/support review; default direction-matched OCE current full thickness per original row, optional reviewed scalar alternative. |
 | `fitOptions` | Native options, forwarded unchanged. Empty options reuse a supplied result's effective settings; a new request otherwise uses native defaults. |
 | `existingNativeResult`, `existingAssembly`, `resultFile`, `reuseOnly` | Approved native objects or a MAT with `nativeResult` and `assembly`. Default `reuseOnly=true` rejects changed requests before fitting. |
-| `graphicRequestedFrequency_Hz` | Pulse graphic targets, independent of fitting selection; compatible OCE sampling is preferred. |
+| `plotTargetFrequency_Hz` | Pulse graphic targets, independent of fitting selection; compatible OCE sampling is preferred. |
 | `showFigure`, `displayLabel`, `displaySubtitle` | One diagnostic with the approved fixed typography and renderer. |
 | `saveResult`, `exportFigure`, `figureFolder`, `figureName` | Opt-in persistence; defaults create no files. Existing destinations are never overwritten. |
 
-For `explicit`, `frequency_Hz` contains researcher-requested nominal frequencies.
+For `explicit`, `fitFrequency_Hz` contains researcher-requested nominal frequencies.
 QH matches the registered physical excitation values and retains the existing
 selected FFT bins. Pulse reuses compatible OCE requested/selected-frequency
 correspondences; otherwise it selects the nearest bin on each complete original
@@ -122,11 +138,25 @@ same correspondence fields for display requests. The two masks remain independen
 changing graphic targets cannot add or remove fitting observations. Both mapping
 tables are retained with newly saved study results.
 
-The single thickness policy is an explicit reviewed constant current full thickness
-in `physical.thickness_m`, for either modality. Its source and scalar-selection
-justification are required. A researcher may supply a median of reviewed OCT
-measurements or an independent measurement; the study never silently changes
-the measurement population by mode or invents uncertainty.
+The default thickness policy is `oce_directional_per_acquisition` for both
+QH and Pulse. The native Plate SVD takes `experimental.observationThickness_m`
+with one source-recorded **current full** directional thickness per original
+observation. QH keeps the measured value for each acquisition/frequency;
+Pulse shares an acquisition/direction thickness only between that acquisition's
+own FFT bins. Each selected row uses
+`q_i=pi*f_i*observationThickness_m(i)/Cp_i`; the regression retains one
+`alpha,gamma` per reviewed condition and signed propagation direction.
+`physical.thickness_m` remains a non-operative, source-derived scalar reference
+when the per-observation field exists. It does not pool, select, round, interpolate,
+or substitute measured thickness. Missing selected thickness is an error.
+A reviewer can instead explicitly choose `explicit_constant_current_thickness`
+with an independently justified scalar, or `oce_reference_acquisition` with
+one indexed original acquisition as a scalar-geometry approximation. Only these
+scalar policies use `physical.thickness_m` across all rows. Original SVD,
+validity mask, physical-frequency grouping and coverage/acceptance screens stay
+unchanged. Per-observation geometry assumes the local uniform-plate A0 relation
+is meaningful and shared acoustoelastic coefficients describe the fitted state;
+it does **not** model spatial-gradient scattering or prove homogeneity.
 
 QH uses `prepareOceQhFitObservations`; its existing Plate coordinator retains
 physical-frequency coverage preparation. Pulse calls `prepareOceFitObservations`
@@ -148,13 +178,15 @@ the bytes used during its historical OCE processing.
 When `saveResult=true`, the existing result MAT additionally contains
 `studyRecord`, with no duplicate observation arrays:
 
-- `selection`: experiment/root/summary references, condition with its original
-  value types, modality/period, repetitions, signed axis, curve, frequency mode,
-  nominal frequencies and effective requested graphic frequencies.
-- `code.Lamb` and `code.OCE`: resolved repository roots, Git commits, porcelain
-  modification/untracked status and availability. Missing Git evidence is explicit;
-  a dirty status requires preserving the corresponding code changes separately.
-- `matlabVersion`, `matlabRelease`, and `inputFiles` (path, bytes, SHA-256).
+- `selection`: experiment/subexperiment identities, root-relative summary and
+  output destinations, condition with original value types, modality/period,
+  repetitions, direction, curve, frequency and graphic selection.
+- `code.Lamb` and `code.OCE`: Git commits, relative porcelain
+  modification/untracked status and availability **without local checkout roots**.
+  Missing Git evidence is explicit; dirty code requires preserving patches.
+- `matlabVersion`, `matlabRelease`, and `inputFiles` (experiment-root-relative
+  `path`, bytes, SHA-256). Hashes are checked against unchanged absolute
+  input locations **before** references are converted for persistence.
   Input hashes cover the loaded summary, indexed PhaseSpeed files and canonical
   AcquisitionParams tables used for recovery, including indexed sources outside
   the final fitting selection. Files are fingerprinted before recovery and checked
@@ -171,8 +203,13 @@ The existing `nativeResult.experimental`, `nativeResult.options`, `physical`,
 effective native request, fixed mask, physical justification, acquisition lineage,
 original bins and quality flags. Together with `studyRecord.selection` they permit
 scientific configuration reconstruction; numeric replay can call Plate directly
-from the native result without reopening OCE files. Root paths remain explicit
-and can be relocated by the researcher. No raw BIN, ProcessingConfig or
+from the native result without reopening OCE files. The portable
+`studyRecord` references are relative to `experimentRoot`; the original
+native/OCE lineage is retained **unchanged**, including any absolute path
+strings supplied by its producer. Those historical reference strings are
+not required to reconstruct the native numerical result, but replay on a
+different workstation must rebind the OCE checkout and source experiment root.
+No raw BIN, ProcessingConfig or
 ProcessingRun manifest is read or hashed by this study; their references are
 producer provenance, not verified historical inputs. Physical review references
 are caller attestations, not additional files implicitly read by the study.
@@ -181,10 +218,10 @@ Use OCE PR #146's exact-identity producer/recovery contract; the integration REA
 pins its revision and legacy ambiguity boundary. No local label normalizer or
 summary migration belongs to Lamb.
 
-A historical review may name the scalar-selection method as its thickness policy.
-For the current study, declare `explicit_constant_current_thickness` and retain
-that selection method in the justification; do not rewrite the archived review,
-scalar physical input or native result.
+Historical constant-thickness inversions retain their original
+`explicit_constant_current_thickness` policy and physical reference.
+New OCE inversions default to recorded `oce_directional_per_acquisition`;
+do not rewrite archived reviews, physical inputs or native results.
 
 Pulse uses compatible OCE selected Hz or original bins nearest explicit graphic
 targets before applying validity. Missing/excluded bins stay absent. Per-source
@@ -196,14 +233,15 @@ Workspace outputs include `frequencySelectionMapping`, `assembly`, `observationR
 and, when requested, `fig`/`figureEvidence`. This study is Plate only. RL, mRLFE and
 IOP/HGO retain their model-specific direct APIs and scientific requirements.
 
-## Maintained manual RL study
+## Maintained human Rayleigh-Lamb inversion workflow
 
-[rlOceStudy.m](../studies/rlOceStudy.m) provides the same opt-in manual stages for
-native Rayleigh-Lamb A0/S0 fitting. Run Lamb `startup`, initialize the reviewed
-OCE `src` path explicitly, open section 1, and supply a configured `study` before
-running the remaining sections. Defaults request reuse only and write no files.
+[run_rl_oce_inversion.m](../workflows/inversion/run_rl_oce_inversion.m) exposes
+editable MATLAB Editor sections for native Rayleigh-Lamb A0/S0 fitting. Its
+configuration section constructs `study`, and its Editor-safe initialization
+section adds the opt-in workflow and the explicitly configured OCE `src` path.
+Defaults request reuse only and write no files.
 
-Both scripts consume [prepareOceStudyObservations](../studies/prepareOceStudyObservations.m)
+Both human drivers consume [prepareOceInversionObservations](../workflows/inversion/prepareOceInversionObservations.m)
 for the same exact condition/repetition/signed-direction selection and nominal-to-
 original-bin mapping. It calls canonical OCE recovery and the existing preparation
 owners; it is not another loader, translator or experimental schema. The fixed
@@ -220,8 +258,30 @@ RL uses the common selection fields above plus:
 | --- | --- |
 | `estimator`, `curve` | Explicit `kf_ridge` raw/smoothed, or recorded QH `phase_gradient` (curve unused). |
 | `observationMask` | Empty uses the existing source-quality/frequency policy. A supplied logical vector is the exact original-row mask and must respect frequency selection. Invalid selected values are rejected, never repaired; original ridge flags remain separate evidence. |
-| `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI; `thickness` is current full thickness. |
-| `review` | Explicit `mode`, `thicknessSource`, `thicknessJustification`, `densityReference`, `parameterJustification` and `modelSupportReference`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. |
+| `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI. A scalar `fixedParams.thickness` is used only under `explicit_constant`; under the OCE policy the native problem uses `experimental.observationThickness_m`. |
+| `thicknessPolicy` | Default `oce_directional_per_acquisition`: one source-recorded current full directional thickness per observation (QH acquisition/nominal frequency; Pulse acquisition/repetition repeated over its original bins). `explicit_constant` retains reviewed scalar thickness. Missing nonpositive-frequency measurements are tolerated; missing thickness at any positive-frequency observation blocks the request. |
+| `review` | Derived `modelBranch`, `thicknessSource`, `thicknessJustification`, `densitySource`, `fitParameterJustification` and `modelAssumptionsJustification`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. In the OCE thickness policy, source/justification are set to the actual recorded measurement policy. |
+
+The current full thickness comes from the already selected OCE signed direction
+(`borders.directional_mean_thickness_mm`, converted to meters). QH retains a
+separate thickness for each selected acquisition/frequency; Pulse repeats each
+acquisition's thickness only across that acquisition's original FFT bins. No
+sample median, pooled average, thickness interpolation, frequency matching or
+rounding is applied. The native Rayleigh-Lamb evaluator solves separately on
+each set of **exactly equal** thickness values, while retaining original
+observation positions and one shared fitted modulus. It does not create a
+single fictitious canonical model result for multiple geometries: native
+model products and diagnostics are retained by thickness group. The scalar
+`allParams.thickness` is a non-operative reference in this mode, never the
+height used to evaluate all observations. Fitting a scalar thickness is
+incompatible with this option. The RL figure presents the selected directional
+thickness range and does not connect model curves for differing thicknesses.
+`explicit_constant` preserves legacy single-height behavior when an
+independently reviewed constant is needed. Prestressed Plate now supports
+its own native per-observation geometry through `experimental.observationThickness_m`.
+Unlike RL, it applies each h_i directly in the dimensionless A0 master curve
+before one unweighted SVD of shared `alpha,gamma`; it does not independently
+solve a new regression for each thickness group.
 
 The native `rlBuildFitProblem` validates and resolves defaults without evaluating
 the forward model. Reuse compares its effective value fields with the saved native
@@ -240,7 +300,7 @@ The MAT retains `nativeResult`, `assembly`, `fitConfig`, `review`, the two mappi
 tables, `observationReview` and `studyRecord`. The native `problem` owns resolved
 options/parameters; selection records do not duplicate the observation arrays.
 An explicit mask is reconstructible from `observationReview.validMask`, with its
-policy recorded separately. The common [oceStudyProvenance](../studies/oceStudyProvenance.m)
+policy recorded separately. The common [oceInversionProvenance](../workflows/inversion/oceInversionProvenance.m)
 records the same current input hashes, code state and provenance limits as Plate.
 The full-summary hashing scope is intentionally unchanged.
 
@@ -254,10 +314,83 @@ Both studies render the retained native result and export only through
 They introduce no PNG export path. `openfig(...,'new','visible'); drawnow` reopens
 the editable product; scientific replay consumes the saved native request/config,
 not FIG or raster data. Pulse graphic bins remain independent of the fitting mask.
-The approved Plate/RL renderers are unchanged: B is Plate's Pa regression or RL's
-native parameter summary, and C uses each model's own residual definition/units.
+The Plate/RL renderers retain their native diagnostic panels: B is Plate's
+Pa regression or RL's native parameter summary, and C uses each model's own
+residual definition/units. RL's observation-thickness option displays its
+measured thickness range and keeps predictions for different exact thickness
+groups on separate model lines.
 RL convergence/identifiability and Plate native acceptance are not interchangeable
 and establish neither experimental A0 purity nor physical model validation.
+
+## Programmable one-case and batch execution (reviewed inputs only)
+
+The source-of-truth for human and batch coordination is
+`workflows/inversion/executeOceInversionStudy.m`, with shared physical review
+(`reviewOceInversionPhysics`), exact-source native fitting and reuse
+(`fitOceInversionNative`), provenance persistence and pure result rendering.
+The manual Editor drivers retain their section boundaries, delegating to the
+same owners. The maintained programmable entry point is
+`runOceInversionBatch(plan,family)`, with `family="RayleighLamb"` or
+`family="Plate"`, avoiding redundant forwarding wrappers.
+
+Each independently reviewed case keeps the same recorded condition, signed
+direction and frequency selection it would have in a human Run Section.
+No automatic bandwidth optimization, robust outlier rejection, parameter
+retuning, source-quality repair, modal identification or QH+Pulse pooling is
+implemented. The batch refuses an unreviewed frequency-selection field and
+requires a specific `fullBandReviewed=true` acknowledgement for `all`.
+The same acknowledgement is required by manual MATLAB Editor workflows at
+the shared observation-preparation boundary.
+A read-only batch plan is the default; enabling `plan.execute=true` authorizes
+native fitting. Output MAT, FIG and TIF are independently controlled. With
+`plan.reuseOnly=true`, an existing exact-match `inversion.mat` is reused
+read-only and is not rewritten; its recorded input-file hashes must match the
+current sources. Reused MAT and newly exported figures must also retain the
+same researcher-supplied scientific `review` (after read-only legacy name
+normalization). Changed scientific hypotheses require a separately reviewed
+output tag, or presentation explicitly disconnected from the saved MAT
+(`saveResult=false`). Numerical equality alone does not authorize changing
+archived scientific claims. Figure destinations remain non-overwritable. Any
+historic `studyRecord.selection` naming is normalized in the returned record only.
+Legacy visualization `modelSupportReference` and prior review-source labels
+are accepted at a read-only provenance boundary, not rewritten into older MATs.
+The derived `review` must remain separate from editable `study.review` so
+manual MATLAB Editor review sections can be repeated without inconsistent state.
+
+The default storage layout, relative to the supplied machine-local experiment
+root, is
+`Results/<subexperiment>/Inversions/<RayleighLamb|Plate>/<case>/inversion.{mat,fig,tif}`.
+Only the experiment and OCE source repository roots are machine-local inputs.
+`outputRelativeFolder`, `outputTag` and `summaryRelativeFile` are optional
+programmable overrides. No absolute output override or parent traversal is
+supported, and existing outputs are never replaced. `outputTag` is required
+to distinguish independent fit reviews with the same physical case identity.
+The resulting saved `studyRecord` retains effective relative paths, fixed
+observation mask, original row mappings and root-relative source hashes;
+the original native OCE payload and mechanical review remain alongside it.
+Batch failures with `saveResult=true` create a separate
+`inversion_failure.mat`, retaining the reviewed request, error identifier,
+portable stack-location names and UTC time; an earlier failure file is never
+replaced. `saveResult=false` leaves the failure in the returned batch report
+only. A failure before fitting is **not** a fitted result or physical finding.
+If native fitting succeeds but persistence or presentation fails, the batch
+reports `partial` and retains the native result and metrics in memory. Its
+failure record distinguishes the completed stage and references any saved
+native MAT by an experiment-relative path. A one-output call to
+`executeOceInversionStudy` still raises downstream errors; its optional second
+output returns that error alongside the completed fit for batch coordination.
+
+**Thickness policies are reviewed per model:** RL uses one recorded
+directional current full thickness for each original observation and dispatches
+exact-thickness forward groups. Plate uses the same OCE geometry evidence but
+fits a **single** common `alpha,gamma` by substituting h_i into each row's
+`q_i` before the unweighted master-curve SVD. Optional scalar Plate policies
+(`explicit_constant_current_thickness` and `oce_reference_acquisition`)
+retain the historical single-height fit. Plate figures use separate native
+forward predictions for exactly equal thicknesses, avoiding false single-height
+dispersion curves. QH physical-frequency coverage remains exclusively owned by
+`fitOceQhPrestressedPlate`. Distinct h_i do not create statistically independent
+frequency groups or independent material states.
 
 ## Manual MATLAB sections
 
@@ -346,7 +479,7 @@ reviewed masks, full requests/results and output hashes. Relocation changes root
 configuration, not datasets, saved observations or scientific APIs. Preserve
 earlier reports as historical evidence; do not silently overwrite them.
 
-The maintained manual driver is `studies/aePlateOceStudy.m`.
+The maintained manual driver is `workflows/inversion/run_ae_plate_oce_inversion.m`.
 `integrations/oce/` owns the existing translation/preparation and QH coordinator
 APIs, not the study script. Dataset-specific selections, physical review and
 outputs remain external. The study coordinates canonical APIs in separately

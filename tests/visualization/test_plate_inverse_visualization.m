@@ -339,6 +339,58 @@ for k=1:numel(lines)
 end
 end
 
+function testMeasuredThicknessPresentationUsesSeparateNativeGeometries(testCase)
+[native,review]=fixture();
+data=native.experimental;
+h=[.405;.406;.405;.406;NaN;NaN;.405;.406]*1e-3;
+data.observationThickness_m=h;
+physical=native.physical;
+physical.alpha_Pa=300000;physical.gamma_Pa=150000;
+for k=find(data.validMask(:))'
+    one=physical;one.thickness_m=h(k);
+    predicted=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion( ...
+        data.frequency_Hz(k),one);
+    data.Cp_mps(k)=predicted.phaseVelocity_mps;
+end
+native=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
+    data,native.physical);
+verifyTrue(testCase,native.diagnostics.physicalCandidate);
+before=native;
+[fig,e]=plotAePlateFitDiagnostics(native,review,'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,native,before);
+verifyEqual(testCase,numel(e.forwardByThickness),2);
+verifyEqual(testCase,numel(findall(fig,'Tag','plate_forward')),2);
+for j=1:2
+    group=e.forwardByThickness(j);
+    measured=unique(h(native.validMask),'stable');
+    verifyEqual(testCase,group.thickness_m,measured(j));
+    physical=native.physical;
+    physical.thickness_m=group.thickness_m;
+    physical.alpha_Pa=native.alpha_Pa;physical.gamma_Pa=native.gamma_Pa;
+    exact=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion( ...
+        group.mode.frequency_Hz,physical);
+    verifyEqual(testCase,group.mode,exact);
+end
+verifyTrue(testCase,contains(e.forwardStatus,"exact-thickness"));
+layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
+verifySubstring(testCase,string(layout.XLabel.String{2}),"per observation");
+end
+
+function testSourceAlignedPulseGlyphMaskAndHistoricReview(testCase)
+[native,review]=fixture(); before=native;
+review.modelSupportReference=review.modelAssumptionsJustification;
+review=rmfield(review,'modelAssumptionsJustification');
+rows=false(numel(native.validMask),1);rows([1,3])=true;
+[fig,e]=plotAePlateFitDiagnostics(native,review, ...
+    'DisplayObservationMask',rows,'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,native,before);
+verifyEqual(testCase,e.observations.included,native.validMask);
+verifyEqual(testCase,e.displayedObservationMask,native.validMask & rows);
+verifyEqual(testCase,e.provenance.modelAssumptionsJustification,review.modelSupportReference);
+end
+
 function [native,review]=fixture()
 physical=struct('alpha_Pa',300000,'gamma_Pa',150000,'density_kgpm3',1070,'thickness_m',0.001);
 f=[100;1000;3000;8000];
@@ -349,7 +401,7 @@ data=struct('frequency_Hz',[f;0;Inf;2000;7000], ...
 native=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,rmfield(physical,{'alpha_Pa','gamma_Pa'}));
 assert(native.accepted);
 review=struct('label',"Synthetic reviewed Plate fit",'material',"synthetic", ...
-    'sourceReference',"synthetic request",'modelSupportReference',"Synthetic A0; no experimental validation", ...
+    'sourceReference',"synthetic request",'modelAssumptionsJustification',"Synthetic A0; no experimental validation", ...
     'repetitionId',["1";"2";"1";"2";"1";"2";"1";"2"], ...
     'sourceMasks',struct('valid_mask',[true(4,1);false(4,1)], ...
     'interpolated_mask',logical([0;0;0;0;0;0;1;0]), ...

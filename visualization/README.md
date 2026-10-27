@@ -43,8 +43,14 @@ on a different response do not establish more accurate parameters or model valid
 
 ### Presentation and mathematical interpretation
 
+For a Rayleigh-Lamb result with `problem.experimental.observationThickness_m`,
+the renderer reports the directional thickness range over fitted observations
+and plots official predictions in distinct exact-thickness groups instead of
+a fictitious single-thickness curve. The original row-aligned fit, residuals,
+masks and per-group canonical solver results remain unchanged.
+
 Supply nonempty `label`, `material`, `sourceReference` and
-`modelSupportReference` in provenance. Optional `displayLabel` supplies the
+`modelAssumptionsJustification` in provenance. Optional `displayLabel` supplies the
 human title (sample, state, signed direction and analysis); `displaySubtitle`
 identifies the acquisition/modality/period. Both are presentation labels,
 never identity matching keys. Preserve exact original metadata in provenance.
@@ -66,7 +72,7 @@ The three panels show:
    changes the fitting data.
 
 The panels retain native coefficients and RMSE; the brief footer reports physical
-support, density and scalar thickness. Rank, conditioning, group diagnostics,
+support, density and the actual current thickness (scalar or measured selected-row range). Rank, conditioning, group diagnostics,
 native acceptance and full reasons remain in results/FIG data rather than the
 footer. A0 and the remaining Plate assumptions are not experimentally confirmed.
 Both families keep fitted/original counts in B: Plate uses its upper-right corner,
@@ -118,8 +124,8 @@ same retained result.
 
 ## Manual study and Pulse graphic sampling
 
-Use the [Plate study](../studies/aePlateOceStudy.m), the
-[RL study](../studies/rlOceStudy.m) and their
+Use the [Plate study](../workflows/inversion/run_ae_plate_oce_inversion.m), the
+[RL study](../workflows/inversion/run_rl_oce_inversion.m) and their
 [configuration contract](../docs/oce_study_contract.md#maintained-manual-plate-study)
 for QH and Pulse. Scientific input is recovered individual OCE products, never FIG
 contents, summary means or comparison statistics.
@@ -134,15 +140,19 @@ residuals and RMSE use the complete fixed fitting mask.
 Acquisition, repetition and source-bin identity remain available in the assembly.
 
 `DisplayFrequency_Hz` optionally selects exact stored frequencies for glyphs in
-all three panels; it never changes fitting masks or native diagnostics. The study
-uses compatible OCE sampling indices, or original bins selected from explicit
-graphic targets before checking validity. Missing/excluded bins remain absent.
+all three panels; `DisplayObservationMask` accepts one logical value per original
+native result row for acquisition-aligned presentation. Both operate on glyphs,
+never on fitting masks or native diagnostics. The human Pulse workflow selects
+source-specific original bin rows using `sourceIndex` and `sourceBinIndex`;
+identical observed Hz in different source grids do not select unrelated rows.
+Missing/excluded bins remain absent.
 No nearest-valid repair, interpolation or experimental extension is performed.
 
 The approved diagnostic uses blue/orange/purple repetition symbols, simple
 `Rep. 1`/`Rep. 2`/`Rep. 3`/`Model` labels and black dashed model/regression lines.
-The brief footer states mathematical support, supplied density and scalar current
-thickness (mm, three display decimals). Full diagnostics and unrounded inputs remain
+The brief footer states mathematical support, supplied density and the
+recorded selected-observation current full thickness range, or a reviewed
+scalar reference (mm, three display decimals). Full diagnostics and unrounded inputs remain
 in native results and figure data.
 
 ## Independent-fit compatibility view
@@ -156,11 +166,22 @@ explicit shared limits remain supported. Each repetition's clipping summaries
 and edge glyphs refer to those same limits, with full native evidence retained.
 The scalar joint-fit path used by the maintained study is unchanged.
 
+Plate native results with `experimental.observationThickness_m` retain the
+matched original full thickness when computing display-only excluded
+`etaSquared`. A supported candidate produces separate canonical
+`aePlateSolveDispersion` predictions for every *exactly equal* measured
+thickness, never a pooled single-height model line. Single-frequency groups
+appear as points. `evidence.forwardByThickness` retains original row indices,
+geometry and canonical outputs; `forwardCurve` remains the flattened
+envelope used for scaling/clipping. Regression coefficients, original masks
+and fitted residuals remain one shared state. Legacy constant-thickness
+results retain the existing forward curve and scale behavior.
+
 ## Rayleigh-Lamb inverse diagnostics
 
 `plotRlFitDiagnostics(result, provenance, 'Visible', 'on')` consumes the complete
 native `rlFitDispersionData` result for A0 or S0. It does not call a fitter,
-forward solver or OCE loader. Supply the same nonempty label/material/source/support
+forward solver or OCE loader. Supply the same nonempty label/material/source/assumptions
 provenance fields as for Plate, optionally with one literal `repetitionId` per
 original row and a concise `displaySubtitle`. The support note is caller-supplied;
 optimizer termination and local sensitivity never become physical acceptance.
@@ -178,8 +199,11 @@ Residual units remain m/s for weighted fits by consuming
 `residualInfo.rawResiduals_mps`. Estimated parameters, actual scalar thickness,
 density, effective nu and native RMSE are displayed without fabricated intervals.
 Estimated parameters remain in B and full-fit RMSE in C. The two-line footer
-follows Plate: the caller's physical-support statement first, then actual physical
-values. It does not manufacture physical acceptance. Optional displayLabel
+follows Plate: the caller's model-assumption justification first, then actual physical
+values. It does not manufacture physical acceptance. When the human workflow
+references a persisted MAT, its archived model-assumption review must match
+the figure's review; numeric reuse never authorizes silent hypothesis changes.
+Optional displayLabel
 uses the Plate title syntax: case/direction/model first, modality/repetitions/
 selection in displaySubtitle.
 Repetitions retain the established colors/markers; predictions are black dashed
@@ -258,7 +282,7 @@ complete trend whenever the accepted-range view clips rejected candidates.
 provenance = struct('label', "Reviewed condition / signed direction", ...
     'material', "Researcher-specified material", ...
     'sourceReference', "Reviewed stored request/result", ...
-    'modelSupportReference', "A0 working hypothesis; physical review reference");
+    'modelAssumptionsJustification', "A0 working hypothesis; physical review reference");
 [fig, evidence] = plotAePlateFitDiagnostics(nativeResult, provenance);
 
 %% Use one shared display scale for a reviewed population

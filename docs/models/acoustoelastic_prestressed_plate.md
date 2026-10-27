@@ -131,6 +131,38 @@ state = lamb.models.acoustoelastic_prestressed_plate.aePlateInterpretModuli(fit.
 ```
 
 Experimental vectors have equal lengths. `validMask` is required and logical.
+## Optional observation-specific current thickness
+
+The native `aePlateFitDispersion` optionally accepts
+`experimental.observationThickness_m`, a real double vector with one **current
+full** thickness in meters for each original observation row. All *selected*
+rows must contain finite positive thickness. Excluded rows may retain NaN
+rather than fabricated measurements. Without this optional field, the historical
+scalar `physical.thickness_m` behavior is unchanged.
+
+For each selected observation i, `q_i = pi*f_i*h_i/Cp_i`, where `h_i`
+is the selected current full thickness. These per-row q values enter exactly
+the same A0 master curve before the **same single shared** unweighted
+`rho*Cp^2 = alpha - gamma*etaSquared` SVD regression. No per-thickness
+regressions, pooled thickness, reassignment of frequencies, outlier removal,
+additional independent physical groups or new support screens are performed.
+The required scalar `physical.thickness_m` is a provenance/validation
+reference only while `observationThickness_m` is provided.
+
+The row-wise geometry is a **local-uniform-thickness approximation**. It
+assumes that the measured propagation windows admit a guided plate-wave
+description with smoothly varying current thickness and that all selected
+observations share the same acoustoelastic parameters/physical state.
+It does not solve wave propagation through a globally heterogeneous plate,
+capture thickness-gradient scattering, or experimentally validate the
+assumed A0 branch. Plate's forward solver remains scalar-geometry; fitted
+curves are presented separately for each **exactly equal** recorded
+thickness value. The native inverse retains the full row-aligned input,
+and adds geometry diagnostics only in this optional mode:
+`diagnostics.thicknessMode`, `selectedThicknessRange_m`,
+`selectedThicknessGroupCount`. Legacy scalar results retain their
+original output fields and numerical behavior.
+
 The original experimental struct is retained unchanged in the result; calculated
 vectors and `result.validMask` are columns with the same order and selection.
 Selected observations require finite positive Hz and speeds. Invalid selected

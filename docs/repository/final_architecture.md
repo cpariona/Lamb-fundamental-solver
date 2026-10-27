@@ -8,7 +8,8 @@
 | `integrations/oce/` | Translation of validated external observations and reviewed QH coordination |
 | `visualization/` | GUI-independent scientific presentation and figure export |
 | `app/` | GUI interaction, app request/result adaptation and execution profiles |
-| `studies/` | Opt-in scientific investigations consuming production APIs |
+| `workflows/` | Human-facing, section-oriented inversion execution consuming maintained APIs |
+| `studies/` | Opt-in sensitivity and solver-diagnostic investigations consuming production APIs |
 | `examples/` | Opt-in usage examples consuming production APIs |
 | `tests/` | Executable contracts, regressions, performance checks and tooling |
 
@@ -21,6 +22,32 @@
 | `+elasticity` | Model-neutral material conversions |
 | `+grids` | Model-neutral frequency-grid construction |
 | `+sweeps` | Parameter-sweep execution through supplied production operations |
+
+The repository's canonical external SI vocabulary for shared physical quantities
+is `density_kgpm3` (kg/m^3), `thickness_m` (current full thickness in m),
+`poisson_ratio` (dimensionless), and dimensional modulus fields suffixed `_Pa`.
+New public configuration and human workflows must use those names rather than
+mixing `rho`, `rho_kgm3` and `density_kgpm3` for the same quantity.
+Legacy forward-model mathematical symbols and persisted schema names remain
+owned by their scientific families; changing them requires a separately
+validated migration of their consumers and historic results. The RL public
+fitting boundary accepts canonical `fixedParams` names, translates only there,
+and rejects simultaneous canonical and legacy names for one quantity.
+
+
+Human inversion contracts separate (1) material properties and current geometry
+in SI, (2) researcher-supplied acquisition choices and model-assumption
+justifications, and (3) automatically computed numerical coverage, acceptance
+and identifiability. The `modelAssumptionsJustification` statement is not a
+numerical support diagnostic. `excitationMode` selects QH/Pulse while the
+model's `branchName` selects A0/S0; effective `review.modelBranch` and
+`review.thicknessPolicy` are derived from those reviewed inputs, never competing
+settings. `fitFrequencySelection`/`fitFrequency_Hz` define fitting eligibility;
+`plotTargetFrequency_Hz` only requests Pulse display bins; `fullBandReviewed`
+acknowledges a full fitting range but never overrides source-quality masks.
+Unit-qualified `mu_Pa` is accepted at the public RL fit request boundary and
+translated without modifying the solver's native `mu` result.
+No numeric unit conversion or material-state inference is performed.
 
 The model families are `rayleigh_lamb`, `mrlfe`, `acoustoelastic_iop_hgo`, and
 `acoustoelastic_prestressed_plate`. Each owns its physical formulation and
@@ -48,8 +75,12 @@ The acoustoelastic prestressed-plate family owns the dimensionless physical A0
 curve, forward prediction and principal-state interpretation in
 `models.acoustoelastic_prestressed_plate`.
 `fitting.acoustoelastic_prestressed_plate` owns its fixed-mask data validation, direct
-linear SVD regression and identification diagnostics. It consumes the public
-master curve, with no nonlinear optimizer or family adapter framework.
+linear SVD regression and identification diagnostics. It accepts either
+a legacy reviewed constant full thickness or a separate full current thickness
+per selected original observation for q_i=pi*f_i*h_i/Cp_i, retaining one common
+alpha/gamma pair. The local-uniform-plate approximation does not model
+spatial gradients or additional independent frequency coverage. It consumes
+the public master curve, with no nonlinear optimizer or family adapter framework.
 It currently supports A0 only, following Li et al. (2022), and is
 independent of AE IOP/HGO and its atlas.
 
@@ -61,7 +92,7 @@ mathematical helpers may identify their mode, such as `aePlateA0MasterCurve`.
 
 Dependencies point toward scientific owners. Models do not depend on fitting,
 integration, visualization, app, studies, examples, tests or documentation. Fitting calls canonical public
-model APIs. Production never depends on studies, examples, tests or documentation.
+model APIs. Production never depends on workflows, studies, examples, tests or documentation.
 The sole intentional cross-family scientific dependency is the mRLFE seed through
 the public Rayleigh-Lamb solver. Model-neutral utilities do not own family policy.
 
@@ -151,7 +182,8 @@ candidate files and exclude paths removed from the working tree.
 | QH Plate coordinator | Prepared QH observations and the native Plate fitting API |
 | Visualization | Native result values and public forward/interpretation APIs; no fitting, integration, GUI or OCE package dependency |
 | GUI/app | Integration, scientific APIs and visualization; no study or example implementation |
-| Studies and scientific examples | Public scientific, integration and visualization APIs; no GUI internals or tests |
+| Human inversion workflows | Public scientific, integration and visualization APIs; no GUI internals, studies or tests |
+| Studies and scientific examples | Public scientific, integration and visualization APIs; no GUI internals, workflows or tests |
 
 These are domain rules, not per-function exceptions. The model/fitting core remains
 independent of optional producers. OCE's loader/recovery APIs remain its authority;
@@ -217,11 +249,11 @@ GUI import and native schema I/O in preparation, rather than prohibiting field a
 Studies and examples consume reusable integration/visualization domains directly;
 they do not depend on app components or maintain a duplicate adapter.
 
-The manual Plate and RL studies share `prepareOceStudyObservations` for acquisition
+The human Plate and RL inversion workflows share `prepareOceInversionObservations` for acquisition
 selection, original-bin mappings and calls to the existing preparation APIs, and
-`oceStudyProvenance` for current input/code evidence. These opt-in study operations
+`oceInversionProvenance` for current input/code evidence. These opt-in workflow operations
 own no external schema, native fitting policy or result format. Model-specific
-scripts retain physical review, direct native requests and strict result reuse;
+workflows retain physical review, direct native requests and strict result reuse;
 they use the existing renderers and `saveInverseFigure` without a dispatcher.
 
 `prepareOceQhFitObservations` assembles explicitly reviewed k-f target rows from
@@ -235,11 +267,16 @@ remain local references; original result paths retain acquisition identity.
 physical review. When physical and observed-Hz frequency partitions differ, it
 passes explicit physical-frequency group codes to Plate's existing coverage
 diagnostic while preserving observed Hz and the unweighted regression. Compatible
-partitions retain the historical call. It requires a justified externally supplied constant current full thickness
-with its source. Original OCT thicknesses, including NaNs, remain separate evidence;
-their availability is not a universal prerequisite for an independent thickness input.
-Compact OCT availability/range diagnostics belong to integration and do not alter native
-scientific diagnostics or acceptance.
+partitions retain the historical call. A reviewed Plate request may use the
+OCE-measured full current thickness aligned with each original observation:
+the workflow supplies `experimental.observationThickness_m` and the QH
+coordinator checks that it matches the recorded signed-direction values.
+A separately reviewed constant thickness or one chosen acquisition remains a
+supported explicit approximation. Excluded/missing OCT measurements remain
+visible; selected missing thickness is rejected only for the per-observation
+policy. The original SVD, independent physical-frequency grouping and numerical
+acceptance belong to native Plate fitting, not the integration layer.
+Compact OCT availability/range diagnostics remain descriptive.
 The OCE recovery dependency is optional and remains outside Lamb's scientific
 packages. Equations, SVD and acceptance thresholds remain owned by Plate;
 integration neither rounds frequencies nor supplies alternative rank diagnostics.

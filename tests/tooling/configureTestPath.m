@@ -4,6 +4,7 @@ projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 configureProjectPath(projectRoot);
 addpath(fullfile(projectRoot, 'studies'));
 configureStudyPath(projectRoot);
+addpath(fullfile(projectRoot, 'workflows', 'inversion'));
 entries = string(strsplit(genpath(fullfile(projectRoot, 'tests')), pathsep));
 for entry = entries
     parts = split(replace(entry, "\", "/"), "/");

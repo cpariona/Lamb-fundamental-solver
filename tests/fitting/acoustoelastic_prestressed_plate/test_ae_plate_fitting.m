@@ -323,6 +323,74 @@ verifyEqual(testCase,fit.diagnostics.frequencyDesignRank,1);
 verifyTrue(testCase,ismember("rank_deficient",fit.reasons));
 end
 
+function testMeasuredThicknessPerObservationRecoversSharedCoefficients(testCase)
+% Different current full thickness per QH source/observation and same state.
+[data,physical]=independentData();
+expected=physical;expected.alpha_Pa=314300;expected.gamma_Pa=147200;
+thickness=[.405;.406;.407;.408;.409]*1e-3;
+for j=1:numel(thickness)
+    candidate=expected;candidate.thickness_m=thickness(j);
+    mode=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion( ...
+        data.frequency_Hz(j),candidate);
+    data.Cp_mps(j)=mode.phaseVelocity_mps;
+end
+data.observationThickness_m=thickness;
+original=data;
+fit=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
+    data,physical);
+verifyTrue(testCase,fit.accepted);
+verifyEqual(testCase,[fit.alpha_Pa fit.gamma_Pa], ...
+    [expected.alpha_Pa expected.gamma_Pa],'RelTol',2e-9);
+verifyEqual(testCase,fit.experimental,original);
+verifyEqual(testCase,fit.validMask,data.validMask);
+verifyEqual(testCase,fit.wavenumberThickness(data.validMask), ...
+    pi*data.frequency_Hz.*thickness./data.Cp_mps,'RelTol',1e-12);
+verifyEqual(testCase,fit.diagnostics.thicknessMode, ...
+    "per_observation_current_full_thickness");
+verifyEqual(testCase,fit.diagnostics.selectedThicknessGroupCount,5);
+verifyEqual(testCase,fit.diagnostics.selectedThicknessRange_m, ...
+    [min(thickness) max(thickness)]);
+% Replacing all source measurements with one scalar changes the regression
+% for this synthetic variable-geometry experiment.
+constant=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
+    rmfield(data,'observationThickness_m'),physical);
+verifyGreaterThan(testCase,abs(constant.gamma_Pa-fit.gamma_Pa),1);
+end
+
+function testUniformRecordedThicknessPreservesConstantPlateNumerics(testCase)
+[data,physical]=independentData();
+legacy=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,physical);
+data.observationThickness_m=repmat(physical.thickness_m,numel(data.frequency_Hz),1);
+native=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,physical);
+verifyEqual(testCase,[native.alpha_Pa native.gamma_Pa], ...
+    [legacy.alpha_Pa legacy.gamma_Pa],'AbsTol',1e-8);
+verifyEqual(testCase,native.etaSquared,legacy.etaSquared,'AbsTol',1e-14);
+verifyEqual(testCase,native.wavenumberThickness,legacy.wavenumberThickness,'AbsTol',1e-14);
+verifyEqual(testCase,native.regressionResidual_Pa,legacy.regressionResidual_Pa,'AbsTol',1e-8);
+verifyEqual(testCase,native.accepted,legacy.accepted);
+verifyEqual(testCase,native.diagnostics.frequencyGroup,legacy.diagnostics.frequencyGroup);
+end
+
+function testMeasuredThicknessRejectsInvalidSelectedButPreservesExcluded(testCase)
+[data,physical]=independentData();
+data.observationThickness_m=repmat(physical.thickness_m,5,1);
+invalid={single(ones(5,1)),ones(4,1),ones(2,3), ...
+    [NaN;ones(4,1)], [0;ones(4,1)], ...
+    [Inf;ones(4,1)], [-1;ones(4,1)], ...
+    ones(5,1)+1i};
+for j=1:numel(invalid)
+    changed=data;changed.observationThickness_m=invalid{j};
+    verifyError(testCase,@()lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
+        changed,physical),'lamb:aePlate:InvalidObservationThickness');
+end
+data.observationThickness_m(3)=NaN;
+data.validMask(3)=false;
+native=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,physical);
+verifyTrue(testCase,isnan(native.etaSquared(3)));
+verifyTrue(testCase,isnan(native.regressionResidual_Pa(3)));
+verifyEqual(testCase,native.experimental,data);
+end
+
 function verifyRegressionUnchanged(testCase,actual,expected)
 for name = ["alpha_Pa","gamma_Pa","validMask","wavenumberThickness","etaSquared", ...
         "regressionResidual_Pa","regressionRMSE_Pa","sumSquaredResidual_Pa2"]

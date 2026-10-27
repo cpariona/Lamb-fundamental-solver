@@ -2,15 +2,20 @@ function problem = rlBuildFitProblem(experimental, fitConfig)
 %RLBUILDFITPROBLEM Build a Rayleigh-Lamb dispersion fitting problem.
 %
 % Required fitConfig fields:
-%   freeParams
+%   freeParams      e.g. "mu_Pa" (SI) or legacy solver "mu"
 %
 % Optional fitConfig fields:
 %   branchName      default "A0"
-%   fixedParams     fields overriding lamb.models.rayleigh_lamb.rlDefaultParams
-%   initialGuess    fields for free-parameter initial guesses
-%   bounds          fields with [lower upper] bounds
+%   fixedParams     density_kgpm3 (kg/m^3), thickness_m (full current m),
+%                   poisson_ratio (dimensionless); legacy solver names remain
+%                   accepted for existing callers, but cannot be mixed.
+%   initialGuess    SI fields e.g. mu_Pa (Pa)
+%   bounds          SI fields e.g. mu_Pa = [lower upper] (Pa)
 %   solverOptions   lamb.models.rayleigh_lamb.rlDefaultOptions-compatible options
 %   fitOptions      residual options
+% EXPERIMENTAL may carry observationThickness_m: positive current full thickness
+% per original observation, in m. Same-thickness rows share one canonical solve;
+% no thickness interpolation, averaging, rounding or fitted thickness is used.
 %
 % An explicit validMask is fixed: normalization may not deselect invalid data.
 % Explicitly excluded nonpositive/nonfinite frequencies stay in the request
@@ -36,15 +41,76 @@ branchName = lamb.fitting.getFitConfigValue(fitConfig, 'branchName', "A0");
 branchName = string(branchName);
 
 baseParams = lamb.models.rayleigh_lamb.rlDefaultParams();
-baseParams = lamb.fitting.applyParameterOverrides(baseParams, ...
-    lamb.fitting.getFitConfigValue(fitConfig, 'fixedParams', struct()));
-baseParams = lamb.fitting.applyParameterOverrides(baseParams, ...
-    lamb.fitting.getFitConfigValue(fitConfig, 'initialGuess', struct()));
+fixed = lamb.fitting.getFitConfigValue(fitConfig, 'fixedParams', struct());
+% Public fitting requests use unit-qualified SI names. Preserve the existing
+% model's rho/thickness/nu mathematics and legacy solver configurations.
+siNames = ["density_kgpm3", "thickness_m", "poisson_ratio", "mu_Pa", "lambda_Pa"];
+modelNames = ["rho", "thickness", "nu", "mu", "lambda"];
+for j = 1:numel(siNames)
+    publicName = char(siNames(j)); modelName = char(modelNames(j));
+    if isfield(fixed, publicName)
+        assert(~isfield(fixed, modelName), 'lamb:rl:AmbiguousPhysicalInput', ...
+            'Do not mix unit-qualified and legacy names for the same physical input.');
+        fixed.(modelName) = fixed.(publicName);
+        fixed = rmfield(fixed, publicName);
+    end
+end
+baseParams = lamb.fitting.applyParameterOverrides(baseParams, fixed);
+initial = lamb.fitting.getFitConfigValue(fitConfig, 'initialGuess', struct());
+for j = 1:numel(siNames)
+    publicName = char(siNames(j)); modelName = char(modelNames(j));
+    if isfield(initial,publicName)
+        assert(~isfield(initial,modelName),'lamb:rl:AmbiguousPhysicalInput', ...
+            'Do not supply two names for one initial material parameter.');
+        initial.(modelName) = initial.(publicName);
+        initial = rmfield(initial,publicName);
+    end
+end
+baseParams = lamb.fitting.applyParameterOverrides(baseParams, initial);
+
+observationThickness = [];
+if isfield(experimental, 'observationThickness_m')
+    observationThickness = experimental.observationThickness_m;
+    if ~isa(observationThickness, 'double') || ~isvector(observationThickness) || ...
+            numel(observationThickness) ~= numel(experimental.frequency_Hz)
+        error('lamb:rl:ObservationThickness', ...
+            'Observation thickness must be one double in meters per original row.');
+    end
+    observationThickness = observationThickness(:);
+    experimental.observationThickness_m = observationThickness;
+    admissibleThickness = isfinite(experimental.frequency_Hz) & experimental.frequency_Hz > 0;
+    if any(~isfinite(observationThickness(admissibleThickness)) | ...
+            observationThickness(admissibleThickness) <= 0)
+        error('lamb:rl:ObservationThickness', ...
+            'Every positive-frequency observation requires its recorded positive finite thickness.');
+    end
+    % The scalar parameter remains a non-operative reference for existing
+    % material validation/reporting; evaluation uses each observation's h.
+    baseParams.thickness = observationThickness(find(admissibleThickness, 1));
+end
 
 freeParams = string(fitConfig.freeParams(:));
+for j = 1:numel(siNames)
+    freeParams(freeParams==siNames(j))=modelNames(j);
+end
+assert(numel(unique(freeParams))==numel(freeParams), ...
+    'lamb:rl:AmbiguousPhysicalInput','A free parameter cannot be supplied twice.');
+if ~isempty(observationThickness) && any(freeParams == "thickness")
+    error('lamb:rl:ThicknessConflict', ...
+        'Cannot fit a single scalar thickness while using measured per-observation thickness.');
+end
 [x0, parameterInfo] = lamb.fitting.buildParameterVector(baseParams, freeParams);
 
 bounds = lamb.fitting.getFitConfigValue(fitConfig, 'bounds', struct());
+for j = 1:numel(siNames)
+    publicName = char(siNames(j)); modelName = char(modelNames(j));
+    if isfield(bounds,publicName)
+        assert(~isfield(bounds,modelName),'lamb:rl:AmbiguousPhysicalInput', ...
+            'Do not supply two sets of bounds for one material parameter.');
+        bounds.(modelName) = bounds.(publicName);
+        bounds = rmfield(bounds,publicName);
+    end
+end
 [lowerBounds, upperBounds] = lamb.fitting.buildParameterBounds(bounds, freeParams);
 lamb.models.rayleigh_lamb.rlValidateParams(baseParams);
 nuIndex = freeParams == "nu";
@@ -91,7 +157,10 @@ if ~all(admissible) && isempty(suppliedMask)
     error('lamb:rl:InvalidSelectedObservation', ...
         'Nonpositive/nonfinite Hz require explicit validMask=false; exclusions are not inferred.');
 end
-if all(admissible)
+if ~isempty(observationThickness)
+    problem.evaluateModel = @(params) localEvaluateObservationThickness( ...
+        params, frequency, observationThickness, admissible, branchName, solverOptions);
+elseif all(admissible)
     problem.evaluateModel = @(params) lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(params, frequency, branchName, solverOptions);
 else
     problem.evaluateModel = @(params) localEvaluateExcludedRows(params, frequency, admissible, branchName, solverOptions);
@@ -120,6 +189,54 @@ rawResult.validMask = available;
 rawResult.evaluatedObservationMask = admissible;
 % These counts describe prediction availability on the full original axis,
 % including unevaluated exclusions; objective coverage is reported separately.
+rawResult.reliability.ValidFraction = mean(available);
+rawResult.reliability.ValidPoints = nnz(available);
+rawResult.reliability.MissingPoints = nnz(~available);
+end
+
+function [Cp_mps, rawResult] = localEvaluateObservationThickness(params, frequency, thickness, admissible, branch, options)
+% Evaluate exact recorded thickness groups with the same canonical solver.
+% Each group uses its complete original positive-frequency grid and branch.
+n = numel(frequency);
+Cp_mps = nan(n,1); k = Cp_mps; kThickness = Cp_mps; residual = Cp_mps;
+available = false(n,1);
+groupThickness = unique(thickness(admissible),'stable');
+groupResults = repmat(struct('thickness_m',NaN,'observationRows',[], ...
+    'modelResult',[],'diagnostics',[]),numel(groupThickness),1);
+for j = 1:numel(groupThickness)
+    rows = find(admissible & thickness == groupThickness(j));
+    current = params;
+    current.thickness = groupThickness(j);
+    [predicted, native] = lamb.fitting.rayleigh_lamb.rlEvaluateFitModel( ...
+        current, frequency(rows), branch, options);
+    Cp_mps(rows) = predicted;
+    k(rows) = native.k;
+    kThickness(rows) = native.kThickness;
+    residual(rows) = native.residual;
+    available(rows) = native.validMask;
+    groupResults(j) = struct('thickness_m',groupThickness(j), ...
+        'observationRows',rows,'modelResult',native.modelResult, ...
+        'diagnostics',native.diagnostics);
+    if j == 1
+        rawResult = native;
+    end
+end
+rawResult.frequency_Hz = frequency;
+rawResult.Cp_mps = Cp_mps;
+rawResult.omega = 2*pi*frequency;
+rawResult.k = k;
+rawResult.kThickness = kThickness;
+rawResult.residual = residual;
+rawResult.validMask = available;
+rawResult.evaluatedObservationMask = admissible;
+rawResult.observationThickness_m = thickness;
+rawResult.trackingMode = "canonical_public_solver_by_thickness";
+rawResult.geometry = []; % No single geometric thickness describes these solves.
+rawResult.modelResult = []; % Official solver products are retained per group.
+rawResult.modelResultsByThickness = groupResults;
+rawResult.diagnostics = struct('thicknessPolicy',"per_observation_current_thickness", ...
+    'groupCount',numel(groupResults), ...
+    'groupThickness_m',groupThickness);
 rawResult.reliability.ValidFraction = mean(available);
 rawResult.reliability.ValidPoints = nnz(available);
 rawResult.reliability.MissingPoints = nnz(~available);

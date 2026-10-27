@@ -188,6 +188,30 @@ selection.condition.strain_percent=1;
 verifyError(testCase,@() prepareOceQhFitObservations(sources,selection),'lamb:oceQh:ConditionMismatch');
 end
 
+function testRecordedPlateThicknessPreservesQhGroupsAndDirectNativeFit(testCase)
+[sources,selection,physical,review]=fixture();
+% Keep the physical target frequency identity; add varying direction-matched h.
+for j=1:numel(sources)
+    sources(j).scientific_result.borders.directional_mean_thickness_mm(1)=.4+.01*j;
+end
+assembly=prepareOceQhFitObservations(sources,selection);
+assembly.experimental.observationThickness_m=assembly.measuredThickness_m(:);
+physical.thickness_m=assembly.measuredThickness_m(1); % Non-operative native reference.
+review.thicknessPolicy="oce_directional_per_acquisition";
+review.thicknessSource="Recorded per-acquisition signed-direction OCE thickness";
+review.thicknessJustification="Original current full thickness, no aggregation";
+outcome=fitOceQhPrestressedPlate(assembly,physical,review);
+direct=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion( ...
+    assembly.experimental,physical);
+verifyEqual(testCase,outcome.nativeResult,direct);
+verifyEqual(testCase,outcome.nativeResult.experimental.observationThickness_m, ...
+    assembly.measuredThickness_m(:));
+verifyEqual(testCase,outcome.nativeResult.diagnostics.selectedThicknessGroupCount,5);
+changed=assembly;changed.experimental.observationThickness_m(2)=NaN;
+verifyError(testCase,@()fitOceQhPrestressedPlate(changed,physical,review), ...
+    'lamb:oceQh:ThicknessAlignment');
+end
+
 function testExplicitThicknessPolicyAndModelReview(testCase)
 [sources, selection, physical, review] = fixture();
 sources(2).scientific_result.borders.directional_mean_thickness_mm(1) = .61;
@@ -198,7 +222,7 @@ verifyEqual(testCase, outcome.physical.thickness_m, .0005);
 verifyEqual(testCase, outcome.assembly.measuredThickness_m(2), .00061, 'AbsTol', 1e-18);
 bad = review; bad.thicknessJustification = "";
 verifyError(testCase, @() fitOceQhPrestressedPlate(assembly,physical,bad), 'lamb:oceQh:PhysicalReviewRequired');
-bad = review; bad.mode = "S0";
+bad = review; bad.modelBranch = "S0";
 verifyError(testCase, @() fitOceQhPrestressedPlate(assembly,physical,bad), 'lamb:oceQh:PhysicalReviewRequired');
 badPhysical = physical; badPhysical.appliedMass_kg = .1;
 verifyError(testCase, @() fitOceQhPrestressedPlate(assembly,badPhysical,review), 'lamb:oceQh:InvalidPhysicalInputs');
@@ -336,9 +360,9 @@ selection = struct('experimentId',"synthetic",'subexperimentId',"Condition0", ..
     'scanAxisIndex',1,'direction',"left",'curve',"smoothed",'metadataReference',"synthetic AcquisitionParams", ...
     'observations',table((1:5)',repmat(2,5,1),true(5,1), ...
     'VariableNames',{'sourceRow','binIndex','include'}));
-review = struct('mode',"A0",'thicknessPolicy',"explicit_constant_current_thickness", ...
+review = struct('modelBranch',"A0",'thicknessPolicy',"explicit_constant_current_thickness", ...
     'thicknessSource',"Independent synthetic current full-thickness calibration, SI metres.", ...
     'thicknessJustification',"Synthetic homogeneous constant-current-thickness plate.", ...
-    'densityReference',"Synthetic forward-model density.", ...
-    'modelSupportReference',"Synthetic principal propagation, incompressible isotropic plate, traction-free faces.");
+    'densitySource',"Synthetic forward-model density.", ...
+    'modelAssumptionsJustification',"Synthetic principal propagation, incompressible isotropic plate, traction-free faces.");
 end
