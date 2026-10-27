@@ -150,26 +150,8 @@ for sub = chosen(:)'
             sides_to_use = string(directions(:))';
         end
         condition = table2struct(groups(g,mechanical_keys));
-        % Stable, readable IDs derive from exact recorded mechanical values,
-        % not the order in which periods or acquisitions were discovered.
-        condition_parts = strings(size(mechanical_keys));
-        for q = 1:numel(mechanical_keys)
-            key = mechanical_keys(q);
-            value = condition.(key);
-            if isnumeric(value)
-                value = sprintf('%.17g',value);
-            end
-            readable = string(matlab.lang.makeValidName( ...
-                key+"_"+string(value),'ReplacementStyle','underscore'));
-            % Keep IDs readable but discriminate original punctuation and exponents.
-            digest = java.security.MessageDigest.getInstance('SHA-256');
-            digest.update(uint8(unicode2native(char(key+"="+string(value)),'UTF-8')));
-            bytes = typecast(digest.digest(),'uint8');
-            hash = lower(string(reshape(dec2hex(bytes,2)',1,[])));
-            condition_parts(q) = extractBefore(readable,min(strlength(readable)+1,25)) ...
-                +"_"+extractBefore(hash,13);
-        end
-        condition_id = strjoin(condition_parts,"_");
+        % Output identity only; recorded condition values remain unchanged.
+        condition_id = oceInversionConditionId(mechanical_keys,condition);
         for ax = axes_to_use
             for side = sides_to_use
                 assert(ismember(side,["left","right"]), ...
