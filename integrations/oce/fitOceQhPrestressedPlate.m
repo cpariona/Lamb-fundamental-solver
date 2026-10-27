@@ -2,7 +2,7 @@ function outcome = fitOceQhPrestressedPlate(assembly, physical, review, options)
 %FITOCEQHPRESTRESSEDPLATE Coordinate a reviewed scalar or row-thickness A0 request.
 % ASSEMBLY comes from prepareOceQhFitObservations. PHYSICAL contains only
 % density_kgpm3 and current full thickness_m (positive scalar SI values).
-% REVIEW requires mode="A0", thicknessPolicy either
+% REVIEW requires modelBranch="A0", thicknessPolicy either
 % "explicit_constant_current_thickness" or "oce_directional_per_acquisition",
 % thicknessSource, thicknessJustification, densitySource and modelAssumptionsJustification. These
 % nonempty references record the caller's physical review, not inferred physics.
