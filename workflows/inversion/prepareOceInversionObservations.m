@@ -7,6 +7,12 @@ function inputs = prepareOceInversionObservations(study)
 projectRoot=fileparts(fileparts(fileparts(mfilename('fullpath'))));
 if ~isfield(study,'estimator'),study.estimator="kf_ridge";end
 assert(any(study.excitationMode==["QH","Pulse"]),'Select QH or Pulse explicitly.');
+if string(study.fitFrequencySelection)=="all"
+    assert(isfield(study,'fullBandReviewed') && ...
+        isequal(study.fullBandReviewed,true), ...
+        'lamb:study:BandReview', ...
+        'Using all frequencies requires explicit researcher approval.');
+end
 assert(isscalar(string(study.experimentId))&&strlength(study.experimentId)>0);
 assert(isscalar(string(study.sampleId))&&strlength(study.sampleId)>0);
 assert(~isempty(fieldnames(study.condition)),'Supply the mechanical condition explicitly.');
