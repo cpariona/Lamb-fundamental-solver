@@ -19,6 +19,7 @@ study.estimator = "kf_ridge";
 study.curve = "raw";       % "raw" | "smoothed"
 study.fitFrequencySelection = "all"; % "all" | "interval" | "explicit"
 study.fitFrequency_Hz = [];  % Hz: [low high] or physical requested frequencies
+study.fullBandReviewed = false; % Set true only after reviewing the full fitted band
 
 % Plate A0 native physical inputs (SI); OCE source thickness is per row.
 % The scalar thickness_m is a non-operative reference under the OCE policy.
