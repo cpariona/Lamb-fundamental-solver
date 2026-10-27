@@ -168,6 +168,7 @@ if iscell(result)
     end
     return
 end
+provenance=normalizeInverseProvenance(provenance);
 if result.model~="acoustoelastic_prestressed_plate"
     error('lamb:visualization:UnsupportedResult','Use the native prestressed-plate result.');
 end
