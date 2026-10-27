@@ -111,7 +111,7 @@ The ordinary Lamb `startup` intentionally excludes `workflows/`.
 | `experimentRoot`, `summaryFile` | OCE root and persisted MAT containing `experiment`; OCE owns recovery. |
 | `experimentId`, `subexperimentId`, `sampleId`, `conditionId`, `condition` | Explicit identities and scalar mechanical condition entries: literal text for stored text, exact doubles for stored doubles. No folder-name inference or cross-type coercion. |
 | `excitationMode`, `period_us`, `repetitions`, `scanAxisIndex`, `direction`, `curve` | QH/Pulse, literal Pulse period, repetition labels, signed direction and an existing raw/smoothed curve. |
-| `fitFrequencySelection`, `fitFrequency_Hz` | `all`, inclusive observed-Hz `interval=[low high]`, or `explicit` nominal requests mapped to original observations. No nearest-valid repair or interpolation. |
+| `fitFrequencySelection`, `fitFrequency_Hz`, `fullBandReviewed` | `all` requires an explicit `fullBandReviewed=true` acknowledgement in both manual and batch workflows; `interval=[low high]` and `explicit` select reviewed observed/nominal Hz. This acknowledgement does not validate any source-quality row. No nearest-valid repair or interpolation. |
 | `physical`, `review` | Native Plate density and explicit A0/thickness/density/support review; default direction-matched OCE current full thickness per original row, optional reviewed scalar alternative. |
 | `fitOptions` | Native options, forwarded unchanged. Empty options reuse a supplied result's effective settings; a new request otherwise uses native defaults. |
 | `existingNativeResult`, `existingAssembly`, `resultFile`, `reuseOnly` | Approved native objects or a MAT with `nativeResult` and `assembly`. Default `reuseOnly=true` rejects changed requests before fitting. |
@@ -339,12 +339,19 @@ No automatic bandwidth optimization, robust outlier rejection, parameter
 retuning, source-quality repair, modal identification or QH+Pulse pooling is
 implemented. The batch refuses an unreviewed frequency-selection field and
 requires a specific `fullBandReviewed=true` acknowledgement for `all`.
+The same acknowledgement is required by manual MATLAB Editor workflows at
+the shared observation-preparation boundary.
 A read-only batch plan is the default; enabling `plan.execute=true` authorizes
 native fitting. Output MAT, FIG and TIF are independently controlled. With
 `plan.reuseOnly=true`, an existing exact-match `inversion.mat` is reused
 read-only and is not rewritten; its recorded input-file hashes must match the
-current sources. Figure destinations remain non-overwritable. Any historic
-`studyRecord.selection` naming is normalized in the returned record only.
+current sources. Reused MAT and newly exported figures must also retain the
+same researcher-supplied scientific `review` (after read-only legacy name
+normalization). Changed scientific hypotheses require a separately reviewed
+output tag, or presentation explicitly disconnected from the saved MAT
+(`saveResult=false`). Numerical equality alone does not authorize changing
+archived scientific claims. Figure destinations remain non-overwritable. Any
+historic `studyRecord.selection` naming is normalized in the returned record only.
 Legacy visualization `modelSupportReference` and prior review-source labels
 are accepted at a read-only provenance boundary, not rewritten into older MATs.
 The derived `review` must remain separate from editable `study.review` so
