@@ -120,6 +120,9 @@ verifyEqual(testCase,load(study.resultFile,'studyRecord','nativeResult'),origina
 verifyEqual(testCase,dir(study.resultFile).bytes,savedTime.bytes);
 verifyError(testCase,@()persistOceInversionStudy(study,inputs,nativeResult,physical, ...
     review,false,projectRoot,"Plate"),'lamb:study:OutputExists');
+changedNative=nativeResult;changedNative.unreviewedValue=42;
+verifyError(testCase,@()persistOceInversionStudy(study,inputs,changedNative,physical, ...
+    review,true,projectRoot,"Plate"),'lamb:study:HistoricalNativeMismatch');
 verifyFalse(testCase,isfield(record.selection,'experimentRoot'));
 verifyFalse(testCase,isfield(record.code.Lamb,'root'));
 verifyFalse(testCase,isfield(record.code.OCE,'root'));
