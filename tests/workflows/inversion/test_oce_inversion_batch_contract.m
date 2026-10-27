@@ -3,6 +3,15 @@ function tests=test_oce_inversion_batch_contract()
 tests=functiontests(localfunctions);
 end
 
+function testManualFullBandRequiresExplicitApproval(testCase)
+study=struct('excitationMode',"Pulse",'fitFrequencySelection',"all");
+verifyError(testCase,@()prepareOceInversionObservations(study), ...
+    'lamb:study:BandReview');
+study.fullBandReviewed=false;
+verifyError(testCase,@()prepareOceInversionObservations(study), ...
+    'lamb:study:BandReview');
+end
+
 function testRecordedConditionIdentityDoesNotCollideUnderSanitization(testCase)
 keys = "strain_percent";
 plus = struct('strain_percent',"1.5e+01");
@@ -102,7 +111,8 @@ inputs=struct('inputHashes',hashes.inputFiles,'assembly', ...
 nativeResult=struct('experimental',inputs.assembly.experimental, ...
     'sourceReference',string(source));
 physical=struct('density_kgpm3',1050,'thickness_m',.0005);
-review=struct('modelBranch',"A0");
+review=struct('modelBranch',"A0", ...
+    'modelAssumptionsJustification',"Synthetic A0 review");
 study.fullBandReviewed=true;
 record=persistOceInversionStudy(study,inputs,nativeResult,physical, ...
     review,false,projectRoot,"Plate");
@@ -123,6 +133,23 @@ verifyError(testCase,@()persistOceInversionStudy(study,inputs,nativeResult,physi
 changedNative=nativeResult;changedNative.unreviewedValue=42;
 verifyError(testCase,@()persistOceInversionStudy(study,inputs,changedNative,physical, ...
     review,true,projectRoot,"Plate"),'lamb:study:HistoricalNativeMismatch');
+% Native data are reusable, but new scientific claims cannot be attached to
+% the original MAT or to a new figure pointing to that MAT.
+changedReview=review;
+changedReview.modelAssumptionsJustification="Different experimental hypothesis";
+verifyError(testCase,@()persistOceInversionStudy(study,inputs,nativeResult,physical, ...
+    changedReview,true,projectRoot,"Plate"), ...
+    'lamb:study:ScientificReviewMismatch');
+study.showFigure=true;
+verifyError(testCase,@()renderOceInversionStudy(study,struct(), ...
+    nativeResult,changedReview,"Plate"),'lamb:study:ScientificReviewMismatch');
+verifyEqual(testCase,load(study.resultFile,'studyRecord','nativeResult'),original);
+verifyEqual(testCase,dir(study.resultFile).bytes,savedTime.bytes);
+% Different historic field names are accepted only when their meanings agree.
+legacyReview=struct('modelBranch',"A0", ...
+    'modelSupportReference',review.modelAssumptionsJustification);
+assertOceInversionReviewMatch(legacyReview,review);
+study.showFigure=false;
 verifyFalse(testCase,isfield(record.selection,'experimentRoot'));
 verifyFalse(testCase,isfield(record.code.Lamb,'root'));
 verifyFalse(testCase,isfield(record.code.OCE,'root'));
