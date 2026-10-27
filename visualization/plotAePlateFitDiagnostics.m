@@ -325,7 +325,7 @@ try
             'LineStyle','none','DisplayName','Excluded from fit','Tag','excluded_observations');
     end
     % Flagged extensions remain full arrays in FIG, never a connected curve.
-    extensionGlyphs(ax,f/1e3,cp,finite&extensions,showExtensions,'excluded_extensions');
+    extensionGlyphs(ax,f/1e3,cp,finite&extensions&displayRows,showExtensions,'excluded_extensions');
     labels=unique(repetition(included),'stable');
     colors=[.16 .40 .68;.75 .37 .06;.48 .30 .64];markers={'o','s','d'};
     for k=1:numel(labels)
@@ -373,7 +373,7 @@ try
         plot(ax,etaDisplay(rows),y(rows),'x','Color',[.8 .12 .12], ...
             'MarkerSize',4,'LineStyle','none','Tag','excluded_regression_display');
     end
-    extensionGlyphs(ax,etaDisplay,y,visibleRegression&extensions,showExtensions,'excluded_regression_extensions');
+    extensionGlyphs(ax,etaDisplay,y,visibleRegression&extensions&displayRows,showExtensions,'excluded_regression_extensions');
     for k=1:numel(labels)
         rows=included&visibleRegression&displayRows&repetition==labels(k);style=mod(k-1,3)+1;
         plotRows(ax,etaDisplay(rows),y(rows),markers{style},colors(style,:), ...
