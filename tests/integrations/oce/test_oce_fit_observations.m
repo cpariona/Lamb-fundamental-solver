@@ -60,10 +60,25 @@ fid=fopen(study.resultFile,'rb');
 assert(fid>=0);closeFile=onCleanup(@()fclose(fid));
 verifyEqual(testCase,fread(fid,inf,'*uint8'),savedBytes);
 clear closeFile;
-% An unapproved fresh fit may not overwrite the already saved result.
+% reuseOnly=false permits a fresh fit on mismatch; it does not force refitting
+% an exact, already archived native result. The original MAT remains unchanged.
 study.reuseOnly=false;
-verifyError(testCase,@()runRlStudySections(study,assembly,record.inputFiles), ...
+same=runRlStudySections(study,assembly,record.inputFiles);
+verifyTrue(testCase,same.reusedResult);
+verifyEqual(testCase,same.nativeResult,out.nativeResult);
+fid=fopen(study.resultFile,'rb');
+assert(fid>=0);closeFile=onCleanup(@()fclose(fid));
+verifyEqual(testCase,fread(fid,inf,'*uint8'),savedBytes);
+clear closeFile;
+% A different reviewed fitting request must never replace that saved MAT.
+changedStudy=study;
+changedStudy.fitConfig.bounds.mu=[40e3 130e3];
+verifyError(testCase,@()runRlStudySections(changedStudy,assembly,record.inputFiles), ...
     'lamb:study:OutputExists');
+fid=fopen(study.resultFile,'rb');
+assert(fid>=0);closeFile=onCleanup(@()fclose(fid));
+verifyEqual(testCase,fread(fid,inf,'*uint8'),savedBytes);
+clear closeFile;
 study.reuseOnly=true;
 study.outputTag="changed-input";study=resolveOceInversionPaths(study,"RayleighLamb");
 study.existingNativeResult=out.nativeResult;
