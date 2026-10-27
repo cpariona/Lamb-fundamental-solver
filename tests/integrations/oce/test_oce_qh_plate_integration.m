@@ -222,7 +222,7 @@ verifyEqual(testCase, outcome.physical.thickness_m, .0005);
 verifyEqual(testCase, outcome.assembly.measuredThickness_m(2), .00061, 'AbsTol', 1e-18);
 bad = review; bad.thicknessJustification = "";
 verifyError(testCase, @() fitOceQhPrestressedPlate(assembly,physical,bad), 'lamb:oceQh:PhysicalReviewRequired');
-bad = review; bad.mode = "S0";
+bad = review; bad.modelBranch = "S0";
 verifyError(testCase, @() fitOceQhPrestressedPlate(assembly,physical,bad), 'lamb:oceQh:PhysicalReviewRequired');
 badPhysical = physical; badPhysical.appliedMass_kg = .1;
 verifyError(testCase, @() fitOceQhPrestressedPlate(assembly,badPhysical,review), 'lamb:oceQh:InvalidPhysicalInputs');
