@@ -115,7 +115,7 @@ verifyEqual(testCase,report.report.status,"failed");
 verifyTrue(testCase,isfile(report.report.failureRecordFile));
 saved=load(report.report.failureRecordFile,'failureRecord');
 verifyEqual(testCase,saved.failureRecord.errorId,"lamb:study:OceRepository");
-verifyEqual(testCase,saved.failureRecord.request.frequency_Hz,c.fitFrequency_Hz);
+verifyEqual(testCase,saved.failureRecord.request.fitFrequency_Hz,c.fitFrequency_Hz);
 verifyFalse(testCase,isfield(saved.failureRecord.request,'experimentRoot'));
 verifyFalse(testCase,contains(string(saved.failureRecord.errorMessage),string(root)));
 verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
