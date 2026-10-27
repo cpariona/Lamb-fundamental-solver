@@ -4,16 +4,14 @@ fig=[];figureEvidence=struct();figurePaths=struct();
 if ~study.showFigure,return;end
 experimental=inputs.assembly.experimental;
 r=inputs.observationReview;
-graphicHz=[];
+displayRows=[];
 if study.excitationMode=="Pulse"
     mapping=inputs.graphicSamplingMapping;
-    graphicHz=unique(mapping.observedFrequency_Hz(isfinite(mapping.observedFrequency_Hz)));
-    expected=experimental.validMask & ismember( ...
-        [r.sourceIndex,r.sourceBinIndex], ...
+    % Row identities, not shared floating-point Hz, own Pulse glyph selection.
+    displayRows=ismember([r.sourceIndex,r.sourceBinIndex], ...
         [mapping.sourceIndex,mapping.sourceBinIndex],'rows');
-    assert(isequal(experimental.validMask & ...
-        ismember(experimental.frequency_Hz,graphicHz),expected), ...
-        'lamb:study:GraphicMapping','Graphic frequency bins collide across source grids.');
+    assert(numel(displayRows)==numel(experimental.frequency_Hz), ...
+        'lamb:study:GraphicMapping','Graphic rows must align with source observations.');
 end
 label=string(study.displayLabel);
 if strlength(strtrim(label))==0
@@ -41,7 +39,7 @@ if ~isfield(study,'figureVisible')||study.figureVisible
 end
 if family=="RayleighLamb"
     [fig,figureEvidence]=plotRlFitDiagnostics(nativeResult,provenance, ...
-        'DisplayFrequency_Hz',graphicHz,'Visible',visible);
+        'DisplayObservationMask',displayRows,'Visible',visible);
 else
     provenance.sourceMasks=struct('valid_mask',r.ridgeValid, ...
         'interpolated_mask',r.interpolated,'extrapolated_mask',r.extrapolated);
