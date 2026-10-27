@@ -9,7 +9,7 @@ study.summaryFile = "";     % Optional root-relative override; default Results/<
 study.experimentId = "";
 study.subexperimentId = "";
 study.sampleId = "";
-study.mode = "Pulse";       % "Pulse" | "QH"
+study.excitationMode = "Pulse";       % "Pulse" | "QH"
 study.period_us = "";       % Literal saved Pulse period; "" for QH
 study.repetitions = ["1","2","3"];
 study.conditionId = "";     % Reviewed condition label; not inferred from folder
@@ -18,8 +18,8 @@ study.scanAxisIndex = 1;
 study.direction = "left";   % "left" | "right" along scan axis
 study.estimator = "kf_ridge"; % QH may use recorded "phase_gradient"
 study.curve = "raw";        % k-f: "raw" | "smoothed"
-study.frequencySelection = "all"; % "all" | "interval" | "explicit"
-study.frequency_Hz = [];   % [low high] for interval; nominal Hz for explicit
+study.fitFrequencySelection = "all"; % "all" | "interval" | "explicit"
+study.fitFrequency_Hz = [];   % [low high] for interval; nominal Hz for explicit
 study.observationMask = []; % [] retains documented source-quality selection
 study.thicknessPolicy = "oce_directional_per_acquisition"; % or "explicit_constant"
 
@@ -28,12 +28,11 @@ study.thicknessPolicy = "oce_directional_per_acquisition"; % or "explicit_consta
 % With OCE thickness enabled, recorded directional measurements replace the
 % placeholder thickness; an explicit constant is available for other studies.
 study.fitConfig = struct( ...
-    'branchName', "A0", 'freeParams', "mu", ...
+    'branchName', "A0", 'freeParams', "mu_Pa", ...
     'fixedParams', struct('density_kgpm3', NaN, 'thickness_m', NaN, 'poisson_ratio', NaN), ...
-    'initialGuess', struct('mu', NaN), ...
-    'bounds', struct('mu', [NaN NaN]));
+    'initialGuess', struct('mu_Pa', NaN), ...
+    'bounds', struct('mu_Pa', [NaN NaN]));
 study.review = struct( ...
-    'modelBranch', "A0", ...
     'thicknessSource', "", 'thicknessJustification', "", ...
     'densitySource', "", 'fitParameterJustification', "", ...
     'modelAssumptionsJustification', "");
@@ -46,7 +45,7 @@ study.exportFigure = false;
 study.resultFile = "";
 study.existingNativeResult = [];
 study.existingAssembly = [];
-study.graphicRequestedFrequency_Hz = []; % Pulse plot only; not fitting mask
+study.plotTargetFrequency_Hz = []; % Pulse plot only; not fitting mask
 study.displayLabel = "";
 study.displaySubtitle = "";
 study.figureFolder = "";
