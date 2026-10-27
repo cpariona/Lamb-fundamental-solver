@@ -90,7 +90,7 @@ function testPortableInversionManifestAndUntouchedNativePayload(testCase)
 root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 source=fullfile(root,"Results","Stretch_1p00000","summary.mat");
 mkdir(fileparts(source));values=(1:5)';save(source,'values');
-projectRoot=testRepositoryRoot(mfilename('fullpath'));
+projectRoot=fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
 hashes=oceInversionProvenance(source,projectRoot);
 study=resolveOceInversionPaths(baseCase(root,"Stretch_1p00000"),"Plate");
 study.saveResult=true;study.showFigure=false;
