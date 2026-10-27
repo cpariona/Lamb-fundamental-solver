@@ -58,7 +58,7 @@ for j = 1:numel(siNames)
 end
 baseParams = lamb.fitting.applyParameterOverrides(baseParams, fixed);
 initial = lamb.fitting.getFitConfigValue(fitConfig, 'initialGuess', struct());
-for j = 4:numel(siNames)
+for j = 1:numel(siNames)
     publicName = char(siNames(j)); modelName = char(modelNames(j));
     if isfield(initial,publicName)
         assert(~isfield(initial,modelName),'lamb:rl:AmbiguousPhysicalInput', ...
