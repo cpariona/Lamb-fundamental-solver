@@ -203,6 +203,54 @@ verifyEqual(testCase,reviewAgain,review);
 verifyEqual(testCase,review.modelBranch,"A0");
 end
 
+function testNativePlateReuseNeedsExactObservations(testCase)
+root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
+physical=struct('density_kgpm3',1050,'thickness_m',.001);
+params=physical;params.alpha_Pa=300000;params.gamma_Pa=150000;
+frequencies=[1000;2000;3000;4000];
+model=lamb.models.acoustoelastic_prestressed_plate.aePlateSolveDispersion(frequencies,params);
+experimental=struct('frequency_Hz',frequencies, ...
+    'Cp_mps',model.phaseVelocity_mps,'validMask',true(4,1), ...
+    'conditionId',"reviewed",'directionId',"axis1:left");
+nativeResult=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(experimental,physical);
+assembly=struct('experimental',experimental, ...
+    'sourceResultFiles',"synthetic/PhaseSpeed.mat");
+filename=fullfile(root,'inversion.mat');
+save(filename,'nativeResult','assembly');
+study=struct('existingNativeResult',[],'existingAssembly',[], ...
+    'resultFile',string(filename),'reuseOnly',true, ...
+    'excitationMode',"Pulse",'fitOptions',struct());
+[out,reused]=fitOceInversionNative(study,assembly,experimental,physical, ...
+    struct(),"synthetic/PhaseSpeed.mat","Plate");
+verifyTrue(testCase,reused);
+verifyEqual(testCase,out,nativeResult);
+changed=experimental;changed.validMask(1)=false;
+verifyError(testCase,@()fitOceInversionNative(study,assembly,changed,physical, ...
+    struct(),"synthetic/PhaseSpeed.mat","Plate"),'lamb:study:RequestMismatch');
+end
+
+function testBatchReuseDoesNotOverwriteSavedResult(testCase)
+[root,oceRoot,cleanup]=presentationFailureFixture(); %#ok<ASGLU>
+c=baseCase(root,"Stretch_1p00000");
+c.excitationMode="QH";c.period_us="";
+c.conditionId="reuse_saved";c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
+c.review=struct();
+plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
+    'cases',c,'execute',true,'exportFigure',false,'saveResult',true, ...
+    'continueOnError',false,'reuseOnly',false);
+first=runOceInversionBatch(plan,"Plate");
+verifyEqual(testCase,first.report.status,"completed");
+file=first.report.resultFile(1);
+fid=fopen(file,'rb');before=fread(fid,inf,'*uint8');fclose(fid);
+plan.reuseOnly=true;
+second=runOceInversionBatch(plan,"Plate");
+fid=fopen(file,'rb');after=fread(fid,inf,'*uint8');fclose(fid);
+verifyEqual(testCase,second.report.status,"completed");
+verifyTrue(testCase,second.results{1}.reusedResult);
+verifyEqual(testCase,after,before);
+verifyEqual(testCase,second.results{1}.studyRecord,first.results{1}.studyRecord);
+end
+
 function testPlateUsesAllSelectedMeasuredThicknessRows(testCase)
 source=baseCase("unused","Stretch_1p00000");
 source.estimator="kf_ridge";
@@ -365,7 +413,7 @@ writeFixtureFunction(fullfile(mock,'reviewOceInversionPhysics.m'),[ ...
 writeFixtureFunction(fullfile(mock,'fitOceInversionNative.m'),[ ...
     "function [native,reused,physics]=fitOceInversionNative(study,assembly,data,physics,varargin)", ...
     "native=struct('validMask',data.validMask,'regressionRMSE_Pa',12,'accepted',false);", ...
-    "reused=false;", "end"]);
+    "reused=study.reuseOnly && isfile(study.resultFile);", "end"]);
 writeFixtureFunction(fullfile(mock,'renderOceInversionStudy.m'),[ ...
     "function [fig,evidence,paths]=renderOceInversionStudy(study,varargin)", ...
     "if study.conditionId==""initial"",error('lamb:test:ExportFailure','Injected export failure');end", ...
