@@ -25,9 +25,13 @@ addParameter(p,'RegressionLimits',[],@isnumeric);
 addParameter(p,'ResidualLimits',[],@isnumeric);
 addParameter(p,'DisplayFrequency_Hz',[],@(x) isnumeric(x)&&isreal(x)&& ...
     (isempty(x)||(isvector(x)&&all(isfinite(x))&&all(x>0))));
+addParameter(p,'DisplayObservationMask',[],@(v) isempty(v)||islogical(v));
 addParameter(p,'Visible','on',@(x) any(string(x)==["on","off"]));
 parse(p,varargin{:});
 if iscell(result)
+    assert(isempty(p.Results.DisplayObservationMask), ...
+        'lamb:visualization:DisplayMask', ...
+        'Use per-result views for acquisition-aligned display masks.');
     assert(iscell(provenance)&&numel(result)==numel(provenance), ...
         'lamb:visualization:RepetitionProvenance','Provide provenance for every native result.');
     for k=2:numel(result)
@@ -180,6 +184,11 @@ if ~isempty(p.Results.DisplayFrequency_Hz)
     % Exact saved bins only: missing/excluded bins are never replaced.
     displayRows=ismember(f,p.Results.DisplayFrequency_Hz);
 end
+if ~isempty(p.Results.DisplayObservationMask)
+    validateattributes(p.Results.DisplayObservationMask,{'logical'}, ...
+        {'vector','numel',n});
+    displayRows=displayRows & p.Results.DisplayObservationMask(:);
+end
 ridgeInvalid=false(n,1); interpolated=false(n,1); extrapolated=false(n,1);
 hasRidge=false;
 if isfield(provenance,'sourceMasks')
@@ -281,7 +290,7 @@ if string(p.Results.DisplayMode)=="complete" && isempty(p.Results.RegressionLimi
     [regressionLimits,regressionDisplay]=resolveInversePhaseSpeedLimits([y;fitY],'Quantity',"regression");
 end
 evidence.regressionDisplay=regressionDisplay;evidence.residualDisplay=residualDisplay;
-if ~isempty(p.Results.DisplayFrequency_Hz)
+if ~isempty(p.Results.DisplayFrequency_Hz) || ~isempty(p.Results.DisplayObservationMask)
     evidence.displayFrequency_Hz=p.Results.DisplayFrequency_Hz(:);
     evidence.displayedObservationMask=included&displayRows;
 end
