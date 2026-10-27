@@ -20,6 +20,7 @@ study.estimator = "kf_ridge"; % QH may use recorded "phase_gradient"
 study.curve = "raw";        % k-f: "raw" | "smoothed"
 study.fitFrequencySelection = "all"; % "all" | "interval" | "explicit"
 study.fitFrequency_Hz = [];   % [low high] for interval; nominal Hz for explicit
+study.fullBandReviewed = false; % Set true only after reviewing the full fitted band
 study.observationMask = []; % [] retains documented source-quality selection
 study.thicknessPolicy = "oce_directional_per_acquisition"; % or "explicit_constant"
 
