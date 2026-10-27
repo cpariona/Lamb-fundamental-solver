@@ -140,9 +140,12 @@ residuals and RMSE use the complete fixed fitting mask.
 Acquisition, repetition and source-bin identity remain available in the assembly.
 
 `DisplayFrequency_Hz` optionally selects exact stored frequencies for glyphs in
-all three panels; it never changes fitting masks or native diagnostics. The study
-uses compatible OCE sampling indices, or original bins selected from explicit
-graphic targets before checking validity. Missing/excluded bins remain absent.
+all three panels; `DisplayObservationMask` accepts one logical value per original
+native result row for acquisition-aligned presentation. Both operate on glyphs,
+never on fitting masks or native diagnostics. The human Pulse workflow selects
+source-specific original bin rows using `sourceIndex` and `sourceBinIndex`;
+identical observed Hz in different source grids do not select unrelated rows.
+Missing/excluded bins remain absent.
 No nearest-valid repair, interpolation or experimental extension is performed.
 
 The approved diagnostic uses blue/orange/purple repetition symbols, simple
