@@ -377,6 +377,20 @@ layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
 verifySubstring(testCase,string(layout.XLabel.String{2}),"per observation");
 end
 
+function testSourceAlignedPulseGlyphMaskAndHistoricReview(testCase)
+[native,review]=fixture(); before=native;
+review.modelSupportReference=review.modelAssumptionsJustification;
+review=rmfield(review,'modelAssumptionsJustification');
+rows=false(numel(native.validMask),1);rows([1,3])=true;
+[fig,e]=plotAePlateFitDiagnostics(native,review, ...
+    'DisplayObservationMask',rows,'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,native,before);
+verifyEqual(testCase,e.observations.included,native.validMask);
+verifyEqual(testCase,e.displayedObservationMask,native.validMask & rows);
+verifyEqual(testCase,e.provenance.modelAssumptionsJustification,review.modelSupportReference);
+end
+
 function [native,review]=fixture()
 physical=struct('alpha_Pa',300000,'gamma_Pa',150000,'density_kgpm3',1070,'thickness_m',0.001);
 f=[100;1000;3000;8000];
