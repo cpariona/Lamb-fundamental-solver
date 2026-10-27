@@ -50,35 +50,24 @@ reused=runRlStudySections(study,assembly);
 verifyTrue(testCase,reused.reusedResult);verifyEqual(testCase,reused.nativeResult,out.nativeResult);
 study.saveResult=true;
 % Reusing an exact saved native result is read-only; do not replace the MAT.
-fid=fopen(study.resultFile,'rb');
-assert(fid>=0);closeFile=onCleanup(@()fclose(fid));
-savedBytes=fread(fid,inf,'*uint8');clear closeFile;
+savedBytes=readFileBytes(study.resultFile);
 same=runRlStudySections(study,assembly,record.inputFiles);
 verifyTrue(testCase,same.reusedResult);
 verifyEqual(testCase,same.nativeResult,out.nativeResult);
-fid=fopen(study.resultFile,'rb');
-assert(fid>=0);closeFile=onCleanup(@()fclose(fid));
-verifyEqual(testCase,fread(fid,inf,'*uint8'),savedBytes);
-clear closeFile;
+verifyEqual(testCase,readFileBytes(study.resultFile),savedBytes);
 % reuseOnly=false permits a fresh fit on mismatch; it does not force refitting
 % an exact, already archived native result. The original MAT remains unchanged.
 study.reuseOnly=false;
 same=runRlStudySections(study,assembly,record.inputFiles);
 verifyTrue(testCase,same.reusedResult);
 verifyEqual(testCase,same.nativeResult,out.nativeResult);
-fid=fopen(study.resultFile,'rb');
-assert(fid>=0);closeFile=onCleanup(@()fclose(fid));
-verifyEqual(testCase,fread(fid,inf,'*uint8'),savedBytes);
-clear closeFile;
+verifyEqual(testCase,readFileBytes(study.resultFile),savedBytes);
 % A different reviewed fitting request must never replace that saved MAT.
 changedStudy=study;
 changedStudy.fitConfig.bounds.mu=[40e3 130e3];
 verifyError(testCase,@()runRlStudySections(changedStudy,assembly,record.inputFiles), ...
     'lamb:study:OutputExists');
-fid=fopen(study.resultFile,'rb');
-assert(fid>=0);closeFile=onCleanup(@()fclose(fid));
-verifyEqual(testCase,fread(fid,inf,'*uint8'),savedBytes);
-clear closeFile;
+verifyEqual(testCase,readFileBytes(study.resultFile),savedBytes);
 study.reuseOnly=true;
 study.outputTag="changed-input";study=resolveOceInversionPaths(study,"RayleighLamb");
 study.existingNativeResult=out.nativeResult;
@@ -613,4 +602,12 @@ selection = struct('directionIndex', 1, 'estimator', "kf_ridge", 'curve', "smoot
 metadata = struct('conditionId', "synthetic_state", 'repetitionId', 1, ...
     'loadingCondition', struct('label', "explicit synthetic state"), ...
     'sourceResultFile', "synthetic/PhaseSpeed.mat", 'metadataReference', "synthetic log row 1");
+end
+
+function bytes=readFileBytes(filename)
+% Return bytes with a scoped file handle; onCleanup closes it on exit/errors.
+fid=fopen(filename,'rb');
+assert(fid>=0,'lamb:test:UnreadableMat','Cannot read saved inversion MAT.');
+closeFile=onCleanup(@()fclose(fid)); %#ok<NASGU>
+bytes=fread(fid,inf,'*uint8');
 end
