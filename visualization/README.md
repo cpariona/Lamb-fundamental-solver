@@ -178,7 +178,7 @@ results retain the existing forward curve and scale behavior.
 
 `plotRlFitDiagnostics(result, provenance, 'Visible', 'on')` consumes the complete
 native `rlFitDispersionData` result for A0 or S0. It does not call a fitter,
-forward solver or OCE loader. Supply the same nonempty label/material/source/support
+forward solver or OCE loader. Supply the same nonempty label/material/source/assumptions
 provenance fields as for Plate, optionally with one literal `repetitionId` per
 original row and a concise `displaySubtitle`. The support note is caller-supplied;
 optimizer termination and local sensitivity never become physical acceptance.
