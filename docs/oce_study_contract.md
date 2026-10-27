@@ -126,7 +126,7 @@ correspondences; otherwise it selects the nearest bin on each complete original
 axis before applying quality. Excluded bins are never replaced by nearby valid
 ones. Requests outside an original Pulse axis are unmapped, not clamped to an end;
 unrecorded QH physical frequencies likewise select nothing.
-`fitFrequencySelectionMapping` retains source/repetition, requested Hz, observed Hz,
+`frequencySelectionMapping` retains source/repetition, requested Hz, observed Hz,
 original source-bin index, quality and mapping origin, including unmapped requests.
 It is retained in the workspace and with newly saved study results. Multiple
 requests selecting one bin never duplicate that fitting row.
@@ -229,7 +229,7 @@ graphic masks are checked against the renderer's exact-Hz selection; incompatibl
 grids require review instead of silently selecting additional rows. All numerical
 diagnostics and acceptance still describe the complete fixed fitting request.
 
-Workspace outputs include `fitFrequencySelectionMapping`, `assembly`, `observationReview`, `nativeResult`, `reusedResult`
+Workspace outputs include `frequencySelectionMapping`, `assembly`, `observationReview`, `nativeResult`, `reusedResult`
 and, when requested, `fig`/`figureEvidence`. This study is Plate only. RL, mRLFE and
 IOP/HGO retain their model-specific direct APIs and scientific requirements.
 
@@ -260,7 +260,7 @@ RL uses the common selection fields above plus:
 | `observationMask` | Empty uses the existing source-quality/frequency policy. A supplied logical vector is the exact original-row mask and must respect frequency selection. Invalid selected values are rejected, never repaired; original ridge flags remain separate evidence. |
 | `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI. A scalar `fixedParams.thickness` is used only under `explicit_constant`; under the OCE policy the native problem uses `experimental.observationThickness_m`. |
 | `thicknessPolicy` | Default `oce_directional_per_acquisition`: one source-recorded current full directional thickness per observation (QH acquisition/nominal frequency; Pulse acquisition/repetition repeated over its original bins). `explicit_constant` retains reviewed scalar thickness. Missing nonpositive-frequency measurements are tolerated; missing thickness at any positive-frequency observation blocks the request. |
-| `review` | Explicit `mode`, `thicknessSource`, `thicknessJustification`, `densitySource`, `fitParameterJustification` and `modelAssumptionsJustification`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. In the OCE thickness policy, source/justification are set to the actual recorded measurement policy. |
+| `review` | Derived `modelBranch`, `thicknessSource`, `thicknessJustification`, `densitySource`, `fitParameterJustification` and `modelAssumptionsJustification`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. In the OCE thickness policy, source/justification are set to the actual recorded measurement policy. |
 
 The current full thickness comes from the already selected OCE signed direction
 (`borders.directional_mean_thickness_mm`, converted to meters). QH retains a
