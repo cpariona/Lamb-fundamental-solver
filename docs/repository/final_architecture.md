@@ -33,6 +33,20 @@ owned by their scientific families; changing them requires a separately
 validated migration of their consumers and historic results. The RL public
 fitting boundary accepts canonical `fixedParams` names, translates only there,
 and rejects simultaneous canonical and legacy names for one quantity.
+
+
+Human inversion contracts separate (1) material properties and current geometry
+in SI, (2) researcher-supplied acquisition choices and model-assumption
+justifications, and (3) automatically computed numerical coverage, acceptance
+and identifiability. The `modelAssumptionsJustification` statement is not a
+numerical support diagnostic. `excitationMode` selects QH/Pulse while the
+model's `branchName` selects A0/S0; effective `review.modelBranch` and
+`review.thicknessPolicy` are derived from those reviewed inputs, never competing
+settings. `fitFrequencySelection`/`fitFrequency_Hz` define fitting eligibility;
+`plotTargetFrequency_Hz` only requests Pulse display bins; `fullBandReviewed`
+acknowledges a full fitting range but never overrides source-quality masks.
+Unit-qualified `mu_Pa` is accepted at the public RL fit request boundary and
+translated without modifying the solver's native `mu` result.
 No numeric unit conversion or material-state inference is performed.
 
 The model families are `rayleigh_lamb`, `mrlfe`, `acoustoelastic_iop_hgo`, and
