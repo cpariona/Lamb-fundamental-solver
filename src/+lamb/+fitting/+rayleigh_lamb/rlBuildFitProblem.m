@@ -2,14 +2,13 @@ function problem = rlBuildFitProblem(experimental, fitConfig)
 %RLBUILDFITPROBLEM Build a Rayleigh-Lamb dispersion fitting problem.
 %
 % Required fitConfig fields:
-%   freeParams
+%   freeParams      e.g. "mu_Pa" (SI) or legacy solver "mu"
 %
 % Optional fitConfig fields:
 %   branchName      default "A0"
 %   fixedParams     density_kgpm3 (kg/m^3), thickness_m (full current m),
 %                   poisson_ratio (dimensionless); legacy solver names remain
 %                   accepted for existing callers, but cannot be mixed.
-%   freeParams      e.g. "mu_Pa" (public SI) or legacy "mu"
 %   initialGuess    SI fields e.g. mu_Pa (Pa)
 %   bounds          SI fields e.g. mu_Pa = [lower upper] (Pa)
 %   solverOptions   lamb.models.rayleigh_lamb.rlDefaultOptions-compatible options
