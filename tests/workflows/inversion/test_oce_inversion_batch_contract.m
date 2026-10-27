@@ -302,6 +302,12 @@ c.review=struct();
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
     'cases',c,'execute',true,'exportFigure',false,'saveResult',true, ...
     'continueOnError',false,'reuseOnly',false);
+plan.reuseOnly=true;
+verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
+    'lamb:study:MissingReuseResult');
+preview=resolveOceInversionPaths(c,"Plate");
+verifyFalse(testCase,isfile(fullfile(preview.figureFolder,"inversion_failure.mat")));
+plan.reuseOnly=false;
 first=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,first.report.status,"completed");
 file=first.report.resultFile(1);
