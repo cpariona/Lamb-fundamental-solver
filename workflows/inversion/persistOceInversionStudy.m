@@ -2,8 +2,6 @@ function studyRecord = persistOceInversionStudy(study, inputs, nativeResult, phy
 %PERSISTOCEINVERSIONSTUDY Save full reviewed request with current source hashes.
 studyRecord=struct();
 if ~study.saveResult,return;end
-assert(~isfile(study.resultFile), ...
-    'lamb:study:OutputExists','Refusing to overwrite an existing inversion MAT.');
 studyRecord=oceInversionProvenance(inputs.inputHashes.path,projectRoot);
 assert(isequal(studyRecord.inputFiles,inputs.inputHashes), ...
     'lamb:study:InputsChanged','A source input changed since OCE recovery.');
@@ -16,7 +14,8 @@ studyRecord.code.Lamb=rmfield(studyRecord.code.Lamb,'root');
 studyRecord.code.OCE=rmfield(studyRecord.code.OCE,'root');
 names={'experimentId','subexperimentId','sampleId','excitationMode','period_us', ...
     'repetitions','conditionId','condition','scanAxisIndex','direction','estimator', ...
-    'curve','fitFrequencySelection','fitFrequency_Hz','plotTargetFrequency_Hz'};
+    'curve','fitFrequencySelection','fitFrequency_Hz','fullBandReviewed', ...
+    'plotTargetFrequency_Hz'};
 selection=struct();
 for k=1:numel(names)
     name=names{k};
@@ -38,6 +37,19 @@ studyRecord.modelFamily=string(family);
 studyRecord.maskPolicy="source_quality_and_frequency";
 if isfield(study,'observationMask')&&~isempty(study.observationMask)
     studyRecord.maskPolicy="explicit_observation_mask";
+end
+if isfile(study.resultFile)
+    assert(reused,'lamb:study:OutputExists', ...
+        'Refusing to overwrite an existing inversion MAT.');
+    saved=load(study.resultFile,'studyRecord');
+    assert(isfield(saved,'studyRecord') && ...
+        isfield(saved.studyRecord,'inputFiles') && ...
+        isequal(saved.studyRecord.inputFiles,studyRecord.inputFiles), ...
+        'lamb:study:HistoricalInputMismatch', ...
+        'An existing result can be reused only with matching source file hashes.');
+    % Preserve the original MAT and historic selection metadata byte-for-byte.
+    studyRecord=saved.studyRecord;
+    return
 end
 assembly=inputs.assembly;observationReview=inputs.observationReview;
 frequencySelectionMapping=inputs.frequencySelectionMapping;
