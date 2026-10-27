@@ -265,6 +265,10 @@ verifyEqual(testCase,e.observations.sampledForDisplay,displayRows);
 verifyEqual(testCase,e.displayedSelectedCount,1);
 verifyEqual(testCase,e.provenance.modelAssumptionsJustification,legacy.modelSupportReference);
 verifyFalse(testCase,isfield(legacy,'modelAssumptionsJustification'));
+invalid=testCase.TestData.provenance;
+invalid.modelSupportReference="Conflicting historical statement";
+verifyError(testCase,@()plotRlFitDiagnostics(native,invalid,'Visible','off'), ...
+    'lamb:visualization:AmbiguousProvenance');
 end
 
 function [native,provenance] = fixture(branch)
