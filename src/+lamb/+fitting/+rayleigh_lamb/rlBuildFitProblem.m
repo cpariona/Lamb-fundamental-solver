@@ -9,8 +9,9 @@ function problem = rlBuildFitProblem(experimental, fitConfig)
 %   fixedParams     density_kgpm3 (kg/m^3), thickness_m (full current m),
 %                   poisson_ratio (dimensionless); legacy solver names remain
 %                   accepted for existing callers, but cannot be mixed.
-%   initialGuess    fields for free-parameter initial guesses
-%   bounds          fields with [lower upper] bounds
+%   freeParams      e.g. "mu_Pa" (public SI) or legacy "mu"
+%   initialGuess    SI fields e.g. mu_Pa (Pa)
+%   bounds          SI fields e.g. mu_Pa = [lower upper] (Pa)
 %   solverOptions   lamb.models.rayleigh_lamb.rlDefaultOptions-compatible options
 %   fitOptions      residual options
 % EXPERIMENTAL may carry observationThickness_m: positive current full thickness
@@ -44,8 +45,8 @@ baseParams = lamb.models.rayleigh_lamb.rlDefaultParams();
 fixed = lamb.fitting.getFitConfigValue(fitConfig, 'fixedParams', struct());
 % Public fitting requests use unit-qualified SI names. Preserve the existing
 % model's rho/thickness/nu mathematics and legacy solver configurations.
-siNames = ["density_kgpm3", "thickness_m", "poisson_ratio"];
-modelNames = ["rho", "thickness", "nu"];
+siNames = ["density_kgpm3", "thickness_m", "poisson_ratio", "mu_Pa", "lambda_Pa"];
+modelNames = ["rho", "thickness", "nu", "mu", "lambda"];
 for j = 1:numel(siNames)
     publicName = char(siNames(j)); modelName = char(modelNames(j));
     if isfield(fixed, publicName)
@@ -56,8 +57,17 @@ for j = 1:numel(siNames)
     end
 end
 baseParams = lamb.fitting.applyParameterOverrides(baseParams, fixed);
-baseParams = lamb.fitting.applyParameterOverrides(baseParams, ...
-    lamb.fitting.getFitConfigValue(fitConfig, 'initialGuess', struct()));
+initial = lamb.fitting.getFitConfigValue(fitConfig, 'initialGuess', struct());
+for j = 4:numel(siNames)
+    publicName = char(siNames(j)); modelName = char(modelNames(j));
+    if isfield(initial,publicName)
+        assert(~isfield(initial,modelName),'lamb:rl:AmbiguousPhysicalInput', ...
+            'Do not supply two names for one initial material parameter.');
+        initial.(modelName) = initial.(publicName);
+        initial = rmfield(initial,publicName);
+    end
+end
+baseParams = lamb.fitting.applyParameterOverrides(baseParams, initial);
 
 observationThickness = [];
 if isfield(experimental, 'observationThickness_m')
@@ -81,6 +91,11 @@ if isfield(experimental, 'observationThickness_m')
 end
 
 freeParams = string(fitConfig.freeParams(:));
+for j = 1:numel(siNames)
+    freeParams(freeParams==siNames(j))=modelNames(j);
+end
+assert(numel(unique(freeParams))==numel(freeParams), ...
+    'lamb:rl:AmbiguousPhysicalInput','A free parameter cannot be supplied twice.');
 if ~isempty(observationThickness) && any(freeParams == "thickness")
     error('lamb:rl:ThicknessConflict', ...
         'Cannot fit a single scalar thickness while using measured per-observation thickness.');
@@ -88,6 +103,15 @@ end
 [x0, parameterInfo] = lamb.fitting.buildParameterVector(baseParams, freeParams);
 
 bounds = lamb.fitting.getFitConfigValue(fitConfig, 'bounds', struct());
+for j = 1:numel(siNames)
+    publicName = char(siNames(j)); modelName = char(modelNames(j));
+    if isfield(bounds,publicName)
+        assert(~isfield(bounds,modelName),'lamb:rl:AmbiguousPhysicalInput', ...
+            'Do not supply two sets of bounds for one material parameter.');
+        bounds.(modelName) = bounds.(publicName);
+        bounds = rmfield(bounds,publicName);
+    end
+end
 [lowerBounds, upperBounds] = lamb.fitting.buildParameterBounds(bounds, freeParams);
 lamb.models.rayleigh_lamb.rlValidateParams(baseParams);
 nuIndex = freeParams == "nu";
