@@ -137,7 +137,10 @@ unchanged in the request.
 Section 2 locates `Results/<subexperiment>/summary.mat` files and uses
 `oce.results.recoverSummaryObservations` to validate and discover existing
 acquisitions. Recorded frequencies and repetitions are not treated as
-mechanical conditions. Original Pulse periods are preserved verbatim.
+mechanical conditions. Original Pulse periods are preserved verbatim. Current OCE integration
+requires the recorded `rep_id` to convert to a finite positive integer
+(`repetitionId`); alphabetic repetition labels are not supported by this
+native metadata contract and are rejected rather than silently renumbered.
 A missing selected repetition or signed direction is an error.
 
 Section 3 constructs independent, reviewable `plan.cases` arrays for
@@ -163,6 +166,11 @@ Lamb and OCE as with the interactive drivers. The single programmable batch entr
 where `family="RayleighLamb"` or `family="Plate"`. This avoids maintaining
 two model-only forwarding wrappers; each case is still reviewed and executed
 by its own native physical family.
+
+Manual Editor section 4/5 produces a derived `review` variable. It must not
+be copied back into `study.review`: that struct contains only editable review
+sources and justifications. Re-running the physical review section is safe and
+recomputes the effective model branch and thickness policy from the study inputs.
 
 Both call the same `executeOceInversionStudy` as their scientific execution
 owner; the Editor scripts use the same preparation, review, fit, save and plot
@@ -199,7 +207,14 @@ uses the OCE signed-direction full thickness for each selected observation.
 The recorded scalar `physical.thickness_m` is a non-operative reference
 under this policy; constant-thickness studies remain available explicitly. `plan.execute=true`
 explicitly permits fresh native fits; set `plan.reuseOnly=true` to require
-previously saved exact results instead. The default full MATLAB figure export
+previously saved exact results instead. In reuse-only execution an existing
+`inversion.mat` is loaded only after exact native request matching and current
+source-hash verification; it is never overwritten. An existing FIG/TIF remains
+protected even when the MAT is reusable: select `plan.exportFigure=false` to
+reuse without exporting, or use a new reviewed output tag for new figures.
+Historic MAT selection fields are normalized only in the returned in-memory
+record; their on-disk bytes and original field names are preserved.
+The default full MATLAB figure export
 is hidden during batch execution; it saves FIG and TIF and closes the GUI.
  `plan.continueOnError=true` optionally collects failures rather than stopping
 on the first exception. When saving is enabled, a failed attempted case records
@@ -216,7 +231,9 @@ bounds, or `"explicit"` with its reviewed original target requests. The
 `"all"` mode is allowed only with
 `case.fullBandReviewed=true`. These selections are *not* discovered,
 optimized or repaired by the batch. Original estimator quality masks and
-source-row identities are preserved. Pulse graphic frequency sampling remains
+source-row identities are preserved. A new saved `studyRecord.selection`
+also records `fullBandReviewed` when supplied; this acknowledges a human choice,
+not automatic scientific validity. Pulse graphic frequency sampling remains
 separate from fit eligibility. Fit acceptance is numerical and does not validate
 A0 modal purity or eliminate need for bandwidth review. In a dry-run the
 batch checks only its destination plan and mandatory selection fields; it does
