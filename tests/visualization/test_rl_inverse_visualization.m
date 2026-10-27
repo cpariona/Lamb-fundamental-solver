@@ -250,6 +250,23 @@ verifySubstring(testCase,string(layout.XLabel.String{2}),"0.405");
 verifySubstring(testCase,string(layout.XLabel.String{2}),"0.406");
 end
 
+function testSourceAlignedPulseGlyphMaskAndHistoricReview(testCase)
+native=testCase.TestData.native; before=native;
+legacy=testCase.TestData.provenance;
+legacy.modelSupportReference=legacy.modelAssumptionsJustification;
+legacy=rmfield(legacy,'modelAssumptionsJustification');
+displayRows=false(numel(native.frequency_Hz),1);
+displayRows(3)=true; % Another repetition has exactly the same observed Hz.
+[fig,e]=plotRlFitDiagnostics(native,legacy,'DisplayObservationMask',displayRows,'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,native,before);
+verifyEqual(testCase,e.observations.selected,native.validMask);
+verifyEqual(testCase,e.observations.sampledForDisplay,displayRows);
+verifyEqual(testCase,e.displayedSelectedCount,1);
+verifyEqual(testCase,e.provenance.modelAssumptionsJustification,legacy.modelSupportReference);
+verifyFalse(testCase,isfield(legacy,'modelAssumptionsJustification'));
+end
+
 function [native,provenance] = fixture(branch)
 p=lamb.models.rayleigh_lamb.rlDefaultParams();p.mu=85e3;
 options=lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
