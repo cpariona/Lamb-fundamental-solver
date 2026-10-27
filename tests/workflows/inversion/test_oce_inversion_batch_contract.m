@@ -243,7 +243,7 @@ function testExportFailureRetainsFitAndContinuesBatch(testCase)
 c=baseCase(root,"Stretch_1p00000");
 c.excitationMode="QH";c.period_us="";
 c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
-c.review=struct('modelBranch',"A0");
+c.review=struct();
 c.condition=struct('strain_percent',0);
 c.sampleId="fixture";
 second=c;second.conditionId="next";
@@ -279,7 +279,7 @@ function testPersistenceFailureRetainsNativeWithoutClaimingSavedMat(testCase)
 c=baseCase(root,"Stretch_1p00000");c.excitationMode="QH";c.period_us="";
 c.conditionId="persistence_failure";
 c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
-c.review=struct('modelBranch',"A0");
+c.review=struct();
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
     'cases',c,'execute',true,'exportFigure',false,'saveResult',true, ...
     'continueOnError',true);
