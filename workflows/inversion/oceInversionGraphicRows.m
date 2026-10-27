@@ -1,0 +1,16 @@
+function selectedRows = oceInversionGraphicRows(observationReview, graphicSamplingMapping, n)
+%OCEINVERSIONGRAPHICROWS Source-specific original-bin selection for Pulse figures.
+% Each output row corresponds to one original fit observation, never resampled.
+% Equal observed Hz from different source acquisitions are distinct rows.
+assert(istable(observationReview) && istable(graphicSamplingMapping), ...
+    'lamb:study:GraphicMapping','Source and graphic mappings must be tables.');
+required = ["sourceIndex","sourceBinIndex"];
+assert(all(ismember(required,string(observationReview.Properties.VariableNames))) && ...
+    all(ismember(required,string(graphicSamplingMapping.Properties.VariableNames))), ...
+    'lamb:study:GraphicMapping','Original source/bin identities are required.');
+assert(height(observationReview)==n, ...
+    'lamb:study:GraphicMapping','Graphic rows must align with source observations.');
+selectedRows = ismember([observationReview.sourceIndex,observationReview.sourceBinIndex], ...
+    [graphicSamplingMapping.sourceIndex,graphicSamplingMapping.sourceBinIndex],'rows');
+selectedRows = logical(selectedRows(:));
+end

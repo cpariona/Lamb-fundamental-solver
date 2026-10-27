@@ -1,7 +1,7 @@
 function [fig, evidence] = plotRlFitDiagnostics(result, provenance, varargin)
 %PLOTRLFITDIAGNOSTICS Present a stored native Rayleigh-Lamb A0/S0 inversion.
 %   RESULT is the unchanged rlFitDispersionData output. PROVENANCE requires
-%   label, material, sourceReference and modelSupportReference. Optional
+%   label, material, sourceReference and modelAssumptionsJustification. Optional
 %   repetitionId identifies every original row; displayLabel/displaySubtitle
 %   are text only. DisplayFrequency_Hz uses the same exact stored-bin glyph
 %   filter as Plate; the caller supplies reviewed original frequencies.
@@ -18,14 +18,16 @@ function [fig, evidence] = plotRlFitDiagnostics(result, provenance, varargin)
 p = inputParser;
 addParameter(p,'DisplayFrequency_Hz',[],@(x) isnumeric(x)&&isreal(x)&& ...
     (isempty(x)||(isvector(x)&&all(isfinite(x))&&all(x>0))));
+addParameter(p,'DisplayObservationMask',[],@(v) isempty(v)||islogical(v));
 addParameter(p,'ResidualLimits',[],@isnumeric);
 addParameter(p, 'Visible', 'on', @(x) any(string(x)==["on","off"]));
 parse(p, varargin{:});
+provenance=normalizeInverseProvenance(provenance);
 if string(result.modelFamily) ~= "rayleigh_lamb" || ...
         ~any(string(result.branchName)==["A0","S0"])
     error('lamb:visualization:UnsupportedResult', 'Use a native Rayleigh-Lamb A0/S0 fit.');
 end
-for name = ["label","material","sourceReference","modelSupportReference"]
+for name = ["label","material","sourceReference","modelAssumptionsJustification"]
     value = string(provenance.(name));
     if ~isscalar(value) || ismissing(value) || strlength(strtrim(value))==0
         error('lamb:visualization:MissingProvenance', 'Nonempty %s is required.', name);
@@ -53,6 +55,11 @@ if ~isempty(p.Results.DisplayFrequency_Hz)
     % Same Plate contract: exact original Hz only, never nearest-valid repair.
     displayRows = ismember(f,p.Results.DisplayFrequency_Hz);
 end
+if ~isempty(p.Results.DisplayObservationMask)
+    validateattributes(p.Results.DisplayObservationMask,{'logical'}, ...
+        {'vector','numel',n});
+    displayRows=displayRows & p.Results.DisplayObservationMask(:);
+end
 shown = withinView & displayRows;
 modelAvailable = isfinite(predicted);
 observations = table((1:n)',repetition,f,observed,predicted,selected,modelAvailable, ...
@@ -64,6 +71,7 @@ evidence = struct('observations',observations,'nativeParameters',result.allParam
     'nativeMetrics',result.metrics,'nativeDiagnostics',result.modelEvaluation.diagnostics, ...
     'provenance',provenance,'frequencyDomain_Hz',[0 maximumFrequency], ...
     'displayFrequency_Hz',p.Results.DisplayFrequency_Hz, ...
+    'displayObservationMask',displayRows, ...
     'displayedSelectedCount',nnz(shown & selected), ...
     'excludedOutsideDomainCount',nnz(~selected & ~withinView), ...
     'excludedNotShownCount',nnz(~selected & ~shown), ...
@@ -217,7 +225,7 @@ try
     if isfield(provenance,'displaySubtitle'), subtitle=string(provenance.displaySubtitle); end
     title(layout,{char(displayLabel);char(subtitle)}, ...
         'Interpreter','tex','FontName','Arial','FontSize',9.5,'FontWeight','normal');
-    notes = {char("Physical support: "+string(provenance.modelSupportReference)), ...
+    notes = {char("Model assumption: "+string(provenance.modelAssumptionsJustification)), ...
         char(physicalCaption)};
     xlabel(layout,notes,'Interpreter','tex','FontName','Arial','FontSize',9,'FontWeight','normal');
     evidence.phaseSpeedScale = scaleEvidence;

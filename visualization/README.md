@@ -50,7 +50,7 @@ a fictitious single-thickness curve. The original row-aligned fit, residuals,
 masks and per-group canonical solver results remain unchanged.
 
 Supply nonempty `label`, `material`, `sourceReference` and
-`modelSupportReference` in provenance. Optional `displayLabel` supplies the
+`modelAssumptionsJustification` in provenance. Optional `displayLabel` supplies the
 human title (sample, state, signed direction and analysis); `displaySubtitle`
 identifies the acquisition/modality/period. Both are presentation labels,
 never identity matching keys. Preserve exact original metadata in provenance.
@@ -140,9 +140,12 @@ residuals and RMSE use the complete fixed fitting mask.
 Acquisition, repetition and source-bin identity remain available in the assembly.
 
 `DisplayFrequency_Hz` optionally selects exact stored frequencies for glyphs in
-all three panels; it never changes fitting masks or native diagnostics. The study
-uses compatible OCE sampling indices, or original bins selected from explicit
-graphic targets before checking validity. Missing/excluded bins remain absent.
+all three panels; `DisplayObservationMask` accepts one logical value per original
+native result row for acquisition-aligned presentation. Both operate on glyphs,
+never on fitting masks or native diagnostics. The human Pulse workflow selects
+source-specific original bin rows using `sourceIndex` and `sourceBinIndex`;
+identical observed Hz in different source grids do not select unrelated rows.
+Missing/excluded bins remain absent.
 No nearest-valid repair, interpolation or experimental extension is performed.
 
 The approved diagnostic uses blue/orange/purple repetition symbols, simple
@@ -178,7 +181,7 @@ results retain the existing forward curve and scale behavior.
 
 `plotRlFitDiagnostics(result, provenance, 'Visible', 'on')` consumes the complete
 native `rlFitDispersionData` result for A0 or S0. It does not call a fitter,
-forward solver or OCE loader. Supply the same nonempty label/material/source/support
+forward solver or OCE loader. Supply the same nonempty label/material/source/assumptions
 provenance fields as for Plate, optionally with one literal `repetitionId` per
 original row and a concise `displaySubtitle`. The support note is caller-supplied;
 optimizer termination and local sensitivity never become physical acceptance.
@@ -196,8 +199,11 @@ Residual units remain m/s for weighted fits by consuming
 `residualInfo.rawResiduals_mps`. Estimated parameters, actual scalar thickness,
 density, effective nu and native RMSE are displayed without fabricated intervals.
 Estimated parameters remain in B and full-fit RMSE in C. The two-line footer
-follows Plate: the caller's physical-support statement first, then actual physical
-values. It does not manufacture physical acceptance. Optional displayLabel
+follows Plate: the caller's model-assumption justification first, then actual physical
+values. It does not manufacture physical acceptance. When the human workflow
+references a persisted MAT, its archived model-assumption review must match
+the figure's review; numeric reuse never authorizes silent hypothesis changes.
+Optional displayLabel
 uses the Plate title syntax: case/direction/model first, modality/repetitions/
 selection in displaySubtitle.
 Repetitions retain the established colors/markers; predictions are black dashed
@@ -276,7 +282,7 @@ complete trend whenever the accepted-range view clips rejected candidates.
 provenance = struct('label', "Reviewed condition / signed direction", ...
     'material', "Researcher-specified material", ...
     'sourceReference', "Reviewed stored request/result", ...
-    'modelSupportReference', "A0 working hypothesis; physical review reference");
+    'modelAssumptionsJustification', "A0 working hypothesis; physical review reference");
 [fig, evidence] = plotAePlateFitDiagnostics(nativeResult, provenance);
 
 %% Use one shared display scale for a reviewed population

@@ -4,6 +4,9 @@ function [experimental, physics, review] = reviewOceInversionPhysics(study, asse
 experimental=assembly.experimental;
 family=string(family);
 review=study.review;
+assert(~isfield(review,'modelBranch')&&~isfield(review,'thicknessPolicy'), ...
+    'lamb:study:DuplicatedReviewChoice', ...
+    'Set model branch and current thickness policy once in the study inputs.');
 if family=="RayleighLamb"
     physics=study.fitConfig;
     if study.thicknessPolicy=="oce_directional_per_acquisition"
@@ -12,7 +15,12 @@ if family=="RayleighLamb"
         assert(all(isfinite(recorded(relevant))&recorded(relevant)>0), ...
             'lamb:study:MissingThickness','Missing signed-direction current thickness at positive Hz.');
         experimental.observationThickness_m=recorded;
-        physics.fixedParams.thickness=recorded(find(relevant,1));
+        % The canonical public input is unit-qualified; the native solver uses h in meters.
+        if isfield(physics.fixedParams,'thickness')
+            physics.fixedParams.thickness=recorded(find(relevant,1));
+        else
+            physics.fixedParams.thickness_m=recorded(find(relevant,1));
+        end
         review.thicknessSource="OCE directional_mean_thickness_mm; selected signed direction";
         review.thicknessJustification="Recorded current thickness per acquisition, no averaging";
         selected=recorded(experimental.validMask);
@@ -22,10 +30,11 @@ if family=="RayleighLamb"
         assert(study.thicknessPolicy=="explicit_constant", ...
             'lamb:study:ThicknessPolicy','RL requires a reviewed thickness policy.');
     end
-    assert(any(string(physics.branchName)==["A0","S0"])&&review.mode==physics.branchName, ...
+    assert(any(string(physics.branchName)==["A0","S0"]), ...
         'lamb:study:ModelReview','Review A0/S0 before inversion.');
-    for name=["thicknessSource","thicknessJustification","densityReference", ...
-            "parameterJustification","modelSupportReference"]
+    review.modelBranch=string(physics.branchName);
+    for name=["thicknessSource","thicknessJustification","densitySource", ...
+            "fitParameterJustification","modelAssumptionsJustification"]
         checkText(review,name);
     end
     % Preflight native physics, without running a forward solve.
@@ -76,11 +85,11 @@ elseif family=="Plate"
     end
     % Per-row thickness enters only the canonical Plate q_i geometry; the
     % common alpha/gamma SVD and physical QH group qualification are unchanged.
-    assert(review.mode=="A0",'lamb:study:ModelReview','Review Plate A0 mode.');
+    review.modelBranch="A0"; % The native Plate model only supports A0.
     for name=["density_kgpm3","thickness_m"]
         validateattributes(physics.(name),{'double'},{'scalar','finite','real','positive'});
     end
-    for name=["thicknessSource","thicknessJustification","densityReference","modelSupportReference"]
+    for name=["thicknessSource","thicknessJustification","densitySource","modelAssumptionsJustification"]
         checkText(review,name);
     end
     recorded=directionalThickness(assembly,observationReview);

@@ -5,7 +5,7 @@ function [fig, evidence] = plotAePlateFitDiagnostics(result, provenance, varargi
 %   and shared physical inputs/limits; coefficients and residuals stay per result.
 %   DisplayFrequency_Hz optionally selects exact stored frequencies for glyphs
 %   only. It never changes the native fitting mask, values or regression.
-%   PROVENANCE requires label, material, sourceReference, modelSupportReference.
+%   PROVENANCE requires label, material, sourceReference, modelAssumptionsJustification.
 %   Optional repetitionId is one text/numeric value per original observation;
 %   sourceMasks has original logical valid_mask/interpolated_mask/extrapolated_mask.
 %   These masks are evidence only and never replace result.validMask.
@@ -25,9 +25,13 @@ addParameter(p,'RegressionLimits',[],@isnumeric);
 addParameter(p,'ResidualLimits',[],@isnumeric);
 addParameter(p,'DisplayFrequency_Hz',[],@(x) isnumeric(x)&&isreal(x)&& ...
     (isempty(x)||(isvector(x)&&all(isfinite(x))&&all(x>0))));
+addParameter(p,'DisplayObservationMask',[],@(v) isempty(v)||islogical(v));
 addParameter(p,'Visible','on',@(x) any(string(x)==["on","off"]));
 parse(p,varargin{:});
 if iscell(result)
+    assert(isempty(p.Results.DisplayObservationMask), ...
+        'lamb:visualization:DisplayMask', ...
+        'Use per-result views for acquisition-aligned display masks.');
     assert(iscell(provenance)&&numel(result)==numel(provenance), ...
         'lamb:visualization:RepetitionProvenance','Provide provenance for every native result.');
     for k=2:numel(result)
@@ -164,10 +168,11 @@ if iscell(result)
     end
     return
 end
+provenance=normalizeInverseProvenance(provenance);
 if result.model~="acoustoelastic_prestressed_plate"
     error('lamb:visualization:UnsupportedResult','Use the native prestressed-plate result.');
 end
-for name=["label","material","sourceReference","modelSupportReference"]
+for name=["label","material","sourceReference","modelAssumptionsJustification"]
     value=string(provenance.(name));
     if ~isscalar(value) || ismissing(value) || strlength(strtrim(value))==0
         error('lamb:visualization:MissingProvenance','Nonempty %s is required.',name);
@@ -179,6 +184,11 @@ displayRows=true(n,1);
 if ~isempty(p.Results.DisplayFrequency_Hz)
     % Exact saved bins only: missing/excluded bins are never replaced.
     displayRows=ismember(f,p.Results.DisplayFrequency_Hz);
+end
+if ~isempty(p.Results.DisplayObservationMask)
+    validateattributes(p.Results.DisplayObservationMask,{'logical'}, ...
+        {'vector','numel',n});
+    displayRows=displayRows & p.Results.DisplayObservationMask(:);
 end
 ridgeInvalid=false(n,1); interpolated=false(n,1); extrapolated=false(n,1);
 hasRidge=false;
@@ -281,7 +291,7 @@ if string(p.Results.DisplayMode)=="complete" && isempty(p.Results.RegressionLimi
     [regressionLimits,regressionDisplay]=resolveInversePhaseSpeedLimits([y;fitY],'Quantity',"regression");
 end
 evidence.regressionDisplay=regressionDisplay;evidence.residualDisplay=residualDisplay;
-if ~isempty(p.Results.DisplayFrequency_Hz)
+if ~isempty(p.Results.DisplayFrequency_Hz) || ~isempty(p.Results.DisplayObservationMask)
     evidence.displayFrequency_Hz=p.Results.DisplayFrequency_Hz(:);
     evidence.displayedObservationMask=included&displayRows;
 end
@@ -315,7 +325,7 @@ try
             'LineStyle','none','DisplayName','Excluded from fit','Tag','excluded_observations');
     end
     % Flagged extensions remain full arrays in FIG, never a connected curve.
-    extensionGlyphs(ax,f/1e3,cp,finite&extensions,showExtensions,'excluded_extensions');
+    extensionGlyphs(ax,f/1e3,cp,finite&extensions&displayRows,showExtensions,'excluded_extensions');
     labels=unique(repetition(included),'stable');
     colors=[.16 .40 .68;.75 .37 .06;.48 .30 .64];markers={'o','s','d'};
     for k=1:numel(labels)
@@ -363,7 +373,7 @@ try
         plot(ax,etaDisplay(rows),y(rows),'x','Color',[.8 .12 .12], ...
             'MarkerSize',4,'LineStyle','none','Tag','excluded_regression_display');
     end
-    extensionGlyphs(ax,etaDisplay,y,visibleRegression&extensions,showExtensions,'excluded_regression_extensions');
+    extensionGlyphs(ax,etaDisplay,y,visibleRegression&extensions&displayRows,showExtensions,'excluded_regression_extensions');
     for k=1:numel(labels)
         rows=included&visibleRegression&displayRows&repetition==labels(k);style=mod(k-1,3)+1;
         plotRows(ax,etaDisplay(rows),y(rows),markers{style},colors(style,:), ...

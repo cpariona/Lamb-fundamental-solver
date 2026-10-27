@@ -20,9 +20,9 @@ verifyTrue(testCase,reused.reusedResult);
 verifyEqual(testCase,reused.nativeResult,fresh.nativeResult);
 study.fitConfig.bounds.mu=[40e3 130e3];
 verifyError(testCase,@()runRlStudySections(study,assembly),'lamb:study:RequestMismatch');
-study.fitConfig=fresh.fitConfig;study.fitConfig.branchName="S0";study.review.mode="S0";
+study.fitConfig=fresh.fitConfig;study.fitConfig.branchName="S0";
 verifyError(testCase,@()runRlStudySections(study,assembly),'lamb:study:RequestMismatch');
-study.fitConfig=fresh.fitConfig;study.review.mode="A0";
+study.fitConfig=fresh.fitConfig;
 assembly.experimental.validMask(2)=false;
 verifyError(testCase,@()runRlStudySections(study,assembly),'lamb:study:RequestMismatch');
 end
@@ -49,7 +49,26 @@ study.saveResult=false;study.reuseOnly=true;
 reused=runRlStudySections(study,assembly);
 verifyTrue(testCase,reused.reusedResult);verifyEqual(testCase,reused.nativeResult,out.nativeResult);
 study.saveResult=true;
-verifyError(testCase,@()runRlStudySections(study,assembly,record.inputFiles),'lamb:study:OutputExists');
+% Reusing an exact saved native result is read-only; do not replace the MAT.
+savedBytes=readFileBytes(study.resultFile);
+same=runRlStudySections(study,assembly,record.inputFiles);
+verifyTrue(testCase,same.reusedResult);
+verifyEqual(testCase,same.nativeResult,out.nativeResult);
+verifyEqual(testCase,readFileBytes(study.resultFile),savedBytes);
+% reuseOnly=false permits a fresh fit on mismatch; it does not force refitting
+% an exact, already archived native result. The original MAT remains unchanged.
+study.reuseOnly=false;
+same=runRlStudySections(study,assembly,record.inputFiles);
+verifyTrue(testCase,same.reusedResult);
+verifyEqual(testCase,same.nativeResult,out.nativeResult);
+verifyEqual(testCase,readFileBytes(study.resultFile),savedBytes);
+% A different reviewed fitting request must never replace that saved MAT.
+changedStudy=study;
+changedStudy.fitConfig.bounds.mu=[40e3 130e3];
+verifyError(testCase,@()runRlStudySections(changedStudy,assembly,record.inputFiles), ...
+    'lamb:study:OutputExists');
+verifyEqual(testCase,readFileBytes(study.resultFile),savedBytes);
+study.reuseOnly=true;
 study.outputTag="changed-input";study=resolveOceInversionPaths(study,"RayleighLamb");
 study.existingNativeResult=out.nativeResult;
 study.existingAssembly=assembly;value=2;save(inputFile,'value');
@@ -62,7 +81,7 @@ function testRlStudyQhReuseRequiresTheOriginalPhysicalAndBinIdentity(testCase)
 for name=["frequency_Hz","Cp_mps","validMask"]
     assembly.experimental.(name)=assembly.experimental.(name)(2:end);
 end
-study.mode="QH";assembly.sourceResultFiles=["f1";"f2";"f3";"f4"];
+study.excitationMode="QH";assembly.sourceResultFiles=["f1";"f2";"f3";"f4"];
 assembly.physicalFrequency_Hz=[3000;1000;2000;3000];
 assembly.requestedTargetFrequency_Hz=assembly.physicalFrequency_Hz;
 assembly.lineage=repmat(struct('binIndex',2),4,1);
@@ -125,19 +144,19 @@ experimental=struct('frequency_Hz',frequency,'Cp_mps',speed,'validMask',[false;t
 assembly=struct('experimental',experimental,'sourceResultFiles',"synthetic/PhaseSpeed.mat");
 study=struct('experimentRoot',"synthetic",'summaryFile',"synthetic/summary.mat", ...
     'experimentId',"synthetic",'subexperimentId',"S",'sampleId',"P", ...
-    'mode',"Pulse",'period_us',"320",'repetitions',["1","2","3"], ...
+    'excitationMode',"Pulse",'period_us',"320",'repetitions',["1","2","3"], ...
     'conditionId',"reviewed_state",'condition',struct('strain_percent',0), ...
     'scanAxisIndex',1,'direction',"left",'estimator',"kf_ridge",'curve',"raw", ...
-    'frequencySelection',"all",'frequency_Hz',[],'graphicRequestedFrequency_Hz',[], ...
+    'fitFrequencySelection',"all",'fitFrequency_Hz',[],'plotTargetFrequency_Hz',[], ...
     'observationMask',[],'thicknessPolicy',"explicit_constant", ...
     'reuseOnly',false,'existingNativeResult',[],'existingAssembly',[], ...
     'resultFile',"",'saveResult',false,'showFigure',false, ...
     'fitConfig',struct('branchName',"A0",'freeParams',"mu", ...
         'fixedParams',struct('rho',1070,'thickness',.0005,'nu',.4999), ...
         'initialGuess',struct('mu',80e3),'bounds',struct('mu',[50e3 120e3])), ...
-    'review',struct('mode',"A0",'thicknessSource',"Synthetic constant thickness", ...
-        'thicknessJustification',"Homogeneous synthetic plate",'densityReference',"Synthetic density", ...
-        'parameterJustification',"Synthetic single-mu request",'modelSupportReference',"Synthetic A0"));
+    'review',struct('thicknessSource',"Synthetic constant thickness", ...
+        'thicknessJustification',"Homogeneous synthetic plate",'densitySource',"Synthetic density", ...
+        'fitParameterJustification',"Synthetic single-mu request",'modelAssumptionsJustification',"Synthetic A0"));
 end
 
 function testExactValuesMasksAndUnknownThickness(testCase)
@@ -417,9 +436,9 @@ end
 
 function testStudyPulseUsesOneOriginalBinMappingAndSeparateMasks(testCase)
 [sources,sourceMetadata,summary]=studySources();
-study=struct('mode',"Pulse",'scanAxisIndex',1,'direction',"left",'curve',"raw", ...
-    'frequencySelection',"explicit",'frequency_Hz',[1000;2000;6000;1002], ...
-    'showFigure',true,'graphicRequestedFrequency_Hz',[3000;2000;6000]);
+study=struct('excitationMode',"Pulse",'scanAxisIndex',1,'direction',"left",'curve',"raw", ...
+    'fitFrequencySelection',"explicit",'fitFrequency_Hz',[1000;2000;6000;1002], ...
+    'showFigure',true,'plotTargetFrequency_Hz',[3000;2000;6000]);
 before=sources;
 review=runStudyFrequencySections(study,sources,sourceMetadata,summary);
 verifyEqual(testCase,sources,before);
@@ -437,11 +456,11 @@ verifyEqual(testCase,g.sourceBinIndex(g.requestedFrequency_Hz==3000),[4;4;4]);
 verifyEqual(testCase,g.mappingSource(g.requestedFrequency_Hz==3000), ...
     ["OCE_persisted";"nearest_original_bin";"OCE_persisted"]);
 % A graphic target change cannot alter the inversion mask or its correspondence.
-study.graphicRequestedFrequency_Hz=4000;
+study.plotTargetFrequency_Hz=4000;
 other=runStudyFrequencySections(study,sources,sourceMetadata,summary);
 verifyEqual(testCase,other.validMask,review.validMask);
 verifyEqual(testCase,other.selectionMapping,review.selectionMapping);
-study.frequencySelection="all";study.graphicRequestedFrequency_Hz=[3000;2000;6000];
+study.fitFrequencySelection="all";study.plotTargetFrequency_Hz=[3000;2000;6000];
 allRows=runStudyFrequencySections(study,sources,sourceMetadata,summary);
 verifyEqual(testCase,find(allRows.graphicMask),[4;9;14]);
 verifyEqual(testCase,allRows.validMask,allRows.qualityMask);
@@ -449,22 +468,22 @@ end
 
 function testStudyExplicitMaskAndRecordedPhaseGradient(testCase)
 [sources,sourceMetadata,summary]=studySources();
-study=struct('mode',"Pulse",'scanAxisIndex',1,'direction',"left",'curve',"raw", ...
-    'frequencySelection',"all",'frequency_Hz',[],'showFigure',false, ...
-    'graphicRequestedFrequency_Hz',[],'observationMask',false(15,1));
+study=struct('excitationMode',"Pulse",'scanAxisIndex',1,'direction',"left",'curve',"raw", ...
+    'fitFrequencySelection',"all",'fitFrequency_Hz',[],'showFigure',false, ...
+    'plotTargetFrequency_Hz',[],'observationMask',false(15,1));
 study.observationMask(2)=true;
 out=runStudyFrequencySections(study,sources,sourceMetadata,summary);
 verifyEqual(testCase,out.validMask,study.observationMask);
-study.frequencySelection="interval";study.frequency_Hz=[2000;4000];
+study.fitFrequencySelection="interval";study.fitFrequency_Hz=[2000;4000];
 verifyError(testCase,@()runStudyFrequencySections(study,sources,sourceMetadata,summary), ...
     'lamb:study:MaskFrequencyMismatch');
-study=rmfield(study,'observationMask');study.mode="QH";study.estimator="phase_gradient";
-study.frequencySelection="explicit";study.frequency_Hz=1500;
+study=rmfield(study,'observationMask');study.excitationMode="QH";study.estimator="phase_gradient";
+study.fitFrequencySelection="explicit";study.fitFrequency_Hz=1500;
 sourceMetadata.frequency_Hz=repmat(1500,3,1);
 out=runStudyFrequencySections(study,sources,sourceMetadata,summary);
 verifyEqual(testCase,out.frequency,repmat(1500,3,1));
 verifyTrue(testCase,all(isnan(out.bins)));verifyTrue(testCase,all(out.validMask));
-study.mode="Pulse";
+study.excitationMode="Pulse";
 verifyError(testCase,@()runStudyFrequencySections(study,sources,sourceMetadata,summary), ...
     'lamb:study:EstimatorMode');
 end
@@ -473,19 +492,19 @@ function testStudyQhNominalIdentityAndLegacyFrequencyModes(testCase)
 [sources,sourceMetadata,summary]=studySources();
 sourceMetadata.frequency_Hz=[1000;1000;2000];
 sources(3).scientific_result.dispersion.estimators.kf_ridge.directions(1).target_selection.selected_bin_index=3;
-study=struct('mode',"QH",'scanAxisIndex',1,'direction',"left",'curve',"raw", ...
-    'frequencySelection',"explicit",'frequency_Hz',[1000;5000], ...
-    'showFigure',false,'graphicRequestedFrequency_Hz',[]);
+study=struct('excitationMode',"QH",'scanAxisIndex',1,'direction',"left",'curve',"raw", ...
+    'fitFrequencySelection',"explicit",'fitFrequency_Hz',[1000;5000], ...
+    'showFigure',false,'plotTargetFrequency_Hz',[]);
 review=runStudyFrequencySections(study,sources,sourceMetadata,summary);
 verifyEqual(testCase,review.frequency,[1001;999;2002]);
 verifyEqual(testCase,review.bins,[2;2;3]);
 verifyEqual(testCase,review.validMask,[true;true;false]);
 verifyEqual(testCase,review.selectionMapping.observedFrequency_Hz(1:2),[1001;999]);
 verifyEqual(testCase,review.selectionMapping.mappingSource(end),"unrecorded_physical_frequency");
-study.mode="Pulse";study.frequencySelection="all";
+study.excitationMode="Pulse";study.fitFrequencySelection="all";
 allRows=runStudyFrequencySections(study,sources,sourceMetadata,summary);
 verifyEqual(testCase,allRows.validMask,allRows.qualityMask);
-study.frequencySelection="interval";study.frequency_Hz=[1000;3000];
+study.fitFrequencySelection="interval";study.fitFrequency_Hz=[1000;3000];
 interval=runStudyFrequencySections(study,sources,sourceMetadata,summary);
 verifyEqual(testCase,interval.validMask, ...
     allRows.qualityMask&allRows.frequency>=1000&allRows.frequency<=3000);
@@ -501,7 +520,7 @@ metadata=table(["E";"E"],["S";"S"],["P";"P"],["1";"2"], ...
     ["quasi_harmonic";"quasi_harmonic"],[value;value+eps(value)], ...
     'VariableNames',{'experiment_id','sub_experiment','sample_id','rep_id','excitation_type','state'});
 study=struct('experimentId',"E",'subexperimentId',"S",'sampleId',"P", ...
-    'repetitions',["1","2"],'mode',"QH",'condition',struct('state',value));
+    'repetitions',["1","2"],'excitationMode',"QH",'condition',struct('state',value));
 eval(char(selectionCode));verifyEqual(testCase,selected,[true;false]);
 study.condition.state=value+eps(value);
 eval(char(selectionCode));verifyEqual(testCase,selected,[false;true]);
@@ -519,17 +538,15 @@ body=string(fileread(fullfile(repoRoot,'workflows','inversion','prepareOceInvers
 if ~isfield(study,'estimator'),study.estimator="kf_ridge";end
 selectionCode=extractBetween(body,'%% 3. Review','%% 4. Prepare');
 eval(char("%% 3. Review"+selectionCode));
-% Exercise the maintained renderer's mapping preflight without opening a figure.
-inputs=struct('assembly',struct('experimental',struct('frequency_Hz',frequency, ...
-    'Cp_mps',speed,'validMask',validMask)),'observationReview',observationReview, ...
-    'graphicSamplingMapping',graphicSamplingMapping); %#ok<NASGU> Used by eval.
-body=string(fileread(fullfile(repoRoot,'workflows','inversion','renderOceInversionStudy.m')));
-graphicCode=extractBetween(body,'experimental=inputs.assembly.experimental;', ...
-    'label=string(study.displayLabel);');
+% Invoke the maintained source/bin mapper directly, not renderer-local code.
+% Display selection is independent of the fixed scientific fit mask.
 graphicMask=false(size(validMask));graphicFrequency=[];
-if study.showFigure
-    eval(char("experimental=inputs.assembly.experimental;"+graphicCode));
-    if study.mode=="Pulse",graphicMask=expected;graphicFrequency=graphicHz;end
+if study.showFigure && study.excitationMode=="Pulse"
+    displayRows=oceInversionGraphicRows(observationReview, ...
+        graphicSamplingMapping,numel(frequency));
+    graphicMask=validMask & displayRows;
+    graphicFrequency=unique(graphicSamplingMapping.observedFrequency_Hz( ...
+        isfinite(graphicSamplingMapping.observedFrequency_Hz)));
 end
 review=struct('frequency',frequency,'bins',bins,'qualityMask',qualityMask, ...
     'validMask',validMask,'selectionMapping',frequencySelectionMapping, ...
@@ -585,4 +602,12 @@ selection = struct('directionIndex', 1, 'estimator', "kf_ridge", 'curve', "smoot
 metadata = struct('conditionId', "synthetic_state", 'repetitionId', 1, ...
     'loadingCondition', struct('label', "explicit synthetic state"), ...
     'sourceResultFile', "synthetic/PhaseSpeed.mat", 'metadataReference', "synthetic log row 1");
+end
+
+function bytes=readFileBytes(filename)
+% Return bytes with a scoped file handle; onCleanup closes it on exit/errors.
+fid=fopen(filename,'rb');
+assert(fid>=0,'lamb:test:UnreadableMat','Cannot read saved inversion MAT.');
+closeFile=onCleanup(@()fclose(fid)); %#ok<NASGU>
+bytes=fread(fid,inf,'*uint8');
 end

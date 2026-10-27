@@ -201,9 +201,9 @@ under this policy. Legacy `explicit_constant_current_thickness` and the reviewed
 `oce_reference_acquisition` workflow policy retain the scalar geometry.
 The QH coordinator accepts the effective native constant review for a selected
 reference acquisition; it does not introduce a third scientific equation.
-All Plate reviews require `review.mode="A0"` and nonempty
-`thicknessSource`, `thicknessJustification`, `densityReference` and
-`modelSupportReference`. The physical struct contains only
+All Plate reviews require `review.modelBranch="A0"` and nonempty
+`thicknessSource`, `thicknessJustification`, `densitySource` and
+`modelAssumptionsJustification`. The physical struct contains only
 `density_kgpm3` and `thickness_m`. Original measurements, including excluded
 NaN values, stay in the assembly; the existing descriptive
 `outcome.thicknessDiagnostics` does not choose the fitting policy or change

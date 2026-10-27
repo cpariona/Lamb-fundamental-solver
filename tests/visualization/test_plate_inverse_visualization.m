@@ -377,6 +377,20 @@ layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
 verifySubstring(testCase,string(layout.XLabel.String{2}),"per observation");
 end
 
+function testSourceAlignedPulseGlyphMaskAndHistoricReview(testCase)
+[native,review]=fixture(); before=native;
+review.modelSupportReference=review.modelAssumptionsJustification;
+review=rmfield(review,'modelAssumptionsJustification');
+rows=false(numel(native.validMask),1);rows([1,3])=true;
+[fig,e]=plotAePlateFitDiagnostics(native,review, ...
+    'DisplayObservationMask',rows,'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,native,before);
+verifyEqual(testCase,e.observations.included,native.validMask);
+verifyEqual(testCase,e.displayedObservationMask,native.validMask & rows);
+verifyEqual(testCase,e.provenance.modelAssumptionsJustification,review.modelSupportReference);
+end
+
 function [native,review]=fixture()
 physical=struct('alpha_Pa',300000,'gamma_Pa',150000,'density_kgpm3',1070,'thickness_m',0.001);
 f=[100;1000;3000;8000];
@@ -387,7 +401,7 @@ data=struct('frequency_Hz',[f;0;Inf;2000;7000], ...
 native=lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion(data,rmfield(physical,{'alpha_Pa','gamma_Pa'}));
 assert(native.accepted);
 review=struct('label',"Synthetic reviewed Plate fit",'material',"synthetic", ...
-    'sourceReference',"synthetic request",'modelSupportReference',"Synthetic A0; no experimental validation", ...
+    'sourceReference',"synthetic request",'modelAssumptionsJustification',"Synthetic A0; no experimental validation", ...
     'repetitionId',["1";"2";"1";"2";"1";"2";"1";"2"], ...
     'sourceMasks',struct('valid_mask',[true(4,1);false(4,1)], ...
     'interpolated_mask',logical([0;0;0;0;0;0;1;0]), ...

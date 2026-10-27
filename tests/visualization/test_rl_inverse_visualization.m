@@ -24,7 +24,7 @@ verifyEqual(testCase,e.nativeMetrics,native.metrics);
 verifyEqual(testCase,e.nativeDiagnostics,native.modelEvaluation.diagnostics);
 verifyEqual(testCase,fig.UserData,e);
 layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
-verifySubstring(testCase,string(layout.XLabel.String{1}),"Physical support:");
+verifySubstring(testCase,string(layout.XLabel.String{1}),"Model assumption:");
 verifySubstring(testCase,string(layout.XLabel.String{2}),"h = 0.500 mm");
 lines=findall(fig,'Tag','rl_native_residual'); plotted=[];
 for k=1:numel(lines),plotted=[plotted;lines(k).YData(:)];end %#ok<AGROW>
@@ -151,7 +151,7 @@ end
 
 function testClippedGraphicResidualsRetainNativeRowsAndStatistics(testCase)
 native=testCase.TestData.native;before=native;
-provenance=testCase.TestData.provenance;provenance.modelSupportReference="A_{0} hypothesis.";
+provenance=testCase.TestData.provenance;provenance.modelAssumptionsJustification="A_{0} hypothesis.";
 [fig,e]=plotRlFitDiagnostics(native,provenance,'DisplayFrequency_Hz',[2000;4000], ...
     'ResidualLimits',[-.05 .05],'Visible','off');
 cleanup=onCleanup(@()close(fig));
@@ -191,7 +191,7 @@ verifyTrue(testCase,any(captions=="Search bounds: \mu \in [20, 200] kPa"));
 positions=arrayfun(@(item)item.Position(2),items);
 verifyLessThan(testCase,max(positions)-min(positions),.34);
 layout=findall(fig,'-isa','matlab.graphics.layout.TiledChartLayout');
-verifyEqual(testCase,string(layout.XLabel.String{1}),"Physical support: A_{0} hypothesis.");
+verifyEqual(testCase,string(layout.XLabel.String{1}),"Model assumption: A_{0} hypothesis.");
 end
 
 function testUnsampledOutliersHaveCompactNativeBoundaryIndicators(testCase)
@@ -250,6 +250,27 @@ verifySubstring(testCase,string(layout.XLabel.String{2}),"0.405");
 verifySubstring(testCase,string(layout.XLabel.String{2}),"0.406");
 end
 
+function testSourceAlignedPulseGlyphMaskAndHistoricReview(testCase)
+native=testCase.TestData.native; before=native;
+legacy=testCase.TestData.provenance;
+legacy.modelSupportReference=legacy.modelAssumptionsJustification;
+legacy=rmfield(legacy,'modelAssumptionsJustification');
+displayRows=false(numel(native.frequency_Hz),1);
+displayRows(3)=true; % Another repetition has exactly the same observed Hz.
+[fig,e]=plotRlFitDiagnostics(native,legacy,'DisplayObservationMask',displayRows,'Visible','off');
+cleanup=onCleanup(@()close(fig));
+verifyEqual(testCase,native,before);
+verifyEqual(testCase,e.observations.selected,native.validMask);
+verifyEqual(testCase,e.observations.sampledForDisplay,displayRows);
+verifyEqual(testCase,e.displayedSelectedCount,1);
+verifyEqual(testCase,e.provenance.modelAssumptionsJustification,legacy.modelSupportReference);
+verifyFalse(testCase,isfield(legacy,'modelAssumptionsJustification'));
+invalid=testCase.TestData.provenance;
+invalid.modelSupportReference="Conflicting historical statement";
+verifyError(testCase,@()plotRlFitDiagnostics(native,invalid,'Visible','off'), ...
+    'lamb:visualization:AmbiguousProvenance');
+end
+
 function [native,provenance] = fixture(branch)
 p=lamb.models.rayleigh_lamb.rlDefaultParams();p.mu=85e3;
 options=lamb.models.rayleigh_lamb.rlDefaultOptions("Fast");
@@ -265,7 +286,7 @@ config=struct('branchName',branch,'freeParams',"mu",'fixedParams', ...
     'fitOptions',struct('useStandardErrorWeights',true));
 native=lamb.fitting.rayleigh_lamb.rlFitDispersionData(ex,config);
 provenance=struct('label',"Synthetic condition / signed direction",'material',"Synthetic material", ...
-    'sourceReference',"Synthetic original observations",'modelSupportReference', ...
+    'sourceReference',"Synthetic original observations",'modelAssumptionsJustification', ...
     "Synthetic modal request; no experimental physical-validity claim.", ...
     'repetitionId',[repmat("1",7,1);repmat("2",5,1)]);
 end

@@ -8,7 +8,7 @@ study.summaryFile = "";    % Optional root-relative override; default Results/<s
 study.experimentId = "";
 study.subexperimentId = "";
 study.sampleId = "";
-study.mode = "Pulse";      % "Pulse" | "QH"
+study.excitationMode = "Pulse";      % "Pulse" | "QH"
 study.period_us = "";      % Literal Pulse period, "" for QH
 study.repetitions = ["1","2","3"];
 study.conditionId = "";
@@ -17,16 +17,16 @@ study.scanAxisIndex = 1;
 study.direction = "left";  % "left" | "right" along one principal scan axis
 study.estimator = "kf_ridge";
 study.curve = "raw";       % "raw" | "smoothed"
-study.frequencySelection = "all"; % "all" | "interval" | "explicit"
-study.frequency_Hz = [];  % Hz: [low high] or physical requested frequencies
+study.fitFrequencySelection = "all"; % "all" | "interval" | "explicit"
+study.fitFrequency_Hz = [];  % Hz: [low high] or physical requested frequencies
+study.fullBandReviewed = false; % Set true only after reviewing the full fitted band
 
 % Plate A0 native physical inputs (SI); OCE source thickness is per row.
 % The scalar thickness_m is a non-operative reference under the OCE policy.
 study.physical = struct('density_kgpm3', NaN, 'thickness_m', NaN);
 study.review = struct( ...
-    'mode', "A0", 'thicknessPolicy', "oce_directional_per_acquisition", ...
     'thicknessSource', "", 'thicknessJustification', "", ...
-    'densityReference', "", 'modelSupportReference', "");
+    'densitySource', "", 'modelAssumptionsJustification', "");
 study.fitOptions = struct(); % Native Plate SVD qualification settings
 study.thicknessPolicy = "oce_directional_per_acquisition"; % or "explicit_constant_current_thickness" | "oce_reference_acquisition"
 study.thicknessReferenceSourceIndex = NaN; % Only for scalar reference acquisition
@@ -39,7 +39,7 @@ study.exportFigure = false;
 study.resultFile = "";
 study.existingNativeResult = [];
 study.existingAssembly = [];
-study.graphicRequestedFrequency_Hz = []; % Pulse presentation only
+study.plotTargetFrequency_Hz = []; % Pulse presentation only
 study.displayLabel = "";
 study.displaySubtitle = "";
 study.figureFolder = "";
@@ -87,7 +87,7 @@ sourceIndex=observationReview.sourceIndex;bins=observationReview.sourceBinIndex;
 repetitionId=observationReview.repetitionId;ridge=observationReview.ridgeValid;
 interpolated=observationReview.interpolated;extrapolated=observationReview.extrapolated;
 graphicRequested=zeros(0,1);
-if study.mode=="Pulse"&&study.showFigure
+if study.excitationMode=="Pulse"&&study.showFigure
     graphicRequested=unique(graphicSamplingMapping.requestedFrequency_Hz,'stable');
 end
 disp(sourceMetadata);
@@ -97,7 +97,7 @@ fprintf('Selected %d of %d original observations.\n', nnz(validMask), numel(vali
 [experimental,physical,review]=reviewOceInversionPhysics( ...
     study,assembly,observationReview,"Plate");
 assembly.experimental=experimental;
-study.physical=physical;study.review=review;
+study.physical=physical; % Keep review as derived output, not editable study input.
 
 %% 5. RUN OR REUSE THE NATIVE PLATE A0 FIT (explicit opt-in)
 [nativeResult,reusedResult,physical]=fitOceInversionNative( ...

@@ -2,9 +2,9 @@ function outcome = fitOceQhPrestressedPlate(assembly, physical, review, options)
 %FITOCEQHPRESTRESSEDPLATE Coordinate a reviewed scalar or row-thickness A0 request.
 % ASSEMBLY comes from prepareOceQhFitObservations. PHYSICAL contains only
 % density_kgpm3 and current full thickness_m (positive scalar SI values).
-% REVIEW requires mode="A0", thicknessPolicy either
+% REVIEW requires modelBranch="A0", thicknessPolicy either
 % "explicit_constant_current_thickness" or "oce_directional_per_acquisition",
-% thicknessSource, thicknessJustification, densityReference and modelSupportReference. These
+% thicknessSource, thicknessJustification, densitySource and modelAssumptionsJustification. These
 % nonempty references record the caller's physical review, not inferred physics.
 % No mean thickness or load/DIC constraint is computed. If the recorded
 % per-observation thickness exists, the native solver uses it in each q_i.
@@ -26,13 +26,13 @@ end
 for name = ["density_kgpm3", "thickness_m"]
     validateattributes(physical.(name), {'double'}, {'scalar', 'real', 'finite', 'positive'});
 end
-if ~isequal(review.mode,"A0") || ...
+if ~isequal(review.modelBranch,"A0") || ...
         ~any(string(review.thicknessPolicy)== ...
             ["explicit_constant_current_thickness","oce_directional_per_acquisition"])
     error('lamb:oceQh:PhysicalReviewRequired', ...
         'Explicit A0 and a supported reviewed current-thickness policy are required.');
 end
-for name = ["thicknessSource", "thicknessJustification", "densityReference", "modelSupportReference"]
+for name = ["thicknessSource", "thicknessJustification", "densitySource", "modelAssumptionsJustification"]
     value = string(review.(name));
     if ~isscalar(value) || ismissing(value) || strlength(strtrim(value)) == 0
         error('lamb:oceQh:PhysicalReviewRequired', 'Nonempty %s is required.', name);

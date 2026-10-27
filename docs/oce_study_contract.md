@@ -37,6 +37,20 @@ axis. Automatic repeated-frequency projection is not supplied by this integratio
 changing that native fitting contract requires its own review. A per-acquisition
 broadband curve can already satisfy the maintained mRLFE axis contract.
 
+## Canonical public physical inputs
+
+New human-facing inputs use SI unit-qualified physical names shared across
+families: `density_kgpm3` (kg/m^3), `thickness_m` (current full m),
+`poisson_ratio` (dimensionless), and `mu_Pa` where a dimensional shear
+modulus is entered. The RL public fitting builder accepts these three fixed
+physical fields and maps them to unchanged native solver symbols
+(`rho`, `thickness`, `nu`) only at its request boundary. Existing native
+solver and historical MAT fields retain their model-owned names and semantics;
+legacy fixed-parameter names cannot be supplied alongside their canonical
+counterparts. Plate already uses `density_kgpm3` and `thickness_m`.
+Directional current thickness measured by OCE is still handled per original
+acquisition; the scalar field is only a reference under that reviewed policy.
+
 ## Model-specific contracts
 
 | Family and maintained fitting API | Explicit physical/model inputs and numerical boundaries | Native evidence |
@@ -96,16 +110,16 @@ The ordinary Lamb `startup` intentionally excludes `workflows/`.
 | --- | --- |
 | `experimentRoot`, `summaryFile` | OCE root and persisted MAT containing `experiment`; OCE owns recovery. |
 | `experimentId`, `subexperimentId`, `sampleId`, `conditionId`, `condition` | Explicit identities and scalar mechanical condition entries: literal text for stored text, exact doubles for stored doubles. No folder-name inference or cross-type coercion. |
-| `mode`, `period_us`, `repetitions`, `scanAxisIndex`, `direction`, `curve` | QH/Pulse, literal Pulse period, repetition labels, signed direction and an existing raw/smoothed curve. |
-| `frequencySelection`, `frequency_Hz` | `all`, inclusive observed-Hz `interval=[low high]`, or `explicit` nominal requests mapped to original observations. No nearest-valid repair or interpolation. |
+| `excitationMode`, `period_us`, `repetitions`, `scanAxisIndex`, `direction`, `curve` | QH/Pulse, literal Pulse period, repetition labels, signed direction and an existing raw/smoothed curve. |
+| `fitFrequencySelection`, `fitFrequency_Hz`, `fullBandReviewed` | `all` requires an explicit `fullBandReviewed=true` acknowledgement in both manual and batch workflows; `interval=[low high]` and `explicit` select reviewed observed/nominal Hz. This acknowledgement does not validate any source-quality row. No nearest-valid repair or interpolation. |
 | `physical`, `review` | Native Plate density and explicit A0/thickness/density/support review; default direction-matched OCE current full thickness per original row, optional reviewed scalar alternative. |
 | `fitOptions` | Native options, forwarded unchanged. Empty options reuse a supplied result's effective settings; a new request otherwise uses native defaults. |
 | `existingNativeResult`, `existingAssembly`, `resultFile`, `reuseOnly` | Approved native objects or a MAT with `nativeResult` and `assembly`. Default `reuseOnly=true` rejects changed requests before fitting. |
-| `graphicRequestedFrequency_Hz` | Pulse graphic targets, independent of fitting selection; compatible OCE sampling is preferred. |
+| `plotTargetFrequency_Hz` | Pulse graphic targets, independent of fitting selection; compatible OCE sampling is preferred. |
 | `showFigure`, `displayLabel`, `displaySubtitle` | One diagnostic with the approved fixed typography and renderer. |
 | `saveResult`, `exportFigure`, `figureFolder`, `figureName` | Opt-in persistence; defaults create no files. Existing destinations are never overwritten. |
 
-For `explicit`, `frequency_Hz` contains researcher-requested nominal frequencies.
+For `explicit`, `fitFrequency_Hz` contains researcher-requested nominal frequencies.
 QH matches the registered physical excitation values and retains the existing
 selected FFT bins. Pulse reuses compatible OCE requested/selected-frequency
 correspondences; otherwise it selects the nearest bin on each complete original
@@ -246,7 +260,7 @@ RL uses the common selection fields above plus:
 | `observationMask` | Empty uses the existing source-quality/frequency policy. A supplied logical vector is the exact original-row mask and must respect frequency selection. Invalid selected values are rejected, never repaired; original ridge flags remain separate evidence. |
 | `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI. A scalar `fixedParams.thickness` is used only under `explicit_constant`; under the OCE policy the native problem uses `experimental.observationThickness_m`. |
 | `thicknessPolicy` | Default `oce_directional_per_acquisition`: one source-recorded current full directional thickness per observation (QH acquisition/nominal frequency; Pulse acquisition/repetition repeated over its original bins). `explicit_constant` retains reviewed scalar thickness. Missing nonpositive-frequency measurements are tolerated; missing thickness at any positive-frequency observation blocks the request. |
-| `review` | Explicit `mode`, `thicknessSource`, `thicknessJustification`, `densityReference`, `parameterJustification` and `modelSupportReference`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. In the OCE thickness policy, source/justification are set to the actual recorded measurement policy. |
+| `review` | Derived `modelBranch`, `thicknessSource`, `thicknessJustification`, `densitySource`, `fitParameterJustification` and `modelAssumptionsJustification`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. In the OCE thickness policy, source/justification are set to the actual recorded measurement policy. |
 
 The current full thickness comes from the already selected OCE signed direction
 (`borders.directional_mean_thickness_mm`, converted to meters). QH retains a
@@ -324,9 +338,24 @@ direction and frequency selection it would have in a human Run Section.
 No automatic bandwidth optimization, robust outlier rejection, parameter
 retuning, source-quality repair, modal identification or QH+Pulse pooling is
 implemented. The batch refuses an unreviewed frequency-selection field and
-requires a specific `approvedAllFrequencies=true` acknowledgement for `all`.
+requires a specific `fullBandReviewed=true` acknowledgement for `all`.
+The same acknowledgement is required by manual MATLAB Editor workflows at
+the shared observation-preparation boundary.
 A read-only batch plan is the default; enabling `plan.execute=true` authorizes
-native fitting. Output MAT, FIG and TIF are independently controlled.
+native fitting. Output MAT, FIG and TIF are independently controlled. With
+`plan.reuseOnly=true`, an existing exact-match `inversion.mat` is reused
+read-only and is not rewritten; its recorded input-file hashes must match the
+current sources. Reused MAT and newly exported figures must also retain the
+same researcher-supplied scientific `review` (after read-only legacy name
+normalization). Changed scientific hypotheses require a separately reviewed
+output tag, or presentation explicitly disconnected from the saved MAT
+(`saveResult=false`). Numerical equality alone does not authorize changing
+archived scientific claims. Figure destinations remain non-overwritable. Any
+historic `studyRecord.selection` naming is normalized in the returned record only.
+Legacy visualization `modelSupportReference` and prior review-source labels
+are accepted at a read-only provenance boundary, not rewritten into older MATs.
+The derived `review` must remain separate from editable `study.review` so
+manual MATLAB Editor review sections can be repeated without inconsistent state.
 
 The default storage layout, relative to the supplied machine-local experiment
 root, is

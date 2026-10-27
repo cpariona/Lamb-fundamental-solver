@@ -32,8 +32,8 @@ if strlength(tag)>0
     tag=safePart(tag);
 else
     period="";
-    if study.mode=="Pulse",period="_"+safePart(study.period_us)+"us";end
-    tag=safePart(study.mode+period+"_"+study.conditionId+ ...
+    if study.excitationMode=="Pulse",period="_"+safePart(study.period_us)+"us";end
+    tag=safePart(study.excitationMode+period+"_"+study.conditionId+ ...
         "_axis"+string(study.scanAxisIndex)+"_"+study.direction);
 end
 if ~isfield(study,'outputRelativeFolder')||strlength(string(study.outputRelativeFolder))==0

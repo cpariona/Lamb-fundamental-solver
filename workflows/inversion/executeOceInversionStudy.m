@@ -17,7 +17,7 @@ family=string(family);
 study=resolveOceInversionPaths(study,family);
 % Fail before fitting if requested outputs already exist.
 if study.saveResult
-    assert(~isfile(study.resultFile),'lamb:study:OutputExists', ...
+    assert(study.reuseOnly || ~isfile(study.resultFile),'lamb:study:OutputExists', ...
         'The result MAT already exists.');
 end
 if study.exportFigure
