@@ -112,11 +112,11 @@ model-specific reviewed physical inputs in section 1. For uniaxial-stretch
 acquisitions `condition_keys="strain_percent"` is an example, not a value
 inferred from a folder name.
 
-Use the shared `material` configuration with explicit SI fields:
-`density_kgpm3` (kg/m^3), `thickness_m` (current full m, only a
+Use the shared `material` and `geometry` configuration with explicit SI fields:
+`density_kgpm3` (kg/m^3), `geometry.thickness_m` (current full m, only a
 scalar reference for the directional-OCE thickness policy), and
 `poisson_ratio` (dimensionless, RL only). Set the independent
-`rl_mu_initial_Pa` and `rl_mu_bounds_Pa`, and provide the model-specific
+`rl_mu_initial_guess_Pa` and `rl_mu_bounds_Pa`, and provide the model-specific
 physical-support references. The public RL fitting boundary maps those
 unit-qualified inputs to its retained native mathematical parameter symbols;
 Plate accepts the same density/thickness fields directly. Do not assign
@@ -199,10 +199,10 @@ and the report. The failure record includes `completedThrough` and a relative
 reference to any successfully saved inversion MAT. With `continueOnError=false`,
 the original exception is still raised after recording the failure.
 
-Each batch case **must** supply `frequencySelection="interval"` with two Hz
+Each batch case **must** supply `fitFrequencySelection="interval"` with two Hz
 bounds, or `"explicit"` with its reviewed original target requests. The
 `"all"` mode is allowed only with
-`case.approvedAllFrequencies=true`. These selections are *not* discovered,
+`case.fullBandReviewed=true`. These selections are *not* discovered,
 optimized or repaired by the batch. Original estimator quality masks and
 source-row identities are preserved. Pulse graphic frequency sampling remains
 separate from fit eligibility. Fit acceptance is numerical and does not validate
