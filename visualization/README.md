@@ -199,7 +199,7 @@ Residual units remain m/s for weighted fits by consuming
 `residualInfo.rawResiduals_mps`. Estimated parameters, actual scalar thickness,
 density, effective nu and native RMSE are displayed without fabricated intervals.
 Estimated parameters remain in B and full-fit RMSE in C. The two-line footer
-follows Plate: the caller's physical-support statement first, then actual physical
+follows Plate: the caller's model-assumption justification first, then actual physical
 values. It does not manufacture physical acceptance. Optional displayLabel
 uses the Plate title syntax: case/direction/model first, modality/repetitions/
 selection in displaySubtitle.
