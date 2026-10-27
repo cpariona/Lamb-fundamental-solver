@@ -95,7 +95,11 @@ experimental = struct('frequency_Hz',[1000;1500;2000], ...
 legacy = lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,config);
 config.fixedParams = struct('density_kgpm3',p.rho, ...
     'thickness_m',p.thickness,'poisson_ratio',p.nu);
+config.freeParams = "mu_Pa";
+config.initialGuess = struct('mu_Pa',p.mu);
+config.bounds = struct('mu_Pa',[5e4 2e5]);
 current = lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,config);
+verifyEqual(testCase,current.freeParams,legacy.freeParams);
 verifyEqual(testCase,current.baseParams,legacy.baseParams);
 verifyEqual(testCase,current.x0,legacy.x0);
 verifyEqual(testCase,current.lowerBounds,legacy.lowerBounds);
@@ -103,6 +107,18 @@ verifyEqual(testCase,current.upperBounds,legacy.upperBounds);
 verifyEqual(testCase,current.experimental,legacy.experimental);
 bad = config;
 bad.fixedParams.rho = p.rho;
+verifyError(testCase,@()lamb.fitting.rayleigh_lamb.rlBuildFitProblem( ...
+    experimental,bad),'lamb:rl:AmbiguousPhysicalInput');
+bad = config;
+bad.initialGuess.mu = p.mu;
+verifyError(testCase,@()lamb.fitting.rayleigh_lamb.rlBuildFitProblem( ...
+    experimental,bad),'lamb:rl:AmbiguousPhysicalInput');
+bad = config;
+bad.bounds.mu = [5e4 2e5];
+verifyError(testCase,@()lamb.fitting.rayleigh_lamb.rlBuildFitProblem( ...
+    experimental,bad),'lamb:rl:AmbiguousPhysicalInput');
+bad = config;
+bad.freeParams = ["mu","mu_Pa"];
 verifyError(testCase,@()lamb.fitting.rayleigh_lamb.rlBuildFitProblem( ...
     experimental,bad),'lamb:rl:AmbiguousPhysicalInput');
 end
