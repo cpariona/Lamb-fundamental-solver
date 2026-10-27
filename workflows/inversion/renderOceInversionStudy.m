@@ -45,7 +45,7 @@ else
     provenance.sourceMasks=struct('valid_mask',r.ridgeValid, ...
         'interpolated_mask',r.interpolated,'extrapolated_mask',r.extrapolated);
     [fig,figureEvidence]=plotAePlateFitDiagnostics(nativeResult,provenance, ...
-        'DisplayMode',"robust",'DisplayFrequency_Hz',graphicHz,'Visible',visible);
+        'DisplayMode',"robust",'DisplayObservationMask',displayRows,'Visible',visible);
 end
 if visible=="on",drawnow;end
 if study.exportFigure
