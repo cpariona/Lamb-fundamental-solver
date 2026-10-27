@@ -49,6 +49,7 @@ if isfile(study.resultFile)
         'An existing result can be reused only with matching source file hashes.');
     % Preserve the original MAT and historic selection metadata byte-for-byte.
     studyRecord=saved.studyRecord;
+    studyRecord=normalizeHistoricSelection(studyRecord);
     return
 end
 assembly=inputs.assembly;observationReview=inputs.observationReview;
@@ -68,6 +69,28 @@ else
     save(study.resultFile,'studyRecord','nativeResult','assembly','physical','review', ...
         'observationReview','frequencySelectionMapping','graphicSamplingMapping','-v7.3');
 end
+end
+
+
+function record=normalizeHistoricSelection(record)
+% In-memory interpretation only; never rewrite historical MAT metadata.
+if ~isfield(record,'selection'),return;end
+selection=record.selection;
+aliases=["mode","excitationMode"; ...
+    "frequencySelection","fitFrequencySelection"; ...
+    "frequency_Hz","fitFrequency_Hz"; ...
+    "graphicRequestedFrequency_Hz","plotTargetFrequency_Hz"];
+for j=1:size(aliases,1)
+    previous=char(aliases(j,1));current=char(aliases(j,2));
+    if isfield(selection,previous)
+        assert(~isfield(selection,current), ...
+            'lamb:study:AmbiguousHistoricalSelection', ...
+            'Historical and canonical selection names must not conflict.');
+        selection.(current)=selection.(previous);
+        selection=rmfield(selection,previous);
+    end
+end
+record.selection=selection;
 end
 
 function relative=relativeSourcePaths(paths,root)
