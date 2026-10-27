@@ -12,7 +12,8 @@ assert(isscalar(string(study.sampleId))&&strlength(study.sampleId)>0);
 assert(~isempty(fieldnames(study.condition)),'Supply the mechanical condition explicitly.');
 inputHashes=table();
 if study.saveResult
-    assert(strlength(study.resultFile)>0&&~isfile(study.resultFile),'lamb:study:OutputExists','Do not overwrite a historical result.');
+    assert(strlength(study.resultFile)>0 && (study.reuseOnly || ~isfile(study.resultFile)), ...
+        'lamb:study:OutputExists','Existing results are read-only and may be reused only by exact request.');
     before=oceInversionProvenance(string(study.summaryFile),projectRoot);
     summaryHash=before.inputFiles;
 end
