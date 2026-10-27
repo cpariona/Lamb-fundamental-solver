@@ -53,7 +53,7 @@ native Lamb inverse models to reviewed OCE acquisitions. This directory is
    Optional `study.displayLabel` and `study.displaySubtitle` override
    figure text only when nonempty. Otherwise, the workflow builds a label
    from sample/subexperiment/signed direction and leaves native model-specific
-   title/subtitle defaults in place. Source material and physical-support
+   title/subtitle defaults in place. Source material and model-assumption
    references remain mandatory.
 
 A failed or edited upstream section invalidates downstream workspace values.
@@ -117,7 +117,7 @@ Use the shared `material` and `geometry` configuration with explicit SI fields:
 scalar reference for the directional-OCE thickness policy), and
 `poisson_ratio` (dimensionless, RL only). Set the independent
 `rl_mu_initial_guess_Pa` and `rl_mu_bounds_Pa`, and provide the model-specific
-physical-support references. The public RL fitting boundary maps those
+model-assumption justifications. The public RL fitting boundary maps those
 unit-qualified inputs to its retained native mathematical parameter symbols;
 Plate accepts the same density/thickness fields directly. Do not assign
 placeholder values or infer physical parameters from paths.
@@ -132,8 +132,8 @@ Section 3 constructs independent, reviewable `plan.cases` arrays for
 RayleighLamb and Plate. The generated condition ID is a stable unit-free path label derived from
 recorded mechanical keys and literal values (for example,
 `strain_percent_0`); it does not depend on acquisition or Pulse-period
-ordering. The exact recorded condition values remain unchanged in each case. `frequency_selection="all"` requires the user to set
-`approved_all_frequencies=true`; the selection is never inferred or
+ordering. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
+`full_band_reviewed=true`; the selection is never inferred or
 optimized. The researcher must review each case, physics, and output paths
 before enabling `run_batches=true` in section 4.
 
