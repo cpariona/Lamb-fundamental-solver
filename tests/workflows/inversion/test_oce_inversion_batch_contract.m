@@ -115,7 +115,7 @@ verifyEqual(testCase,report.report.status,"failed");
 verifyTrue(testCase,isfile(report.report.failureRecordFile));
 saved=load(report.report.failureRecordFile,'failureRecord');
 verifyEqual(testCase,saved.failureRecord.errorId,"lamb:study:OceRepository");
-verifyEqual(testCase,saved.failureRecord.request.frequency_Hz,c.frequency_Hz);
+verifyEqual(testCase,saved.failureRecord.request.frequency_Hz,c.fitFrequency_Hz);
 verifyFalse(testCase,isfield(saved.failureRecord.request,'experimentRoot'));
 verifyFalse(testCase,contains(string(saved.failureRecord.errorMessage),string(root)));
 verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
@@ -125,12 +125,12 @@ end
 function testUnreviewedAllFrequenciesAreNotAutomated(testCase)
 root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 c=baseCase(root,"Stretch_1p00000");
-c.frequencySelection="all";c.frequency_Hz=[];
+c.fitFrequencySelection="all";c.fitFrequency_Hz=[];
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
     'cases',c,'execute',false);
 verifyError(testCase,@()runOceInversionBatch(plan,"RayleighLamb"), ...
     'lamb:batch:BandReview');
-plan.cases.approvedAllFrequencies=true;
+plan.cases.fullBandReviewed=true;
 planned=runOceInversionBatch(plan,"RayleighLamb");
 verifyEqual(testCase,planned.report.status,"planned");
 end
@@ -138,7 +138,7 @@ end
 function testRlSharedFitDoesNotRequirePlateOptions(testCase)
 p=lamb.models.rayleigh_lamb.rlDefaultParams();
 study=struct('existingNativeResult',[],'existingAssembly',[], ...
-    'resultFile',string(tempname)+".mat",'reuseOnly',true,'mode',"Pulse", ...
+    'resultFile',string(tempname)+".mat",'reuseOnly',true,'excitationMode',"Pulse", ...
     'estimator',"kf_ridge");
 config=struct('branchName',"A0",'freeParams',"mu", ...
     'fixedParams',struct('rho',p.rho,'thickness',p.thickness,'nu',p.nu), ...
@@ -208,10 +208,10 @@ end
 
 function c=baseCase(root,sub)
 c=struct('experimentRoot',string(root),'subexperimentId',string(sub), ...
-    'mode',"Pulse",'period_us',"320.01",'conditionId',"initial", ...
+    'excitationMode',"Pulse",'period_us',"320.01",'conditionId',"initial", ...
     'scanAxisIndex',1,'direction',"left",'summaryFile',"", ...
     'outputRelativeFolder',"",'outputTag',"", ...
-    'frequencySelection',"interval",'frequency_Hz',[500 2000]);
+    'fitFrequencySelection',"interval",'fitFrequency_Hz',[500 2000]);
 end
 
 function testWindowsTrailingDotAliasesAreRejected(testCase)
@@ -228,7 +228,7 @@ end
 function testExportFailureRetainsFitAndContinuesBatch(testCase)
 [root,oceRoot,cleanup]=presentationFailureFixture(); %#ok<ASGLU>
 c=baseCase(root,"Stretch_1p00000");
-c.mode="QH";c.period_us="";
+c.excitationMode="QH";c.period_us="";
 c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
 c.review=struct('modelBranch',"A0");
 c.condition=struct('strain_percent',0);
@@ -263,7 +263,7 @@ end
 
 function testPersistenceFailureRetainsNativeWithoutClaimingSavedMat(testCase)
 [root,oceRoot,cleanup]=presentationFailureFixture(); %#ok<ASGLU>
-c=baseCase(root,"Stretch_1p00000");c.mode="QH";c.period_us="";
+c=baseCase(root,"Stretch_1p00000");c.excitationMode="QH";c.period_us="";
 c.conditionId="persistence_failure";
 c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
 c.review=struct('modelBranch',"A0");
