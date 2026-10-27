@@ -5,7 +5,7 @@ function [fig, evidence] = plotAePlateFitDiagnostics(result, provenance, varargi
 %   and shared physical inputs/limits; coefficients and residuals stay per result.
 %   DisplayFrequency_Hz optionally selects exact stored frequencies for glyphs
 %   only. It never changes the native fitting mask, values or regression.
-%   PROVENANCE requires label, material, sourceReference, modelSupportReference.
+%   PROVENANCE requires label, material, sourceReference, modelAssumptionsJustification.
 %   Optional repetitionId is one text/numeric value per original observation;
 %   sourceMasks has original logical valid_mask/interpolated_mask/extrapolated_mask.
 %   These masks are evidence only and never replace result.validMask.
@@ -167,7 +167,7 @@ end
 if result.model~="acoustoelastic_prestressed_plate"
     error('lamb:visualization:UnsupportedResult','Use the native prestressed-plate result.');
 end
-for name=["label","material","sourceReference","modelSupportReference"]
+for name=["label","material","sourceReference","modelAssumptionsJustification"]
     value=string(provenance.(name));
     if ~isscalar(value) || ismissing(value) || strlength(strtrim(value))==0
         error('lamb:visualization:MissingProvenance','Nonempty %s is required.',name);
