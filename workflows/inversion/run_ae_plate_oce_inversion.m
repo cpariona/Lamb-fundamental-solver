@@ -96,7 +96,7 @@ fprintf('Selected %d of %d original observations.\n', nnz(validMask), numel(vali
 [experimental,physical,review]=reviewOceInversionPhysics( ...
     study,assembly,observationReview,"Plate");
 assembly.experimental=experimental;
-study.physical=physical;study.review=review;
+study.physical=physical; % Keep review as derived output, not editable study input.
 
 %% 5. RUN OR REUSE THE NATIVE PLATE A0 FIT (explicit opt-in)
 [nativeResult,reusedResult,physical]=fitOceInversionNative( ...
