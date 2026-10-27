@@ -122,6 +122,18 @@ unit-qualified inputs to its retained native mathematical parameter symbols;
 Plate accepts the same density/thickness fields directly. Do not assign
 placeholder values or infer physical parameters from paths.
 
+For clarity, `excitationMode` means QH/Pulse, native RL `branchName` means
+A0/S0, and `review.modelBranch` is derived rather than entered twice.
+`fit_frequency_selection`/`fit_frequency_hz` affect the fitting mask;
+`plot_target_frequency_hz` only requests Pulse figure samples.
+`full_band_reviewed=true` acknowledges use of all eligible fitting Hz, not
+acceptance of invalid ridge bins or experimental A0 purity. Fields named
+`*_model_assumptions_justification` document experimental hypotheses,
+not a substitute for native support/acceptance diagnostics. The stable case
+folder ID includes a source-condition fingerprint to distinguish different
+literal strings and exponent signs; recorded typed condition values remain
+unchanged in the request.
+
 Section 2 locates `Results/<subexperiment>/summary.mat` files and uses
 `oce.results.recoverSummaryObservations` to validate and discover existing
 acquisitions. Recorded frequencies and repetitions are not treated as
