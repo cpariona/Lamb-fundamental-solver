@@ -200,7 +200,10 @@ Residual units remain m/s for weighted fits by consuming
 density, effective nu and native RMSE are displayed without fabricated intervals.
 Estimated parameters remain in B and full-fit RMSE in C. The two-line footer
 follows Plate: the caller's model-assumption justification first, then actual physical
-values. It does not manufacture physical acceptance. Optional displayLabel
+values. It does not manufacture physical acceptance. When the human workflow
+references a persisted MAT, its archived model-assumption review must match
+the figure's review; numeric reuse never authorizes silent hypothesis changes.
+Optional displayLabel
 uses the Plate title syntax: case/direction/model first, modality/repetitions/
 selection in displaySubtitle.
 Repetitions retain the established colors/markers; predictions are black dashed
