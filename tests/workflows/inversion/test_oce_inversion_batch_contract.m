@@ -108,6 +108,17 @@ record=persistOceInversionStudy(study,inputs,nativeResult,physical, ...
 verifyEqual(testCase,replace(record.inputFiles.path,char(92),"/"), ...
     "Results/Stretch_1p00000/summary.mat");
 verifyEqual(testCase,record.pathBase,"experimentRoot");
+study.fullBandReviewed=true;
+% A second invocation must reuse the saved MAT without changing its bytes.
+original=load(study.resultFile,'studyRecord','nativeResult');
+savedTime=dir(study.resultFile);
+reusedRecord=persistOceInversionStudy(study,inputs,nativeResult,physical, ...
+    review,true,projectRoot,"Plate");
+verifyEqual(testCase,reusedRecord,record);
+verifyEqual(testCase,load(study.resultFile,'studyRecord','nativeResult'),original);
+verifyEqual(testCase,dir(study.resultFile).bytes,savedTime.bytes);
+verifyError(testCase,@()persistOceInversionStudy(study,inputs,nativeResult,physical, ...
+    review,false,projectRoot,"Plate"),'lamb:study:OutputExists');
 verifyFalse(testCase,isfield(record.selection,'experimentRoot'));
 verifyFalse(testCase,isfield(record.code.Lamb,'root'));
 verifyFalse(testCase,isfield(record.code.OCE,'root'));
@@ -166,6 +177,31 @@ verifyError(testCase,@()fitOceInversionNative(study,assembly, ...
     'lamb:study:RequestMismatch');
 end
 
+function testRlReviewIsRepeatableWithoutDerivedInputFields(testCase)
+p=lamb.models.rayleigh_lamb.rlDefaultParams();
+source=baseCase("unused","synthetic");
+source.thicknessPolicy="oce_directional_per_acquisition";
+source.fitConfig=struct('branchName',"A0",'freeParams',"mu_Pa", ...
+    'fixedParams',struct('density_kgpm3',p.rho,'thickness_m',NaN,'poisson_ratio',p.nu), ...
+    'initialGuess',struct('mu_Pa',p.mu),'bounds',struct('mu_Pa',[20e3 200e3]));
+source.review=struct('thicknessSource',"OCE recorded", ...
+    'thicknessJustification',"Reviewed geometry", ...
+    'densitySource',"Synthetic", ...
+    'fitParameterJustification',"Synthetic", ...
+    'modelAssumptionsJustification',"Reviewed A0 hypothesis");
+data=struct('frequency_Hz',[1000;2000], ...
+    'Cp_mps',[3;4],'validMask',true(2,1));
+assembly=struct('experimental',data,'measuredThickness_m',[.0005;.0006]);
+obs=table([1;2],'VariableNames',{'sourceIndex'});
+[experimental,physics,review]=reviewOceInversionPhysics(source,assembly,obs,"RayleighLamb");
+source.fitConfig=physics; % Mirrors the manual section but retains editable review.
+[second,physicalAgain,reviewAgain]=reviewOceInversionPhysics(source,assembly,obs,"RayleighLamb");
+verifyEqual(testCase,second,experimental);
+verifyEqual(testCase,physicalAgain,physics);
+verifyEqual(testCase,reviewAgain,review);
+verifyEqual(testCase,review.modelBranch,"A0");
+end
+
 function testPlateUsesAllSelectedMeasuredThicknessRows(testCase)
 source=baseCase("unused","Stretch_1p00000");
 source.estimator="kf_ridge";
@@ -187,6 +223,11 @@ duplicate=source;duplicate.review.thicknessPolicy="explicit_constant_current_thi
 verifyError(testCase,@()reviewOceInversionPhysics(duplicate,assembly,obs,"Plate"), ...
     'lamb:study:DuplicatedReviewChoice');
 [exp,physical,review]=reviewOceInversionPhysics(source,assembly,obs,"Plate");
+% MATLAB Editor Section 4 can be run repeatedly with the same reviewed input.
+[expAgain,physicalAgain,reviewAgain]=reviewOceInversionPhysics(source,assembly,obs,"Plate");
+verifyEqual(testCase,expAgain,exp);
+verifyEqual(testCase,physicalAgain,physical);
+verifyEqual(testCase,reviewAgain,review);
 verifyEqual(testCase,exp.observationThickness_m,h);
 verifyEqual(testCase,physical.thickness_m,h(1));
 verifyEqual(testCase,review.thicknessPolicy,"oce_directional_per_acquisition");
