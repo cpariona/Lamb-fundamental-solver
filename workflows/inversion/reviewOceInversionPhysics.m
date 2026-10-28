@@ -26,6 +26,16 @@ if family=="RayleighLamb"
         selected=recorded(experimental.validMask);
         fprintf('RL OCE thickness range: %.6f to %.6f mm; %d exact groups.\n', ...
             min(selected)*1e3,max(selected)*1e3,numel(unique(selected)));
+    elseif study.thicknessPolicy=="oce_median_per_case"
+        [effective,range,sourceCount]=medianSelectedThickness( ...
+            assembly,observationReview,experimental.validMask);
+        physics.fixedParams.thickness_m=effective;
+        review.thicknessPolicy="oce_median_per_case";
+        review.thicknessSource="OCE directional_mean_thickness_mm; selected signed-direction acquisitions";
+        review.thicknessJustification= ...
+            "Median of one measured full thickness per selected acquisition; common to all fitted frequencies and repetitions";
+        fprintf('RL OCE median thickness: %.6f mm (%d acquisitions, range %.6f to %.6f mm).\n', ...
+            effective*1e3,sourceCount,range(1)*1e3,range(2)*1e3);
     else
         assert(study.thicknessPolicy=="explicit_constant", ...
             'lamb:study:ThicknessPolicy','RL requires a reviewed thickness policy.');
@@ -60,6 +70,15 @@ elseif family=="Plate"
             "Full current thickness per selected original observation; no pooling or interpolation";
         review.thicknessPolicy="oce_directional_per_acquisition";
     elseif isfield(study,'thicknessPolicy')&& ...
+            study.thicknessPolicy=="oce_median_per_case"
+        [effective,~,~]=medianSelectedThickness( ...
+            assembly,observationReview,experimental.validMask);
+        physics.thickness_m=effective;
+        review.thicknessPolicy="oce_median_per_case";
+        review.thicknessSource="OCE directional_mean_thickness_mm; selected signed-direction acquisitions";
+        review.thicknessJustification= ...
+            "Median of one measured full thickness per selected acquisition; common to all fitted frequencies and repetitions";
+    elseif isfield(study,'thicknessPolicy')&& ...
             study.thicknessPolicy=="oce_reference_acquisition"
         reference=study.thicknessReferenceSourceIndex;
         assert(isa(reference,'double')&&isscalar(reference)&& ...
@@ -80,7 +99,8 @@ elseif family=="Plate"
             study.thicknessPolicy=="explicit_constant_current_thickness", ...
             'lamb:study:ThicknessPolicy','Unknown reviewed Plate thickness policy.');
     end
-    if ~isfield(experimental,'observationThickness_m')
+    if ~isfield(experimental,'observationThickness_m') && ...
+            ~isfield(review,'thicknessPolicy')
         review.thicknessPolicy="explicit_constant_current_thickness";
     end
     % Per-row thickness enters only the canonical Plate q_i geometry; the
@@ -117,6 +137,27 @@ else
 end
 assert(numel(thickness)==n,'lamb:study:ThicknessAlignment', ...
     'Signed-direction thickness must align with original observation rows.');
+end
+
+function [effective,range,sourceCount]=medianSelectedThickness(assembly,observationReview,selected)
+% Count acquisitions, not their frequency rows, for one representative geometry.
+recorded=directionalThickness(assembly,observationReview);
+selected=selected(:);
+sourceIds=unique(observationReview.sourceIndex(selected),'stable');
+assert(~isempty(sourceIds),'lamb:study:MissingThickness', ...
+    'At least one selected acquisition is needed for the median thickness.');
+sourceValues=nan(numel(sourceIds),1);
+for j=1:numel(sourceIds)
+    rows=selected & observationReview.sourceIndex==sourceIds(j);
+    candidates=unique(recorded(rows));
+    assert(isscalar(candidates)&&isfinite(candidates)&&candidates>0, ...
+        'lamb:study:MissingThickness', ...
+        'Each selected acquisition must have one valid signed-direction thickness.');
+    sourceValues(j)=candidates;
+end
+effective=median(sourceValues);
+range=[min(sourceValues) max(sourceValues)];
+sourceCount=numel(sourceIds);
 end
 
 function checkText(value,name)
