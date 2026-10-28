@@ -195,6 +195,8 @@ When `saveResult=true`, the existing result MAT additionally contains
   AcquisitionParams tables used for recovery, including indexed sources outside
   the final fitting selection. Files are fingerprinted before recovery and checked
   again before persistence; changed inputs block saving.
+   Preparation captures file fingerprints only; the final provenance capture
+   also records code state. The hash checks and persisted fields are unchanged.
 - Pending efficiency review: hashing follows the complete summary recovery index,
   not only the selected condition. A future reduction must preserve recovery and
   provenance guarantees; it is not part of the current implementation.

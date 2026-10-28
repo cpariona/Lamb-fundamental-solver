@@ -20,7 +20,7 @@ inputHashes=table();
 if study.saveResult
     assert(strlength(study.resultFile)>0 && (study.reuseOnly || ~isfile(study.resultFile)), ...
         'lamb:study:OutputExists','Existing results are read-only and may be reused only by exact request.');
-    before=oceInversionProvenance(string(study.summaryFile),projectRoot);
+    before=oceInversionProvenance(string(study.summaryFile),projectRoot,false);
     summaryHash=before.inputFiles;
 end
 savedSummary=load(study.summaryFile,'experiment');
@@ -33,7 +33,7 @@ if study.saveResult
         [~,metadataFile]=oce.io.loadAcquisitionTable(study.experimentRoot,sub);
         inputFiles(end+1,1)=string(metadataFile); %#ok<AGROW>
     end
-    before=oceInversionProvenance(inputFiles,projectRoot);
+    before=oceInversionProvenance(inputFiles,projectRoot,false);
     inputHashes=before.inputFiles;
     assert(isequal(inputHashes(1,:),summaryHash),'lamb:study:InputsChanged','Summary changed while being read.');
 end
