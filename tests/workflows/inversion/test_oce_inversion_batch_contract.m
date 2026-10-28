@@ -42,6 +42,43 @@ verifySubstring(testCase,two.resultFile,"Stretch_1p10000");
 verifyTrue(testCase,contains(two.resultFile,fullfile("Inversions","RayleighLamb")));
 end
 
+function testBatchExternalInversionLayoutAndSingleCompatibility(testCase)
+parent=tempname;mkdir(parent);cleanup=onCleanup(@()rmdir(parent,'s'));
+root=fullfile(parent,"Experiment_A");mkdir(root);
+caseStudy=baseCase(root,"Stretch_1p00000");
+% Manual single remains inside its original OCE Results tree.
+single=resolveOceInversionPaths(caseStudy,"Plate");
+verifyEqual(testCase,single.resultFile,fullfile(root,"Results", ...
+    "Stretch_1p00000","Inversions","Plate", ...
+    "Pulse_320.01us_initial_axis1_left","inversion.mat"));
+
+plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
+    'cases',caseStudy,'execute',false);
+for family=["RayleighLamb","Plate"]
+    batch=runOceInversionBatch(plan,family);
+    expected=fullfile(parent,"OCE_Inversions","Experiment_A", ...
+        "Stretch_1p00000",family, ...
+        "Pulse_320.01us_initial_axis1_left","inversion.mat");
+    verifyEqual(testCase,batch.report.resultFile(1),string(expected));
+    verifyEqual(testCase,batch.cases{1}.resolvedOutputBase,"inversionsRoot");
+    verifyFalse(testCase,isfolder(fullfile(parent,"OCE_Inversions")), ...
+        'Dry-run must not create inversion directories.');
+end
+% A supplied root changes only output storage; OCE inputs stay unchanged.
+plan.inversionsRoot=fullfile(parent,"Reviewed_Inversions");
+plan.cases.outputTag="band_1";
+custom=runOceInversionBatch(plan,"Plate");
+verifyEqual(testCase,custom.cases{1}.summaryFile, ...
+    fullfile(root,"Results","Stretch_1p00000","summary.mat"));
+verifyEqual(testCase,custom.report.resultFile(1),string(fullfile( ...
+    parent,"Reviewed_Inversions","Experiment_A", ...
+    "Stretch_1p00000","Plate","band_1","inversion.mat")));
+
+plan.inversionsRoot="relative/path";
+verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
+    'lamb:study:InversionsRoot');
+end
+
 function testExplicitRelativeOverridesAndUnsafePaths(testCase)
 root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 study=baseCase(root,"Stretch_1p00000");
@@ -183,12 +220,14 @@ c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
 plan=struct('experimentRoot',string(root), ...
     'oceRepositoryRoot',"missing_OCE_checkout",'cases',c, ...
     'execute',true,'exportFigure',false,'saveResult',true, ...
-    'continueOnError',true);
+    'continueOnError',true,'inversionsRoot',fullfile(root,'OCE_Inversions'));
 report=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,report.report.status,"failed");
 verifyTrue(testCase,isfile(report.report.failureRecordFile));
 saved=load(report.report.failureRecordFile,'failureRecord');
 verifyEqual(testCase,saved.failureRecord.errorId,"lamb:study:OceRepository");
+verifyEqual(testCase,saved.failureRecord.nativeResultBase,"inversionsRoot");
+verifyFalse(testCase,isfield(saved.failureRecord.request,'inversionsRoot'));
 verifyEqual(testCase,saved.failureRecord.request.fitFrequency_Hz,c.fitFrequency_Hz);
 verifyFalse(testCase,isfield(saved.failureRecord.request,'experimentRoot'));
 verifyFalse(testCase,contains(string(saved.failureRecord.errorMessage),string(root)));
@@ -303,7 +342,8 @@ c.conditionId="reuse_saved";c.physical=struct('density_kgpm3',1050,'thickness_m'
 c.review=struct();
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
     'cases',c,'execute',true,'exportFigure',false,'saveResult',true, ...
-    'continueOnError',false,'reuseOnly',false);
+    'continueOnError',false,'reuseOnly',false, ...
+    'inversionsRoot',fullfile(root,'OCE_Inversions'));
 plan.reuseOnly=true;
 verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
     'lamb:study:MissingReuseResult');
@@ -417,7 +457,8 @@ c.sampleId="fixture";
 second=c;second.conditionId="next";
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
     'cases',[c,second],'execute',true,'exportFigure',true,'saveResult',true, ...
-    'continueOnError',true);
+    'continueOnError',true, ...
+    'inversionsRoot',fullfile(root,'OCE_Inversions'));
 batch=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,batch.report.status,["partial";"completed"]);
 verifyEqual(testCase,batch.report.selectedObservations,[2;2]);
@@ -428,6 +469,8 @@ saved=load(batch.report.resultFile(1),'nativeResult');
 verifyEqual(testCase,batch.results{1}.nativeResult,saved.nativeResult);
 failure=load(batch.report.failureRecordFile(1),'failureRecord');
 verifyEqual(testCase,failure.failureRecord.completedThrough,"persistence");
+verifyEqual(testCase,failure.failureRecord.nativeResultBase,"inversionsRoot");
+verifyEqual(testCase,failure.failureRecord.request.resolvedOutputBase,"inversionsRoot");
 verifyEqual(testCase,failure.failureRecord.nativeResultRelativeFile, ...
     fullfile(batch.cases{1}.resolvedOutputRelativeFolder,"inversion.mat"));
 verifyEqual(testCase,failure.failureRecord.errorId,"lamb:test:ExportFailure");
