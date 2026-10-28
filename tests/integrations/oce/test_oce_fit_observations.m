@@ -103,7 +103,7 @@ folder=tempname;mkdir(folder);cleanup=onCleanup(@()rmdir(folder,'s'));
 fig=figure('Visible','off');closeFigure=onCleanup(@()close(fig));
 plot(1:3);study=struct('exportFigure',true,'figureFolder',string(folder),'figureName',"Plate");
 for script=["run_ae_plate_oce_inversion","run_rl_oce_inversion"]
-    body=string(fileread(fullfile(repoRoot,'workflows','inversion',script+".m")));
+    body=string(fileread(fullfile(repoRoot,'workflows',script+".m")));
     verifySubstring(testCase,body,'renderOceInversionStudy(');
     renderer=string(fileread(fullfile(repoRoot,'workflows','inversion','renderOceInversionStudy.m')));
     exportCode=extractBetween(renderer,'if study.exportFigure','end');
@@ -126,7 +126,7 @@ frequencySelectionMapping=table();graphicSamplingMapping=table();
 inputs=struct('assembly',assembly,'observationReview',observationReview, ...
     'inputHashes',inputHashes,'frequencySelectionMapping',frequencySelectionMapping, ...
     'graphicSamplingMapping',graphicSamplingMapping); %#ok<NASGU> Used by script eval.
-body=string(fileread(fullfile(repoRoot,'workflows','inversion','run_rl_oce_inversion.m')));
+body=string(fileread(fullfile(repoRoot,'workflows','run_rl_oce_inversion.m')));
 code=extractBetween(body,'%% 5. REVIEW RAYLEIGH-LAMB PHYSICS AND CONFIGURATION', ...
     '%% 8. OPTIONAL VISUALIZATION');
 eval(char("%% 5. REVIEW RAYLEIGH-LAMB PHYSICS AND CONFIGURATION"+code));
