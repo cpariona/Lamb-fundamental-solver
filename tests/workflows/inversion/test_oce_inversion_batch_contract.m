@@ -45,13 +45,12 @@ asDouble=oceInversionConditionId(keys, ...
     struct('strain_percent',34.42622950819672));
 verifyTrue(testCase,startsWith(asDouble,"Strain_34_43pct_"));
 verifyNotEqual(testCase,asDouble,scientific);
-for raw=[0,20,10.5,10.50]
-    label=oceInversionConditionId(keys,struct('strain_percent',raw));
-    shown=string(sprintf('%.2f',raw));
-    shown=regexprep(regexprep(shown,'0+$',''),'\.$','');
-    expected="Strain_"+replace(shown,".","_")+"pct_";
-    verifyTrue(testCase,startsWith(label,expected));
-end
+verifyTrue(testCase,startsWith(oceInversionConditionId(keys, ...
+    struct('strain_percent',0)),"Strain_0pct_"));
+verifyTrue(testCase,startsWith(oceInversionConditionId(keys, ...
+    struct('strain_percent',20)),"Strain_20pct_"));
+verifyTrue(testCase,startsWith(oceInversionConditionId(keys, ...
+    struct('strain_percent',10.5)),"Strain_10_5pct_"));
 verifyError(testCase,@()oceInversionConditionId(keys,struct('other',"1")), ...
     'lamb:study:ConditionIdentity');
 end
