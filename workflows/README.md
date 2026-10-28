@@ -173,7 +173,7 @@ literal strings, exponent signs and full-precision numeric values.
 `strain_percent` supplied as a double or numeric text is displayed with three
 significant digits (for example,
 `Strain_3_44pct_<8-hex fingerprint>`); the fingerprint continues to use the
-exact recorded double. This display rounding never changes condition selection
+exact recorded value and type. This display rounding never changes condition selection
 or the scientific input. Existing output directories are not renamed or
 overwritten; differently named results are new output cases.
 
