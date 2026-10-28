@@ -2,6 +2,7 @@
 % Human-facing batch for previously processed OCE experiments.
 % Inspect the discovered cases and native physics before enabling execution.
 experiment_root = ""; % Full folder containing the experiment's Results/
+inversions_root = ""; % Optional absolute OCE_Inversions folder; []/"" uses sibling default
 oce_repository_root = ""; % Local OCE_Workflow checkout
 subexperiments = "all"; % "all" or exact recorded subexperiment IDs
 condition_keys = "strain_percent"; % Exact mechanical metadata field(s) to group; edit as needed
@@ -206,6 +207,9 @@ for k = 1:numel(families)
     plan = struct('experimentRoot',string(experiment_root), ...
         'oceRepositoryRoot',string(oce_repository_root), ...
         'cases',case_lists{k},'execute',false);
+    if strlength(strtrim(string(inversions_root)))>0
+        plan.inversionsRoot=string(inversions_root);
+    end
     preview = runOceInversionBatch(plan,families(k));
     fprintf('\n%s: %d planned inversions\n',families(k),height(preview.report));
     disp(preview.report);
