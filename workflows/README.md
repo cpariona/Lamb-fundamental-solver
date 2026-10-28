@@ -169,8 +169,9 @@ acceptance of invalid ridge bins or experimental A0 purity. Fields named
 `*_model_assumptions_justification` document experimental hypotheses,
 not a substitute for native support/acceptance diagnostics. The stable case
 folder ID includes a source-condition fingerprint to distinguish different
-literal strings, exponent signs and full-precision numeric values. Numeric
-`strain_percent` is displayed with three significant digits (for example,
+literal strings, exponent signs and full-precision numeric values.
+`strain_percent` supplied as a double or numeric text is displayed with three
+significant digits (for example,
 `Strain_3_44pct_<8-hex fingerprint>`); the fingerprint continues to use the
 exact recorded double. This display rounding never changes condition selection
 or the scientific input. Existing output directories are not renamed or

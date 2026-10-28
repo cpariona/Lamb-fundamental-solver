@@ -29,7 +29,10 @@ for j = 1:numel(keys)
     if key=="strain_percent"
         % Compact display only; hash the unchanged full-precision literal.
         displayValue=literal;
-        if kind=="number",displayValue=string(sprintf('%.3g',value));end
+        numericValue=str2double(literal);
+        if isreal(numericValue) && isfinite(numericValue)
+            displayValue=string(sprintf('%.3g',numericValue));
+        end
         label="Strain_"+displayValue+"pct";
     end
     readable = string(matlab.lang.makeValidName( ...

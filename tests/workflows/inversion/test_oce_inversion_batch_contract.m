@@ -32,6 +32,11 @@ verifyNotEmpty(testCase,regexp(char(first),'^Strain_3_44pct_[0-9a-f]{8}$','once'
 verifyNotEmpty(testCase,regexp(char(second),'^Strain_3_44pct_[0-9a-f]{8}$','once'));
 verifyNotEqual(testCase,first,second);
 verifyEqual(testCase,first,oceInversionConditionId(keys,precise));
+% Numeric text is also shortened for display; its original type and literal
+% remain part of the fingerprint and are not converted for fitting.
+textual=oceInversionConditionId(keys,struct('strain_percent',"3.442622950819671"));
+verifyNotEmpty(testCase,regexp(char(textual),'^Strain_3_44pct_[0-9a-f]{8}$','once'));
+verifyNotEqual(testCase,textual,first);
 verifyError(testCase,@()oceInversionConditionId(keys,struct('other',"1")), ...
     'lamb:study:ConditionIdentity');
 end
