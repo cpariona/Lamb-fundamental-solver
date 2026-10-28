@@ -345,6 +345,9 @@ end
 
 function testBatchReuseDoesNotOverwriteSavedResult(testCase)
 [root,oceRoot,cleanup]=presentationFailureFixture(); %#ok<ASGLU>
+externalRoot=string(root)+"_batch_outputs";
+mkdir(externalRoot);
+externalCleanup=onCleanup(@()rmdir(externalRoot,'s')); %#ok<NASGU>
 c=baseCase(root,"Stretch_1p00000");
 c.excitationMode="QH";c.period_us="";
 c.conditionId="reuse_saved";c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
@@ -352,7 +355,7 @@ c.review=struct();
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
     'cases',c,'execute',true,'exportFigure',false,'saveResult',true, ...
     'continueOnError',false,'reuseOnly',false, ...
-    'inversionsRoot',fullfile(root,'OCE_Inversions'));
+    'inversionsRoot',externalRoot);
 plan.reuseOnly=true;
 verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
     'lamb:study:MissingReuseResult');
@@ -362,6 +365,8 @@ plan.reuseOnly=false;
 first=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,first.report.status,"completed");
 file=first.report.resultFile(1);
+verifyFalse(testCase,startsWith(file,string(root)+filesep), ...
+    'Batch MAT must be saved outside the source experiment.');
 fid=fopen(file,'rb');before=fread(fid,inf,'*uint8');fclose(fid);
 plan.reuseOnly=true;
 second=runOceInversionBatch(plan,"Plate");
