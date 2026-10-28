@@ -1,10 +1,10 @@
-# Lamb-fundamental-solver — instrucciones para agentes
+# Lamb-fundamental-solver — agent instructions
 
-Antes de modificar código, leer el estándar común fijado en `.research-automation/standards/engineering.md`. Si falta el submódulo privado, detener la edición e inicializarlo; no sustituirlo por una copia informal o una URL de `main`.
+Before modifying code, read the shared standard pinned at `.research-automation/standards/engineering.md`. If the private submodule is missing, stop and initialize it; do not substitute an informal copy or a moving `main` URL.
 
-For each implementation task, read the main README, `docs/repository/final_architecture.md`, affected domain contracts and dependency tests once before editing. Establish owners and consumers; preserve existing local changes.
+For each implementation task, read the main README, `docs/repository/final_architecture.md`, affected domain contracts, and dependency tests once before editing. Establish owners and consumers; preserve existing local changes.
 
-## Invariantes locales
+## Local invariants
 
 - `workflows/` owns section-oriented human Editor scripts, with callable execution functions under `workflows/inversion/`, separate from exploratory `studies/`; MATLAB Editor sections must resolve the actual open file rather than MATLAB's temporary section script. Workflows are opt-in and may consume maintained production/integration/visualization APIs; none of these domains may depend on workflows.
 - External observation preparation preserves explicit masks, rows and provenance; reject invalid selected inputs without repairing the mask. Producers own schema validation/I/O; scientific owners retain model-specific validation and inversion.
@@ -12,10 +12,9 @@ For each implementation task, read the main README, `docs/repository/final_archi
 - Human inverse workflows distinguish `excitationMode` (QH/Pulse), native `branchName`/derived `modelBranch` (A0/S0), reviewed fitting frequencies from presentation targets, and researcher-supplied model-assumption justification from calculated solver support. One reviewed geometry policy owns the input; model-specific effective review is derived. Never silently infer physical validity from fit success.
 - Scientific inversion uses only the observations and physical inputs required by the selected model. Available load, mass or external DIC measurements are not automatic fitting constraints; independent validation/comparison must remain separate. See [architecture](docs/repository/final_architecture.md#inverse-inputs-versus-external-validation).
 - `src/+lamb/+models/` owns forward science; `src/+lamb/+fitting/` owns inverse algorithms. Integration, visualization, GUI and study owners and permitted dependencies are defined in [architecture](docs/repository/final_architecture.md). Scientific packages never depend on those consumer domains.
-- Rayleigh-Lamb, mRLFE y AE IOP/HGO tienen física y estructura distintas. La dependencia científica intencional entre familias es la semilla mRLFE mediante la API pública Rayleigh-Lamb. No forzar paquetes simétricos.
-- `experimental.validMask` es fijo en fitting: no descartar observaciones según parámetros candidatos ni modificar la máscara para fabricar métricas o sensibilidades. El modelo debe cubrir con velocidad de fase finita las observaciones seleccionadas, salvo rechazo de soporte declarado antes de optimizar.
-- Separar parámetros físicos, opciones numéricas, perfiles de ejecución y UI. `executionProfile` es el campo canónico; `robustness` existe solo en normalización de la app. Los perfiles cambian costo, no física.
-- AE entrega `atlasA0` como resultado oficial. Diagnósticos y fallback no sustituyen esa curva. La calidad evalúa una curva ya seleccionada: no la reconecta, interpola, reemplaza ni selecciona otra rama.
-- Conservar prefijos de implementación `rl*`, `mrlfe*`, `ae*`; leer los `AGENTS.md` locales de las familias afectadas bajo `src/+lamb/+models/`.
-- Preservar métodos, presets, tracking, validez, tolerancias y benchmarks. El gate y catálogo canónico están en [validación](docs/repository/validation_status.md).
-
+- Rayleigh–Lamb, mRLFE, and AE IOP/HGO have distinct physics and structures. The intended scientific dependency between families is the mRLFE seed through the public Rayleigh–Lamb API. Do not impose symmetric packages.
+- `experimental.validMask` remains fixed throughout fitting: do not drop observations based on candidate parameters or modify the mask to fabricate metrics or sensitivities. The model must provide finite phase speeds for selected observations, except for an explicitly declared support rejection before optimization.
+- Separate physical parameters, numerical options, execution profiles, and UI. `executionProfile` is the canonical field; `robustness` exists only in application normalization. Profiles change computational cost, not physics.
+- AE publishes `atlasA0` as its official result. Diagnostics and fallback do not replace that curve. Quality assessment evaluates an already selected curve: it does not reconnect, interpolate, replace, or select a different branch.
+- Preserve implementation prefixes `rl*`, `mrlfe*`, and `ae*`; read the affected model family's local `AGENTS.md` under `src/+lamb/+models/`.
+- Preserve methods, presets, tracking, validity, tolerances, and benchmarks. The canonical gate and test catalog are documented under [validation](docs/repository/validation_status.md).
