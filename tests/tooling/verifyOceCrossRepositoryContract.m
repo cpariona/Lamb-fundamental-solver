@@ -7,7 +7,7 @@ arguments
     oceRoot (1,1) string
 end
 
-oceRoot = string(char(java.io.File(char(oceRoot)).getCanonicalPath()));
+oceRoot = string(oceRoot);
 if ~isfolder(fullfile(oceRoot, "src", "+oce")) || ...
         ~isfile(fullfile(oceRoot, "tests", "helpers", ...
         "create_dispersion_analysis_fixture.m"))
@@ -32,7 +32,6 @@ root = string(tempname);
 mkdir(root);
 tempCleanup = onCleanup(@() rmdir(root, "s")); %#ok<NASGU>
 modes = ["QH"; "Pulse"];
-resultPaths = strings(numel(modes), 1);
 selectedCounts = zeros(numel(modes), 1);
 
 for index = 1:numel(modes)
@@ -93,11 +92,10 @@ for index = 1:numel(modes)
         "lamb:oceCrossRepo:IdentityDrift", ...
         "The source provenance or signed direction changed.");
 
-    resultPaths(index) = string(resultPath);
     selectedCounts(index) = nnz(mask);
 end
 report = struct("status", "passed", "source", "OCE maintained builder + MAT I/O", ...
     "consumer", "Lamb maintained OCE adapter", "modes", modes, ...
-    "selectedCounts", selectedCounts, "resultPaths", resultPaths, ...
+    "selectedCounts", selectedCounts, ...
     "note", "Synthetic data only; does not validate experimental inversion.");
 end
