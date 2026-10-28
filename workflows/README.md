@@ -136,14 +136,23 @@ acquisitions `condition_keys="strain_percent"` is an example, not a value
 inferred from a folder name.
 
 Use the shared `material` and `geometry` configuration with explicit SI fields:
-`density_kgpm3` (kg/m^3), `geometry.thickness_m` (current full m, only a
-scalar reference for the directional-OCE thickness policy), and
+`density_kgpm3` (kg/m^3), `geometry.thickness_m` (current full m, a
+placeholder replaced by OCE for median/per-acquisition geometry policies), and
 `poisson_ratio` (dimensionless, RL only). Set the independent
 `rl_mu_initial_guess_Pa` and `rl_mu_bounds_Pa`, and provide the model-specific
 model-assumption justifications. The public RL fitting boundary maps those
 unit-qualified inputs to its retained native mathematical parameter symbols;
 Plate accepts the same density/thickness fields directly. Do not assign
 placeholder values or infer physical parameters from paths.
+
+For an experiment-wide batch, `thickness_policy="oce_median_per_case"`
+is the default. Each acquisition with a selected fitting row contributes its
+directional OCE thickness **once**, regardless of how many original frequency
+rows it contains. The median is applied to all selected frequencies and
+repetitions in one case. This is a deliberate uniform-plate approximation, not
+a measurement of spatial thickness uniformity. The measured source values
+remain in the saved assembly. Changing the geometry policy requires a new
+output case; no existing inversion MAT/FIG/TIF is overwritten.
 
 For clarity, `excitationMode` means QH/Pulse, native RL `branchName` means
 A0/S0, and `review.modelBranch` is derived rather than entered twice.
@@ -167,10 +176,10 @@ native metadata contract and are rejected rather than silently renumbered.
 A missing selected repetition or signed direction is an error.
 
 Section 3 constructs independent, reviewable `plan.cases` arrays for
-RayleighLamb and Plate. The generated condition ID is a stable unit-free path label derived from
+RayleighLamb and Plate. The generated condition ID is a stable path label derived from
 recorded mechanical keys and literal values (for example,
-`strain_percent_0_<12-hex fingerprint>`); it does not depend on acquisition or Pulse-period
-ordering. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
+`Strain_0pct_<8-hex fingerprint>`); it does not depend on acquisition or Pulse-period
+ordering. The eight-digit fragment is a condition fingerprint, not a Git commit. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
 `full_band_reviewed=true`; the selection is never inferred or
 optimized. The researcher must review each case, physics, and output paths
 before enabling `run_batches=true` in section 4.
@@ -226,10 +235,14 @@ disp(report.report);
 ```
 
 For Plate call `runOceInversionBatch(plan,"Plate")` and supply
-reviewed density, thickness policy and model-support evidence. The default
-uses the OCE signed-direction full thickness for each selected observation.
-The recorded scalar `physical.thickness_m` is a non-operative reference
-under this policy; constant-thickness studies remain available explicitly. `plan.execute=true`
+reviewed density, thickness policy and model-support evidence. The human
+experiment-wide batch defaults to `thickness_policy="oce_median_per_case"`:
+one median current full thickness across unique acquisitions represented in
+the valid fitting mask, per condition/axis/signed direction. It retains all
+selected frequency/repetition velocities and their original thickness records.
+Both models use this single scalar geometry throughout their one joint fit.
+`"oce_directional_per_acquisition"` remains a supported option; programmatic
+plans must state their own reviewed policy. `plan.execute=true`
 explicitly permits fresh native fits; set `plan.reuseOnly=true` to require
 previously saved exact results instead. In reuse-only execution an existing
 `inversion.mat` is loaded only after exact native request matching and current
