@@ -138,8 +138,9 @@ same correspondence fields for display requests. The two masks remain independen
 changing graphic targets cannot add or remove fitting observations. Both mapping
 tables are retained with newly saved study results.
 
-The default thickness policy is `oce_directional_per_acquisition` for both
-QH and Pulse. The native Plate SVD takes `experimental.observationThickness_m`
+The default thickness policy for the **manual single-study** workflow is
+`oce_directional_per_acquisition` for both QH and Pulse; experiment-wide batch
+defaults to a reviewed median (`oce_median_per_case`). Under the per-acquisition policy, The native Plate SVD takes `experimental.observationThickness_m`
 with one source-recorded **current full** directional thickness per original
 observation. QH keeps the measured value for each acquisition/frequency;
 Pulse shares an acquisition/direction thickness only between that acquisition's
@@ -152,7 +153,9 @@ or substitute measured thickness. Missing selected thickness is an error.
 A reviewer can instead explicitly choose `explicit_constant_current_thickness`
 with an independently justified scalar, or `oce_reference_acquisition` with
 one indexed original acquisition as a scalar-geometry approximation. Only these
-scalar policies use `physical.thickness_m` across all rows. Original SVD,
+scalar policies use `physical.thickness_m` across all rows. The batch
+median policy is also scalar, counting distinct selected acquisitions once each
+regardless of their number of frequency observations. Original SVD,
 validity mask, physical-frequency grouping and coverage/acceptance screens stay
 unchanged. Per-observation geometry assumes the local uniform-plate A0 relation
 is meaningful and shared acoustoelastic coefficients describe the fitted state;
@@ -220,8 +223,10 @@ summary migration belongs to Lamb.
 
 Historical constant-thickness inversions retain their original
 `explicit_constant_current_thickness` policy and physical reference.
-New OCE inversions default to recorded `oce_directional_per_acquisition`;
-do not rewrite archived reviews, physical inputs or native results.
+Manual single-study workflows still default to `oce_directional_per_acquisition`.
+The experiment-wide batch defaults to `oce_median_per_case`, using a single
+source-derived current full thickness per reviewed condition, axis and direction.
+Do not rewrite archived reviews, physical inputs or native results.
 
 Pulse uses compatible OCE selected Hz or original bins nearest explicit graphic
 targets before applying validity. Missing/excluded bins stay absent. Per-source
@@ -258,8 +263,8 @@ RL uses the common selection fields above plus:
 | --- | --- |
 | `estimator`, `curve` | Explicit `kf_ridge` raw/smoothed, or recorded QH `phase_gradient` (curve unused). |
 | `observationMask` | Empty uses the existing source-quality/frequency policy. A supplied logical vector is the exact original-row mask and must respect frequency selection. Invalid selected values are rejected, never repaired; original ridge flags remain separate evidence. |
-| `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI. A scalar `fixedParams.thickness` is used only under `explicit_constant`; under the OCE policy the native problem uses `experimental.observationThickness_m`. |
-| `thicknessPolicy` | Default `oce_directional_per_acquisition`: one source-recorded current full directional thickness per observation (QH acquisition/nominal frequency; Pulse acquisition/repetition repeated over its original bins). `explicit_constant` retains reviewed scalar thickness. Missing nonpositive-frequency measurements are tolerated; missing thickness at any positive-frequency observation blocks the request. |
+| `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI. Scalar `fixedParams.thickness_m` is used under `explicit_constant` or `oce_median_per_case`; per-observation OCE geometry instead uses `experimental.observationThickness_m`. |
+| `thicknessPolicy` | Manual single default `oce_directional_per_acquisition`: one source-recorded current full directional thickness per observation. Batch default `oce_median_per_case`: one median across unique selected acquisitions, shared by every fitting row. `explicit_constant` retains an independently reviewed scalar. Missing selected acquisition thickness rejects the median request. |
 | `review` | Derived `modelBranch`, `thicknessSource`, `thicknessJustification`, `densitySource`, `fitParameterJustification` and `modelAssumptionsJustification`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. In the OCE thickness policy, source/justification are set to the actual recorded measurement policy. |
 
 The current full thickness comes from the already selected OCE signed direction
@@ -393,17 +398,18 @@ a `nativeResultBase` marker. A one-output call to
 `executeOceInversionStudy` still raises downstream errors; its optional second
 output returns that error alongside the completed fit for batch coordination.
 
-**Thickness policies are reviewed per model:** RL uses one recorded
-directional current full thickness for each original observation and dispatches
-exact-thickness forward groups. Plate uses the same OCE geometry evidence but
-fits a **single** common `alpha,gamma` by substituting h_i into each row's
-`q_i` before the unweighted master-curve SVD. Optional scalar Plate policies
-(`explicit_constant_current_thickness` and `oce_reference_acquisition`)
-retain the historical single-height fit. Plate figures use separate native
-forward predictions for exactly equal thicknesses, avoiding false single-height
-dispersion curves. QH physical-frequency coverage remains exclusively owned by
-`fitOceQhPrestressedPlate`. Distinct h_i do not create statistically independent
-frequency groups or independent material states.
+**Batch geometry policy:** `thickness_policy="oce_median_per_case"` takes one
+recorded full directional OCE thickness from each distinct acquisition with
+at least one selected fitting observation. The median across those acquisitions
+is the sole current full thickness for every retained frequency and repetition
+within that case, in both RL and Plate. Original thicknesses, identities and
+masks remain in `assembly`; the derived scalar and policy are retained in the
+native request and review. Technical repeats are not interpreted as independent
+mechanical states. RL still fits one material `mu`, Plate one shared
+`alpha,gamma`; the native Plate QH physical-frequency coverage check is unchanged.
+The legacy `oce_directional_per_acquisition` policy remains available for both
+models and produces thickness-specific model predictions. Other scalar policies
+remain available for separately reviewed geometries.
 
 ## Manual MATLAB sections
 
