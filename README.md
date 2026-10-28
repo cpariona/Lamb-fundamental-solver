@@ -37,8 +37,8 @@ contract.
 The prestressed-plate formulation supports A0 with a direct linear SVD inversion,
 independent of GUI and OCE. Optional [OCE integration](integrations/oce/README.md)
 prepares observations for the native fitting families; the reviewed QH coordinator
-and [human Plate workflow](workflows/inversion/run_ae_plate_oce_inversion.m) retain Plate-specific contracts.
-The [human RL workflow](workflows/inversion/run_rl_oce_inversion.m) uses native A0/S0 optimization and its
+and [human Plate workflow](workflows/run_ae_plate_oce_inversion.m) retain Plate-specific contracts.
+The [human RL workflow](workflows/run_rl_oce_inversion.m) uses native A0/S0 optimization and its
 own physical configuration. Both workflows share original-observation selection,
 current-input provenance, separate fitting/graphic masks and FIG/300-dpi TIF export.
 They support QH targets and Pulse broadband observations without averaging.

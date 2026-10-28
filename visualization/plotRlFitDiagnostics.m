@@ -49,7 +49,8 @@ residual = nan(n,1);
 residual(selected) = result.residualInfo.rawResiduals_mps(:);
 maximumFrequency = max(f(selected));
 inDomain = isfinite(f) & f>=0 & f<=maximumFrequency;
-withinView = inDomain & isfinite(observed);
+% Excluded observations remain visible beyond the fitted model domain.
+withinView = isfinite(f) & f>=0 & isfinite(observed);
 displayRows = true(n,1);
 if ~isempty(p.Results.DisplayFrequency_Hz)
     % Same Plate contract: exact original Hz only, never nearest-valid repair.
@@ -73,7 +74,7 @@ evidence = struct('observations',observations,'nativeParameters',result.allParam
     'displayFrequency_Hz',p.Results.DisplayFrequency_Hz, ...
     'displayObservationMask',displayRows, ...
     'displayedSelectedCount',nnz(shown & selected), ...
-    'excludedOutsideDomainCount',nnz(~selected & ~withinView), ...
+    'excludedOutsideDomainCount',nnz(~selected & ~inDomain), ...
     'excludedNotShownCount',nnz(~selected & ~shown), ...
     'unavailablePredictionCount',nnz(~modelAvailable));
 evidence.nativeFitConfiguration = struct('freeParams',result.freeParams, ...
@@ -158,7 +159,7 @@ try
     yline(residualAxes,0,'k--','HandleVisibility','off','LineWidth',.6);
     ylabel(dispersion,'Phase speed [m/s]'); ylabel(residualAxes,'Model - observation [m/s]');
     xlabel(dispersion,'Frequency [kHz]'); xlabel(residualAxes,'Frequency [kHz]');
-    xlim(dispersion,[0 1.03*maximumFrequency]/1e3);
+    xlim(dispersion,[0 1.03*max([maximumFrequency;f(withinView)])]/1e3);
     xlim(residualAxes,xlim(dispersion));
     outsideNote=strings(0,1);
     if residualScale.outsideCount>0

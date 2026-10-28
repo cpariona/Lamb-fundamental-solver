@@ -51,8 +51,13 @@ verifyEqual(testCase,excluded.MarkerSize,4);
 verifyEqual(testCase,numel(excluded.XData),nnz(e.observations.shownInDispersion&~native.validMask));
 verifyEqual(testCase,e.unavailablePredictionCount,2); % excluded DC and NaN
 verifyTrue(testCase,all(~e.observations.modelAvailable([1 end])));
-verifyFalse(testCase,e.observations.shownInDispersion(end));
-verifyEqual(testCase,e.excludedNotShownCount,2); % high excluded Hz and NaN
+verifyFalse(testCase,e.observations.shownInDispersion(end)); % NaN coordinate
+verifyTrue(testCase,e.observations.shownInDispersion(7)); % 8 kHz excluded
+verifyEqual(testCase,sort(excluded.XData(:)),[0;8]);
+dispersion=findall(fig,'Tag','rl_dispersion');
+verifyGreaterThan(testCase,dispersion.XLim(2),8);
+verifyEqual(testCase,e.excludedOutsideDomainCount,2); % 8 kHz and NaN
+verifyEqual(testCase,e.excludedNotShownCount,1); % NaN only
 legendObject=findall(fig,'Type','legend');
 verifyEqual(testCase,string(legendObject.String),["Rep. 1","Rep. 2","Model","Excluded"]);
 end
@@ -238,7 +243,6 @@ for thickness=unique(h(allModelRows),'stable')'
 end
 verifyEqual(testCase,e.observations.selected,native.validMask);
 withinView=isfinite(native.frequency_Hz) & native.frequency_Hz>=0 & ...
-    native.frequency_Hz<=max(native.frequency_Hz(native.validMask)) & ...
     isfinite(native.Cp_exp_mps);
 [~,expectedScale]=resolveInversePhaseSpeedLimits( ...
     [native.Cp_exp_mps(withinView);native.Cp_fit_mps(allModelRows)], ...

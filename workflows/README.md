@@ -1,13 +1,14 @@
 # Human research workflows
 
-`workflows/inversion/` contains the maintained MATLAB Editor drivers for applying
-native Lamb inverse models to reviewed OCE acquisitions. This directory is
-**opt-in**: ordinary `startup` intentionally does not add workflows to the path.
+`workflows/` contains the maintained MATLAB Editor scripts for applying native
+Lamb inverse models to reviewed OCE acquisitions. Callable functions live in
+`workflows/inversion/`. Both are **opt-in**: ordinary `startup`
+intentionally does not add workflows to the path.
 
 | Open in MATLAB Editor | Scientific fitting owner |
 | --- | --- |
-| [run_rl_oce_inversion.m](inversion/run_rl_oce_inversion.m) | Rayleigh–Lamb A0/S0, native nonlinear fitting |
-| [run_ae_plate_oce_inversion.m](inversion/run_ae_plate_oce_inversion.m) | Prestressed Plate A0, native linear SVD fitting |
+| [run_rl_oce_inversion.m](run_rl_oce_inversion.m) | Rayleigh–Lamb A0/S0, native nonlinear fitting |
+| [run_ae_plate_oce_inversion.m](run_ae_plate_oce_inversion.m) | Prestressed Plate A0, native linear SVD fitting |
 
 ## Run Section procedure
 
@@ -132,7 +133,7 @@ still apply. No existing inversion outputs are migrated.
 
 ## Human experiment-wide inversion batch
 
-Open [run_experiment_inversion_batch.m](inversion/run_experiment_inversion_batch.m)
+Open [run_experiment_inversion_batch.m](run_experiment_inversion_batch.m)
 in **MATLAB Editor** and run its sections in order. Set `experiment_root`,
 `oce_repository_root`, `condition_keys` (the exact recorded mechanical
 metadata columns), the selected models/directions/repetitions, and the
@@ -198,7 +199,7 @@ path is required for this human workflow.
 
 ## Programmable batch workflows
 
-Add `workflows/inversion` to your MATLAB path explicitly and initialize
+Add `workflows/inversion` to your MATLAB path explicitly for callable functions and initialize
 Lamb and OCE as with the interactive drivers. The single programmable batch entry point is `runOceInversionBatch(plan,family)`,
 where `family="RayleighLamb"` or `family="Plate"`. This avoids maintaining
 two model-only forwarding wrappers; each case is still reviewed and executed

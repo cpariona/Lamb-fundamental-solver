@@ -94,7 +94,7 @@ automatic model-selection rule.
 
 ## Maintained human Plate inversion workflow
 
-The maintained Plate human workflow is [run_ae_plate_oce_inversion.m](../workflows/inversion/run_ae_plate_oce_inversion.m).
+The maintained Plate human workflow is [run_ae_plate_oce_inversion.m](../workflows/run_ae_plate_oce_inversion.m).
 It replaces the pilot preview/export coordinator. It contains no specimen names,
 absolute study paths, FIG input dependency, frequency optimizer or model dispatcher.
 Open the actual driver in MATLAB Editor. In section 1, edit `oce_repository_root`
@@ -241,7 +241,7 @@ IOP/HGO retain their model-specific direct APIs and scientific requirements.
 
 ## Maintained human Rayleigh-Lamb inversion workflow
 
-[run_rl_oce_inversion.m](../workflows/inversion/run_rl_oce_inversion.m) exposes
+[run_rl_oce_inversion.m](../workflows/run_rl_oce_inversion.m) exposes
 editable MATLAB Editor sections for native Rayleigh-Lamb A0/S0 fitting. Its
 configuration section constructs `study`, and its Editor-safe initialization
 section adds the opt-in workflow and the explicitly configured OCE `src` path.
@@ -505,7 +505,7 @@ reviewed masks, full requests/results and output hashes. Relocation changes root
 configuration, not datasets, saved observations or scientific APIs. Preserve
 earlier reports as historical evidence; do not silently overwrite them.
 
-The maintained manual driver is `workflows/inversion/run_ae_plate_oce_inversion.m`.
+The maintained manual driver is `workflows/run_ae_plate_oce_inversion.m`.
 `integrations/oce/` owns the existing translation/preparation and QH coordinator
 APIs, not the study script. Dataset-specific selections, physical review and
 outputs remain external. The study coordinates canonical APIs in separately
