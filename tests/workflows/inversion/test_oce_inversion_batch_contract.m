@@ -505,7 +505,7 @@ c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
 c.review=struct();
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
     'cases',c,'execute',true,'exportFigure',false,'saveResult',true, ...
-    'continueOnError',true);
+    'continueOnError',true,'inversionsRoot',fullfile(root,'OCE_Inversions'));
 batch=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,batch.report.status,"partial");
 verifyEqual(testCase,batch.results{1}.completedThrough,"fit");
