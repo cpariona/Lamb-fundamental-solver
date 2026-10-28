@@ -357,17 +357,29 @@ are accepted at a read-only provenance boundary, not rewritten into older MATs.
 The derived `review` must remain separate from editable `study.review` so
 manual MATLAB Editor review sections can be repeated without inconsistent state.
 
-The default storage layout, relative to the supplied machine-local experiment
-root, is
+Manual single-study workflows retain their original output layout relative
+to `experimentRoot`:
 `Results/<subexperiment>/Inversions/<RayleighLamb|Plate>/<case>/inversion.{mat,fig,tif}`.
-Only the experiment and OCE source repository roots are machine-local inputs.
-`outputRelativeFolder`, `outputTag` and `summaryRelativeFile` are optional
-programmable overrides. No absolute output override or parent traversal is
-supported, and existing outputs are never replaced. `outputTag` is required
-to distinguish independent fit reviews with the same physical case identity.
-The resulting saved `studyRecord` retains effective relative paths, fixed
-observation mask, original row mappings and root-relative source hashes;
-the original native OCE payload and mechanical review remain alongside it.
+Batch runs instead default to an external `OCE_Inversions` output root,
+`fullfile(fileparts(experimentRoot),"OCE_Inversions")`, with this layout:
+`<experiment>/<subexperiment>/<RayleighLamb|Plate>/<case>/inversion.{mat,fig,tif}`.
+The human batch workflow exposes optional `inversions_root`; the programmable
+batch accepts optional `plan.inversionsRoot`. Both point to the absolute
+external output root, not to an individual experiment output directory.
+`experimentRoot` continues to anchor OCE source recovery and source hashes.
+`outputRelativeFolder`, `outputTag` and `summaryRelativeFile` remain
+optional: output overrides are root-relative to the active output base, and
+summary overrides are always relative to `experimentRoot`. No absolute
+per-case output override or parent traversal is supported, and existing
+outputs are never replaced. `outputTag` distinguishes independent fit
+reviews with the same physical case identity.
+The batch `studyRecord.selection.outputBase="inversionsRoot"` explicitly
+identifies how to interpret `selection.outputRelativeFolder` without saving
+machine-specific paths. For single-study results, the legacy selection schema
+is unchanged and implicitly refers to `experimentRoot`. The resulting
+`studyRecord` retains fixed observation masks, original row mappings and
+input hashes relative to `experimentRoot`; the original native OCE payload
+and mechanical review remain alongside it.
 Batch failures with `saveResult=true` create a separate
 `inversion_failure.mat`, retaining the reviewed request, error identifier,
 portable stack-location names and UTC time; an earlier failure file is never
@@ -376,7 +388,8 @@ only. A failure before fitting is **not** a fitted result or physical finding.
 If native fitting succeeds but persistence or presentation fails, the batch
 reports `partial` and retains the native result and metrics in memory. Its
 failure record distinguishes the completed stage and references any saved
-native MAT by an experiment-relative path. A one-output call to
+native MAT by a path relative to the batch `inversionsRoot`, with
+a `nativeResultBase` marker. A one-output call to
 `executeOceInversionStudy` still raises downstream errors; its optional second
 output returns that error alongside the completed fit for batch coordination.
 
