@@ -31,7 +31,10 @@ for j = 1:numel(keys)
         displayValue=literal;
         numericValue=str2double(literal);
         if isreal(numericValue) && isfinite(numericValue)
-            displayValue=string(sprintf('%.3g',numericValue));
+            % Two decimal places at most; remove trailing zeros and dot.
+            displayValue=string(sprintf('%.2f',numericValue));
+            displayValue=regexprep(displayValue,'0+$','');
+            displayValue=regexprep(displayValue,'\.$','');
         end
         label="Strain_"+displayValue+"pct";
     end

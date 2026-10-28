@@ -170,9 +170,11 @@ acceptance of invalid ridge bins or experimental A0 purity. Fields named
 not a substitute for native support/acceptance diagnostics. The stable case
 folder ID includes a source-condition fingerprint to distinguish different
 literal strings, exponent signs and full-precision numeric values.
-`strain_percent` supplied as a double or numeric text is displayed with three
-significant digits (for example,
-`Strain_3_44pct_<8-hex fingerprint>`); the fingerprint continues to use the
+`strain_percent` supplied as a double or numeric text is displayed with
+at most two decimal places, omitting redundant trailing zeros (for example,
+`Strain_34_43pct_<8-hex fingerprint>`, `Strain_20pct_<8-hex fingerprint>`).
+Scientific-notation text is converted to a numeric value **only for the label**;
+the fingerprint continues to use the
 exact recorded value and type. This display rounding never changes condition selection
 or the scientific input. Existing output directories are not renamed or
 overwritten; differently named results are new output cases.
