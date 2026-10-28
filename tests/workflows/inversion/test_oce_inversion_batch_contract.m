@@ -74,6 +74,15 @@ verifyEqual(testCase,custom.report.resultFile(1),string(fullfile( ...
     parent,"Reviewed_Inversions","Experiment_A", ...
     "Stretch_1p00000","Plate","band_1","inversion.mat")));
 
+plan.cases.outputRelativeFolder=fullfile("Experiment_A","reviewed","Plate","custom");
+overridden=runOceInversionBatch(plan,"Plate");
+verifyEqual(testCase,overridden.report.resultFile(1),string(fullfile( ...
+    parent,"Reviewed_Inversions","Experiment_A","reviewed", ...
+    "Plate","custom","inversion.mat")));
+plan.cases.outputRelativeFolder="../unsafe";
+verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
+    'lamb:study:UnsafeOutputPath');
+
 plan.inversionsRoot="relative/path";
 verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
     'lamb:study:InversionsRoot');
@@ -361,6 +370,9 @@ verifyEqual(testCase,second.report.status,"completed");
 verifyTrue(testCase,second.results{1}.reusedResult);
 verifyEqual(testCase,after,before);
 verifyEqual(testCase,second.results{1}.studyRecord,first.results{1}.studyRecord);
+verifyEqual(testCase,first.results{1}.studyRecord.selection.outputBase, ...
+    "inversionsRoot");
+verifyFalse(testCase,isfield(first.results{1}.studyRecord.selection,'inversionsRoot'));
 end
 
 function testPlateUsesAllSelectedMeasuredThicknessRows(testCase)
