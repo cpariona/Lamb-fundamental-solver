@@ -197,8 +197,14 @@ It never averages or fabricates thickness, and these values enter the native
 `q_i=pi*f_i*h_i/Cp_i` directly before a **single** shared unweighted SVD.
 
 The required scalar `physical.thickness_m` remains a non-operative reference
-under this policy. Legacy `explicit_constant_current_thickness` and the reviewed
-`oce_reference_acquisition` workflow policy retain the scalar geometry.
+under the per-observation policy. The experiment-wide batch instead defaults
+to `oce_median_per_case`: the workflow supplies the median thickness across
+unique selected acquisitions as the scalar `physical.thickness_m`, while
+preserving original thickness measurements and frequency/repetition rows
+in the assembly. The QH coordinator accepts this reviewed scalar policy
+without changing its physical-frequency coverage grouping or the native SVD.
+Legacy `explicit_constant_current_thickness` and the reviewed
+`oce_reference_acquisition` workflow policy also retain scalar geometry.
 The QH coordinator accepts the effective native constant review for a selected
 reference acquisition; it does not introduce a third scientific equation.
 All Plate reviews require `review.modelBranch="A0"` and nonempty
