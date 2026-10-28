@@ -369,7 +369,11 @@ Manual single-study workflows retain their original output layout relative
 to `experimentRoot`:
 `Results/<subexperiment>/Inversions/<RayleighLamb|Plate>/<case>/inversion.{mat,fig,tif}`.
 Batch runs instead default to an external `OCE_Inversions` output root,
-`fullfile(fileparts(experimentRoot),"OCE_Inversions")`, with this layout:
+`fullfile(fileparts(fileparts(experimentRoot)),"OCE_Inversions")`, only when
+`experimentRoot` is directly under `OCE_Experiments`. Both directories are
+siblings under a user-chosen parent of any name. For other input layouts the
+caller must provide an explicit absolute `inversions_root` or
+`plan.inversionsRoot`. The output layout remains:
 `<experiment>/<subexperiment>/<RayleighLamb|Plate>/<case>/inversion.{mat,fig,tif}`.
 The human batch workflow exposes optional `inversions_root`; the programmable
 batch accepts optional `plan.inversionsRoot`. Both point to the absolute

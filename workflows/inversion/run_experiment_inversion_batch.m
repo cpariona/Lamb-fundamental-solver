@@ -2,7 +2,7 @@
 % Human-facing batch for previously processed OCE experiments.
 % Inspect the discovered cases and native physics before enabling execution.
 experiment_root = ""; % Full folder containing the experiment's Results/
-inversions_root = ""; % Optional absolute OCE_Inversions folder; []/"" uses sibling default
+inversions_root = ""; % Optional absolute root; default is beside OCE_Experiments
 oce_repository_root = ""; % Local OCE_Workflow checkout
 subexperiments = "all"; % "all" or exact recorded subexperiment IDs
 condition_keys = "strain_percent"; % Exact mechanical metadata field(s) to group; edit as needed

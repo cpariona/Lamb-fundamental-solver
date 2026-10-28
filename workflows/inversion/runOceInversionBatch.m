@@ -2,8 +2,8 @@ function batchResult = runOceInversionBatch(plan, family)
 %RUNOCEINVERSIONBATCH Execute a list of independently reviewed OCE studies.
 % PLAN.experimentRoot: machine-local experiment anchor.
 % PLAN.oceRepositoryRoot: machine-local OCE code checkout.
-% PLAN.inversionsRoot: optional absolute output root; defaults to a sibling
-%   OCE_Inversions folder alongside the supplied experiment directory.
+% PLAN.inversionsRoot: optional absolute output root; defaults to OCE_Inversions
+%   alongside OCE_Experiments when experimentRoot is OCE_Experiments/<experiment>.
 % PLAN.cases: scalar struct or struct array, each with exact observation,
 % model, frequency, physical-review and optional outputRelativeFolder choices.
 % PLAN.execute: false (default) returns read-only output plan without fitting.
@@ -36,7 +36,15 @@ else
     while endsWith(sourceRoot,"/") && strlength(sourceRoot)>1
         sourceRoot=extractBefore(sourceRoot,strlength(sourceRoot));
     end
-    inversionsRoot=fullfile(string(fileparts(char(sourceRoot))),"OCE_Inversions");
+    [experimentsRoot,experimentName]=fileparts(char(sourceRoot));
+    [containerRoot,experimentsFolder]=fileparts(experimentsRoot);
+    assert(strcmpi(experimentsFolder,"OCE_Experiments") && ...
+        ~isempty(experimentName) && ~isempty(containerRoot), ...
+        'lamb:batch:InversionsRoot', ...
+        ['The default inversionsRoot requires experimentRoot under ' ...
+         'OCE_Experiments/<experiment>. For another layout, supply an ' ...
+         'absolute plan.inversionsRoot.']);
+    inversionsRoot=fullfile(string(containerRoot),"OCE_Inversions");
 end
 n=numel(plan.cases);
 cases=cell(n,1);outputs=strings(n,1);subexperiments=strings(n,1);

@@ -108,10 +108,11 @@ instead of keeping destinations from the preceding study.
 
 The layout above is unchanged for **manual single** inversions. The batch
 runner instead uses an external `OCE_Inversions` directory by default,
-next to the selected experiment directory:
+next to `OCE_Experiments` under the same user-chosen parent directory:
 
 ```text
-<experiment-parent>/OCE_Inversions/<experiment>/<subexperiment>/
+<user-chosen-parent>/OCE_Experiments/<experiment>/Results/...
+<user-chosen-parent>/OCE_Inversions/<experiment>/<subexperiment>/
     RayleighLamb/<case>/inversion.{mat,fig,tif}
     Plate/<case>/inversion.{mat,fig,tif}
 ```
@@ -119,7 +120,11 @@ next to the selected experiment directory:
 The batch never relocates or edits OCE `Results` inputs. Set
 `inversions_root` (human Editor workflow) or `plan.inversionsRoot`
 (programmatic API) to an **absolute** `OCE_Inversions` destination if desired.
-The default is `fullfile(fileparts(experimentRoot),"OCE_Inversions")`.
+This default applies only when `experimentRoot` is directly inside
+`OCE_Experiments`; it uses
+`fullfile(fileparts(fileparts(experimentRoot)),"OCE_Inversions")`.
+For any other directory layout, supply an explicit absolute `inversions_root`
+or `plan.inversionsRoot`. The parent directory can have any name.
 Batch `outputRelativeFolder` overrides are interpreted relative to that
 external root; manual single overrides remain relative to `experimentRoot`.
 All output tags, no-overwrite checks, optional FIG/TIF and failure records
