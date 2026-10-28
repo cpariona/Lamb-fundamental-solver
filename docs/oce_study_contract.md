@@ -140,7 +140,8 @@ tables are retained with newly saved study results.
 
 The default thickness policy for the **manual single-study** workflow is
 `oce_directional_per_acquisition` for both QH and Pulse; experiment-wide batch
-defaults to a reviewed median (`oce_median_per_case`). Under the per-acquisition policy, The native Plate SVD takes `experimental.observationThickness_m`
+defaults to a reviewed median (`oce_median_per_case`). Under the per-acquisition
+policy, the native Plate SVD takes `experimental.observationThickness_m`
 with one source-recorded **current full** directional thickness per original
 observation. QH keeps the measured value for each acquisition/frequency;
 Pulse shares an acquisition/direction thickness only between that acquisition's
@@ -271,8 +272,10 @@ The current full thickness comes from the already selected OCE signed direction
 (`borders.directional_mean_thickness_mm`, converted to meters). QH retains a
 separate thickness for each selected acquisition/frequency; Pulse repeats each
 acquisition's thickness only across that acquisition's original FFT bins. No
-sample median, pooled average, thickness interpolation, frequency matching or
-rounding is applied. The native Rayleigh-Lamb evaluator solves separately on
+median or pooling is applied in this **per-acquisition** policy; the batch
+`oce_median_per_case` option deliberately computes one scalar across selected
+acquisitions, never averaging their frequency observations. The native
+Rayleigh-Lamb evaluator solves separately on
 each set of **exactly equal** thickness values, while retaining original
 observation positions and one shared fitted modulus. It does not create a
 single fictitious canonical model result for multiple geometries: native
