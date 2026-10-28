@@ -183,6 +183,67 @@ verifyEqual(testCase,changed.summaryFile, ...
     fullfile(root,"Results","Stretch_1p10000","summary.mat"));
 end
 
+function testFingerprintOnlySkipsGitAndPreservesFinalRecord(testCase)
+root=tempname;mkdir(root);oldPath=path;
+cleanup=onCleanup(@()cleanupProvenanceFixture(oldPath,root));
+oceFolder=fullfile(root,'oce','src','+oce','+results');mkdir(oceFolder);
+writeFixtureFunction(fullfile(oceFolder,'recoverSummaryObservations.m'), ...
+    ["function value=recoverSummaryObservations(varargin)","value=[];","end"]);
+writeFixtureFunction(fullfile(root,'system.m'),[ ...
+    "function [status,output]=system(command)", ...
+    "fid=fopen(fullfile(fileparts(mfilename('fullpath')),'git-queries.txt'),'a');", ...
+    "closeFile=onCleanup(@()fclose(fid));", ...
+    "fprintf(fid,'%s\n',command);", ...
+    "status=0;output='';", ...
+    "if endsWith(string(command),'rev-parse HEAD'),output=[repmat('a',1,40) newline];end", ...
+    "end"]);
+first=fullfile(root,'first.txt');second=fullfile(root,'second.txt');
+writeFixtureFunction(first,"abc");writeFixtureFunction(second,"xyz");
+queryLog=fullfile(root,'git-queries.txt');
+fid=fopen(queryLog,'w');fclose(fid);
+addpath(root,fullfile(root,'oce','src'),'-begin');
+projectRoot=fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+files=[string(first);string(second);string(first)];
+summary=oceInversionProvenance(first,projectRoot,false);
+before=oceInversionProvenance(files,projectRoot,false);
+verifyEmpty(testCase,fileread(queryLog));
+verifyEqual(testCase,fieldnames(before),{'inputFiles'});
+verifyEqual(testCase,before.inputFiles.path,[string(first);string(second)]);
+verifyEqual(testCase,summary.inputFiles,before.inputFiles(1,:));
+final=oceInversionProvenance(files,projectRoot);
+queries=string(fileread(queryLog));
+commands=splitlines(queries);commands(commands=="")=[];
+verifyEqual(testCase,numel(commands),4);
+verifyEqual(testCase,nnz(endsWith(commands,'rev-parse HEAD')),2);
+verifyEqual(testCase,nnz(endsWith(commands, ...
+    'status --porcelain=v1 --untracked-files=all')),2);
+verifyEqual(testCase,final.inputFiles,before.inputFiles);
+verifyEqual(testCase,fieldnames(final),{'matlabVersion';'matlabRelease'; ...
+    'code';'inputFiles';'provenanceScope';'historicalProcessingContentVerified'});
+verifyEqual(testCase,final.code.Lamb.commit,string(repmat('a',1,40)));
+verifyEqual(testCase,final.code.OCE.commit,final.code.Lamb.commit);
+verifyTrue(testCase,final.code.Lamb.available&&final.code.OCE.available);
+% Equal-length changes must still invalidate the pre-inversion fingerprint.
+writeFixtureFunction(first,"abd");
+changed=oceInversionProvenance(files,projectRoot,false);
+verifyEqual(testCase,string(fileread(queryLog)),queries);
+verifyEqual(testCase,changed.inputFiles.bytes,before.inputFiles.bytes);
+verifyNotEqual(testCase,changed.inputFiles.sha256,before.inputFiles.sha256);
+for family=["RayleighLamb","Plate"]
+    study=struct('saveResult',true,'resultFile',fullfile(root,family+".mat"));
+    inputs=struct('inputHashes',before.inputFiles);
+    verifyError(testCase,@()persistOceInversionStudy(study,inputs, ...
+        struct(),struct(),struct(),false,projectRoot,family), ...
+        'lamb:study:InputsChanged');
+    verifyFalse(testCase,isfile(study.resultFile));
+end
+end
+
+function cleanupProvenanceFixture(oldPath,root)
+path(oldPath);
+rmdir(root,'s');
+end
+
 function testPortableInversionManifestAndUntouchedNativePayload(testCase)
 root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 source=fullfile(root,"Results","Stretch_1p00000","summary.mat");

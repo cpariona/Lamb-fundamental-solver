@@ -1,6 +1,10 @@
-function record = oceInversionProvenance(inputFiles, projectRoot)
+function record = oceInversionProvenance(inputFiles, projectRoot, captureCode)
 %OCEINVERSIONPROVENANCE Fingerprint current inputs for human OCE inversion workflows.
 % Current bytes and code state do not verify historical ProcessingRun inputs.
+% captureCode defaults to true for the complete persisted record. False returns
+% only inputFiles, without locating or querying either code repository.
+if nargin<3,captureCode=true;end
+validateattributes(captureCode,{'logical'},{'scalar'});
 paths=string(inputFiles);paths=unique(paths(:),'stable');
 bytes=zeros(numel(paths),1);sha256=strings(numel(paths),1);
 for k=1:numel(paths)
@@ -14,10 +18,15 @@ for k=1:numel(paths)
     sha256(k)=lower(string(reshape(dec2hex(typecast(digest.digest(),'uint8'),2)',1,[])));
     clear closeFile
 end
+inputManifest=table(paths,bytes,sha256,'VariableNames',{'path','bytes','sha256'});
+if ~captureCode
+    record=struct('inputFiles',inputManifest);
+    return
+end
 oceRoot=fileparts(fileparts(fileparts(fileparts(which('oce.results.recoverSummaryObservations')))));
 record=struct('matlabVersion',string(version),'matlabRelease',string(version('-release')), ...
     'code',struct('Lamb',repositoryState(projectRoot),'OCE',repositoryState(oceRoot)), ...
-    'inputFiles',table(paths,bytes,sha256,'VariableNames',{'path','bytes','sha256'}), ...
+    'inputFiles',inputManifest, ...
     'provenanceScope',"current_input_bytes_unchanged_during_this_study", ...
     'historicalProcessingContentVerified',false);
 end
