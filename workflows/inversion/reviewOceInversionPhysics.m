@@ -29,7 +29,11 @@ if family=="RayleighLamb"
     elseif study.thicknessPolicy=="oce_median_per_case"
         [effective,range,sourceCount]=medianSelectedThickness( ...
             assembly,observationReview,experimental.validMask);
-        physics.fixedParams.thickness_m=effective;
+        if isfield(physics.fixedParams,'thickness')
+            physics.fixedParams.thickness=effective;
+        else
+            physics.fixedParams.thickness_m=effective;
+        end
         review.thicknessPolicy="oce_median_per_case";
         review.thicknessSource="OCE directional_mean_thickness_mm; selected signed-direction acquisitions";
         review.thicknessJustification= ...
