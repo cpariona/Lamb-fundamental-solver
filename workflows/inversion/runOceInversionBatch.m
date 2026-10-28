@@ -27,7 +27,9 @@ for flag={saveResult,exportFigure,continueOnError}
 end
 assert(isfield(plan,'experimentRoot')&&isfield(plan,'oceRepositoryRoot'), ...
     'lamb:batch:Roots','Supply experiment and OCE source repository roots.');
-if isfield(plan,'inversionsRoot') && ~isempty(plan.inversionsRoot)
+if isfield(plan,'inversionsRoot') && ~isempty(plan.inversionsRoot) && ...
+        ~(isscalar(string(plan.inversionsRoot)) && ...
+          strlength(strtrim(string(plan.inversionsRoot)))==0)
     inversionsRoot=string(plan.inversionsRoot);
 else
     sourceRoot=replace(string(plan.experimentRoot),char(92),"/");
