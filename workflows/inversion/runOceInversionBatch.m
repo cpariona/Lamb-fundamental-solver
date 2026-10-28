@@ -30,7 +30,11 @@ assert(isfield(plan,'experimentRoot')&&isfield(plan,'oceRepositoryRoot'), ...
 if isfield(plan,'inversionsRoot') && ~isempty(plan.inversionsRoot)
     inversionsRoot=string(plan.inversionsRoot);
 else
-    inversionsRoot=fullfile(string(fileparts(char(plan.experimentRoot))),"OCE_Inversions");
+    sourceRoot=replace(string(plan.experimentRoot),char(92),"/");
+    while endsWith(sourceRoot,"/") && strlength(sourceRoot)>1
+        sourceRoot=extractBefore(sourceRoot,strlength(sourceRoot));
+    end
+    inversionsRoot=fullfile(string(fileparts(char(sourceRoot))),"OCE_Inversions");
 end
 n=numel(plan.cases);
 cases=cell(n,1);outputs=strings(n,1);subexperiments=strings(n,1);
