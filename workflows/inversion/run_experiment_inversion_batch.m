@@ -15,6 +15,7 @@ fit_frequency_selection = "all"; % "all" | "interval" | "explicit"
 fit_frequency_hz = []; % [low high] or explicitly reviewed target Hz
 full_band_reviewed = false; % Required when using "all"
 plot_target_frequency_hz = []; % Optional Pulse display requests only
+thickness_policy = "oce_median_per_case"; % Default for batch; "oce_directional_per_acquisition" retains per-row thickness
 
 % Shared material and separately reviewed current full geometry (SI).
 % Under the default OCE policy the geometry scalar is replaced per observation.
@@ -178,7 +179,7 @@ for sub = chosen(:)'
                 if mode=="pulse",study.excitationMode="Pulse";end
                 for k = 1:numel(families)
                     current = study;
-                    current.thicknessPolicy="oce_directional_per_acquisition";
+                    current.thicknessPolicy=thickness_policy;
                     if families(k)=="RayleighLamb"
                         current.fitConfig=rl_fit;
                         current.review=rl_review;
