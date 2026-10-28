@@ -18,7 +18,8 @@ plot_target_frequency_hz = []; % Optional Pulse display requests only
 thickness_policy = "oce_median_per_case"; % Default for batch; "oce_directional_per_acquisition" retains per-row thickness
 
 % Shared material and separately reviewed current full geometry (SI).
-% Under the default OCE policy the geometry scalar is replaced per observation.
+% The batch median policy derives one scalar thickness from selected OCE acquisitions;
+% the per-acquisition option instead uses each recorded directional thickness.
 material = struct('density_kgpm3',NaN,'poisson_ratio',NaN);
 geometry = struct('thickness_m',NaN);
 density_source = "";
