@@ -50,7 +50,11 @@ if isfield(study,'inversionsRoot') && ~isempty(study.inversionsRoot)
     assert(isAbsolute,'lamb:study:InversionsRoot', ...
         'inversionsRoot must be an absolute folder path.');
     study.resolvedOutputBase="inversionsRoot";
-    [~,experimentFolder]=fileparts(char(root));
+    experimentPath=replace(root,char(92),"/");
+    while endsWith(experimentPath,"/") && strlength(experimentPath)>1
+        experimentPath=extractBefore(experimentPath,strlength(experimentPath));
+    end
+    [~,experimentFolder]=fileparts(char(experimentPath));
     experimentFolder=safePart(string(experimentFolder));
 end
 if ~isfield(study,'outputRelativeFolder')||strlength(string(study.outputRelativeFolder))==0
