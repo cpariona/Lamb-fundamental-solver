@@ -1,13 +1,14 @@
 # Human research workflows
 
-`workflows/inversion/` contains the maintained MATLAB Editor drivers for applying
-native Lamb inverse models to reviewed OCE acquisitions. This directory is
-**opt-in**: ordinary `startup` intentionally does not add workflows to the path.
+`workflows/` contains the maintained MATLAB Editor scripts for applying native
+Lamb inverse models to reviewed OCE acquisitions. Callable functions live in
+`workflows/inversion/`. Both are **opt-in**: ordinary `startup`
+intentionally does not add workflows to the path.
 
 | Open in MATLAB Editor | Scientific fitting owner |
 | --- | --- |
-| [run_rl_oce_inversion.m](inversion/run_rl_oce_inversion.m) | Rayleigh–Lamb A0/S0, native nonlinear fitting |
-| [run_ae_plate_oce_inversion.m](inversion/run_ae_plate_oce_inversion.m) | Prestressed Plate A0, native linear SVD fitting |
+| [run_rl_oce_inversion.m](run_rl_oce_inversion.m) | Rayleigh–Lamb A0/S0, native nonlinear fitting |
+| [run_ae_plate_oce_inversion.m](run_ae_plate_oce_inversion.m) | Prestressed Plate A0, native linear SVD fitting |
 
 ## Run Section procedure
 
@@ -106,9 +107,33 @@ overrides and parent-directory traversal are rejected. Generated outputs are
 never overwritten. Updating `study.subexperimentId` recomputes default paths
 instead of keeping destinations from the preceding study.
 
+The layout above is unchanged for **manual single** inversions. The batch
+runner instead uses an external `OCE_Inversions` directory by default,
+next to `OCE_Experiments` under the same user-chosen parent directory:
+
+```text
+<user-chosen-parent>/OCE_Experiments/<experiment>/Results/...
+<user-chosen-parent>/OCE_Inversions/<experiment>/<subexperiment>/
+    RayleighLamb/<case>/inversion.{mat,fig,tif}
+    Plate/<case>/inversion.{mat,fig,tif}
+```
+
+The batch never relocates or edits OCE `Results` inputs. Set
+`inversions_root` (human Editor workflow) or `plan.inversionsRoot`
+(programmatic API) to an **absolute** `OCE_Inversions` destination if desired.
+This default applies only when `experimentRoot` is directly inside
+`OCE_Experiments`; it uses
+`fullfile(fileparts(fileparts(experimentRoot)),"OCE_Inversions")`.
+For any other directory layout, supply an explicit absolute `inversions_root`
+or `plan.inversionsRoot`. The parent directory can have any name.
+Batch `outputRelativeFolder` overrides are interpreted relative to that
+external root; manual single overrides remain relative to `experimentRoot`.
+All output tags, no-overwrite checks, optional FIG/TIF and failure records
+still apply. No existing inversion outputs are migrated.
+
 ## Human experiment-wide inversion batch
 
-Open [run_experiment_inversion_batch.m](inversion/run_experiment_inversion_batch.m)
+Open [run_experiment_inversion_batch.m](run_experiment_inversion_batch.m)
 in **MATLAB Editor** and run its sections in order. Set `experiment_root`,
 `oce_repository_root`, `condition_keys` (the exact recorded mechanical
 metadata columns), the selected models/directions/repetitions, and the
@@ -117,14 +142,23 @@ acquisitions `condition_keys="strain_percent"` is an example, not a value
 inferred from a folder name.
 
 Use the shared `material` and `geometry` configuration with explicit SI fields:
-`density_kgpm3` (kg/m^3), `geometry.thickness_m` (current full m, only a
-scalar reference for the directional-OCE thickness policy), and
+`density_kgpm3` (kg/m^3), `geometry.thickness_m` (current full m, a
+placeholder replaced by OCE for median/per-acquisition geometry policies), and
 `poisson_ratio` (dimensionless, RL only). Set the independent
 `rl_mu_initial_guess_Pa` and `rl_mu_bounds_Pa`, and provide the model-specific
 model-assumption justifications. The public RL fitting boundary maps those
 unit-qualified inputs to its retained native mathematical parameter symbols;
 Plate accepts the same density/thickness fields directly. Do not assign
 placeholder values or infer physical parameters from paths.
+
+For an experiment-wide batch, `thickness_policy="oce_median_per_case"`
+is the default. Each acquisition with a selected fitting row contributes its
+directional OCE thickness **once**, regardless of how many original frequency
+rows it contains. The median is applied to all selected frequencies and
+repetitions in one case. This is a deliberate uniform-plate approximation, not
+a measurement of spatial thickness uniformity. The measured source values
+remain in the saved assembly. Changing the geometry policy requires a new
+output case; no existing inversion MAT/FIG/TIF is overwritten.
 
 For clarity, `excitationMode` means QH/Pulse, native RL `branchName` means
 A0/S0, and `review.modelBranch` is derived rather than entered twice.
@@ -135,8 +169,15 @@ acceptance of invalid ridge bins or experimental A0 purity. Fields named
 `*_model_assumptions_justification` document experimental hypotheses,
 not a substitute for native support/acceptance diagnostics. The stable case
 folder ID includes a source-condition fingerprint to distinguish different
-literal strings and exponent signs; recorded typed condition values remain
-unchanged in the request.
+literal strings, exponent signs and full-precision numeric values.
+`strain_percent` supplied as a double or numeric text is displayed with
+at most two decimal places, omitting redundant trailing zeros (for example,
+`Strain_34_43pct_<8-hex fingerprint>`, `Strain_20pct_<8-hex fingerprint>`).
+Scientific-notation text is converted to a numeric value **only for the label**;
+the fingerprint continues to use the
+exact recorded value and type. This display rounding never changes condition selection
+or the scientific input. Existing output directories are not renamed or
+overwritten; differently named results are new output cases.
 
 Section 2 locates `Results/<subexperiment>/summary.mat` files and uses
 `oce.results.recoverSummaryObservations` to validate and discover existing
@@ -148,24 +189,24 @@ native metadata contract and are rejected rather than silently renumbered.
 A missing selected repetition or signed direction is an error.
 
 Section 3 constructs independent, reviewable `plan.cases` arrays for
-RayleighLamb and Plate. The generated condition ID is a stable unit-free path label derived from
-recorded mechanical keys and literal values (for example,
-`strain_percent_0_<12-hex fingerprint>`); it does not depend on acquisition or Pulse-period
-ordering. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
+RayleighLamb and Plate. The generated condition ID is a stable path label derived from
+recorded mechanical keys and exact values (for example,
+`Strain_0pct_<8-hex fingerprint>`); it does not depend on acquisition or Pulse-period
+ordering. The eight-digit fragment is a condition fingerprint, not a Git commit. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
 `full_band_reviewed=true`; the selection is never inferred or
 optimized. The researcher must review each case, physics, and output paths
 before enabling `run_batches=true` in section 4.
 
 The script never implements fitting, OCE I/O schemas, mask selection,
-renderers or a second batch engine. Outputs follow the existing experiment
-path policy and cannot overwrite previous inversions. Discovery reads
+renderers or a second batch engine. Outputs use the separate batch
+inversion root and cannot overwrite previous inversions. Discovery reads
 actual OCE sources, whereas the underlying `plan.execute=false` preview
 checks only structural fields and output paths. The Editor Run Section
 path is required for this human workflow.
 
 ## Programmable batch workflows
 
-Add `workflows/inversion` to your MATLAB path explicitly and initialize
+Add `workflows/inversion` to your MATLAB path explicitly for callable functions and initialize
 Lamb and OCE as with the interactive drivers. The single programmable batch entry point is `runOceInversionBatch(plan,family)`,
 where `family="RayleighLamb"` or `family="Plate"`. This avoids maintaining
 two model-only forwarding wrappers; each case is still reviewed and executed
@@ -192,6 +233,7 @@ interactive section 1 (no absolute paths inside case definitions):
 plan = struct();
 plan.experimentRoot = experimentRoot;       % Local experiment root supplied by caller
 plan.oceRepositoryRoot = oceRepositoryRoot; % Local OCE checkout supplied by caller
+% plan.inversionsRoot = "D:/OCE_Inversions"; % Optional absolute external root
 plan.cases = [case1, case2];               % Explicit complete reviewed study structs
 plan.execute = false;                     % Read-only plan; no MATLAB/OCE input reads
 preview = runOceInversionBatch(plan,"RayleighLamb");
@@ -206,10 +248,14 @@ disp(report.report);
 ```
 
 For Plate call `runOceInversionBatch(plan,"Plate")` and supply
-reviewed density, thickness policy and model-support evidence. The default
-uses the OCE signed-direction full thickness for each selected observation.
-The recorded scalar `physical.thickness_m` is a non-operative reference
-under this policy; constant-thickness studies remain available explicitly. `plan.execute=true`
+reviewed density, thickness policy and model-support evidence. The human
+experiment-wide batch defaults to `thickness_policy="oce_median_per_case"`:
+one median current full thickness across unique acquisitions represented in
+the valid fitting mask, per condition/axis/signed direction. It retains all
+selected frequency/repetition velocities and their original thickness records.
+Both models use this single scalar geometry throughout their one joint fit.
+`"oce_directional_per_acquisition"` remains a supported option; programmatic
+plans must state their own reviewed policy. `plan.execute=true`
 explicitly permits fresh native fits; set `plan.reuseOnly=true` to require
 previously saved exact results instead. In reuse-only execution an existing
 `inversion.mat` is loaded only after exact native request matching and current
@@ -222,6 +268,13 @@ protected even when the MAT is reusable: select `plan.exportFigure=false` to
 reuse without exporting, or use a new reviewed output tag for new figures.
 Historic MAT selection fields are normalized only in the returned in-memory
 record; their on-disk bytes and original field names are preserved.
+An archived batch MAT retains source-file hashes relative to
+`experimentRoot`, while `studyRecord.selection.outputBase="inversionsRoot"`
+and `outputRelativeFolder` resolve the destination relative to the
+configured external root. `inversion_failure.mat` uses the same output
+location and marks its relative native reference with `nativeResultBase`.
+No machine-specific output root is written to the MAT.
+
 The default full MATLAB figure export
 is hidden during batch execution; it saves FIG and TIF and closes the GUI.
  `plan.continueOnError=true` optionally collects failures rather than stopping

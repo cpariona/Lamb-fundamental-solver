@@ -271,11 +271,18 @@ partitions retain the historical call. A reviewed Plate request may use the
 OCE-measured full current thickness aligned with each original observation:
 the workflow supplies `experimental.observationThickness_m` and the QH
 coordinator checks that it matches the recorded signed-direction values.
-A separately reviewed constant thickness or one chosen acquisition remains a
-supported explicit approximation. Excluded/missing OCT measurements remain
-visible; selected missing thickness is rejected only for the per-observation
-policy. The original SVD, independent physical-frequency grouping and numerical
-acceptance belong to native Plate fitting, not the integration layer.
+The experiment-wide human batch additionally requests
+`oce_median_per_case` through the existing shared physical review: one recorded
+directional current full thickness per distinct selected acquisition contributes
+to a single median scalar, without duplicating measurements for their frequency
+rows. This scalar reaches the same native RL and Plate fitting APIs; original
+measurements remain in the preparation assembly. The manual single defaults
+remain per-observation. A separately reviewed constant thickness or one chosen
+acquisition remains a supported explicit approximation. Excluded/missing OCT
+measurements remain visible; any selected acquisition lacking valid geometry is
+rejected for the OCE-derived median or per-observation policy. The original
+SVD, independent physical-frequency grouping and numerical acceptance belong
+to native Plate fitting, not the integration layer.
 Compact OCT availability/range diagnostics remain descriptive.
 The OCE recovery dependency is optional and remains outside Lamb's scientific
 packages. Equations, SVD and acceptance thresholds remain owned by Plate;

@@ -124,8 +124,8 @@ same retained result.
 
 ## Manual study and Pulse graphic sampling
 
-Use the [Plate study](../workflows/inversion/run_ae_plate_oce_inversion.m), the
-[RL study](../workflows/inversion/run_rl_oce_inversion.m) and their
+Use the [Plate study](../workflows/run_ae_plate_oce_inversion.m), the
+[RL study](../workflows/run_rl_oce_inversion.m) and their
 [configuration contract](../docs/oce_study_contract.md#maintained-manual-plate-study)
 for QH and Pulse. Scientific input is recovered individual OCE products, never FIG
 contents, summary means or comparison statistics.
@@ -218,9 +218,11 @@ replaced by nearby valid bins. The renderer performs no nominal-to-bin search,
 interpolation or extrapolation. Source-row/bin correspondence belongs to the
 caller's mapping; sample flags and all original rows remain in observations.
 
-Without graphic sampling the view includes every selected observation and finite exclusions within
-the fitted frequency domain, starting at zero. Excluded rows beyond that domain
-or without plottable coordinates are counted explicitly. All original rows,
+Without graphic sampling the view includes every selected observation and finite exclusions
+at any nonnegative recorded frequency, including above the fitted frequency
+domain. The native model line remains restricted to its original fitted domain.
+Excluded rows outside that domain and rows without plottable coordinates
+are counted separately; the horizontal display range includes visible exclusions. All original rows,
 frequencies, speeds, masks, repetition labels, predictions and available residuals
 remain in `evidence.observations` and `FIG.UserData`; unavailable predictions are
 not replaced. With sampling, shownInDispersion and shownInResiduals identify

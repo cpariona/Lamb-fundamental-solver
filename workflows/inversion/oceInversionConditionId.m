@@ -25,13 +25,26 @@ for j = 1:numel(keys)
         literal = string(value);
         kind = "text";
     end
+    label=key+"_"+literal;
+    if key=="strain_percent"
+        % Compact display only; hash the unchanged full-precision literal.
+        displayValue=literal;
+        numericValue=str2double(literal);
+        if isreal(numericValue) && isfinite(numericValue)
+            % Two decimal places at most; remove trailing zeros and dot.
+            displayValue=string(sprintf('%.2f',numericValue));
+            displayValue=regexprep(displayValue,'0+$','');
+            displayValue=regexprep(displayValue,'\.$','');
+        end
+        label="Strain_"+displayValue+"pct";
+    end
     readable = string(matlab.lang.makeValidName( ...
-        key+"_"+literal,'ReplacementStyle','underscore'));
+        label,'ReplacementStyle','underscore'));
     digest = java.security.MessageDigest.getInstance('SHA-256');
     digest.update(uint8(unicode2native(char(kind+"|"+key+"="+literal),'UTF-8')));
     hash = lower(string(reshape(dec2hex(typecast(digest.digest(),'uint8'),2)',1,[])));
     parts(j) = extractBefore(readable,min(strlength(readable)+1,25)) ...
-        +"_"+extractBefore(hash,13);
+        +"_"+extractBefore(hash,9);
 end
 id = strjoin(parts,"_");
 end

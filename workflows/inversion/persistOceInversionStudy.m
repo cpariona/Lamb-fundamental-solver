@@ -23,6 +23,11 @@ for k=1:numel(names)
 end
 selection.summaryRelativeFile=study.resolvedSummaryRelativeFile;
 selection.outputRelativeFolder=study.resolvedOutputRelativeFolder;
+if study.resolvedOutputBase=="inversionsRoot"
+    % Keep the external storage anchor machine-local, but preserve the
+    % logical base needed to resolve this relative destination on replay.
+    selection.outputBase="inversionsRoot";
+end
 if isfield(study,'thicknessPolicy'),selection.thicknessPolicy=study.thicknessPolicy;end
 if isfield(study,'thicknessReferenceSourceIndex')
     selection.thicknessReferenceSourceIndex=study.thicknessReferenceSourceIndex;

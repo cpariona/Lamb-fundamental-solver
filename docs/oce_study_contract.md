@@ -94,7 +94,7 @@ automatic model-selection rule.
 
 ## Maintained human Plate inversion workflow
 
-The maintained Plate human workflow is [run_ae_plate_oce_inversion.m](../workflows/inversion/run_ae_plate_oce_inversion.m).
+The maintained Plate human workflow is [run_ae_plate_oce_inversion.m](../workflows/run_ae_plate_oce_inversion.m).
 It replaces the pilot preview/export coordinator. It contains no specimen names,
 absolute study paths, FIG input dependency, frequency optimizer or model dispatcher.
 Open the actual driver in MATLAB Editor. In section 1, edit `oce_repository_root`
@@ -138,8 +138,10 @@ same correspondence fields for display requests. The two masks remain independen
 changing graphic targets cannot add or remove fitting observations. Both mapping
 tables are retained with newly saved study results.
 
-The default thickness policy is `oce_directional_per_acquisition` for both
-QH and Pulse. The native Plate SVD takes `experimental.observationThickness_m`
+The default thickness policy for the **manual single-study** workflow is
+`oce_directional_per_acquisition` for both QH and Pulse; experiment-wide batch
+defaults to a reviewed median (`oce_median_per_case`). Under the per-acquisition
+policy, the native Plate SVD takes `experimental.observationThickness_m`
 with one source-recorded **current full** directional thickness per original
 observation. QH keeps the measured value for each acquisition/frequency;
 Pulse shares an acquisition/direction thickness only between that acquisition's
@@ -152,7 +154,9 @@ or substitute measured thickness. Missing selected thickness is an error.
 A reviewer can instead explicitly choose `explicit_constant_current_thickness`
 with an independently justified scalar, or `oce_reference_acquisition` with
 one indexed original acquisition as a scalar-geometry approximation. Only these
-scalar policies use `physical.thickness_m` across all rows. Original SVD,
+scalar policies use `physical.thickness_m` across all rows. The batch
+median policy is also scalar, counting distinct selected acquisitions once each
+regardless of their number of frequency observations. Original SVD,
 validity mask, physical-frequency grouping and coverage/acceptance screens stay
 unchanged. Per-observation geometry assumes the local uniform-plate A0 relation
 is meaningful and shared acoustoelastic coefficients describe the fitted state;
@@ -220,8 +224,10 @@ summary migration belongs to Lamb.
 
 Historical constant-thickness inversions retain their original
 `explicit_constant_current_thickness` policy and physical reference.
-New OCE inversions default to recorded `oce_directional_per_acquisition`;
-do not rewrite archived reviews, physical inputs or native results.
+Manual single-study workflows still default to `oce_directional_per_acquisition`.
+The experiment-wide batch defaults to `oce_median_per_case`, using a single
+source-derived current full thickness per reviewed condition, axis and direction.
+Do not rewrite archived reviews, physical inputs or native results.
 
 Pulse uses compatible OCE selected Hz or original bins nearest explicit graphic
 targets before applying validity. Missing/excluded bins stay absent. Per-source
@@ -235,7 +241,7 @@ IOP/HGO retain their model-specific direct APIs and scientific requirements.
 
 ## Maintained human Rayleigh-Lamb inversion workflow
 
-[run_rl_oce_inversion.m](../workflows/inversion/run_rl_oce_inversion.m) exposes
+[run_rl_oce_inversion.m](../workflows/run_rl_oce_inversion.m) exposes
 editable MATLAB Editor sections for native Rayleigh-Lamb A0/S0 fitting. Its
 configuration section constructs `study`, and its Editor-safe initialization
 section adds the opt-in workflow and the explicitly configured OCE `src` path.
@@ -258,16 +264,18 @@ RL uses the common selection fields above plus:
 | --- | --- |
 | `estimator`, `curve` | Explicit `kf_ridge` raw/smoothed, or recorded QH `phase_gradient` (curve unused). |
 | `observationMask` | Empty uses the existing source-quality/frequency policy. A supplied logical vector is the exact original-row mask and must respect frequency selection. Invalid selected values are rejected, never repaired; original ridge flags remain separate evidence. |
-| `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI. A scalar `fixedParams.thickness` is used only under `explicit_constant`; under the OCE policy the native problem uses `experimental.observationThickness_m`. |
-| `thicknessPolicy` | Default `oce_directional_per_acquisition`: one source-recorded current full directional thickness per observation (QH acquisition/nominal frequency; Pulse acquisition/repetition repeated over its original bins). `explicit_constant` retains reviewed scalar thickness. Missing nonpositive-frequency measurements are tolerated; missing thickness at any positive-frequency observation blocks the request. |
+| `fitConfig` | Native branch, fixed/free parameters, initial guesses, bounds, solver options and fitting options; no Plate group policy or SVD fields. Units are native SI. Scalar `fixedParams.thickness_m` is used under `explicit_constant` or `oce_median_per_case`; per-observation OCE geometry instead uses `experimental.observationThickness_m`. |
+| `thicknessPolicy` | Manual single default `oce_directional_per_acquisition`: one source-recorded current full directional thickness per observation. Batch default `oce_median_per_case`: one median across unique selected acquisitions, shared by every fitting row. `explicit_constant` retains an independently reviewed scalar. Missing selected acquisition thickness rejects the median request. |
 | `review` | Derived `modelBranch`, `thicknessSource`, `thicknessJustification`, `densitySource`, `fitParameterJustification` and `modelAssumptionsJustification`. Explain measured fixed inputs and any fitted-parameter bounds/initial values, without inventing experimental validity. In the OCE thickness policy, source/justification are set to the actual recorded measurement policy. |
 
 The current full thickness comes from the already selected OCE signed direction
 (`borders.directional_mean_thickness_mm`, converted to meters). QH retains a
 separate thickness for each selected acquisition/frequency; Pulse repeats each
 acquisition's thickness only across that acquisition's original FFT bins. No
-sample median, pooled average, thickness interpolation, frequency matching or
-rounding is applied. The native Rayleigh-Lamb evaluator solves separately on
+median or pooling is applied in this **per-acquisition** policy; the batch
+`oce_median_per_case` option deliberately computes one scalar across selected
+acquisitions, never averaging their frequency observations. The native
+Rayleigh-Lamb evaluator solves separately on
 each set of **exactly equal** thickness values, while retaining original
 observation positions and one shared fitted modulus. It does not create a
 single fictitious canonical model result for multiple geometries: native
@@ -357,17 +365,33 @@ are accepted at a read-only provenance boundary, not rewritten into older MATs.
 The derived `review` must remain separate from editable `study.review` so
 manual MATLAB Editor review sections can be repeated without inconsistent state.
 
-The default storage layout, relative to the supplied machine-local experiment
-root, is
+Manual single-study workflows retain their original output layout relative
+to `experimentRoot`:
 `Results/<subexperiment>/Inversions/<RayleighLamb|Plate>/<case>/inversion.{mat,fig,tif}`.
-Only the experiment and OCE source repository roots are machine-local inputs.
-`outputRelativeFolder`, `outputTag` and `summaryRelativeFile` are optional
-programmable overrides. No absolute output override or parent traversal is
-supported, and existing outputs are never replaced. `outputTag` is required
-to distinguish independent fit reviews with the same physical case identity.
-The resulting saved `studyRecord` retains effective relative paths, fixed
-observation mask, original row mappings and root-relative source hashes;
-the original native OCE payload and mechanical review remain alongside it.
+Batch runs instead default to an external `OCE_Inversions` output root,
+`fullfile(fileparts(fileparts(experimentRoot)),"OCE_Inversions")`, only when
+`experimentRoot` is directly under `OCE_Experiments`. Both directories are
+siblings under a user-chosen parent of any name. For other input layouts the
+caller must provide an explicit absolute `inversions_root` or
+`plan.inversionsRoot`. The output layout remains:
+`<experiment>/<subexperiment>/<RayleighLamb|Plate>/<case>/inversion.{mat,fig,tif}`.
+The human batch workflow exposes optional `inversions_root`; the programmable
+batch accepts optional `plan.inversionsRoot`. Both point to the absolute
+external output root, not to an individual experiment output directory.
+`experimentRoot` continues to anchor OCE source recovery and source hashes.
+`outputRelativeFolder`, `outputTag` and `summaryRelativeFile` remain
+optional: output overrides are root-relative to the active output base, and
+summary overrides are always relative to `experimentRoot`. No absolute
+per-case output override or parent traversal is supported, and existing
+outputs are never replaced. `outputTag` distinguishes independent fit
+reviews with the same physical case identity.
+The batch `studyRecord.selection.outputBase="inversionsRoot"` explicitly
+identifies how to interpret `selection.outputRelativeFolder` without saving
+machine-specific paths. For single-study results, the legacy selection schema
+is unchanged and implicitly refers to `experimentRoot`. The resulting
+`studyRecord` retains fixed observation masks, original row mappings and
+input hashes relative to `experimentRoot`; the original native OCE payload
+and mechanical review remain alongside it.
 Batch failures with `saveResult=true` create a separate
 `inversion_failure.mat`, retaining the reviewed request, error identifier,
 portable stack-location names and UTC time; an earlier failure file is never
@@ -376,21 +400,23 @@ only. A failure before fitting is **not** a fitted result or physical finding.
 If native fitting succeeds but persistence or presentation fails, the batch
 reports `partial` and retains the native result and metrics in memory. Its
 failure record distinguishes the completed stage and references any saved
-native MAT by an experiment-relative path. A one-output call to
+native MAT by a path relative to the batch `inversionsRoot`, with
+a `nativeResultBase` marker. A one-output call to
 `executeOceInversionStudy` still raises downstream errors; its optional second
 output returns that error alongside the completed fit for batch coordination.
 
-**Thickness policies are reviewed per model:** RL uses one recorded
-directional current full thickness for each original observation and dispatches
-exact-thickness forward groups. Plate uses the same OCE geometry evidence but
-fits a **single** common `alpha,gamma` by substituting h_i into each row's
-`q_i` before the unweighted master-curve SVD. Optional scalar Plate policies
-(`explicit_constant_current_thickness` and `oce_reference_acquisition`)
-retain the historical single-height fit. Plate figures use separate native
-forward predictions for exactly equal thicknesses, avoiding false single-height
-dispersion curves. QH physical-frequency coverage remains exclusively owned by
-`fitOceQhPrestressedPlate`. Distinct h_i do not create statistically independent
-frequency groups or independent material states.
+**Batch geometry policy:** `thickness_policy="oce_median_per_case"` takes one
+recorded full directional OCE thickness from each distinct acquisition with
+at least one selected fitting observation. The median across those acquisitions
+is the sole current full thickness for every retained frequency and repetition
+within that case, in both RL and Plate. Original thicknesses, identities and
+masks remain in `assembly`; the derived scalar and policy are retained in the
+native request and review. Technical repeats are not interpreted as independent
+mechanical states. RL still fits one material `mu`, Plate one shared
+`alpha,gamma`; the native Plate QH physical-frequency coverage check is unchanged.
+The legacy `oce_directional_per_acquisition` policy remains available for both
+models and produces thickness-specific model predictions. Other scalar policies
+remain available for separately reviewed geometries.
 
 ## Manual MATLAB sections
 
@@ -479,7 +505,7 @@ reviewed masks, full requests/results and output hashes. Relocation changes root
 configuration, not datasets, saved observations or scientific APIs. Preserve
 earlier reports as historical evidence; do not silently overwrite them.
 
-The maintained manual driver is `workflows/inversion/run_ae_plate_oce_inversion.m`.
+The maintained manual driver is `workflows/run_ae_plate_oce_inversion.m`.
 `integrations/oce/` owns the existing translation/preparation and QH coordinator
 APIs, not the study script. Dataset-specific selections, physical review and
 outputs remain external. The study coordinates canonical APIs in separately

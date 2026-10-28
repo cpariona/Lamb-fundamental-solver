@@ -23,6 +23,34 @@ verifyEqual(testCase,left,oceInversionConditionId(keys,plus));
 verifyTrue(testCase,~isempty(regexp(char(left),'^[A-Za-z0-9_.-]+$','once')));
 verifyNotEqual(testCase,oceInversionConditionId(keys,struct('strain_percent',1)), ...
     oceInversionConditionId(keys,struct('strain_percent',"1")));
+% Human-readable labels are compact but the fingerprint uses exact doubles.
+precise=struct('strain_percent',3.442622950819671);
+close=struct('strain_percent',3.442622950819672);
+first=oceInversionConditionId(keys,precise);
+second=oceInversionConditionId(keys,close);
+verifyNotEmpty(testCase,regexp(char(first),'^Strain_3_44pct_[0-9a-f]{8}$','once'));
+verifyNotEmpty(testCase,regexp(char(second),'^Strain_3_44pct_[0-9a-f]{8}$','once'));
+verifyNotEqual(testCase,first,second);
+verifyEqual(testCase,first,oceInversionConditionId(keys,precise));
+% Numeric text is also shortened for display; its original type and literal
+% remain part of the fingerprint and are not converted for fitting.
+textual=oceInversionConditionId(keys,struct('strain_percent',"3.442622950819671"));
+verifyNotEmpty(testCase,regexp(char(textual),'^Strain_3_44pct_[0-9a-f]{8}$','once'));
+verifyNotEqual(testCase,textual,first);
+% Scientific-notation text is numerically 34.426..., not 3.4426%.
+scientific=oceInversionConditionId(keys, ...
+    struct('strain_percent',"3.44262295081967196e+01"));
+verifyEqual(testCase,scientific,"Strain_34_43pct_3f36dc51");
+asDouble=oceInversionConditionId(keys, ...
+    struct('strain_percent',34.42622950819672));
+verifyTrue(testCase,startsWith(asDouble,"Strain_34_43pct_"));
+verifyNotEqual(testCase,asDouble,scientific);
+verifyTrue(testCase,startsWith(oceInversionConditionId(keys, ...
+    struct('strain_percent',0)),"Strain_0pct_"));
+verifyTrue(testCase,startsWith(oceInversionConditionId(keys, ...
+    struct('strain_percent',20)),"Strain_20pct_"));
+verifyTrue(testCase,startsWith(oceInversionConditionId(keys, ...
+    struct('strain_percent',10.5)),"Strain_10_5pct_"));
 verifyError(testCase,@()oceInversionConditionId(keys,struct('other',"1")), ...
     'lamb:study:ConditionIdentity');
 end
@@ -40,6 +68,64 @@ two=resolveOceInversionPaths(one,"RayleighLamb");
 verifyEqual(testCase,two.summaryFile,fullfile(root,"Results","Stretch_1p10000","summary.mat"));
 verifySubstring(testCase,two.resultFile,"Stretch_1p10000");
 verifyTrue(testCase,contains(two.resultFile,fullfile("Inversions","RayleighLamb")));
+end
+
+function testBatchExternalInversionLayoutAndSingleCompatibility(testCase)
+parent=tempname;mkdir(parent);cleanup=onCleanup(@()rmdir(parent,'s'));
+container=fullfile(parent,"MyResearchData");mkdir(container);
+experimentsRoot=fullfile(container,"OCE_Experiments");mkdir(experimentsRoot);
+root=fullfile(experimentsRoot,"Experiment_A");mkdir(root);
+caseStudy=baseCase(root,"Stretch_1p00000");
+% Manual single remains inside its original OCE Results tree.
+single=resolveOceInversionPaths(caseStudy,"Plate");
+verifyEqual(testCase,single.resultFile,fullfile(root,"Results", ...
+    "Stretch_1p00000","Inversions","Plate", ...
+    "Pulse_320.01us_initial_axis1_left","inversion.mat"));
+
+plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
+    'cases',caseStudy,'execute',false);
+for family=["RayleighLamb","Plate"]
+    batch=runOceInversionBatch(plan,family);
+    expected=fullfile(container,"OCE_Inversions","Experiment_A", ...
+        "Stretch_1p00000",family, ...
+        "Pulse_320.01us_initial_axis1_left","inversion.mat");
+    verifyEqual(testCase,batch.report.resultFile(1),string(expected));
+    verifyEqual(testCase,batch.cases{1}.resolvedOutputBase,"inversionsRoot");
+    verifyFalse(testCase,isfolder(fullfile(container,"OCE_Inversions")), ...
+        'Dry-run must not create inversion directories.');
+end
+% Never infer a default from an experiment outside OCE_Experiments.
+standalone=fullfile(parent,"StandaloneExperiment");mkdir(standalone);
+nonstandard=plan;nonstandard.experimentRoot=string(standalone);
+verifyError(testCase,@()runOceInversionBatch(nonstandard,"Plate"), ...
+    'lamb:batch:InversionsRoot');
+nonstandard.inversionsRoot=fullfile(parent,"Reviewed_Inversions");
+explicit=runOceInversionBatch(nonstandard,"Plate");
+verifyEqual(testCase,explicit.report.resultFile(1),string(fullfile( ...
+    parent,"Reviewed_Inversions","StandaloneExperiment","Stretch_1p00000", ...
+    "Plate","Pulse_320.01us_initial_axis1_left","inversion.mat")));
+% A supplied root changes only output storage; OCE inputs stay unchanged.
+plan.inversionsRoot=fullfile(parent,"Reviewed_Inversions");
+plan.cases.outputTag="band_1";
+custom=runOceInversionBatch(plan,"Plate");
+verifyEqual(testCase,custom.cases{1}.summaryFile, ...
+    fullfile(root,"Results","Stretch_1p00000","summary.mat"));
+verifyEqual(testCase,custom.report.resultFile(1),string(fullfile( ...
+    parent,"Reviewed_Inversions","Experiment_A", ...
+    "Stretch_1p00000","Plate","band_1","inversion.mat")));
+
+plan.cases.outputRelativeFolder=fullfile("Experiment_A","reviewed","Plate","custom");
+overridden=runOceInversionBatch(plan,"Plate");
+verifyEqual(testCase,overridden.report.resultFile(1),string(fullfile( ...
+    parent,"Reviewed_Inversions","Experiment_A","reviewed", ...
+    "Plate","custom","inversion.mat")));
+plan.cases.outputRelativeFolder="../unsafe";
+verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
+    'lamb:study:UnsafeOutputPath');
+
+plan.inversionsRoot="relative/path";
+verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
+    'lamb:study:InversionsRoot');
 end
 
 function testExplicitRelativeOverridesAndUnsafePaths(testCase)
@@ -61,7 +147,8 @@ function testReadOnlyBatchPlansAndCollisionPreflight(testCase)
 root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 c=baseCase(root,"Stretch_1p00000");
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused_in_dry_run", ...
-    'cases',c,'execute',false);
+    'cases',c,'execute',false, ...
+    'inversionsRoot',fullfile(root,"DryRun_Inversions"));
 report=runOceInversionBatch(plan,"RayleighLamb");
 verifyFalse(testCase,report.executed);
 verifyEqual(testCase,report.report.status,"planned");
@@ -82,7 +169,8 @@ root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 c=baseCase(root,"Stretch_1p00000");
 c.summaryFile=fullfile("Results","Reviewed","alternative_summary.mat");
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
-    'cases',c,'execute',false);
+    'cases',c,'execute',false, ...
+    'inversionsRoot',fullfile(root,"DryRun_Inversions"));
 reviewed=runOceInversionBatch(plan,"RayleighLamb");
 first=reviewed.cases{1};
 verifyEqual(testCase,string(first.resolvedSummaryRelativeFile),string(c.summaryFile));
@@ -183,12 +271,14 @@ c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
 plan=struct('experimentRoot',string(root), ...
     'oceRepositoryRoot',"missing_OCE_checkout",'cases',c, ...
     'execute',true,'exportFigure',false,'saveResult',true, ...
-    'continueOnError',true);
+    'continueOnError',true,'inversionsRoot',fullfile(root,'OCE_Inversions'));
 report=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,report.report.status,"failed");
 verifyTrue(testCase,isfile(report.report.failureRecordFile));
 saved=load(report.report.failureRecordFile,'failureRecord');
 verifyEqual(testCase,saved.failureRecord.errorId,"lamb:study:OceRepository");
+verifyEqual(testCase,saved.failureRecord.nativeResultBase,"inversionsRoot");
+verifyFalse(testCase,isfield(saved.failureRecord.request,'inversionsRoot'));
 verifyEqual(testCase,saved.failureRecord.request.fitFrequency_Hz,c.fitFrequency_Hz);
 verifyFalse(testCase,isfield(saved.failureRecord.request,'experimentRoot'));
 verifyFalse(testCase,contains(string(saved.failureRecord.errorMessage),string(root)));
@@ -201,7 +291,8 @@ root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 c=baseCase(root,"Stretch_1p00000");
 c.fitFrequencySelection="all";c.fitFrequency_Hz=[];
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',"unused", ...
-    'cases',c,'execute',false);
+    'cases',c,'execute',false, ...
+    'inversionsRoot',fullfile(root,"DryRun_Inversions"));
 verifyError(testCase,@()runOceInversionBatch(plan,"RayleighLamb"), ...
     'lamb:batch:BandReview');
 plan.cases.fullBandReviewed=true;
@@ -297,13 +388,17 @@ end
 
 function testBatchReuseDoesNotOverwriteSavedResult(testCase)
 [root,oceRoot,cleanup]=presentationFailureFixture(); %#ok<ASGLU>
+externalRoot=string(root)+"_batch_outputs";
+mkdir(externalRoot);
+externalCleanup=onCleanup(@()rmdir(externalRoot,'s')); %#ok<NASGU>
 c=baseCase(root,"Stretch_1p00000");
 c.excitationMode="QH";c.period_us="";
 c.conditionId="reuse_saved";c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
 c.review=struct();
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
     'cases',c,'execute',true,'exportFigure',false,'saveResult',true, ...
-    'continueOnError',false,'reuseOnly',false);
+    'continueOnError',false,'reuseOnly',false, ...
+    'inversionsRoot',externalRoot);
 plan.reuseOnly=true;
 verifyError(testCase,@()runOceInversionBatch(plan,"Plate"), ...
     'lamb:study:MissingReuseResult');
@@ -313,6 +408,8 @@ plan.reuseOnly=false;
 first=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,first.report.status,"completed");
 file=first.report.resultFile(1);
+verifyFalse(testCase,startsWith(file,string(root)+filesep), ...
+    'Batch MAT must be saved outside the source experiment.');
 fid=fopen(file,'rb');before=fread(fid,inf,'*uint8');fclose(fid);
 plan.reuseOnly=true;
 second=runOceInversionBatch(plan,"Plate");
@@ -321,6 +418,9 @@ verifyEqual(testCase,second.report.status,"completed");
 verifyTrue(testCase,second.results{1}.reusedResult);
 verifyEqual(testCase,after,before);
 verifyEqual(testCase,second.results{1}.studyRecord,first.results{1}.studyRecord);
+verifyEqual(testCase,first.results{1}.studyRecord.selection.outputBase, ...
+    "inversionsRoot");
+verifyFalse(testCase,isfield(first.results{1}.studyRecord.selection,'inversionsRoot'));
 end
 
 function testPlateUsesAllSelectedMeasuredThicknessRows(testCase)
@@ -417,7 +517,8 @@ c.sampleId="fixture";
 second=c;second.conditionId="next";
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
     'cases',[c,second],'execute',true,'exportFigure',true,'saveResult',true, ...
-    'continueOnError',true);
+    'continueOnError',true, ...
+    'inversionsRoot',fullfile(root,'OCE_Inversions'));
 batch=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,batch.report.status,["partial";"completed"]);
 verifyEqual(testCase,batch.report.selectedObservations,[2;2]);
@@ -428,6 +529,8 @@ saved=load(batch.report.resultFile(1),'nativeResult');
 verifyEqual(testCase,batch.results{1}.nativeResult,saved.nativeResult);
 failure=load(batch.report.failureRecordFile(1),'failureRecord');
 verifyEqual(testCase,failure.failureRecord.completedThrough,"persistence");
+verifyEqual(testCase,failure.failureRecord.nativeResultBase,"inversionsRoot");
+verifyEqual(testCase,failure.failureRecord.request.resolvedOutputBase,"inversionsRoot");
 verifyEqual(testCase,failure.failureRecord.nativeResultRelativeFile, ...
     fullfile(batch.cases{1}.resolvedOutputRelativeFolder,"inversion.mat"));
 verifyEqual(testCase,failure.failureRecord.errorId,"lamb:test:ExportFailure");
@@ -450,7 +553,7 @@ c.physical=struct('density_kgpm3',1050,'thickness_m',.0005);
 c.review=struct();
 plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
     'cases',c,'execute',true,'exportFigure',false,'saveResult',true, ...
-    'continueOnError',true);
+    'continueOnError',true,'inversionsRoot',fullfile(root,'OCE_Inversions'));
 batch=runOceInversionBatch(plan,"Plate");
 verifyEqual(testCase,batch.report.status,"partial");
 verifyEqual(testCase,batch.results{1}.completedThrough,"fit");

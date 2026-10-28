@@ -3,11 +3,13 @@ function outcome = fitOceQhPrestressedPlate(assembly, physical, review, options)
 % ASSEMBLY comes from prepareOceQhFitObservations. PHYSICAL contains only
 % density_kgpm3 and current full thickness_m (positive scalar SI values).
 % REVIEW requires modelBranch="A0", thicknessPolicy either
-% "explicit_constant_current_thickness" or "oce_directional_per_acquisition",
+% "explicit_constant_current_thickness", "oce_median_per_case" or
+% "oce_directional_per_acquisition",
 % thicknessSource, thicknessJustification, densitySource and modelAssumptionsJustification. These
 % nonempty references record the caller's physical review, not inferred physics.
-% No mean thickness or load/DIC constraint is computed. If the recorded
-% per-observation thickness exists, the native solver uses it in each q_i.
+% No load/DIC constraint is computed. Under the reviewed median policy,
+% the workflow supplies one scalar acquisition-balanced thickness; under the
+% per-acquisition policy, the native solver uses each measured thickness in q_i.
 % OPTIONS is passed
 % unchanged to aePlateFitDispersion; its native result/diagnostics are retained.
 % If physical QH groups and exact selected-Hz groups differ, explicit physical
@@ -28,7 +30,8 @@ for name = ["density_kgpm3", "thickness_m"]
 end
 if ~isequal(review.modelBranch,"A0") || ...
         ~any(string(review.thicknessPolicy)== ...
-            ["explicit_constant_current_thickness","oce_directional_per_acquisition"])
+            ["explicit_constant_current_thickness","oce_directional_per_acquisition", ...
+             "oce_median_per_case"])
     error('lamb:oceQh:PhysicalReviewRequired', ...
         'Explicit A0 and a supported reviewed current-thickness policy are required.');
 end

@@ -1,7 +1,7 @@
 function study = resolveOceInversionPaths(study, family)
-%RESOLVEOCEINVERSIONPATHS Resolve experiment-contained, configurable relative outputs.
-% Only experimentRoot is a machine-local anchor. All persisted destinations
-% are constructed from root-relative paths; no absolute output override.
+%RESOLVEOCEINVERSIONPATHS Resolve source-relative inputs and rooted outputs.
+% Single-study outputs remain inside experimentRoot. Batch callers may pass
+% inversionsRoot to save outside the experiment while preserving relative paths.
 family=string(family);
 assert(isscalar(family)&&any(family==["RayleighLamb","Plate"]), ...
     'lamb:study:ModelFamily','Select RayleighLamb or Plate.');
@@ -36,14 +36,39 @@ else
     tag=safePart(study.excitationMode+period+"_"+study.conditionId+ ...
         "_axis"+string(study.scanAxisIndex)+"_"+study.direction);
 end
+outputRoot=root;
+study.resolvedOutputBase="experimentRoot";
+if isfield(study,'inversionsRoot') && ~isempty(study.inversionsRoot)
+    outputRoot=string(study.inversionsRoot);
+    assert(isscalar(outputRoot)&&~ismissing(outputRoot)&& ...
+        strlength(strtrim(outputRoot))>0, ...
+        'lamb:study:InversionsRoot', ...
+        'inversionsRoot must be a nonempty absolute folder path.');
+    normalized=replace(outputRoot,char(92),"/");
+    isAbsolute=startsWith(normalized,"/") || ...
+        ~isempty(regexp(char(normalized),'^[A-Za-z]:/','once'));
+    assert(isAbsolute,'lamb:study:InversionsRoot', ...
+        'inversionsRoot must be an absolute folder path.');
+    study.resolvedOutputBase="inversionsRoot";
+    experimentPath=replace(root,char(92),"/");
+    while endsWith(experimentPath,"/") && strlength(experimentPath)>1
+        experimentPath=extractBefore(experimentPath,strlength(experimentPath));
+    end
+    [~,experimentFolder]=fileparts(char(experimentPath));
+    experimentFolder=safePart(string(experimentFolder));
+end
 if ~isfield(study,'outputRelativeFolder')||strlength(string(study.outputRelativeFolder))==0
-    destination=fullfile("Results",sub,"Inversions",family,tag);
+    if study.resolvedOutputBase=="inversionsRoot"
+        destination=fullfile(experimentFolder,sub,family,tag);
+    else
+        destination=fullfile("Results",sub,"Inversions",family,tag);
+    end
 else
     destination=safeRelative(study.outputRelativeFolder);
 end
 study.resolvedOutputRelativeFolder=destination;
-study.resultFile=fullfile(root,destination,"inversion.mat");
-study.figureFolder=fullfile(root,destination);
+study.resultFile=fullfile(outputRoot,destination,"inversion.mat");
+study.figureFolder=fullfile(outputRoot,destination);
 study.figureName="inversion";
 % Never allow accidental study overwrites. This is checked again at saving.
 end

@@ -2,6 +2,8 @@ function batchResult = runOceInversionBatch(plan, family)
 %RUNOCEINVERSIONBATCH Execute a list of independently reviewed OCE studies.
 % PLAN.experimentRoot: machine-local experiment anchor.
 % PLAN.oceRepositoryRoot: machine-local OCE code checkout.
+% PLAN.inversionsRoot: optional absolute output root; defaults to OCE_Inversions
+%   alongside OCE_Experiments when experimentRoot is OCE_Experiments/<experiment>.
 % PLAN.cases: scalar struct or struct array, each with exact observation,
 % model, frequency, physical-review and optional outputRelativeFolder choices.
 % PLAN.execute: false (default) returns read-only output plan without fitting.
@@ -25,11 +27,31 @@ for flag={saveResult,exportFigure,continueOnError}
 end
 assert(isfield(plan,'experimentRoot')&&isfield(plan,'oceRepositoryRoot'), ...
     'lamb:batch:Roots','Supply experiment and OCE source repository roots.');
+if isfield(plan,'inversionsRoot') && ~isempty(plan.inversionsRoot) && ...
+        ~(isscalar(string(plan.inversionsRoot)) && ...
+          strlength(strtrim(string(plan.inversionsRoot)))==0)
+    inversionsRoot=string(plan.inversionsRoot);
+else
+    sourceRoot=replace(string(plan.experimentRoot),char(92),"/");
+    while endsWith(sourceRoot,"/") && strlength(sourceRoot)>1
+        sourceRoot=extractBefore(sourceRoot,strlength(sourceRoot));
+    end
+    [experimentsRoot,experimentName]=fileparts(char(sourceRoot));
+    [containerRoot,experimentsFolder]=fileparts(experimentsRoot);
+    assert(strcmpi(experimentsFolder,"OCE_Experiments") && ...
+        ~isempty(experimentName) && ~isempty(containerRoot), ...
+        'lamb:batch:InversionsRoot', ...
+        ['The default inversionsRoot requires experimentRoot under ' ...
+         'OCE_Experiments/<experiment>. For another layout, supply an ' ...
+         'absolute plan.inversionsRoot.']);
+    inversionsRoot=fullfile(string(containerRoot),"OCE_Inversions");
+end
 n=numel(plan.cases);
 cases=cell(n,1);outputs=strings(n,1);subexperiments=strings(n,1);
 for j=1:n
     caseStudy=plan.cases(j);
     caseStudy.experimentRoot=string(plan.experimentRoot);
+    caseStudy.inversionsRoot=inversionsRoot;
     caseStudy.saveResult=saveResult;
     caseStudy.exportFigure=exportFigure;
     caseStudy.showFigure=exportFigure;
@@ -151,23 +173,29 @@ keys=["experimentId","subexperimentId","sampleId","excitationMode","period_us", 
     "fullBandReviewed","observationMask","thicknessPolicy", ...
     "thicknessReferenceSourceIndex","fitConfig","physical","fitOptions", ...
     "review","summaryRelativeFile","resolvedSummaryRelativeFile", ...
-    "outputRelativeFolder","resolvedOutputRelativeFolder","outputTag"];
+    "outputRelativeFolder","resolvedOutputRelativeFolder", ...
+    "resolvedOutputBase","outputTag"];
 request=struct();
 for name=keys
     if isfield(study,name),request.(name)=study.(name);end
 end
 [~,stackName,stackExt]=cellfun(@fileparts,{exception.stack.file}, ...
     'UniformOutput',false);
+message=replace(string(exception.message),string(study.experimentRoot), ...
+    "<experimentRoot>");
+if isfield(study,'inversionsRoot')
+    message=replace(message,string(study.inversionsRoot),"<inversionsRoot>");
+end
 failureRecord=struct('family',string(family),'request',request, ...
     'utcTime',datetime('now','TimeZone','UTC'), ...
     'errorId',string(exception.identifier), ...
-    'errorMessage',replace(string(exception.message),string(study.experimentRoot), ...
-        "<experimentRoot>"), ...
+    'errorMessage',message, ...
     'stackFunctions',string({exception.stack.name})', ...
     'stackFiles',string(strcat(stackName,stackExt))', ...
     'stackLines',[exception.stack.line]');
 failureRecord.completedThrough="none";
 failureRecord.nativeResultRelativeFile="";
+failureRecord.nativeResultBase=study.resolvedOutputBase;
 if ~isempty(result)
     failureRecord.completedThrough=result.completedThrough;
     if result.completedThrough=="persistence" && isfile(study.resultFile)

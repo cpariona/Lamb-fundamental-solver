@@ -2,6 +2,7 @@
 % Human-facing batch for previously processed OCE experiments.
 % Inspect the discovered cases and native physics before enabling execution.
 experiment_root = ""; % Full folder containing the experiment's Results/
+inversions_root = ""; % Optional absolute root; default is beside OCE_Experiments
 oce_repository_root = ""; % Local OCE_Workflow checkout
 subexperiments = "all"; % "all" or exact recorded subexperiment IDs
 condition_keys = "strain_percent"; % Exact mechanical metadata field(s) to group; edit as needed
@@ -14,9 +15,11 @@ fit_frequency_selection = "all"; % "all" | "interval" | "explicit"
 fit_frequency_hz = []; % [low high] or explicitly reviewed target Hz
 full_band_reviewed = false; % Required when using "all"
 plot_target_frequency_hz = []; % Optional Pulse display requests only
+thickness_policy = "oce_median_per_case"; % Default for batch; "oce_directional_per_acquisition" retains per-row thickness
 
 % Shared material and separately reviewed current full geometry (SI).
-% Under the default OCE policy the geometry scalar is replaced per observation.
+% The batch median policy derives one scalar thickness from selected OCE acquisitions;
+% the per-acquisition option instead uses each recorded directional thickness.
 material = struct('density_kgpm3',NaN,'poisson_ratio',NaN);
 geometry = struct('thickness_m',NaN);
 density_source = "";
@@ -44,7 +47,7 @@ assert(~ismissing(workflow_file) && ...
     string(active_name)+string(active_ext)=="run_experiment_inversion_batch.m", ...
     'lamb:workflow:EditorFile', ...
     'Open this exact workflow in MATLAB Editor and use Run Section.');
-repo_root = fileparts(fileparts(fileparts(char(workflow_file))));
+repo_root = fileparts(fileparts(char(workflow_file)));
 addpath(repo_root);
 startup;
 addpath(fullfile(repo_root,"workflows","inversion"),"-end");
@@ -177,7 +180,7 @@ for sub = chosen(:)'
                 if mode=="pulse",study.excitationMode="Pulse";end
                 for k = 1:numel(families)
                     current = study;
-                    current.thicknessPolicy="oce_directional_per_acquisition";
+                    current.thicknessPolicy=thickness_policy;
                     if families(k)=="RayleighLamb"
                         current.fitConfig=rl_fit;
                         current.review=rl_review;
@@ -206,6 +209,9 @@ for k = 1:numel(families)
     plan = struct('experimentRoot',string(experiment_root), ...
         'oceRepositoryRoot',string(oce_repository_root), ...
         'cases',case_lists{k},'execute',false);
+    if strlength(strtrim(string(inversions_root)))>0
+        plan.inversionsRoot=string(inversions_root);
+    end
     preview = runOceInversionBatch(plan,families(k));
     fprintf('\n%s: %d planned inversions\n',families(k),height(preview.report));
     disp(preview.report);
