@@ -27,7 +27,10 @@ for j = 1:numel(keys)
     end
     label=key+"_"+literal;
     if key=="strain_percent"
-        label="Strain_"+literal+"pct";
+        % Compact display only; hash the unchanged full-precision literal.
+        displayValue=literal;
+        if kind=="number",displayValue=string(sprintf('%.3g',value));end
+        label="Strain_"+displayValue+"pct";
     end
     readable = string(matlab.lang.makeValidName( ...
         label,'ReplacementStyle','underscore'));

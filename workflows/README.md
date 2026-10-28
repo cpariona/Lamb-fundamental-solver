@@ -169,8 +169,12 @@ acceptance of invalid ridge bins or experimental A0 purity. Fields named
 `*_model_assumptions_justification` document experimental hypotheses,
 not a substitute for native support/acceptance diagnostics. The stable case
 folder ID includes a source-condition fingerprint to distinguish different
-literal strings and exponent signs; recorded typed condition values remain
-unchanged in the request.
+literal strings, exponent signs and full-precision numeric values. Numeric
+`strain_percent` is displayed with three significant digits (for example,
+`Strain_3_44pct_<8-hex fingerprint>`); the fingerprint continues to use the
+exact recorded double. This display rounding never changes condition selection
+or the scientific input. Existing output directories are not renamed or
+overwritten; differently named results are new output cases.
 
 Section 2 locates `Results/<subexperiment>/summary.mat` files and uses
 `oce.results.recoverSummaryObservations` to validate and discover existing
@@ -183,7 +187,7 @@ A missing selected repetition or signed direction is an error.
 
 Section 3 constructs independent, reviewable `plan.cases` arrays for
 RayleighLamb and Plate. The generated condition ID is a stable path label derived from
-recorded mechanical keys and literal values (for example,
+recorded mechanical keys and exact values (for example,
 `Strain_0pct_<8-hex fingerprint>`); it does not depend on acquisition or Pulse-period
 ordering. The eight-digit fragment is a condition fingerprint, not a Git commit. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
 `full_band_reviewed=true`; the selection is never inferred or
