@@ -106,6 +106,25 @@ overrides and parent-directory traversal are rejected. Generated outputs are
 never overwritten. Updating `study.subexperimentId` recomputes default paths
 instead of keeping destinations from the preceding study.
 
+The layout above is unchanged for **manual single** inversions. The batch
+runner instead uses an external `OCE_Inversions` directory by default,
+next to the selected experiment directory:
+
+```text
+<experiment-parent>/OCE_Inversions/<experiment>/<subexperiment>/
+    RayleighLamb/<case>/inversion.{mat,fig,tif}
+    Plate/<case>/inversion.{mat,fig,tif}
+```
+
+The batch never relocates or edits OCE `Results` inputs. Set
+`inversions_root` (human Editor workflow) or `plan.inversionsRoot`
+(programmatic API) to an **absolute** `OCE_Inversions` destination if desired.
+The default is `fullfile(fileparts(experimentRoot),"OCE_Inversions")`.
+Batch `outputRelativeFolder` overrides are interpreted relative to that
+external root; manual single overrides remain relative to `experimentRoot`.
+All output tags, no-overwrite checks, optional FIG/TIF and failure records
+still apply. No existing inversion outputs are migrated.
+
 ## Human experiment-wide inversion batch
 
 Open [run_experiment_inversion_batch.m](inversion/run_experiment_inversion_batch.m)
@@ -157,8 +176,8 @@ optimized. The researcher must review each case, physics, and output paths
 before enabling `run_batches=true` in section 4.
 
 The script never implements fitting, OCE I/O schemas, mask selection,
-renderers or a second batch engine. Outputs follow the existing experiment
-path policy and cannot overwrite previous inversions. Discovery reads
+renderers or a second batch engine. Outputs use the separate batch
+inversion root and cannot overwrite previous inversions. Discovery reads
 actual OCE sources, whereas the underlying `plan.execute=false` preview
 checks only structural fields and output paths. The Editor Run Section
 path is required for this human workflow.
@@ -192,6 +211,7 @@ interactive section 1 (no absolute paths inside case definitions):
 plan = struct();
 plan.experimentRoot = experimentRoot;       % Local experiment root supplied by caller
 plan.oceRepositoryRoot = oceRepositoryRoot; % Local OCE checkout supplied by caller
+% plan.inversionsRoot = "D:/OCE_Inversions"; % Optional absolute external root
 plan.cases = [case1, case2];               % Explicit complete reviewed study structs
 plan.execute = false;                     % Read-only plan; no MATLAB/OCE input reads
 preview = runOceInversionBatch(plan,"RayleighLamb");
@@ -222,6 +242,13 @@ protected even when the MAT is reusable: select `plan.exportFigure=false` to
 reuse without exporting, or use a new reviewed output tag for new figures.
 Historic MAT selection fields are normalized only in the returned in-memory
 record; their on-disk bytes and original field names are preserved.
+An archived batch MAT retains source-file hashes relative to
+`experimentRoot`, while `studyRecord.selection.outputBase="inversionsRoot"`
+and `outputRelativeFolder` resolve the destination relative to the
+configured external root. `inversion_failure.mat` uses the same output
+location and marks its relative native reference with `nativeResultBase`.
+No machine-specific output root is written to the MAT.
+
 The default full MATLAB figure export
 is hidden during batch execution; it saves FIG and TIF and closes the GUI.
  `plan.continueOnError=true` optionally collects failures rather than stopping
