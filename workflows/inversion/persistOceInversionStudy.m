@@ -73,12 +73,18 @@ else
 end
 folder=fileparts(study.resultFile);
 if ~isfolder(folder),mkdir(folder);end
+% Whole-variable readers need no HDF5 hierarchy. Compress the unchanged
+% payload as MAT v7; retain v7.3 for variables at its 2-GiB size boundary.
+variables=whos('studyRecord','nativeResult','assembly','fitConfig','physical', ...
+    'review','observationReview','frequencySelectionMapping','graphicSamplingMapping');
+matVersion='-v7';
+if any([variables.bytes]>=2^31),matVersion='-v7.3';end
 if family=="RayleighLamb"
     save(study.resultFile,'studyRecord','nativeResult','assembly','fitConfig','review', ...
-        'observationReview','frequencySelectionMapping','graphicSamplingMapping','-v7.3');
+        'observationReview','frequencySelectionMapping','graphicSamplingMapping',matVersion);
 else
     save(study.resultFile,'studyRecord','nativeResult','assembly','physical','review', ...
-        'observationReview','frequencySelectionMapping','graphicSamplingMapping','-v7.3');
+        'observationReview','frequencySelectionMapping','graphicSamplingMapping',matVersion);
 end
 end
 
