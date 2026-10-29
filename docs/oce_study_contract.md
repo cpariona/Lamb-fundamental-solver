@@ -197,6 +197,15 @@ When `saveResult=true`, the existing result MAT additionally contains
   again before persistence; changed inputs block saving.
    Preparation captures file fingerprints only; the final provenance capture
    also records code state. The hash checks and persisted fields are unchanged.
+  Batch execution shares one caller-scoped recovery snapshot for consecutive
+  cases using the same experiment, summary and OCE recovery function. All
+  indexed source bytes are checked by SHA-256 before reuse, including sources
+  outside the fitting selection, and before/after the initial shared recovery.
+  Changed sources reject reuse. Switching summaries replaces the single entry;
+  interleaved summaries are recovered again. The snapshot contains original OCE
+  products, never case selections, masks, reviewed geometry or native results.
+  Each case derives these independently. The existing final persistence check
+  remains mandatory. Single studies need not request or retain shared recovery.
 - Pending efficiency review: hashing follows the complete summary recovery index,
   not only the selected condition. A future reduction must preserve recovery and
   provenance guarantees; it is not part of the current implementation.

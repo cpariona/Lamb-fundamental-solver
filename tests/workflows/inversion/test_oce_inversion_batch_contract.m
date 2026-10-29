@@ -626,6 +626,173 @@ verifyEqual(testCase,saved.failureRecord.nativeResultRelativeFile,"");
 verifyEqual(testCase,saved.failureRecord.errorId,"lamb:study:InputsChanged");
 end
 
+function testSharedRecoveryPreservesIndependentSelections(testCase)
+for mode=["QH","Pulse"]
+    checkSharedSelections(testCase,mode);
+end
+end
+
+function checkSharedSelections(testCase,mode)
+    [root,oceRoot,cases,cleanup]=sharedRecoveryFixture(mode); %#ok<ASGLU>
+    for saveResult=[false true]
+        recovery=[];
+        for k=1:numel(cases)
+            study=resolveOceInversionPaths(cases(k),"Plate");
+            study.saveResult=saveResult;
+            single=prepareOceInversionObservations(study);
+            [shared,recovery]=prepareOceInversionObservations(study,recovery);
+            verifyEqual(testCase,shared,single);
+            [exp,physics]=reviewOceInversionPhysics(study,shared.assembly, ...
+                shared.observationReview,"Plate");
+            verifyEqual(testCase,exp.validMask,shared.assembly.experimental.validMask);
+            if k==1,firstThickness=physics.thickness_m;end
+        end
+        verifyNotEqual(testCase,physics.thickness_m,firstThickness);
+        verifyEqual(testCase,numel(recovery.observations),2);
+        % A different summary replaces the sole entry; returning loads again.
+        other=study;other.summaryFile=fullfile(root,'second-summary.mat');
+        copyfile(study.summaryFile,other.summaryFile);
+        [~,replacement]=prepareOceInversionObservations(other,recovery);
+        verifyEqual(testCase,replacement.summaryFile,string(other.summaryFile));
+        [~,replacement]=prepareOceInversionObservations(study,replacement);
+        verifyEqual(testCase,replacement.summaryFile,string(study.summaryFile));
+    end
+end
+
+function testSharedRecoveryRejectsChangedBytesAndRecoveryRaces(testCase)
+[root,oceRoot,cases,cleanup]=sharedRecoveryFixture("Pulse"); %#ok<ASGLU>
+study=resolveOceInversionPaths(cases(1),"Plate");
+[~,recovery]=prepareOceInversionObservations(study,[]);
+% Cover summary, an acquisition outside this case, and canonical metadata.
+for file=recovery.inputHashes.path'
+    toggleLastByte(file);
+    verifyError(testCase,@()prepareOceInversionObservations(study,recovery), ...
+        'lamb:study:InputsChanged');
+    toggleLastByte(file);
+end
+before=fileread(fullfile(root,'recovery-calls.txt'));
+verifyEqual(testCase,count(string(before),"recover"),1);
+% A source modified by the producer while recovering cannot seed a snapshot.
+writeFixtureFunction(fullfile(root,'change-during-recovery.flag'),"change");
+verifyError(testCase,@()prepareOceInversionObservations(study,[]), ...
+    'lamb:study:InputsChanged');
+end
+
+function testBatchSharesRecoveryAcrossFamiliesAndStrictReuse(testCase)
+[root,oceRoot,cases,cleanup]=sharedRecoveryFixture("Pulse"); %#ok<ASGLU>
+plan=struct('experimentRoot',string(root),'oceRepositoryRoot',string(oceRoot), ...
+    'cases',cases,'execute',true,'exportFigure',false,'saveResult',true, ...
+    'continueOnError',false,'inversionsRoot',fullfile(root,'Outputs'));
+[plate,recovery]=runOceInversionBatch(plan,"Plate");
+[rl,recovery]=runOceInversionBatch(plan,"RayleighLamb",recovery);
+verifyTrue(testCase,all(plate.report.status=="completed"));
+verifyTrue(testCase,all(rl.report.status=="completed"));
+verifyEqual(testCase,count(string(fileread(fullfile(root,'recovery-calls.txt'))),"recover"),1);
+plan.reuseOnly=true;
+for family=["Plate","RayleighLamb"]
+    first=plate;if family=="RayleighLamb",first=rl;end
+    original=cell(numel(cases),1);
+    for k=1:numel(cases)
+        fid=fopen(first.report.resultFile(k),'rb');
+        original{k}=fread(fid,inf,'*uint8');fclose(fid);
+    end
+    [again,recovery]=runOceInversionBatch(plan,family,recovery);
+    verifyTrue(testCase,all(again.report.status=="completed"));
+    for k=1:numel(cases)
+        verifyTrue(testCase,again.results{k}.reusedResult);
+        verifyEqual(testCase,again.results{k}.nativeResult,first.results{k}.nativeResult);
+        fid=fopen(first.report.resultFile(k),'rb');
+        bytes=fread(fid,inf,'*uint8');fclose(fid);
+        verifyEqual(testCase,bytes,original{k});
+    end
+end
+verifyEqual(testCase,count(string(fileread(fullfile(root,'recovery-calls.txt'))),"recover"),1);
+verifyFalse(testCase,isfield(plate,'recovery'));
+end
+
+function toggleLastByte(file)
+fid=fopen(file,'r+');cleanup=onCleanup(@()fclose(fid)); %#ok<NASGU>
+fseek(fid,-1,'eof');value=fread(fid,1,'*uint8');
+fseek(fid,-1,'eof');fwrite(fid,bitxor(value,uint8(1)),'uint8');
+end
+
+function [root,oceRoot,cases,cleanup]=sharedRecoveryFixture(mode)
+% Narrow producer double for recovery counts/races; live OCE compatibility
+% is verified separately by verifyOceCrossRepositoryContract.
+root=tempname;mkdir(root);oldPath=path;
+cleanup=onCleanup(@()cleanupPresentationFixture(oldPath,root));
+oceRoot=fullfile(root,'oce');
+folder=fullfile(oceRoot,'src','+oce','+results');mkdir(folder);
+writeFixtureFunction(fullfile(folder,'recoverSummaryObservations.m'),[ ...
+    "function observations=recoverSummaryObservations(root,summary)", ...
+    "fid=fopen(fullfile(root,'recovery-calls.txt'),'a');fprintf(fid,'recover\n');fclose(fid);", ...
+    "saved=load(fullfile(root,'fixture-observations.mat'));observations=saved.observations;", ...
+    "if isfile(fullfile(root,'change-during-recovery.flag'))", ...
+    "fid=fopen(observations(2).result_file,'a');fprintf(fid,'changed');fclose(fid);", ...
+    "end","end"]);
+folder=fullfile(oceRoot,'src','+oce','+io');mkdir(folder);
+writeFixtureFunction(fullfile(folder,'loadAcquisitionTable.m'),[ ...
+    "function [T,file]=loadAcquisitionTable(root,sub)", ...
+    "file=fullfile(root,'Params',sub,'AcquisitionParams_'+sub+'.mat');", ...
+    "saved=load(file,'acquisition_table');T=saved.acquisition_table;","end"]);
+sub="Stretch_1p00000";
+params=fullfile(root,'Params',sub);mkdir(params);
+modeText="pulse";if mode=="QH",modeText="quasi_harmonic";end
+acquisition_table=table(repmat("synthetic",2,1),repmat(sub,2,1),["r1";"r2"], ...
+    repmat("001",2,1),repmat("1",2,1),repmat(modeText,2,1), ...
+    repmat("320.01",2,1),[1000;1000],[0;10], ...
+    'VariableNames',{'experiment_id','sub_experiment','run_id','sample_id', ...
+    'rep_id','excitation_type','period_us','frequency_Hz','strain_percent'});
+save(fullfile(params,'AcquisitionParams_'+sub+'.mat'),'acquisition_table');
+observations=repmat(struct('summary_source_row',[],'result_file',"", ...
+    'acquisition_metadata',table(),'scientific_result',struct(),'provenance',""),2,1);
+for k=1:2
+    relative=fullfile("Results",sub,"r"+k,"PhaseSpeed.mat");
+    file=fullfile(root,relative);mkdir(fileparts(file));writeFixtureFunction(file,"abc");
+    direction=struct('ridge',struct('valid_mask',[true true false true], ...
+        'interpolated_mask',[false false true false], ...
+        'extrapolated_mask',false(1,4)), ...
+        'phase_speed_curve',struct('raw_phase_speed_m_per_s',[3 4 5 6]+k, ...
+        'smoothed_phase_speed_m_per_s',[3 4 5 6]+k), ...
+        'target_selection',struct('selected_bin_index',2));
+    result=struct('schema',struct('name',"oce_phase_speed_result",'version',4), ...
+        'processing_run_id',"synthetic_run", ...
+        'acquisition',struct('experiment_id',"synthetic",'subexperiment_id',sub,'run_id',"r"+k), ...
+        'dispersion',struct('directions',struct('scan_axis_index',{1,1}, ...
+        'direction',{"left","right"}),'scan_axis_angles_deg',0, ...
+        'estimators',struct('kf_ridge',struct('frequency_axis_hz',[600 1000 1500 2000], ...
+        'directions',repmat(direction,1,2))), ...
+        'target_frequency',struct('source',"resolved_filter_center",'requested_hz',1000), ...
+        'filter_effective_passband_hz',[500 2500]), ...
+        'borders',struct('directional_mean_thickness_mm',[.4 .6]+k*.1), ...
+        'angular',struct('source_direction_indices',[1 2],'full_circle_angles_deg',[0 180]));
+    observations(k)=struct('summary_source_row',k,'result_file',string(file), ...
+        'acquisition_metadata',acquisition_table(k,:),'scientific_result',result, ...
+        'provenance',"matching_processing_run_id_only"); %#ok<AGROW>
+    references(k,1)=relative; %#ok<AGROW>
+end
+save(fullfile(root,'fixture-observations.mat'),'observations');
+experiment=struct('source',struct('index',table(references,'VariableNames',{'result_file'})));
+summary=fullfile(root,'Results',sub,'summary.mat');save(summary,'experiment');
+for k=1:2
+    c=baseCase(root,sub);c.experimentId="synthetic";c.sampleId="001";
+    c.excitationMode=mode;c.repetitions="1";c.condition=struct('strain_percent',(k-1)*10);
+    c.conditionId="state"+k;c.direction="left";if k==2,c.direction="right";end
+    c.estimator="kf_ridge";c.curve="raw";c.saveResult=false;c.showFigure=false;
+    c.exportFigure=false;c.reuseOnly=false;c.observationMask=[];
+    c.thicknessPolicy="oce_median_per_case";
+    c.physical=struct('density_kgpm3',1050,'thickness_m',NaN);c.fitOptions=struct();
+    c.fitConfig=struct('branchName',"A0",'freeParams',"mu_Pa", ...
+        'fixedParams',struct('density_kgpm3',1050,'thickness_m',.0005,'poisson_ratio',.4999), ...
+        'initialGuess',struct('mu_Pa',10000),'bounds',struct('mu_Pa',[1000 100000]));
+    c.review=struct('thicknessSource',"",'thicknessJustification',"", ...
+        'densitySource',"Synthetic density",'fitParameterJustification',"Synthetic probe", ...
+        'modelAssumptionsJustification',"Synthetic A0 probe");
+    cases(k)=c; %#ok<AGROW>
+end
+addpath(fullfile(oceRoot,'src'),'-begin');
+end
+
 function [root,oceRoot,cleanup]=presentationFailureFixture()
 % Replace external/scientific collaborators only; exercise actual workflow
 % execution, provenance persistence, error reporting and continuation.
@@ -635,7 +802,8 @@ oceFolder=fullfile(oceRoot,'src','+oce','+results');mkdir(oceFolder);
 writeFixtureFunction(fullfile(oceFolder,'recoverSummaryObservations.m'), ...
     ["function value=recoverSummaryObservations(varargin)","value=[];","end"]);
 writeFixtureFunction(fullfile(mock,'prepareOceInversionObservations.m'),[ ...
-    "function inputs=prepareOceInversionObservations(study)", ...
+    "function [inputs,recovery]=prepareOceInversionObservations(study,recovery)", ...
+    "if nargin<2,recovery=[];end", ...
     "hashes=oceInversionProvenance(study.summaryFile,fileparts(which('startup')));", ...
     "data=struct('frequency_Hz',[1000;2000],'Cp_mps',[3;4],'validMask',true(2,1));", ...
     "inputs=struct('inputHashes',hashes.inputFiles,'assembly',struct('experimental',data), ...", ...

@@ -1,8 +1,12 @@
-function inputs = prepareOceInversionObservations(study)
+function [inputs, recovery] = prepareOceInversionObservations(study, recovery)
 %PREPAREOCEINVERSIONOBSERVATIONS Select original observations for human inverse workflows.
 % Workflow coordination, not a translator or scientific schema. OCE owns
 % recovery; the existing integration APIs own request preparation. Plate and RL
 % share exact acquisition selection and frequency mappings, never model policy.
+% Optional recovery is caller-scoped and holds only one summary's original
+% OCE products. Every reuse verifies all source bytes; no selections are cached.
+shareRecovery=nargin>1 || nargout>1;
+if nargin<2,recovery=[];end
 %% 2. Recover individual products through OCE, then select literal acquisition identities.
 projectRoot=fileparts(fileparts(fileparts(mfilename('fullpath'))));
 if ~isfield(study,'estimator'),study.estimator="kf_ridge";end
@@ -16,28 +20,11 @@ end
 assert(isscalar(string(study.experimentId))&&strlength(study.experimentId)>0);
 assert(isscalar(string(study.sampleId))&&strlength(study.sampleId)>0);
 assert(~isempty(fieldnames(study.condition)),'Supply the mechanical condition explicitly.');
-inputHashes=table();
 if study.saveResult
     assert(strlength(study.resultFile)>0 && (study.reuseOnly || ~isfile(study.resultFile)), ...
         'lamb:study:OutputExists','Existing results are read-only and may be reused only by exact request.');
-    before=oceInversionProvenance(string(study.summaryFile),projectRoot,false);
-    summaryHash=before.inputFiles;
 end
-savedSummary=load(study.summaryFile,'experiment');
-summary=savedSummary.experiment;
-if study.saveResult
-    inputFiles=[string(study.summaryFile);fullfile(study.experimentRoot,string(summary.source.index.result_file))];
-    referenceParts=split(replace(string(summary.source.index.result_file),'\','/'),'/',2);
-    subs=unique(referenceParts(:,2),'stable');
-    for sub=subs(:)'
-        [~,metadataFile]=oce.io.loadAcquisitionTable(study.experimentRoot,sub);
-        inputFiles(end+1,1)=string(metadataFile); %#ok<AGROW>
-    end
-    before=oceInversionProvenance(inputFiles,projectRoot,false);
-    inputHashes=before.inputFiles;
-    assert(isequal(inputHashes(1,:),summaryHash),'lamb:study:InputsChanged','Summary changed while being read.');
-end
-recovered=oce.results.recoverSummaryObservations(study.experimentRoot,summary);
+[recovered,summary,inputHashes,recovery]=recoverSources(study,recovery,shareRecovery,projectRoot);
 metadata=vertcat(recovered.acquisition_metadata);
 selected=metadata.experiment_id==study.experimentId & metadata.sub_experiment==study.subexperimentId & ...
     metadata.sample_id==study.sampleId & ismember(metadata.rep_id,string(study.repetitions));
@@ -250,4 +237,51 @@ inputs=struct('assembly',assembly,'observationReview',observationReview, ...
     'frequencySelectionMapping',frequencySelectionMapping, ...
     'graphicSamplingMapping',graphicSamplingMapping,'sourceMetadata',sourceMetadata, ...
     'sourceResultFiles',sourceFiles,'inputHashes',inputHashes);
+end
+
+function [recovered,summary,inputHashes,recovery]=recoverSources(study,recovery,shareRecovery,projectRoot)
+% OCE remains the sole recovery/validation owner. A shared snapshot is bound
+% to all indexed files, even those outside the eventual fitting selection.
+inputHashes=table();
+producer=string(which('oce.results.recoverSummaryObservations'));
+if shareRecovery && ~isempty(recovery) && ...
+        recovery.experimentRoot==string(study.experimentRoot) && ...
+        recovery.summaryFile==string(study.summaryFile) && recovery.producer==producer
+    current=oceInversionProvenance(recovery.inputHashes.path,projectRoot,false);
+    assert(isequal(current.inputFiles,recovery.inputHashes), ...
+        'lamb:study:InputsChanged','A source changed since shared OCE recovery.');
+    recovered=recovery.observations;summary=recovery.summary;
+    if study.saveResult,inputHashes=current.inputFiles;end
+    return
+end
+capture=study.saveResult || shareRecovery;
+if capture
+    before=oceInversionProvenance(string(study.summaryFile),projectRoot,false);
+    summaryHash=before.inputFiles;
+end
+savedSummary=load(study.summaryFile,'experiment');
+summary=savedSummary.experiment;
+if capture
+    inputFiles=[string(study.summaryFile);fullfile(study.experimentRoot,string(summary.source.index.result_file))];
+    referenceParts=split(replace(string(summary.source.index.result_file),'\','/'),'/',2);
+    subs=unique(referenceParts(:,2),'stable');
+    for sub=subs(:)'
+        [~,metadataFile]=oce.io.loadAcquisitionTable(study.experimentRoot,sub);
+        inputFiles(end+1,1)=string(metadataFile); %#ok<AGROW>
+    end
+    before=oceInversionProvenance(inputFiles,projectRoot,false);
+    assert(isequal(before.inputFiles(1,:),summaryHash), ...
+        'lamb:study:InputsChanged','Summary changed while being read.');
+    if study.saveResult,inputHashes=before.inputFiles;end
+end
+recovered=oce.results.recoverSummaryObservations(study.experimentRoot,summary);
+if shareRecovery
+    after=oceInversionProvenance(inputFiles,projectRoot,false);
+    assert(isequal(after.inputFiles,before.inputFiles), ...
+        'lamb:study:InputsChanged','A source changed during OCE recovery.');
+    % Replace the previous entry rather than accumulating summaries or cases.
+    recovery=struct('experimentRoot',string(study.experimentRoot), ...
+        'summaryFile',string(study.summaryFile),'producer',producer, ...
+        'inputHashes',before.inputFiles,'summary',summary,'observations',recovered);
+end
 end

@@ -1,9 +1,12 @@
-function [result, executionError] = executeOceInversionStudy(study, family, oceRepositoryRoot)
+function [result, executionError, recovery] = executeOceInversionStudy(study, family, oceRepositoryRoot, recovery)
 %EXECUTEOCEINVERSIONSTUDY Noninteractive, review-first RL or Plate study.
 % Caller supplies all original condition/scan/estimator/band/model decisions.
 % No frequency-band optimization, source-data edits or automatic refitting.
 % An optional second output retains a completed fit if persistence or
 % presentation fails. One-output callers retain the throwing behavior.
+% A fourth argument or third output enables caller-scoped shared OCE recovery.
+shareRecovery=nargin>3 || nargout>2;
+if nargin<4,recovery=[];end
 executionError=[];
 projectRoot=fileparts(fileparts(fileparts(mfilename('fullpath'))));
 addpath(projectRoot);
@@ -26,7 +29,11 @@ if study.exportFigure
         ~isfile(fullfile(study.figureFolder,study.figureName+".tif")), ...
         'lamb:study:OutputExists','The figure destination already exists.');
 end
-inputs=prepareOceInversionObservations(study);
+if shareRecovery
+    [inputs,recovery]=prepareOceInversionObservations(study,recovery);
+else
+    inputs=prepareOceInversionObservations(study);
+end
 [experimental,physics,review]=reviewOceInversionPhysics( ...
     study,inputs.assembly,inputs.observationReview,family);
 inputs.assembly.experimental=experimental;
