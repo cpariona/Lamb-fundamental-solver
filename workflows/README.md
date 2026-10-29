@@ -212,6 +212,25 @@ where `family="RayleighLamb"` or `family="Plate"`. This avoids maintaining
 two model-only forwarding wrappers; each case is still reviewed and executed
 by its own native physical family.
 
+Executing a batch reuses one active summary's original OCE recovery across
+consecutive cases. SHA-256 checks cover the full indexed source set before each
+reuse; a changed summary, PhaseSpeed or AcquisitionParams file raises
+`lamb:study:InputsChanged`. Initial shared recovery also checks source bytes
+after OCE returns. Selections, masks and physical review are recalculated per
+case; the final persistence hash check is unchanged. A different summary or
+OCE checkout replaces the entry, bounding retained source products to one
+summary. Interleaving summaries causes new recovery rather than retaining all
+of them. Discovery in Editor section 2 remains a separate read-only operation.
+
+The optional handoff `[batch,recovery]=runOceInversionBatch(plan,family,recovery)`
+can share that entry between independently reviewed RL and Plate plans. Start
+with `recovery=[]`, pass only an unchanged returned value, and release it after
+execution. The Editor batch does this automatically. The handoff is transient
+and is never included in `batch`, `studyRecord` or `inversion.mat`. Advanced
+callers can use the corresponding optional input/output of
+`prepareOceInversionObservations` or `executeOceInversionStudy`; ordinary single
+study calls retain independent recovery and their existing output contracts.
+
 Manual Editor section 4/5 produces a derived `review` variable. It must not
 be copied back into `study.review`: that struct contains only editable review
 sources and justifications. Re-running the physical review section is safe and

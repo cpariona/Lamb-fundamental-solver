@@ -231,6 +231,7 @@ batch_outputs = cell(numel(families),1);
 if ~run_batches
     disp("Dry-run complete. Review the cases and set run_batches=true to execute.");
 else
+    recovery = []; % One active summary; source hashes are checked for every case.
     for k = 1:numel(families)
         plan = plans{k};
         plan.execute = true;
@@ -238,7 +239,8 @@ else
         plan.saveResult = save_results;
         plan.exportFigure = export_figures;
         plan.continueOnError = continue_on_error;
-        batch_outputs{k} = runOceInversionBatch(plan,families(k));
+        [batch_outputs{k},recovery] = runOceInversionBatch(plan,families(k),recovery);
         disp(batch_outputs{k}.report);
     end
+    recovery = []; % Release source products after this explicitly executed batch.
 end

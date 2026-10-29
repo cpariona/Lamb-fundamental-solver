@@ -1,4 +1,4 @@
-function batchResult = runOceInversionBatch(plan, family)
+function [batchResult, recovery] = runOceInversionBatch(plan, family, recovery)
 %RUNOCEINVERSIONBATCH Execute a list of independently reviewed OCE studies.
 % PLAN.experimentRoot: machine-local experiment anchor.
 % PLAN.oceRepositoryRoot: machine-local OCE code checkout.
@@ -10,6 +10,9 @@ function batchResult = runOceInversionBatch(plan, family)
 % PLAN.saveResult, PLAN.exportFigure: write flags, default true only on execute.
 % PLAN.continueOnError: false (default) stops rather than hiding failures.
 % The same executeOceInversionStudy owner runs one case for human/batch callers.
+% Optional recovery input/output shares one summary across batches/families.
+% It contains original OCE products only and is never stored in batch results.
+if nargin<3,recovery=[];end
 assert(isstruct(plan)&&isscalar(plan)&&isfield(plan,'cases')&& ...
     isstruct(plan.cases)&&~isempty(plan.cases), ...
     'lamb:batch:InvalidPlan','A nonempty reviewed struct array is required.');
@@ -123,8 +126,8 @@ failureFiles=strings(n,1);
 if execute
     for j=1:n
         try
-            [results{j},executionError]=executeOceInversionStudy( ...
-                cases{j},family,plan.oceRepositoryRoot);
+            [results{j},executionError,recovery]=executeOceInversionStudy( ...
+                cases{j},family,plan.oceRepositoryRoot,recovery);
             native=results{j}.nativeResult;
             selectedRows(j)=nnz(native.validMask);
             if family=="RayleighLamb"
