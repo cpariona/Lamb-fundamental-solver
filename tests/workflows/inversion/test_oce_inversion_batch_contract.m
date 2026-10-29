@@ -716,11 +716,53 @@ fseek(fid,-1,'eof');value=fread(fid,1,'*uint8');
 fseek(fid,-1,'eof');fwrite(fid,bitxor(value,uint8(1)),'uint8');
 end
 
+function testSharedRecoveryFixtureRestoresCallerPath(testCase)
+root=tempname;mkdir(root);oldPath=path;
+cleanup=onCleanup(@()cleanupPresentationFixture(oldPath,root)); %#ok<NASGU>
+folder=fullfile(root,'+oce','+io');mkdir(folder);
+writeFixtureFunction(fullfile(folder,'loadAcquisitionTable.m'), ...
+    ["function value=loadAcquisitionTable(varargin)","value=[];","end"]);
+addpath(root,'-begin');
+expectedPath=path;expectedFolder=pwd;
+expectedLoader=which('oce.io.loadAcquisitionTable');
+expectedRecovery=which('oce.results.recoverSummaryObservations');
+verifyEqual(testCase,expectedLoader,fullfile(folder,'loadAcquisitionTable.m'));
+checkSharedRecoveryFixturePath(testCase,false);
+verifyEqual(testCase,path,expectedPath);
+verifyEqual(testCase,pwd,expectedFolder);
+verifyEqual(testCase,which('oce.io.loadAcquisitionTable'),expectedLoader);
+verifyEqual(testCase,which('oce.results.recoverSummaryObservations'),expectedRecovery);
+verifyError(testCase,@()checkSharedRecoveryFixturePath(testCase,true), ...
+    'lamb:test:FixturePathFailure');
+verifyEqual(testCase,path,expectedPath);
+verifyEqual(testCase,pwd,expectedFolder);
+verifyEqual(testCase,which('oce.io.loadAcquisitionTable'),expectedLoader);
+verifyEqual(testCase,which('oce.results.recoverSummaryObservations'),expectedRecovery);
+end
+
+function checkSharedRecoveryFixturePath(testCase,fail)
+[root,oceRoot,cases,cleanup]=sharedRecoveryFixture("Pulse"); %#ok<ASGLU>
+% Execution re-adds this root at the end; competing producers must be absent.
+addpath(fullfile(oceRoot,'src'),'-end');
+verifyEqual(testCase,which('oce.io.loadAcquisitionTable'), ...
+    fullfile(oceRoot,'src','+oce','+io','loadAcquisitionTable.m'));
+verifyEqual(testCase,which('oce.results.recoverSummaryObservations'), ...
+    fullfile(oceRoot,'src','+oce','+results','recoverSummaryObservations.m'));
+if fail,error('lamb:test:FixturePathFailure','Injected fixture scope failure.');end
+end
+
 function [root,oceRoot,cases,cleanup]=sharedRecoveryFixture(mode)
 % Narrow producer double for recovery counts/races; live OCE compatibility
 % is verified separately by verifyOceCrossRepositoryContract.
 root=tempname;mkdir(root);oldPath=path;
 cleanup=onCleanup(@()cleanupPresentationFixture(oldPath,root));
+% Keep the producer double isolated even when execution moves its src to -end.
+% The existing cleanup restores every original entry and its ordering.
+for entry=string(strsplit(oldPath,pathsep))
+    if entry~="" && isfolder(fullfile(entry,'+oce'))
+        rmpath(char(entry));
+    end
+end
 oceRoot=fullfile(root,'oce');
 folder=fullfile(oceRoot,'src','+oce','+results');mkdir(folder);
 writeFixtureFunction(fullfile(folder,'recoverSummaryObservations.m'),[ ...
