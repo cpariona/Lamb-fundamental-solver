@@ -324,6 +324,54 @@ verifyTrue(testCase,isfield(archived.studyRecord.selection,'mode'));
 verifyFalse(testCase,isfield(archived.studyRecord.selection,'excitationMode'));
 end
 
+function testCompressedPersistenceAndHistoricalReuse(testCase)
+for mode=["QH","Pulse"]
+    checkCompressedPersistence(testCase,mode);
+end
+end
+
+function checkCompressedPersistence(testCase,mode)
+[root,oceRoot,cases,cleanup]=sharedRecoveryFixture(mode); %#ok<ASGLU>
+projectRoot=fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+for family=["Plate","RayleighLamb"]
+    c=cases(1);c.saveResult=true;
+    c.existingNativeResult=[];c.existingAssembly=[];
+    first=executeOceInversionStudy(c,family,oceRoot);
+    file=first.study.resultFile;payload=load(file);
+    verifyEqual(testCase,payload.nativeResult,first.nativeResult);
+    verifyEqual(testCase,payload.assembly,first.assembly);
+    verifyEqual(testCase,payload.observationReview,first.observationReview);
+    verifyEqual(testCase,payload.review,first.review);
+    verifyEqual(testCase,payload.studyRecord,first.studyRecord);
+    fid=fopen(file,'rb');bytes=fread(fid,inf,'*uint8');fclose(fid);
+    verifyTrue(testCase,startsWith(string(char(bytes(1:19)')),"MATLAB 5.0 MAT-file"));
+    % Use the same complete payload to exercise historical HDF5 persistence.
+    legacyFile=fullfile(root,family+"_historical.mat");
+    save(legacyFile,'-struct','payload','-v7.3');
+    verifyEqual(testCase,load(legacyFile),payload);
+    first.study.reuseOnly=true;
+    inputs=prepareOceInversionObservations(first.study);
+    for candidate=[string(file),string(legacyFile)]
+        fid=fopen(candidate,'rb');before=fread(fid,inf,'*uint8');fclose(fid);
+        study=first.study;study.resultFile=candidate;study.reuseOnly=true;
+        [native,reused]=fitOceInversionNative(study,first.assembly, ...
+            first.experimental,first.physics,first.review,inputs.sourceResultFiles,family);
+        verifyTrue(testCase,reused);
+        verifyEqual(testCase,native,first.nativeResult);
+        record=persistOceInversionStudy(study,inputs,native,first.physics, ...
+            first.review,reused,projectRoot,family);
+        verifyEqual(testCase,record,first.studyRecord);
+        fid=fopen(candidate,'rb');after=fread(fid,inf,'*uint8');fclose(fid);
+        verifyEqual(testCase,after,before);
+        changed=first.experimental;changed.Cp_mps(1)=changed.Cp_mps(1)+1;
+        verifyError(testCase,@()fitOceInversionNative(study,first.assembly, ...
+            changed,first.physics,first.review,inputs.sourceResultFiles,family), ...
+            'lamb:study:RequestMismatch');
+    end
+end
+end
+
+
 function testFailedBatchPersistsReviewedCaseWithoutMachinePaths(testCase)
 root=tempname;mkdir(root);cleanup=onCleanup(@()rmdir(root,'s'));
 c=baseCase(root,"Stretch_1p00000");

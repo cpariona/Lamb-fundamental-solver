@@ -213,6 +213,61 @@ When `saveResult=true`, the existing result MAT additionally contains
   `historicalProcessingContentVerified=false`: the hash evidence applies to the
   current study inputs, never retroactively to historical processing.
 
+### Lossless MAT storage and historical readers
+
+New `inversion.mat` files use compressed MAT v7 instead of the HDF5-based
+v7.3 layout. A variable whose reported workspace size reaches the 2-GiB v7
+boundary retains v7.3 storage. This is a storage-version choice, not a change
+to the logical container: variable names, types, dimensions and values remain
+unchanged. No schema decoder, migration or reconstruction step is required.
+`fitOceInversionNative`, `persistOceInversionStudy` and `renderOceInversionStudy`
+continue to use MATLAB `load`, which reads both versions. Maintained consumers
+do not require HDF5 paths or partial `matfile` access. Existing MAT files are
+never rewritten, including during strict reuse.
+
+The persistence audit retains all variables: `studyRecord`, `nativeResult`,
+`assembly`, `fitConfig` (RL) or `physical` (Plate), `review`, `observationReview`,
+`frequencySelectionMapping` and `graphicSamplingMapping`. In particular, full
+QH curves and masks in `assembly.lineage.prepared` remain present, including
+unused bins; Pulse retains its complete prepared curves and excluded rows.
+Compression reduces storage overhead without dropping scientific evidence or
+introducing a new dependency on `PhaseSpeed.mat`. Source SHA-256 verification
+and its historical-processing limitations remain unchanged. Native requests,
+diagnostics and figures can still be interpreted from the stored payload;
+fresh OCE recovery and current source authentication still require the original
+experiment inputs.
+
+Measurement against baseline `b778fa7462421675c193813473cc9e144d5050d6`
+used MATLAB R2024b with one computational thread and temporary output folders.
+All 288 archived QH inversions from PML01, PML02 and PML03 were read without
+modification, saved as temporary v7 copies and compared with `isequaln` across
+every variable. Total storage changed from 1,524,930,168 to 346,729,376 bytes
+(1.4202 to 0.3229 GiB; 77.26% less). This is a measured lossless-copy comparison,
+not a migration of existing results or a projection from a single case.
+
+For one Plate and one RL case per experiment, the baseline persistence owner
+and the new owner received identical inputs/configuration in the same session,
+with five repetitions and alternating execution order. Medians across the six
+case medians were: persistence 1.8050 to 1.4964 s, whole-MAT read 0.6655 to
+0.2054 s, and strict reuse 2.0113 to 1.2899 s. Persistence includes current source
+SHA-256 and Git provenance; reuse includes native request comparison and the
+existing persistence verification. Reads were warm-cache measurements. These
+are workload measurements, not universal timing thresholds.
+
+Isolated component saves identified `assembly` as the dominant storage cost:
+the representative PML01 Plate assembly occupied 5,028,056 bytes in v7.3 versus
+1,188,723 in v7; the native result occupied 35,016 versus 2,507 bytes, and
+`studyRecord` 74,656 versus 5,425 bytes. Component files include their own format
+overhead and are not additive. Loaded payload workspace sizes remained about
+2.62--2.70 MB for the six cases; peak process memory was not characterized.
+Both owners' complete loaded payloads, six figure diagnostic/graphics snapshots
+and six rendered PNG pixel arrays were equal, using identical presentation
+provenance labels/references for the figure comparison. A synthetic 2-GiB variable also
+round-tripped exactly through the v7.3 fallback. The maintained persistence
+regression covers QH/Pulse and RL/Plate with new v7 and historical v7.3 reuse,
+including byte-for-byte preservation of existing files and changed-observation
+rejection. Pulse coverage is synthetic; the 288 real archives are QH.
+
 The existing `nativeResult.experimental`, `nativeResult.options`, `physical`,
 `review`, `assembly`, `observationReview` and frequency-mapping tables retain the
 effective native request, fixed mask, physical justification, acquisition lineage,
