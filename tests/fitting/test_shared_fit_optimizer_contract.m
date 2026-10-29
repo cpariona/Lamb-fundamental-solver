@@ -3,7 +3,7 @@ function test_shared_fit_optimizer_contract()
 
 frequency_Hz = [1; 2; 3; 4];
 
-single = buildProblem(struct('a', 1), "a", 0, 4, ...
+[single, evaluationCount] = buildProblem(struct('a', 1), "a", 0, 4, ...
     2 .* frequency_Hz, frequency_Hz);
 singleResult = lamb.fitting.solveDispersionFitProblem(single);
 assert(singleResult.optimizer.name == "fminbnd");
@@ -11,6 +11,9 @@ assert(abs(singleResult.bestParams.a - 2) < 1e-5);
 assert(all(singleResult.xBest >= singleResult.lowerBounds) && ...
     all(singleResult.xBest <= singleResult.upperBounds));
 assert(isfield(singleResult, 'modelEvaluation'));
+assert(evaluationCount() == singleResult.optimizer.output.funcCount + 1 + 2*numel(single.freeParams), ...
+    'Post-fit reporting needs one final prediction and two perturbations per parameter, without a repeated base solve.');
+assert(isequal(singleResult.sensitivity.baseCp_mps, singleResult.Cp_fit_mps));
 
 multiple = buildProblem(struct('a', 1, 'b', 1), ["a"; "b"], ...
     [0; 0], [4; 6], 2 .* frequency_Hz + 3, frequency_Hz);
@@ -22,11 +25,12 @@ assert(all(multipleResult.xBest >= multipleResult.lowerBounds) && ...
     all(multipleResult.xBest <= multipleResult.upperBounds));
 assert(multipleResult.metrics.RMSE < 1e-3);
 assert(numel(multipleResult.identifiability.freeParams) == 2);
+assert(isequal(multipleResult.sensitivity.baseCp_mps, multipleResult.Cp_fit_mps));
 
 fprintf('Shared dispersion-fit optimizer contract passed.\n');
 end
 
-function problem = buildProblem(baseParams, freeParams, lowerBounds, upperBounds, CpTarget, frequency_Hz)
+function [problem, evaluationCount] = buildProblem(baseParams, freeParams, lowerBounds, upperBounds, CpTarget, frequency_Hz)
 experimental = lamb.fitting.validateExperimentalDispersionData(struct( ...
     'frequency_Hz', frequency_Hz, 'Cp_mps', CpTarget), 1);
 problem = struct();
@@ -44,9 +48,20 @@ problem.optimizerOptions = struct( ...
         'MaxFunEvals', 160, 'TolX', 1e-8), ...
     'fminsearch', optimset('Display', 'off', 'MaxIter', 250, ...
         'MaxFunEvals', 500, 'TolX', 1e-9, 'TolFun', 1e-12));
-problem.evaluateModel = @(params)evaluateLinear(params, frequency_Hz);
+count = 0;
+problem.evaluateModel = @evaluateCounted;
 problem.residualFunction = @(x)residualForVector(x, problem);
 problem.objectiveFunction = @(x)objectiveForVector(x, problem);
+evaluationCount = @readCount;
+
+    function [Cp_mps, evaluation] = evaluateCounted(params)
+        count = count + 1;
+        [Cp_mps, evaluation] = evaluateLinear(params, frequency_Hz);
+    end
+
+    function value = readCount()
+        value = count;
+    end
 end
 
 function [Cp_mps, evaluation] = evaluateLinear(params, frequency_Hz)

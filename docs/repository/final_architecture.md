@@ -127,6 +127,12 @@ experimental fixed mask -> family adapter -> canonical public model
 -> residual/objective -> optimizer -> metrics/sensitivity
 ```
 
+The shared nonlinear fit reporting reuses its final Cp prediction for the base
+coverage check in local sensitivity. The same complete-coverage validator and
+fixed objective mask apply; central-difference perturbations and identifiability
+are unchanged. Standalone sensitivity calls still evaluate the base prediction
+when it is not supplied. This is caller-scoped reuse, with no persistent cache.
+
 Acoustoelastic prestressed plate (current A0 support):
 
 ```text
