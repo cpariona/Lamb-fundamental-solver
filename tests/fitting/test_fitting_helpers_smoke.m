@@ -55,7 +55,27 @@ assert(identifiability.numParameters == 2, 'Unexpected identifiability parameter
 assert(identifiability.rank == 2, 'Sensitivity matrix should be full rank.');
 assert(identifiability.classification == "locally_identifiable", 'Expected locally identifiable synthetic case.');
 
+% Both standalone APIs and supplied predictions retain the same finite differences.
+evaluations = 0;
+options = struct('relativeStep', 2e-5, 'absoluteStep', 3e-8);
+[referenceS, referenceInfo] = lamb.fitting.estimateLocalSensitivity( ...
+    @countedModel, baseParams, ["a", "b"], normalized, options);
+assert(evaluations == 5, 'Standalone sensitivity requires a base and four perturbations.');
+evaluations = 0;
+baseCp = evaluateFcn(baseParams);
+[reusedS, reusedInfo] = lamb.fitting.estimateLocalSensitivity( ...
+    @countedModel, baseParams, ["a", "b"], normalized, options, baseCp);
+assert(evaluations == 4, 'A supplied base prediction must skip exactly one evaluation.');
+assert(isequaln(reusedS, referenceS) && isequaln(reusedInfo, referenceInfo));
+assert(isequaln(lamb.fitting.assessFitIdentifiability(reusedS, ["a", "b"]), ...
+    lamb.fitting.assessFitIdentifiability(referenceS, ["a", "b"])));
+
 fprintf('\nFitting helper smoke test passed.\n');
+
+    function cp = countedModel(params)
+        evaluations = evaluations + 1;
+        cp = evaluateFcn(params);
+    end
 end
 
 function assertNumericClose(actual, expected, tol, message)

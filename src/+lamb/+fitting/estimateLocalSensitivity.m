@@ -1,4 +1,4 @@
-function [S, sensitivityInfo] = estimateLocalSensitivity(evaluateFcn, baseParams, freeParams, experimental, options)
+function [S, sensitivityInfo] = estimateLocalSensitivity(evaluateFcn, baseParams, freeParams, experimental, options, baseCp_mps)
 %ESTIMATELOCALSENSITIVITY Estimate local Cp sensitivity to free parameters.
 %
 % evaluateFcn must accept a parameter structure and return Cp values on the
@@ -7,6 +7,10 @@ function [S, sensitivityInfo] = estimateLocalSensitivity(evaluateFcn, baseParams
 % difference perturbation loses required model coverage, that parameter's
 % sensitivity column is left unavailable rather than being computed on a
 % smaller observation set.
+% Optional baseCp_mps is an already computed prediction from evaluateFcn at
+% baseParams on the same observation grid. It receives the same coverage
+% validation; only the redundant unperturbed evaluation is skipped. Omitting
+% it preserves the standalone four/five-argument behavior.
 
 if nargin < 5 || isempty(options)
     options = struct();
@@ -31,8 +35,10 @@ if isempty(freeParams)
     error('freeParams must contain at least one parameter name.');
 end
 
-baseCp = evaluateFcn(baseParams);
-baseCp = baseCp(:);
+if nargin < 6
+    baseCp_mps = evaluateFcn(baseParams);
+end
+baseCp = baseCp_mps(:);
 [baseCoverage, experimental] = lamb.fitting.validateDispersionFitCoverage(baseCp, experimental);
 objectiveMask = baseCoverage.objectiveMask;
 

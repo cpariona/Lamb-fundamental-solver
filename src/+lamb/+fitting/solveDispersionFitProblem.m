@@ -15,7 +15,7 @@ bestParams = lamb.fitting.unpackParameterVector(xBest, problem.baseParams, probl
     CpFit_mps, problem.experimental, problem.fitOptions);
 metrics = lamb.fitting.computeDispersionFitMetrics(CpFit_mps, problem.experimental);
 [S, sensitivityInfo] = lamb.fitting.estimateLocalSensitivity( ...
-    problem.evaluateModel, bestParams, problem.freeParams, problem.experimental);
+    problem.evaluateModel, bestParams, problem.freeParams, problem.experimental, [], CpFit_mps);
 identifiability = lamb.fitting.assessFitIdentifiability(S, problem.freeParams);
 
 fitResult = struct();
