@@ -110,6 +110,8 @@ The ordinary Lamb `startup` intentionally excludes `workflows/`.
 | --- | --- |
 | `experimentRoot`, `summaryFile` | OCE root and persisted MAT containing `experiment`; OCE owns recovery. |
 | `experimentId`, `subexperimentId`, `sampleId`, `conditionId`, `condition` | Explicit identities and scalar mechanical condition entries: literal text for stored text, exact doubles for stored doubles. No folder-name inference or cross-type coercion. |
+
+OCE's maintained `loadExperimentalLog` imports workbook columns as text before saving `AcquisitionParams_*.mat`. Therefore a numeric XLSX `added_mass_g` may be persisted as text: configure `study.condition` with the **stored MATLAB type and exact value**, e.g. `struct('added_mass_g', "9.053886")` for a text column, not a guessed `double`. Historical MAT tables with numeric columns still require exact double selectors. Inspect `sourceMetadata` or the persisted `acquisition_table` when preparing a study; do not convert historical MAT files to reconcile selector types.
 | `excitationMode`, `period_us`, `repetitions`, `scanAxisIndex`, `direction`, `curve` | QH/Pulse, literal Pulse period, repetition labels, signed direction and an existing raw/smoothed curve. |
 | `fitFrequencySelection`, `fitFrequency_Hz`, `fullBandReviewed` | `all` requires an explicit `fullBandReviewed=true` acknowledgement in both manual and batch workflows; `interval=[low high]` and `explicit` select reviewed observed/nominal Hz. This acknowledgement does not validate any source-quality row. No nearest-valid repair or interpolation. |
 | `physical`, `review` | Native Plate density and explicit A0/thickness/density/support review; default direction-matched OCE current full thickness per original row, optional reviewed scalar alternative. |
