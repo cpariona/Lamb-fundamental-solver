@@ -1,7 +1,9 @@
 %% 1. USER CONFIGURATION
 % Run each MATLAB Editor section in order. Re-run downstream sections when
 % changing an upstream selection. Original OCE observations are never edited.
-% Supply literal IDs and exact numeric condition values from the acquisition log.
+% Match each condition value's MATLAB type to the persisted OCE acquisition_table.
+% The maintained OCE XLSX loader imports columns as text; numeric Excel cells
+% may therefore require literal string selectors (legacy double tables differ).
 oce_repository_root = "";  % Full path to OCE_Workflow (not its src folder)
 study = struct();
 study.experimentRoot = "";  % Experiment root with original Data/ and Results/
@@ -13,7 +15,7 @@ study.excitationMode = "Pulse";       % "Pulse" | "QH"
 study.period_us = "";       % Literal saved Pulse period; "" for QH
 study.repetitions = ["1","2","3"];
 study.conditionId = "";     % Reviewed condition label; not inferred from folder
-study.condition = struct(); % e.g. struct('strain_percent', exactRecordedDouble)
+study.condition = struct(); % e.g. struct('added_mass_g', "9.053886") if stored as text
 study.scanAxisIndex = 1;
 study.direction = "left";   % "left" | "right" along scan axis
 study.estimator = "kf_ridge"; % QH may use recorded "phase_gradient"
