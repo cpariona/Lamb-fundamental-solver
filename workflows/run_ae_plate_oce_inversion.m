@@ -1,6 +1,8 @@
 %% 1. USER CONFIGURATION
 % Run each MATLAB Editor section in order. Change options here and rerun
 % downstream sections; never average, repair or overwrite original OCE data.
+% Match study.condition types to OCE's persisted acquisition_table; the
+% maintained XLSX loader stores numeric Excel measurements as text.
 oce_repository_root = ""; % Full local OCE_Workflow repository root
 study = struct();
 study.experimentRoot = ""; % Original experiment root
@@ -12,7 +14,7 @@ study.excitationMode = "Pulse";      % "Pulse" | "QH"
 study.period_us = "";      % Literal Pulse period, "" for QH
 study.repetitions = ["1","2","3"];
 study.conditionId = "";
-study.condition = struct(); % e.g. struct('strain_percent', exactRecordedDouble)
+study.condition = struct(); % e.g. struct('added_mass_g', "9.053886") if stored as text
 study.scanAxisIndex = 1;
 study.direction = "left";  % "left" | "right" along one principal scan axis
 study.estimator = "kf_ridge";
