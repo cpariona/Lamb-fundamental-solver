@@ -133,7 +133,7 @@ still apply. No existing inversion outputs are migrated.
 
 ## Human experiment-wide inversion batch
 
-Open [run_experiment_inversion_batch.m](run_experiment_inversion_batch.m)
+Open [run_experiment_inversion.m](run_experiment_inversion.m)
 in **MATLAB Editor** and run its sections in order. Set `experiment_root`,
 `oce_repository_root`, `condition_keys` (the exact recorded mechanical
 metadata columns), the selected models/directions/repetitions, and the

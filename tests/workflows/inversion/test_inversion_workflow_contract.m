@@ -76,7 +76,7 @@ for entry=["executeOceInversionStudy","runOceInversionBatch", ...
         'Missing programmable inversion owner %s.',entry);
 end
 % The human experiment batch only discovers metadata and calls maintained owners.
-batchFile=fullfile(workflowRoot,'run_experiment_inversion_batch.m');
+batchFile=fullfile(workflowRoot,'run_experiment_inversion.m');
 assert(isfile(batchFile),'Missing human experiment batch entrypoint.');
 batch=string(fileread(batchFile));
 assert(contains(batch,'matlab.desktop.editor.getActiveFilename') && ...
