@@ -409,6 +409,17 @@ same owners. The maintained programmable entry point is
 `runOceInversionBatch(plan,family)`, with `family="RayleighLamb"` or
 `family="Plate"`, avoiding redundant forwarding wrappers.
 
+`buildOceInversionPlans(config)` is the shared discovery and plan-construction
+owner for the experiment-wide human workflow and programmatic callers. Its
+explicit configuration uses the workflow section 1 fields (documented in its
+help), with no copied defaults or inferred physical decisions. It returns
+one plan per selected family in configuration order, always `execute=false`.
+It recovers each selected saved summary once through OCE and preserves exact
+recorded condition values/types, repetition identities and Pulse period text.
+It performs no fitting, persistence or output preflight; use the existing
+`runOceInversionBatch` for preview and separately authorized execution.
+Discovery does not substitute for execution-time integrity or physical review.
+
 Each independently reviewed case keeps the same recorded condition, signed
 direction and frequency selection it would have in a human Run Section.
 No automatic bandwidth optimization, robust outlier rejection, parameter

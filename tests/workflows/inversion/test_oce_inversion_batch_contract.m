@@ -3,6 +3,183 @@ function tests=test_oce_inversion_batch_contract()
 tests=functiontests(localfunctions);
 end
 
+function testBuildPlansPreservesQhAndPulseCases(testCase)
+for mode=["QH","Pulse"]
+    checkBuiltPlans(testCase,mode);
+end
+end
+
+function checkBuiltPlans(testCase,mode)
+[config,cleanup]=planningFixture(mode); %#ok<ASGLU>
+before=dir(fullfile(config.experiment_root,'**','*'));
+plans=buildOceInversionPlans(config);
+after=dir(fullfile(config.experiment_root,'**','*'));
+verifyEqual(testCase,string({after.name}),string({before.name}));
+verifyEqual(testCase,string({after.folder}),string({before.folder}));
+% The recovery double logs calls; the production builder writes nothing.
+verifyEqual(testCase,nnz(splitlines(string(fileread( ...
+    fullfile(config.experiment_root,'recovery-calls.txt'))))=="recover"),1);
+verifyEqual(testCase,numel(plans),2);
+conditions=[3.442622950819671,3.442622950819672];
+periods="";
+if mode=="Pulse",periods=["320","166.666666666667"];end
+for k=1:2
+    plan=plans{k};cases=plan.cases;
+    verifyFalse(testCase,plan.execute);
+    verifyEqual(testCase,plan.experimentRoot,config.experiment_root);
+    verifyEqual(testCase,plan.oceRepositoryRoot,config.oce_repository_root);
+    verifyEqual(testCase,plan.inversionsRoot,config.inversions_root);
+    verifyEqual(testCase,numel(cases),2*numel(periods)*4);
+    verifyEqual(testCase,[cases.scanAxisIndex],repmat([2 2 1 1],1,2*numel(periods)));
+    verifyEqual(testCase,[cases.direction],repmat(["right" "left"],1,4*numel(periods)));
+    verifyEqual(testCase,numel(unique([cases.conditionId])),2);
+    for condition=conditions
+        for period=periods
+            selected=arrayfun(@(c) c.condition.strain_percent==condition && ...
+                c.period_us==period,cases);
+            verifyEqual(testCase,nnz(selected),4);
+            verifyClass(testCase,cases(find(selected,1)).condition.strain_percent,'double');
+        end
+    end
+    for c=cases
+        verifyEqual(testCase,c.experimentId,"synthetic");
+        verifyEqual(testCase,c.subexperimentId,"Stretch_1p00000");
+        verifyEqual(testCase,c.sampleId,"001");
+        verifyEqual(testCase,c.excitationMode,mode);
+        verifyEqual(testCase,c.repetitions,["1" "2"]);
+        verifyEqual(testCase,c.estimator,"kf_ridge");
+        verifyEqual(testCase,c.curve,config.curve);
+        verifyEqual(testCase,c.fitFrequencySelection,config.fit_frequency_selection);
+        verifyEqual(testCase,c.fitFrequency_Hz,config.fit_frequency_hz);
+        verifyEqual(testCase,c.fullBandReviewed,config.full_band_reviewed);
+        verifyEqual(testCase,c.plotTargetFrequency_Hz,config.plot_target_frequency_hz);
+        verifyEqual(testCase,c.thicknessPolicy,config.thickness_policy);
+        verifyEqual(testCase,[c.displayLabel c.displaySubtitle c.outputTag],["" "" ""]);
+        verifyEqual(testCase,c.review.densitySource,config.density_source);
+        verifyEqual(testCase,c.review.thicknessSource,config.thickness_source);
+        verifyEqual(testCase,c.review.thicknessJustification,config.thickness_justification);
+        if k==1
+            verifyEqual(testCase,c.fitConfig.branchName,"A0");
+            verifyEqual(testCase,c.fitConfig.freeParams,"mu_Pa");
+            verifyEqual(testCase,c.fitConfig.fixedParams.density_kgpm3,config.material.density_kgpm3);
+            verifyEqual(testCase,c.fitConfig.fixedParams.poisson_ratio,config.material.poisson_ratio);
+            verifyEqual(testCase,c.fitConfig.fixedParams.thickness_m,config.geometry.thickness_m);
+            verifyEqual(testCase,c.fitConfig.initialGuess.mu_Pa,config.rl_mu_initial_guess_Pa);
+            verifyEqual(testCase,c.fitConfig.bounds.mu_Pa,config.rl_mu_bounds_Pa);
+            verifyEqual(testCase,c.review.fitParameterJustification,config.rl_fit_parameter_justification);
+            verifyEqual(testCase,c.review.modelAssumptionsJustification,config.rl_model_assumptions_justification);
+            verifyEmpty(testCase,c.observationMask);
+            verifyFalse(testCase,isfield(c,'physical'));
+        else
+            verifyEqual(testCase,c.physical,struct( ...
+                'density_kgpm3',config.material.density_kgpm3,'thickness_m',config.geometry.thickness_m));
+            verifyEqual(testCase,c.fitOptions,config.plate_fit_options);
+            verifyEqual(testCase,c.review.modelAssumptionsJustification,config.plate_model_assumptions_justification);
+            verifyTrue(testCase,isnan(c.thicknessReferenceSourceIndex));
+            verifyFalse(testCase,isfield(c,'fitConfig'));
+        end
+    end
+    preview=runOceInversionBatch(plan,config.families(k));
+    verifyFalse(testCase,preview.executed);
+    verifyTrue(testCase,all(preview.report.status=="planned"));
+    verifyTrue(testCase,all(cellfun(@isempty,preview.results)));
+end
+verifyFalse(testCase,isfolder(config.inversions_root));
+end
+
+function testBuildPlansSelectionsAndLiteralConditions(testCase)
+[config,cleanup]=planningFixture("Pulse"); %#ok<ASGLU>
+config.subexperiments="Stretch_1p00000";
+config.families="Plate";config.repetitions="2";
+config.scan_axes=1;config.directions="left";
+config.inversions_root="";
+% Recorded text remains literal, even when it looks numeric.
+file=fullfile(config.experiment_root,'fixture-observations.mat');
+saved=load(file);observations=saved.observations;
+for j=1:numel(observations)
+    value="001";
+    if observations(j).acquisition_metadata.strain_percent>3.442622950819671,value="1";end
+    observations(j).acquisition_metadata.strain_percent=value;
+end
+save(file,'observations');
+plans=buildOceInversionPlans(config);
+verifyEqual(testCase,numel(plans),1);
+verifyFalse(testCase,isfield(plans{1},'inversionsRoot'));
+cases=plans{1}.cases;
+verifyEqual(testCase,numel(cases),4);
+verifyEqual(testCase,unique(arrayfun(@(c)c.condition.strain_percent,cases)),["001" "1"]);
+for c=cases
+    verifyClass(testCase,c.condition.strain_percent,'string');
+    verifyEqual(testCase,c.repetitions,"2");
+    verifyEqual(testCase,c.scanAxisIndex,1);
+    verifyEqual(testCase,c.direction,"left");
+end
+end
+
+function testBuildPlansRejectsMissingSelections(testCase)
+[config,cleanup]=planningFixture("QH"); %#ok<ASGLU>
+bad=config;bad.subexperiments="absent";
+verifyError(testCase,@()buildOceInversionPlans(bad),'lamb:workflow:UnknownSubexperiment');
+bad=config;bad.subexperiments=["Stretch_1p00000" "Stretch_1p00000"];
+verifyError(testCase,@()buildOceInversionPlans(bad),'lamb:workflow:UnknownSubexperiment');
+bad=config;bad.repetitions="3";
+verifyError(testCase,@()buildOceInversionPlans(bad),'lamb:workflow:Repetitions');
+bad=config;bad.condition_keys="frequency_Hz";
+verifyError(testCase,@()buildOceInversionPlans(bad),'lamb:workflow:ConditionKeys');
+bad=config;bad.scan_axes=3;
+verifyError(testCase,@()buildOceInversionPlans(bad),'lamb:workflow:MissingDirection');
+bad=config;bad.families=["Plate" "Plate"];
+verifyError(testCase,@()buildOceInversionPlans(bad),'lamb:workflow:Families');
+file=fullfile(config.experiment_root,'fixture-observations.mat');
+saved=load(file);observations=saved.observations;
+observations(end).scientific_result.dispersion.directions(1)=[];
+save(file,'observations');
+verifyError(testCase,@()buildOceInversionPlans(config),'lamb:workflow:MissingDirection');
+end
+
+function [config,cleanup]=planningFixture(mode)
+[root,oceRoot,~,cleanup]=sharedRecoveryFixture(mode);
+saved=load(fullfile(root,'fixture-observations.mat'));
+template=saved.observations(1);observations=repmat(template,0,1);
+conditions=[3.442622950819671,3.442622950819672];
+periods="";frequencies=[1000 1500];
+if mode=="Pulse",periods=["320","166.666666666667"];frequencies=1000;end
+for condition=conditions
+    for period=periods
+        for rep=["1" "2"]
+            for frequency=frequencies
+                current=template;
+                current.acquisition_metadata.strain_percent=condition;
+                current.acquisition_metadata.period_us=period;
+                current.acquisition_metadata.rep_id=rep;
+                current.acquisition_metadata.frequency_Hz=frequency;
+                current.scientific_result.dispersion.directions=struct( ...
+                    'scan_axis_index',{2,2,1,1},'direction',{"right","left","left","right"});
+                observations(end+1,1)=current; %#ok<AGROW>
+            end
+        end
+    end
+end
+save(fullfile(root,'fixture-observations.mat'),'observations');
+% Precreate the double's call log so file-tree checks detect builder writes.
+fid=fopen(fullfile(root,'recovery-calls.txt'),'w');fclose(fid);
+config=struct('experiment_root',string(root),'inversions_root',fullfile(string(root),'Inversions'), ...
+    'oce_repository_root',string(oceRoot),'subexperiments',"all", ...
+    'condition_keys',"strain_percent",'families',["RayleighLamb","Plate"], ...
+    'repetitions',"all",'scan_axes',"all",'directions',"all",'curve',"smoothed", ...
+    'fit_frequency_selection',"interval",'fit_frequency_hz',[700 1700], ...
+    'full_band_reviewed',false,'plot_target_frequency_hz',[1000 1500], ...
+    'thickness_policy',"oce_median_per_case", ...
+    'material',struct('density_kgpm3',1050,'poisson_ratio',.4999), ...
+    'geometry',struct('thickness_m',NaN),'density_source',"Synthetic density", ...
+    'thickness_source',"Synthetic geometry",'thickness_justification',"Synthetic review", ...
+    'rl_mu_initial_guess_Pa',15000,'rl_mu_bounds_Pa',[1000 100000], ...
+    'rl_fit_parameter_justification',"Synthetic mu", ...
+    'rl_model_assumptions_justification',"Synthetic RL A0", ...
+    'plate_model_assumptions_justification',"Synthetic Plate A0", ...
+    'plate_fit_options',struct());
+end
+
 function testManualFullBandRequiresExplicitApproval(testCase)
 study=struct('excitationMode',"Pulse",'fitFrequencySelection',"all");
 verifyError(testCase,@()prepareOceInversionObservations(study), ...
