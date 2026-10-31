@@ -179,7 +179,8 @@ exact recorded value and type. This display rounding never changes condition sel
 or the scientific input. Existing output directories are not renamed or
 overwritten; differently named results are new output cases.
 
-Section 2 locates `Results/<subexperiment>/summary.mat` files and uses
+Section 2 calls `buildOceInversionPlans(config)`, which locates
+`Results/<subexperiment>/summary.mat` files and uses
 `oce.results.recoverSummaryObservations` to validate and discover existing
 acquisitions. Recorded frequencies and repetitions are not treated as
 mechanical conditions. Original Pulse periods are preserved verbatim. Current OCE integration
@@ -188,8 +189,8 @@ requires the recorded `rep_id` to convert to a finite positive integer
 native metadata contract and are rejected rather than silently renumbered.
 A missing selected repetition or signed direction is an error.
 
-Section 3 constructs independent, reviewable `plan.cases` arrays for
-RayleighLamb and Plate. The generated condition ID is a stable path label derived from
+Section 3 previews the independent, reviewable `plan.cases` arrays returned
+for the explicitly selected RayleighLamb and/or Plate families. The generated condition ID is a stable path label derived from
 recorded mechanical keys and exact values (for example,
 `Strain_0pct_<8-hex fingerprint>`); it does not depend on acquisition or Pulse-period
 ordering. The eight-digit fragment is a condition fingerprint, not a Git commit. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
@@ -211,6 +212,25 @@ Lamb and OCE as with the interactive drivers. The single programmable batch entr
 where `family="RayleighLamb"` or `family="Plate"`. This avoids maintaining
 two model-only forwarding wrappers; each case is still reviewed and executed
 by its own native physical family.
+
+To construct plans without MATLAB Editor, call
+`plans = buildOceInversionPlans(config)` after Lamb `startup` and explicitly
+adding `workflows/inversion` to the path. Supply the discovery, observation
+and physical-review fields listed in the function help, using the current
+workflow section 1 configuration; the constructor supplies no defaults.
+Its configured `oce_repository_root` is checked and its `src` added to the path.
+`plans{k}` corresponds to `config.families(k)` and always has `execute=false`.
+It shares the human workflow's discovery and case construction, recovers each
+selected summary once across all requested families, preserves recorded
+condition types/values and Pulse period text, and does not fit or write results.
+
+Review the returned cases and retain the explicitly approved selection before
+calling `runOceInversionBatch(plans{k},config.families(k))` for destination
+preview. Building a plan neither confirms scientific choices nor validates
+physical placeholders; full-band approval and all execution-time integrity,
+physical-review and non-overwrite checks remain enforced by existing owners.
+Set execution/write flags only after explicit researcher authorization. The
+constructor does not return a recovery snapshot or bypass execution-time reads.
 
 Executing a batch reuses one active summary's original OCE recovery across
 consecutive cases. SHA-256 checks cover the full indexed source set before each
