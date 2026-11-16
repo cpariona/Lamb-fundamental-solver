@@ -16,6 +16,7 @@ assert(isfile(fullfile(oceRepositoryRoot,'src','+oce','+results', ...
     'recoverSummaryObservations.m')), ...
     'lamb:study:OceRepository','Supply a maintained OCE repository root.');
 addpath(fullfile(oceRepositoryRoot,'src'),'-end');
+assertOceInversionProducerPath(oceRepositoryRoot);
 family=string(family);
 study=resolveOceInversionPaths(study,family);
 % Fail before fitting if requested outputs already exist.
