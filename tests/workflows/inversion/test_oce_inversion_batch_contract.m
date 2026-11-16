@@ -155,6 +155,29 @@ verifyError(testCase,@()executeOceInversionStudy( ...
     'lamb:workflow:OceRepositoryMismatch');
 end
 
+function testConfiguredOceCheckoutAcceptsRelativeRoot(testCase)
+[config,cleanup]=planningFixture("QH"); %#ok<ASGLU>
+originalFolder=pwd;
+cd(config.experiment_root);
+config.oce_repository_root="oce";
+try
+    plans=buildOceInversionPlans(config);
+catch exception
+    cd(originalFolder);
+    rethrow(exception);
+end
+cd(originalFolder);
+verifyEqual(testCase,numel(plans),2);
+end
+
+function testConfiguredOceCheckoutReportsMissingApi(testCase)
+[config,cleanup]=planningFixture("QH"); %#ok<ASGLU>
+delete(fullfile(config.oce_repository_root,"src","+oce","+io", ...
+    "loadAcquisitionTable.m"));
+verifyError(testCase,@()buildOceInversionPlans(config), ...
+    'lamb:workflow:OceRepository');
+end
+
 function [config,cleanup]=planningFixture(mode)
 [root,oceRoot,~,cleanup]=sharedRecoveryFixture(mode);
 saved=load(fullfile(root,'fixture-observations.mat'));
