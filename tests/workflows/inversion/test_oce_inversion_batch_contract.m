@@ -542,6 +542,57 @@ verifyTrue(testCase,isfield(archived.studyRecord.selection,'mode'));
 verifyFalse(testCase,isfield(archived.studyRecord.selection,'excitationMode'));
 end
 
+function testFailedSaveLeavesNoFinalOrStagingMat(testCase)
+[args,study,folder,cleanup]=stagedSaveFixture(false); %#ok<ASGLU>
+verifyError(testCase,@()persistOceInversionStudy(args{:}),'lamb:test:SaveFailed');
+verifyFalse(testCase,isfile(study.resultFile));
+verifyEmpty(testCase,dir(fullfile(folder,'*.mat')));
+end
+
+function testPublishRefusesDestinationCreatedAfterPreflight(testCase)
+[args,study,folder,cleanup]=stagedSaveFixture(true); %#ok<ASGLU>
+verifyError(testCase,@()persistOceInversionStudy(args{:}),'lamb:study:OutputExists');
+% The competing result is untouched and no staging file remains.
+verifyEqual(testCase,fileread(study.resultFile),'competing');
+verifyEqual(testCase,string({dir(fullfile(folder,'*.mat')).name}),"inversion.mat");
+end
+
+function [args,study,folder,cleanup]=stagedSaveFixture(competing)
+% A shadowing save double either fails after writing partial bytes or, to model
+% a race, creates the final destination while the staging file is being saved.
+root=tempname;mkdir(root);oldPath=path;
+cleanup=onCleanup(@()cleanupProvenanceFixture(oldPath,root));
+source=fullfile(root,"Results","Stretch_1p00000","summary.mat");
+mkdir(fileparts(source));values=(1:5)';save(source,'values');
+projectRoot=fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))));
+hashes=oceInversionProvenance(source,projectRoot);
+study=resolveOceInversionPaths(baseCase(root,"Stretch_1p00000"),"Plate");
+study.saveResult=true;study.showFigure=false;study.fullBandReviewed=true;
+folder=fileparts(study.resultFile);
+experimental=struct('frequency_Hz',1000,'Cp_mps',3,'validMask',true);
+inputs=struct('inputHashes',hashes.inputFiles,'assembly', ...
+    struct('experimental',experimental,'sourceResultFiles',string(source)), ...
+    'observationReview',table(),'frequencySelectionMapping',table(), ...
+    'graphicSamplingMapping',table());
+nativeResult=struct('experimental',experimental,'sourceReference',string(source));
+review=struct('modelBranch',"A0",'modelAssumptionsJustification',"Synthetic");
+args={study,inputs,nativeResult,struct('density_kgpm3',1050,'thickness_m',.0005), ...
+    review,false,projectRoot,"Plate"};
+mock=fullfile(root,'mock');mkdir(mock);
+writeFixtureFunction(fullfile(mock,'save.m'),[ ...
+    "function save(varargin)", ...
+    "fid=fopen(varargin{1},'w');fwrite(fid,'partial');fclose(fid);", ...
+    "if isfile(fullfile(fileparts(mfilename('fullpath')),'race.txt'))", ...
+    "    fid=fopen(strtrim(fileread(fullfile(fileparts(mfilename('fullpath')),'race.txt'))),'w');", ...
+    "    fwrite(fid,'competing');fclose(fid);return", ...
+    "end", ...
+    "error('lamb:test:SaveFailed','Injected save failure.');","end"]);
+if competing
+    mkdir(folder);writeFixtureFunction(fullfile(mock,'race.txt'),string(study.resultFile));
+end
+addpath(mock,'-begin');
+end
+
 function testCompressedPersistenceAndHistoricalReuse(testCase)
 for mode=["QH","Pulse"]
     checkCompressedPersistence(testCase,mode);
