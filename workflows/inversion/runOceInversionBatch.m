@@ -4,6 +4,7 @@ function [batchResult, recovery] = runOceInversionBatch(plan, family, recovery)
 % PLAN.oceRepositoryRoot: machine-local OCE code checkout.
 % PLAN.inversionsRoot: optional absolute output root; defaults to OCE_Inversions
 %   alongside OCE_Experiments when experimentRoot is OCE_Experiments/<experiment>.
+% FAMILY: "RayleighLamb", "mRLFE", "Plate" or "AcoustoelasticIOPHGO".
 % PLAN.cases: scalar struct or struct array, each with exact observation,
 % model, frequency, physical-review and optional outputRelativeFolder choices.
 % PLAN.execute: false (default) returns read-only output plan without fitting.
@@ -17,7 +18,8 @@ assert(isstruct(plan)&&isscalar(plan)&&isfield(plan,'cases')&& ...
     isstruct(plan.cases)&&~isempty(plan.cases), ...
     'lamb:batch:InvalidPlan','A nonempty reviewed struct array is required.');
 family=string(family);
-assert(any(family==["RayleighLamb","Plate"]),'lamb:batch:Model','Unknown model.');
+assert(any(family==["RayleighLamb","mRLFE","Plate","AcoustoelasticIOPHGO"]), ...
+    'lamb:batch:Model','Unknown model.');
 execute=false;
 if isfield(plan,'execute'),execute=plan.execute;end
 validateattributes(execute,{'logical'},{'scalar'});
@@ -86,6 +88,10 @@ for j=1:n
     if ~isfield(caseStudy,'displayLabel'),caseStudy.displayLabel="";end
     if ~isfield(caseStudy,'displaySubtitle'),caseStudy.displaySubtitle="";end
     if ~isfield(caseStudy,'summaryFile'),caseStudy.summaryFile="";end
+    if family=="AcoustoelasticIOPHGO"
+        % Structural SI/native translation only; no OCE read and no forward solve.
+        buildOceAeIopHgoFitConfig(caseStudy.ae);
+    end
     caseStudy=resolveOceInversionPaths(caseStudy,family);
     outputs(j)=string(caseStudy.resultFile);
     subexperiments(j)=string(caseStudy.subexperimentId);
@@ -120,7 +126,7 @@ messages=strings(n,1);
 selectedRows=nan(n,1);
 metricValue=nan(n,1);
 metricUnit=strings(n,1);
-nativeAccepted=nan(n,1); % Plate native acceptance only; NaN for RL.
+nativeAccepted=nan(n,1); % Plate native acceptance only; NaN for RL, mRLFE and AE.
 results=cell(n,1);
 failureFiles=strings(n,1);
 if execute
@@ -130,13 +136,15 @@ if execute
                 cases{j},family,plan.oceRepositoryRoot,recovery);
             native=results{j}.nativeResult;
             selectedRows(j)=nnz(native.validMask);
-            if family=="RayleighLamb"
-                metricValue(j)=native.metrics.RMSE;
-                metricUnit(j)="m/s";
-            else
+            if family=="Plate"
                 metricValue(j)=native.regressionRMSE_Pa;
                 metricUnit(j)="Pa";
                 nativeAccepted(j)=double(native.accepted);
+            else
+                % RL, mRLFE and AE report their native phase-speed RMSE over the
+                % fixed mask. None is a physical acceptance criterion.
+                metricValue(j)=native.metrics.RMSE;
+                metricUnit(j)="m/s";
             end
             if ~isempty(executionError),rethrow(executionError);end
             status(j)="completed";
@@ -174,7 +182,7 @@ keys=["experimentId","subexperimentId","sampleId","excitationMode","period_us", 
     "repetitions","conditionId","condition","scanAxisIndex","direction", ...
     "estimator","curve","fitFrequencySelection","fitFrequency_Hz", ...
     "fullBandReviewed","observationMask","thicknessPolicy", ...
-    "thicknessReferenceSourceIndex","fitConfig","physical","fitOptions", ...
+    "thicknessReferenceSourceIndex","fitConfig","ae","physical","fitOptions", ...
     "review","summaryRelativeFile","resolvedSummaryRelativeFile", ...
     "outputRelativeFolder","resolvedOutputRelativeFolder", ...
     "resolvedOutputBase","outputTag"];

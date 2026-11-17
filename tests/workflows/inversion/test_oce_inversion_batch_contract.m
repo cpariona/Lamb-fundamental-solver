@@ -137,6 +137,65 @@ save(file,'observations');
 verifyError(testCase,@()buildOceInversionPlans(config),'lamb:workflow:MissingDirection');
 end
 
+function testBuildPlansCarriesMrlfeRequestWithoutFitting(testCase)
+[config,cleanup]=planningFixture("QH"); %#ok<ASGLU>
+config.families="mRLFE";
+% mRLFE physics is never filled from the shared RL/Plate material fields.
+verifyError(testCase,@()buildOceInversionPlans(config),'lamb:workflow:MrlfeConfiguration');
+config.mrlfe_fit_config=struct('branchName',"A0Like",'freeParams',"mu_Pa", ...
+    'fixedParams',struct('density_kgpm3',1050,'thickness_m',NaN,'poisson_ratio',.4999, ...
+    'etaS_Pas',5,'fluidDensity_kgpm3',1000,'fluidSoundSpeed_mps',1500), ...
+    'initialGuess',struct('mu_Pa',15000),'bounds',struct('mu_Pa',[1000 100000]));
+config.mrlfe_review=struct('thicknessSource',"Synthetic geometry", ...
+    'thicknessJustification',"Synthetic review",'densitySource',"Synthetic density", ...
+    'fluidSource',"Synthetic fluid",'fitParameterJustification',"Synthetic mu", ...
+    'modelAssumptionsJustification',"Synthetic A0-like");
+plans=buildOceInversionPlans(config);
+verifyEqual(testCase,numel(plans),1);
+plan=plans{1};verifyFalse(testCase,plan.execute);
+verifyEqual(testCase,numel(plan.cases),2*4); % two conditions x four signed directions
+for c=plan.cases
+    verifyEqual(testCase,c.fitConfig,config.mrlfe_fit_config);
+    verifyEqual(testCase,c.review,config.mrlfe_review);
+    verifyEqual(testCase,c.thicknessPolicy,config.thickness_policy);
+    verifyEmpty(testCase,c.observationMask);
+    verifyFalse(testCase,isfield(c,'physical'));
+end
+preview=runOceInversionBatch(plan,"mRLFE");
+verifyTrue(testCase,all(preview.report.status=="planned"));
+verifyTrue(testCase,all(contains(preview.report.resultFile,"mRLFE")));
+verifyTrue(testCase,all(cellfun(@isempty,preview.results)));
+verifyFalse(testCase,isfolder(config.inversions_root));
+end
+
+function testBuildPlansRoutesMrlfeAndAeIopHgoIndependently(testCase)
+[config,cleanup]=planningFixture("QH"); %#ok<ASGLU>
+config.families=["mRLFE","AcoustoelasticIOPHGO"];
+config.mrlfe_fit_config=struct('branchName',"A0Like",'freeParams',"mu_Pa");
+config.mrlfe_review=struct('thicknessSource',"Synthetic");
+% The planner copies family inputs unchanged; native validation happens later.
+config.ae=struct('branchName',"atlasA0",'executionProfile',"Fast");
+config.ae_review=struct('thicknessSource',"Synthetic AE");
+plans=buildOceInversionPlans(config);
+verifyEqual(testCase,numel(plans),2);
+for c=plans{1}.cases
+    verifyEqual(testCase,c.thicknessPolicy,config.thickness_policy);
+    verifyEqual(testCase,c.fitConfig,config.mrlfe_fit_config);
+    verifyFalse(testCase,isfield(c,'ae'));
+end
+for c=plans{2}.cases
+    % AE uses one reviewed scalar thickness in ae, never an OCE policy.
+    verifyFalse(testCase,isfield(c,'thicknessPolicy'));
+    verifyEqual(testCase,c.ae,config.ae);
+    verifyEqual(testCase,c.review,config.ae_review);
+    verifyFalse(testCase,isfield(c,'physical')||isfield(c,'fitConfig'));
+end
+verifyEqual(testCase,numel(plans{1}.cases),numel(plans{2}.cases));
+% Missing AE inputs are rejected rather than defaulted.
+bad=rmfield(config,'ae_review');
+verifyError(testCase,@()buildOceInversionPlans(bad),'MATLAB:nonExistentField');
+end
+
 function testConfiguredOceCheckoutRejectsEarlierProducer(testCase)
 [config,cleanup]=planningFixture("QH"); %#ok<ASGLU>
 competingSrc=fullfile(config.experiment_root,"competing_oce","src");

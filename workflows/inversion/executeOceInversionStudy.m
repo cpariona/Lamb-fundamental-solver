@@ -1,5 +1,5 @@
 function [result, executionError, recovery] = executeOceInversionStudy(study, family, oceRepositoryRoot, recovery)
-%EXECUTEOCEINVERSIONSTUDY Noninteractive, review-first RL or Plate study.
+%EXECUTEOCEINVERSIONSTUDY Noninteractive, review-first RL, Plate or AE IOP/HGO study.
 % Caller supplies all original condition/scan/estimator/band/model decisions.
 % No frequency-band optimization, source-data edits or automatic refitting.
 % An optional second output retains a completed fit if persistence or

@@ -53,6 +53,39 @@ if family=="RayleighLamb"
     end
     % Preflight native physics, without running a forward solve.
     lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,physics);
+elseif family=="mRLFE"
+    physics=study.fitConfig;
+    % The native mRLFE evaluator has one scalar thickness: per-acquisition
+    % geometry is unsupported and is never averaged implicitly.
+    assert(isfield(study,'thicknessPolicy')&& ...
+        any(string(study.thicknessPolicy)==["explicit_constant","oce_median_per_case"]), ...
+        'lamb:study:ThicknessPolicy', ...
+        'mRLFE requires one scalar thickness: explicit_constant or oce_median_per_case.');
+    review.thicknessPolicy=string(study.thicknessPolicy);
+    if study.thicknessPolicy=="oce_median_per_case"
+        [effective,range,sourceCount]=medianSelectedThickness( ...
+            assembly,observationReview,experimental.validMask);
+        physics.fixedParams.thickness_m=effective;
+        review.thicknessSource="OCE directional_mean_thickness_mm; selected signed-direction acquisitions";
+        review.thicknessJustification= ...
+            "Median of one measured full thickness per selected acquisition; common to all fitted frequencies and repetitions";
+        fprintf('mRLFE OCE median thickness: %.6f mm (%d acquisitions, range %.6f to %.6f mm).\n', ...
+            effective*1e3,sourceCount,range(1)*1e3,range(2)*1e3);
+    end
+    review.modelBranch=string(physics.branchName);
+    for name=["thicknessSource","thicknessJustification","densitySource","fluidSource", ...
+            "fitParameterJustification","modelAssumptionsJustification"]
+        checkText(review,name);
+    end
+    % Native preflight, without running the fit. It may precompute its own
+    % elastic-reference cache. The reviewed observations must not be repaired.
+    problem=lamb.fitting.mrlfe.mrlfeBuildFitProblem( ...
+        experimental,translateOceMrlfeConfig(physics));
+    assert(isequal(problem.experimental.validMask(:),experimental.validMask(:))&& ...
+        isequaln(problem.experimental.frequency_Hz(:),experimental.frequency_Hz(:))&& ...
+        isequaln(problem.experimental.Cp_mps(:),experimental.Cp_mps(:)), ...
+        'lamb:study:NativeMaskRepair', ...
+        'Native mRLFE normalization changed the reviewed rows or mask; review the selection instead.');
 elseif family=="Plate"
     assert(study.estimator=="kf_ridge", ...
         'lamb:study:PlateEstimator','Plate requires original k-f observations.');
@@ -123,6 +156,28 @@ elseif family=="Plate"
         fprintf('Plate reference thickness %.6f mm; OCE measured selected range %.6f to %.6f mm.\n', ...
             physics.thickness_m*1e3,min(finite)*1e3,max(finite)*1e3);
     end
+elseif family=="AcoustoelasticIOPHGO"
+    % One reviewed scalar current thickness (study.ae.fixedPhysical.thickness_m).
+    % OCE directional thickness is not an AE input, so no OCE policy applies.
+    assert(~isfield(study,'thicknessPolicy')|| ...
+        study.thicknessPolicy=="explicit_constant_current_thickness", ...
+        'lamb:study:ThicknessPolicy', ...
+        'AE IOP/HGO accepts only one explicitly reviewed scalar current thickness.');
+    physics=struct('researcher',study.ae,'native',buildOceAeIopHgoFitConfig(study.ae));
+    review.thicknessPolicy="explicit_constant_current_thickness";
+    review.modelBranch="A0"; % Derived from the official atlasA0 curve.
+    for name=["thicknessSource","thicknessJustification","densitySource","radiusSource", ...
+            "iopSource","fluidSource","fitParameterJustification","modelAssumptionsJustification"]
+        checkText(review,name);
+    end
+    % The native solver evaluates the complete original axis; rows are never trimmed.
+    frequency=experimental.frequency_Hz(:);
+    assert(all(isfinite(frequency)&frequency>0),'lamb:study:AEFrequencyAxis', ...
+        ['AE IOP/HGO needs positive finite Hz for every original observation row. ' ...
+        'Rows are neither trimmed nor repaired by the workflow.']);
+    % Preflight native support (fixed mask and selected-frequency anchor) without
+    % a forward solve; unsupported selected rows are an error, not trimmed.
+    lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem(experimental,physics.native);
 else
     error('lamb:study:ModelFamily','Unsupported inversion family.');
 end
