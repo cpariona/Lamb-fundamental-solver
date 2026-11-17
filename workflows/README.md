@@ -14,8 +14,8 @@ intentionally does not add workflows to the path.
 
 1. Open **one of the actual workflow files** in MATLAB Editor, not a copied
    command-window section or temporary `.m` file.
-2. Execute **section 1** to initialize editable `study` options; set the local
-   `oce_repository_root` and the persisted OCE experiment root/summary path.
+2. Execute **section 1** to initialize editable `study` options; review the
+   OCE checkout root and set the persisted OCE experiment root/summary path.
    Inspect the exact experiment/subexperiment/sample/repetition/condition IDs in
    the original acquisition log. Numeric condition keys use their exact saved
    `double` values; Pulse periods are literal recorded text.
@@ -75,10 +75,16 @@ is an opt-in translation layer, not a replacement OCE reader.
 `oce.results.recoverSummaryObservations` and `oce.io.loadAcquisitionTable`
 APIs recover and validate source metadata. The code checkout is a machine-local
 dependency, while output/input paths are experiment-root-relative.
-A future per-machine MATLAB path bootstrap could register the producer
-once instead of exposing a checkout root in every request, provided its
-API revision is checked; the current workflows deliberately do not infer a
-parent folder or silently choose a different producer revision.
+To set the checkout once per MATLAB user profile, run
+`setpref('LambFundamentalSolver','oceRepositoryRoot',char(oceRoot))` in the
+Command Window with `oceRoot` set to the absolute OCE_Workflow repository root
+(not its `src` folder). Each human workflow reads this preference in section 1.
+An explicit `oce_repository_root` assignment after section 1 takes precedence
+for that run; programmatic callers still supply `config.oce_repository_root`.
+No workflow searches for a checkout or infers a parent folder. Initialization
+checks that MATLAB resolves both OCE recovery and metadata APIs from the chosen
+checkout; a missing or competing checkout is an error. The used OCE commit is
+recorded in inversion provenance when a result is saved.
 
 ## Default storage and relative overrides
 
@@ -135,8 +141,9 @@ still apply. No existing inversion outputs are migrated.
 
 Open [run_experiment_inversion.m](run_experiment_inversion.m)
 in **MATLAB Editor** and run its sections in order. Set `experiment_root`,
-`oce_repository_root`, `condition_keys` (the exact recorded mechanical
-metadata columns), the selected models/directions/repetitions, and the
+review the preferred or explicitly assigned `oce_repository_root`, and set
+`condition_keys` (the exact recorded mechanical metadata columns), the
+selected models/directions/repetitions, and the
 model-specific reviewed physical inputs in section 1. For uniaxial-stretch
 acquisitions `condition_keys="strain_percent"` is an example, not a value
 inferred from a folder name.
