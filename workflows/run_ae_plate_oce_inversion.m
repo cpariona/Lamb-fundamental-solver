@@ -3,7 +3,8 @@
 % downstream sections; never average, repair or overwrite original OCE data.
 % Match study.condition types to OCE's persisted acquisition_table; the
 % maintained XLSX loader stores numeric Excel measurements as text.
-oce_repository_root = ""; % Full local OCE_Workflow repository root
+% Override this preference with an explicit OCE_Workflow checkout root if needed.
+oce_repository_root = string(getpref('LambFundamentalSolver','oceRepositoryRoot',''));
 study = struct();
 study.experimentRoot = ""; % Original experiment root
 study.summaryFile = "";    % Optional root-relative override; default Results/<sub>/summary.mat
@@ -65,7 +66,7 @@ addpath(fullfile(projectRoot, 'workflows', 'inversion'), '-end');
 assert(strlength(string(oce_repository_root)) > 0 && ...
     isfile(fullfile(oce_repository_root, 'src', '+oce', '+results', ...
     'recoverSummaryObservations.m')), 'lamb:workflow:OceRepository', ...
-    'Set oce_repository_root to the maintained local OCE_Workflow root.');
+    'Set oce_repository_root or the LambFundamentalSolver/oceRepositoryRoot MATLAB preference.');
 addpath(fullfile(oce_repository_root, 'src'), '-end');
 assertOceInversionProducerPath(oce_repository_root);
 assert(~isempty(which('prepareOceInversionObservations')), ...

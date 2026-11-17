@@ -4,7 +4,8 @@
 % Match each condition value's MATLAB type to the persisted OCE acquisition_table.
 % The maintained OCE XLSX loader imports columns as text; numeric Excel cells
 % may therefore require literal string selectors (legacy double tables differ).
-oce_repository_root = "";  % Full path to OCE_Workflow (not its src folder)
+% Override this preference with an explicit OCE_Workflow checkout root if needed.
+oce_repository_root = string(getpref('LambFundamentalSolver','oceRepositoryRoot',''));
 study = struct();
 study.experimentRoot = "";  % Experiment root with original Data/ and Results/
 study.summaryFile = "";     % Optional root-relative override; default Results/<sub>/summary.mat
@@ -72,7 +73,7 @@ addpath(fullfile(projectRoot, 'workflows', 'inversion'), '-end');
 assert(strlength(string(oce_repository_root)) > 0 && ...
     isfile(fullfile(oce_repository_root, 'src', '+oce', '+results', ...
     'recoverSummaryObservations.m')), 'lamb:workflow:OceRepository', ...
-    'Set oce_repository_root to the maintained local OCE_Workflow root.');
+    'Set oce_repository_root or the LambFundamentalSolver/oceRepositoryRoot MATLAB preference.');
 addpath(fullfile(oce_repository_root, 'src'), '-end');
 assertOceInversionProducerPath(oce_repository_root);
 assert(~isempty(which('prepareOceInversionObservations')), ...

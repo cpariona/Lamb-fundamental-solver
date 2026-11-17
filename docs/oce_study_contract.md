@@ -97,8 +97,10 @@ automatic model-selection rule.
 The maintained Plate human workflow is [run_ae_plate_oce_inversion.m](../workflows/run_ae_plate_oce_inversion.m).
 It replaces the pilot preview/export coordinator. It contains no specimen names,
 absolute study paths, FIG input dependency, frequency optimizer or model dispatcher.
-Open the actual driver in MATLAB Editor. In section 1, edit `oce_repository_root`
-and the explicit `study` fields. Run section 2 to initialize both repositories;
+Open the actual driver in MATLAB Editor. Section 1 reads the optional
+`LambFundamentalSolver/oceRepositoryRoot` MATLAB preference; an explicit
+`oce_repository_root` assignment overrides it. Review the chosen checkout and
+the explicit `study` fields. Run section 2 to initialize both repositories;
 it resolves the active Editor file to avoid MATLAB's temporary Run Section file.
 Run section 3 to recover observations and inspect `sourceMetadata` and
 `observationReview` before fitting. These retain source rows/bins, repetitions,
