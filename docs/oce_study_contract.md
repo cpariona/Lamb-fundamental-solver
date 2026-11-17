@@ -225,7 +225,11 @@ unchanged. No schema decoder, migration or reconstruction step is required.
 `fitOceInversionNative`, `persistOceInversionStudy` and `renderOceInversionStudy`
 continue to use MATLAB `load`, which reads both versions. Maintained consumers
 do not require HDF5 paths or partial `matfile` access. Existing MAT files are
-never rewritten, including during strict reuse.
+never rewritten, including during strict reuse. A new MAT is first saved to a
+unique staging file in the destination folder and published by a no-replace
+move only after the save succeeds; a failed save removes the staging file and
+leaves no `inversion.mat`, and a destination that appears meanwhile is refused
+with `lamb:study:OutputExists`.
 
 The persistence audit retains all variables: `studyRecord`, `nativeResult`,
 `assembly`, `fitConfig` (RL) or `physical` (Plate), `review`, `observationReview`,

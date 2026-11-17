@@ -79,13 +79,39 @@ variables=whos('studyRecord','nativeResult','assembly','fitConfig','physical', .
     'review','observationReview','frequencySelectionMapping','graphicSamplingMapping');
 matVersion='-v7';
 if any([variables.bytes]>=2^31),matVersion='-v7.3';end
+% Save to a unique staging file beside the destination so a failed or partial
+% save never leaves a final inversion.mat; publish only after it succeeds.
+staging=[tempname(char(folder)) '.mat'];
+discardStaging=onCleanup(@()deleteIfPresent(staging)); %#ok<NASGU>
 if family=="RayleighLamb"
-    save(study.resultFile,'studyRecord','nativeResult','assembly','fitConfig','review', ...
+    save(staging,'studyRecord','nativeResult','assembly','fitConfig','review', ...
         'observationReview','frequencySelectionMapping','graphicSamplingMapping',matVersion);
 else
-    save(study.resultFile,'studyRecord','nativeResult','assembly','physical','review', ...
+    save(staging,'studyRecord','nativeResult','assembly','physical','review', ...
         'observationReview','frequencySelectionMapping','graphicSamplingMapping',matVersion);
 end
+publishWithoutOverwrite(staging,study.resultFile);
+end
+
+
+function publishWithoutOverwrite(staging,destination)
+% Same-folder move without REPLACE_EXISTING: a destination that appeared after
+% the preflight check is refused, never replaced. Requires the MATLAB JVM; without
+% it this errors rather than risk overwriting.
+noOptions=javaArray('java.nio.file.CopyOption',0);
+from=java.nio.file.Paths.get(char(staging),javaArray('java.lang.String',0));
+to=java.nio.file.Paths.get(char(destination),javaArray('java.lang.String',0));
+try
+    java.nio.file.Files.move(from,to,noOptions);
+catch exception
+    assert(~isfile(destination),'lamb:study:OutputExists', ...
+        'Refusing to overwrite an existing inversion MAT.');
+    rethrow(exception);
+end
+end
+
+function deleteIfPresent(file)
+if isfile(file),delete(file);end
 end
 
 
