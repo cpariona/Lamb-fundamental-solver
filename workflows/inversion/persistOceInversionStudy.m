@@ -66,12 +66,12 @@ end
 assembly=inputs.assembly;observationReview=inputs.observationReview;
 frequencySelectionMapping=inputs.frequencySelectionMapping;
 graphicSamplingMapping=inputs.graphicSamplingMapping;
-if family=="Plate"
-    physical=physics;
-else
+if family~="Plate"
     % RL native request, mRLFE canonical-SI request, or AE researcher SI
     % inputs plus native request.
     fitConfig=physics;
+else
+    physical=physics;
 end
 folder=fileparts(study.resultFile);
 if ~isfolder(folder),mkdir(folder);end
