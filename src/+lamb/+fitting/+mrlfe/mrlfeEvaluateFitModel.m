@@ -19,11 +19,25 @@ if isempty(frequencyInput) || any(~isfinite(frequencyInput)) || any(frequencyInp
     error('frequency_Hz must contain positive finite values.');
 end
 
-request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequencyInput, branchName, solverOptions);
-[request, fitGridMetadata] = applyForwardGridPolicy(request, frequencyInput, solverOptions);
+% The public solver needs a strictly ascending axis. Joint repetitions may
+% repeat or interleave frequencies, so solve each distinct frequency once and
+% map the prediction back to every requested row (no averaging, no row loss).
+frequencySolveInput = unique(frequencyInput, 'sorted');
+[~, rowIndex] = ismember(frequencyInput, frequencySolveInput);
+
+request = lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest(params, frequencySolveInput, branchName, solverOptions);
+[request, fitGridMetadata] = applyForwardGridPolicy(request, frequencySolveInput, solverOptions);
 modelResult = lamb.models.mrlfe.mrlfeSolve(request);
 Cp_mps = modelResult.phaseVelocity_mps(:);
 rawResult = localAdaptPublicResultForFitWorkflow(modelResult, params, solverOptions, fitGridMetadata);
+if ~isequal(frequencyInput, frequencySolveInput)
+    % Only observation-aligned arrays are expanded; modelResult, fitGrid and
+    % solver diagnostics retain the official unique-frequency solve.
+    Cp_mps = Cp_mps(rowIndex);
+    rawResult.frequency_Hz = frequencyInput;
+    rawResult.Cp_mps = Cp_mps;
+    rawResult.validMask = rawResult.validMask(rowIndex);
+end
 end
 
 function [request, metadata] = applyForwardGridPolicy(request, frequencyInput, options)

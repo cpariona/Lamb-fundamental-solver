@@ -62,13 +62,15 @@ intentionally does not add workflows to the path.
    are always fixed; no native default fills a missing value, and native names
    (`mu`, `rho`, `nu`, ...) are not accepted alongside them.
    `translateOceMrlfeConfig` maps them to the unchanged native symbols at the
-   fitting boundary. The native evaluator requires **strict full-axis
-   support**: the whole requested frequency axis, including excluded rows, must
-   be positive, finite and strictly ascending. Excluded DC rows, pooled
-   repetitions with repeated Hz or unordered axes are rejected, never trimmed,
-   sorted, averaged or masked differently; a per-acquisition broadband curve
-   can satisfy it. Native mRLFE support (including `0.49 <= nu < 0.5` for a
-   free Poisson ratio) stays with its fitting owner.
+   fitting boundary. The public mRLFE forward solver requires positive, finite, strictly
+   ascending Hz. The fitting interface preserves the full OCE observations,
+   including explicitly excluded DC and repeated or unordered positive Hz:
+   it evaluates unique positive Hz in ascending order, then maps predictions
+   back to every original row. Excluded nonpositive/nonfinite rows are not
+   evaluated, and invalid selected rows are rejected. Repetitions are not
+   averaged and each selected observation contributes its own residual.
+   Native mRLFE support (including `0.49 <= nu < 0.5` for a free Poisson
+   ratio) stays with its fitting owner.
    **A returned mRLFE fit is not an experimental validity claim**: the
    model-assumption justification is researcher-supplied and neither fit
    success nor RMSE certifies mode identity, fluid-loading or support.
@@ -275,9 +277,10 @@ plans remain `execute=false` until explicitly authorized.
 - **Scalar thickness.** `thickness_m` is one reviewed scalar current full
   thickness; OCE directional/per-acquisition thickness is not used.
 - **Fixed mask and rows.** Selected observations must lie at or above the native
-  atlasA0 initialization anchor (not trimmed); the reviewed mask and original
-  rows are retained. Reuse requires exact source, mask, native problem and
-  assembly identity.
+  atlasA0 initialization anchor (not trimmed); explicitly excluded DC remains
+  in the original rows but is not evaluated by the native solver. Repetitions
+  and the reviewed mask are retained. Reuse requires exact source, mask,
+  native problem and assembly identity.
 
 ## Programmable batch workflows
 

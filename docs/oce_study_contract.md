@@ -28,16 +28,18 @@ Hz. Its `assembly.experimental` is not intrinsically a Plate request. Every
 consumer must still satisfy its native family's requirements.
 
 Successful preparation proves neither a valid request for every model nor an
-identifiable inverse problem. Full-axis restrictions can reject a request even
-when its selected observations are valid. Do not trim excluded DC/NaN rows,
-sort, collapse repeated frequencies, average speeds, modify the mask or substitute
-diagnostic branches to bypass native rejection. Record the rejection. In particular,
-pooled QH repetitions with duplicate observed Hz are not a valid native mRLFE
-axis. Automatic repeated-frequency projection is not supplied by this integration;
-changing that native fitting contract requires its own review. OCE's intact
-per-acquisition k-f broadband axis retains DC. Even with DC explicitly excluded
-by the fitting mask, that full axis is rejected by mRLFE and AE IOP/HGO; this
-integration does not project it to a different native request.
+identifiable inverse problem. Keep OCE observations, order, masks and provenance
+unchanged. Family-specific fitting may construct a separate positive-frequency
+evaluation grid without changing the original observations or residual weights.
+
+For mRLFE fitting, positive frequencies are solved on a unique ascending grid
+and predictions are mapped back to every original row, including repeated Hz.
+For AE IOP/HGO fitting, the positive-frequency native grid similarly excludes
+explicitly masked-out DC. Both retain excluded rows with unavailable predictions
+and reject invalid selected observations rather than repairing their masks.
+The native forward solvers retain their own frequency-domain restrictions;
+AE also enforces its selected-frequency initialization anchor. No observations
+are averaged or implicitly removed from the fitting objective.
 
 ## Canonical public physical inputs
 
@@ -58,9 +60,9 @@ acquisition; the scalar field is only a reference under that reviewed policy.
 | Family and maintained fitting API | Explicit physical/model inputs and numerical boundaries | Native evidence |
 | --- | --- | --- |
 | Rayleigh-Lamb: `lamb.fitting.rayleigh_lamb.rlFitDispersionData` | Elastic parameters, current thickness, density, supported near-incompressible Poisson ratio; explicit A0/S0 choice, fixed/free parameters, bounds and execution options. Selected observations require positive finite Hz/Cp. Excluded nonpositive/nonfinite frequencies remain in place with unavailable predictions; positive finite frequencies use the canonical RL solver. Direct model evaluation still requires a positive finite full axis. | Fixed-mask model coverage, optimizer result, residuals/metrics, sensitivity and local identifiability; selected A0/S0 output and unchanged official solver diagnostics. |
-| mRLFE: `lamb.fitting.mrlfe.mrlfeFitDispersionData` | Material modulus/viscosity, density, current thickness, supported Poisson ratio and fluid density/sound speed. Explicit A0Like/S0Like, numerical preset and fit-grid policy. The full requested frequency axis must be positive, finite and strictly ascending. Physical-tail/none termination and no fallback retain their native meaning. | Native public-solver route, requested/effective configuration, branch/termination and coverage evidence, optimizer result, sensitivity and identifiability. |
+| mRLFE: `lamb.fitting.mrlfe.mrlfeFitDispersionData` | Material modulus/viscosity, density, current thickness, supported Poisson ratio and fluid density/sound speed. Explicit A0Like/S0Like, numerical preset and fit-grid policy. Fitting preserves original rows, repeated Hz and explicitly excluded DC, while the public forward solver receives only positive finite unique ascending Hz. Physical-tail/none termination and no fallback retain their native meaning. | Native public-solver route, requested/effective configuration, branch/termination and coverage evidence, optimizer result, sensitivity and identifiability. |
 | Prestressed Plate: `lamb.fitting.acoustoelastic_prestressed_plate.aePlateFitDispersion` | Reviewed A0 support, one condition and signed principal direction, density and current full thickness per original observation (optional `experimental.observationThickness_m`; scalar legacy `physical.thickness_m` retained). Original unweighted Li regression with one shared `alpha,gamma` across observations. At least **two** independent frequency groups plus its existing observation/group rank, conditioning, eta-squared span and tensile-support screens. Optional `independentFrequencyGroupId` belongs to this family only. | `accepted`, `reasons`, unconstrained candidate moduli/residuals and explicit observation/group diagnostics. A returned candidate is not necessarily accepted. |
-| AE IOP/HGO: `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` | Geometry/radius, current thickness, IOP, matrix/fibre material parameters, tissue/fluid densities and fluid bulk modulus, with explicit fixed/free parameters and bounds. Only official `atlasA0`. Positive finite full frequency axis and the selected-frequency initialization-anchor requirement remain enforced. Plate assumptions and grouping fields do not replace this model's contracts. | Official atlas output and validity policy, fixed-mask coverage, optimizer result, sensitivity/identifiability and native model diagnostics. Diagnostic/fallback curves are not substitute observations or official predictions. |
+| AE IOP/HGO: `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData` | Geometry/radius, current thickness, IOP, matrix/fibre material parameters, tissue/fluid densities and fluid bulk modulus, with explicit fixed/free parameters and bounds. Only official `atlasA0`. Fitting preserves explicitly excluded DC/nonpositive rows but sends only positive finite Hz to the native evaluator; selected frequencies must meet its initialization anchor. Plate assumptions and grouping fields do not replace this model's contracts. | Official atlas output and validity policy, fixed-mask coverage, optimizer result, sensitivity/identifiability and native model diagnostics. Diagnostic/fallback curves are not substitute observations or official predictions. |
 
 The native builders for RL, mRLFE and AE IOP/HGO currently accept requests with
 one selected observation; that does not establish parameter identifiability or
@@ -688,8 +690,8 @@ families keep their own equations, data requirements and residual definitions.
 ## Validation boundary
 
 The maintained OCE-preparation suite tests lossless translation and direct/native
-equivalence for all four families. Negative cases retain excluded DC and duplicate
-axis entries and assert native model restrictions, rather than repairing them.
+equivalence for all four families. Contract cases preserve excluded DC and duplicate axis entries and verify
+family-specific fitting behavior without changing original masks or observations.
 The native Plate/QH suites own its two-group coverage extension. Each repository's
 maintained gate owns regression evidence; no reference update is part of integration.
 

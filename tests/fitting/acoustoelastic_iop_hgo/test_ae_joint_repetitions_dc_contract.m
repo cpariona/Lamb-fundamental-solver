@@ -1,0 +1,46 @@
+function tests = test_ae_joint_repetitions_dc_contract()
+%TEST_AE_JOINT_REPETITIONS_DC_CONTRACT Preserve OCE rows in atlasA0 fitting.
+tests = functiontests(localfunctions);
+end
+
+function testRepeatedRowsAndExcludedDc(testCase)
+p = struct('R', 7.8e-3, 'thickness', 550e-6, 'mu', 50e3, ...
+    'k1', 25e3, 'k2', 100, 'rho', 1060, 'rhoF', 1000, ...
+    'fluidBulkModulus', 2.2e9, 'IOP', 15 * 133.322, ...
+    'frequency', logspace(log10(300), log10(15e3), 20));
+options = lamb.models.acoustoelastic_iop_hgo.aeDefaultOptions();
+options.M54_variant = "corrected";
+options.normalizeRows = false;
+options.atlasNumYPoints = 300;
+options.atlasTopNMinima = 12;
+options.atlasBranchPolicy = "atlasA0";
+options.atlasInitializationNumFrequencyPoints = 50;
+[cp, raw] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel( ...
+    p, p.frequency, "atlasA0", options);
+verifyTrue(testCase, all(raw.validMask));
+f = p.frequency(:);
+cp = cp(:);
+experimental = struct('frequency_Hz', [flipud(f); 0; f], ...
+    'Cp_mps', [flipud(cp); NaN; cp], ...
+    'validMask', [true(numel(f), 1); false; true(numel(f), 1)]);
+config = struct('branchName', "atlasA0", 'freeParams', "mu", ...
+    'fixedParams', rmfield(p, {'mu', 'frequency'}), ...
+    'initialGuess', struct('mu', 48e3), ...
+    'bounds', struct('mu', [45e3, 55e3]), 'solverOptions', options, ...
+    'fitOptions', struct('useStandardErrorWeights', false, ...
+    'optimizerOptions', optimset('Display', 'off', 'MaxIter', 10, ...
+    'MaxFunEvals', 24, 'TolX', 1e-3)));
+result = lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData(experimental, config);
+verifyEqual(testCase, result.frequency_Hz, experimental.frequency_Hz);
+verifyEqual(testCase, result.Cp_exp_mps, experimental.Cp_mps);
+verifyEqual(testCase, result.validMask, experimental.validMask);
+verifyTrue(testCase, isnan(result.Cp_fit_mps(numel(f) + 1)));
+verifyEqual(testCase, numel(result.residuals), 2 * numel(f));
+verifyEqual(testCase, result.Cp_fit_mps(1:numel(f)), ...
+    flipud(result.Cp_fit_mps(numel(f) + 2:end)));
+verifyEqual(testCase, result.bestParams.mu, p.mu, 'RelTol', 0.15);
+
+experimental.validMask(numel(f) + 1) = true;
+verifyError(testCase, @() lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem( ...
+    experimental, config), 'lamb:fitting:AEInvalidSelectedObservation');
+end

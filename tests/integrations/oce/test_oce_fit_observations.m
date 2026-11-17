@@ -368,8 +368,9 @@ selection.validMask = [false;true;true;true;true];
 prepared = prepareOceFitObservations(source,selection,metadata);
 original = prepared;
 config = struct('freeParams',"mu");
-verifyError(testCase,@() lamb.fitting.mrlfe.mrlfeBuildFitProblem(prepared.experimental,config), ...
-    'mrlfe:InvalidFrequency');
+mr = lamb.fitting.mrlfe.mrlfeBuildFitProblem(prepared.experimental,config);
+verifyEqual(testCase,mr.experimental.frequency_Hz,prepared.experimental.frequency_Hz);
+verifyEqual(testCase,mr.experimental.validMask,prepared.experimental.validMask);
 rl = lamb.models.rayleigh_lamb.rlDefaultParams();
 ae = lamb.fitting.acoustoelastic_iop_hgo.aeDefaultFitParameters();
 actions = {@() lamb.fitting.rayleigh_lamb.rlEvaluateFitModel(rl,prepared.experimental.frequency_Hz), ...
@@ -389,11 +390,12 @@ selection.validMask(:) = true;
 prepared = prepareOceFitObservations(source,selection,metadata);
 verifyError(testCase,@() lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem(prepared.experimental,config), ...
     'lamb:fitting:AEObjectiveOutsideSupportedRange');
-% Native mRLFE requires strict frequency order even for excluded axis entries.
+% Fitting keeps duplicate observations while the native solve grid stays unique.
 source.dispersion.estimators.kf_ridge.frequency_axis_hz = [1000;1000;2000;3000;4000];
 prepared = prepareOceFitObservations(source,selection,metadata);
-verifyError(testCase,@() lamb.fitting.mrlfe.mrlfeBuildFitProblem(prepared.experimental,config), ...
-    'mrlfe:InvalidFrequencyOrder');
+mr = lamb.fitting.mrlfe.mrlfeBuildFitProblem(prepared.experimental,config);
+verifyEqual(testCase,mr.experimental.frequency_Hz,prepared.experimental.frequency_Hz);
+verifyEqual(testCase,mr.experimental.validMask,prepared.experimental.validMask);
 end
 
 function testNativeRequestCountsAreNotPlateCoveragePolicy(testCase)

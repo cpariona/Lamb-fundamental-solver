@@ -24,9 +24,23 @@ if ~isfield(fitConfig, 'freeParams') || isempty(fitConfig.freeParams)
     error('fitConfig.freeParams is required.');
 end
 
+suppliedMask = [];
+if isfield(experimental, 'validMask') && ~isempty(experimental.validMask)
+    suppliedMask = logical(experimental.validMask(:));
+end
 experimental = lamb.fitting.validateExperimentalDispersionData(experimental, 1);
-if any(diff(experimental.frequency_Hz(experimental.validMask)) < 0)
-    error('mRLFE fitting requires valid frequency_Hz values to be sorted ascending.');
+if ~isempty(suppliedMask) && ~isequal(suppliedMask, experimental.validMask)
+    error('mrlfe:InvalidSelectedObservation', ...
+        'Selected observations require positive finite Hz and finite Cp; validMask cannot be repaired.');
+end
+% Rows keep their original order, duplicates and excluded (e.g. DC) entries.
+% Only admissible frequencies reach the public solver, which receives their
+% unique sorted values from the evaluator.
+frequency = experimental.frequency_Hz;
+admissible = isfinite(frequency) & frequency > 0;
+if ~all(admissible) && isempty(suppliedMask)
+    error('mrlfe:InvalidSelectedObservation', ...
+        'Nonpositive/nonfinite Hz require explicit validMask=false; exclusions are not inferred.');
 end
 
 branchName = lamb.fitting.getFitConfigValue(fitConfig, 'branchName', "A0Like");
@@ -47,7 +61,7 @@ freeParams = string(fitConfig.freeParams(:));
 bounds = lamb.fitting.getFitConfigValue(fitConfig, 'bounds', struct());
 [lowerBounds, upperBounds] = lamb.fitting.buildParameterBounds(bounds, freeParams);
 lamb.models.mrlfe.configuration.mrlfeBuildSolveRequest( ...
-    baseParams, experimental.frequency_Hz, branchName, solverOptions);
+    baseParams, unique(frequency(admissible), 'sorted'), branchName, solverOptions);
 nuIndex = freeParams == "nu";
 if any(lowerBounds(nuIndex) < 0.49 | upperBounds(nuIndex) >= 0.5 | ...
         ~isfinite(lowerBounds(nuIndex)) | ~isfinite(upperBounds(nuIndex)))
@@ -60,7 +74,7 @@ if ~isfield(fitOptions, 'useStandardErrorWeights')
     fitOptions.useStandardErrorWeights = false;
 end
 
-[solverOptions, forwardCache] = localAttachForwardCacheIfUseful(solverOptions, baseParams, freeParams, branchName, experimental);
+[solverOptions, forwardCache] = localAttachForwardCacheIfUseful(solverOptions, baseParams, freeParams, branchName, frequency(admissible));
 
 problem = struct();
 problem.modelFamily = "mrlfe";
@@ -80,9 +94,26 @@ problem.optimizerOptions = struct( ...
         'MaxFunEvals', 90, 'TolX', 1e-5), ...
     'fminsearch', optimset('Display', 'off', 'MaxIter', 60, ...
         'MaxFunEvals', 160, 'TolX', 1e-5, 'TolFun', 1e-7));
-problem.evaluateModel = @(params) lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, experimental.frequency_Hz, branchName, solverOptions);
+if all(admissible)
+    problem.evaluateModel = @(params) lamb.fitting.mrlfe.mrlfeEvaluateFitModel(params, frequency, branchName, solverOptions);
+else
+    problem.evaluateModel = @(params) localEvaluateExcludedRows(params, frequency, admissible, branchName, solverOptions);
+end
 problem.residualFunction = @(x) localResidualFunction(x, problem);
 problem.objectiveFunction = @(x) lamb.fitting.evaluateBoundedObjective(x, problem);
+end
+
+function [Cp_mps, rawResult] = localEvaluateExcludedRows(params, frequency, admissible, branchName, options)
+% Explicitly excluded nonpositive/nonfinite rows are retained but not solved.
+[values, rawResult] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel( ...
+    params, frequency(admissible), branchName, options);
+Cp_mps = nan(size(frequency));
+Cp_mps(admissible) = values;
+available = false(size(frequency));
+available(admissible) = rawResult.validMask;
+rawResult.frequency_Hz = frequency;
+rawResult.Cp_mps = Cp_mps;
+rawResult.validMask = available;
 end
 
 function residuals = localResidualFunction(x, problem)
@@ -91,7 +122,7 @@ CpModel_mps = problem.evaluateModel(params);
 residuals = lamb.fitting.computeDispersionFitResiduals(CpModel_mps, problem.experimental, problem.fitOptions);
 end
 
-function [solverOptions, forwardCache] = localAttachForwardCacheIfUseful(solverOptions, baseParams, freeParams, branchName, experimental)
+function [solverOptions, forwardCache] = localAttachForwardCacheIfUseful(solverOptions, baseParams, freeParams, branchName, frequency_Hz)
 forwardCache = struct();
 forwardCache.enabled = false;
 forwardCache.kind = "none";
@@ -132,7 +163,7 @@ referenceParams = baseParams;
 referenceParams.etaS = 0;
 
 try
-    [~, rawReference] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(referenceParams, experimental.frequency_Hz, branchName, referenceOptions);
+    [~, rawReference] = lamb.fitting.mrlfe.mrlfeEvaluateFitModel(referenceParams, frequency_Hz, branchName, referenceOptions);
     if isfield(rawReference, 'elasticReferenceResult') && isstruct(rawReference.elasticReferenceResult)
         solverOptions.mrlfeElasticReferenceResult = rawReference.elasticReferenceResult;
         forwardCache.enabled = true;

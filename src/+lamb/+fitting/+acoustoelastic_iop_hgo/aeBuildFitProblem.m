@@ -18,7 +18,23 @@ end
 if ~isfield(fitConfig, 'freeParams') || isempty(fitConfig.freeParams)
     error('fitConfig.freeParams is required.');
 end
+suppliedMask = [];
+if isfield(experimental, 'validMask') && ~isempty(experimental.validMask)
+    suppliedMask = logical(experimental.validMask(:));
+end
 experimental = lamb.fitting.validateExperimentalDispersionData(experimental, 1);
+if ~isempty(suppliedMask) && ~isequal(suppliedMask, experimental.validMask)
+    error('lamb:fitting:AEInvalidSelectedObservation', ...
+        'Selected observations require positive finite Hz and finite Cp; validMask cannot be repaired.');
+end
+% Explicitly excluded nonpositive/nonfinite rows (e.g. DC) stay in the
+% experimental/result arrays but are never sent to the native evaluator.
+frequency = experimental.frequency_Hz;
+admissible = isfinite(frequency) & frequency > 0;
+if ~all(admissible) && isempty(suppliedMask)
+    error('lamb:fitting:AEInvalidSelectedObservation', ...
+        'Nonpositive/nonfinite Hz require explicit validMask=false; exclusions are not inferred.');
+end
 
 branchName = lamb.fitting.getFitConfigValue(fitConfig, 'branchName', "atlasA0");
 branchName = lamb.models.acoustoelastic_iop_hgo.configuration.aeNormalizeBranchPolicy(branchName);
@@ -65,9 +81,26 @@ problem.optimizerOptions = struct( ...
         'MaxFunEvals', 55, 'TolX', 1e-4), ...
     'fminsearch', optimset('Display', 'off', 'MaxIter', 45, ...
         'MaxFunEvals', 120, 'TolX', 1e-4, 'TolFun', 1e-6));
-problem.evaluateModel = @(params) lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(params, experimental.frequency_Hz, branchName, solverOptions);
+if all(admissible)
+    problem.evaluateModel = @(params) lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel(params, frequency, branchName, solverOptions);
+else
+    problem.evaluateModel = @(params) localEvaluateExcludedRows(params, frequency, admissible, branchName, solverOptions);
+end
 problem.residualFunction = @(x) localResidualFunction(x, problem);
 problem.objectiveFunction = @(x) lamb.fitting.evaluateBoundedObjective(x, problem);
+end
+
+function [Cp_mps, rawResult] = localEvaluateExcludedRows(params, frequency, admissible, branchName, options)
+[values, rawResult] = lamb.fitting.acoustoelastic_iop_hgo.aeEvaluateFitModel( ...
+    params, frequency(admissible), branchName, options);
+Cp_mps = nan(size(frequency));
+Cp_mps(admissible) = values;
+available = false(size(frequency));
+available(admissible) = rawResult.validMask;
+% solverResult retains the native positive-frequency evaluation untouched.
+rawResult.frequency_Hz = frequency;
+rawResult.Cp_mps = Cp_mps;
+rawResult.validMask = available;
 end
 
 function residuals = localResidualFunction(x, problem)
