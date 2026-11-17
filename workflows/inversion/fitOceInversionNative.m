@@ -1,5 +1,7 @@
 function [nativeResult, reused, physics] = fitOceInversionNative(study, assembly, experimental, physics, review, sourceFiles, family)
 %FITOCEINVERSIONNATIVE Reuse exact requests or delegate to native family fitting.
+% Families: "RayleighLamb", "mRLFE" (canonical SI physics translated here to the
+% native names) and "Plate".
 % No estimation of bandwidth, weights, model support or material parameters.
 family=string(family);
 existing=study.existingNativeResult;
@@ -24,10 +26,19 @@ if ~isempty(existing)&&~isempty(existingAssembly)
         recordedFiles=string({existingAssembly.lineage.resultFile})';
     end
     same=isequal(recordedFiles,string(sourceFiles(:)));
-    if family=="RayleighLamb"
-        nativeProblem=lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,physics);
+    if family~="Plate"
+        % RL and mRLFE compare their native problem value fields; the builders
+        % validate without optimizing (mRLFE may precompute its own cache).
+        if family=="RayleighLamb"
+            nativeProblem=lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,physics);
+            nativeName="rayleigh_lamb";
+        else
+            nativeProblem=lamb.fitting.mrlfe.mrlfeBuildFitProblem( ...
+                experimental,translateOceMrlfeConfig(physics));
+            nativeName="mrlfe";
+        end
         effective=rmfield(nativeProblem,{'evaluateModel','residualFunction','objectiveFunction'});
-        same=same&&string(existing.modelFamily)=="rayleigh_lamb"&& ...
+        same=same&&string(existing.modelFamily)==nativeName&& ...
             isequaln(existing.problem,effective);
         if study.excitationMode=="QH"&&study.estimator=="kf_ridge"
             same=same&&isequaln(existingAssembly.physicalFrequency_Hz,assembly.physicalFrequency_Hz)&& ...
@@ -54,6 +65,9 @@ assert(reused||~study.reuseOnly,'lamb:study:RequestMismatch', ...
 if ~reused
     if family=="RayleighLamb"
         nativeResult=lamb.fitting.rayleigh_lamb.rlFitDispersionData(experimental,physics);
+    elseif family=="mRLFE"
+        nativeResult=lamb.fitting.mrlfe.mrlfeFitDispersionData( ...
+            experimental,translateOceMrlfeConfig(physics));
     elseif study.excitationMode=="QH"
         outcome=fitOceQhPrestressedPlate(assembly,physics,review,fitOptions);
         nativeResult=outcome.nativeResult;
@@ -64,9 +78,9 @@ if ~reused
 end
 assert(isequal(nativeResult.validMask,experimental.validMask), ...
     'lamb:study:NativeMask','Native result must retain the reviewed mask.');
-if family=="RayleighLamb"
+if family~="Plate"
     assert(isequaln(nativeResult.frequency_Hz,experimental.frequency_Hz)&& ...
         isequaln(nativeResult.Cp_exp_mps,experimental.Cp_mps), ...
-        'lamb:study:NativeRows','RL must retain the original observation rows.');
+        'lamb:study:NativeRows','%s must retain the original observation rows.',family);
 end
 end

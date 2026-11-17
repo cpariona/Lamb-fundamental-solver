@@ -8,6 +8,7 @@ intentionally does not add workflows to the path.
 | Open in MATLAB Editor | Scientific fitting owner |
 | --- | --- |
 | [run_rl_oce_inversion.m](run_rl_oce_inversion.m) | Rayleigh–Lamb A0/S0, native nonlinear fitting |
+| [run_mrlfe_oce_inversion.m](run_mrlfe_oce_inversion.m) | Fluid-loaded mRLFE A0Like/S0Like, native nonlinear fitting |
 | [run_ae_plate_oce_inversion.m](run_ae_plate_oce_inversion.m) | Prestressed Plate A0, native linear SVD fitting |
 
 ## Run Section procedure
@@ -49,9 +50,31 @@ intentionally does not add workflows to the path.
    `study.fitFrequencySelection="all"` requires explicitly setting
    `study.fullBandReviewed=true` after reviewing the band. This does not
    certify A0 purity or bypass the fixed observation mask.
+   **mRLFE** ([run_mrlfe_oce_inversion.m](run_mrlfe_oce_inversion.m)) uses
+   one scalar current full thickness for the whole joint fit:
+   `study.thicknessPolicy` must be `"oce_median_per_case"` (median of one OCE
+   directional thickness per selected acquisition) or `"explicit_constant"`
+   (then `fixedParams.thickness_m`). Per-acquisition thickness is rejected and
+   never averaged implicitly. Every physical input is a reviewed canonical SI
+   value, either fixed or free with an initial guess and bounds: `mu_Pa`,
+   `etaS_Pas`, `density_kgpm3`, `thickness_m`, `poisson_ratio`,
+   `fluidDensity_kgpm3`, `fluidSoundSpeed_mps`. Thickness and fluid properties
+   are always fixed; no native default fills a missing value, and native names
+   (`mu`, `rho`, `nu`, ...) are not accepted alongside them.
+   `translateOceMrlfeConfig` maps them to the unchanged native symbols at the
+   fitting boundary. The native evaluator requires **strict full-axis
+   support**: the whole requested frequency axis, including excluded rows, must
+   be positive, finite and strictly ascending. Excluded DC rows, pooled
+   repetitions with repeated Hz or unordered axes are rejected, never trimmed,
+   sorted, averaged or masked differently; a per-acquisition broadband curve
+   can satisfy it. Native mRLFE support (including `0.49 <= nu < 0.5` for a
+   free Poisson ratio) stays with its fitting owner.
+   **A returned mRLFE fit is not an experimental validity claim**: the
+   model-assumption justification is researcher-supplied and neither fit
+   success nor RMSE certifies mode identity, fluid-loading or support.
 6. Fitting is disabled by default (`study.reuseOnly=true`). Only after
    inspecting the request set `study.reuseOnly=false` in the workspace, then
-   run the corresponding fit section (RL section 6; Plate section 5).
+   run the corresponding fit section (RL and mRLFE section 6; Plate section 5).
 7. Saving MAT and exporting FIG/TIF are independently disabled by default.
    When enabled, paths are automatically resolved under the experiment root
    (see next section); absolute paths are not accepted as overrides.
@@ -95,7 +118,7 @@ hard-coded in any workflow. Unless overridden, the input summary is
 output is:
 
 ```text
-Results/<subexperiment>/Inversions/<RayleighLamb|Plate>/<case>/
+Results/<subexperiment>/Inversions/<RayleighLamb|mRLFE|Plate>/<case>/
     inversion.mat
     inversion.fig
     inversion.tif
@@ -121,6 +144,7 @@ next to `OCE_Experiments` under the same user-chosen parent directory:
 <user-chosen-parent>/OCE_Experiments/<experiment>/Results/...
 <user-chosen-parent>/OCE_Inversions/<experiment>/<subexperiment>/
     RayleighLamb/<case>/inversion.{mat,fig,tif}
+    mRLFE/<case>/inversion.{mat,fig,tif}
     Plate/<case>/inversion.{mat,fig,tif}
 ```
 
@@ -157,6 +181,16 @@ model-assumption justifications. The public RL fitting boundary maps those
 unit-qualified inputs to its retained native mathematical parameter symbols;
 Plate accepts the same density/thickness fields directly. Do not assign
 placeholder values or infer physical parameters from paths.
+
+mRLFE is opt-in in the batch: add `"mRLFE"` to `families` only after completing
+`mrlfe_fit_config` (branchName `A0Like`/`S0Like`, canonical SI `fixedParams`,
+`freeParams`, `initialGuess`, `bounds`) and `mrlfe_review`. These are copied
+unchanged; the shared `material`/`geometry` fields do not fill mRLFE physics.
+mRLFE accepts only a scalar geometry (`thickness_policy="oce_median_per_case"`
+or `"explicit_constant"`; per-acquisition is rejected), and its strict
+full-axis support rejects unsupported axes without repair (see the human
+workflow description above). A completed mRLFE batch case carries the same
+no-experimental-validity caveat as the manual workflow.
 
 For an experiment-wide batch, `thickness_policy="oce_median_per_case"`
 is the default. Each acquisition with a selected fitting row contributes its
@@ -197,7 +231,7 @@ native metadata contract and are rejected rather than silently renumbered.
 A missing selected repetition or signed direction is an error.
 
 Section 3 previews the independent, reviewable `plan.cases` arrays returned
-for the explicitly selected RayleighLamb and/or Plate families. The generated condition ID is a stable path label derived from
+for the explicitly selected RayleighLamb, mRLFE and/or Plate families. The generated condition ID is a stable path label derived from
 recorded mechanical keys and exact values (for example,
 `Strain_0pct_<8-hex fingerprint>`); it does not depend on acquisition or Pulse-period
 ordering. The eight-digit fragment is a condition fingerprint, not a Git commit. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
@@ -216,8 +250,8 @@ path is required for this human workflow.
 
 Add `workflows/inversion` to your MATLAB path explicitly for callable functions and initialize
 Lamb and OCE as with the interactive drivers. The single programmable batch entry point is `runOceInversionBatch(plan,family)`,
-where `family="RayleighLamb"` or `family="Plate"`. This avoids maintaining
-two model-only forwarding wrappers; each case is still reviewed and executed
+where `family="RayleighLamb"`, `"mRLFE"` or `"Plate"`. This avoids maintaining
+model-only forwarding wrappers; each case is still reviewed and executed
 by its own native physical family.
 
 To construct plans without MATLAB Editor, call
@@ -299,7 +333,8 @@ experiment-wide batch defaults to `thickness_policy="oce_median_per_case"`:
 one median current full thickness across unique acquisitions represented in
 the valid fitting mask, per condition/axis/signed direction. It retains all
 selected frequency/repetition velocities and their original thickness records.
-Both models use this single scalar geometry throughout their one joint fit.
+Plate and mRLFE use this single scalar geometry throughout their one joint
+fit (mRLFE supports no per-acquisition alternative).
 `"oce_directional_per_acquisition"` remains a supported option; programmatic
 plans must state their own reviewed policy. `plan.execute=true`
 explicitly permits fresh native fits; set `plan.reuseOnly=true` to require

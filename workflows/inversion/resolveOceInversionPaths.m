@@ -3,8 +3,8 @@ function study = resolveOceInversionPaths(study, family)
 % Single-study outputs remain inside experimentRoot. Batch callers may pass
 % inversionsRoot to save outside the experiment while preserving relative paths.
 family=string(family);
-assert(isscalar(family)&&any(family==["RayleighLamb","Plate"]), ...
-    'lamb:study:ModelFamily','Select RayleighLamb or Plate.');
+assert(isscalar(family)&&any(family==["RayleighLamb","mRLFE","Plate"]), ...
+    'lamb:study:ModelFamily','Select RayleighLamb, mRLFE or Plate.');
 root=string(study.experimentRoot);
 assert(isscalar(root)&&~ismissing(root)&&strlength(strtrim(root))>0&&isfolder(root), ...
     'lamb:study:ExperimentRoot','Supply an existing experiment root.');

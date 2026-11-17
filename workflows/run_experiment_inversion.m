@@ -7,7 +7,7 @@ inversions_root = ""; % Optional absolute root; default is beside OCE_Experiment
 oce_repository_root = string(getpref('LambFundamentalSolver','oceRepositoryRoot',''));
 subexperiments = "all"; % "all" or exact recorded subexperiment IDs
 condition_keys = "strain_percent"; % Exact mechanical metadata field(s) to group; edit as needed
-families = ["RayleighLamb","Plate"];
+families = ["RayleighLamb","Plate"]; % optional: "mRLFE" (see its inputs below)
 repetitions = "all"; % "all" or exact recorded repetition IDs
 scan_axes = "all"; % "all" or numeric scan axis indices
 directions = ["left","right"]; % "all" or a subset
@@ -32,6 +32,19 @@ rl_fit_parameter_justification = "";
 rl_model_assumptions_justification = "";
 plate_model_assumptions_justification = "";
 plate_fit_options = struct();
+
+% mRLFE is opt-in: add "mRLFE" to families only after completing these inputs.
+% Canonical SI names; every value is explicit (no native default is used).
+% mRLFE has one scalar thickness: use thickness_policy "oce_median_per_case"
+% or "explicit_constant" (then set fixedParams.thickness_m). Fluid properties
+% and viscosity are researcher-supplied; branchName is "A0Like" or "S0Like".
+mrlfe_fit_config = struct('branchName',"", 'freeParams',"mu_Pa", ...
+    'fixedParams',struct('density_kgpm3',NaN,'thickness_m',NaN,'poisson_ratio',NaN, ...
+        'etaS_Pas',NaN,'fluidDensity_kgpm3',NaN,'fluidSoundSpeed_mps',NaN), ...
+    'initialGuess',struct('mu_Pa',NaN),'bounds',struct('mu_Pa',[NaN NaN]));
+mrlfe_review = struct('thicknessSource',"",'thicknessJustification',"", ...
+    'densitySource',"",'fluidSource',"",'fitParameterJustification',"", ...
+    'modelAssumptionsJustification',"");
 
 % Safe defaults: plan first, then enable an authorized new run.
 run_batches = false;
@@ -65,7 +78,8 @@ config = struct( ...
     'thickness_source',thickness_source, 'thickness_justification',thickness_justification, ...
     'rl_mu_initial_guess_Pa',rl_mu_initial_guess_Pa, 'rl_mu_bounds_Pa',rl_mu_bounds_Pa, ...
     'rl_fit_parameter_justification',rl_fit_parameter_justification, 'rl_model_assumptions_justification',rl_model_assumptions_justification, ...
-    'plate_model_assumptions_justification',plate_model_assumptions_justification, 'plate_fit_options',plate_fit_options);
+    'plate_model_assumptions_justification',plate_model_assumptions_justification, 'plate_fit_options',plate_fit_options, ...
+    'mrlfe_fit_config',mrlfe_fit_config, 'mrlfe_review',mrlfe_review);
 plans = buildOceInversionPlans(config);
 
 %% 3. PREVIEW REVIEWED CASES AND OUTPUT DESTINATIONS

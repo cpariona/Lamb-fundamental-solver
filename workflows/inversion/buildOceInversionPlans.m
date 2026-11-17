@@ -13,6 +13,14 @@ function plans = buildOceInversionPlans(config)
 %   rl_mu_initial_guess_Pa, rl_mu_bounds_Pa, rl_fit_parameter_justification,
 %   rl_model_assumptions_justification, plate_model_assumptions_justification,
 %   plate_fit_options. Empty/NaN review placeholders remain unapproved inputs.
+% Family "mRLFE" additionally requires mrlfe_fit_config (canonical SI
+% branchName, freeParams, fixedParams, initialGuess and bounds, see
+% translateOceMrlfeConfig) and mrlfe_review (thicknessSource,
+% thicknessJustification, densitySource, fluidSource, fitParameterJustification
+% and modelAssumptionsJustification). They are read only when requested and are
+% copied unchanged: material/geometry above do not fill mRLFE physics. A
+% reviewed scalar thickness_policy applies ("explicit_constant" or
+% "oce_median_per_case"); the review function enforces it at execution.
 % Returns a column cell array in CONFIG.families order. Every plan has
 % execute=false and the existing runOceInversionBatch contract. Discovery
 % recovers each selected summary once through OCE, preserving exact condition
@@ -55,9 +63,14 @@ addpath(fullfile(oce_repository_root,"src"),"-end");
 assertOceInversionProducerPath(oce_repository_root);
 assert(isfolder(experiment_root),'lamb:workflow:ExperimentRoot', ...
     'Select an existing OCE experiment root.');
-assert(~isempty(families) && all(ismember(families,["RayleighLamb","Plate"])) && ...
+assert(~isempty(families) && all(ismember(families,["RayleighLamb","mRLFE","Plate"])) && ...
     numel(unique(families))==numel(families), ...
     'lamb:workflow:Families','Select distinct supported families.');
+if any(families=="mRLFE")
+    assert(isfield(config,'mrlfe_fit_config') && isfield(config,'mrlfe_review'), ...
+        'lamb:workflow:MrlfeConfiguration', ...
+        'mRLFE requires explicit mrlfe_fit_config and mrlfe_review.');
+end
 
 summary_files = dir(fullfile(experiment_root,"Results","*","summary.mat"));
 assert(~isempty(summary_files),'lamb:workflow:NoSummaries', ...
@@ -182,6 +195,10 @@ for sub = chosen(:)'
                     if families(k)=="RayleighLamb"
                         current.fitConfig=rl_fit;
                         current.review=rl_review;
+                        current.observationMask=[];
+                    elseif families(k)=="mRLFE"
+                        current.fitConfig=config.mrlfe_fit_config;
+                        current.review=config.mrlfe_review;
                         current.observationMask=[];
                     else
                         current.physical=plate_physical;
