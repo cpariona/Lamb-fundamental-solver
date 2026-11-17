@@ -147,6 +147,40 @@ verifyError(testCase,@()saveInverseFigure(fig,folder,'synthetic_plate_raw'),'lam
 verifyError(testCase,@()saveInverseFigure(fig,folder,'../source'),'lamb:visualization:InvalidDestination');
 end
 
+function testFailedTiffExportLeavesNoPartialPair(testCase)
+fig=figure('Visible','off');closeFigure=onCleanup(@()close(fig)); %#ok<NASGU>
+outputFolder=tempname;mkdir(outputFolder);cleanOutput=onCleanup(@()rmdir(outputFolder,'s')); %#ok<NASGU>
+mockFolder=tempname;mkdir(mockFolder);cleanMock=onCleanup(@()rmdir(mockFolder,'s')); %#ok<NASGU>
+mockFile=fullfile(mockFolder,'print.m');
+fid=fopen(mockFile,'w');
+fprintf(fid,"function print(varargin)\nerror('test:PrintFailure','Forced TIF export failure.');\nend\n");
+fclose(fid);
+originalPath=path;addpath(mockFolder,'-begin');restorePath=onCleanup(@()path(originalPath)); %#ok<NASGU>
+verifyError(testCase,@()saveInverseFigure(fig,outputFolder,'failed_export'),'test:PrintFailure');
+verifyEmpty(testCase,dir(fullfile(outputFolder,'*.fig')));
+verifyEmpty(testCase,dir(fullfile(outputFolder,'*.tif')));
+delete(restorePath)
+end
+
+function testLateTiffCollisionPreservesExistingFile(testCase)
+fig=figure('Visible','off');closeFigure=onCleanup(@()close(fig)); %#ok<NASGU>
+outputFolder=tempname;mkdir(outputFolder);cleanOutput=onCleanup(@()rmdir(outputFolder,'s')); %#ok<NASGU>
+mockFolder=tempname;mkdir(mockFolder);cleanMock=onCleanup(@()rmdir(mockFolder,'s')); %#ok<NASGU>
+existingTif=fullfile(outputFolder,'collision.tif');
+fid=fopen(fullfile(mockFolder,'print.m'),'w');
+fprintf(fid,"function print(varargin)\n" + ...
+    "fid=fopen(varargin{2},'w');fwrite(fid,'staged');fclose(fid);\n" + ...
+    "fid=fopen('%s','w');fwrite(fid,'existing');fclose(fid);\nend\n",existingTif);
+fclose(fid);
+originalPath=path;addpath(mockFolder,'-begin');restorePath=onCleanup(@()path(originalPath)); %#ok<NASGU>
+verifyError(testCase,@()saveInverseFigure(fig,outputFolder,'collision'),'lamb:visualization:OutputExists');
+verifyFalse(testCase,isfile(fullfile(outputFolder,'collision.fig')));
+verifyEqual(testCase,fileread(existingTif),'existing');
+verifyEmpty(testCase,dir(fullfile(outputFolder,'*.fig')));
+verifyEqual(testCase,numel(dir(fullfile(outputFolder,'*.tif'))),1);
+delete(restorePath)
+end
+
 function testRankDeficientResidualsAreNotInvented(testCase)
 [native,review]=fixture();data=struct('frequency_Hz',[1000;1000], ...
     'Cp_mps',[12;12],'validMask',true(2,1),'conditionId',"one",'directionId',"axis1:left");
