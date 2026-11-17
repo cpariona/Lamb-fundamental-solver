@@ -114,7 +114,7 @@ constant=reviewStudy("explicit_constant");constant.fitConfig.fixedParams.thickne
 verifyRejected(testCase,@()reviewOceInversionPhysics(constant,assembly,obs,"mRLFE"));
 end
 
-function testInvalidSupportAndFullAxisAreRejectedWithoutRepair(testCase)
+function testInvalidSupportAndFullAxisArePreservedWithoutRepair(testCase)
 mock=installNativeFitDouble(testCase);
 study=reviewStudy("explicit_constant");
 % Unsupported Poisson ratio: native support owner rejects it.
@@ -122,19 +122,20 @@ bad=study;bad.fitConfig.fixedParams.poisson_ratio=.45;
 [assembly,obs]=assemblyFixture([1000;2000;3000;4000],true(4,1),[]);
 verifyError(testCase,@()reviewOceInversionPhysics(bad,assembly,obs,"mRLFE"), ...
     'mrlfe:UnsupportedPoissonRatio');
-% An excluded DC row is not trimmed: the full axis must be positive.
+% Excluded DC stays in the reviewed observations and is not evaluated.
 [assembly,obs]=assemblyFixture([0;1000;2000;3000],logical([0;1;1;1]),[]);
 before=assembly;
-verifyError(testCase,@()reviewOceInversionPhysics(study,assembly,obs,"mRLFE"), ...
-    'mrlfe:InvalidFrequency');
+[retained,~,~]=reviewOceInversionPhysics(study,assembly,obs,"mRLFE");
+verifyEqual(testCase,retained,assembly.experimental);
 verifyEqual(testCase,assembly,before);
-% Pooled repetitions with duplicate observed Hz are not a native mRLFE axis.
+% Repetitions remain separate observations despite a unique solver grid.
 [assembly,obs]=assemblyFixture([1000;1000;2000;2000],true(4,1),[]);
-verifyError(testCase,@()reviewOceInversionPhysics(study,assembly,obs,"mRLFE"), ...
-    'mrlfe:InvalidFrequencyOrder');
-% Selected rows are never sorted, whatever the axis order.
+[retained,~,~]=reviewOceInversionPhysics(study,assembly,obs,"mRLFE");
+verifyEqual(testCase,retained,assembly.experimental);
+% Selected rows are retained in their original order.
 [assembly,obs]=assemblyFixture([3000;2000;1000;4000],true(4,1),[]);
-verifyRejected(testCase,@()reviewOceInversionPhysics(study,assembly,obs,"mRLFE"));
+[retained,~,~]=reviewOceInversionPhysics(study,assembly,obs,"mRLFE");
+verifyEqual(testCase,retained,assembly.experimental);
 % A selected row that native normalization would deselect is rejected.
 [assembly,obs]=assemblyFixture([1000;2000;3000;4000],true(4,1),[]);
 assembly.experimental.Cp_mps(2)=NaN;
