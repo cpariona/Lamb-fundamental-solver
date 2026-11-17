@@ -34,8 +34,10 @@ sort, collapse repeated frequencies, average speeds, modify the mask or substitu
 diagnostic branches to bypass native rejection. Record the rejection. In particular,
 pooled QH repetitions with duplicate observed Hz are not a valid native mRLFE
 axis. Automatic repeated-frequency projection is not supplied by this integration;
-changing that native fitting contract requires its own review. A per-acquisition
-broadband curve can already satisfy the maintained mRLFE axis contract.
+changing that native fitting contract requires its own review. OCE's intact
+per-acquisition k-f broadband axis retains DC. Even with DC explicitly excluded
+by the fitting mask, that full axis is rejected by mRLFE and AE IOP/HGO; this
+integration does not project it to a different native request.
 
 ## Canonical public physical inputs
 
