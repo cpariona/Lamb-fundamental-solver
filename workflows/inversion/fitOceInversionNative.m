@@ -1,7 +1,7 @@
 function [nativeResult, reused, physics] = fitOceInversionNative(study, assembly, experimental, physics, review, sourceFiles, family)
 %FITOCEINVERSIONNATIVE Reuse exact requests or delegate to native family fitting.
 % Families: "RayleighLamb", "mRLFE" (canonical SI physics translated here to the
-% native names) and "Plate".
+% native names), "AcoustoelasticIOPHGO" (physics.native) and "Plate".
 % No estimation of bandwidth, weights, model support or material parameters.
 family=string(family);
 existing=study.existingNativeResult;
@@ -27,23 +27,28 @@ if ~isempty(existing)&&~isempty(existingAssembly)
     end
     same=isequal(recordedFiles,string(sourceFiles(:)));
     if family~="Plate"
-        % RL and mRLFE compare their native problem value fields; the builders
-        % validate without optimizing (mRLFE may precompute its own cache).
+        % Exact native request, including the unchanged observations and fixed mask.
+        % The builders validate without optimizing (mRLFE may precompute its own cache).
         if family=="RayleighLamb"
             nativeProblem=lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,physics);
-            nativeName="rayleigh_lamb";
-        else
+            modelFamily="rayleigh_lamb";
+        elseif family=="mRLFE"
             nativeProblem=lamb.fitting.mrlfe.mrlfeBuildFitProblem( ...
                 experimental,translateOceMrlfeConfig(physics));
-            nativeName="mrlfe";
+            modelFamily="mrlfe";
+        else
+            nativeProblem=lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem( ...
+                experimental,physics.native);
+            modelFamily="acoustoelastic_iop_hgo";
         end
         effective=rmfield(nativeProblem,{'evaluateModel','residualFunction','objectiveFunction'});
-        same=same&&string(existing.modelFamily)==nativeName&& ...
+        same=same&&string(existing.modelFamily)==modelFamily&& ...
             isequaln(existing.problem,effective);
         if study.excitationMode=="QH"&&study.estimator=="kf_ridge"
-            same=same&&isequaln(existingAssembly.physicalFrequency_Hz,assembly.physicalFrequency_Hz)&& ...
-                isequaln(existingAssembly.requestedTargetFrequency_Hz,assembly.requestedTargetFrequency_Hz)&& ...
-                isequal([existingAssembly.lineage.binIndex],[assembly.lineage.binIndex]);
+            % Optional assembly fields must match exactly, including presence.
+            same=same&&sameOptionalField(existingAssembly,assembly,'physicalFrequency_Hz')&& ...
+                sameOptionalField(existingAssembly,assembly,'requestedTargetFrequency_Hz')&& ...
+                sameLineageBins(existingAssembly,assembly);
         end
     else
         same=same&&isequaln(existing.physical,physics)&&isequaln(existing.options,fitOptions);
@@ -68,6 +73,9 @@ if ~reused
     elseif family=="mRLFE"
         nativeResult=lamb.fitting.mrlfe.mrlfeFitDispersionData( ...
             experimental,translateOceMrlfeConfig(physics));
+    elseif family=="AcoustoelasticIOPHGO"
+        nativeResult=lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData( ...
+            experimental,physics.native);
     elseif study.excitationMode=="QH"
         outcome=fitOceQhPrestressedPlate(assembly,physics,review,fitOptions);
         nativeResult=outcome.nativeResult;
@@ -83,4 +91,15 @@ if family~="Plate"
         isequaln(nativeResult.Cp_exp_mps,experimental.Cp_mps), ...
         'lamb:study:NativeRows','%s must retain the original observation rows.',family);
 end
+end
+
+function tf=sameOptionalField(a,b,name)
+hasA=isfield(a,name);hasB=isfield(b,name);
+tf=hasA==hasB&&(~hasA||isequaln(a.(name),b.(name)));
+end
+
+function tf=sameLineageBins(a,b)
+hasA=isfield(a,'lineage')&&isfield(a.lineage,'binIndex');
+hasB=isfield(b,'lineage')&&isfield(b.lineage,'binIndex');
+tf=hasA==hasB&&(~hasA||isequal([a.lineage.binIndex],[b.lineage.binIndex]));
 end

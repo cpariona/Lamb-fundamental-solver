@@ -332,6 +332,44 @@ The RL study also accepts the already recorded QH `phase_gradient` estimator;
 it does not compute one or substitute it for missing k-f results. Pulse requires
 `kf_ridge`. Plate keeps its existing k-f contract.
 
+## Maintained human AE IOP/HGO inversion workflow
+
+[run_ae_iop_hgo_oce_inversion.m](../workflows/run_ae_iop_hgo_oce_inversion.m) and the
+`"AcoustoelasticIOPHGO"` family of `runOceInversionBatch` fit the official `atlasA0`
+curve through `lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData`, with the
+same selection, review, reuse, persistence and visualization owners as RL and Plate.
+`study.ae` carries explicit canonical SI inputs, translated to the native symbols
+only by [buildOceAeIopHgoFitConfig](../workflows/inversion/buildOceAeIopHgoFitConfig.m):
+
+| Canonical name | Native | Unit |
+| --- | --- | --- |
+| `radius_m`, `thickness_m` | `R`, `thickness` | m (current full thickness) |
+| `iop_Pa`, `mu_Pa`, `k1_Pa`, `fluidBulkModulus_Pa` | `IOP`, `mu`, `k1`, `fluidBulkModulus` | Pa |
+| `k2` | `k2` | dimensionless |
+| `density_kgpm3`, `fluidDensity_kgpm3` | `rho`, `rhoF` | kg/m^3 (tissue, fluid) |
+
+Every quantity is supplied: free parameters (`iop_Pa`, `mu_Pa`, `k1_Pa`, `k2`) need an
+initial guess and bounds, and all others appear in `fixedPhysical`. No native default
+fills a missing value and legacy native names are rejected. `executionProfile`
+(`Fast`/`Balanced`/`Robust`) changes cost only. Constraints specific to this family:
+
+- Only `atlasA0`; S0 and diagnostic branches are rejected (`lamb:study:AEBranch`).
+  The derived `review.modelBranch` is `A0`.
+- One reviewed scalar current thickness. OCE directional/median/reference thickness
+  policies are not applied; thickness is never fitted. Measured OCE thickness remains
+  provenance only, like load, mass and DIC, which are not fitting constraints.
+- The complete original frequency axis and fixed `validMask` are passed unchanged.
+  A nonpositive or nonfinite Hz row is an error (`lamb:study:AEFrequencyAxis`), and a
+  selected row below the native initialization anchor raises the native
+  `lamb:fitting:AEObjectiveOutsideSupportedRange`; the workflow never trims or repairs.
+  Review preflight builds the native problem and runs no forward solve.
+- Native reuse requires an identical native request, mask and source files. `fitConfig`
+  in `inversion.mat` stores the researcher SI inputs (`researcher`) and the native request (`native`).
+- Reports use the native phase-speed RMSE (m/s) over the fixed mask. It is a numerical
+  residual, not a model-acceptance test or biomechanical validation.
+
+### Rayleigh-Lamb selection fields
+
 RL uses the common selection fields above plus:
 
 | Configuration | Native RL meaning |

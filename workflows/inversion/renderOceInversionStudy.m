@@ -48,6 +48,9 @@ if family=="RayleighLamb"
 elseif family=="mRLFE"
     [fig,figureEvidence]=plotMrlfeFitDiagnostics(nativeResult,provenance, ...
         'DisplayObservationMask',displayRows,'Visible',visible);
+elseif family=="AcoustoelasticIOPHGO"
+    [fig,figureEvidence]=plotAeIopHgoFitDiagnostics(nativeResult,provenance, ...
+        'DisplayObservationMask',displayRows,'Visible',visible);
 else
     provenance.sourceMasks=struct('valid_mask',r.ridgeValid, ...
         'interpolated_mask',r.interpolated,'extrapolated_mask',r.extrapolated);

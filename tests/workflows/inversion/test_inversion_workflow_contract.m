@@ -4,7 +4,8 @@ function test_inversion_workflow_contract()
 repoRoot = testRepositoryRoot(mfilename('fullpath'));
 workflowRoot = fullfile(repoRoot, 'workflows');
 functionRoot = fullfile(workflowRoot, 'inversion');
-owners = ["run_rl_oce_inversion"; "run_ae_plate_oce_inversion"];
+owners = ["run_rl_oce_inversion"; "run_ae_plate_oce_inversion"; ...
+    "run_ae_iop_hgo_oce_inversion"];
 for owner = owners'
     sourceFile = fullfile(workflowRoot, owner + ".m");
     assert(isfile(sourceFile), 'Missing maintained human inversion driver: %s', owner);

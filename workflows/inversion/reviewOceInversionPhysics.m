@@ -156,6 +156,28 @@ elseif family=="Plate"
         fprintf('Plate reference thickness %.6f mm; OCE measured selected range %.6f to %.6f mm.\n', ...
             physics.thickness_m*1e3,min(finite)*1e3,max(finite)*1e3);
     end
+elseif family=="AcoustoelasticIOPHGO"
+    % One reviewed scalar current thickness (study.ae.fixedPhysical.thickness_m).
+    % OCE directional thickness is not an AE input, so no OCE policy applies.
+    assert(~isfield(study,'thicknessPolicy')|| ...
+        study.thicknessPolicy=="explicit_constant_current_thickness", ...
+        'lamb:study:ThicknessPolicy', ...
+        'AE IOP/HGO accepts only one explicitly reviewed scalar current thickness.');
+    physics=struct('researcher',study.ae,'native',buildOceAeIopHgoFitConfig(study.ae));
+    review.thicknessPolicy="explicit_constant_current_thickness";
+    review.modelBranch="A0"; % Derived from the official atlasA0 curve.
+    for name=["thicknessSource","thicknessJustification","densitySource","radiusSource", ...
+            "iopSource","fluidSource","fitParameterJustification","modelAssumptionsJustification"]
+        checkText(review,name);
+    end
+    % The native solver evaluates the complete original axis; rows are never trimmed.
+    frequency=experimental.frequency_Hz(:);
+    assert(all(isfinite(frequency)&frequency>0),'lamb:study:AEFrequencyAxis', ...
+        ['AE IOP/HGO needs positive finite Hz for every original observation row. ' ...
+        'Rows are neither trimmed nor repaired by the workflow.']);
+    % Preflight native support (fixed mask and selected-frequency anchor) without
+    % a forward solve; unsupported selected rows are an error, not trimmed.
+    lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem(experimental,physics.native);
 else
     error('lamb:study:ModelFamily','Unsupported inversion family.');
 end

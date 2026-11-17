@@ -13,6 +13,7 @@ entries = [ ...
     "quick_contracts" "tests/workflows/inversion/test_inversion_workflow_contract.m"
     "quick_contracts" "tests/workflows/inversion/test_oce_inversion_batch_contract.m"
     "quick_contracts" "tests/workflows/inversion/test_oce_mrlfe_inversion_contract.m"
+    "quick_contracts" "tests/workflows/inversion/test_oce_ae_iop_hgo_inversion_contract.m"
     "quick_contracts" "tests/integrations/oce/test_oce_fit_observations.m"
     "quick_contracts" "tests/integrations/oce/test_oce_qh_plate_integration.m"
     "quick_contracts" "tests/fitting/test_fitting_helpers_smoke.m"

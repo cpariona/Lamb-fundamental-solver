@@ -66,10 +66,12 @@ end
 assembly=inputs.assembly;observationReview=inputs.observationReview;
 frequencySelectionMapping=inputs.frequencySelectionMapping;
 graphicSamplingMapping=inputs.graphicSamplingMapping;
-if family~="Plate"
-    fitConfig=physics; % RL native or mRLFE canonical-SI request; Plate keeps PHYSICAL.
-else
+if family=="Plate"
     physical=physics;
+else
+    % RL native request, mRLFE canonical-SI request, or AE researcher SI
+    % inputs plus native request.
+    fitConfig=physics;
 end
 folder=fileparts(study.resultFile);
 if ~isfolder(folder),mkdir(folder);end
@@ -83,11 +85,11 @@ if any([variables.bytes]>=2^31),matVersion='-v7.3';end
 % save never leaves a final inversion.mat; publish only after it succeeds.
 staging=[tempname(char(folder)) '.mat'];
 discardStaging=onCleanup(@()deleteIfPresent(staging)); %#ok<NASGU>
-if family~="Plate"
-    save(staging,'studyRecord','nativeResult','assembly','fitConfig','review', ...
+if family=="Plate"
+    save(staging,'studyRecord','nativeResult','assembly','physical','review', ...
         'observationReview','frequencySelectionMapping','graphicSamplingMapping',matVersion);
 else
-    save(staging,'studyRecord','nativeResult','assembly','physical','review', ...
+    save(staging,'studyRecord','nativeResult','assembly','fitConfig','review', ...
         'observationReview','frequencySelectionMapping','graphicSamplingMapping',matVersion);
 end
 publishWithoutOverwrite(staging,study.resultFile);

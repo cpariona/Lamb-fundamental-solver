@@ -21,6 +21,10 @@ function plans = buildOceInversionPlans(config)
 % copied unchanged: material/geometry above do not fill mRLFE physics. A
 % reviewed scalar thickness_policy applies ("explicit_constant" or
 % "oce_median_per_case"); the review function enforces it at execution.
+% Family "AcoustoelasticIOPHGO" requires config.ae (canonical SI researcher
+% inputs, see buildOceAeIopHgoFitConfig) and config.ae_review (its review
+% texts). It uses one reviewed scalar thickness in ae and ignores
+% thickness_policy and the RL/Plate physical fields.
 % Returns a column cell array in CONFIG.families order. Every plan has
 % execute=false and the existing runOceInversionBatch contract. Discovery
 % recovers each selected summary once through OCE, preserving exact condition
@@ -55,6 +59,13 @@ rl_fit_parameter_justification = config.rl_fit_parameter_justification;
 rl_model_assumptions_justification = config.rl_model_assumptions_justification;
 plate_model_assumptions_justification = config.plate_model_assumptions_justification;
 plate_fit_options = config.plate_fit_options;
+% AE IOP/HGO inputs are required only when that family is requested. They are
+% explicit canonical SI researcher inputs (see buildOceAeIopHgoFitConfig).
+ae = [];ae_review = [];
+if any(string(families)=="AcoustoelasticIOPHGO")
+    ae = config.ae;
+    ae_review = config.ae_review;
+end
 
 assert(isfile(fullfile(oce_repository_root,"src","+oce","+results", ...
     "recoverSummaryObservations.m")), ...
@@ -63,7 +74,8 @@ addpath(fullfile(oce_repository_root,"src"),"-end");
 assertOceInversionProducerPath(oce_repository_root);
 assert(isfolder(experiment_root),'lamb:workflow:ExperimentRoot', ...
     'Select an existing OCE experiment root.');
-assert(~isempty(families) && all(ismember(families,["RayleighLamb","mRLFE","Plate"])) && ...
+assert(~isempty(families) && all(ismember(families, ...
+    ["RayleighLamb","mRLFE","Plate","AcoustoelasticIOPHGO"])) && ...
     numel(unique(families))==numel(families), ...
     'lamb:workflow:Families','Select distinct supported families.');
 if any(families=="mRLFE")
@@ -191,16 +203,23 @@ for sub = chosen(:)'
                 if mode=="pulse",study.excitationMode="Pulse";end
                 for k = 1:numel(families)
                     current = study;
-                    current.thicknessPolicy=thickness_policy;
-                    if families(k)=="RayleighLamb"
+                    if families(k)=="AcoustoelasticIOPHGO"
+                        % One reviewed scalar thickness lives in ae; no OCE thickness policy.
+                        current.ae=ae;
+                        current.review=ae_review;
+                        current.observationMask=[];
+                    elseif families(k)=="RayleighLamb"
+                        current.thicknessPolicy=thickness_policy;
                         current.fitConfig=rl_fit;
                         current.review=rl_review;
                         current.observationMask=[];
                     elseif families(k)=="mRLFE"
+                        current.thicknessPolicy=thickness_policy;
                         current.fitConfig=config.mrlfe_fit_config;
                         current.review=config.mrlfe_review;
                         current.observationMask=[];
                     else
+                        current.thicknessPolicy=thickness_policy;
                         current.physical=plate_physical;
                         current.review=plate_review;
                         current.fitOptions=plate_fit_options;

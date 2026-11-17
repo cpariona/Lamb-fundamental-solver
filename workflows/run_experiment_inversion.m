@@ -7,7 +7,7 @@ inversions_root = ""; % Optional absolute root; default is beside OCE_Experiment
 oce_repository_root = string(getpref('LambFundamentalSolver','oceRepositoryRoot',''));
 subexperiments = "all"; % "all" or exact recorded subexperiment IDs
 condition_keys = "strain_percent"; % Exact mechanical metadata field(s) to group; edit as needed
-families = ["RayleighLamb","Plate"]; % optional: "mRLFE" (see its inputs below)
+families = ["RayleighLamb","Plate"]; % optional: "mRLFE", "AcoustoelasticIOPHGO" (see inputs below)
 repetitions = "all"; % "all" or exact recorded repetition IDs
 scan_axes = "all"; % "all" or numeric scan axis indices
 directions = ["left","right"]; % "all" or a subset
@@ -46,6 +46,21 @@ mrlfe_review = struct('thicknessSource',"",'thicknessJustification',"", ...
     'densitySource',"",'fluidSource',"",'fitParameterJustification',"", ...
     'modelAssumptionsJustification',"");
 
+% Optional family "AcoustoelasticIOPHGO" (add it to families to enable). Canonical SI
+% researcher inputs, no inferred values; official atlasA0 only (S0 is rejected).
+% One reviewed scalar current thickness replaces the OCE thickness policy for this
+% family. Move each free parameter (iop_Pa, mu_Pa, k1_Pa, k2) from fixedPhysical
+% into initialGuess and bounds. Selected Hz must be at or above the native anchor.
+ae = struct('branchName',"atlasA0",'executionProfile',"", ...
+    'freeParams',strings(0,1), ...
+    'fixedPhysical',struct('radius_m',NaN,'thickness_m',NaN,'iop_Pa',NaN, ...
+        'mu_Pa',NaN,'k1_Pa',NaN,'k2',NaN,'density_kgpm3',NaN, ...
+        'fluidDensity_kgpm3',NaN,'fluidBulkModulus_Pa',NaN), ...
+    'initialGuess',struct(),'bounds',struct());
+ae_review = struct('thicknessSource',"",'thicknessJustification',"", ...
+    'densitySource',"",'radiusSource',"",'iopSource',"",'fluidSource',"", ...
+    'fitParameterJustification',"",'modelAssumptionsJustification',"");
+
 % Safe defaults: plan first, then enable an authorized new run.
 run_batches = false;
 reuse_only = false;
@@ -80,6 +95,10 @@ config = struct( ...
     'rl_fit_parameter_justification',rl_fit_parameter_justification, 'rl_model_assumptions_justification',rl_model_assumptions_justification, ...
     'plate_model_assumptions_justification',plate_model_assumptions_justification, 'plate_fit_options',plate_fit_options, ...
     'mrlfe_fit_config',mrlfe_fit_config, 'mrlfe_review',mrlfe_review);
+if any(families == "AcoustoelasticIOPHGO")
+    config.ae = ae;
+    config.ae_review = ae_review;
+end
 plans = buildOceInversionPlans(config);
 
 %% 3. PREVIEW REVIEWED CASES AND OUTPUT DESTINATIONS
