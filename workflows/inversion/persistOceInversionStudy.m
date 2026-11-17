@@ -66,8 +66,8 @@ end
 assembly=inputs.assembly;observationReview=inputs.observationReview;
 frequencySelectionMapping=inputs.frequencySelectionMapping;
 graphicSamplingMapping=inputs.graphicSamplingMapping;
-if family=="RayleighLamb"
-    fitConfig=physics;
+if family~="Plate"
+    fitConfig=physics; % RL native or mRLFE canonical-SI request; Plate keeps PHYSICAL.
 else
     physical=physics;
 end
@@ -83,7 +83,7 @@ if any([variables.bytes]>=2^31),matVersion='-v7.3';end
 % save never leaves a final inversion.mat; publish only after it succeeds.
 staging=[tempname(char(folder)) '.mat'];
 discardStaging=onCleanup(@()deleteIfPresent(staging)); %#ok<NASGU>
-if family=="RayleighLamb"
+if family~="Plate"
     save(staging,'studyRecord','nativeResult','assembly','fitConfig','review', ...
         'observationReview','frequencySelectionMapping','graphicSamplingMapping',matVersion);
 else

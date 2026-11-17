@@ -4,6 +4,7 @@ function [batchResult, recovery] = runOceInversionBatch(plan, family, recovery)
 % PLAN.oceRepositoryRoot: machine-local OCE code checkout.
 % PLAN.inversionsRoot: optional absolute output root; defaults to OCE_Inversions
 %   alongside OCE_Experiments when experimentRoot is OCE_Experiments/<experiment>.
+% FAMILY: "RayleighLamb", "mRLFE" or "Plate".
 % PLAN.cases: scalar struct or struct array, each with exact observation,
 % model, frequency, physical-review and optional outputRelativeFolder choices.
 % PLAN.execute: false (default) returns read-only output plan without fitting.
@@ -17,7 +18,7 @@ assert(isstruct(plan)&&isscalar(plan)&&isfield(plan,'cases')&& ...
     isstruct(plan.cases)&&~isempty(plan.cases), ...
     'lamb:batch:InvalidPlan','A nonempty reviewed struct array is required.');
 family=string(family);
-assert(any(family==["RayleighLamb","Plate"]),'lamb:batch:Model','Unknown model.');
+assert(any(family==["RayleighLamb","mRLFE","Plate"]),'lamb:batch:Model','Unknown model.');
 execute=false;
 if isfield(plan,'execute'),execute=plan.execute;end
 validateattributes(execute,{'logical'},{'scalar'});
@@ -120,7 +121,7 @@ messages=strings(n,1);
 selectedRows=nan(n,1);
 metricValue=nan(n,1);
 metricUnit=strings(n,1);
-nativeAccepted=nan(n,1); % Plate native acceptance only; NaN for RL.
+nativeAccepted=nan(n,1); % Plate native acceptance only; NaN for RL and mRLFE.
 results=cell(n,1);
 failureFiles=strings(n,1);
 if execute
@@ -130,7 +131,7 @@ if execute
                 cases{j},family,plan.oceRepositoryRoot,recovery);
             native=results{j}.nativeResult;
             selectedRows(j)=nnz(native.validMask);
-            if family=="RayleighLamb"
+            if family~="Plate" % RL and mRLFE report native phase-speed RMSE.
                 metricValue(j)=native.metrics.RMSE;
                 metricUnit(j)="m/s";
             else
