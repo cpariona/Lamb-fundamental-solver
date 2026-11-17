@@ -95,7 +95,7 @@ hard-coded in any workflow. Unless overridden, the input summary is
 output is:
 
 ```text
-Results/<subexperiment>/Inversions/<RayleighLamb|Plate>/<case>/
+Results/<subexperiment>/Inversions/<RayleighLamb|Plate|AcoustoelasticIOPHGO>/<case>/
     inversion.mat
     inversion.fig
     inversion.tif
@@ -122,6 +122,7 @@ next to `OCE_Experiments` under the same user-chosen parent directory:
 <user-chosen-parent>/OCE_Inversions/<experiment>/<subexperiment>/
     RayleighLamb/<case>/inversion.{mat,fig,tif}
     Plate/<case>/inversion.{mat,fig,tif}
+    AcoustoelasticIOPHGO/<case>/inversion.{mat,fig,tif}
 ```
 
 The batch never relocates or edits OCE `Results` inputs. Set
@@ -197,7 +198,11 @@ native metadata contract and are rejected rather than silently renumbered.
 A missing selected repetition or signed direction is an error.
 
 Section 3 previews the independent, reviewable `plan.cases` arrays returned
-for the explicitly selected RayleighLamb and/or Plate families. The generated condition ID is a stable path label derived from
+for the explicitly selected families. The experiment-wide human script
+`run_experiment_inversion.m` defaults to RayleighLamb and Plate; add
+`AcoustoelasticIOPHGO` to `families` and supply the reviewed AE configuration
+to include it. Programmatic AE IOP/HGO batches use the same planner, as described in the
+AE section below. The generated condition ID is a stable path label derived from
 recorded mechanical keys and exact values (for example,
 `Strain_0pct_<8-hex fingerprint>`); it does not depend on acquisition or Pulse-period
 ordering. The eight-digit fragment is a condition fingerprint, not a Git commit. The exact recorded condition values remain unchanged in each case. `fit_frequency_selection="all"` requires the user to set
@@ -212,11 +217,39 @@ actual OCE sources, whereas the underlying `plan.execute=false` preview
 checks only structural fields and output paths. The Editor Run Section
 path is required for this human workflow.
 
+## AE IOP/HGO human and batch workflow
+
+`run_ae_iop_hgo_oce_inversion.m` is the section-oriented Editor script for the
+acoustoelastic IOP/HGO family, using the same discovery, preparation, review,
+fit, save and plot functions as RayleighLamb and Plate. In batch use, pass
+`family="AcoustoelasticIOPHGO"` to `buildOceInversionPlans` (via
+`config.families`) and `runOceInversionBatch(plan,"AcoustoelasticIOPHGO")`;
+plans remain `execute=false` until explicitly authorized.
+
+- **atlasA0 only.** Only the official `atlasA0` curve is fitted; S0 or any other
+  branch is rejected. Diagnostics (`plotAeIopHgoFitDiagnostics`) never replace
+  that curve. `executionProfile` ("Fast" | "Balanced" | "Robust") changes
+  computational cost only.
+- **Explicit SI physical inputs.** `study.ae.fixedPhysical` requires
+  `radius_m`, `thickness_m`, `iop_Pa`, `mu_Pa`, `k1_Pa`, `k2`,
+  `density_kgpm3`, `fluidDensity_kgpm3` and `fluidBulkModulus_Pa`; free
+  parameters (`iop_Pa`, `mu_Pa`, `k1_Pa`, `k2`) need explicit initial guesses and
+  bounds. Nothing is inferred, defaulted or unit-converted; NaN/empty
+  placeholders are rejected. Researcher sources and justifications are
+  recorded in `study.review`.
+- **Scalar thickness.** `thickness_m` is one reviewed scalar current full
+  thickness; OCE directional/per-acquisition thickness is not used.
+- **Fixed mask and rows.** Selected observations must lie at or above the native
+  atlasA0 initialization anchor (not trimmed); the reviewed mask and original
+  rows are retained. Reuse requires exact source, mask, native problem and
+  assembly identity.
+
 ## Programmable batch workflows
 
 Add `workflows/inversion` to your MATLAB path explicitly for callable functions and initialize
 Lamb and OCE as with the interactive drivers. The single programmable batch entry point is `runOceInversionBatch(plan,family)`,
-where `family="RayleighLamb"` or `family="Plate"`. This avoids maintaining
+where `family="RayleighLamb"`, `family="Plate"` or
+`family="AcoustoelasticIOPHGO"`. This avoids maintaining
 two model-only forwarding wrappers; each case is still reviewed and executed
 by its own native physical family.
 

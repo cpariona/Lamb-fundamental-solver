@@ -24,15 +24,24 @@ if ~isempty(existing)&&~isempty(existingAssembly)
         recordedFiles=string({existingAssembly.lineage.resultFile})';
     end
     same=isequal(recordedFiles,string(sourceFiles(:)));
-    if family=="RayleighLamb"
-        nativeProblem=lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,physics);
+    if family~="Plate"
+        % Exact native request, including the unchanged observations and fixed mask.
+        if family=="RayleighLamb"
+            nativeProblem=lamb.fitting.rayleigh_lamb.rlBuildFitProblem(experimental,physics);
+            modelFamily="rayleigh_lamb";
+        else
+            nativeProblem=lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem( ...
+                experimental,physics.native);
+            modelFamily="acoustoelastic_iop_hgo";
+        end
         effective=rmfield(nativeProblem,{'evaluateModel','residualFunction','objectiveFunction'});
-        same=same&&string(existing.modelFamily)=="rayleigh_lamb"&& ...
+        same=same&&string(existing.modelFamily)==modelFamily&& ...
             isequaln(existing.problem,effective);
         if study.excitationMode=="QH"&&study.estimator=="kf_ridge"
-            same=same&&isequaln(existingAssembly.physicalFrequency_Hz,assembly.physicalFrequency_Hz)&& ...
-                isequaln(existingAssembly.requestedTargetFrequency_Hz,assembly.requestedTargetFrequency_Hz)&& ...
-                isequal([existingAssembly.lineage.binIndex],[assembly.lineage.binIndex]);
+            % Optional assembly fields must match exactly, including presence.
+            same=same&&sameOptionalField(existingAssembly,assembly,'physicalFrequency_Hz')&& ...
+                sameOptionalField(existingAssembly,assembly,'requestedTargetFrequency_Hz')&& ...
+                sameLineageBins(existingAssembly,assembly);
         end
     else
         same=same&&isequaln(existing.physical,physics)&&isequaln(existing.options,fitOptions);
@@ -54,6 +63,9 @@ assert(reused||~study.reuseOnly,'lamb:study:RequestMismatch', ...
 if ~reused
     if family=="RayleighLamb"
         nativeResult=lamb.fitting.rayleigh_lamb.rlFitDispersionData(experimental,physics);
+    elseif family=="AcoustoelasticIOPHGO"
+        nativeResult=lamb.fitting.acoustoelastic_iop_hgo.aeFitDispersionData( ...
+            experimental,physics.native);
     elseif study.excitationMode=="QH"
         outcome=fitOceQhPrestressedPlate(assembly,physics,review,fitOptions);
         nativeResult=outcome.nativeResult;
@@ -64,9 +76,20 @@ if ~reused
 end
 assert(isequal(nativeResult.validMask,experimental.validMask), ...
     'lamb:study:NativeMask','Native result must retain the reviewed mask.');
-if family=="RayleighLamb"
+if family~="Plate"
     assert(isequaln(nativeResult.frequency_Hz,experimental.frequency_Hz)&& ...
         isequaln(nativeResult.Cp_exp_mps,experimental.Cp_mps), ...
-        'lamb:study:NativeRows','RL must retain the original observation rows.');
+        'lamb:study:NativeRows','The native fit must retain the original observation rows.');
 end
+end
+
+function tf=sameOptionalField(a,b,name)
+hasA=isfield(a,name);hasB=isfield(b,name);
+tf=hasA==hasB&&(~hasA||isequaln(a.(name),b.(name)));
+end
+
+function tf=sameLineageBins(a,b)
+hasA=isfield(a,'lineage')&&isfield(a.lineage,'binIndex');
+hasB=isfield(b,'lineage')&&isfield(b.lineage,'binIndex');
+tf=hasA==hasB&&(~hasA||isequal([a.lineage.binIndex],[b.lineage.binIndex]));
 end

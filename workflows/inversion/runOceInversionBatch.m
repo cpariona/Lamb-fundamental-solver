@@ -17,7 +17,7 @@ assert(isstruct(plan)&&isscalar(plan)&&isfield(plan,'cases')&& ...
     isstruct(plan.cases)&&~isempty(plan.cases), ...
     'lamb:batch:InvalidPlan','A nonempty reviewed struct array is required.');
 family=string(family);
-assert(any(family==["RayleighLamb","Plate"]),'lamb:batch:Model','Unknown model.');
+assert(any(family==["RayleighLamb","Plate","AcoustoelasticIOPHGO"]),'lamb:batch:Model','Unknown model.');
 execute=false;
 if isfield(plan,'execute'),execute=plan.execute;end
 validateattributes(execute,{'logical'},{'scalar'});
@@ -86,6 +86,10 @@ for j=1:n
     if ~isfield(caseStudy,'displayLabel'),caseStudy.displayLabel="";end
     if ~isfield(caseStudy,'displaySubtitle'),caseStudy.displaySubtitle="";end
     if ~isfield(caseStudy,'summaryFile'),caseStudy.summaryFile="";end
+    if family=="AcoustoelasticIOPHGO"
+        % Structural SI/native translation only; no OCE read and no forward solve.
+        buildOceAeIopHgoFitConfig(caseStudy.ae);
+    end
     caseStudy=resolveOceInversionPaths(caseStudy,family);
     outputs(j)=string(caseStudy.resultFile);
     subexperiments(j)=string(caseStudy.subexperimentId);
@@ -130,13 +134,15 @@ if execute
                 cases{j},family,plan.oceRepositoryRoot,recovery);
             native=results{j}.nativeResult;
             selectedRows(j)=nnz(native.validMask);
-            if family=="RayleighLamb"
-                metricValue(j)=native.metrics.RMSE;
-                metricUnit(j)="m/s";
-            else
+            if family=="Plate"
                 metricValue(j)=native.regressionRMSE_Pa;
                 metricUnit(j)="Pa";
                 nativeAccepted(j)=double(native.accepted);
+            else
+                % RL and AE report their native phase-speed RMSE over the fixed mask.
+                % Neither is a physical acceptance criterion.
+                metricValue(j)=native.metrics.RMSE;
+                metricUnit(j)="m/s";
             end
             if ~isempty(executionError),rethrow(executionError);end
             status(j)="completed";
@@ -174,7 +180,7 @@ keys=["experimentId","subexperimentId","sampleId","excitationMode","period_us", 
     "repetitions","conditionId","condition","scanAxisIndex","direction", ...
     "estimator","curve","fitFrequencySelection","fitFrequency_Hz", ...
     "fullBandReviewed","observationMask","thicknessPolicy", ...
-    "thicknessReferenceSourceIndex","fitConfig","physical","fitOptions", ...
+    "thicknessReferenceSourceIndex","fitConfig","ae","physical","fitOptions", ...
     "review","summaryRelativeFile","resolvedSummaryRelativeFile", ...
     "outputRelativeFolder","resolvedOutputRelativeFolder", ...
     "resolvedOutputBase","outputTag"];
