@@ -91,8 +91,8 @@ try
     end
     % One scalar current thickness: the stored prediction is one function of
     % Hz, so rows (possibly repeated or unordered) collapse to one point per
-    % positive finite unique sorted frequency. Unavailable predictions are gaps.
-    modelRows = find(isfinite(f) & f>0 & modelAvailable);
+    % positive finite unique sorted frequency. NaN predictions preserve gaps.
+    modelRows = find(isfinite(f) & f>0);
     [modelHz,index] = unique(f(modelRows),'sorted');
     modelCp = predicted(modelRows(index));
     handles(numel(labels)+1) = plot(dispersion,modelHz/1e3,modelCp,'k--', ...
