@@ -363,9 +363,11 @@ fills a missing value and legacy native names are rejected. `executionProfile`
   policies are not applied; thickness is never fitted. Measured OCE thickness remains
   provenance only, like load, mass and DIC, which are not fitting constraints.
 - The complete original frequency axis and fixed `validMask` are passed unchanged.
-  A nonpositive or nonfinite Hz row is an error (`lamb:study:AEFrequencyAxis`), and a
-  selected row below the native initialization anchor raises the native
-  `lamb:fitting:AEObjectiveOutsideSupportedRange`; the workflow never trims or repairs.
+  Explicitly excluded nonpositive/nonfinite rows, including DC, remain in place
+  and are not evaluated by the native solver. Selected invalid Hz are rejected
+  by `aeBuildFitProblem` (`lamb:fitting:AEInvalidSelectedObservation`); selected rows
+  below the native initialization anchor raise `lamb:fitting:AEObjectiveOutsideSupportedRange`.
+  The workflow never trims or repairs observations.
   Review preflight builds the native problem and runs no forward solve.
 - Native reuse requires an identical native request, mask and source files. `fitConfig`
   in `inversion.mat` stores the researcher SI inputs (`researcher`) and the native request (`native`).

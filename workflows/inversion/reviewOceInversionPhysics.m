@@ -170,11 +170,8 @@ elseif family=="AcoustoelasticIOPHGO"
             "iopSource","fluidSource","fitParameterJustification","modelAssumptionsJustification"]
         checkText(review,name);
     end
-    % The native solver evaluates the complete original axis; rows are never trimmed.
-    frequency=experimental.frequency_Hz(:);
-    assert(all(isfinite(frequency)&frequency>0),'lamb:study:AEFrequencyAxis', ...
-        ['AE IOP/HGO needs positive finite Hz for every original observation row. ' ...
-        'Rows are neither trimmed nor repaired by the workflow.']);
+    % Preserve the original axis and fixed mask; native validation rejects
+    % invalid selected rows and excludes masked-out DC from evaluation.
     % Preflight native support (fixed mask and selected-frequency anchor) without
     % a forward solve; unsupported selected rows are an error, not trimmed.
     lamb.fitting.acoustoelastic_iop_hgo.aeBuildFitProblem(experimental,physics.native);
