@@ -252,6 +252,42 @@ fit=string(fileread(which('fitOceInversionNative')));
 verifyTrue(testCase,contains(fit,'lamb.fitting.mrlfe.mrlfeFitDispersionData'));
 end
 
+function testModelLineIsOneCpPerUniqueSortedHzAndEvidenceIsUnchanged(testCase)
+% Synthetic stored result: repeated, out-of-order rows with one gap and DC.
+f=[3000;1000;2000;1000;3000;0;2000;4000];
+cp=[3.1;1.1;2.1;1.2;3.2;.5;2.2;4.1];
+fit=[3;1;2;1;3;.4;2;NaN];
+mask=logical([1;1;1;1;1;0;1;0]);
+raw=fit(mask)-cp(mask);
+result=struct('modelFamily',"mrlfe",'branchName',"A0Like", ...
+    'frequency_Hz',f,'Cp_exp_mps',cp,'Cp_fit_mps',fit,'validMask',mask, ...
+    'residualInfo',struct('objectiveMask',mask,'rawResiduals_mps',raw), ...
+    'allParams',struct('rho',1050,'thickness',5e-4,'nu',.4999,'etaS',5), ...
+    'bestParams',struct('mu',15000),'freeParams',"mu",'metrics',struct('RMSE',.1), ...
+    'lowerBounds',1000,'upperBounds',1e5,'optimizer',struct(),'identifiability',struct(), ...
+    'problem',struct('fitOptions',struct('useStandardErrorWeights',false)));
+before=result;
+provenance=struct('label',"Synthetic",'material',"Synthetic",'sourceReference',"Synthetic", ...
+    'modelAssumptionsJustification',"Synthetic review",'repetitionId',repmat("r",8,1));
+[fig,evidence]=plotMrlfeFitDiagnostics(result,provenance,'Visible','off');
+testCase.addTeardown(@()close(fig));
+line=findobj(fig,'Tag','mrlfe_native_prediction');
+verifyEqual(testCase,numel(line),1);
+x=line.XData(:);
+verifyEqual(testCase,x,[1;2;3],'AbsTol',1e-12); % kHz; positive, unique, ascending
+verifyTrue(testCase,issorted(x,'strictascend'));
+verifyEqual(testCase,line.YData(:),[1;2;3]);
+% Every original row, mask, residual and the stored result remain unchanged.
+verifyEqual(testCase,result,before);
+verifyEqual(testCase,evidence.observations.frequency_Hz,f);
+verifyEqual(testCase,evidence.observations.predictedCp_mps,fit);
+verifyEqual(testCase,evidence.observations.selected,mask);
+verifyEqual(testCase,evidence.observations.residual_mps(mask),raw);
+verifyEqual(testCase,evidence.unavailablePredictionCount,1);
+verifyEqual(testCase,height(evidence.observations),numel(f));
+verifyEqual(testCase,fig.UserData.provenance.repetitionId,provenance.repetitionId);
+end
+
 function config=reviewedConfig()
 config=struct('branchName',"A0Like",'freeParams',"mu_Pa", ...
     'fixedParams',struct('density_kgpm3',1050,'thickness_m',5e-4, ...
