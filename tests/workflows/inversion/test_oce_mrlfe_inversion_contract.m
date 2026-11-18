@@ -254,7 +254,7 @@ end
 
 function testModelLineIsOneCpPerUniqueSortedHzAndEvidenceIsUnchanged(testCase)
 % Synthetic stored result: repeated, out-of-order rows with one gap and DC.
-f=[3000;1000;2000;1000;3000;0;2000;4000];
+f=[3000;1000;2000;1000;3000;0;2000;2500];
 cp=[3.1;1.1;2.1;1.2;3.2;.5;2.2;4.1];
 fit=[3;1;2;1;3;.4;2;NaN];
 mask=logical([1;1;1;1;1;0;1;0]);
@@ -274,9 +274,10 @@ testCase.addTeardown(@()close(fig));
 line=findobj(fig,'Tag','mrlfe_native_prediction');
 verifyEqual(testCase,numel(line),1);
 x=line.XData(:);
-verifyEqual(testCase,x,[1;2;3],'AbsTol',1e-12); % kHz; positive, unique, ascending
+verifyEqual(testCase,x,[1;2;2.5;3],'AbsTol',1e-12); % kHz; interior gap retained
 verifyTrue(testCase,issorted(x,'strictascend'));
-verifyEqual(testCase,line.YData(:),[1;2;3]);
+verifyEqual(testCase,line.YData([1 2 4]),[1 2 3]);
+verifyTrue(testCase,isnan(line.YData(3))); % No bridge across an unavailable point
 % Every original row, mask, residual and the stored result remain unchanged.
 verifyEqual(testCase,result,before);
 verifyEqual(testCase,evidence.observations.frequency_Hz,f);
