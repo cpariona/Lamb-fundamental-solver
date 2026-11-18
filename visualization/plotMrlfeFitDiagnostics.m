@@ -9,8 +9,8 @@ function [fig, evidence] = plotMrlfeFitDiagnostics(result, provenance, varargin)
 %   performed. The layout follows the RL diagnostic (A. dispersion, B. native
 %   fit, C. native raw residuals in m/s) with the mRLFE branch, fluid loading
 %   and viscosity reported from the stored native parameters. The reported
-%   model line is the stored requested-curve prediction on the strictly
-%   ascending native axis; unavailable predictions remain gaps. The native
+%   model line is the stored prediction, one Cp per positive finite unique
+%   sorted Hz (repeated/unordered rows collapse); unavailable predictions remain gaps. The native
 %   forward cache and solver options are not copied into the figure data.
 %   All rows remain in evidence.observations and FIG.UserData.
 p = inputParser;
@@ -89,9 +89,14 @@ try
             'Marker',markers{style},'MarkerSize',3.5,'Color',colors(style,:), ...
             'LineWidth',.5,'Tag','mrlfe_native_residual');
     end
-    % The native axis is positive, finite and strictly ascending; no sorting.
-    handles(numel(labels)+1) = plot(dispersion,f(modelAvailable)/1e3, ...
-        predicted(modelAvailable),'k--','LineWidth',1.5,'Tag','mrlfe_native_prediction');
+    % One scalar current thickness: the stored prediction is one function of
+    % Hz, so rows (possibly repeated or unordered) collapse to one point per
+    % positive finite unique sorted frequency. NaN predictions preserve gaps.
+    modelRows = find(isfinite(f) & f>0);
+    [modelHz,index] = unique(f(modelRows),'sorted');
+    modelCp = predicted(modelRows(index));
+    handles(numel(labels)+1) = plot(dispersion,modelHz/1e3,modelCp,'k--', ...
+        'LineWidth',1.5,'Tag','mrlfe_native_prediction');
     legendLabels(numel(labels)+1) = "Model";
     if any(excluded)
         handles(end) = plot(dispersion,f(excluded)/1e3,observed(excluded),'x', ...
@@ -100,7 +105,7 @@ try
         legendLabels(end) = "Excluded";
     end
     [limits,scaleEvidence] = resolveInversePhaseSpeedLimits( ...
-        [observed(withinView);predicted(modelAvailable)],'Mode',"complete");
+        [observed(withinView);modelCp],'Mode',"complete");
     ylim(dispersion,limits);
     [residualLimits,residualScale] = resolveInversePhaseSpeedLimits(residual(selected), ...
         'Quantity',"speed_residual");
