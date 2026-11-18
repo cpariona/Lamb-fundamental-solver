@@ -123,9 +123,19 @@ verifyEqual(testCase,reviewAgain,review);
 selectedBelow=assembly;selectedBelow.experimental.validMask(1)=true;
 verifyError(testCase,@()reviewOceInversionPhysics(study,selectedBelow,obs, ...
     "AcoustoelasticIOPHGO"),'lamb:fitting:AEObjectiveOutsideSupportedRange');
-nonpositive=assembly;nonpositive.experimental.frequency_Hz(1)=0;
-verifyError(testCase,@()reviewOceInversionPhysics(study,nonpositive,obs, ...
-    "AcoustoelasticIOPHGO"),'lamb:study:AEFrequencyAxis');
+excludedDc=assembly;excludedDc.experimental.frequency_Hz(1)=0;
+[withDc,dcPhysics,dcReview]=reviewOceInversionPhysics(study,excludedDc,obs, ...
+    "AcoustoelasticIOPHGO");
+verifyEqual(testCase,withDc,excludedDc.experimental);
+verifyEqual(testCase,dcPhysics,physics);
+verifyEqual(testCase,dcReview,review);
+for invalidHz=[0 -1 NaN Inf]
+    selectedInvalid=excludedDc;
+    selectedInvalid.experimental.frequency_Hz(1)=invalidHz;
+    selectedInvalid.experimental.validMask(1)=true;
+    verifyError(testCase,@()reviewOceInversionPhysics(study,selectedInvalid,obs, ...
+        "AcoustoelasticIOPHGO"),'lamb:fitting:AEInvalidSelectedObservation');
+end
 for policy=["oce_median_per_case","oce_directional_per_acquisition"]
     other=study;other.thicknessPolicy=policy;
     verifyError(testCase,@()reviewOceInversionPhysics(other,assembly,obs, ...
