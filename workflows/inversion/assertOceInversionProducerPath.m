@@ -8,9 +8,11 @@ if ~srcFile.isAbsolute()
     srcFile = java.io.File(char(fullfile(pwd, srcRoot)));
 end
 srcRoot = string(srcFile.getCanonicalPath());
-apis = ["oce.results.recoverSummaryObservations"; "oce.io.loadAcquisitionTable"];
+apis = ["oce.results.recoverSummaryObservations"; "oce.io.loadAcquisitionTable"; ...
+    "oce.results.resolveSummarySourceReferences"];
 relativeFiles = [fullfile("+oce", "+results", "recoverSummaryObservations.m"); ...
-    fullfile("+oce", "+io", "loadAcquisitionTable.m")];
+    fullfile("+oce", "+io", "loadAcquisitionTable.m"); ...
+    fullfile("+oce", "+results", "resolveSummarySourceReferences.m")];
 for k = 1:numel(apis)
     expected = string(fullfile(srcRoot, relativeFiles(k)));
     actual = string(which(char(apis(k))));

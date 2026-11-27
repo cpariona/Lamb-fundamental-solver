@@ -262,23 +262,21 @@ end
 savedSummary=load(study.summaryFile,'experiment');
 summary=savedSummary.experiment;
 if capture
-    inputFiles=[string(study.summaryFile);fullfile(study.experimentRoot,string(summary.source.index.result_file))];
-    referenceParts=split(replace(string(summary.source.index.result_file),'\','/'),'/',2);
-    subs=unique(referenceParts(:,2),'stable');
-    for sub=subs(:)'
-        [~,metadataFile]=oce.io.loadAcquisitionTable(study.experimentRoot,sub);
-        inputFiles(end+1,1)=string(metadataFile); %#ok<AGROW>
-    end
+    [resultFiles, metadataFiles] = ...
+        oce.results.resolveSummarySourceReferences(study.experimentRoot, summary);
+    inputFiles = [string(study.summaryFile); resultFiles; metadataFiles];
     before=oceInversionProvenance(inputFiles,projectRoot,false);
     assert(isequal(before.inputFiles(1,:),summaryHash), ...
         'lamb:study:InputsChanged','Summary changed while being read.');
     if study.saveResult,inputHashes=before.inputFiles;end
 end
 recovered=oce.results.recoverSummaryObservations(study.experimentRoot,summary);
-if shareRecovery
+if capture
     after=oceInversionProvenance(inputFiles,projectRoot,false);
     assert(isequal(after.inputFiles,before.inputFiles), ...
         'lamb:study:InputsChanged','A source changed during OCE recovery.');
+end
+if shareRecovery
     % Replace the previous entry rather than accumulating summaries or cases.
     recovery=struct('experimentRoot',string(study.experimentRoot), ...
         'summaryFile',string(study.summaryFile),'producer',producer, ...
