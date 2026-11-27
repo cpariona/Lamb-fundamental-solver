@@ -195,6 +195,9 @@ When `saveResult=true`, the existing result MAT additionally contains
 - `matlabVersion`, `matlabRelease`, and `inputFiles` (experiment-root-relative
   `path`, bytes, SHA-256). Hashes are checked against unchanged absolute
   input locations **before** references are converted for persistence.
+  Before fingerprinting indexed files, the workflow requires the configured
+  OCE checkout to provide `oce.results.resolveSummarySourceReferences`.
+  That producer API validates paths and joins the acquisition identities.
   Input hashes cover the loaded summary, indexed PhaseSpeed files and canonical
   AcquisitionParams tables used for recovery, including indexed sources outside
   the final fitting selection. Files are fingerprinted before recovery and checked
